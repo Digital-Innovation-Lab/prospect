@@ -1,0 +1,132 @@
+
+<!-- Ractive Template for jQueryUI Dialog Component -->
+<script id="dialog-r-template" type='text/ractive'>
+	<div class="jq-dialog-template" title="{{title}}">
+		{{yield}}
+	</div> <!-- dialog -->
+</script>
+
+<!-- Outer-most (application) layer of output for Ractive to generate -->
+<script id="ractive-base" type='text/ractive'>
+	<div id="insert-dialog"></div>
+	{{#if errorMsg.length > 0}}
+	<div id="error-frame">{{errorMsg}}</div>
+	{{/if}}
+	<button id="gig-save-data" on-click="saveTemplate">Verify and Save Template Definition</button><br/>
+	<label for="ext-label">Template external label: </label><input id="ext-label" value='{{theTemplate.l}}' placeholder="Enter label" size="24" required/><br/>
+	<label for="int-id">Template internal id: </label><input id="int-id" value='{{templateID}}' placeholder="Enter id" size="24" pattern="[\w\-]+" required/><br/>
+	<input id="dep-tmplt" type='checkbox' checked='{{theTemplate.d}}'> Dependent Template<br/>
+	<label for="label-att">Label for Records: </label><select id="label-att" value='{{theTemplate.t}}'>
+		{{#each textAtts}}
+			<option>{{this}}</option>
+		{{/each}}
+	</select><br/>
+	<button on-click="addAttribute">Add Attribute</button><br/>
+	<table class='att-table'>
+		<tr>
+			<th>Attribute ID</th>
+			<th>Type</th>
+			<th>Join Dependent</th>
+  		</tr>
+		{{#each theTemplate.a:index}}
+			<tr>
+				<td>{{id}}</td>
+				<td>{{t}}</td>
+				<td on-click="selJoin:{{index}}">{{j}}</td>
+				<td><button decorator="iconButton:ui-icon-trash" on-click="delAttribute:{{index}}">Delete</button></td>
+			</tr>
+		{{/each}}
+	</table>
+	<br/>
+</script>
+
+<!-- Choose Attribute Dialog -->
+<script id="dialog-choose-attribute" type='text/ractive'>
+	<dialog title="Choose Attribute to Add" width="400" height="350">
+		<div class="choose-container">
+			{{#each attributes:index}}
+				{{#if selIndex == index}}
+					<span style="color: red" on-click="doSelect:{{index}}"><b>{{id}}</b> ({{l}}): {{t}} </span>
+				{{else}}
+					<span on-click="doSelect:{{index}}"><b>{{id}}</b> ({{l}}): {{t}} </span>
+				{{/if}}
+				<br/>
+			{{/each}}
+		</div>
+	</dialog>
+</script>
+
+<!-- Choose Dependent Template Dialog -->
+<script id="dialog-choose-dependent" type='text/ractive'>
+	<dialog title="Choose Template to Join" width="400" height="350">
+		<div class="choose-container">
+			{{#each templates:index}}
+				{{#if selIndex == index}}
+					<span style="color: red" on-click="doSelect:{{index}}"><b>{{id}}</b> ({{def.l}}) </span>
+				{{else}}
+					<span on-click="doSelect:{{index}}"><b>{{id}}</b> ({{def.l}}) </span>
+				{{/if}}
+				<br/>
+			{{/each}}
+		</div>
+	</dialog>
+</script>
+
+
+<!-- Confirm Dialog -->
+<script id="dialog-confirm" type='text/ractive'>
+	<dialog title="Confirm" width="300" height="200">
+		{{message}}
+	</dialog>
+</script>
+
+<!-- ERRORS -->
+<script id="errmsg-no-id" type='text/ractive'>
+You must supply an internal ID for the new Template.
+</script>
+
+<script id="errmsg-id-taken" type='text/ractive'>
+There is already another Template with that ID. Please choose another.
+</script>
+
+<script id="errmsg-id-too-long" type='text/ractive'>
+The ID for your Template cannot be longer than 32 characters. Please shorten it.
+</script>
+
+<script id="errmsg-label-too-long" type='text/ractive'>
+The label for your Template cannot be longer than 32 characters. Please shorten it.
+</script>
+
+<script id="errmsg-no-label" type='text/ractive'>
+You must supply a label for the new Template.
+</script>
+
+<script id="errmsg-no-atts" type='text/ractive'>
+All Templates must have at least one Attribute.
+</script>
+
+<script id="errmsg-all-atts-used" type='text/ractive'>
+All of the defined Attributes have already been added to your Template.
+</script>
+
+<script id="errmsg-not-join" type='text/ractive'>
+This is not an Attributes of type 'Join' so no further configuration is possible for it in a Template definition.
+</script>
+
+<script id="errmsg-no-dependents" type='text/ractive'>
+No dependent Templates have been defined yet, so no join is currently possible.
+</script>
+
+<script id="errmsg-no-join-for-dep" type='text/ractive'>
+You are defining a dependent Templates, which cannot have Attributes of type 'Join'.
+</script>
+
+<script id="errmsg-missing-join-tmp" type='text/ractive'>
+You added an Attribute of type 'Join' but have not yet connected it to a Template.
+</script>
+
+
+<!-- MESSAGE -->
+<script id="msg-confirm-del-att" type='text/ractive'>
+Are you sure that you wish to delete this Attribute from your Template?
+</script>

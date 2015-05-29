@@ -1,0 +1,279 @@
+/******************************************************************
+ ** CSS for Gig Front-end Visualizer
+ **/
+
+	/* For busy cursor */
+body.waiting * {
+	cursor: wait !important;
+}
+
+  /* Normalize box sizes! See: http://css-tricks.com/international-box-sizing-awareness-day/
+   */
+*, *:before, *:after {
+	-webkit-box-sizing: border-box; 
+	-moz-box-sizing: border-box; 
+	box-sizing: border-box;
+}
+
+html {
+	height: 100%;
+	box-sizing: border-box;
+	padding: 0;
+	margin: 0;
+}
+
+body {
+	min-height: 100%;
+	display: flex;
+	flex-direction: column;
+
+	background-color: gray;
+
+	font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans-serif;
+	font-size: 14px;
+	font: white;
+}
+
+	/* For busy cursor */
+body.waiting * {
+	cursor: wait !important;
+}
+
+	/* set reasonable defaults */
+select {
+/*	height: 1.1em;
+	line-height: 1em;
+	min-height: auto;
+	width: auto;
+	min-width: auto;
+	max-width: auto; */
+}
+
+	/* Command Bar always along top row of window */
+#command-bar {
+	height: 28px;
+/*	width: 100%; */
+	background-color: yellow;
+	color: blue;
+	font: 12px;
+	margin: 0px;
+	padding: 2px;
+}
+
+#command-bar .title {
+	margin-left: 3px;
+	margin-top: 2px;
+}
+
+#command-bar .ui-icon {
+	cursor: pointer;
+}
+
+#command-bar .home {
+	float: right;
+}
+
+	/* Rest of window excluding command bar */
+#remainder {
+	flex: 1;
+}
+
+	/* One of the following three class styles are added to the remainder div
+	 *	to produce different layouts of filter and display
+	 */
+
+	/* Filters on left half; viz-display on right, split vertically for two */
+.layout-1 {		
+
+}
+
+	/* Filters on top half; viz-displays directly below; (stack of three) */
+.layout-2 {		
+
+}
+
+	/* Filters on top half; viz-displays directly below, split horizontally */
+.layout-3 {		
+
+}
+
+	/* All (multiple) Filters go into this frame */
+#filter-frame {
+	background-color: green;
+}
+
+	/* Each Filter instance has this class */
+.filter-instance {
+	border: black 1px dotted;
+}
+
+	/* One or two displays go into this frame */
+#viz-display-frame {
+	display: inline;
+}
+
+	/* The first visualization display */
+#view-frame-0 {
+	border: red 1px dashed;
+}
+
+	/* The second visualization display */
+#view-frame-1 {
+	border: red 1px dashed;
+}
+
+#viz-display-frame .view-control-bar {
+	width: 100%;
+	background-color: gray;
+	border: 1px dotted black;
+	display: inline-block;
+	padding: 3px;
+	padding-bottom: 1px;
+}
+
+
+#viz-display-frame .view-control-bar .ui-icon {
+	cursor: pointer;
+}
+
+	/* Section which initially has "Loading Content" message */
+#viz-display-frame .viz-loading {
+	background-color: yellow;
+	padding: 3px;
+	color: red;
+}
+
+	/* Frame that displays visualization content */
+#viz-display-frame .viz-content {
+}
+
+  /* Legends are semi-opaque overlays on content in top-left corner */
+.legend-body {
+	position: relative;
+	top: 6px;
+	left: 6px;
+	opacity: 0.8;
+	z-index: 1000;
+
+	width: 240px;
+
+	overflow-y: auto;
+	max-height: 200px;
+
+	padding: 6px;
+
+	background: #fff;
+	background-color: rgba(255, 255, 255, .95);
+
+	color: #222;
+	font-family: "Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;
+
+	-moz-box-shadow: 0 0 5px 5px rgba(0,0,0,0.3);
+	-webkit-box-shadow: 0 0 5px 5px rgba(0,0,0,0.3);
+	box-shadow: 0 0 5px 5px rgba(0,0,0,0.3);
+}
+
+.legend-title {
+	font-size: 20px;
+	font-weight: bold;
+	border-bottom: 1px solid #111;
+	margin-bottom: 6px;
+}
+
+  /* An entry for a Legend value */
+  /* contains .dhp-legend-entry-check then .dhp-legend-entry-key then title */
+.legend-entry {
+	font-size: 14px;
+	height: 22px;
+	font-weight: normal;
+	padding: 0;           /* inherits padding from parent */
+	margin: 0;
+
+/*
+	float: left !important;
+	display: inline !important;
+*/
+}
+
+  /* the check box for a Legend value */
+.legend-entry-check {
+	cursor: pointer;
+}
+
+  /* the visual item for a Legend value */
+.legend-entry-key {
+/*    padding: 4px;
+	padding-left: 12px; */
+	border: 1px solid dotted;
+/*    position: relative;
+	top: 6px;
+	left: 6px; */
+/*    min-width: 20px; */
+	width: 18px;
+	height: 18px;
+}
+
+	/* For lists in modal Dialogs */
+.scroll-container {
+/*	overflow-y: auto; */
+}
+
+.scroll-container ul {
+
+}
+
+.scroll-container .selected {
+	color: red;
+}
+
+	/* Selection Glow
+	 */
+
+.selected-object {
+    animation: anim-bkgnd-pulse 2s infinite;
+    -0-animation: anim-bkgnd-pulse 2s infinite;
+    -moz-animation: anim-bkgnd-pulse 2s infinite;
+    -webkit-animation: anim-bkgnd-pulse 2s infinite; /* Chrome, Safari, Opera */
+}
+
+@keyframes anim-bkgnd-pulse {
+	0%, 100% { border-style: dotted; border-color: gray; border-width: 1px; }
+	50% { border-style: solid; border-color: red; border-width: 1px; }
+}
+
+@-o-keyframes anim-bkgnd-pulse {
+	0%, 100% { border-style: dotted; border-color: gray; border-width: 1px; }
+	50% { border-style: solid; border-color: red; border-width: 1px; }
+}
+
+@-moz-keyframes anim-bkgnd-pulse {
+	0%, 100% { border-style: dotted; border-color: gray; border-width: 1px; }
+	50% { border-style: solid; border-color: red; border-width: 1px; }
+}
+
+@-webkit-keyframes anim-bkgnd-pulse {
+	0%, 100% { border-style: dotted; border-color: gray; border-width: 1px; }
+	50% { border-style: solid; border-color: red; border-width: 1px; }
+}
+
+
+	/* jQueryUI overrides
+	 * ==================
+	 */
+
+.ui-dialog-title, .ui-dialog-content, .ui-dialog-buttonpane {
+	font-size: small;
+	font-family: "Trebuchet MS", "Arial", "Helvetica", "Verdana", "sans-serif";
+}
+
+
+	/* To minimize size of ui buttons */
+.ui-button-icon-only {
+	width: 1.4em !important;
+	height: 1.4em !important;
+}
+
+label {
+	display: inline-block;
+	width: 5em;
+}

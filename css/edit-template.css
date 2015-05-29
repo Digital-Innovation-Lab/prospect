@@ -1,0 +1,55 @@
+/******************************************************************
+ ** CSS for Gig Template Dashboard Editor
+ **/
+
+#ractive-output {
+	font-size: 12px;
+}
+
+.jq-dialog-template {
+	font-size: 12px;
+}
+
+	/* Error for displaying Error Messages */
+#error-frame {
+	color: red;
+	border: red solid 1px;
+	padding: 3px;
+	margin-top: 3px;
+	margin-bottom: 3px;
+}
+
+	/* To minimize size of ui buttons */
+.ui-button-icon-only {
+	width: 1.4em !important;
+	height: 1.4em !important;
+}
+
+	/* Scroll area for Attribute list */
+.choose-container {
+	cursor: pointer;
+	height: 230px;
+	overflow: auto;
+}
+
+	/* Table displaying Attributes */
+.att-table {
+	margin: 3px;
+	padding: 3px;
+	font-size: 12px;
+	color: black;
+	border: 1px black solid;
+}
+
+.att-table th {
+	width: 160px;
+	background-color: #AAAAAA;
+}
+
+.att-table tr:nth-child(even) {
+	background-color: #CCC;
+}
+
+.att-table tr:nth-child(odd) {
+	background-color: #FFF;
+}

@@ -1,0 +1,27 @@
+/******************************************************************
+ ** CSS for Gig Record Dashboard Editor
+ **/
+
+
+	/* Error for displaying Error Messages */
+#error-frame {
+	color: red;
+	border: red solid 1px;
+	padding: 3px;
+	margin-top: 3px;
+	margin-bottom: 3px;
+}
+
+.jq-dialog-template {
+	font-size: 12px;
+}
+
+	/* To minimize size of ui buttons */
+.ui-button-icon-only {
+	width: 1.4em !important;
+	height: 1.4em !important;
+}
+
+.scroll-container {
+	overflow-y: auto;
+}

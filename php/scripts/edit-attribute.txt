@@ -1,0 +1,442 @@
+
+<!-- Ractive Template for jQueryUI Dialog Component -->
+<script id="dialog-r-template" type='text/ractive'>
+	<div class="jq-dialog-template" title="{{title}}">
+		{{yield}}
+	</div> <!-- dialog -->
+</script>
+
+<!-- Ractive Template for Iris Color Picker -->
+<script id="iris-r-template" type='text/ractive'>
+	<input class="jq-iris-template" type="text" size="11" value="{{color}}"/>
+</script>
+
+
+<!-- Partial: generic Legend toolbar -->
+<script id='legendBtns' type='text/ractive'>
+	<div class="ui-widget-header ui-corner-all legend-btn-set">
+		<button decorator="iconButton:ui-icon-wrench" on-click="doLegendEdit:{{index}}">Edit Entry</button>
+		<button decorator="iconButton:ui-icon-arrowthick-1-n" on-click="doLegendUp:{{index}}">Move Up</button>
+		<button decorator="iconButton:ui-icon-arrowthick-1-s" on-click="doLegendDown:{{index}}">Move Down</button>
+		<button decorator="iconButton:ui-icon-trash" on-click="doLegendDel:{{index}}">Delete</button>
+	</div>
+</script>
+
+<!-- Partial: Generic Data entry for Legend -->
+<script id='legendDataEntry' type='text/ractive'>
+	<div class="legend-data-entry">
+		<span class="legend-label">{{l}}</span> <span class="legend-val">{{val}}</span>
+		{{#if color.length > 1}}
+		<span title="Click to select visual representation" class="viz-icon" style="background-color:{{color}}"  on-click="doLegendViz:{{index}}"></span>
+		{{elseif icon.length > 1}}
+		<img alt="Click to select visual representation" class="viz-icon" src="{{icon}}" on-click="doLegendViz:{{index}}"/>
+		{{/if}}
+		{{>legendBtns}}
+	</div>
+</script>
+
+
+<!-- Partial: Range for Number -->
+<script id="rangeNum" type='text/ractive'>
+	<h3>Set Valid Number Range</h3>
+	<label for="num-r-min">Minimum number: </label><input type="text" id="num-r-min" value='{{theRange.min}}' placeholder="Min val" size="8"/>
+	<label for="num-r-max">Maximum number: </label><input type="text" id="num-r-max" value='{{theRange.max}}' placeholder="Max val" size="8"/>
+	<br/>
+	<label for="num-g">Group values together by </label><input type="number" id="num-g" value='{{theRange.g}}' min="0" max="4"> digits
+	<br/>
+</script>
+
+<!-- Partial: Range for Dates -->
+<script id="rangeDates" type='text/ractive'>
+	<h3>Set Valid Date Range</h3>
+	Earliest Date: 
+		<label for="date-r-min-y">Year </label><input type="text" id="date-r-min-y" value='{{theRange.min.y}}' placeholder="YYYY" size="6" pattern="(open|-?\d+)" required>
+		<label for="date-r-min-m">Month </label><input type="text" id="date-r-min-m" value='{{theRange.min.m}}' placeholder="MM" size="2" pattern="\d{0,2}">
+		<label for="date-r-min-d">Day </label><input type="text" id="date-r-min-d" value='{{theRange.min.d}}' placeholder="DD" size="2" pattern="\d{0,2}">
+		<br/>
+	Latest Date:
+		<label for="date-r-max-y">Year </label><input type="text" id="date-r-max-y" value='{{theRange.max.y}}' placeholder="YYYY" size="6" pattern="(open|~?-?\d+)">
+		<label for="date-r-max-m">Month </label><input type="text" id="date-r-max-m" value='{{theRange.max.m}}' placeholder="MM" size="2" pattern="\d{0,2}">
+		<label for="date-r-max-d">Day </label><input type="text" id="date-r-max-d" value='{{theRange.max.d}}' placeholder="DD" size="s" pattern="\d{0,2}">
+		<br/>
+	<label for="date-g">Group Dates together by</label>
+	<select id="date-g" value='{{theRange.g}}'>
+		<option value="d">Day</option>
+		<option value="m">Month</option>
+		<option value="y">Year</option>
+		<option value="t">Decade</option>
+		<option value="c">Century</option>
+	</select>
+	<br/>
+</script>
+
+
+<!-- Partial: Legend for Vocabulary -->
+<script id="legendVocab" type='text/ractive'>
+	<h3>Configure Vocabulary Legend</h3>
+	<input type="radio" name="{{legType}}" value="color"/> Color
+	{{#if hasPNGs}}<input type="radio" name="{{legType}}" value="png"/> PNG icon{{/if}}
+	<button on-click="resetLegend">Reset Visuals</button>
+	<br/>
+	<label for="vocab-rep-terms">Replace with terms used in custom field </label><button id="vocab-rep-terms" on-click="useTerms">Replace Terms</button>
+	<br/>
+	<input type="text" id="vocab-new-term" value='{{newVocab}}' placeholder="New Vocab Term" size="24"/> <label for="vocab-new-term"> New Term</label>
+	<button on-click="addLegend">Add Entry</button>
+	<br/>
+	<div class="legend-vocab">
+		{{#if theLegend.length}}
+		<ol class="vocab-parent">
+			{{#each theLegend:index1}}
+				<li id="vocab_{{index1}}">
+					<div>
+						<span class="legend-label">{{l}}</span>
+						{{#if color.length > 1}}
+						<span title="Click to select visual representation" class="viz-icon" style="background-color:{{color}}" on-click="doLegendViz:{{index1}}"></span>
+						{{elseif icon.length > 1}}
+						<img alt="Click to select visual representation" class="viz-icon" src="{{icon}}" on-click="doLegendViz:{{index1}}"/>
+						{{else}}
+						<span title="Click to select visual representation" class="viz-icon" on-click="doLegendViz:{{index1}},{{index2}}"></span>
+						{{/if}}
+						<div class="ui-widget-header ui-corner-all legend-btn-set">
+							<button decorator="iconButton:ui-icon-transfer-e-w" on-click="doVocabMove:{{index1}}">Move Entries</button>
+							<button decorator="iconButton:ui-icon-arrowthick-1-n" on-click="doLegendUp:{{index1}}">Move Up</button>
+							<button decorator="iconButton:ui-icon-arrowthickstop-1-n" on-click="doLegendTop:{{index1}}">Move To Top</button>
+							<button decorator="iconButton:ui-icon-arrowthick-1-s" on-click="doLegendDown:{{index1}}">Move Down</button>
+							<button decorator="iconButton:ui-icon-arrowthickstop-1-s" on-click="doLegendBottom:{{index1}}">Move To Bottom</button>
+							<button decorator="iconButton:ui-icon-trash" on-click="doLegendDel:{{index1}}">Delete</button>
+						</div>
+					</div>
+					{{#if z.length >= 1}}
+					<ol class='vocab-children'>
+						{{#each z:index2}}
+							<li id="vocab_{{index1}}_{{index2}}">
+								<div>
+									{{#if color.length > 1}}
+									<span title="Click to select visual representation" class="viz-icon" style="background-color:{{color}}" on-click="doLegendViz:{{index1}},{{index2}}"></span>
+									{{elseif icon.length > 1}}
+									<img alt="Click to select visual representation" class="viz-icon" src="{{icon}}" on-click="doLegendViz:{{index1}},{{index2}}"/>
+									{{else}}
+									<span title="Click to select visual representation" class="viz-icon" on-click="doLegendViz:{{index1}},{{index2}}"></span>
+									{{/if}}
+									{{l}}
+									<div class="ui-widget-header ui-corner-all legend-btn-set">
+										<button decorator="iconButton:ui-icon-transfer-e-w" on-click="doVocabMove:{{index1}},{{index2}}">Move Entry</button>
+										<button decorator="iconButton:ui-icon-arrowthick-1-n" on-click="doLegendUp:{{index1}},{{index2}}">Move Up</button>
+										<button decorator="iconButton:ui-icon-arrowthickstop-1-n" on-click="doLegendTop:{{index1}},{{index2}}">Move To Top</button>
+										<button decorator="iconButton:ui-icon-arrowthick-1-s" on-click="doLegendDown:{{index1}},{{index2}}">Move Down</button>
+										<button decorator="iconButton:ui-icon-arrowthickstop-1-s" on-click="doLegendBottom:{{index1}},{{index2}}">Move To Bottom</button>
+										<button decorator="iconButton:ui-icon-trash" on-click="doLegendDel:{{index1}},{{index2}}">Delete</button>
+									</div>
+								</div>
+							</li>
+						{{/each}}
+					</ol>
+					{{/if}}
+				</li>
+			{{/each}}
+		</ol>
+		{{/if}}
+	</div>
+</script>
+
+<!-- Partial: Legend for Text -->
+<script id="legendText" type='text/ractive'>
+	<h3>Configure Text Legend</h3>
+	<input type='radio' name='{{legType}}' value='color'/> Color
+	{{#if hasPNGs}}<input type='radio' name='{{legType}}' value='png'/> PNG icon{{/if}}
+	<button on-click="resetLegend">Reset Visuals</button>
+	<button on-click="addLegend">Add Entry</button>
+	<br/>
+	<div class="legend-data">
+		{{#each theLegend:index}}
+			{{>legendDataEntry}}
+		{{/each}}
+	</div>
+</script>
+
+<!-- Partial: Legend for Number -->
+<script id="legendNum" type='text/ractive'>
+	<h3>Configure Numeric Legend</h3>
+	<input type='radio' name='{{legType}}' value='color'/> Color
+	{{#if hasPNGs}}<input type='radio' name='{{legType}}' value='png'/> PNG icon{{/if}}
+	<button on-click="resetLegend">Reset Visuals</button>
+	<button on-click="addLegend">Add Entry</button>
+	<br/>
+	<div class="legend-data">
+		{{#each theLegend:index}}
+			{{>legendDataEntry}}
+		{{/each}}
+	</div>
+</script>
+
+<!-- Partial: Legend for Dates -->
+<script id="legendDates" type='text/ractive'>
+	<h3>Configure Date Legend</h3>
+	<input type='radio' name='{{legType}}' value='color'/> Color
+	{{#if hasPNGs}}<input type='radio' name='{{legType}}' value='png'/> PNG icon{{/if}}
+	<button on-click="resetLegend">Reset Visuals</button>
+	<button on-click="addLegend">Add Entry</button>
+	<br/>
+	<div class="legend-data">
+		{{#each theLegend:index}}
+			{{>legendDataEntry}}
+		{{/each}}
+	</div>
+</script>
+
+
+<!-- Outer-most (application) layer of output for Ractive to generate -->
+<script id="ractive-base" type='text/ractive'>
+	<div id="att-insert-dialog"></div>
+	{{#if errorMsg.length > 0}}
+	<div id="error-frame">{{errorMsg}}</div>
+	{{/if}}
+	<button id="gig-save-data" on-click="saveAttribute">Verify and Save Attribute Definition</button><br/>
+	Attribute external label: <input value='{{theAttribute.l}}' placeholder="Enter label" size="24" required/>
+	<br/>
+	Attribute internal id: <input value='{{attID}}' placeholder="Enter id" size="24" pattern="[\w\-]+" required/>
+	<select value='{{chosenCF}}'>
+		{{#each cfs}}
+			<option>{{this}}</option>
+		{{/each}}
+	</select>
+	<button on-click="copyCF">Use this Custom Field name</button>
+	<br/>
+	Attribute delimiter (single character or blank): <input value='{{theAttribute.d}}' size="2"/><br/>
+	Contributor Hint: <br/>
+	<input type="text" size="64" maxlength="128" placeholder="Explain Attribute entry to contributor" value="{{theAttribute.h}}" /><br/>
+	Data type: 
+	<select value='{{theAttribute.t}}'>
+		{{#each dataTypes}}
+			<option>{{this}}</option>
+		{{/each}}
+	</select><br/>
+
+	{{#if theAttribute.t == 'Number'}}
+		{{>rangeNum}}
+	{{elseif theAttribute.t == 'Dates'}}
+		{{>rangeDates}}
+	{{else}}
+		(no Range settings for this data type)<br/>
+	{{/if}}
+
+	{{#if theAttribute.t == 'Vocabulary'}}
+		{{>legendVocab}}
+	{{elseif theAttribute.t == 'Text'}}
+		{{>legendText}}
+	{{elseif theAttribute.t == 'Number'}}
+		{{>legendNum}}
+	{{elseif theAttribute.t == 'Dates'}}
+		{{>legendDates}}
+	{{else}}
+		(no Legend available for this data type)<br/>
+	{{/if}}
+</script>
+
+
+<!-- Create/Edit Text Legend Dialog -->
+<script id="dialog-legend-text" type='text/ractive'>
+	<dialog title="Text Legend Entry" width="300" height="200">
+		Label: <input type="text" size="20" value="{{label}}"/><br>
+		Text pattern: <input type="text" size="16" value="{{pattern}}"/><br>
+	</dialog>
+</script>
+
+<!-- Create/Edit Number Legend Dialog -->
+<script id="dialog-legend-number" type='text/ractive'>
+	<dialog title="Number Legend Entry" width="300" height="250">
+		Label for Range: <input type="text" size="12" value="{{label}}"/><br>
+		Minimum Value: <input type="text" size="8" value="{{min}}" pattern="\d*"/><br>
+		Maximum Value: <input type="text" size="8" value="{{max}}" pattern="\d*"/>
+	</dialog>
+</script>
+
+<!-- Create/Edit Dates Legend Dialog -->
+<script id="dialog-legend-dates" type='text/ractive'>
+	<dialog title="Date Legend Entry" width="400" height="210">
+		Label for Range: <input type="text" size="20" value="{{label}}" required/><br>
+		Start Date: Year <input type="text" size="5" value="{{min.y}}" placeholder="YYYY" pattern="(open|-?\d+)"/>
+		Month <input type="text" size="2" value="{{min.m}}" placeholder="MM" pattern="\d{0,2}"/>
+		Day <input type="text" size="2" value="{{min.d}}" placeholder="DD" pattern="\d{0,2}"/>
+		<br>
+		End Date: Year <input type="text" size="5" value="{{max.y}}" placeholder="YYYY" pattern="(open|-?\d+)"/>
+		Month <input type="text" size="2" value="{{max.m}}" placeholder="MM" pattern="\d{0,2}"/>
+		Day <input type="text" size="2" value="{{max.d}}" placeholder="DD" pattern="\d{0,2}"/>
+	</dialog>
+</script>
+
+<!-- Move Vocab Dialog for top-level non-child -->
+<script id="dialog-move-vocab-lone" type='text/ractive'>
+	<dialog title="Move Vocabulary Entry" width="400" height="200">
+		Move this Term so it becomes a child of <br/>
+		<select value='{{newParent}}'>
+			{{#each parents}}
+				<option>{{this}}</option>
+			{{/each}}
+		</select>
+		<br/>
+		<input type='radio' name='{{keep}}' value='yes'/> Keep visual config
+		<input type='radio' name='{{keep}}' value='no'/> Clear visual config
+	</dialog>
+</script>
+
+<!-- Move Vocab Dialog for top-level parent -->
+<script id="dialog-move-vocab-parent" type='text/ractive'>
+	<dialog title="Move Vocabulary Children" width="400" height="200">
+		<input type='radio' name='{{up}}' value='yes'/> Move all children to top (parent) level
+		<br/>
+		<input type='radio' name='{{up}}' value='no'/> Move all to new parent
+		<br/>
+		New parent 
+		<select value='{{newParent}}'>
+			{{#each parents}}
+				<option>{{this}}</option>
+			{{/each}}
+		</select>
+	</dialog>
+</script>
+
+<!-- Move Vocab Dialog for child node -->
+<script id="dialog-move-vocab-child" type='text/ractive'>
+	<dialog title="Move Vocabulary Entry" width="400" height="200">
+		<input type='radio' name='{{up}}' value='yes'/> Move to top (parent) level
+		<input type='radio' name='{{up}}' value='no'/> Move to new parent
+		<br/>
+		New Parent <select value='{{newParent}}'>
+			{{#each parents}}
+				<option>{{this}}</option>
+			{{/each}}
+		</select>
+	</dialog>
+</script>
+
+
+<!-- Confirm Dialog -->
+<script id="dialog-confirm" type='text/ractive'>
+	<dialog title="Confirm" width="300" height="200">
+		{{message}}
+	</dialog>
+</script>
+
+<!-- Icon Choice Dialog -->
+<script id="dialog-choose-icon" type='text/ractive'>
+	<dialog title="Choose Icon" width="400" height="350">
+		{{#if canClear}}<input type='checkbox' checked='{{doClear}}'> Remove visuals<br/>{{/if}}
+		{{#if icons.length == 0}}You must upload PNG icons to the Media Library for any selection to appear here.<br/>{{/if}}
+		<ul class="png-container">
+			{{#each icons:index}}
+				{{#if selected === id}}
+				<li id="png-{{index}}" class="selected"><img alt="{{id}}" src="{{url}}" on-click="selectPNG:{{id}}"/></li>
+				{{else}}
+				<li id="png-{{index}}"><img alt="{{id}}" src="{{url}}" on-click="selectPNG:{{id}}"/></li>
+				{{/if}}
+			{{/each}}
+		</ul>
+	</dialog>
+</script>
+
+<!-- Color Choice Dialog -->
+<script id="dialog-choose-color" type='text/ractive'>
+	<dialog title="Choose Color" width="250" height="330">
+		<iris color="{{color}}"></iris>
+	</dialog>
+</script>
+
+<!-- Color Choice w/Clear Dialog -->
+<script id="dialog-choose-color-clear" type='text/ractive'>
+	<dialog title="Choose Color" width="250" height="355">
+		<input type='checkbox' checked='{{doClear}}'> Remove visuals<br/>
+		<iris color="{{color}}"></iris>
+	</dialog>
+</script>
+
+<!-- ERRORS -->
+<script id="errmsg-no-term-name" type='text/ractive'>
+You must supply a name for the new Term.
+</script>
+
+<script id="errmsg-no-id" type='text/ractive'>
+You must supply an internal ID for the Attribute.
+</script>
+
+<script id="errmsg-id-too-long" type='text/ractive'>
+The Attribute internal ID is too long.
+</script>
+
+<script id="errmsg-id-bad-chars" type='text/ractive'>
+An Attribute internal ID can only consist of alphabetic characters, numbers, underscores and hyphens (it cannot contain spaces, punctuation, etc).
+</script>
+
+<script id="errmsg-no-label" type='text/ractive'>
+You must supply a label for the Attribute.
+</script>
+
+<script id="errmsg-label-too-long" type='text/ractive'>
+The Attribute label is too long.
+</script>
+
+<script id="errmsg-no-custom-field" type='text/ractive'>
+You have not specified a custom field.
+</script>
+
+<script id="errmsg-delim-too-long" type='text/ractive'>
+The delimiter can only be 1 character, if specified at all.
+</script>
+
+<script id="errmsg-att-id-taken" type='text/ractive'>
+Another Attribute with that ID already exists. Please choose another.
+</script>
+
+<script id="errmsg-term-name-taken" type='text/ractive'>
+A Term with that name already exists in the Vocabulary.
+</script>
+
+<script id="errmsg-too-few-vocab" type='text/ractive'>
+No Vocabulary movements are possible until you have at least 2 Terms.
+</script>
+
+<script id="errmsg-num-need-bound" type='text/ractive'>
+You must either have a minimum or maximum Number bound (preferably both).
+</script>
+
+<script id="errmsg-range-not-valid" type='text/ractive'>
+One of your Number range boundaries is not a valid integer value.
+</script>
+
+<script id="errmsg-num-range-inverted" type='text/ractive'>
+One of the Number Legend entries has a minimum value that is greater than the maximum value.
+</script>
+
+<script id="errmsg-no-min-date" type='text/ractive'>
+You must provide a valid year for the minimum date range.
+</script>
+
+<script id="errmsg-bad-year" type='text/ractive'>
+A year you have given was not formatted as a valid number.
+</script>
+
+<script id="errmsg-bad-month" type='text/ractive'>
+A month number you have given is not valid (it must be 1-12).
+</script>
+
+<script id="errmsg-bad-day" type='text/ractive'>
+A day number you have given is not valid (it must be 1-31).
+</script>
+
+<script id="errmsg-date-no-bound" type='text/ractive'>
+You have a Date Legend without start or end year; you must specify at least one of these.
+</script>
+
+<script id="errmsg-date-range-inverted" type='text/ractive'>
+One of the Date Legend entries has a start date that is greater than the end date.
+</script>
+
+<!-- MESSAGES -->
+
+<script id="msg-confirm-del-vocab" type='text/ractive'>
+Are you sure you wish to delete this Legend entry?
+</script>
+
+<script id="msg-confirm-replace-vocab" type='text/ractive'>
+Are you sure you that the current Legend configuration should be replaced with the Terms currently used by Records in the custom field, and with the delimiter, you have specified?
+</script>

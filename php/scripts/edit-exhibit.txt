@@ -1,0 +1,542 @@
+
+<!-- Ractive Template for jQueryUI Dialog Component -->
+<script id="dialog-r-template" type='text/ractive'>
+	<div class="jq-dialog-template" title="{{title}}">
+		{{yield}}
+	</div>
+</script>
+
+<!-- Ractive Template for jQueryUI Accordion Component -->
+<script id="accordion-r-template" type='text/ractive'>
+	<div class="jq-accordion-template">
+		{{yield}}
+	</div>
+</script>
+
+<!-- Ractive Template for jQueryUI Tabs Component -->
+<script id="tabs-r-template" type='text/ractive'>
+	<div class="jq-tabs-template">
+		{{yield}}
+	</div>
+</script>
+
+
+<!-- Outer-most (application) layer of output for Ractive to generate -->
+<script id="ractive-base" type='text/ractive'>
+	<div id="insert-dialog"></div>
+	{{#if errorMsg.length > 0}}
+	<div id="error-frame">{{errorMsg}}</div>
+	{{/if}}
+	<button id="gig-save-data" on-click="saveExhibit">Verify and Save Exhibit Definition</button><br/>
+	<accordion>
+		<h3>General Settings</h3>
+		<div>
+			<label for="ext-label">Exhibit external label: </label><input id="ext-label" type='text' value='{{genSettings.l}}' placeholder="Enter label" size="24" required/>
+			<label for="int-id">Exhibit internal id: </label><input type='text' id="int-id" value='{{xhbtID}}' placeholder="Enter id" pattern="[\w\-]+" size="24" required/>
+			<br/>
+			"{{genSettings.l}}" will display Template types:<br/>
+			{{#each iTemplates}}
+				<input type='checkbox' checked='{{use}}'/> {{tid}}
+			{{/each}}
+			<br/>
+			<label for="home-btn">Home button label: </label><input type='text' id="home-btn" value='{{genSettings.hbtn}}' placeholder="Enter label" size="12"/>
+			<label for="home-url">Home URL: </label><input type='url' id="home-url" value='{{genSettings.hurl}}' placeholder="Enter label" size="32" pattern="^https?://.+"/>
+		</div>
+		<h3>Views and Filters</h3>
+		<div>
+			<button on-click="addView">Add View/Filter</button>
+			<hr/>
+			{{#each viewSettings:vIndex}}
+				<div>
+					<button decorator="togDiv"></button>
+					<i>{{vf}}</i>: <input type="text" value="{{l}}" size="32" required/>
+					<button decorator="iconButton:ui-icon-trash" on-click="delVF:{{vIndex}}">Delete</button>
+				</div>
+				<div id="vf-div-{{vIndex}}">
+					{{#if vf === 'Map'}}
+						{{>vfMap}}
+					{{elseif vf === 'Cards'}}
+						{{>vfCards}}
+					{{elseif vf === 'Pinboard'}}
+						{{>vfPinboard}}
+					{{elseif vf === 'Browser'}}
+						{{>vfBrowser}}
+					{{elseif vf === 'Timeline'}}
+						{{>vfTimeline}}
+					{{elseif vf === 'Tree'}}
+						{{>vfTree}}
+					{{elseif vf === 'Flow'}}
+						{{>vfFlow}}
+					{{elseif vf === 'Directory'}}
+						{{>vfDirectory}}
+					{{/if}}
+				</div>
+				{{#if vIndex != (viewSettings.length-1) }}<hr/>{{/if}}
+			{{/each}}
+		</div>
+
+		<h3>Widgets</h3>
+		<div>{{#with widgetSettings}}
+			<accordion>
+				<h3>SoundCloud Widget</h3>
+				<div>
+					Choose the SoundCloud Attribute (if any) according to Template type:
+					<tabs>
+						<ul>
+						{{#each iTemplates:tIndex}}
+							<li><a href="#sc-tab-{{tIndex}}">{{tid}}</a></li>
+						{{/each}}
+						</ul>
+						{{#each iTemplates:tIndex}}
+						<div id="sc-tab-{{tIndex}}">
+							<select value='{{sc.atts[tIndex]}}'>
+							{{#each attsSC}}
+								<option>{{this}}</option>
+							{{/each}}
+							</select>
+						</div>
+						{{/each}}
+					</tabs>
+				</div>
+
+				<h3>YouTube Widget</h3>
+				<div>
+					Choose the YouTube Attribute (if any) according to Template type:
+					<tabs>
+						<ul>
+						{{#each iTemplates:tIndex}}
+							<li><a href="#yt-tab-{{tIndex}}">{{tid}}</a></li>
+						{{/each}}
+						</ul>
+						{{#each iTemplates:tIndex}}
+						<div id="yt-tab-{{tIndex}}">
+							<select value='{{yt.atts[tIndex]}}'>
+							{{#each attsYT}}
+								<option>{{this}}</option>
+							{{/each}}
+							</select>
+						</div>
+						{{/each}}
+					</tabs>
+				</div>
+
+				<h3>Transcript Widget</h3>
+				<div>
+					Choose the Transcript and Timecode Attributes (if any) according to Template type:
+					<tabs>
+						<ul>
+						{{#each iTemplates:tIndex}}
+							<li><a href="#trans-tab-{{tIndex}}">{{tid}}</a></li>
+						{{/each}}
+						</ul>
+						{{#each iTemplates:tIndex}}
+						<div id="trans-tab-{{tIndex}}">
+							<label for="transc-1ry">Primary Transcript: </label><select id="transc-1ry" value='{{t.t1Atts[tIndex]}}'>
+							{{#each attsTrns}}
+								<option>{{this}}</option>
+							{{/each}}
+							</select>
+							<label for="transc-2ry"> Secondary Transcript: </label><select id="transc-2ry" value='{{t.t2Atts[tIndex]}}'>
+							{{#each attsTrns}}
+								<option>{{this}}</option>
+							{{/each}}
+							</select>
+							<label for="transc-tc"> Extract Timecode: </label><select id="transc-tc" value='{{t.tcAtts[tIndex]}}'>
+							{{#each attsTC}}
+								<option>{{this}}</option>
+							{{/each}}
+							</select>
+						</div>
+						{{/each}}
+					</tabs>
+				</div>
+			</accordion>
+		{{/with}}</div>
+
+		<h3>Pages</h3>
+		<div>{{#with pageSettings}}
+			<accordion>
+				<h3>Inspector Modal</h3>
+				<div>
+					Widgets to Use: 
+					<input type='checkbox' checked='{{modal.scOn}}'/> SoundCloud
+					<input type='checkbox' checked='{{modal.ytOn}}'/> YouTube
+					<input type='checkbox' checked='{{modal.tOn}}'/> Transcript
+					<br/>
+
+					Choose the Attribute(s) to display according to Template type:
+					<tabs>
+						<ul>
+						{{#each iTemplates:tIndex}}
+							<li><a href="#inspect-tab-{{tIndex}}">{{tid}}</a></li>
+						{{/each}}
+						</ul>
+						{{#each iTemplates:tIndex}}
+						<div id="inspect-tab-{{tIndex}}">
+							{{#each modal.atts[tIndex]:aIndex}}
+								<span class="attribute-controls">
+									<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+									<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveAttLeft:'i',{{tIndex}},{{aIndex}}">Left</button>
+									<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveAttRight:'i',{{tIndex}},{{aIndex}}">Right</button>
+								</span>
+							{{/each}}
+						</div>
+						{{/each}}
+					</tabs>
+
+				</div>
+				<h3>Post Page (View of single Record)</h3>
+				<div>
+					Widgets to Use: 
+					<input type='checkbox' checked='{{post.scOn}}'/> SoundCloud
+					<input type='checkbox' checked='{{post.ytOn}}'/> YouTube
+					<input type='checkbox' checked='{{post.tOn}}'/> Transcript
+					<br/>
+
+					Choose the Attribute(s) to display according to Template type:
+					<tabs>
+						<ul>
+						{{#each iTemplates:tIndex}}
+							<li><a href="#post-tab-{{tIndex}}">{{tid}}</a></li>
+						{{/each}}
+						</ul>
+						{{#each iTemplates:tIndex}}
+						<div id="post-tab-{{tIndex}}">
+							{{#each post.atts[tIndex]:aIndex}}
+								<span class="attribute-controls">
+									<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+									<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveAttLeft:'p',{{tIndex}},{{aIndex}}">Left</button>
+									<button decorator="iconButton:ui-icon-arrowthick-1-e "on-click="moveAttRight:'p',{{tIndex}},{{aIndex}}">Right</button>
+								</span>
+							{{/each}}
+						</div>
+						{{/each}}
+					</tabs>
+				</div>
+			</accordion>
+		{{/with}}</div>
+	</accordion>
+</script>
+
+<!-- PARTIALS -->
+<script id="vfMap" type='text/ractive'>
+	Center Latitude: <input type="text" value="{{c.clat}}" size="10" pattern="^-?\d{1,3}(\.\d*)*" required/>
+	Longitude: <input type="text" value="{{c.clon}}" size="10" pattern="^-?\d{1,3}(\.\d*)*" required/>
+	Initial Zoom: <input type="number" value="{{c.zoom}}" min="1" max="20" required/>
+	<br/>
+	Marker Size:
+		<select value="{{c.size}}">
+			<option value="s">Small</option>
+			<option value="m">Medium</option>
+			<option value="l">Large</option>
+		</select>
+	Clustering: <input type='checkbox' checked='{{c.clstr}}'/>
+	<br/>
+	Choose the Attribute(s) to visualize each Template type
+	<tabs>
+		<ul>
+		{{#each iTemplates:tIndex}}
+			<li><a href="#tmpt-vf-tab-{{vIndex}}-{{tIndex}}">{{tid}}</a></li>
+		{{/each}}
+		</ul>
+		{{#each iTemplates:tIndex}}
+		<div id="tmpt-vf-tab-{{vIndex}}-{{tIndex}}">
+			<b>Locate Object by:</b>
+			{{#each c.cAtts[tIndex]:aIndex}}
+				<span class="attribute-controls">
+					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+				</span>
+			{{/each}}
+			<br/><b>Provide Legends:</b> 
+			{{#each c.lgnds[tIndex]}}
+				<span class="attribute-controls">
+					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+				</span>
+			{{/each}}
+		</div>
+		{{/each}}
+	</tabs>
+	Map Overlay Layers: <button on-click="addMapLayer:{{vIndex}}">Add Layer</button><br/>
+	{{#each c.lyrs:lIndex}}
+		Map ID: {{mapID}}
+		Opacity: <input type="range" min="0" max="1" value="{{o}}" step="0.1"/>
+		<button decorator="iconButton:ui-icon-trash" on-click="delMapLayer:{{vIndex}},{{lIndex}}">Delete</button>
+		<br/>
+	{{/each}}
+</script>
+
+<script id="vfCards" type='text/ractive'>
+	Show Title: <input type='checkbox' checked='{{c.lOn}}'/>
+	Width:
+		<select value="{{c.w}}">
+			<option value="a">Automatic</option>
+			<option value="t">Thin</option>
+			<option value="m">Medium</option>
+			<option value="w">Wide</option>
+		</select>
+	Height:
+		<select value="{{c.h}}">
+			<option value="a">Automatic</option>
+			<option value="s">Short</option>
+			<option value="m">Medium</option>
+			<option value="t">Tall</option>
+		</select>
+	<br/>
+	Choose the Attribute(s) to visualize on each card according to Template type:
+	<tabs>
+		<ul>
+		{{#each iTemplates:tIndex}}
+			<li><a href="#tmpt-vf-tab-{{vIndex}}-{{tIndex}}">{{tid}}</a></li>
+		{{/each}}
+		</ul>
+		{{#each iTemplates:tIndex}}
+		<div id="tmpt-vf-tab-{{vIndex}}-{{tIndex}}">
+			<b>Show content: </b>
+			{{#each c.cnt[tIndex]:cIndex}}
+				<span class="attribute-controls">
+					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveAttLeft:{{vIndex}},{{tIndex}},{{cIndex}}">Left</button>
+					<button decorator="iconButton:ui-icon-arrowthick-1-e "on-click="moveAttRight:{{vIndex}},{{tIndex}},{{cIndex}}">Right</button>
+				</span>
+			{{/each}}
+			<br/><b>Provide Legends: </b>
+			{{#each c.lgnds[tIndex]:cIndex}}
+				<span class="attribute-controls">
+					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+				</span>
+			{{/each}}
+		</div>
+		{{/each}}
+	</tabs>
+</script>
+
+<script id="vfPinboard" type='text/ractive'>
+	Original Image URL: <input type="url" value="{{c.img}}" size="48" pattern="^https?://.+(\.jpg|\.jpeg|\.png)$" required/><br/>
+	Original Image Width: <input type="number" value="{{c.iw}}" min="1" max="9999"/>
+	Height: <input type="number" value="{{c.ih}}" min="1" max="9999"/><br/>
+	Display Width: <input type="number" value="{{c.dw}}" min="1" max="9999"/>
+	Height: <input type="number" value="{{c.dh}}" min="1" max="9999"/>
+	Marker Size:
+		<select value="{{c.size}}">
+			<option value="s">Small</option>
+			<option value="m">Medium</option>
+			<option value="l">Large</option>
+		</select>
+	<br/>
+	Choose the Attribute(s) to visualize according to Template type:
+	<tabs>
+		<ul>
+		{{#each iTemplates:tIndex}}
+			<li><a href="#tmpt-vf-tab-{{vIndex}}-{{tIndex}}">{{tid}}</a></li>
+		{{/each}}
+		</ul>
+		{{#each iTemplates:tIndex}}
+		<div id="tmpt-vf-tab-{{vIndex}}-{{tIndex}}">
+			<b>X,Y Attributes to use: </b>
+			{{#each c.cAtts[tIndex]}}
+				<span class="attribute-controls">
+					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+				</span>
+			{{/each}}
+			<br/><b>Provide Legends: </b>
+			{{#each c.lgnds[tIndex]}}
+				<span class="attribute-controls">
+					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+				</span>
+			{{/each}}
+		</div>
+		{{/each}}
+	</tabs>
+
+	Overlay SVG Layers: <button on-click="addSVGLayer:{{vIndex}}">Add SVG Layer</button><br/>
+	{{#each c.lyrs:lIndex}}
+		SVG Layer {{lIndex}} URL: <input type="text" value="{{url}}" size="32" pattern="^https?://.+" required/>
+		Opacity: <input type="range" min="0" max="1" value="{{o}}" step="0.1"/>
+		<button decorator="iconButton:ui-icon-trash" on-click="delSVGLayer:{{vIndex}},{{lIndex}}">Delete</button>
+		<br/>
+	{{/each}}
+</script>
+
+<script id="vfBrowser" type='text/ractive'>
+	Attributes to Display: <button on-click="addFacet:{{vIndex}}">Add Attribute</button><br/>
+	{{#each c.fct:cIndex}}
+		Attribute ID: "{{fid}}" Label: <input type="text" size="24" value="{{lbl}}"/> 
+		<button decorator="iconButton:ui-icon-arrowthickstop-1-n" on-click="topFacet:{{vIndex}},{{cIndex}}">Move to Top</button>
+		<button decorator="iconButton:ui-icon-trash" on-click="delFacet:{{vIndex}},{{cIndex}}">Delete</button>
+		<br/>
+	{{/each}}
+</script>
+
+<script id="vfTimeline" type='text/ractive'>
+	Height of Bands in Zoom: <input type="number" value="{{c.bHt}}" min="2" max="99"/>
+	Width of Band Axis Labels: <input type="number" value="{{c.xLbl}}" min="2" max="99"/><br/>
+	Macro Window From Date: <input type="text" value="{{c.from}}" size="12" placeholder="YYYY-MM-DD"/>
+	To Date: <input type="text" value="{{c.to}}" size="12" placeholder="YYYY-MM-DD"/><br/>
+	Zoom Window From Date: <input type="text" value="{{c.zFrom}}" size="12" placeholder="YYYY-MM-DD"/>
+	To Date: <input type="text" value="{{c.zTo}}" size="12" placeholder="YYYY-MM-DD"/><br/>
+
+	Choose the Attribute(s) to visualize according to Template type:
+	<tabs>
+		<ul>
+		{{#each iTemplates:tIndex}}
+			<li><a href="#tmpt-vf-tab-{{vIndex}}-{{tIndex}}">{{tid}}</a></li>
+		{{/each}}
+		</ul>
+		{{#each iTemplates:tIndex}}
+		<div id="tmpt-vf-tab-{{vIndex}}-{{tIndex}}">
+			<b>Dates Attributes to use: </b>
+			{{#each c.dAtts[tIndex]}}
+				<span class="attribute-controls">
+					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+				</span>
+			{{/each}}
+			<br/><b>Provide Legends: </b>
+			{{#each c.lgnds[tIndex]}}
+				<span class="attribute-controls">
+					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+				</span>
+			{{/each}}
+		</div>
+		{{/each}}
+	</tabs>
+</script>
+
+<script id="vfTree" type='text/ractive'>
+	Display Width: <input type="number" value="{{c.w}}" min="2" max="9999"/>
+	Height: <input type="number" value="{{c.h}}" min="2" max="9999"/>
+	Tree type: <select value="{{c.form}}">
+			<option value="f">Flat</option>
+			<option value="r">Radial</option>
+			<option value="s">Segment</option>
+		</select>
+	<br/>
+	Head node: <input type="text" value="{{c.head}}" size="24" pattern="[\w\-]+" required/>
+	Node Radius: <input type="number" value="{{c.r}}" min="1" max="99"/>
+	<br/>
+	Font Size: <input type="number" value="{{c.f}}" min="1" max="99"/>
+	Padding: <input type="number" value="{{c.pad}}" min="1" max="999"/>
+	<br/>
+
+	Choose the Attribute(s) to visualize according to Template type:
+	<tabs>
+		<ul>
+		{{#each iTemplates:tIndex}}
+			<li><a href="#tmpt-vf-tab-{{vIndex}}-{{tIndex}}">{{tid}}</a></li>
+		{{/each}}
+		</ul>
+		{{#each iTemplates:tIndex}}
+		<div id="tmpt-vf-tab-{{vIndex}}-{{tIndex}}">
+			<b>Pointer Attribute to descendants (1 per Template): </b>
+			{{#each c.pAtts[tIndex]}}
+				<span class="attribute-controls">
+					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+				</span>
+			{{/each}}
+			<br/><b>Provide Legends: </b>
+			{{#each c.lgnds[tIndex]}}
+				<span class="attribute-controls">
+					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+				</span>
+			{{/each}}
+		</div>
+		{{/each}}
+	</tabs>
+</script>
+
+<script id="vfFlow" type='text/ractive'>
+	Display Width: <input type="number" value="{{c.w}}" min="2" max="9999"/>
+	Height: <input type="number" value="{{c.h}}" min="2" max="9999"/>
+	<br/>
+	Attributes to Display: <button on-click="addFacet:{{vIndex}}">Add Attribute</button><br/>
+	{{#each c.fct:cIndex}}
+		Attribute ID: "{{fid}}" Label: <input type="text" size="24" value="{{lbl}}" required/> 
+		<button decorator="iconButton:ui-icon-arrowthickstop-1-n" on-click="topFacet:{{vIndex}},{{cIndex}}">Move to Top</button>
+		<button decorator="iconButton:ui-icon-trash" on-click="delFacet:{{vIndex}},{{cIndex}}">Delete</button>
+		<br/>
+	{{/each}}
+</script>
+
+<script id="vfDirectory" type='text/ractive'>
+	Choose the Attribute(s) to display according to Template type:
+	<tabs>
+		<ul>
+		{{#each iTemplates:tIndex}}
+			<li><a href="#tmpt-vf-tab-{{vIndex}}-{{tIndex}}">{{tid}}</a></li>
+		{{/each}}
+		</ul>
+		{{#each iTemplates:tIndex}}
+		<div id="tmpt-vf-tab-{{vIndex}}-{{tIndex}}">
+			<b>Show content: </b>
+			{{#each c.cnt[tIndex]:cIndex}}
+				<span class="attribute-controls">
+					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveAttLeft:{{vIndex}},{{tIndex}},{{cIndex}}">Left</button>
+					<button decorator="iconButton:ui-icon-arrowthick-1-e "on-click="moveAttRight:{{vIndex}},{{tIndex}},{{cIndex}}">Right</button>
+				</span>
+			{{/each}}
+		</div>
+		{{/each}}
+	</tabs>
+</script>
+
+<!-- DIALOGS -->
+<!-- Choose Attribute Dialog -->
+<script id="dialog-choose-vf" type='text/ractive'>
+	<dialog title="New View/Filter" width="300" height="200">
+		<label for="choose-att-label">Label for this View/Filter: </label><input type="text" id="choose-att-label" value="{{label}}" size="24" required/>
+		<br/>
+		<label for="choose-vf-type">Type of View/Filter </label>
+		<select id="choose-vf-type" value='{{vfType}}'>
+		{{#each vfTypes}}
+			<option>{{this}}</option>
+		{{/each}}
+		</select>
+	</dialog>
+</script>
+
+<!-- Choose Facet Dialog -->
+<script id="dialog-choose-fct" type='text/ractive'>
+	<dialog title="New View/Filter" width="400" height="200">
+		<label for="choose-facet-label">Label for this Attribute: </label><input type="text" id="choose-facet-label" value="{{label}}" size="24" required/>
+		<br/>
+		<label for="choose-facet-att">Attribute </label>
+		<select id="choose-facet-att" value='{{fid}}'>
+		{{#each facets}}
+			<option value="{{this.id}}">{{id}} ({{this.l}})</option>
+		{{/each}}
+		</select>
+	</dialog>
+</script>
+
+<!-- Confirm Dialog -->
+<script id="dialog-confirm" type='text/ractive'>
+	<dialog title="Confirm" width="300" height="200">
+		{{message}}
+	</dialog>
+</script>
+
+<!-- ERRORS -->
+<script id="errmsg-id" type='text/ractive'>
+You must supply an internal ID for the Exhibit that is no more than 24 characters in length.
+</script>
+
+<script id="errmsg-label" type='text/ractive'>
+You must supply a Label for the Exhibit that is no more than 48 characters in length.
+</script>
+
+<script id="errmsg-num-templates" type='text/ractive'>
+Every Exhibit needs at least one and no more than four Templates. Please (de)select Templates until this requirement is met.
+</script>
+
+<script id="errmsg-templates-need-labels" type='text/ractive'>
+Every Template needs an Attribute which can serve as a label, but at least one of your Templates is missing a label Attribute.
+</script>
+
+<script id="errmsg-vf-needs-label" type='text/ractive'>
+All View/Filter configurations need a label, but you are missing one.
+</script>
+
+<!-- MESSAGE -->
+<script id="msg-confirm-del-vf" type='text/ractive'>
+Are you sure that you wish to delete this View/Filter from your Exhibit?
+</script>

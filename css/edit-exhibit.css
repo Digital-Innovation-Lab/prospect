@@ -1,0 +1,88 @@
+/******************************************************************
+ ** CSS for Gig Exhibit Dashboard Editor
+ **/
+
+/* TO DO: Arrows on left of accordion not working! */
+
+	/* Make ranger slider compact */
+input[type=range] {
+	width: 80px;
+	height:12px;
+	cursor: pointer;
+}
+
+	/* Error for displaying Error Messages */
+#error-frame {
+	color: red;
+	border: red solid 1px;
+	padding: 3px;
+	margin-top: 3px;
+	margin-bottom: 3px;
+}
+
+.jq-dialog-template {
+	font-size: 12px;
+}
+
+	/* To minimize size of ui buttons */
+.ui-button-icon-only {
+	width: 1.4em !important;
+	height: 1.4em !important;
+}
+
+	/*  grouping controls that belong to an Attribute  */
+.attribute-controls {
+	margin: 3px;
+	margin-bottom: 6px;
+	padding: 3px;
+	border: dotted gray 1px;
+}
+
+
+/* ========== jQueryUI components =========== */
+/* == Overrides to make styling work in WP == */
+
+.ui-draggable, .ui-droppable {
+	background-position: top;
+}
+
+.ui-dialog-title, .ui-dialog-content, .ui-dialog-buttonpane {
+	font-size: small;
+	font-family: "Trebuchet MS", "Arial", "Helvetica", "Verdana", "sans-serif";
+}
+
+.ui-accordion, .ui-accordion-header, .ui-accordion-content {
+	font-family: "Trebuchet MS", "Arial", "Helvetica", "Verdana", "sans-serif";  
+}
+
+.ui-accordion-header {
+	font-size: 14px;
+	font-weight: bold;
+}
+
+.ui-accordion-content {
+	font-size: 12px;
+	font-weight: normal;
+}
+
+.ui-accordion .ui-accordion-header {
+	display: block;
+	position: relative;
+}
+
+.ui-accordion .ui-accordion-header .ui-accordion-header-icon {
+	left: 0.5em !important;
+}
+
+.ui-accordion .ui-accordion-icons {
+	padding-left: 2.2em !important;
+}
+
+.ui-icon {
+	display: block;
+	overflow: hidden;
+}
+
+.ui-button {
+	margin: 3px;
+}
