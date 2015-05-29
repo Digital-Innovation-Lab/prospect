@@ -27,7 +27,7 @@
 	{{#if errorMsg.length > 0}}
 	<div id="error-frame">{{errorMsg}}</div>
 	{{/if}}
-	<button id="gig-save-data" on-click="saveExhibit">Verify and Save Exhibit Definition</button><br/>
+	<button id="prsp-save-data" on-click="saveExhibit">Verify and Save Exhibit Definition</button><br/>
 	<accordion>
 		<h3>General Settings</h3>
 		<div>

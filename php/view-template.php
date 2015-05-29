@@ -24,7 +24,7 @@
 <script src="<?php echo(plugins_url('js/view-template.js', dirname(__FILE__))); ?>"></script>
 
 <script>
-	var gigdata = {
+	var prspdata = {
 		ajax_url: <?php
 	global $post;
 
@@ -32,7 +32,7 @@
 	echo('"'.get_admin_url($blog_id ,'admin-ajax.php').'"');
 ?>,
 		e: <?php
-	$the_xhbt = new GigExhibit(true, get_the_ID(), true);
+	$the_xhbt = new ProspectExhibit(true, get_the_ID(), true);
 		// Put Attribute list in sorted order
 	sort($the_xhbt->gen->ts);
 	echo(' { id: "'.$the_xhbt->id.'", ');
@@ -48,7 +48,7 @@
 		if (!$first)
 			echo(', ');
 		$first = false;
-		$the_template = new GigTemplate(false, $template_id, false, false);
+		$the_template = new ProspectTemplate(false, $template_id, false, false);
 		echo('{ id: "'.$the_template->id.'", ');
 		echo(' def: '.$the_template->meta_def.', ');
 		echo(' n: '.$the_template->get_num_records().' }');
@@ -58,7 +58,7 @@
 		a: [ <?php
 
 		// Get all definitions of all current Attributes
-	$att_defs = GigAttribute::get_all_attributes(true, false, true, true);
+	$att_defs = ProspectAttribute::get_all_attributes(true, false, true, true);
 		// Output each entry
 	$first = true;
 	foreach($att_defs as $the_attribute) {

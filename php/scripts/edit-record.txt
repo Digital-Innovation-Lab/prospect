@@ -13,7 +13,7 @@
 	{{#if errorMsg.length > 0}}
 	<div id="error-frame">{{errorMsg}}</div>
 	{{/if}}
-	<button id="gig-save-data" on-click="saveRecord">Verify and Save Record</button><br/>
+	<button id="prsp-save-data" on-click="saveRecord">Verify and Save Record</button><br/>
 	<div>
 		<label for="rec-id">Unique Record ID </label> <input type="text" id="rec-id" size="32" value="{{recID}}" pattern="[\w\-]+" required/>
 		<label for="rec-type">Template Type </label>

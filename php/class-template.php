@@ -1,10 +1,10 @@
 <?php
 
-// PURPOSE: Implement GigTemplate objects
+// PURPOSE: Implement Template objects
 
 // NOTES:   
 
-class GigTemplate {
+class ProspectTemplate {
 		// CLASS METHODS
 		// =============
 
@@ -22,7 +22,7 @@ class GigTemplate {
 		$all_tmp_ids = array();
 
 			// Loop through all Templates
-		$args = array('post_type' => 'gig-template', 'post_status' => 'publish', 'posts_per_page' => -1 );
+		$args = array('post_type' => 'prsp-template', 'post_status' => 'publish', 'posts_per_page' => -1 );
 		$loop = new WP_Query( $args );
 		if ($loop->have_posts()) {
 			foreach ($loop->posts as $tmp) {
@@ -45,18 +45,18 @@ class GigTemplate {
 		$all_tmp_defs = array();
 
 			// Loop through all Templates
-		$args = array('post_type' => 'gig-template', 'post_status' => 'publish', 'posts_per_page' => -1 );
+		$args = array('post_type' => 'prsp-template', 'post_status' => 'publish', 'posts_per_page' => -1 );
 		$loop = new WP_Query($args);
 		if ($loop->have_posts()) {
 			foreach ($loop->posts as $tmp) {
 				if ($tmp->ID != $except_post_id) {
-					$the_temp = new GigTemplate(true, $tmp->ID, $unpack, $load_joins);
+					$the_temp = new ProspectTemplate(true, $tmp->ID, $unpack, $load_joins);
 					array_push($all_tmp_defs, $the_temp);
 				}
 			}
 		}
 			// Sort by ID
-		usort($all_tmp_defs, array('GigTemplate', 'cmp_ids'));
+		usort($all_tmp_defs, array('ProspectTemplate', 'cmp_ids'));
 		return $all_tmp_defs;
 	} // get_all_template_defs()
 
@@ -77,7 +77,7 @@ class GigTemplate {
 		// PURPOSE: Get number of Records of this Template type
 	public function get_num_records($tmplt_id)
 	{
-		$args = array('post_type' => 'gig-record', 'meta_key' => 'tmplt-id',
+		$args = array('post_type' => 'prsp-record', 'meta_key' => 'tmplt-id',
 						'meta_value' => $this->id, 'post_status' => 'publish');
 		$query = new WP_Query($args);
 		return (int)$query->found_posts;
@@ -101,11 +101,11 @@ class GigTemplate {
 
 		foreach($this->joins as $join_pair) {
 				// As they are dependent Templates, they will not have join data
-			$the_template = new GigTemplate(false, $join_pair->t, true, false);
+			$the_template = new ProspectTemplate(false, $join_pair->t, true, false);
 			array_push($deps, $the_template);
 		}
 			// Sort by ID
-		usort($deps, array('GigTemplate', 'cmp_ids'));
+		usort($deps, array('ProspectTemplate', 'cmp_ids'));
 		return $deps;
 	} // get_dependent_templates()
 
@@ -130,7 +130,7 @@ class GigTemplate {
 				$this->id = $the_id;
 
 					// Get matching Attribute item
-				$args = array('post_type' => 'gig-template',
+				$args = array('post_type' => 'prsp-template',
 								'meta_key' => 'tmplt-id',
 								'meta_value' => $the_id,
 								'posts_per_page' => 1);
@@ -163,4 +163,4 @@ class GigTemplate {
 		} // if post_id
 	} // __construct()
 
-} // class GigTemplate
+} // class ProspectTemplate

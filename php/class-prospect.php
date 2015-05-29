@@ -4,13 +4,8 @@
 
 // NOTES:   Implementation leverages WordPress by creating custom post types, each of which
 //				contains a specific set of custom fields. (Custom Field / AJAX-JSON data names)
-//			gig-attribute: 
-//			gig-template:
-//			gig-record:
-//			gig-exhibit:
-//			gig-map:
 
-class Gig {
+class Prospect {
 		// INSTANCE VARIABLES AND METHODS
 		// ==============================
 	protected $loader;
@@ -23,7 +18,7 @@ class Gig {
 		// INPUT:	$page_template = default path to file to use for template to render page
 		// RETURNS:	Modified $page_template setting (file path to new php template file)
 		// TO DO: 	Only get Attribute definitions that are used
-	public function gig_page_template($page_template)
+	public function prsp_page_template($page_template)
 	{
 		// global $post;
 
@@ -33,12 +28,12 @@ class Gig {
 
 			// What kind of page viewed?
 		switch ($post_type) {
-		case 'gig-attribute':
-		case 'gig-template':
-		case 'gig-record':
+		case 'prsp-attribute':
+		case 'prsp-template':
+		case 'prsp-record':
 			break;
 
-		case 'gig-exhibit':
+		case 'prsp-exhibit':
 	    		// Get rid of default styles
 			// wp_dequeue_style('screen');
 			// wp_deregister_style('screen');
@@ -48,7 +43,7 @@ class Gig {
 			// 	array(), $this->version);
 			// wp_enqueue_style('jqueryui-theme-css', plugins_url('css/jquery-ui.theme.min.css', dirname(__FILE__)), 
 			// 	array('jqueryui-min-css'), $this->version);
-			// wp_enqueue_style('gig-view-css', plugins_url('css/view-template.css', dirname(__FILE__)), 
+			// wp_enqueue_style('prsp-view-css', plugins_url('css/view-template.css', dirname(__FILE__)), 
 			// 	array('jqueryui-theme-css'), $this->version);
 
 			// 	// Load required JS libraries
@@ -60,11 +55,11 @@ class Gig {
 			// wp_enqueue_script('underscore');
 
 			// 	// Enqueue page JS last, after we've determine what dependencies might be
-			// wp_enqueue_script('gig-view', plugins_url('js/view-template.js', dirname(__FILE__)),
+			// wp_enqueue_script('prsp-view', plugins_url('js/view-template.js', dirname(__FILE__)),
 			// 	array('jquery', 'underscore', 'jquery-ui-button', 'jquery-ui-dialog'), $this->version);
 
 				// Get this exhibit data
-			// $the_xhbt = new GigExhibit(true, get_the_ID(), true);
+			// $the_xhbt = new ProspectExhibit(true, get_the_ID(), true);
 			// 	// Put Attribute list in sorted order
 			// sort($the_xhbt->gen->ts);
 			// $e = array();
@@ -75,7 +70,7 @@ class Gig {
 			// $e['p']  = $the_xhbt->pages;
 
 			// 	// Get all definitions of all current Attributes
-			// $att_defs = GigAttribute::get_all_attributes(true, false, true, true);
+			// $att_defs = ProspectAttribute::get_all_attributes(true, false, true, true);
 			// 	// Compile definition JSON strings into array
 			// $att_data = array();
 			// foreach($att_defs as $the_attribute) {
@@ -90,7 +85,7 @@ class Gig {
 				// Compile Template data into array
 			// $tmp_data = array();
 			// foreach($the_xhbt->gen->ts as $template_id) {
-			// 	$the_template = new GigTemplate(false, $template_id, true, false);
+			// 	$the_template = new ProspectTemplate(false, $template_id, true, false);
 			// 	$a_tmp = array();
 			// 	$a_tmp['id'] = $the_template->id;
 			// 	$a_tmp['def'] = $the_template->def;
@@ -99,7 +94,7 @@ class Gig {
 			// }
 
 				// Save variables in structure to pass to JavaScript code
-			// wp_localize_script('gig-view', 'gigdata', array(
+			// wp_localize_script('prsp-view', 'prspdata', array(
 			// 	'ajax_url'		=> $ajax_url,
 			// 	'a'				=> $att_data,
 			// 	't'				=> $tmp_data,
@@ -109,37 +104,29 @@ class Gig {
 			$page_template = dirname(__FILE__).'/view-template.php';
 			break;
 
-		case 'gig-map':
+		case 'prsp-map':
 			break;
 		} // switch
 
 		return $page_template;
-	} // gig_page_template()
+	} // prsp_page_template()
 
 
 		// PURPOSE: Define a new top-level menu -- This hook used by custom post types
 	public function add_menu()
 	{
-		add_menu_page(__('Gig', 'gig-menu'), __('Gig', 'gig-menu'), 'manage_options', 'gig-top-level-handle', null, '', 7);
+		add_menu_page(__('Prospect', 'prsp-menu'), __('Prospect', 'prsp-menu'), 'manage_options', 'prsp-top-level-handle', null, '', 7);
 	} // add_menu()
 
 
-	// public function disable_emojicons_tinymce($plugins) {
-	// 	if ( is_array( $plugins ) ) {
-	// 		return array_diff( $plugins, array('wpemoji') );
-	// 	} else {
-	// 		return array();
-	// 	}
-	// }
-
 		// PURPOSE: Code to run on init of WordPress
-	public function init_gig()
+	public function init_prospect()
 	{
 			// Register Attribute Custom Post Type
 		$labels = array(
 			'name' => _x('Attributes', 'post type general name'),
 			'singular_name' => _x('Attribute', 'post type singular name'),
-			'add_new' => _x('Add Attribute', 'gig-attribute'),
+			'add_new' => _x('Add Attribute', 'prsp-attribute'),
 			'add_new_item' => __('Add New Attribute'),
 			'edit_item' => __('Edit Attribute'),
 			'new_item' => __('New Attribute'),
@@ -154,22 +141,22 @@ class Gig {
 		$args = array(
 			'labels' => $labels,
 			'show_ui' => true, 
-			'show_in_menu' => 'gig-top-level-handle',
-			'rewrite' => array('slug' => 'gig-attribute', 'with_front' => FALSE),
+			'show_in_menu' => 'prsp-top-level-handle',
+			'rewrite' => array('slug' => 'prsp-attribute', 'with_front' => FALSE),
 			'has_archive' => false,
 			'hierarchical' => false,
 			'menu_position' => null,
 			'supports' => array('title', 'thumbnail', 'revisions'),
-			'capability_type' => 'gig_attribute',
+			'capability_type' => 'prsp_attribute',
 			'map_meta_cap' => true
 		); 
-		register_post_type('gig-attribute', $args);
+		register_post_type('prsp-attribute', $args);
 
 			// Register Template Custom Post Type
 		$labels = array(
 			'name' => _x('Templates', 'post type general name'),
 			'singular_name' => _x('Template', 'post type singular name'),
-			'add_new' => _x('Add Template', 'gig-template'),
+			'add_new' => _x('Add Template', 'prsp-template'),
 			'add_new_item' => __('Add New Template'),
 			'edit_item' => __('Edit Template'),
 			'new_item' => __('New Template'),
@@ -184,22 +171,22 @@ class Gig {
 		$args = array(
 			'labels' => $labels,
 			'show_ui' => true, 
-			'show_in_menu' => 'gig-top-level-handle',
-			'rewrite' => array('slug' => 'gig-template', 'with_front' => FALSE),
+			'show_in_menu' => 'prsp-top-level-handle',
+			'rewrite' => array('slug' => 'prsp-template', 'with_front' => FALSE),
 			'has_archive' => false,
 			'hierarchical' => false,
 			'menu_position' => null,
 			'supports' => array('title', 'thumbnail', 'revisions'),
-			'capability_type' => 'gig_template',
+			'capability_type' => 'prsp_template',
 			'map_meta_cap' => true
 		); 
-		register_post_type('gig-template', $args);
+		register_post_type('prsp-template', $args);
 
 			// Register Record Custom Post Type
 		$labels = array(
 			'name' => _x('Records', 'post type general name'),
 			'singular_name' => _x('Record', 'post type singular name'),
-			'add_new' => _x('Add Record', 'gig-record'),
+			'add_new' => _x('Add Record', 'prsp-record'),
 			'add_new_item' => __('Add New Record'),
 			'edit_item' => __('Edit Record'),
 			'new_item' => __('New Record'),
@@ -216,22 +203,22 @@ class Gig {
 			'public' => true,
 			'publicly_queryable' => true,
 			'show_ui' => true, 
-			'show_in_menu' => 'gig-top-level-handle',
-			'rewrite' => array('slug' => 'gig-record', 'with_front' => FALSE),
+			'show_in_menu' => 'prsp-top-level-handle',
+			'rewrite' => array('slug' => 'prsp-record', 'with_front' => FALSE),
 			'has_archive' => false,
 			'hierarchical' => false,
 			'menu_position' => null,
 			'supports' => array('title', 'editor', 'thumbnail', 'revisions'),
-			'capability_type' => 'gig_record',
+			'capability_type' => 'prsp_record',
 			'map_meta_cap' => true
 		); 
-		register_post_type('gig-record', $args);
+		register_post_type('prsp-record', $args);
 
 			// Register Exhibit Custom Post Type
 		$labels = array(
 			'name' => _x('Exhibits', 'post type general name'),
 			'singular_name' => _x('Exhibit', 'post type singular name'),
-			'add_new' => _x('Add Exhibit', 'gig-exhibit'),
+			'add_new' => _x('Add Exhibit', 'prsp-exhibit'),
 			'add_new_item' => __('Add New Exhibit'),
 			'edit_item' => __('Edit Exhibit'),
 			'new_item' => __('New Exhibit'),
@@ -248,21 +235,21 @@ class Gig {
 			'labels' => $labels,
 			'public' => true,
 			'show_ui' => true, 
-			'show_in_menu' => 'gig-top-level-handle',
-			'rewrite' => array('slug' => 'gig-exhibit', 'with_front' => FALSE),
+			'show_in_menu' => 'prsp-top-level-handle',
+			'rewrite' => array('slug' => 'prsp-exhibit', 'with_front' => FALSE),
 			'has_archive' => false,
 			'hierarchical' => false,
 			'menu_position' => null,
 			'supports' => array('title', 'thumbnail', 'revisions'),
-			'capability_type' => 'gig_exhibit',
+			'capability_type' => 'prsp_exhibit',
 			'map_meta_cap' => true
 		); 
-		register_post_type('gig-exhibit', $args);
+		register_post_type('prsp-exhibit', $args);
 
 		$labels = array(
 			'name' => _x( 'Maps', 'taxonomy general name' ),
 			'singular_name' => _x( 'Map', 'taxonomy singular name' ),
-			'add_new' => __('Add New', 'gig-map'),
+			'add_new' => __('Add New', 'prsp-map'),
 			'add_new_item' => __('Add New Map'),
 			'edit_item' => __('Edit Map'),
 			'new_item' => __('New Map'),
@@ -280,40 +267,30 @@ class Gig {
 			'public' => true,
 			'publicly_queryable' => true,
 			'show_ui' => true,
-			'show_in_menu' => 'gig-top-level-handle',
+			'show_in_menu' => 'prsp-top-level-handle',
 			'query_var' => true,
 			'rewrite' => false,
 			'has_archive' => true,
 			'hierarchical' => false,
 			'menu_position' => null,
 			'supports' => array('title', 'comments', 'revisions'),
-			'capability_type' => 'gig_map',
+			'capability_type' => 'prsp_map',
 			'map_meta_cap' => true
 		);
-		register_post_type('gig-map', $args);
-
-			// Remove superfluous emojicon crud
-		// remove_action('admin_print_styles', 'print_emoji_styles');
-		// remove_action('wp_head', 'print_emoji_detection_script', 7);
-		// remove_action('admin_print_scripts', 'print_emoji_detection_script');
-		// remove_action('wp_print_styles', 'print_emoji_styles');
-		// remove_filter('wp_mail', 'wp_staticize_emoji_for_email');
-		// remove_filter('the_content_feed', 'wp_staticize_emoji');
-		// remove_filter('comment_text_rss', 'wp_staticize_emoji');
-		// add_filter('tiny_mce_plugins', array ($this, 'disable_emojicons_tinymce'));
-	} // init_gig()
+		register_post_type('prsp-map', $args);
+	} // init_prospect()
 
 
 	public function __construct()
 	{
-		$this->plugin_slug = 'gig-slug';
+		$this->plugin_slug = 'prsp-slug';
 		$this->version = '0.1.0';
 
 		$this->load_dependencies();
 
 		add_action('admin_menu', array($this, 'add_menu'));
 
-		add_action('init', array($this, 'init_gig'));
+		add_action('init', array($this, 'init_prospect'));
 
 		$this->define_admin_hooks();
 		$this->define_page_hooks();
@@ -324,15 +301,15 @@ class Gig {
 	private function load_dependencies()
 	{
 			// Start with root directory for plugin
-		require_once plugin_dir_path(__FILE__).'class-gig-admin.php';
+		require_once plugin_dir_path(__FILE__).'class-prospect-admin.php';
 			// Load all Object files
 		require_once plugin_dir_path(__FILE__).'class-attribute.php';
 		require_once plugin_dir_path(__FILE__).'class-template.php';
 		require_once plugin_dir_path(__FILE__).'class-record.php';
 		require_once plugin_dir_path(__FILE__).'class-exhibit.php';
 
-		require_once plugin_dir_path(__FILE__).'class-gig-loader.php';
-		$this->loader = new GigLoader();
+		require_once plugin_dir_path(__FILE__).'class-prospect-loader.php';
+		$this->loader = new ProspectLoader();
 	} // load_dependencies()
 
 
@@ -340,37 +317,37 @@ class Gig {
 	private function define_admin_hooks()
 	{
 			// Add Dashboard hooks
-		$this->admin = new GigAdmin($this->get_version());
+		$this->admin = new ProspectAdmin($this->get_version());
 
 		$this->loader->add_action('upload_mimes', $this->admin, 'add_mime_types');
 			// Add JS to Dashboard editors
 		$this->loader->add_action('admin_enqueue_scripts', $this->admin, 'add_admin_scripts');
 			// Modify HTML for Dashboard editors
-		$this->loader->add_action('add_meta_boxes_gig-attribute', $this->admin, 'add_gig_attribute_admin_edit');
-		$this->loader->add_action('add_meta_boxes_gig-template', $this->admin, 'add_gig_template_admin_edit');
-		$this->loader->add_action('add_meta_boxes_gig-record', $this->admin, 'add_gig_record_admin_edit');
-		$this->loader->add_action('add_meta_boxes_gig-exhibit', $this->admin, 'add_gig_exhibit_admin_edit');
+		$this->loader->add_action('add_meta_boxes_prsp-attribute', $this->admin, 'add_prsp_attribute_admin_edit');
+		$this->loader->add_action('add_meta_boxes_prsp-template', $this->admin, 'add_prsp_template_admin_edit');
+		$this->loader->add_action('add_meta_boxes_prsp-record', $this->admin, 'add_prsp_record_admin_edit');
+		$this->loader->add_action('add_meta_boxes_prsp-exhibit', $this->admin, 'add_prsp_exhibit_admin_edit');
 			// Hook for saving Dashboard data
 		$this->loader->add_action('save_post', $this->admin, 'save_post');
 
 			// Hooks for exporting JSON files from directory and simple Archive page links
-		$this->loader->add_action('admin_action_gig_export_attribute', $this->admin, 'gig_export_attribute');
-		$this->loader->add_action('admin_action_gig_export_all_attributes', $this->admin, 'gig_export_all_attributes');
-		$this->loader->add_action('admin_action_gig_export_template', $this->admin, 'gig_export_template');
-		$this->loader->add_action('admin_action_gig_export_all_ts', $this->admin, 'gig_export_all_ts');
-		$this->loader->add_action('admin_action_gig_export_record', $this->admin, 'gig_export_record');
-		$this->loader->add_action('admin_action_gig_export_exhibit', $this->admin, 'gig_export_exhibit');
-		$this->loader->add_action('admin_action_gig_export_all_exhibits', $this->admin, 'gig_export_all_exhibits');
+		$this->loader->add_action('admin_action_prsp_export_attribute', $this->admin, 'prsp_export_attribute');
+		$this->loader->add_action('admin_action_prsp_export_all_attributes', $this->admin, 'prsp_export_all_attributes');
+		$this->loader->add_action('admin_action_prsp_export_template', $this->admin, 'prsp_export_template');
+		$this->loader->add_action('admin_action_prsp_export_all_ts', $this->admin, 'prsp_export_all_ts');
+		$this->loader->add_action('admin_action_prsp_export_record', $this->admin, 'prsp_export_record');
+		$this->loader->add_action('admin_action_prsp_export_exhibit', $this->admin, 'prsp_export_exhibit');
+		$this->loader->add_action('admin_action_prsp_export_all_exhibits', $this->admin, 'prsp_export_all_exhibits');
 
 		$this->loader->add_action('admin_init', $this->admin, 'check_archive_output');
 
 			// Hook for Archive page
-		$this->loader->add_action('admin_menu', $this->admin, 'add_gig_archive_menu');
+		$this->loader->add_action('admin_menu', $this->admin, 'add_prsp_archive_menu');
 
 			// AJAX calls
-		$this->loader->add_action('wp_ajax_gig_get_rec_ids', $this->admin, 'gig_get_rec_ids');
-		$this->loader->add_action('wp_ajax_gig_get_records', $this->admin, 'gig_get_records');
-		$this->loader->add_action('wp_ajax_nopriv_gig_get_records', $this->admin, 'gig_get_records');
+		$this->loader->add_action('wp_ajax_prsp_get_rec_ids', $this->admin, 'prsp_get_rec_ids');
+		$this->loader->add_action('wp_ajax_prsp_get_records', $this->admin, 'prsp_get_records');
+		$this->loader->add_action('wp_ajax_nopriv_prsp_get_records', $this->admin, 'prsp_get_records');
 	} // define_admin_hooks()
 
 
@@ -379,10 +356,10 @@ class Gig {
 	private function define_page_hooks()
 	{
 			// Modify template for viewing pages
-		$this->loader->add_filter('single_template', $this, 'gig_page_template', null, null);
+		$this->loader->add_filter('single_template', $this, 'prsp_page_template', null, null);
 
 			// Add code to injet Export links
-		$this->loader->add_filter('post_row_actions', $this->admin, 'gig_export_post', 10, 2);
+		$this->loader->add_filter('post_row_actions', $this->admin, 'prsp_export_post', 10, 2);
 	} // define_page_hooks()
 
 
@@ -397,4 +374,4 @@ class Gig {
 		return $this->version;
 	} // get_version()
 
-} // class Gig
+} // class Prospect

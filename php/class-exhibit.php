@@ -1,10 +1,10 @@
 <?php
 
-// PURPOSE: Implement GigExhibit objects
+// PURPOSE: Implement ProspectExhibit objects
 
 // NOTES:   
 
-class GigExhibit {
+class ProspectExhibit {
 		// CLASS METHODS
 		// =============
 
@@ -16,11 +16,11 @@ class GigExhibit {
 		$all_exhibit_defs = array();
 
 			// Loop through all Templates
-		$args = array('post_type' => 'gig-exhibit', 'post_status' => 'publish', 'posts_per_page' => -1 );
+		$args = array('post_type' => 'prsp-exhibit', 'post_status' => 'publish', 'posts_per_page' => -1 );
 		$loop = new WP_Query($args);
 		if ($loop->have_posts()) {
 			foreach ($loop->posts as $tmp) {
-				$the_exhibit = new GigExhibit(true, $tmp->ID, $unpack);
+				$the_exhibit = new ProspectExhibit(true, $tmp->ID, $unpack);
 				array_push($all_exhibit_defs, $the_exhibit);
 			}
 		}
@@ -62,7 +62,7 @@ class GigExhibit {
 				$this->id = $the_id;
 
 					// Get matching Attribute item
-				$args = array('post_type' => 'gig-exhibit',
+				$args = array('post_type' => 'prsp-exhibit',
 								'meta_key' => 'xhbt-id',
 								'meta_value' => $the_id,
 								'posts_per_page' => 1);
@@ -105,4 +105,4 @@ class GigExhibit {
 		} // if post_id
 	} // _construct()
 
-} // class GigExhibit
+} // class ProspectExhibit

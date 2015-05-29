@@ -12,7 +12,7 @@
 	{{#if errorMsg.length > 0}}
 	<div id="error-frame">{{errorMsg}}</div>
 	{{/if}}
-	<button id="gig-save-data" on-click="saveTemplate">Verify and Save Template Definition</button><br/>
+	<button id="prsp-save-data" on-click="saveTemplate">Verify and Save Template Definition</button><br/>
 	<label for="ext-label">Template external label: </label><input id="ext-label" value='{{theTemplate.l}}' placeholder="Enter label" size="24" required/><br/>
 	<label for="int-id">Template internal id: </label><input id="int-id" value='{{templateID}}' placeholder="Enter id" size="24" pattern="[\w\-]+" required/><br/>
 	<input id="dep-tmplt" type='checkbox' checked='{{theTemplate.d}}'> Dependent Template<br/>

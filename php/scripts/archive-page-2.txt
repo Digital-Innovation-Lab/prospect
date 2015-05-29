@@ -3,5 +3,5 @@
 </form>
 
 <p>Export all Records of this Template type (as CSV file)</p>
-<form id="gig-archive-export-t-recs-form" method="post" enctype="multipart/form-data">
+<form id="prsp-archive-export-t-recs-form" method="post" enctype="multipart/form-data">
 <select name="export-type">

@@ -1,10 +1,10 @@
 <?php
 
-// PURPOSE: Implement GigRecord objects
+// PURPOSE: Implement ProspectRecord objects
 
 // NOTES:   
 
-class GigRecord {
+class ProspectRecord {
 		// CLASS METHODS
 		// =============
 
@@ -49,7 +49,7 @@ class GigRecord {
 				$this->id = $the_id;
 
 					// Get matching Attribute item
-				$args = array('post_type' => 'gig-record',
+				$args = array('post_type' => 'prsp-record',
 								'meta_key' => 'record-id',
 								'meta_value' => $the_id,
 								'posts_per_page' => 1);
@@ -79,7 +79,7 @@ class GigRecord {
 				// If not new Record
 			if ($this->tmplt_id != '') {
 					// Get matching Attribute item
-				$args = array('post_type' => 'gig-template',
+				$args = array('post_type' => 'prsp-template',
 								'meta_key' => 'tmplt-id',
 								'meta_value' => $this->tmplt_id,
 								'posts_per_page' => 1);
@@ -131,7 +131,7 @@ class GigRecord {
 									foreach ($dependent_array as $d_temp) {
 										if ($j_entry->t == $d_temp->id) {
 												// Get the Record to Join
-											$j_rec = new GigRecord(false, $val, true, $d_temp, null);
+											$j_rec = new ProspectRecord(false, $val, true, $d_temp, null);
 											foreach ($j_rec->att_data as $att_id => $att_val) {
 												$this->att_data[$att_to_load.'.'.$att_id] = $att_val;
 											}
@@ -155,4 +155,4 @@ class GigRecord {
 		} // if atts to load
 	} // _construct()
 
-} // class GigRecord
+} // class ProspectRecord

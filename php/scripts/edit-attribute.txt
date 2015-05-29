@@ -191,7 +191,7 @@
 	{{#if errorMsg.length > 0}}
 	<div id="error-frame">{{errorMsg}}</div>
 	{{/if}}
-	<button id="gig-save-data" on-click="saveAttribute">Verify and Save Attribute Definition</button><br/>
+	<button id="prsp-save-data" on-click="saveAttribute">Verify and Save Attribute Definition</button><br/>
 	Attribute external label: <input value='{{theAttribute.l}}' placeholder="Enter label" size="24" required/>
 	<br/>
 	Attribute internal id: <input value='{{attID}}' placeholder="Enter id" size="24" pattern="[\w\-]+" required/>

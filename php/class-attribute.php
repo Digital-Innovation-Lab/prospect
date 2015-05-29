@@ -4,7 +4,7 @@
 
 // NOTES:   
 
-class GigAttribute {
+class ProspectAttribute {
 		// CLASS METHODS
 		// =============
 
@@ -68,7 +68,7 @@ class GigAttribute {
 		$custom_fields = array();
 
 			// Loop through all Records, adding custom fields to array
-		$args = array('post_type' => 'gig-record', 'posts_per_page' => -1 );
+		$args = array('post_type' => 'prsp-record', 'posts_per_page' => -1 );
 		$loop = new WP_Query( $args );
 		if ($loop->have_posts()) {
 			foreach ($loop->posts as $rec) {
@@ -80,7 +80,7 @@ class GigAttribute {
 						// exclude WP internal fields
 					if ($trimmed{0} == '_')
 						continue;
-					GigAttribute::sorted_insert($trimmed, $custom_fields);
+					ProspectAttribute::sorted_insert($trimmed, $custom_fields);
 				}
 			}
 		}
@@ -102,16 +102,16 @@ class GigAttribute {
 		$all_atts = array();
 
 			// Loop through all published Attributes adding to array
-		$args = array('post_type' => 'gig-attribute', 'post_status' => 'publish', 'posts_per_page' => -1 );
+		$args = array('post_type' => 'prsp-attribute', 'post_status' => 'publish', 'posts_per_page' => -1 );
 		$loop = new WP_Query( $args );
 		if ($loop->have_posts()) {
 			foreach ($loop->posts as $att) {
-				$new_att = new GigAttribute(true, $att->ID, $unpack, $load_hint, $load_range, $load_legend);
+				$new_att = new ProspectAttribute(true, $att->ID, $unpack, $load_hint, $load_range, $load_legend);
 				array_push($all_atts, $new_att);
 			}
 		}
 			// Sort by ID
-		usort($all_atts, array('GigAttribute', 'cmp_ids'));
+		usort($all_atts, array('ProspectAttribute', 'cmp_ids'));
 		return $all_atts;
 	} // get_all_attributes()
 
@@ -122,7 +122,7 @@ class GigAttribute {
 	{
 		$all_att_ids = array();
 
-		$args = array('post_type' => 'gig-attribute', 'post_status' => 'publish', 'posts_per_page' => -1 );
+		$args = array('post_type' => 'prsp-attribute', 'post_status' => 'publish', 'posts_per_page' => -1 );
 		$loop = new WP_Query( $args );
 		if ($loop->have_posts()) {
 			foreach ($loop->posts as $att) {
@@ -174,7 +174,7 @@ class GigAttribute {
 				$this->id = $the_id;
 
 					// Get matching Attribute item
-				$args = array('post_type' => 'gig-attribute',
+				$args = array('post_type' => 'prsp-attribute',
 								'meta_key' => 'att-id',
 								'meta_value' => $the_id,
 								'posts_per_page' => 1);
@@ -216,4 +216,4 @@ class GigAttribute {
 		} // if post_id
 	} // __construct()
 
-} // class GigAttribute
+} // class ProspectAttribute

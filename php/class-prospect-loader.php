@@ -2,7 +2,7 @@
 
 // PURPOSE: Object that stores and adds action and filter hooks
 
-class GigLoader {
+class ProspectLoader {
 
 	protected $actions; 
 	protected $filters;
@@ -50,4 +50,4 @@ class GigLoader {
 		}
 	} // run()
 
-} // class GigLoader
+} // class ProspectLoader
