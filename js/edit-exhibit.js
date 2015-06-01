@@ -1,4 +1,4 @@
-// Gig Exhibit Editor
+// Exhibit Editor
 
 // ASSUMES: A view area for the browser has been marked with HTML div as "ractive-output"
 // NOTES:   
@@ -152,9 +152,9 @@ jQuery(document).ready(function() {
 		// DATA LOADED FROM SERVER
 		// =======================
 		// List of all currently defined Attributes
-	var defAtts = gigdata.atts;			// { id, def }
+	var defAtts = prspdata.atts;			// { id, def }
 		// List of all currently defined Templates; joins Object is added to it
-	var defTemplates = gigdata.templates;		// { id, def, joins }
+	var defTemplates = prspdata.templates;		// { id, def, joins }
 
 
 		// LIVE DATA ABOUT THIS EXHIBIT
@@ -164,23 +164,23 @@ jQuery(document).ready(function() {
 	var embed;
 
 		// General Attributes
-	var xhbtID = jQuery('input[name="gig_xhbt_id"]').val();
+	var xhbtID = jQuery('input[name="prsp_xhbt_id"]').val();
 
 	var defGen = { l: '', hbtn: '', hurl: '', ts: [] };
-	embedData = jQuery('textarea[name="gig_xhbt_gen"]').val();
+	embedData = jQuery('textarea[name="prsp_xhbt_gen"]').val();
 	if (embedData && embedData != 'null' && embedData.length > 4) {
 		defGen = JSON.parse(embedData);
 	}
 
 		// Configurations of Views
 	var defViews = [ ];
-	embedData = jQuery('textarea[name="gig_xhbt_views"]').val();
+	embedData = jQuery('textarea[name="prsp_xhbt_views"]').val();
 	if (embedData && embedData != 'null' && embedData.length > 4) {
 		defViews = JSON.parse(embedData);
 	}
 		// Configurations of Widgets
 	var defWidgets = { sc: { atts: [] }, yt: { atts: [] }, t: { t1Atts: [], t2Atts: [], tcAtts: [] } };
-	embedData = jQuery('textarea[name="gig_xhbt_widgets"]').val();
+	embedData = jQuery('textarea[name="prsp_xhbt_widgets"]').val();
 	if (embedData && embedData != 'null' && embedData.length > 4) {
 		defWidgets = JSON.parse(embedData);
 	}
@@ -188,7 +188,7 @@ jQuery(document).ready(function() {
 	var defPages = { modal: { scOn: false, ytOn: false, tOn: false, atts: [] },
 					 post:  { scOn: false, ytOn: false, tOn: false, atts: [] }
 					};
-	embedData = jQuery('textarea[name="gig_xhbt_pages"]').val();
+	embedData = jQuery('textarea[name="prsp_xhbt_pages"]').val();
 	if (embedData && embedData != 'null' && embedData.length > 4) {
 		defPages = JSON.parse(embedData);
 	}
@@ -1140,17 +1140,17 @@ jQuery(document).ready(function() {
 			savePages.post.atts = newPostCnt;
 
 // console.log("Saving: ");
-// console.log("gig_xhbt_gen: "+JSON.stringify(saveGen));
-// console.log("gig_xhbt_views: "+JSON.stringify(saveViews));
-// console.log("gig_xhbt_widgets: "+JSON.stringify(saveWidgets));
-// console.log("gig_xhbt_pages: "+JSON.stringify(savePages));
+// console.log("prsp_xhbt_gen: "+JSON.stringify(saveGen));
+// console.log("prsp_xhbt_views: "+JSON.stringify(saveViews));
+// console.log("prsp_xhbt_widgets: "+JSON.stringify(saveWidgets));
+// console.log("prsp_xhbt_pages: "+JSON.stringify(savePages));
 
 				// Insert values into hidden fields if no problems
-			jQuery('input[name="gig_xhbt_id"]').val(saveID);
-			jQuery('textarea[name="gig_xhbt_gen"]').val(JSON.stringify(saveGen));
-			jQuery('textarea[name="gig_xhbt_views"]').val(JSON.stringify(saveViews));
-			jQuery('textarea[name="gig_xhbt_widgets"]').val(JSON.stringify(saveWidgets));
-			jQuery('textarea[name="gig_xhbt_pages"]').val(JSON.stringify(savePages));
+			jQuery('input[name="prsp_xhbt_id"]').val(saveID);
+			jQuery('textarea[name="prsp_xhbt_gen"]').val(JSON.stringify(saveGen));
+			jQuery('textarea[name="prsp_xhbt_views"]').val(JSON.stringify(saveViews));
+			jQuery('textarea[name="prsp_xhbt_widgets"]').val(JSON.stringify(saveWidgets));
+			jQuery('textarea[name="prsp_xhbt_pages"]').val(JSON.stringify(savePages));
 		} // if saveGe
 		return false;
 	});

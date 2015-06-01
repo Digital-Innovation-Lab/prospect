@@ -1,4 +1,4 @@
-// Gig Attribute Editor
+// Attribute Editor
 
 // ASSUMES: A view area for the browser has been marked with HTML div as "ractive-output"
 // NOTES:   
@@ -133,9 +133,9 @@ jQuery(document).ready(function() {
 
 		// DATA LOADED FROM SERVER
 		// =======================
-	var customFields = gigdata.cfs;			// Custom fields used in Records
-	var iconList = gigdata.pngs;			// PNG icons in Media Library
-	var allAttributeIDs = gigdata.att_ids;	// List of previously defined Attributes (not including this one!)
+	var customFields = prspdata.cfs;			// Custom fields used in Records
+	var iconList = prspdata.pngs;			// PNG icons in Media Library
+	var allAttributeIDs = prspdata.att_ids;	// List of previously defined Attributes (not including this one!)
 
 	var cfTerms = [];						// List of terms appearing in selected custom field (loaded via AJAX)
 	// var cfTerms = [ 'term a', 'term b', 'term c' ];					// List of terms appearing in selected custom field (loaded via AJAX)
@@ -169,7 +169,7 @@ jQuery(document).ready(function() {
 
 		// CODE
 		// ====
-	attID = jQuery('input[name="gig_att_id"]').val();
+	attID = jQuery('input[name="prsp_att_id"]').val();
 
 	var embedData;
 
@@ -184,13 +184,13 @@ jQuery(document).ready(function() {
 	} // getIconURL()
 
 		// Unpack and prepare the Attribute definition
-	embedData = jQuery('textarea[name="gig_att_def"]').val();
+	embedData = jQuery('textarea[name="prsp_att_def"]').val();
 	if (embedData && embedData.length > 2) {
 		defAttribute = JSON.parse(embedData);
 	}
 	defAttribute.id = attID;
 
-	embedData = jQuery('textarea[name="gig_att_r"]').val();
+	embedData = jQuery('textarea[name="prsp_att_r"]').val();
 	if (embedData && embedData.length > 2) {
 		defRange = JSON.parse(embedData);
 			// Interpret undefined range values -- turn into strings
@@ -234,7 +234,7 @@ jQuery(document).ready(function() {
 	}
 
 		// Unpack Legend data (construct val, icon, color)
-	embedData = jQuery('textarea[name="gig_att_lgnd"]').val();
+	embedData = jQuery('textarea[name="prsp_att_lgnd"]').val();
 	if (embedData && embedData.length > 2) {
 		tempLegend = JSON.parse(embedData);
 		tempLegend.forEach(function(lgndEntry) {
@@ -1246,10 +1246,10 @@ jQuery(document).ready(function() {
 
 				// Stuff in hidden fields
 			var theID = rApp.get('attID').trim();
-			jQuery('input[name="gig_att_id"]').val(theID);
-			jQuery('textarea[name="gig_att_def"]').val(JSON.stringify(attDef));
-			jQuery('textarea[name="gig_att_r"]').val(JSON.stringify(attR));
-			jQuery('textarea[name="gig_att_lgnd"]').val(JSON.stringify(attL));
+			jQuery('input[name="prsp_att_id"]').val(theID);
+			jQuery('textarea[name="prsp_att_def"]').val(JSON.stringify(attDef));
+			jQuery('textarea[name="prsp_att_r"]').val(JSON.stringify(attR));
+			jQuery('textarea[name="prsp_att_lgnd"]').val(JSON.stringify(attL));
 		} // if no error
 		return false;
 	}); // on saveAttribute

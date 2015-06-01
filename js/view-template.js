@@ -1,19 +1,20 @@
 // This file contains:
-//		GigView abstract class object
-//		GigHub Module for handling data
-//		GigBootstrap for launching processes and organizing screen
+//		ViewFrame Object
+//		ViewModel abstract Class
+//		DataHub Module for handling data
+//		Bootstrap for launching processes and organizing screen
 
-// NOTES: 	gigdata will pass the following information:
+// NOTES: 	prspdata will pass the following information:
 //				a = array of Attribute definitions { id, def, r, l }
 //				t = array of Template definitions (no Joins) and Record numbers: { id, def, n }
 //				e = Exhibit definition { id, g, vf, w, p }
 
 // ========================================================================
-// GigViewFrame: Pseudo-object that manages contents of visualization frame
+// ViewFrame: Pseudo-object that manages contents of visualization frame
 
 // INPUT: 	vizIndex = index for this visualization frame (0 or 1)
 
-function GigViewFrame(vizIndex)
+function ViewFrame(vizIndex)
 {
 	var instance = { };					// used to create pseudo-instance of Object
 
@@ -70,7 +71,7 @@ function GigViewFrame(vizIndex)
 	{
 		var head = jQuery('#view-frame-'+vizIndex+' .view-control-bar .view-viz-select');
 			// Set Dropdown to View names
-		gigdata.e.vf.forEach(function(theVF, i) {
+		prspdata.e.vf.forEach(function(theVF, i) {
 				// Don't treat Facet Browser as View
 			if (theVF.vf != 'Browser') {
 				var optionStr = '<option value="'+i+'">'+theVF.l+'</option>';
@@ -94,13 +95,13 @@ function GigViewFrame(vizIndex)
 	}; // initDOM()
 
 	return instance;
-} // GigViewFrame
+} // ViewFrame
 
 
 // ======================================================================
-// GigViz: An abstract class to be subclassed by specific visualizations
+// ViewModel: An abstract class to be subclassed by specific visualizations
 
-function GigViz(viewFrame, viewParams)
+function ViewModel(viewFrame, viewParams)
 {
 	this.instParams = viewParams;		// instance parameters
 
@@ -110,34 +111,34 @@ function GigViz(viewFrame, viewParams)
 	// this.setPerspective = function(pData)
 	// this.selectLegend = function()
 	// this.setSelection = function(viewParams, dataSet, ids)
-} // GigViz
+} // ViewModel
 
 
 // ==========================================================
-// GigFilter: An abstract class for data filters
+// FilterModel: An abstract class for data filters
 
 // INPUT: fIndex = index for this filter
 
-function GigFilter(fIndex)
+function FilterModel(fIndex)
 {
 
 		// All subclasses must implement the following:
 	// this.evaluateRec(theRec)
-} // GigFilter
+} // FilterModel
 
 
 // ==========================================================
-// GigHub
+// DataHub
 // PURPOSE: Manages all of the data, implements Filters, feeds data streams, etc.
 
 // USES: jQuery
 
 // NOTES: 	There is only one hub at a time so no need for instantiating instances
-//			GigHub is implemented with the "Module" design pattern for hiding
+//			DataHub is implemented with the "Module" design pattern for hiding
 //				private variables and minimizing external interference
-// TO DO: 	Change LOAD_DATA_CHUNK to Option setting passed by gigdata
+// TO DO: 	Change LOAD_DATA_CHUNK to Option setting passed by prspdata
 
-var GigHub = (function () {
+var DataHub = (function () {
 
 	// CONSTANTS
 	// =========
@@ -149,7 +150,7 @@ var GigHub = (function () {
 	// ==================
 
 	var allData = [];				// "head" array of all Records, one entry per Template type
-									// Corresponding to gigdata.t
+									// Corresponding to prspdata.t
 									// { l = # loaded, i = initial index for these records, d = data array itself }
 	var allDataCount=0;				// Total number of Records
 	var allVs = [];					// array of all Views
@@ -173,10 +174,10 @@ var GigHub = (function () {
 	{
 		jQuery.ajax({
 			type: 'POST',
-			url: gigdata.ajax_url,
+			url: prspdata.ajax_url,
 			data: {
-				action: 'gig_get_records',
-				tmplt_id: gigdata.t[tIndex].id,
+				action: 'prsp_get_records',
+				tmplt_id: prspdata.t[tIndex].id,
 				from: from,
 				count: count
 			},
@@ -205,9 +206,9 @@ var GigHub = (function () {
 	{
 		var done = true;
 
-		for (var i=0; i<gigdata.t.length; i++) {
+		for (var i=0; i<prspdata.t.length; i++) {
 			var current = allData[i].l;
-			var needed = gigdata.t[i].n;
+			var needed = prspdata.t[i].n;
 			if (current < needed) {
 				done = false;
 				var gap = needed - current;
@@ -227,7 +228,7 @@ var GigHub = (function () {
 		init: function()
 		{
 				// Create empty entries
-			gigdata.t.forEach(function(tmplt) {
+			prspdata.t.forEach(function(tmplt) {
 				var newTData = { l: 0, d: null };
 				allData.push(newTData);
 				allDataCount += tmplt.n;
@@ -254,33 +255,33 @@ var GigHub = (function () {
 			// TO DO:   Use binary search
 		getAttID: function(attID)
 		{
-			for (var i=0; i<gigdata.a.length; i++) {
-				var thisID = gigdata.a[i].id;
+			for (var i=0; i<prspdata.a.length; i++) {
+				var thisID = prspdata.a[i].id;
 				if (attID == thisID)
-					return gigdata.a[i];
+					return prspdata.a[i];
 			}
 		}, // getAttID()
 
 
 		getAttIndex: function(aIndex)
 		{
-			return gigdata.a[aIndex];
+			return prspdata.a[aIndex];
 		}, // getAttIndex()
 
 
 		getVizIndex: function(vIndex)
 		{
-			return gigdata.e.vf[vIndex];
+			return prspdata.e.vf[vIndex];
 		} // getVizIndex()
 	} // return
 })();
 
 
-// GigBootstrap -- JavaScript bootstrap for Gig
+// Bootstrap -- Bootstrap for Prospect Client
 // PURPOSE: Create DOM structure, initiate services …
 
 // USES: 	jQuery, jQueryUI, …
-// ASSUMES: gigdata is set
+// ASSUMES: prspdata is set
 
 
 jQuery(document).ready(function($) {
@@ -304,7 +305,7 @@ jQuery(document).ready(function($) {
 		// PURPOSE: Gather data about Filterable Attributes & Facet Browsers
 	function prepFilterData()
 	{
-		gigdata.a.forEach(function(theAttribute) {
+		prspdata.a.forEach(function(theAttribute) {
 			switch (theAttribute.def.t) {
 			case 'Vocabulary':
 			case 'Text':
@@ -314,7 +315,7 @@ jQuery(document).ready(function($) {
 				break;
 			}
 		});
-		gigdata.e.vf.forEach(function(theVF, vIndex) {
+		prspdata.e.vf.forEach(function(theVF, vIndex) {
 			if (theVF.vf == 'Browser') {
 				jQuery('#filter-list').append('<li data-type="v" data-id="'+vIndex+'">'+theVF.l+'</li>');
 			}
@@ -379,8 +380,8 @@ console.log("Create Filter "+fType+", "+fID);
 		// IMMEDIATE EXECUTION
 		//====================
 
-	if (gigdata.e.g.l != '')
-		jQuery('#title').append(gigdata.e.g.l);
+	if (prspdata.e.g.l != '')
+		jQuery('#title').append(prspdata.e.g.l);
 
 		// Command Bar
 	jQuery('#btn-set-layout').button({icons: { primary: 'ui-icon-newwin' }, text: false })
@@ -393,7 +394,7 @@ console.log("Create Filter "+fType+", "+fID);
 	prepFilterData();
 
 		// Init hub using config settings
-	GigHub.init();
-	var view0 = GigViewFrame(0);
+	DataHub.init();
+	var view0 = ViewFrame(0);
 	view0.initDOM();
 });

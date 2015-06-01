@@ -1,9 +1,9 @@
-// Gig Record Editor
+// Record Editor
 
 // ASSUMES: A view area for the browser has been marked with HTML div as "ractive-output"
 // NOTES:   Data about this Record passed in hidden fields
-//			In case of newly created Record, gig_rec_id and gig_tmplt_id will be empty, and gig_rec_atts will be "null"
-//			gigdata will pass definitions of Templates and Attributes
+//			In case of newly created Record, prsp_rec_id and prsp_tmplt_id will be empty, and prsp_rec_atts will be "null"
+//			prspdata will pass definitions of Templates and Attributes
 // USES:    jQuery, Underscore, jQueryUI, and Ractive
 // ASSUMES: 
 
@@ -103,13 +103,13 @@ jQuery(document).ready(function() {
 		// =======================
 
 		// Definitions of Attributes
-	var defAtts = gigdata.attDefs;
+	var defAtts = prspdata.attDefs;
 	for (i=0; i<defAtts.length; i++)
 		if (defAtts[i].lgnd == null)
 			defAtts[i].lgnd = [];
 
 		// List of currently defined Templates; joins Object is added to it
-	var defTemplates = gigdata.templates;		// [ { id, def, j } ]
+	var defTemplates = prspdata.templates;		// [ { id, def, j } ]
 
 		// Need to abort with Error message if no Templates defined
 	if (defTemplates.length == 0) {
@@ -118,15 +118,15 @@ jQuery(document).ready(function() {
 
 		// LIVE DATA ABOUT THIS RECORD
 		// ==============================
-	var recID = jQuery('input[name="gig_rec_id"]').val();
+	var recID = jQuery('input[name="prsp_rec_id"]').val();
 
-	var recType = jQuery('input[name="gig_tmplt_id"]').val();
+	var recType = jQuery('input[name="prsp_tmplt_id"]').val();
 	if (recType == null || recType == '')
 		recType = defTemplates[0].id || '';
 
 		// Attribute ID/Value pairs, passed from/to server
 	var attData = { };
-	var embedData = jQuery('textarea[name="gig_rec_atts"]').val();
+	var embedData = jQuery('textarea[name="prsp_rec_atts"]').val();
 	if (embedData && embedData != 'null' && embedData.length > 4) {
 		attData = JSON.parse(embedData);
 	}
@@ -490,9 +490,9 @@ jQuery(document).ready(function() {
 				// AJAX call to get list of Record IDs
 			jQuery.ajax({
 				type: 'POST',
-				url: gigdata.ajax_url,
+				url: prspdata.ajax_url,
 				data: {
-					action: 'gig_get_rec_ids',
+					action: 'prsp_get_rec_ids',
 					tmplt_id: tmpltList[tIndex]
 				},
 				success: function(data, textStatus, XMLHttpRequest)
@@ -551,9 +551,9 @@ jQuery(document).ready(function() {
 				// AJAX call to get list of Record IDs
 			jQuery.ajax({
 				type: 'POST',
-				url: gigdata.ajax_url,
+				url: prspdata.ajax_url,
 				data: {
-					action: 'gig_get_rec_ids',
+					action: 'prsp_get_rec_ids',
 					tmplt_id: joinRec.t
 				},
 				success: function(data, textStatus, XMLHttpRequest)
@@ -619,13 +619,13 @@ jQuery(document).ready(function() {
 		}
 
 			// Insert values into hidden fields if no problems
-		jQuery('input[name="gig_rec_id"]').val(newRecID);
-		jQuery('input[name="gig_tmplt_id"]').val(rApp.get('recType'));
+		jQuery('input[name="prsp_rec_id"]').val(newRecID);
+		jQuery('input[name="prsp_tmplt_id"]').val(rApp.get('recType'));
 		var encodedVals = JSON.stringify(newAttVals);
-		jQuery('textarea[name="gig_rec_atts"]').val(encodedVals);
+		jQuery('textarea[name="prsp_rec_atts"]').val(encodedVals);
 
-console.log("RecAtts: "+encodedVals);
-console.log("size: "+encodedVals.length);
+// console.log("RecAtts: "+encodedVals);
+// console.log("size: "+encodedVals.length);
 		return false;
 	});
 }); // ready

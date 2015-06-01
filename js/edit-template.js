@@ -1,4 +1,4 @@
-// Gig Template Editor
+// Template Editor
 
 // ASSUMES: A view area for the browser has been marked with HTML div as "ractive-output"
 // NOTES:   
@@ -95,19 +95,19 @@ jQuery(document).ready(function() {
 		// DATA LOADED FROM SERVER
 		// =======================
 		// Unpack list of definition data for currently defined Templates
-	var defTemplates = gigdata.templates;
+	var defTemplates = prspdata.templates;
 		// Unpack list of currently defined Attributes (just minimal definition data)
-	var defAtts = gigdata.atts;
+	var defAtts = prspdata.atts;
 
 		// LIVE DATA ABOUT THIS TEMPLATE (Needs un-/repacking)
 		// ===================================================
-	var templateID = jQuery('input[name="gig_tmp_id"]').val();
+	var templateID = jQuery('input[name="prsp_tmp_id"]').val();
 	var defTemplate;
 	var textAtts = [];					// Text Attributes in this Template
 
 	var embedData;
 
-	embedData = jQuery('textarea[name="gig_tmp_def"]').val();
+	embedData = jQuery('textarea[name="prsp_tmp_def"]').val();
 	if (embedData && embedData.length > 2) {
 		defTemplate = JSON.parse(embedData);
 	} else {
@@ -115,7 +115,7 @@ jQuery(document).ready(function() {
 	}
 
 		// Must integrate Joins into Attribute array: { id: att ID, t: type, j: Template ID (if Join) } ]
-	embedData = jQuery('textarea[name="gig_tmp_joins"]').val();
+	embedData = jQuery('textarea[name="prsp_tmp_joins"]').val();
 	var joins = [];
 	if (embedData && embedData.length > 2) {
 		var joins = JSON.parse(embedData);
@@ -429,9 +429,9 @@ jQuery(document).ready(function() {
 			}
 
 				// Stuff results into hidden form fields
-			jQuery('input[name="gig_tmp_id"]').val(rApp.get('templateID').trim());
-			jQuery('textarea[name="gig_tmp_def"]').val(JSON.stringify(tmpltDef));
-			jQuery('textarea[name="gig_tmp_joins"]').val(JSON.stringify(tmpJoins));
+			jQuery('input[name="prsp_tmp_id"]').val(rApp.get('templateID').trim());
+			jQuery('textarea[name="prsp_tmp_def"]').val(JSON.stringify(tmpltDef));
+			jQuery('textarea[name="prsp_tmp_joins"]').val(JSON.stringify(tmpJoins));
 		}
 		return false;
 	});

@@ -1,5 +1,5 @@
 <div class="wrap"><div id="icon-tools" class="icon32"></div>
-<h2>Gig Archives</h2>
+<h2>Prospect Archives</h2>
 </div>
 
 <h3>Attributes</h3>
