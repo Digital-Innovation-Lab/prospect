@@ -144,11 +144,30 @@ select {
 }
 
 	/* Frame that displays visualization content */
+	/*	This is divided dynamically into .legend-body and .viz-result */
 #viz-display-frame .viz-content {
+	/* Temporary hack to create viz space */
+	height: 400px;
 }
 
-  /* Legends are semi-opaque overlays on content in top-left corner */
-.legend-body {
+#viz-display-frame .viz-result {
+}
+
+	/* Legends are semi-opaque overlays on content in top-left corner
+	 * legend-container (outer)
+	 * 		legend-template (DIV per template): data-index = index of Template
+	 *			legend-title
+	 *			legend-locate (For each Attribute that can locate object on visualization)
+	 *			legend-select (menu with list of Legend Attributes)
+	 *				option value = Attribute ID
+	 *			legend-sh	  (show/hide option)
+	 *			legend-value  (single legend value): data-index = index of legend entry
+	 *				legend-viz   (color or icon)
+	 *
+	 * NOTES:	Any line that begins with a checkbox is DIV of class 'legend-entry'.
+	 * 			The checkbox itself is class legend-entry-check
+	 */
+.legend-container {
 	position: relative;
 	top: 6px;
 	left: 6px;
@@ -180,7 +199,7 @@ select {
 	margin-bottom: 6px;
 }
 
-  /* An entry for a Legend value */
+  /* An entry for a checkbox */
   /* contains .dhp-legend-entry-check then .dhp-legend-entry-key then title */
 .legend-entry {
 	font-size: 14px;
@@ -201,7 +220,7 @@ select {
 }
 
   /* the visual item for a Legend value */
-.legend-entry-key {
+.legend-viz {
 /*    padding: 4px;
 	padding-left: 12px; */
 	border: 1px solid dotted;
@@ -212,6 +231,9 @@ select {
 	width: 18px;
 	height: 18px;
 }
+
+
+/* MODAL DIALOGS */
 
 	/* For lists in modal Dialogs */
 .scroll-container {

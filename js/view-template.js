@@ -1,8 +1,8 @@
 // This file contains:
-//		ViewFrame Object
-//		ViewModel abstract Class
-//		DataHub Module for handling data
-//		Bootstrap for launching processes and organizing screen
+//		PViewFrame Object
+//		PViewModel abstract Class
+//		PDataHub Module for handling data
+//		PBootstrap for launching processes and organizing screen
 
 // NOTES: 	prspdata will pass the following information:
 //				a = array of Attribute definitions { id, def, r, l }
@@ -10,29 +10,69 @@
 //				e = Exhibit definition { id, g, vf, w, p }
 
 // ========================================================================
-// ViewFrame: Pseudo-object that manages contents of visualization frame
+// PViewFrame: Pseudo-object that manages contents of visualization frame
+//				Creates Legend and maintains selection (passed to PVizModel on update)
 
 // INPUT: 	vizIndex = index for this visualization frame (0 or 1)
 
-function ViewFrame(vizIndex)
+function PViewFrame(vizIndex)
 {
-	var instance = { };					// used to create pseudo-instance of Object
+	var instance = { };				// creates pseudo-instance of Object
 
 	// INSTANCE VARIABLES
 	//===================
 
-	var selView = 0;				// index of currently selected View
-	var selLegends = [];			// names of Legend selections (one per Template)
+	var vizSelIndex = 0;			// index of currently selected Viz
+	var vizModel = null;			// VizModel currently in frame
+	var legendIDs = [];				// names of Legend selections (one per Template)
 
 	// PRIVATE FUNCTIONS
 	//==================
 
-	function clickChangeView(event)
+		// PURPOSE: Return ID of Frame for 
+	function getFrameID()
 	{
-		var selector = jQuery('#view-frame-'+vizIndex+' .view-control-bar .view-viz-select option:selected');
+		return '#view-frame-'+vizIndex;
+	} // getFrameID()
+
+
+		// PURPOSE: Create appropriate VizModel within frame
+	function createViz(vfIndex)
+	{
+		var theVF = PDataHub.getVizIndex(vfIndex);
+			// Remove current 
+		vizModel.detach();
+
+		jQuery(getFrameID+'.viz-content').empty();
+
+		switch (theVF.vf) {
+		case 'Map':
+			vizModel = new VizMap(instance, theVF.c);
+			break;
+		case 'Cards':
+			break;
+		case 'Pinboard':
+			break;
+		case 'Timeline':
+			break;
+		case 'Tree':
+			break;
+		case 'Flow':
+			break;
+		case 'Directory':
+			break;
+		}
+			// Construct new Legend
+
+		vizSelIndex = vfIndex;
+	} // createViz()
+
+
+	function selectChangeViz(event)
+	{
+		var selector = jQuery(getFrameID()+' .view-control-bar .view-viz-select option:selected');
 		var newSelIndex   = selector.val();
-		selView = newSelIndex;
-			// TO DO: Create Visualization Object
+		createViz(newSelIndex);
 	} // clickChangeView()
 
 
@@ -62,6 +102,20 @@ function ViewFrame(vizIndex)
 		event.preventDefault();
 	} // clickAnnotations()
 
+		// PURPOSE: Handle clicking location Attribute for a Template
+	function clickTmpltLocate(event, tIndex, attID)
+	{
+			// TO DO: Remove previous entries
+
+			// TO DO: Add new ones
+	} // clickTmpltLocate()
+
+		// PURPOSE: Handle selecting a visual Attribute for a Template from menu
+	function selectTmpltAttribute(event)
+	{
+
+	} // selectTmpltAttribute()
+
 
 	// INSTANCE METHODS
 	//=================
@@ -69,7 +123,7 @@ function ViewFrame(vizIndex)
 		// PURPOSE: Do initialize of basic DOM elements in view frame
 	instance.initDOM = function()
 	{
-		var head = jQuery('#view-frame-'+vizIndex+' .view-control-bar .view-viz-select');
+		var head = jQuery(getFrameID()+' .view-control-bar .view-viz-select');
 			// Set Dropdown to View names
 		prspdata.e.vf.forEach(function(theVF, i) {
 				// Don't treat Facet Browser as View
@@ -78,10 +132,10 @@ function ViewFrame(vizIndex)
 				head.append(optionStr);
 			}
 		});
-		head.change(clickChangeView);
+		head.change(selectChangeView);
 
 			// Hook control bar Icon buttons
-		head = jQuery('#view-frame-'+vizIndex+' .view-control-bar button:first');
+		head = jQuery(getFrameID()+' .view-control-bar button:first');
 		head.button({icons: { primary: 'ui-icon-bookmark' }, text: false })
 				.click(clickShowHideLegend).next()
 				.button({icons: { primary: 'ui-icon-info' }, text: false })
@@ -92,34 +146,89 @@ function ViewFrame(vizIndex)
 				.click(clickVizControls).next()
 				.button({icons: { primary: 'ui-icon-document' }, text: false })
 				.click(clickAnnotations);
+
+		head = jQuery(getFrameID()+' .viz-content .legend-container');
+		head.click(function(event) {
+			var clickClass = event.target.className;
+console.log("Clicked class: "+clickClass);
+			event.preventDefault();
+		});
+
+			// Create Legend containers and Handle selections
+		prspdata.t.forEach(function(tmplt, tIndex) {
+			var newStr = '<div class="legend-title">'+tmplt.def.l+'</div>';
+			head.append(newStr);
+				// VizModel must create legend-locate entries
+				// Create dropdown menu of visual Attributes
+			var attSelection = PDataHub.getTLegendsIndex(tIndex);
+			newStr = '<select class="legend-select">';
+			attSelection.forEach(function(attID, aIndex) {
+				var attDef = PDataHub.getAttID(attID);
+				newStr += '<option value="'+attID+'">'+attDef.def.l+'</option>';
+			});
+			newStr += '</select>';
+			var newElement = jQuery(newStr);
+			newElement.change(selectTmpltAttribute);
+			head.append(newElement);
+				// Create Hide/Show all checkbox
+			head.append('<div class="legend-entry legend-sh"><input type="checkbox" checked="checked" class="dhp-legend-entry-check"/>Hide/Show All</div>')
+			if (tIndex != (prspdata.t.length-1))
+				head.append('<hr/>');
+		});
+
 	}; // initDOM()
 
 	return instance;
 } // ViewFrame
 
 
-// ======================================================================
-// ViewModel: An abstract class to be subclassed by specific visualizations
+// ========================================================================
+// PVizModel: An abstract class to be subclassed by specific visualizations
 
-function ViewModel(viewFrame, viewParams)
+function PVizModel(viewFrame, frameID, vizSettings)
 {
-	this.instParams = viewParams;		// instance parameters
+	this.vFrame   = viewFrame;
+	this.frameID  = frameID;
+	this.settings = vizSettings;
 
 		// All subclasses must implement the following:
-	// this.streamIn = function(IndexStream)
+	// this.draw = function(IndexStream)
 	// this.getPerspective = function()
 	// this.setPerspective = function(pData)
-	// this.selectLegend = function()
+	// this.getLayoutAtts = function()
+	// this.selectLegend = function(tIndex, attID)
+	// this.updateLegend = function(tIndex)
 	// this.setSelection = function(viewParams, dataSet, ids)
-} // ViewModel
+	// this.delete() = function()
+} // PVizModel
+
+
+PVizModel.prototype.initDOM = function()
+{
+} // PVizModel.initDOM
+
+var VizMap = function(viewFrame, vSettings)
+{
+	PVizModel.call(this, vSettings, viewFrame);
+		// Determine which 
+} // ViewMap
+
+VizMap.prototype = Object.create(PVizModel.prototype);
+
+VizMap.prototype.constructor = VizMap;
+
+VizMap.prototype.draw = function()
+{
+	// Do stuff
+} // draw
 
 
 // ==========================================================
-// FilterModel: An abstract class for data filters
+// PFilterModel: An abstract class for data filters
 
 // INPUT: fIndex = index for this filter
 
-function FilterModel(fIndex)
+function PFilterModel(fIndex)
 {
 
 		// All subclasses must implement the following:
@@ -128,17 +237,17 @@ function FilterModel(fIndex)
 
 
 // ==========================================================
-// DataHub
-// PURPOSE: Manages all of the data, implements Filters, feeds data streams, etc.
+// PDataHub
+// PURPOSE: Manages all data, orchestrates data streams, etc.
 
-// USES: jQuery
+// USES: jQuery (for AJAX)
 
 // NOTES: 	There is only one hub at a time so no need for instantiating instances
-//			DataHub is implemented with the "Module" design pattern for hiding
+//			PDataHub is implemented with the "Module" design pattern for hiding
 //				private variables and minimizing external interference
 // TO DO: 	Change LOAD_DATA_CHUNK to Option setting passed by prspdata
 
-var DataHub = (function () {
+var PDataHub = (function () {
 
 	// CONSTANTS
 	// =========
@@ -154,6 +263,8 @@ var DataHub = (function () {
 									// { l = # loaded, i = initial index for these records, d = data array itself }
 	var allDataCount=0;				// Total number of Records
 	var allVs = [];					// array of all Views
+	var allLegends = [];			// Legend info, corresponding to Templates
+									// each entry is array of Attribute IDs that can act as Legends
 
 
 	// INTERNAL FUNCTIONS
@@ -227,11 +338,28 @@ var DataHub = (function () {
 			// PURPOSE: Initialize data hub, initiate data loading
 		init: function()
 		{
-				// Create empty entries
+				// For each entry: head entry for Record Data and collect Legends
 			prspdata.t.forEach(function(tmplt) {
+					// Head Record entry
 				var newTData = { l: 0, d: null };
 				allData.push(newTData);
 				allDataCount += tmplt.n;
+					// New Legend entry; check all Attributes
+				var lgndArray = [];
+				tmplt.def.a.forEach(function(tAttID) {
+					var theAtt = PDataHub.getAttID(tAttID);
+						// Must be appropriate type and have Legend entries
+					switch (theAtt.def.t) {
+					case 'Text':
+					case 'Vocabulary':
+					case 'Number':
+					case 'Dates':
+						if (theAtt.l.length)
+							lgndArray.push(tAttID);
+						break;
+					}
+				});
+				allLegends.push(lgndArray);
 			});
 			checkDataLoad();
 		}, // init()
@@ -268,6 +396,22 @@ var DataHub = (function () {
 			return prspdata.a[aIndex];
 		}, // getAttIndex()
 
+		getTmpltNum: function()
+		{
+			return prspdata.t.length;
+		},
+
+		getTmpltIndex: function(tIndex)
+		{
+			return prspdata.t[tIndex];
+		},
+
+			// PURPOSE: Return array of Attribute IDs available as Legends for Template by index
+		getTLegendsIndex: function(tIndex)
+		{
+			return allLegends[tIndex];
+		}, // getTLegendsIndex()
+
 
 		getVizIndex: function(vIndex)
 		{
@@ -277,7 +421,7 @@ var DataHub = (function () {
 })();
 
 
-// Bootstrap -- Bootstrap for Prospect Client
+// PBootstrap -- Bootstrap for Prospect Client
 // PURPOSE: Create DOM structure, initiate services …
 
 // USES: 	jQuery, jQueryUI, …
@@ -329,6 +473,7 @@ jQuery(document).ready(function($) {
 			}
 		});
 	} // prepFilterData()
+
 
 		// PURPOSE: Add a new filter to the stack
 		// INPUT: 	fType = 'a' (Attribute) or 'b' (Facet Browser)
@@ -394,7 +539,9 @@ console.log("Create Filter "+fType+", "+fID);
 	prepFilterData();
 
 		// Init hub using config settings
-	DataHub.init();
-	var view0 = ViewFrame(0);
+	PDataHub.init();
+
+		// Initial primary visualization frame
+	var view0 = PViewFrame(0);
 	view0.initDOM();
 });

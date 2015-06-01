@@ -107,7 +107,10 @@
 				Please wait while data loads.
 			</div>
 			<div class="viz-content">
-				This is the first <span class="selected-object">visualization display</span>. It should occupy exactly half of the available visualization space if the second exists; otherwise it should occupy all of it.
+				<div class="legend-container">
+				</div>
+				<div class-"viz-result">
+				</div>
 			</div>
 		</div>
 	</div>
