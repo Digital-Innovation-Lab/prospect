@@ -169,7 +169,7 @@ function PViewFrame(vizIndex)
 		// PURPOSE: Set the Legend selection and update corresponding legend-value entries
 		// INPUT: 	lIndex = index of the Legend to change (0..numTemplates-1)
 		//			vIndex = index of Attribute in the Legend
-		// NOTES: 	Does not affect select menu itself
+		// NOTES: 	Does not affect menu selection itself
 	function setLegend(lIndex, vIndex)
 	{
 		var group = jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
@@ -186,7 +186,7 @@ function PViewFrame(vizIndex)
 					// TO DO: Account for both icons and colors acc. to v string
 					// TO DO: Handle children values (indented)
 				var element = '<div class="legend-value legend-entry" data-index="'+lgIndex+'"><input type="checkbox" checked="checked" class="dhp-legend-entry-check"/>'+
-							'<span class="legend-viz" style="color: '+legEntry.v+'"> </span> '+legEntry.l+'</div>';
+							'<div class="legend-viz" style="background-color: '+legEntry.v+'"> </div> <span class="legend-value-title">'+legEntry.l+'</span></div>';
 				group.append(element);
 			});
 		}

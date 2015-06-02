@@ -209,10 +209,9 @@ select {
 	padding: 0;           /* inherits padding from parent */
 	margin: 0;
 
-/*
-	float: left !important;
-	display: inline !important;
-*/
+	position: relative;
+/*	float: left !important;
+	display: inline-block !important; */
 }
 
   /* the check box for a Legend value */
@@ -220,19 +219,24 @@ select {
 	cursor: pointer;
 }
 
-  /* the visual item for a Legend value */
+  /* the visual marker for a Legend value */
 .legend-viz {
-/*    padding: 4px;
-	padding-left: 12px; */
 	border: 1px solid dotted;
-/*    position: relative;
-	top: 6px;
-	left: 6px; */
-/*    min-width: 20px; */
+
 	width: 18px;
 	height: 18px;
+
+	display: inline-block;
+	position: absolute;
+	top: 2px;
+	left: 22px;
 }
 
+.legend-value-title {
+	vertical-align: middle;
+	position: absolute;
+	left: 42px;
+}
 
 /* MODAL DIALOGS */
 
