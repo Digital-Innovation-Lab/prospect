@@ -227,15 +227,16 @@ select {
 	height: 18px;
 
 	display: inline-block;
-	position: absolute;
+	vertical-align: middle;
+/*	position: absolute;
 	top: 2px;
-	left: 22px;
+	left: 22px; */
 }
 
 .legend-value-title {
 	vertical-align: middle;
-	position: absolute;
-	left: 42px;
+/*	position: absolute;
+	left: 42px; */
 }
 
 /* MODAL DIALOGS */

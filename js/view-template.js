@@ -84,6 +84,7 @@ function PViewFrame(vizIndex)
 
 
 		// PURPOSE: Create appropriate VizModel within frame
+		// INPUT: 	vfIndex is index in Exhibit array
 	function createViz(vfIndex)
 	{
 		var theVF = PDataHub.getVizIndex(vfIndex);
@@ -92,7 +93,7 @@ function PViewFrame(vizIndex)
 		if (vizModel)
 			vizModel.teardown();
 
-		jQuery(getFrameID+'.viz-content').empty();
+		// jQuery(getFrameID()+' .viz-content').empty();
 
 		switch (theVF.vf) {
 		case 'Map':
@@ -121,6 +122,7 @@ function PViewFrame(vizIndex)
 	{
 		var selector = jQuery(getFrameID()+' .view-control-bar .view-viz-select option:selected');
 		var newSelIndex   = selector.val();
+console.log("Change frame's viz to # "+newSelIndex);
 		createViz(newSelIndex);
 	} // selectChangeViz()
 
@@ -137,34 +139,104 @@ function PViewFrame(vizIndex)
 		event.preventDefault();
 	} // clickOpenSelection()
 
+
 	function clickClearSelection(event)
 	{
 		event.preventDefault();
 	} // clickClearSelection()
+
 
 	function clickVizControls(event)
 	{
 		event.preventDefault();
 	} // clickVizControls()
 
+
 	function clickAnnotations(event)
 	{
 		event.preventDefault();
 	} // clickAnnotations()
 
-		// PURPOSE: Handle clicking location Attribute for a Template
-	function clickTmpltLocate(event, tIndex, attID)
-	{
-			// TO DO: Remove previous entries
 
-			// TO DO: Add new ones
-	} // clickTmpltLocate()
+		// PURPOSE: 
+	function doShowHideAll(tmpltIndex, show)
+	{
+console.log("doShowHideAll for template "+tmpltIndex+", set to "+show);
+	} // doShowHideAll()
+
+
+	function doLegendSelect(tmpltIndex, vIndex, show)
+	{
+console.log("Legend box "+vIndex+" for template "+tmpltIndex+", set to "+show);
+	} // doLegendSelect()
+
+
+		// PURPOSE: Make vIndex the only selected value for tmpltIndex Legend
+	function doLegendSelectOnly(tmpltIndex, vIndex)
+	{
+console.log("Legend box "+vIndex+" only selected for template "+tmpltIndex);
+	} // doLegendSelectOnly()
+
+
+		// PURPOSE: Handle click anywhere on Legend
+	function clickInLegend(event)
+	{
+			// Which Template does selection belong to?
+		var tmpltIndex = jQuery(event.target).closest('.legend-template').data('index');
+		var clickClass = event.target.className;
+// console.log("Clicked class: "+clickClass);
+		switch (clickClass) {
+			// Turn on or off just this one value
+		case 'legend-entry-check':
+			var lgndEntry = jQuery(event.target).closest('.legend-entry');
+			var isChecked = jQuery(event.target).is(':checked');
+				// What does checkbox belong to?
+			if (lgndEntry.hasClass('legend-sh')) {
+				doShowHideAll(tmpltIndex, isChecked);
+					// Must belong to a legend-entry
+			} else {
+				var vIndex = lgndEntry.data('index');
+				doLegendSelect(tmpltIndex, vIndex, isChecked);
+			}
+			break;
+
+			// Make this only selected value
+		case 'legend-viz':
+		case 'legend-value-title':
+			var vIndex = jQuery(event.target).closest('.legend-entry').data('index');
+			doLegendSelectOnly(tmpltIndex, vIndex);
+			break;
+
+		case 'legend-select':
+		case '':
+				// Ignore these
+// console.log("Ignored");
+			break;
+
+		default:  // could be multiple
+				// Show/Hide title?
+			var shTitle = /legend-sh/i;
+			if (clickClass.match(shTitle)) {
+					// Simulate click
+				var checkBox = jQuery(event.target).find('.legend-entry-check');
+				var isChecked = !checkBox.is(':checked');
+				checkBox.prop('checked', isChecked);
+				doShowHideAll(tmpltIndex, isChecked);
+			}
+			break;
+		}
+	} // clickInLegend()
+
 
 		// PURPOSE: Handle selecting a visual Attribute for a Template from menu
 	function selectTmpltAttribute(event)
 	{
-
+		var selAttID = jQuery(event.target).val();
+			// Determine Template to which this refers
+		var tmpltIndex = jQuery(event.target).closest('.legend-template').data('index');
+console.log("Selected Attribute ID '"+selAttID+'" for Template index '+tmpltIndex);
 	} // selectTmpltAttribute()
+
 
 		// PURPOSE: Set the Legend selection and update corresponding legend-value entries
 		// INPUT: 	lIndex = index of the Legend to change (0..numTemplates-1)
@@ -185,7 +257,7 @@ function PViewFrame(vizIndex)
 			attDef.l.forEach(function(legEntry, lgIndex) {
 					// TO DO: Account for both icons and colors acc. to v string
 					// TO DO: Handle children values (indented)
-				var element = '<div class="legend-value legend-entry" data-index="'+lgIndex+'"><input type="checkbox" checked="checked" class="dhp-legend-entry-check"/>'+
+				var element = '<div class="legend-value legend-entry" data-index="'+lgIndex+'"><input type="checkbox" checked="checked" class="legend-entry-check"/>'+
 							'<div class="legend-viz" style="background-color: '+legEntry.v+'"> </div> <span class="legend-value-title">'+legEntry.l+'</span></div>';
 				group.append(element);
 			});
@@ -224,11 +296,7 @@ function PViewFrame(vizIndex)
 				.click(clickAnnotations);
 
 		head = jQuery(getFrameID()+' .viz-content .legend-container');
-		head.click(function(event) {
-			var clickClass = event.target.className;
-console.log("Clicked class: "+clickClass);
-			event.preventDefault();
-		});
+		head.click(clickInLegend);
 
 			// Create Legend containers and Handle selections
 		prspdata.t.forEach(function(tmplt, tIndex) {
@@ -248,13 +316,13 @@ console.log("Clicked class: "+clickClass);
 			newSelect.change(selectTmpltAttribute);
 			jQuery(newTLegend).append(newSelect);
 				// Create Hide/Show all checkbox
-			jQuery(newTLegend).append('<div class="legend-entry legend-sh"><input type="checkbox" checked="checked" class="dhp-legend-entry-check"/>Hide/Show All</div><div class="legend-group"></div>');
+			jQuery(newTLegend).append('<div class="legend-entry legend-sh"><input type="checkbox" checked="checked" class="legend-entry-check"/>Hide/Show All</div><div class="legend-group"></div>');
 			head.append(newTLegend);
 			if (tIndex != (prspdata.t.length-1))
 				head.append('<hr/>');
 				// Insert new Legend DOM structure into Legend
-				// Default selection is first Attribute ID
 			legendIDs.push(attSelection.length > 0 ? attSelection[0] : null);
+				// Default selection is first Attribute ID
 			setLegend(tIndex, 0);
 		});
 
