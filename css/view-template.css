@@ -157,12 +157,13 @@ select {
 	 * legend-container (outer)
 	 * 		legend-template (DIV per template): data-index = index of Template
 	 *			legend-title
-	 *			legend-locate (For each Attribute that can locate object on visualization)
+	 *			legend-locate (entry for each Attribute that can locate object on visualization)
 	 *			legend-select (menu with list of Legend Attributes)
 	 *				option value = Attribute ID
 	 *			legend-sh	  (show/hide option)
-	 *			legend-value  (single legend value): data-index = index of legend entry
-	 *				legend-viz   (color or icon)
+	 *			legend-group  (DIV of value selections for a Template)
+	 *				legend-value  (single legend value): data-index = index of legend entry in array
+	 *					legend-viz   (color or icon)
 	 *
 	 * NOTES:	Any line that begins with a checkbox is DIV of class 'legend-entry'.
 	 * 			The checkbox itself is class legend-entry-check
@@ -176,8 +177,8 @@ select {
 
 	width: 240px;
 
+	max-height: 250px;
 	overflow-y: auto;
-	max-height: 200px;
 
 	padding: 6px;
 
@@ -193,16 +194,16 @@ select {
 }
 
 .legend-title {
-	font-size: 20px;
+	font-size: 16px;
 	font-weight: bold;
-	border-bottom: 1px solid #111;
+	border-bottom: 1px dotted #111;
 	margin-bottom: 6px;
 }
 
   /* An entry for a checkbox */
   /* contains .dhp-legend-entry-check then .dhp-legend-entry-key then title */
 .legend-entry {
-	font-size: 14px;
+	font-size: 12px;
 	height: 22px;
 	font-weight: normal;
 	padding: 0;           /* inherits padding from parent */

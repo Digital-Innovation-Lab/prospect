@@ -9,6 +9,53 @@
 //				t = array of Template definitions (no Joins) and Record numbers: { id, def, n }
 //				e = Exhibit definition { id, g, vf, w, p }
 
+
+// ========================================================================
+// PVizModel: An abstract class to be subclassed by specific visualizations
+
+function PVizModel(viewFrame, frameID, vizSettings)
+{
+	this.vFrame   = viewFrame;
+	this.frameID  = frameID;
+	this.settings = vizSettings;
+
+		// All subclasses must implement the following:
+	// this.draw = function(IndexStream)
+	// this.getPerspective = function()
+	// this.setPerspective = function(pData)
+	// this.getLayoutAtts = function()
+	// this.selectLegend = function(tIndex, attID)
+	// this.updateLegend = function(tIndex)
+	// this.setSelection = function(viewParams, dataSet, ids)
+	// this.teardown() = function()
+} // PVizModel
+
+
+PVizModel.prototype.initDOM = function()
+{
+} // PVizModel.initDOM
+
+
+// ===================================
+// VizMap: Class to visualize GIS maps
+
+
+var VizMap = function(viewFrame, vSettings)
+{
+	PVizModel.call(this, vSettings, viewFrame);
+		// Determine which 
+} // ViewMap
+
+VizMap.prototype = Object.create(PVizModel.prototype);
+
+VizMap.prototype.constructor = VizMap;
+
+VizMap.prototype.draw = function()
+{
+	// Do stuff
+} // draw
+
+
 // ========================================================================
 // PViewFrame: Pseudo-object that manages contents of visualization frame
 //				Creates Legend and maintains selection (passed to PVizModel on update)
@@ -23,8 +70,8 @@ function PViewFrame(vizIndex)
 	//===================
 
 	var vizSelIndex = 0;			// index of currently selected Viz
-	var vizModel = null;			// VizModel currently in frame
-	var legendIDs = [];				// names of Legend selections (one per Template)
+	var vizModel = null;			// PVizModel currently in frame
+	var legendIDs = [];				// Attribute IDs of Legend selections (one per Template)
 
 	// PRIVATE FUNCTIONS
 	//==================
@@ -40,8 +87,10 @@ function PViewFrame(vizIndex)
 	function createViz(vfIndex)
 	{
 		var theVF = PDataHub.getVizIndex(vfIndex);
-			// Remove current 
-		vizModel.detach();
+
+			// Remove current viz content
+		if (vizModel)
+			vizModel.teardown();
 
 		jQuery(getFrameID+'.viz-content').empty();
 
@@ -73,11 +122,12 @@ function PViewFrame(vizIndex)
 		var selector = jQuery(getFrameID()+' .view-control-bar .view-viz-select option:selected');
 		var newSelIndex   = selector.val();
 		createViz(newSelIndex);
-	} // clickChangeView()
+	} // selectChangeViz()
 
 
 	function clickShowHideLegend(event)
 	{
+		jQuery(getFrameID()+' .legend-container').toggle('slide');
 		event.preventDefault();
 	} // clickShowHideLegend()
 
@@ -116,6 +166,32 @@ function PViewFrame(vizIndex)
 
 	} // selectTmpltAttribute()
 
+		// PURPOSE: Set the Legend selection and update corresponding legend-value entries
+		// INPUT: 	lIndex = index of the Legend to change (0..numTemplates-1)
+		//			vIndex = index of Attribute in the Legend
+		// NOTES: 	Does not affect select menu itself
+	function setLegend(lIndex, vIndex)
+	{
+		var group = jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
+						lIndex+'"] .legend-group');
+			// Clear any previous entries
+		group.empty();
+		var attIDSelection = PDataHub.getTLegendsIndex(lIndex);
+		if (attIDSelection.length) {
+			var newLegendID = attIDSelection[vIndex];
+			legendIDs[lIndex] = newLegendID;
+				// Insert new items
+			var attDef = PDataHub.getAttID(newLegendID);
+			attDef.l.forEach(function(legEntry, lgIndex) {
+					// TO DO: Account for both icons and colors acc. to v string
+					// TO DO: Handle children values (indented)
+				var element = '<div class="legend-value legend-entry" data-index="'+lgIndex+'"><input type="checkbox" checked="checked" class="dhp-legend-entry-check"/>'+
+							'<span class="legend-viz" style="color: '+legEntry.v+'"> </span> '+legEntry.l+'</div>';
+				group.append(element);
+			});
+		}
+	} // setLegend()
+
 
 	// INSTANCE METHODS
 	//=================
@@ -132,7 +208,7 @@ function PViewFrame(vizIndex)
 				head.append(optionStr);
 			}
 		});
-		head.change(selectChangeView);
+		head.change(selectChangeViz);
 
 			// Hook control bar Icon buttons
 		head = jQuery(getFrameID()+' .view-control-bar button:first');
@@ -156,71 +232,36 @@ console.log("Clicked class: "+clickClass);
 
 			// Create Legend containers and Handle selections
 		prspdata.t.forEach(function(tmplt, tIndex) {
-			var newStr = '<div class="legend-title">'+tmplt.def.l+'</div>';
-			head.append(newStr);
+					// Create DIV structure for Template's Legend entry
+			var newTLegend = jQuery('<div class="legend-template" data-index="'+tIndex+
+							'"><div class="legend-title">'+tmplt.def.l+'</div></div>');
 				// VizModel must create legend-locate entries
 				// Create dropdown menu of visual Attributes
 			var attSelection = PDataHub.getTLegendsIndex(tIndex);
-			newStr = '<select class="legend-select">';
+			var newStr = '<select class="legend-select">';
 			attSelection.forEach(function(attID, aIndex) {
 				var attDef = PDataHub.getAttID(attID);
 				newStr += '<option value="'+attID+'">'+attDef.def.l+'</option>';
 			});
 			newStr += '</select>';
-			var newElement = jQuery(newStr);
-			newElement.change(selectTmpltAttribute);
-			head.append(newElement);
+			var newSelect = jQuery(newStr);
+			newSelect.change(selectTmpltAttribute);
+			jQuery(newTLegend).append(newSelect);
 				// Create Hide/Show all checkbox
-			head.append('<div class="legend-entry legend-sh"><input type="checkbox" checked="checked" class="dhp-legend-entry-check"/>Hide/Show All</div>')
+			jQuery(newTLegend).append('<div class="legend-entry legend-sh"><input type="checkbox" checked="checked" class="dhp-legend-entry-check"/>Hide/Show All</div><div class="legend-group"></div>');
+			head.append(newTLegend);
 			if (tIndex != (prspdata.t.length-1))
 				head.append('<hr/>');
+				// Insert new Legend DOM structure into Legend
+				// Default selection is first Attribute ID
+			legendIDs.push(attSelection.length > 0 ? attSelection[0] : null);
+			setLegend(tIndex, 0);
 		});
 
 	}; // initDOM()
 
 	return instance;
 } // ViewFrame
-
-
-// ========================================================================
-// PVizModel: An abstract class to be subclassed by specific visualizations
-
-function PVizModel(viewFrame, frameID, vizSettings)
-{
-	this.vFrame   = viewFrame;
-	this.frameID  = frameID;
-	this.settings = vizSettings;
-
-		// All subclasses must implement the following:
-	// this.draw = function(IndexStream)
-	// this.getPerspective = function()
-	// this.setPerspective = function(pData)
-	// this.getLayoutAtts = function()
-	// this.selectLegend = function(tIndex, attID)
-	// this.updateLegend = function(tIndex)
-	// this.setSelection = function(viewParams, dataSet, ids)
-	// this.delete() = function()
-} // PVizModel
-
-
-PVizModel.prototype.initDOM = function()
-{
-} // PVizModel.initDOM
-
-var VizMap = function(viewFrame, vSettings)
-{
-	PVizModel.call(this, vSettings, viewFrame);
-		// Determine which 
-} // ViewMap
-
-VizMap.prototype = Object.create(PVizModel.prototype);
-
-VizMap.prototype.constructor = VizMap;
-
-VizMap.prototype.draw = function()
-{
-	// Do stuff
-} // draw
 
 
 // ==========================================================

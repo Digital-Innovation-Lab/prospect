@@ -20,6 +20,8 @@
 <script src="<?php echo(includes_url('js/jquery/ui/resizable.min.js')); ?>"></script>
 <script src="<?php echo(includes_url('js/jquery/ui/button.min.js')); ?>"></script>
 <script src="<?php echo(includes_url('js/jquery/ui/dialog.min.js')); ?>"></script>
+<script src="<?php echo(includes_url('js/jquery/ui/effect.min.js')); ?>"></script>
+<script src="<?php echo(includes_url('js/jquery/ui/effect-slide.min.js')); ?>"></script>
 
 <script src="<?php echo(plugins_url('js/view-template.js', dirname(__FILE__))); ?>"></script>
 
