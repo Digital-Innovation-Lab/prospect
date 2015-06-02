@@ -13,6 +13,9 @@
 // ========================================================================
 // PVizModel: An abstract class to be subclassed by specific visualizations
 
+	// INPUT: 	viewFrame = instance variable returned from ViewModel pseudo-constructor
+	//			frameID = base ID for frame DIV
+	//			vizSettings = c section of VF entry
 function PVizModel(viewFrame, frameID, vizSettings)
 {
 	this.vFrame   = viewFrame;
@@ -20,6 +23,8 @@ function PVizModel(viewFrame, frameID, vizSettings)
 	this.settings = vizSettings;
 
 		// All subclasses must implement the following:
+	// this.usesLegend = function()
+	// this.locAtts = function(tmpltIndex)
 	// this.draw = function(IndexStream)
 	// this.getPerspective = function()
 	// this.setPerspective = function(pData)
@@ -50,11 +55,16 @@ VizMap.prototype = Object.create(PVizModel.prototype);
 
 VizMap.prototype.constructor = VizMap;
 
-VizMap.prototype.draw = function()
+VizMap.prototype.usesLegend = function()
 {
-	// Do stuff
-} // draw
+	return true;
+} // usesLegend()
 
+	// PURPOSE: Return IDs of locate Attributes 
+VizMap.prototype.locAtts = function(tmpltIndex)
+{
+
+} // locAtts()
 
 // ========================================================================
 // PViewFrame: Pseudo-object that manages contents of visualization frame
@@ -72,6 +82,8 @@ function PViewFrame(vizIndex)
 	var vizSelIndex = 0;			// index of currently selected Viz
 	var vizModel = null;			// PVizModel currently in frame
 	var legendIDs = [];				// Attribute IDs of Legend selections (one per Template)
+	var selRecIDS = [];				// array of IDs of selected Records
+
 
 	// PRIVATE FUNCTIONS
 	//==================
@@ -97,7 +109,7 @@ function PViewFrame(vizIndex)
 
 		switch (theVF.vf) {
 		case 'Map':
-			vizModel = new VizMap(instance, theVF.c);
+			vizModel = new VizMap(instance, getFrameID(), theVF.c);
 			break;
 		case 'Cards':
 			break;
@@ -112,9 +124,17 @@ function PViewFrame(vizIndex)
 		case 'Directory':
 			break;
 		}
-			// Construct new Legend
-
 		vizSelIndex = vfIndex;
+
+			// Does Viz support Legend at all?
+		if (vizModel.usesLegend()) {
+				// TO DO: Else insert locate attributes into Legends
+
+			jQuery(getFrameID()+' .legend-container').show();
+		} else {
+				// Just hide Legend
+			jQuery(getFrameID()+' .legend-container').hide();
+		}
 	} // createViz()
 
 
@@ -129,19 +149,25 @@ console.log("Change frame's viz to # "+newSelIndex);
 
 	function clickShowHideLegend(event)
 	{
-		jQuery(getFrameID()+' .legend-container').toggle('slide');
+		if (vizModel.usesLegend()) {
+			jQuery(getFrameID()+' .legend-container').toggle('slide');
+		}
 		event.preventDefault();
 	} // clickShowHideLegend()
 
 
 	function clickOpenSelection(event)
 	{
+			// TO DO
 		event.preventDefault();
 	} // clickOpenSelection()
 
 
 	function clickClearSelection(event)
 	{
+			// TO DO: Do visual clear
+			// Reset array
+		selRecIDS = [];
 		event.preventDefault();
 	} // clickClearSelection()
 
@@ -165,17 +191,40 @@ console.log("doShowHideAll for template "+tmpltIndex+", set to "+show);
 	} // doShowHideAll()
 
 
-	function doLegendSelect(tmpltIndex, vIndex, show)
+		// PURPOSE: Set state of locate attribute vIndex within Legend tmpltIndex to show
+		// NOTE: 	GUI already updated
+	function doLocateSelect(tmpltIndex, vIndex, show)
 	{
-console.log("Legend box "+vIndex+" for template "+tmpltIndex+", set to "+show);
-	} // doLegendSelect()
+console.log("Locate attribute "+vIndex+" for template "+tmpltIndex+", set to "+show);
+		// TO DO
+	} // doLocateSelect()
 
 
-		// PURPOSE: Make vIndex the only selected value for tmpltIndex Legend
-	function doLegendSelectOnly(tmpltIndex, vIndex)
+		// PURPOSE: Make vIndex the only selected locate attribute for tmpltIndex
+		// NOTE: 	Must update GUI
+	function doLocateSelectOnly(tmpltIndex, vIndex)
 	{
-console.log("Legend box "+vIndex+" only selected for template "+tmpltIndex);
-	} // doLegendSelectOnly()
+console.log("Locate attribute "+vIndex+" only for template "+tmpltIndex);
+		// TO DO
+	} // doLocateSelect()
+
+
+		// PURPOSE: Set state of feature attribute vIndex within Legend tmpltIndex to show
+		// NOTE: 	GUI already updated
+	function doFeatureSelect(tmpltIndex, vIndex, show)
+	{
+console.log("Feature attribute "+vIndex+" for template "+tmpltIndex+", set to "+show);
+		// TO DO
+	} // doFeatureSelect()
+
+
+		// PURPOSE: Make vIndex the only selected feature attribute for tmpltIndex Legend
+		// NOTE: 	Must update GUI
+	function doFeatureSelectOnly(tmpltIndex, vIndex)
+	{
+console.log("Feature attribute "+vIndex+" only selected for template "+tmpltIndex);
+		// TO DO
+	} // doFeatureSelectOnly()
 
 
 		// PURPOSE: Handle click anywhere on Legend
@@ -193,18 +242,24 @@ console.log("Legend box "+vIndex+" only selected for template "+tmpltIndex);
 				// What does checkbox belong to?
 			if (lgndEntry.hasClass('legend-sh')) {
 				doShowHideAll(tmpltIndex, isChecked);
+
+				// A locate Attribute?
+			} else if (lgndEntry.hasClass('legend-locate')) {
+				var vIndex = lgndEntry.data('index');
+				doLocateSelect(tmpltIndex, vIndex, isChecked);
+
 					// Must belong to a legend-entry
 			} else {
 				var vIndex = lgndEntry.data('index');
-				doLegendSelect(tmpltIndex, vIndex, isChecked);
+				doFeatureSelect(tmpltIndex, vIndex, isChecked);
 			}
 			break;
 
-			// Make this only selected value
+			// Make this only selected feature attribute
 		case 'legend-viz':
 		case 'legend-value-title':
 			var vIndex = jQuery(event.target).closest('.legend-entry').data('index');
-			doLegendSelectOnly(tmpltIndex, vIndex);
+			doFeatureSelectOnly(tmpltIndex, vIndex);
 			break;
 
 		case 'legend-select':
@@ -213,7 +268,7 @@ console.log("Legend box "+vIndex+" only selected for template "+tmpltIndex);
 // console.log("Ignored");
 			break;
 
-		default:  // could be multiple
+		default:  // if could be multiple
 				// Show/Hide title?
 			var shTitle = /legend-sh/i;
 			if (clickClass.match(shTitle)) {
@@ -222,6 +277,17 @@ console.log("Legend box "+vIndex+" only selected for template "+tmpltIndex);
 				var isChecked = !checkBox.is(':checked');
 				checkBox.prop('checked', isChecked);
 				doShowHideAll(tmpltIndex, isChecked);
+			} else {
+				var locTitle = /legend-locate/i;
+				if (clickClass.match(locTitle)) {
+						// Simulate click
+					var checkBox = jQuery(event.target).find('.legend-entry-check');
+					var isChecked = !checkBox.is(':checked');
+					var vIndex = jQuery(event.target).data('index');
+					checkBox.prop('checked', isChecked);
+						// Consider click on title an only click
+					doLocateSelectOnly(tmpltIndex, vIndex);
+				}
 			}
 			break;
 		}
@@ -231,18 +297,19 @@ console.log("Legend box "+vIndex+" only selected for template "+tmpltIndex);
 		// PURPOSE: Handle selecting a visual Attribute for a Template from menu
 	function selectTmpltAttribute(event)
 	{
-		var selAttID = jQuery(event.target).val();
+		var selAttIndex = jQuery(event.target).val();
 			// Determine Template to which this refers
 		var tmpltIndex = jQuery(event.target).closest('.legend-template').data('index');
-console.log("Selected Attribute ID '"+selAttID+'" for Template index '+tmpltIndex);
+// console.log("Selected Attribute ID '"+selAttIndex+'" for Template index '+tmpltIndex);
+		setLegendFeatures(tmpltIndex, selAttIndex);
 	} // selectTmpltAttribute()
 
 
-		// PURPOSE: Set the Legend selection and update corresponding legend-value entries
+		// PURPOSE: Set feature attributes in Legend
 		// INPUT: 	lIndex = index of the Legend to change (0..numTemplates-1)
-		//			vIndex = index of Attribute in the Legend
+		//			vIndex = index of feature Attribute in the Legend set
 		// NOTES: 	Does not affect menu selection itself
-	function setLegend(lIndex, vIndex)
+	function setLegendFeatures(lIndex, vIndex)
 	{
 		var group = jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
 						lIndex+'"] .legend-group');
@@ -262,7 +329,7 @@ console.log("Selected Attribute ID '"+selAttID+'" for Template index '+tmpltInde
 				group.append(element);
 			});
 		}
-	} // setLegend()
+	} // setLegendFeatures()
 
 
 	// INSTANCE METHODS
@@ -309,7 +376,7 @@ console.log("Selected Attribute ID '"+selAttID+'" for Template index '+tmpltInde
 			var newStr = '<select class="legend-select">';
 			attSelection.forEach(function(attID, aIndex) {
 				var attDef = PDataHub.getAttID(attID);
-				newStr += '<option value="'+attID+'">'+attDef.def.l+'</option>';
+				newStr += '<option value="'+aIndex+'">'+attDef.def.l+'</option>';
 			});
 			newStr += '</select>';
 			var newSelect = jQuery(newStr);
@@ -322,8 +389,8 @@ console.log("Selected Attribute ID '"+selAttID+'" for Template index '+tmpltInde
 				head.append('<hr/>');
 				// Insert new Legend DOM structure into Legend
 			legendIDs.push(attSelection.length > 0 ? attSelection[0] : null);
-				// Default selection is first Attribute ID
-			setLegend(tIndex, 0);
+				// Default feature selection is first Attribute
+			setLegendFeatures(tIndex, 0);
 		});
 
 	}; // initDOM()

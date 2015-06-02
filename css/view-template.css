@@ -157,7 +157,7 @@ select {
 	 * legend-container (outer)
 	 * 		legend-template (DIV per template): data-index = index of Template
 	 *			legend-title
-	 *			legend-locate (entry for each Attribute that can locate object on visualization)
+	 *			legend-locate (Attribute that locates object on visualization): data-index = index of Attribute
 	 *			legend-select (menu with list of Legend Attributes)
 	 *				option value = Attribute ID
 	 *			legend-sh	  (show/hide option)
@@ -200,13 +200,12 @@ select {
 	margin-bottom: 6px;
 }
 
-  /* An entry for a checkbox */
-  /* contains .dhp-legend-entry-check then .dhp-legend-entry-key then title */
+	/* A selectable entry that has a checkbox */
 .legend-entry {
 	font-size: 12px;
 	height: 22px;
 	font-weight: normal;
-	padding: 0;           /* inherits padding from parent */
+	padding: 0;
 	margin: 0;
 
 	position: relative;
@@ -214,12 +213,12 @@ select {
 	display: inline-block !important; */
 }
 
-  /* the check box for a Legend value */
+	/* Legend Attribute checkbox */
 .legend-entry-check {
 	cursor: pointer;
 }
 
-  /* the visual marker for a Legend value */
+	/* visual marker in a legend-entry */
 .legend-viz {
 	border: 1px solid dotted;
 
