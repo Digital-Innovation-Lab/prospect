@@ -153,7 +153,7 @@ select {
 #viz-display-frame .viz-result {
 }
 
-	/* Legends are semi-opaque overlays on content in top-left corner
+	/* Legends are semi-opaque overlays on content in top-left corner (z = 1000)
 	 * legend-container (outer)
 	 * 		legend-template (DIV per template): data-index = index of Template
 	 *			legend-title

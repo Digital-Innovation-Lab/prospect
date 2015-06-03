@@ -16,15 +16,15 @@
 	// INPUT: 	viewFrame = instance variable returned from ViewModel pseudo-constructor
 	//			frameID = base ID for frame DIV
 	//			vizSettings = c section of VF entry
-function PVizModel(viewFrame, frameID, vizSettings)
+function PVizModel(viewFrame, vizSettings)
 {
 	this.vFrame   = viewFrame;
-	this.frameID  = frameID;
+	this.frameID  = viewFrame.getFrameID();
 	this.settings = vizSettings;
 
 		// All subclasses must implement the following:
 	// this.usesLegend = function()
-	// this.locAtts = function(tmpltIndex)
+	// this.getLocAtts = function()
 	// this.draw = function(IndexStream)
 	// this.getPerspective = function()
 	// this.setPerspective = function(pData)
@@ -47,7 +47,7 @@ PVizModel.prototype.initDOM = function()
 
 var VizMap = function(viewFrame, vSettings)
 {
-	PVizModel.call(this, vSettings, viewFrame);
+	PVizModel.call(this, viewFrame, vSettings);
 		// Determine which 
 } // ViewMap
 
@@ -61,10 +61,11 @@ VizMap.prototype.usesLegend = function()
 } // usesLegend()
 
 	// PURPOSE: Return IDs of locate Attributes 
-VizMap.prototype.locAtts = function(tmpltIndex)
+VizMap.prototype.getLocAtts = function()
 {
+	return this.settings.cAtts;
+} // getLocAtts()
 
-} // locAtts()
 
 // ========================================================================
 // PViewFrame: Pseudo-object that manages contents of visualization frame
@@ -109,7 +110,7 @@ function PViewFrame(vizIndex)
 
 		switch (theVF.vf) {
 		case 'Map':
-			vizModel = new VizMap(instance, getFrameID(), theVF.c);
+			vizModel = new VizMap(instance, theVF.c);
 			break;
 		case 'Cards':
 			break;
@@ -128,7 +129,22 @@ function PViewFrame(vizIndex)
 
 			// Does Viz support Legend at all?
 		if (vizModel.usesLegend()) {
-				// TO DO: Else insert locate attributes into Legends
+				// remove all previous locate Attributes
+			jQuery(getFrameID()+' .legend-container .legend-locate').remove();
+				// Insert locate attributes into Legends
+			var locAtts = vizModel.getLocAtts();	// Array of arrays
+			if (locAtts) {
+				locAtts.forEach(function(tmpltSet, tIndex) {
+					var insertPt = jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
+						tIndex+'"] .legend-title');
+					tmpltSet.forEach(function(attID, aIndex) {
+						var attDef = PDataHub.getAttID(attID, false);
+						insertPt.after('<div class="legend-entry legend-locate" data-id="'+attID+
+							'"><input type="checkbox" checked="checked" class="legend-entry-check"/><span class="legend-value-title">'+
+							attDef.def.l+'</span></div>');
+					});
+				});
+			}
 
 			jQuery(getFrameID()+' .legend-container').show();
 		} else {
@@ -142,7 +158,6 @@ function PViewFrame(vizIndex)
 	{
 		var selector = jQuery(getFrameID()+' .view-control-bar .view-viz-select option:selected');
 		var newSelIndex   = selector.val();
-console.log("Change frame's viz to # "+newSelIndex);
 		createViz(newSelIndex);
 	} // selectChangeViz()
 
@@ -150,18 +165,18 @@ console.log("Change frame's viz to # "+newSelIndex);
 	function clickShowHideLegend(event)
 	{
 		if (vizModel.usesLegend()) {
-			jQuery(getFrameID()+' .legend-container').toggle('slide');
+			jQuery(getFrameID()+' .legend-container').toggle('slide', {direction: "left" });
 		}
 		event.preventDefault();
 	} // clickShowHideLegend()
 
 
+		// PURPOSE: Open Inspector modal for current selection
 	function clickOpenSelection(event)
 	{
 			// TO DO
 		event.preventDefault();
 	} // clickOpenSelection()
-
 
 	function clickClearSelection(event)
 	{
@@ -171,7 +186,7 @@ console.log("Change frame's viz to # "+newSelIndex);
 		event.preventDefault();
 	} // clickClearSelection()
 
-
+		// PURPOSE: Hide/show viz-specific controls on right side
 	function clickVizControls(event)
 	{
 		event.preventDefault();
@@ -320,7 +335,7 @@ console.log("Feature attribute "+vIndex+" only selected for template "+tmpltInde
 			var newLegendID = attIDSelection[vIndex];
 			legendIDs[lIndex] = newLegendID;
 				// Insert new items
-			var attDef = PDataHub.getAttID(newLegendID);
+			var attDef = PDataHub.getAttID(newLegendID, true);
 			attDef.l.forEach(function(legEntry, lgIndex) {
 					// TO DO: Account for both icons and colors acc. to v string
 					// TO DO: Handle children values (indented)
@@ -334,6 +349,8 @@ console.log("Feature attribute "+vIndex+" only selected for template "+tmpltInde
 
 	// INSTANCE METHODS
 	//=================
+
+	instance.getFrameID = getFrameID;
 
 		// PURPOSE: Do initialize of basic DOM elements in view frame
 	instance.initDOM = function()
@@ -375,7 +392,7 @@ console.log("Feature attribute "+vIndex+" only selected for template "+tmpltInde
 			var attSelection = PDataHub.getTLegendsIndex(tIndex);
 			var newStr = '<select class="legend-select">';
 			attSelection.forEach(function(attID, aIndex) {
-				var attDef = PDataHub.getAttID(attID);
+				var attDef = PDataHub.getAttID(attID, true);
 				newStr += '<option value="'+aIndex+'">'+attDef.def.l+'</option>';
 			});
 			newStr += '</select>';
@@ -393,6 +410,8 @@ console.log("Feature attribute "+vIndex+" only selected for template "+tmpltInde
 			setLegendFeatures(tIndex, 0);
 		});
 
+			// Create first VF by default
+		createViz(0);
 	}; // initDOM()
 
 	return instance;
@@ -523,7 +542,7 @@ var PDataHub = (function () {
 					// New Legend entry; check all Attributes
 				var lgndArray = [];
 				tmplt.def.a.forEach(function(tAttID) {
-					var theAtt = PDataHub.getAttID(tAttID);
+					var theAtt = PDataHub.getAttID(tAttID, true);
 						// Must be appropriate type and have Legend entries
 					switch (theAtt.def.t) {
 					case 'Text':
@@ -555,10 +574,21 @@ var PDataHub = (function () {
 		}, // newIndexStream()
 
 
-			// RETURNS: Attribute with this ID
+			// RETURNS: Attribute definition with this ID
+			// INPUT:   attID = full Attribute ID (could be in Join dot notation)
+			//			if in Join dot notation and base = true, find Attribute for suffix Attribute
+			// NOTE: 	In case that ID is Joined with dot notation, find base Attribute
 			// TO DO:   Use binary search
-		getAttID: function(attID)
+		getAttID: function(attID, base)
 		{
+				// Test if in dot notation
+			var pos = attID.indexOf('.');
+			if (pos != -1) {
+				if (base)
+					attID = attID.substr(pos+1);
+				else
+					attID = attID.substring(0, pos);
+			}
 			for (var i=0; i<prspdata.a.length; i++) {
 				var thisID = prspdata.a[i].id;
 				if (attID == thisID)
