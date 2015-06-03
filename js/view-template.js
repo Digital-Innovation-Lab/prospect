@@ -24,11 +24,11 @@ function PVizModel(viewFrame, vizSettings)
 
 		// All subclasses must implement the following:
 	// this.usesLegend = function()
-	// this.getLocAtts = function()
+	// this.getLocAtts = function(tIndex)
+	// this.getFeatureAtts = function(tIndex)
 	// this.draw = function(IndexStream)
 	// this.getPerspective = function()
 	// this.setPerspective = function(pData)
-	// this.getLayoutAtts = function()
 	// this.selectLegend = function(tIndex, attID)
 	// this.updateLegend = function(tIndex)
 	// this.setSelection = function(viewParams, dataSet, ids)
@@ -61,10 +61,19 @@ VizMap.prototype.usesLegend = function()
 } // usesLegend()
 
 	// PURPOSE: Return IDs of locate Attributes 
-VizMap.prototype.getLocAtts = function()
+VizMap.prototype.getLocAtts = function(tIndex)
 {
+	if (tIndex != null)
+		return this.settings.cAtts[tIndex];
 	return this.settings.cAtts;
 } // getLocAtts()
+
+VizMap.prototype.getFeatureAtts = function(tIndex)
+{
+	if (tIndex != null)
+		return this.settings.lgnds[tIndex];
+	return this.settings.lgnds;
+} // getFeatureAtts()
 
 
 // ========================================================================
@@ -94,64 +103,6 @@ function PViewFrame(vizIndex)
 	{
 		return '#view-frame-'+vizIndex;
 	} // getFrameID()
-
-
-		// PURPOSE: Create appropriate VizModel within frame
-		// INPUT: 	vfIndex is index in Exhibit array
-	function createViz(vfIndex)
-	{
-		var theVF = PDataHub.getVizIndex(vfIndex);
-
-			// Remove current viz content
-		if (vizModel)
-			vizModel.teardown();
-
-		// jQuery(getFrameID()+' .viz-content').empty();
-
-		switch (theVF.vf) {
-		case 'Map':
-			vizModel = new VizMap(instance, theVF.c);
-			break;
-		case 'Cards':
-			break;
-		case 'Pinboard':
-			break;
-		case 'Timeline':
-			break;
-		case 'Tree':
-			break;
-		case 'Flow':
-			break;
-		case 'Directory':
-			break;
-		}
-		vizSelIndex = vfIndex;
-
-			// Does Viz support Legend at all?
-		if (vizModel.usesLegend()) {
-				// remove all previous locate Attributes
-			jQuery(getFrameID()+' .legend-container .legend-locate').remove();
-				// Insert locate attributes into Legends
-			var locAtts = vizModel.getLocAtts();	// Array of arrays
-			if (locAtts) {
-				locAtts.forEach(function(tmpltSet, tIndex) {
-					var insertPt = jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
-						tIndex+'"] .legend-title');
-					tmpltSet.forEach(function(attID, aIndex) {
-						var attDef = PDataHub.getAttID(attID, false);
-						insertPt.after('<div class="legend-entry legend-locate" data-id="'+attID+
-							'"><input type="checkbox" checked="checked" class="legend-entry-check"/><span class="legend-value-title">'+
-							attDef.def.l+'</span></div>');
-					});
-				});
-			}
-
-			jQuery(getFrameID()+' .legend-container').show();
-		} else {
-				// Just hide Legend
-			jQuery(getFrameID()+' .legend-container').hide();
-		}
-	} // createViz()
 
 
 	function selectChangeViz(event)
@@ -202,24 +153,27 @@ function PViewFrame(vizIndex)
 		// PURPOSE: 
 	function doShowHideAll(tmpltIndex, show)
 	{
-console.log("doShowHideAll for template "+tmpltIndex+", set to "+show);
+console.log("Set all features for "+tmpltIndex+" to "+show);
+		jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
+								tmpltIndex+'"] .legend-group .legend-entry-check').prop('checked', show);
+		// TO DO: Force refresh of Viz
 	} // doShowHideAll()
 
 
 		// PURPOSE: Set state of locate attribute vIndex within Legend tmpltIndex to show
 		// NOTE: 	GUI already updated
-	function doLocateSelect(tmpltIndex, vIndex, show)
+	function doLocateSelect(tmpltIndex, lID, show)
 	{
-console.log("Locate attribute "+vIndex+" for template "+tmpltIndex+", set to "+show);
+console.log("Locate attribute "+lID+" for template "+tmpltIndex+", set to "+show);
 		// TO DO
 	} // doLocateSelect()
 
 
 		// PURPOSE: Make vIndex the only selected locate attribute for tmpltIndex
 		// NOTE: 	Must update GUI
-	function doLocateSelectOnly(tmpltIndex, vIndex)
+	function doLocateSelectOnly(tmpltIndex, lID)
 	{
-console.log("Locate attribute "+vIndex+" only for template "+tmpltIndex);
+console.log("Locate attribute "+lID+" only for template "+tmpltIndex);
 		// TO DO
 	} // doLocateSelect()
 
@@ -260,8 +214,8 @@ console.log("Feature attribute "+vIndex+" only selected for template "+tmpltInde
 
 				// A locate Attribute?
 			} else if (lgndEntry.hasClass('legend-locate')) {
-				var vIndex = lgndEntry.data('index');
-				doLocateSelect(tmpltIndex, vIndex, isChecked);
+				var lID = lgndEntry.data('id');
+				doLocateSelect(tmpltIndex, lID, isChecked);
 
 					// Must belong to a legend-entry
 			} else {
@@ -298,7 +252,7 @@ console.log("Feature attribute "+vIndex+" only selected for template "+tmpltInde
 						// Simulate click
 					var checkBox = jQuery(event.target).find('.legend-entry-check');
 					var isChecked = !checkBox.is(':checked');
-					var vIndex = jQuery(event.target).data('index');
+					var lID = jQuery(event.target).data('id');
 					checkBox.prop('checked', isChecked);
 						// Consider click on title an only click
 					doLocateSelectOnly(tmpltIndex, vIndex);
@@ -309,42 +263,124 @@ console.log("Feature attribute "+vIndex+" only selected for template "+tmpltInde
 	} // clickInLegend()
 
 
-		// PURPOSE: Handle selecting a visual Attribute for a Template from menu
+		// PURPOSE: Handle selecting a feature Attribute for a Template from menu
 	function selectTmpltAttribute(event)
 	{
-		var selAttIndex = jQuery(event.target).val();
 			// Determine Template to which this refers
 		var tmpltIndex = jQuery(event.target).closest('.legend-template').data('index');
+		var attID = jQuery(event.target).val();
 // console.log("Selected Attribute ID '"+selAttIndex+'" for Template index '+tmpltIndex);
-		setLegendFeatures(tmpltIndex, selAttIndex);
+		setLegendFeatures(tmpltIndex, attID);
 	} // selectTmpltAttribute()
 
 
 		// PURPOSE: Set feature attributes in Legend
 		// INPUT: 	lIndex = index of the Legend to change (0..numTemplates-1)
-		//			vIndex = index of feature Attribute in the Legend set
+		//			attID = ID of feature Attribute in the Legend set
 		// NOTES: 	Does not affect menu selection itself
-	function setLegendFeatures(lIndex, vIndex)
+	function setLegendFeatures(lIndex, attID)
 	{
+console.log("Setting features for template "+lIndex+" to Attribute "+attID);
 		var group = jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
 						lIndex+'"] .legend-group');
 			// Clear any previous entries
 		group.empty();
-		var attIDSelection = PDataHub.getTLegendsIndex(lIndex);
-		if (attIDSelection.length) {
-			var newLegendID = attIDSelection[vIndex];
-			legendIDs[lIndex] = newLegendID;
-				// Insert new items
-			var attDef = PDataHub.getAttID(newLegendID, true);
-			attDef.l.forEach(function(legEntry, lgIndex) {
-					// TO DO: Account for both icons and colors acc. to v string
-					// TO DO: Handle children values (indented)
-				var element = '<div class="legend-value legend-entry" data-index="'+lgIndex+'"><input type="checkbox" checked="checked" class="legend-entry-check"/>'+
-							'<div class="legend-viz" style="background-color: '+legEntry.v+'"> </div> <span class="legend-value-title">'+legEntry.l+'</span></div>';
-				group.append(element);
-			});
-		}
+		legendIDs[lIndex] = attID;
+			// Insert new items
+		var attDef = PDataHub.getAttID(attID, true);
+		attDef.l.forEach(function(legEntry, lgIndex) {
+				// TO DO: Account for both icons and colors acc. to v string
+				// TO DO: Handle children values (indented)
+			var element = '<div class="legend-value legend-entry" data-index="'+lgIndex+'"><input type="checkbox" checked="checked" class="legend-entry-check"/>'+
+						'<div class="legend-viz" style="background-color: '+legEntry.v+'"> </div> <span class="legend-value-title">'+legEntry.l+'</span></div>';
+			group.append(element);
+		});
 	} // setLegendFeatures()
+
+
+		// PURPOSE: Create appropriate VizModel within frame
+		// INPUT: 	vfIndex is index in Exhibit array
+	function createViz(vfIndex)
+	{
+		var theVF = PDataHub.getVizIndex(vfIndex);
+
+			// Remove current viz content
+		if (vizModel)
+			vizModel.teardown();
+
+		// jQuery(getFrameID()+' .viz-content').empty();
+
+		switch (theVF.vf) {
+		case 'Map':
+			vizModel = new VizMap(instance, theVF.c);
+			break;
+		case 'Cards':
+			break;
+		case 'Pinboard':
+			break;
+		case 'Timeline':
+			break;
+		case 'Tree':
+			break;
+		case 'Flow':
+			break;
+		case 'Directory':
+			break;
+		}
+		vizSelIndex = vfIndex;
+
+			// Does Viz support Legend at all?
+		if (vizModel.usesLegend()) {
+				// Clear out previous Legend
+				// remove all previous locate Attributes
+			var lgndCntr = jQuery(getFrameID()+' .legend-container');
+			lgndCntr.empty();
+
+				// Create Legend sections for each Template
+			prspdata.e.g.ts.forEach(function(tID, tIndex) {
+				var tmpltDef = PDataHub.getTmpltID(tID);
+						// Create DIV structure for Template's Legend entry
+				var newTLegend = jQuery('<div class="legend-template" data-index="'+tIndex+
+								'"><div class="legend-title">'+tmpltDef.l+'</div></div>');
+					// Insert locate attributes into Legends
+				var locAtts = vizModel.getLocAtts(tIndex);
+				if (locAtts && locAtts.length) {
+					locAtts.forEach(function(attID, aIndex) {
+						var attDef = PDataHub.getAttID(attID, false);
+						newTLegend.append('<div class="legend-entry legend-locate" data-id="'+attID+
+							'"><input type="checkbox" checked="checked" class="legend-entry-check"/><span class="legend-value-title">'+
+							attDef.def.l+'</span></div>');
+					});
+				}
+					// Create dropdown menu of visual Attributes
+				var attSelection = vizModel.getFeatureAtts(tIndex);
+				var newStr = '<select class="legend-select">';
+				attSelection.forEach(function(attID, aIndex) {
+					var attDef = PDataHub.getAttID(attID, true);
+					newStr += '<option value="'+attID+'">'+attDef.def.l+'</option>';
+				});
+				newStr += '</select>';
+				var newSelect = jQuery(newStr);
+				newSelect.change(selectTmpltAttribute);
+				jQuery(newTLegend).append(newSelect);
+					// Create Hide/Show all checkbox
+				jQuery(newTLegend).append('<div class="legend-entry legend-sh"><input type="checkbox" checked="checked" class="legend-entry-check"/>Hide/Show All</div><div class="legend-group"></div>');
+				lgndCntr.append(newTLegend);
+				if (tIndex != (prspdata.t.length-1))
+					lgndCntr.append('<hr/>');
+					// Default feature selection is first Attribute
+				var fAttID = attSelection.length > 0 ? attSelection[0] : null;
+				legendIDs.push(fAttID);
+				if (fAttID) 
+					setLegendFeatures(tIndex, fAttID);
+			});
+
+			// jQuery(getFrameID()+' .legend-container').show();
+		} else {
+				// Just hide Legend
+			jQuery(getFrameID()+' .legend-container').hide();
+		}
+	} // createViz()
 
 
 	// INSTANCE METHODS
@@ -381,34 +417,6 @@ console.log("Feature attribute "+vIndex+" only selected for template "+tmpltInde
 
 		head = jQuery(getFrameID()+' .viz-content .legend-container');
 		head.click(clickInLegend);
-
-			// Create Legend containers and Handle selections
-		prspdata.t.forEach(function(tmplt, tIndex) {
-					// Create DIV structure for Template's Legend entry
-			var newTLegend = jQuery('<div class="legend-template" data-index="'+tIndex+
-							'"><div class="legend-title">'+tmplt.def.l+'</div></div>');
-				// VizModel must create legend-locate entries
-				// Create dropdown menu of visual Attributes
-			var attSelection = PDataHub.getTLegendsIndex(tIndex);
-			var newStr = '<select class="legend-select">';
-			attSelection.forEach(function(attID, aIndex) {
-				var attDef = PDataHub.getAttID(attID, true);
-				newStr += '<option value="'+aIndex+'">'+attDef.def.l+'</option>';
-			});
-			newStr += '</select>';
-			var newSelect = jQuery(newStr);
-			newSelect.change(selectTmpltAttribute);
-			jQuery(newTLegend).append(newSelect);
-				// Create Hide/Show all checkbox
-			jQuery(newTLegend).append('<div class="legend-entry legend-sh"><input type="checkbox" checked="checked" class="legend-entry-check"/>Hide/Show All</div><div class="legend-group"></div>');
-			head.append(newTLegend);
-			if (tIndex != (prspdata.t.length-1))
-				head.append('<hr/>');
-				// Insert new Legend DOM structure into Legend
-			legendIDs.push(attSelection.length > 0 ? attSelection[0] : null);
-				// Default feature selection is first Attribute
-			setLegendFeatures(tIndex, 0);
-		});
 
 			// Create first VF by default
 		createViz(0);
@@ -457,8 +465,7 @@ var PDataHub = (function () {
 									// Corresponding to prspdata.t
 									// { l = # loaded, i = initial index for these records, d = data array itself }
 	var allDataCount=0;				// Total number of Records
-	var allVs = [];					// array of all Views
-	var allLegends = [];			// Legend info, corresponding to Templates
+	// var allLegends = [];			// Legend info, corresponding to Templates
 									// each entry is array of Attribute IDs that can act as Legends
 
 
@@ -540,21 +547,21 @@ var PDataHub = (function () {
 				allData.push(newTData);
 				allDataCount += tmplt.n;
 					// New Legend entry; check all Attributes
-				var lgndArray = [];
-				tmplt.def.a.forEach(function(tAttID) {
-					var theAtt = PDataHub.getAttID(tAttID, true);
-						// Must be appropriate type and have Legend entries
-					switch (theAtt.def.t) {
-					case 'Text':
-					case 'Vocabulary':
-					case 'Number':
-					case 'Dates':
-						if (theAtt.l.length)
-							lgndArray.push(tAttID);
-						break;
-					}
-				});
-				allLegends.push(lgndArray);
+				// var lgndArray = [];
+				// tmplt.def.a.forEach(function(tAttID) {
+				// 	var theAtt = PDataHub.getAttID(tAttID, true);
+				// 		// Must be appropriate type and have Legend entries
+				// 	switch (theAtt.def.t) {
+				// 	case 'Text':
+				// 	case 'Vocabulary':
+				// 	case 'Number':
+				// 	case 'Dates':
+				// 		if (theAtt.l.length)
+				// 			lgndArray.push(tAttID);
+				// 		break;
+				// 	}
+				// });
+				// allLegends.push(lgndArray);
 			});
 			checkDataLoad();
 		}, // init()
@@ -576,15 +583,15 @@ var PDataHub = (function () {
 
 			// RETURNS: Attribute definition with this ID
 			// INPUT:   attID = full Attribute ID (could be in Join dot notation)
-			//			if in Join dot notation and base = true, find Attribute for suffix Attribute
+			//			if in Join dot notation and suffix = true, find Attribute for suffix segment
 			// NOTE: 	In case that ID is Joined with dot notation, find base Attribute
 			// TO DO:   Use binary search
-		getAttID: function(attID, base)
+		getAttID: function(attID, suffix)
 		{
 				// Test if in dot notation
 			var pos = attID.indexOf('.');
 			if (pos != -1) {
-				if (base)
+				if (suffix)
 					attID = attID.substr(pos+1);
 				else
 					attID = attID.substring(0, pos);
@@ -596,6 +603,25 @@ var PDataHub = (function () {
 			}
 		}, // getAttID()
 
+			// RETURNS: first part of AttID if in Join dot notation
+		getAttIDPrefix: function(attID)
+		{
+				// Test if in dot notation
+			var pos = attID.indexOf('.');
+			if (pos != -1)
+				return attID.substring(0, pos);
+			return attID;
+		},
+
+			// RETURNS: last part of AttID if in Join dot notation
+		getAttIDSuffix: function(attID)
+		{
+				// Test if in dot notation
+			var pos = attID.indexOf('.');
+			if (pos != -1)
+				return attID.substr(pos)+1;
+			return attID;
+		},
 
 		getAttIndex: function(aIndex)
 		{
@@ -612,11 +638,20 @@ var PDataHub = (function () {
 			return prspdata.t[tIndex];
 		},
 
-			// PURPOSE: Return array of Attribute IDs available as Legends for Template by index
-		getTLegendsIndex: function(tIndex)
+			// RETURNS: Definition of template whose ID is tID
+		getTmpltID: function(tID)
 		{
-			return allLegends[tIndex];
-		}, // getTLegendsIndex()
+			for (var i=0; i<prspdata.t.length; i++) {
+				if (tID == prspdata.t[i].id)
+					return prspdata.t[i].def;
+			}
+		},
+
+		// 	// PURPOSE: Return array of Attribute IDs available as Legends for Template by index
+		// getTLegendsIndex: function(tIndex)
+		// {
+		// 	return allLegends[tIndex];
+		// }, // getTLegendsIndex()
 
 
 		getVizIndex: function(vIndex)

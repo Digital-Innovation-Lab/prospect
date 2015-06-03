@@ -157,12 +157,12 @@ select {
 	 * legend-container (outer)
 	 * 		legend-template (DIV per template): data-index = index of Template
 	 *			legend-title
-	 *			legend-locate (Attribute that locates object on visualization): data-index = index of Attribute
+	 *			legend-locate (Attribute that locates object on visualization): data-id = Attribute ID
 	 *			legend-select (menu with list of Legend Attributes)
-	 *				option value = Attribute ID
+	 *				option value = (full) Attribute ID
 	 *			legend-sh	  (show/hide option)
-	 *			legend-group  (DIV of value selections for a Template)
-	 *				legend-value  (single legend value): data-index = index of legend entry in array
+	 *			legend-group  (DIV of feature selections for a Template)
+	 *				legend-value  (single legend feature): data-index = index of legend entry in array
 	 *					legend-viz   (color or icon)
 	 *
 	 * NOTES:	Any line that begins with a checkbox is DIV of class 'legend-entry'.
@@ -172,7 +172,7 @@ select {
 	position: relative;
 	top: 6px;
 	left: 6px;
-	opacity: 0.8;
+	opacity: 0.9;
 	z-index: 1000;
 
 	width: 240px;
