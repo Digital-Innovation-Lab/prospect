@@ -4,6 +4,7 @@
 <head>
 	<link rel="stylesheet" href="<?php echo(plugins_url('css/jquery-ui.min.css', dirname(__FILE__))); ?>" />
 	<link rel="stylesheet" href="<?php echo(plugins_url('css/jquery-ui.theme.min.css', dirname(__FILE__))); ?>" />
+	<link rel="stylesheet" href="<?php echo(plugins_url('lib/leaflet/leaflet.css', dirname(__FILE__))); ?>" />
 	<link rel="stylesheet" href="<?php echo(plugins_url('css/view-template.css', dirname(__FILE__))); ?>" />
 </head>
 
@@ -22,6 +23,8 @@
 <script src="<?php echo(includes_url('js/jquery/ui/dialog.min.js')); ?>"></script>
 <script src="<?php echo(includes_url('js/jquery/ui/effect.min.js')); ?>"></script>
 <script src="<?php echo(includes_url('js/jquery/ui/effect-slide.min.js')); ?>"></script>
+
+<script src="<?php echo(plugins_url('lib/leaflet/leaflet.js', dirname(__FILE__))); ?>"></script>
 
 <script src="<?php echo(plugins_url('js/view-template.js', dirname(__FILE__))); ?>"></script>
 
@@ -109,9 +112,9 @@
 				Please wait while data loads.
 			</div>
 			<div class="viz-content">
-				<div class="legend-container">
+				<div class="viz-result">
 				</div>
-				<div class-"viz-result">
+				<div class="legend-container">
 				</div>
 			</div>
 		</div>

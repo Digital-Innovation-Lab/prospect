@@ -1,6 +1,6 @@
 // This file contains:
+//		PVizModel abstract Class
 //		PViewFrame Object
-//		PViewModel abstract Class
 //		PDataHub Module for handling data
 //		PBootstrap for launching processes and organizing screen
 
@@ -19,26 +19,26 @@
 function PVizModel(viewFrame, vizSettings)
 {
 	this.vFrame   = viewFrame;
-	this.frameID  = viewFrame.getFrameID();
+	this.frameID  = viewFrame.getFrameID()+' .viz-content .viz-result';
 	this.settings = vizSettings;
 
 		// All subclasses must implement the following:
 	// this.usesLegend = function()
 	// this.getLocAtts = function(tIndex)
 	// this.getFeatureAtts = function(tIndex)
-	// this.draw = function(IndexStream)
+	// this.setup = function()
+	// this.render = function(IndexStream)
+	// this.updateTemplate = function(tIndex)
+	// this.setSelection = function(viewParams, dataSet, ids)
 	// this.getPerspective = function()
 	// this.setPerspective = function(pData)
-	// this.selectLegend = function(tIndex, attID)
-	// this.updateLegend = function(tIndex)
-	// this.setSelection = function(viewParams, dataSet, ids)
 	// this.teardown() = function()
 } // PVizModel
 
 
-PVizModel.prototype.initDOM = function()
+PVizModel.prototype.sample = function()
 {
-} // PVizModel.initDOM
+} // PVizModel.sample
 
 
 // ===================================
@@ -74,6 +74,42 @@ VizMap.prototype.getFeatureAtts = function(tIndex)
 		return this.settings.lgnds[tIndex];
 	return this.settings.lgnds;
 } // getFeatureAtts()
+
+VizMap.prototype.setup = function()
+{
+		// Create instance of Leaflet
+	var centerLat = parseFloat(this.settings.clat);
+	var centerLon = parseFloat(this.settings.clon);
+	var zoom;
+	if (typeof(this.settings.zoom) == 'string')
+		parseInt(this.settings.zoom);
+	else
+		zoom = this.settings.zoom;
+	var vIndex = this.vFrame.getIndex();
+
+		// Leaflet requires a DIV ID to startup: create and insert one
+	jQuery(this.frameID).append('<div id="l-map-'+vIndex+'" class="max-size"></div>');
+
+	this.lMap = L.map("l-map-"+vIndex, { zoomControl:false }).setView([centerLat, centerLon], zoom);
+
+		// Add an OpenStreetMap base layer
+	L.tileLayer('http://otile{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png', {
+		subdomains: '1234',
+		attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+	}).addTo(this.lMap);
+
+		// Create controls in top-right
+    var layerControl = L.control.zoom({position: 'topright'});
+    layerControl.addTo(this.lMap);
+} // setup()
+
+VizMap.prototype.render = function()
+{
+} // render()
+
+VizMap.prototype.teardown = function()
+{
+} // teardown()
 
 
 // ========================================================================
@@ -150,10 +186,9 @@ function PViewFrame(vizIndex)
 	} // clickAnnotations()
 
 
-		// PURPOSE: 
+		// PURPOSE: Turn on or off all feature Attributes for tmpltIndex
 	function doShowHideAll(tmpltIndex, show)
 	{
-console.log("Set all features for "+tmpltIndex+" to "+show);
 		jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
 								tmpltIndex+'"] .legend-group .legend-entry-check').prop('checked', show);
 		// TO DO: Force refresh of Viz
@@ -165,7 +200,7 @@ console.log("Set all features for "+tmpltIndex+" to "+show);
 	function doLocateSelect(tmpltIndex, lID, show)
 	{
 console.log("Locate attribute "+lID+" for template "+tmpltIndex+", set to "+show);
-		// TO DO
+		// TO DO: Regenerate viz
 	} // doLocateSelect()
 
 
@@ -174,7 +209,13 @@ console.log("Locate attribute "+lID+" for template "+tmpltIndex+", set to "+show
 	function doLocateSelectOnly(tmpltIndex, lID)
 	{
 console.log("Locate attribute "+lID+" only for template "+tmpltIndex);
-		// TO DO
+			// Deselect everything
+		jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
+								tmpltIndex+'"] .legend-locate .legend-entry-check').prop('checked', false);
+			// Just select this one
+		jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
+								tmpltIndex+'"] .legend-locate[data-id="'+lID+'"] .legend-entry-check').prop('checked', true);
+		// TO DO: Regenerate viz (but don't do anything if it was already checked and this is the only locate Attribute!)
 	} // doLocateSelect()
 
 
@@ -183,7 +224,7 @@ console.log("Locate attribute "+lID+" only for template "+tmpltIndex);
 	function doFeatureSelect(tmpltIndex, vIndex, show)
 	{
 console.log("Feature attribute "+vIndex+" for template "+tmpltIndex+", set to "+show);
-		// TO DO
+		// TO DO: Regenerate viz
 	} // doFeatureSelect()
 
 
@@ -192,7 +233,14 @@ console.log("Feature attribute "+vIndex+" for template "+tmpltIndex+", set to "+
 	function doFeatureSelectOnly(tmpltIndex, vIndex)
 	{
 console.log("Feature attribute "+vIndex+" only selected for template "+tmpltIndex);
-		// TO DO
+			// Deselect everything
+		jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
+								tmpltIndex+'"] .legend-group .legend-entry-check').prop('checked', false);
+			// Just select this one
+		jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
+								tmpltIndex+'"] .legend-group .legend-value[data-index="'+vIndex+
+								'"] .legend-entry-check').prop('checked', true);
+		// TO DO: Regenerate viz
 	} // doFeatureSelectOnly()
 
 
@@ -202,61 +250,46 @@ console.log("Feature attribute "+vIndex+" only selected for template "+tmpltInde
 			// Which Template does selection belong to?
 		var tmpltIndex = jQuery(event.target).closest('.legend-template').data('index');
 		var clickClass = event.target.className;
-// console.log("Clicked class: "+clickClass);
 		switch (clickClass) {
 			// Turn on or off just this one value
 		case 'legend-entry-check':
-			var lgndEntry = jQuery(event.target).closest('.legend-entry');
+			var lEntry = jQuery(event.target).closest('.legend-entry');
 			var isChecked = jQuery(event.target).is(':checked');
 				// What does checkbox belong to?
-			if (lgndEntry.hasClass('legend-sh')) {
+			if (lEntry.hasClass('legend-sh'))
 				doShowHideAll(tmpltIndex, isChecked);
-
 				// A locate Attribute?
-			} else if (lgndEntry.hasClass('legend-locate')) {
-				var lID = lgndEntry.data('id');
-				doLocateSelect(tmpltIndex, lID, isChecked);
-
+			else if (lEntry.hasClass('legend-locate'))
+				doLocateSelect(tmpltIndex, lEntry.data('id'), isChecked);
 					// Must belong to a legend-entry
-			} else {
-				var vIndex = lgndEntry.data('index');
-				doFeatureSelect(tmpltIndex, vIndex, isChecked);
-			}
+			else if (lEntry.hasClass('legend-value'))
+				doFeatureSelect(tmpltIndex, lEntry.data('index'), isChecked);
 			break;
 
 			// Make this only selected feature attribute
 		case 'legend-viz':
-		case 'legend-value-title':
-			var vIndex = jQuery(event.target).closest('.legend-entry').data('index');
-			doFeatureSelectOnly(tmpltIndex, vIndex);
+		case 'legend-value-title': 		// Title used for both locate and feature Attributes!
+			var lEntry = jQuery(event.target).closest('.legend-entry');
+			if (lEntry.hasClass('legend-locate'))
+				doLocateSelectOnly(tmpltIndex, lEntry.data('id'));
+			else if (lEntry.hasClass('legend-value'))
+				doFeatureSelectOnly(tmpltIndex, lEntry.data('index'));
 			break;
 
+		case 'legend-template':
 		case 'legend-select':
 		case '':
 				// Ignore these
-// console.log("Ignored");
 			break;
 
 		default:  // if could be multiple
 				// Show/Hide title?
-			var shTitle = /legend-sh/i;
-			if (clickClass.match(shTitle)) {
+			if (clickClass.match(/legend-sh/i)) {
 					// Simulate click
 				var checkBox = jQuery(event.target).find('.legend-entry-check');
 				var isChecked = !checkBox.is(':checked');
 				checkBox.prop('checked', isChecked);
 				doShowHideAll(tmpltIndex, isChecked);
-			} else {
-				var locTitle = /legend-locate/i;
-				if (clickClass.match(locTitle)) {
-						// Simulate click
-					var checkBox = jQuery(event.target).find('.legend-entry-check');
-					var isChecked = !checkBox.is(':checked');
-					var lID = jQuery(event.target).data('id');
-					checkBox.prop('checked', isChecked);
-						// Consider click on title an only click
-					doLocateSelectOnly(tmpltIndex, vIndex);
-				}
 			}
 			break;
 		}
@@ -280,7 +313,7 @@ console.log("Feature attribute "+vIndex+" only selected for template "+tmpltInde
 		// NOTES: 	Does not affect menu selection itself
 	function setLegendFeatures(lIndex, attID)
 	{
-console.log("Setting features for template "+lIndex+" to Attribute "+attID);
+// console.log("Setting features for template "+lIndex+" to Attribute "+attID);
 		var group = jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
 						lIndex+'"] .legend-group');
 			// Clear any previous entries
@@ -308,7 +341,7 @@ console.log("Setting features for template "+lIndex+" to Attribute "+attID);
 		if (vizModel)
 			vizModel.teardown();
 
-		// jQuery(getFrameID()+' .viz-content').empty();
+		jQuery(getFrameID()+' .viz-content .viz-result').empty();
 
 		switch (theVF.vf) {
 		case 'Map':
@@ -380,6 +413,7 @@ console.log("Setting features for template "+lIndex+" to Attribute "+attID);
 				// Just hide Legend
 			jQuery(getFrameID()+' .legend-container').hide();
 		}
+		vizModel.setup();
 	} // createViz()
 
 
@@ -387,6 +421,11 @@ console.log("Setting features for template "+lIndex+" to Attribute "+attID);
 	//=================
 
 	instance.getFrameID = getFrameID;
+
+	instance.getIndex = function()
+	{
+		return vizIndex;
+	};
 
 		// PURPOSE: Do initialize of basic DOM elements in view frame
 	instance.initDOM = function()
@@ -436,7 +475,7 @@ function PFilterModel(fIndex)
 
 		// All subclasses must implement the following:
 	// this.evaluateRec(theRec)
-} // FilterModel
+} // PFilterModel
 
 
 // ==========================================================
@@ -465,8 +504,6 @@ var PDataHub = (function () {
 									// Corresponding to prspdata.t
 									// { l = # loaded, i = initial index for these records, d = data array itself }
 	var allDataCount=0;				// Total number of Records
-	// var allLegends = [];			// Legend info, corresponding to Templates
-									// each entry is array of Attribute IDs that can act as Legends
 
 
 	// INTERNAL FUNCTIONS
@@ -546,22 +583,6 @@ var PDataHub = (function () {
 				var newTData = { l: 0, d: null };
 				allData.push(newTData);
 				allDataCount += tmplt.n;
-					// New Legend entry; check all Attributes
-				// var lgndArray = [];
-				// tmplt.def.a.forEach(function(tAttID) {
-				// 	var theAtt = PDataHub.getAttID(tAttID, true);
-				// 		// Must be appropriate type and have Legend entries
-				// 	switch (theAtt.def.t) {
-				// 	case 'Text':
-				// 	case 'Vocabulary':
-				// 	case 'Number':
-				// 	case 'Dates':
-				// 		if (theAtt.l.length)
-				// 			lgndArray.push(tAttID);
-				// 		break;
-				// 	}
-				// });
-				// allLegends.push(lgndArray);
 			});
 			checkDataLoad();
 		}, // init()
@@ -646,13 +667,6 @@ var PDataHub = (function () {
 					return prspdata.t[i].def;
 			}
 		},
-
-		// 	// PURPOSE: Return array of Attribute IDs available as Legends for Template by index
-		// getTLegendsIndex: function(tIndex)
-		// {
-		// 	return allLegends[tIndex];
-		// }, // getTLegendsIndex()
-
 
 		getVizIndex: function(vIndex)
 		{

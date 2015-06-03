@@ -144,13 +144,26 @@ select {
 }
 
 	/* Frame that displays visualization content */
-	/*	This is divided dynamically into .legend-body and .viz-result */
+	/*	This is dynamically into .legend-body and .viz-result */
 #viz-display-frame .viz-content {
-	/* Temporary hack to create viz space */
-	height: 400px;
+	height: 400px;		/* Temporary hack to create viz space */
 }
 
-#viz-display-frame .viz-result {
+	/* All visualization results rendered here */
+#viz-display-frame .viz-content .viz-result {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	z-index: 0;
+	margin: 0px;
+	padding: 2px;
+	width: 100%;
+	height: 100%;
+}
+
+.max-size {
+	width: 100%;
+	height: 100%;
 }
 
 	/* Legends are semi-opaque overlays on content in top-left corner (z = 1000)
@@ -169,11 +182,11 @@ select {
 	 * 			The checkbox itself is class legend-entry-check
 	 */
 .legend-container {
-	position: relative;
+	position: absolute;
 	top: 6px;
 	left: 6px;
 	opacity: 0.9;
-	z-index: 1000;
+	z-index: 100;
 
 	width: 240px;
 
