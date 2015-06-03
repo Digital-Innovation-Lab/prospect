@@ -192,7 +192,7 @@ select {
 
 	width: 240px;
 
-	max-height: 250px;
+	max-height: 265px;
 
 	padding: 6px;
 
@@ -209,6 +209,9 @@ select {
 
 	/* Button to force Re-render */
 .legend-update {
+	height: 18px;
+	margin-top: 2px;
+	margin-bottom: 3px;
 	font-size: 12px;
 	font-weight: bold;
 	color: green;
@@ -216,7 +219,7 @@ select {
 
 .legend-scroll {
 	overflow-y: auto;
-	height: 100%;
+	height: 232px;
 }
 
 .legend-title {
