@@ -99,12 +99,32 @@ VizMap.prototype.setup = function()
 	}).addTo(this.lMap);
 
 		// Create controls in top-right
-    var layerControl = L.control.zoom({position: 'topright'});
-    layerControl.addTo(this.lMap);
+	var layerControl = L.control.zoom({position: 'topright'});
+	layerControl.addTo(this.lMap);
+
+	var markers;
+	if (this.settings.clster) {
+		markers = new L.MarkerClusterGroup();
+	} else {
+		markers = L.featureGroup();            
+	}
+	this.markerLayer = markers;
+
+		// Create options properties if they don't already exist
+	markers.options = markers.options || { };
+	markers.options.layerName = 'TO DO';
+
+	markers.addTo(this.lMap);
 } // setup()
 
 VizMap.prototype.render = function()
 {
+		// Remove previous Markers
+	this.markerLayer.clearLayers();
+
+	// Process one Template type at a time
+		// Get selected locate Atts for current Template
+		// Get selected feature Atts for current Template
 } // render()
 
 VizMap.prototype.teardown = function()
@@ -251,6 +271,9 @@ console.log("Feature attribute "+vIndex+" only selected for template "+tmpltInde
 		var tmpltIndex = jQuery(event.target).closest('.legend-template').data('index');
 		var clickClass = event.target.className;
 		switch (clickClass) {
+		case 'legend-update':
+				// TO DO
+			break;
 			// Turn on or off just this one value
 		case 'legend-entry-check':
 			var lEntry = jQuery(event.target).closest('.legend-entry');
@@ -366,7 +389,7 @@ console.log("Feature attribute "+vIndex+" only selected for template "+tmpltInde
 		if (vizModel.usesLegend()) {
 				// Clear out previous Legend
 				// remove all previous locate Attributes
-			var lgndCntr = jQuery(getFrameID()+' .legend-container');
+			var lgndCntr = jQuery(getFrameID()+' .legend-container .legend-scroll');
 			lgndCntr.empty();
 
 				// Create Legend sections for each Template
@@ -414,6 +437,8 @@ console.log("Feature attribute "+vIndex+" only selected for template "+tmpltInde
 			jQuery(getFrameID()+' .legend-container').hide();
 		}
 		vizModel.setup();
+
+			// TO DO: Indicate to PDataHub that VizModel available for data?? InputQueue mechanism?
 	} // createViz()
 
 

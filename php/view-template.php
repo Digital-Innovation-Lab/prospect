@@ -115,6 +115,9 @@
 				<div class="viz-result">
 				</div>
 				<div class="legend-container">
+					<button class="legend-update">Update</button>
+					<div class="legend-scroll">
+					</div>
 				</div>
 			</div>
 		</div>

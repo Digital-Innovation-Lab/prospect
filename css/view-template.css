@@ -168,6 +168,8 @@ select {
 
 	/* Legends are semi-opaque overlays on content in top-left corner (z = 1000)
 	 * legend-container (outer)
+	 *		legend-update
+	 *		legend-scroll (scrolling area)
 	 * 		legend-template (DIV per template): data-index = index of Template
 	 *			legend-title
 	 *			legend-locate (Attribute that locates object on visualization): data-id = Attribute ID
@@ -191,7 +193,6 @@ select {
 	width: 240px;
 
 	max-height: 250px;
-	overflow-y: auto;
 
 	padding: 6px;
 
@@ -204,6 +205,18 @@ select {
 	-moz-box-shadow: 0 0 5px 5px rgba(0,0,0,0.3);
 	-webkit-box-shadow: 0 0 5px 5px rgba(0,0,0,0.3);
 	box-shadow: 0 0 5px 5px rgba(0,0,0,0.3);
+}
+
+	/* Button to force Re-render */
+.legend-update {
+	font-size: 12px;
+	font-weight: bold;
+	color: green;
+}
+
+.legend-scroll {
+	overflow-y: auto;
+	height: 100%;
 }
 
 .legend-title {
