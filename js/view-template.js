@@ -23,16 +23,16 @@ function PVizModel(viewFrame, vizSettings)
 	this.settings = vizSettings;
 
 		// All subclasses must implement the following:
-	// this.usesLegend = function()
-	// this.getLocAtts = function(tIndex)
-	// this.getFeatureAtts = function(tIndex)
-	// this.setup = function()
-	// this.render = function(IndexStream)
-	// this.updateTemplate = function(tIndex)
-	// this.setSelection = function(viewParams, dataSet, ids)
-	// this.getPerspective = function()
-	// this.setPerspective = function(pData)
-	// this.teardown() = function()
+	// this.usesLegend()
+	// this.getLocAtts(tIndex)
+	// this.getFeatureAtts(tIndex)
+	// this.setup()
+	// this.render(IndexStream)
+	// this.updateTemplate(tIndex)
+	// this.setSelection(ids)
+	// this.getPerspective()
+	// this.setPerspective(pData)
+	// this.teardown()
 } // PVizModel
 
 
@@ -115,23 +115,87 @@ VizMap.prototype.setup = function()
 	markers.options.layerName = 'TO DO';
 
 	markers.addTo(this.lMap);
+console.log("VizMap setup");
 } // setup()
 
-VizMap.prototype.render = function()
+
+	// PURPOSE: Draw the Records in the given datastream
+VizMap.prototype.render = function(datastream)
 {
+	var mLayer = this.markerLayer;
+
 		// Remove previous Markers
-	this.markerLayer.clearLayers();
+	mLayer.clearLayers();
 
 		// Process one Template type at a time
 	var numTmplts = PDataHub.getNumETmplts();
-	for (var tIndex=0; tIndex<numTmplts; tIndex++) {
-			// Get selected locate Atts for current Template
-		var locAtts = this.vFrame.getSelLocAtts(tIndex);
-		if (locAtts.length) {
-				// Get selected feature Atts for current Template
+	var i=0, tIndex=0, attID, locAtts, featAtts, rec;
+	var locData, parsed, coord, newMarker;
 
+	while (i<datastream.l) {
+			// If previous "fast-forward" went into empty Template, need to go to next
+		while (i == -1) {
+			if (++tIndex == numTmplts)
+				return;
+			else
+					// Fast-forward to next Template source
+				i = PDataHub.stream1stTEntry(datastream, tIndex);
 		}
-	}
+			// Starting with new Template?
+		if (locAtts == null) {
+			locAtts = this.vFrame.getSelLocAtts(tIndex);
+				// Skip Template if no locate Atts
+			if (locAtts.length == 0) {
+				locAtts = null;
+					// Have we exhausted all Templates?
+				if (++tIndex == numTmplts)
+					return;
+				else {
+						// Fast-forward to next Template source
+					i = PDataHub.stream1stTEntry(datastream, tIndex);
+					continue;
+				}
+			} // if no locAtts
+			featAtts = this.vFrame.getSelFeatAtts(tIndex);
+				// Skip Templates if no feature Atts
+			if (featAtts.length == 0) {
+				locAtts = null;
+					// Have we exhausted all Templates?
+				if (++tIndex == numTmplts)
+					return;
+				else {
+						// Fast-forward to next Template source
+					i = PDataHub.stream1stTEntry(datastream, tIndex);
+					continue;
+				}
+			} // if no featAtts
+				// Get Feature Attribute ID for this Template
+			attID = this.vFrame.getSelLegend(tIndex);
+		} // if new Template
+			// Get Record data
+		rec = PDataHub.getRecByIndex(datastream.s[i]);
+			// For each of the locate Attributes
+		locAtts.forEach(function(theLAtt) {
+			locData = rec.a[theLAtt];
+			if (locData && locData.length) {
+				parsed = locData.split(',');
+// console.log("Record "+i+"["+theLAtt+"]: "+locData);
+				if (parsed.length == 2) {
+					coord = [parseFloat(parsed[0]), parseFloat(parsed[1])];
+					newMarker = L.circleMarker(coord,
+						{	id: i, weight: 1, radius: 10,
+							fillColor: "red", color: "#000",
+							opacity: 1, fillOpacity: 1
+						}
+					);
+					mLayer.addLayer(newMarker);
+				}
+			}
+		}); // for locAtts
+			// Increment stream index -- check if going into new Template
+		if (++i == (datastream.t[tIndex].i + datastream.t[tIndex].n))
+			locAtts = null;
+	} // while 
 } // render()
 
 VizMap.prototype.teardown = function()
@@ -153,17 +217,18 @@ function PViewFrame(vizIndex)
 	//===================
 
 	var frameState = 0;				// 0 = internal initialization, 1 = waiting for data,
-									// 2 = processing data, 3 = ready for interaction
+									// 2 = processing data, 3 = creating visualization,
+									// 4 = ready for interaction
 	var vizSelIndex = 0;			// index of currently selected Viz
 	var vizModel = null;			// PVizModel currently in frame
 	var legendIDs = [];				// Attribute IDs of Legend selections (one per Template)
 	var selRecIDS = [];				// array of IDs of selected Records
-
+	var datastream = null;			// pointer to datastream given to view
 
 	// PRIVATE FUNCTIONS
 	//==================
 
-		// PURPOSE: Return ID of Frame for 
+		// PURPOSE: Return ID of Frame's outermost DIV container
 	function getFrameID()
 	{
 		return '#view-frame-'+vizIndex;
@@ -207,13 +272,6 @@ function PViewFrame(vizIndex)
 	{
 		event.preventDefault();
 	} // clickVizControls()
-
-
-	function clickAnnotations(event)
-	{
-		event.preventDefault();
-	} // clickAnnotations()
-
 
 		// PURPOSE: Turn on or off all feature Attributes for tmpltIndex
 	function doShowHideAll(tmpltIndex, show)
@@ -276,8 +334,10 @@ console.log("Feature attribute "+vIndex+" only selected for template "+tmpltInde
 		var clickClass = event.target.className;
 		switch (clickClass) {
 		case 'legend-update':
-vizModel.render();
-				// TO DO
+			if (vizModel && datastream) {
+					// TO DO: Set busy cursor
+				vizModel.render(datastream);				
+			}
 			break;
 			// Turn on or off just this one value
 		case 'legend-entry-check':
@@ -435,8 +495,6 @@ vizModel.render();
 				if (fAttID) 
 					setLegendFeatures(tIndex, fAttID);
 			});
-
-			// jQuery(getFrameID()+' .legend-container').show();
 		} else {
 				// Just hide Legend
 			jQuery(getFrameID()+' .legend-container').hide();
@@ -507,7 +565,7 @@ vizModel.render();
 
 
 		// RETURNS: Array of indices of currently selected feature Attribute IDs for tIndex
-	instance.getSelFeatureAttIndices = function(tIndex)
+	instance.getSelFeatAtts = function(tIndex)
 	{
 		var attIndices = [];
 		var boxes = jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
@@ -517,16 +575,45 @@ vizModel.render();
 			attIndices.push(attIndex);
 		});
 		return attIndices;
-	}; // getSelFeatureAttIndices()
+	}; // getSelFeatAtts()
+
+
+		// RETURNS: Attribute ID selected on Legend for tIndex
+	instance.getSelLegend = function(tIndex)
+	{
+		return legendIDs[tIndex];
+	} // getSelLegend()
 
 
 	instance.state = function()
 	{
 		return frameState;
-	}
+	} // state()
+
+		// PURPOSE: Add or remove recordID to/from current selection list
+		// NOTES: 	Called by VizModel based on user interaction
+	instance.changeSelection = function(recordID, add)
+	{
+		if (add) {
+			selRecIDS.push(recordID);
+		} else {
+			var i = _.indexOf(selRecIDS, recordID);
+			selRecIDS.splice(i, 1);
+		}
+	} // changeSelection()
+
+		// PURPOSE: Called by external agent when new datastream is available for viewing
+		// ASSUMED: Caller has already set busy cursor
+		// TO DO: 	Check and set frameState
+	instance.showData = function(stream)
+	{
+		dataStream = stream;
+		if (vizModel)
+			vizModel.render(stream);
+	} // showData()
 
 	return instance;
-} // ViewFrame
+} // PViewFrame
 
 
 // ==========================================================
@@ -538,6 +625,7 @@ function PFilterModel(fIndex)
 {
 
 		// All subclasses must implement the following:
+	// this.setup()
 	// this.evaluateRec(theRec)
 } // PFilterModel
 
@@ -551,6 +639,7 @@ function PFilterModel(fIndex)
 // NOTES: 	There is only one hub at a time so no need for instantiating instances
 //			PDataHub is implemented with the "Module" design pattern for hiding
 //				private variables and minimizing external interference
+// The s array of an IndexStream contains absolute index numbers to global data array
 // TO DO: 	Change LOAD_DATA_CHUNK to Option setting passed by prspdata
 
 var PDataHub = (function () {
@@ -564,11 +653,12 @@ var PDataHub = (function () {
 	// INTERNAL VARIABLES
 	// ==================
 
+	var dataLoaded = false;			// only true after all Record data loaded
 	var allData = [];				// "head" array of all Records, one entry per Template type
 									// Corresponding to prspdata.t
-									// { l = # loaded, i = initial index for these records, d = data array itself }
+									// { n = # loaded, i = initial index for these records, d = data array }
 	var allDataCount=0;				// Total number of Records
-
+	var topStream=null;				// datastream from top
 
 	// INTERNAL FUNCTIONS
 	// ==================
@@ -604,7 +694,7 @@ var PDataHub = (function () {
 					allData[tIndex].d = d.concat(newD);
 				else
 					allData[tIndex].d = newD;
-				allData[tIndex].l += count;
+				allData[tIndex].n += count;
 				checkDataLoad();
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown)
@@ -621,7 +711,7 @@ var PDataHub = (function () {
 		var done = true;
 
 		for (var i=0; i<prspdata.t.length; i++) {
-			var current = allData[i].l;
+			var current = allData[i].n;
 			var needed = prspdata.t[i].n;
 			if (current < needed) {
 				done = false;
@@ -632,8 +722,11 @@ var PDataHub = (function () {
 				break;
 			}
 		}
-		if (done)
+		if (done) {
+// console.log("Done loading: "+JSON.stringify(allData));
+			dataLoaded = true;
 			flowFromTop();
+		}
 	} // checkDataLoad()
 
 
@@ -644,7 +737,7 @@ var PDataHub = (function () {
 				// For each entry: head entry for Record Data and collect Legends
 			prspdata.t.forEach(function(tmplt) {
 					// Head Record entry
-				var newTData = { l: 0, d: null };
+				var newTData = { i: allDataCount, n: 0, d: null };
 				allData.push(newTData);
 				allDataCount += tmplt.n;
 			});
@@ -652,18 +745,90 @@ var PDataHub = (function () {
 		}, // init()
 
 
-			// PURPOSE: Create an array of indices for each object in full data stream
-		newIndexStream: function()
+			// PURPOSE: Create a new IndexStream: { s = index array, t = array of template params, l = total length }
+			// INPUT: 	if full, fill with entries for all Records
+			// NOTE: 	JS Arrays are quirky; s is always full size, so l is used to maintain length
+		newIndexStream: function(full)
 		{
-			// var size = allData.length;
-			// var dataStream = new Array(size);
-			// for (var i=0; i<size; i++)
-			// 	dataStream[i] = 0;
-			// return datastream;
+			var newStream = { };
+			newStream.s = new Int16Array(allDataCount);
+			newStream.t = [];
+			newStream.l = 0;
 
-			var newStream = new Int16Array(allDataCount);
+			var i;
+
+			if (full) {
+				for (i=0; i<allDataCount; i++)
+					newStream.s[i] = i;
+				for (i=0; i<allData.length; i++) {
+					var tEntry = allData[i];
+					var newEntry = { i: tEntry.i, n: tEntry.n };
+					newStream.t.push(newEntry);
+				}
+				newStream.l = allDataCount;
+			}
 			return newStream;
 		}, // newIndexStream()
+
+
+			// RETURNS: Index of Template to which absolute <index> belongs
+		streamTemplate: function(index)
+		{
+			for (var i=0; i<allData.length; i++) {
+				var tData = allData[i];
+				if (tData.i <= index  && index < (tData.i+tData.n))
+					return i;
+			}
+		}, // streamTemplate()
+
+
+			// RETURNS: The index of first entry in <datastream> which belongs to Template <tIndex>
+			//			-1 if the Template has no entries
+			// NOTE: 	This is for effectively "fast-forwarding" to a particular Template section
+			// 			This is tricky because binary-search needs to look for range
+		stream1stTEntry: function(datastream, tIndex)
+		{
+			var tEntry = datastream.t[tIndex];
+			if (tEntry.n == 0)
+				return -1;
+			return tEntry.i;
+		}, // stream1stTEntry()
+
+
+			// RETURNS: Object for Record whose absolute index is <index>
+		getRecByIndex: function(index)
+		{
+			for (var i=0; i<allData.length; i++) {
+				var tData = allData[i];
+				if (tData.n > 0) {
+					if (tData.i <= index  && index < (tData.i+tData.n))
+						return tData.d[index - tData.i];
+				}
+			}
+			return null;
+		}, // getRecByIndex()
+
+
+			// RETURNS: Attribute value for <attID> in Record whose absolute index is <index>
+			// TO DO: 	Process data?
+		getRecAtt: function(index, attID)
+		{
+			for (var i=0; i<allData.length; i++) {
+				var tData = allData[i];
+				if (tData.i <= index  && index < (tData.i+tData.n)) {
+					var rec = tData.d[index - tData.i];
+					return rec[attID];
+				}
+			}
+			return null;
+		}, // getStreamRecord()
+
+
+			// RETURNS: Absolute index for Record whose ID is recordID
+		getRecIndexByID: function(recordID)
+		{
+				// TO DO: Binary search for each Template array
+		}, // getRecIndexByID()
 
 
 			// RETURNS: Attribute definition with this ID
@@ -688,6 +853,7 @@ var PDataHub = (function () {
 			}
 		}, // getAttID()
 
+
 			// RETURNS: first part of AttID if in Join dot notation
 		getAttIDPrefix: function(attID)
 		{
@@ -697,6 +863,7 @@ var PDataHub = (function () {
 				return attID.substring(0, pos);
 			return attID;
 		},
+
 
 			// RETURNS: last part of AttID if in Join dot notation
 		getAttIDSuffix: function(attID)
@@ -708,10 +875,12 @@ var PDataHub = (function () {
 			return attID;
 		},
 
+
 		getAttIndex: function(aIndex)
 		{
 			return prspdata.a[aIndex];
 		}, // getAttIndex()
+
 
 			// RETURNS: Number of Templates used by this Exhibit
 		getNumETmplts: function()
@@ -719,11 +888,13 @@ var PDataHub = (function () {
 			return prspdata.e.g.ts.length;
 		},
 
+
 			// RETURNS: The ID of this Exhibit's tIndex Template
 		getETmpltIDIndex: function(tIndex)
 		{
 			return prspdata.e.g.ts[tIndex];
 		},
+
 
 			// RETURNS: Definition of template whose ID is tID
 		getTmpltID: function(tID)
@@ -732,7 +903,18 @@ var PDataHub = (function () {
 				if (tID == prspdata.t[i].id)
 					return prspdata.t[i].def;
 			}
-		},
+		}, // getTmpltID()
+
+			// RETURNS: The visual feature for an Attribute value, or null if no match
+			// INPUT:   val = raw Attribute val (String or Number)
+			//			type = type of Attribute
+			//			lgnd = complete Legend array
+			//			indices = array of selected Legend indices
+		getAttLgndVal: function(val, type, lgnd, indices)
+		{
+			// TO DO
+		}, // getAttLgndVal()
+
 
 		getVizIndex: function(vIndex)
 		{
@@ -746,7 +928,7 @@ var PDataHub = (function () {
 // PURPOSE: Create DOM structure, initiate services …
 
 // USES: 	jQuery, jQueryUI, …
-// ASSUMES: prspdata is set
+// ASSUMES: prspdata is fully loaded
 
 
 jQuery(document).ready(function($) {
@@ -757,9 +939,19 @@ jQuery(document).ready(function($) {
 
 		// VARIABLES
 		//==========
+var view0;
 
 		// FUNCTIONS
 		//==========
+
+	function clickRecompute(event)
+	{
+			// TO DO: Check and set frameState; make cursor busy during compute!
+var stream = PDataHub.newIndexStream(true);
+view0.showData(stream);
+		event.preventDefault();
+	} // clickRecompute()
+
 
 	function clickSetLayout(event)
 	{
@@ -863,6 +1055,8 @@ console.log("Create Filter "+fType+", "+fID);
 		jQuery('#title').append(prspdata.e.g.l);
 
 		// Command Bar
+	jQuery('#btn-recompute').button({icons: { primary: 'ui-icon-refresh' }, text: false })
+			.click(clickRecompute);
 	jQuery('#btn-set-layout').button({icons: { primary: 'ui-icon-newwin' }, text: false })
 			.click(clickSetLayout);
 	jQuery('#btn-perspectives').button({icons: { primary: 'ui-icon-note' }, text: false })
@@ -883,6 +1077,6 @@ console.log("Create Filter "+fType+", "+fID);
 	PDataHub.init();
 
 		// Initial primary visualization frame
-	var view0 = PViewFrame(0);
+	view0 = PViewFrame(0);
 	view0.initDOM();
 });
