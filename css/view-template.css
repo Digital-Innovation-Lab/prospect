@@ -2,11 +2,6 @@
  ** CSS for Prospect Front-end Visualizer
  **/
 
-	/* For busy cursor */
-body.waiting * {
-	cursor: wait !important;
-}
-
   /* Normalize box sizes! See: http://css-tricks.com/international-box-sizing-awareness-day/
    */
 *, *:before, *:after {
@@ -47,6 +42,12 @@ select {
 	width: auto;
 	min-width: auto;
 	max-width: auto; */
+}
+
+	/* For maximal expansion of element */
+.max-size {
+	width: 100%;
+	height: 100%;
 }
 
 	/* Command Bar always along top row of window */
@@ -107,6 +108,7 @@ select {
 	height: 28px;
 	padding: 3px;
 	margin: 0;
+	vertical-align: middle;
 	font-size: 12px;
 }
 
@@ -167,17 +169,15 @@ select {
 
 	/* All visualization results rendered here */
 #viz-display-frame .viz-content .viz-result {
-/*	position: absolute; */
+/*	position: absolute;
 	top: 0px;
 	left: 0px;
-	z-index: 0;
+*/
+/*	opacity: 99;
+	z-index: 1;
+*/
 	margin: 0px;
 	padding: 2px;
-	width: 100%;
-	height: 100%;
-}
-
-.max-size {
 	width: 100%;
 	height: 100%;
 }
@@ -198,12 +198,16 @@ select {
 	 *
 	 * NOTES:	Any line that begins with a checkbox is DIV of class 'legend-entry'.
 	 * 			The checkbox itself is class legend-entry-check
+	 *			On z-index: http://philipwalton.com/articles/what-no-one-told-you-about-z-index/
+	 *				https://developer.mozilla.org/en-US/docs/Web/Guide/CSS/Understanding_z_index/Adding_z-index
 	 */
 .legend-container {
-/*	position: absolute; */
-	top: 6px;
-	left: 6px;
-	opacity: 0.9;
+	position: relative;
+/*	top: 6px;
+*/
+	top: -390px;
+	left: 10px;
+	opacity: 0.85;
 	z-index: 100;
 
 	width: 240px;
