@@ -82,18 +82,26 @@
 <div id="command-bar">
 	<span id="title"></span>
 	<button id="btn-set-layout">Set Layout</button>
-	<button id="btn-new-filter">New Filter</button>
+	<button id="btn-perspectives">Perspectives</button>
 	<span class="home"><span id="home-title">Home</span> <button id="btn-home">Home</button></span>
 </div>
 
 <div id="remainder" class="layout-1">
 	<div id="filter-frame">
-		<div class="filter-instance">
-		This is Filter Content; it should occupy its full space.
-			There can be multiple filters; each filter-instance div only takes as much space as it needs
+		<div id="filter-control-bar">
+			Filters
+			<button id="btn-new-filter">New Filter</button>
+			<button id="btn-toggle-filters">Hide/Show Filters</button>
 		</div>
-		<div class="filter-instance">
-			Another filter instance
+		<div id="filter-instances">
+			<div class="filter-instance">
+				<p>This is one Filter Content; it will have graphical components like sliders.
+				There can be multiple filters; each filter-instance div only takes as much space as it needs.</p>
+			</div>
+			<div class="filter-instance">
+				<p>This is another Filter Content; it will have graphical components like sliders.
+				There can be multiple filters; each filter-instance div only takes as much space as it needs.</p>
+			</div>
 		</div>
 	</div>
 
@@ -106,7 +114,6 @@
 				<button>Open Selection</button>
 				<button>Clear Selection</button>
 				<button>View Options</button>
-				<button>Hide/Show Perspectives</button>
 			</div>
 			<div class="viz-loading">
 				Please wait while data loads.
