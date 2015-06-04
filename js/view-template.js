@@ -122,9 +122,16 @@ VizMap.prototype.render = function()
 		// Remove previous Markers
 	this.markerLayer.clearLayers();
 
-	// Process one Template type at a time
-		// Get selected locate Atts for current Template
-		// Get selected feature Atts for current Template
+		// Process one Template type at a time
+	var numTmplts = PDataHub.getNumETmplts();
+	for (var tIndex=0; tIndex<numTmplts; tIndex++) {
+			// Get selected locate Atts for current Template
+		var locAtts = this.vFrame.getSelLocAtts(tIndex);
+		if (locAtts.length) {
+				// Get selected feature Atts for current Template
+
+		}
+	}
 } // render()
 
 VizMap.prototype.teardown = function()
@@ -145,6 +152,8 @@ function PViewFrame(vizIndex)
 	// INSTANCE VARIABLES
 	//===================
 
+	var frameState = 0;				// 0 = internal initialization, 1 = waiting for data,
+									// 2 = processing data, 3 = ready for interaction
 	var vizSelIndex = 0;			// index of currently selected Viz
 	var vizModel = null;			// PVizModel currently in frame
 	var legendIDs = [];				// Attribute IDs of Legend selections (one per Template)
@@ -211,7 +220,6 @@ function PViewFrame(vizIndex)
 	{
 		jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
 								tmpltIndex+'"] .legend-group .legend-entry-check').prop('checked', show);
-		// TO DO: Force refresh of Viz
 	} // doShowHideAll()
 
 
@@ -220,7 +228,6 @@ function PViewFrame(vizIndex)
 	function doLocateSelect(tmpltIndex, lID, show)
 	{
 console.log("Locate attribute "+lID+" for template "+tmpltIndex+", set to "+show);
-		// TO DO: Regenerate viz
 	} // doLocateSelect()
 
 
@@ -235,7 +242,6 @@ console.log("Locate attribute "+lID+" only for template "+tmpltIndex);
 			// Just select this one
 		jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
 								tmpltIndex+'"] .legend-locate[data-id="'+lID+'"] .legend-entry-check').prop('checked', true);
-		// TO DO: Regenerate viz (but don't do anything if it was already checked and this is the only locate Attribute!)
 	} // doLocateSelect()
 
 
@@ -244,7 +250,6 @@ console.log("Locate attribute "+lID+" only for template "+tmpltIndex);
 	function doFeatureSelect(tmpltIndex, vIndex, show)
 	{
 console.log("Feature attribute "+vIndex+" for template "+tmpltIndex+", set to "+show);
-		// TO DO: Regenerate viz
 	} // doFeatureSelect()
 
 
@@ -260,7 +265,6 @@ console.log("Feature attribute "+vIndex+" only selected for template "+tmpltInde
 		jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
 								tmpltIndex+'"] .legend-group .legend-value[data-index="'+vIndex+
 								'"] .legend-entry-check').prop('checked', true);
-		// TO DO: Regenerate viz
 	} // doFeatureSelectOnly()
 
 
@@ -272,6 +276,7 @@ console.log("Feature attribute "+vIndex+" only selected for template "+tmpltInde
 		var clickClass = event.target.className;
 		switch (clickClass) {
 		case 'legend-update':
+vizModel.render();
 				// TO DO
 			break;
 			// Turn on or off just this one value
@@ -305,7 +310,7 @@ console.log("Feature attribute "+vIndex+" only selected for template "+tmpltInde
 				// Ignore these
 			break;
 
-		default:  // if could be multiple
+		default:  // could be multiple
 				// Show/Hide title?
 			if (clickClass.match(/legend-sh/i)) {
 					// Simulate click
@@ -438,7 +443,7 @@ console.log("Feature attribute "+vIndex+" only selected for template "+tmpltInde
 		}
 		vizModel.setup();
 
-			// TO DO: Indicate to PDataHub that VizModel available for data?? InputQueue mechanism?
+			// TO DO: Indicate to PDataHub that VizModel available for data -- InputQueue mechanism?
 	} // createViz()
 
 
@@ -452,7 +457,7 @@ console.log("Feature attribute "+vIndex+" only selected for template "+tmpltInde
 		return vizIndex;
 	};
 
-		// PURPOSE: Do initialize of basic DOM elements in view frame
+		// PURPOSE: Initialize basic DOM structure for ViewFrame
 	instance.initDOM = function()
 	{
 		var head = jQuery(getFrameID()+' .view-control-bar .view-viz-select');
@@ -475,16 +480,50 @@ console.log("Feature attribute "+vIndex+" only selected for template "+tmpltInde
 				.button({icons: { primary: 'ui-icon-close' }, text: false })
 				.click(clickClearSelection).next()
 				.button({icons: { primary: 'ui-icon-gear' }, text: false })
-				.click(clickVizControls).next()
-				.button({icons: { primary: 'ui-icon-document' }, text: false })
-				.click(clickAnnotations);
+				.click(clickVizControls).next();
 
 		head = jQuery(getFrameID()+' .viz-content .legend-container');
 		head.click(clickInLegend);
 
 			// Create first VF by default
 		createViz(0);
+
+		frameState = 1;
 	}; // initDOM()
+
+
+		// RETURNS: Array of currently selected locate Attribute IDs for tIndex
+	instance.getSelLocAtts = function(tIndex)
+	{
+		var attIDs = [];
+		var boxes = jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
+							tIndex+'"] .legend-locate input:checked');
+		boxes.each(function() {
+			var attID = jQuery(this).parent().data('id');
+			attIDs.push(attID);
+		});
+		return attIDs;
+	}; // getSelLocAtts()
+
+
+		// RETURNS: Array of indices of currently selected feature Attribute IDs for tIndex
+	instance.getSelFeatureAttIndices = function(tIndex)
+	{
+		var attIndices = [];
+		var boxes = jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
+							tIndex+'"] .legend-group .legend-value input:checked');
+		boxes.each(function() {
+			var attIndex = jQuery(this).parent().data('index');
+			attIndices.push(attIndex);
+		});
+		return attIndices;
+	}; // getSelFeatureAttIndices()
+
+
+	instance.state = function()
+	{
+		return frameState;
+	}
 
 	return instance;
 } // ViewFrame
@@ -674,14 +713,16 @@ var PDataHub = (function () {
 			return prspdata.a[aIndex];
 		}, // getAttIndex()
 
-		getTmpltNum: function()
+			// RETURNS: Number of Templates used by this Exhibit
+		getNumETmplts: function()
 		{
-			return prspdata.t.length;
+			return prspdata.e.g.ts.length;
 		},
 
-		getTmpltIndex: function(tIndex)
+			// RETURNS: The ID of this Exhibit's tIndex Template
+		getETmpltIDIndex: function(tIndex)
 		{
-			return prspdata.t[tIndex];
+			return prspdata.e.g.ts[tIndex];
 		},
 
 			// RETURNS: Definition of template whose ID is tID
@@ -724,6 +765,18 @@ jQuery(document).ready(function($) {
 	{
 		event.preventDefault();
 	} // clickSetLayout()
+
+
+	function clickPerspectives(event)
+	{
+		event.preventDefault();
+	} // clickPerspectives()
+
+
+	function clickGoHome(event)
+	{
+		event.preventDefault();
+	} // clickGoHome()
 
 
 		// PURPOSE: Gather data about Filterable Attributes & Facet Browsers
@@ -796,10 +849,11 @@ console.log("Create Filter "+fType+", "+fID);
 	} // clickNewFilter()
 
 
-	function clickGoHome(event)
+	function clickToggleFilters(event)
 	{
+		jQuery('#filter-instances').slideToggle(400);
 		event.preventDefault();
-	} // clickGoHome()
+	} // clickToggleFilters()
 
 
 		// IMMEDIATE EXECUTION
@@ -811,10 +865,17 @@ console.log("Create Filter "+fType+", "+fID);
 		// Command Bar
 	jQuery('#btn-set-layout').button({icons: { primary: 'ui-icon-newwin' }, text: false })
 			.click(clickSetLayout);
-	jQuery('#btn-new-filter').button({icons: { primary: 'ui-icon-search' }, text: false })
-			.click(clickNewFilter);
+	jQuery('#btn-perspectives').button({icons: { primary: 'ui-icon-note' }, text: false })
+			.click(clickPerspectives);
 	jQuery('#btn-home').button({icons: { primary: 'ui-icon-home' }, text: false })
 			.click(clickGoHome);
+
+
+		// Filter Control Bar
+	jQuery('#btn-new-filter').button({icons: { primary: 'ui-icon-search' }, text: false })
+			.click(clickNewFilter);
+	jQuery('#btn-toggle-filters').button({icons: { primary: 'ui-icon-arrow-2-n-s' }, text: false })
+			.click(clickToggleFilters);
 
 	prepFilterData();
 

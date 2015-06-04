@@ -55,7 +55,7 @@ select {
 /*	width: 100%; */
 	background-color: yellow;
 	color: blue;
-	font: 12px;
+	font-size: 14px;
 	margin: 0px;
 	padding: 2px;
 }
@@ -97,9 +97,25 @@ select {
 
 }
 
-	/* All (multiple) Filters go into this frame */
+	/* All Filters go into this frame */
 #filter-frame {
 	background-color: green;
+}
+
+	/* This is the control bar for filters */
+#filter-control-bar {
+	height: 28px;
+	padding: 3px;
+	margin: 0;
+	font-size: 12px;
+}
+
+	/* All filter instances going into this scrolling area */
+#filter-instances {
+	min-height: 2px;
+	max-height: 50px;		/* Should be more like 150px */
+	overflow-y: auto;
+	font-size: 12px;
 }
 
 	/* Each Filter instance has this class */
@@ -151,7 +167,7 @@ select {
 
 	/* All visualization results rendered here */
 #viz-display-frame .viz-content .viz-result {
-	position: absolute;
+/*	position: absolute; */
 	top: 0px;
 	left: 0px;
 	z-index: 0;
@@ -184,7 +200,7 @@ select {
 	 * 			The checkbox itself is class legend-entry-check
 	 */
 .legend-container {
-	position: absolute;
+/*	position: absolute; */
 	top: 6px;
 	left: 6px;
 	opacity: 0.9;
@@ -210,9 +226,8 @@ select {
 	/* Button to force Re-render */
 .legend-update {
 	height: 18px;
-	margin-top: 2px;
 	margin-bottom: 3px;
-	font-size: 12px;
+	font-size: 10px;
 	font-weight: bold;
 	color: green;
 }
