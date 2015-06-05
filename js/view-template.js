@@ -390,7 +390,6 @@ console.log("Feature attribute "+vIndex+" only selected for template "+tmpltInde
 			// Determine Template to which this refers
 		var tmpltIndex = jQuery(event.target).closest('.legend-template').data('index');
 		var attID = jQuery(event.target).val();
-// console.log("Selected Attribute ID '"+selAttIndex+'" for Template index '+tmpltIndex);
 		setLegendFeatures(tmpltIndex, attID);
 	} // selectTmpltAttribute()
 
@@ -401,7 +400,6 @@ console.log("Feature attribute "+vIndex+" only selected for template "+tmpltInde
 		// NOTES: 	Does not affect menu selection itself
 	function setLegendFeatures(lIndex, attID)
 	{
-// console.log("Setting features for template "+lIndex+" to Attribute "+attID);
 		var group = jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
 						lIndex+'"] .legend-group');
 			// Clear any previous entries
@@ -607,7 +605,7 @@ console.log("Feature attribute "+vIndex+" only selected for template "+tmpltInde
 		// TO DO: 	Check and set frameState
 	instance.showData = function(stream)
 	{
-		dataStream = stream;
+		datastream = stream;
 		if (vizModel)
 			vizModel.render(stream);
 	} // showData()
@@ -821,7 +819,7 @@ var PDataHub = (function () {
 				}
 			}
 			return null;
-		}, // getStreamRecord()
+		}, // getRecAtt()
 
 
 			// RETURNS: Absolute index for Record whose ID is recordID
@@ -862,7 +860,7 @@ var PDataHub = (function () {
 			if (pos != -1)
 				return attID.substring(0, pos);
 			return attID;
-		},
+		}, // getAttIDPrefix()
 
 
 			// RETURNS: last part of AttID if in Join dot notation
@@ -873,7 +871,7 @@ var PDataHub = (function () {
 			if (pos != -1)
 				return attID.substr(pos)+1;
 			return attID;
-		},
+		}, // getAttIDSuffix()
 
 
 		getAttIndex: function(aIndex)
@@ -939,7 +937,7 @@ jQuery(document).ready(function($) {
 
 		// VARIABLES
 		//==========
-var view0;
+	var view0;				// Primary viewFrame
 
 		// FUNCTIONS
 		//==========
@@ -955,6 +953,32 @@ view0.showData(stream);
 
 	function clickSetLayout(event)
 	{
+			// Clear previous selection
+		// jQuery("#filter-list li").removeClass("selected");
+		var setLayoutDialog;
+
+		setLayoutDialog = jQuery("#dialog-set-layout").dialog({
+			height: 300,
+			width: 350,
+			modal: true,
+			buttons: {
+				Set: function() {
+					// var selected = jQuery("#filter-list li.selected");
+					// if (selected.length) {
+					// 	createNewFilter(selected.data("type"), selected.data("id"));
+					// }
+						// Remove click handler
+					setLayoutDialog.dialog("close");
+				},
+				Cancel: function() {
+						// Remove click handler
+					setLayoutDialog.dialog("close");
+				}
+			},
+			close: function() {
+			}
+		});
+
 		event.preventDefault();
 	} // clickSetLayout()
 
@@ -1064,6 +1088,7 @@ console.log("Create Filter "+fType+", "+fID);
 	jQuery('#btn-home').button({icons: { primary: 'ui-icon-home' }, text: false })
 			.click(clickGoHome);
 
+		// TO DO: Handle selection on setLayout modal
 
 		// Filter Control Bar
 	jQuery('#btn-new-filter').button({icons: { primary: 'ui-icon-search' }, text: false })
