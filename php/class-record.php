@@ -27,14 +27,16 @@ class ProspectRecord {
 		//				unique ID for Attribute, or '' if this is a new Attribute definition
 		//			If $keep_raw, then provide just values stored for Record
 		//				if not, then Joins are done, label is determined, etc.
-		//			If $the_template is not null, it is Template Object for Record	
+		//			If $the_template is not null, it is Template Object for Record
 		//			$dependent_array is array of the dependent Templates used for Joins with
 		//				this Records from this Template type
-		// NOTES:	Assumed to be newly created Record if record-id and tmplt-id are empty
-		// ASSUMED: if $the_template, must have all fields and be unpacked
+		//			$att_assocs is associative array for all possible Attributes: [att_id] = type
+		// ASSUMED:	Record is newly created if record-id and tmplt-id are empty
+		//			A new Record will always have $keep_raw = true, not use last fields
+		//			if $the_template, all of its fields will be unpacked
 		// TO DO:	If Joins and Dependent Array in alphaorder, can do sorted comparison
 		//			Evaluate value against Legend ??
-	public function __construct($is_postid, $the_id, $keep_raw, $the_template, $dependent_array)
+	public function __construct($is_postid, $the_id, $keep_raw, $the_template, $dependent_array, $att_assocs)
 	{
 		$this->id			= $this->post_id = null;
 		$this->tmplt_id 	= null;
@@ -115,39 +117,61 @@ class ProspectRecord {
 				if ($val != '') {
 					if ($keep_raw)
 						$this->att_data[$att_to_load] = $val;
+
+						// Process Attribute values by type
 					else {
-							// Resolve any Joins
-						$jlen = 0;
-						$joined = false;
-						if ($joins)
-							$jlen = count($joins);
-						if ($jlen) {
-								// Look for Attribute matches on Join array
-							for ($i=0; $i<$jlen; $i++) {
+						$att_def = $att_assocs[$att_to_load];
+						switch($att_def->t) {
+						case 'Number':
+							$this->att_data[$att_to_load] = (int)$val;
+							break;
+						case 'Lat-Lon':
+						case 'X-Y':
+							if ($att_def->d != '') {
+								$split = explode($att_def->d, $val);
+									// Just treat as Point if only one data item
+								if (count($split) == 1) {
+									$split = explode(',', $val);
+									$this->att_data[$att_to_load] = array((float)$split[0],(float)$split[1]);
+								} else {
+									$poly = array();
+									foreach ($split as $thisPt) {
+										$pts = explode(',', $thisPt);
+										array_push($poly, array((float)$pts[0], (float)$pts[1]));
+									}
+									$this->att_data[$att_to_load] = $poly;
+								}
+							} else {
+								$split = explode(',', $val);
+								$this->att_data[$att_to_load] = array((float)$split[0],(float)$split[1]);
+							}
+							break;
+						case 'Join':
+								// Look Attribute in Join array
+							for ($i=0, $jlen=count($joins); $i<$jlen; $i++) {
 								$j_entry = $joins[$i];
 									// Matching Attribute name
-								if ($j_entry->id == $att_to_load) {
-										// Find matching depending Template
+								if ($att_to_load == $j_entry->id) {
+										// Find matching depending Template 
 									foreach ($dependent_array as $d_temp) {
 										if ($j_entry->t == $d_temp->id) {
 												// Get the Record to Join
-											$j_rec = new ProspectRecord(false, $val, true, $d_temp, null);
+											$j_rec = new ProspectRecord(false, $val, false, $d_temp, null, $att_assocs);
 											foreach ($j_rec->att_data as $att_id => $att_val) {
 												$this->att_data[$att_to_load.'.'.$att_id] = $att_val;
 											}
-											$joined = true;
 											break; // can break out of foreach loop
 										}
 									}
 									break; // can break out of for loop
 								}
 							} // for all Joins
-								// No Join match -- store Attribute
-							if (!$joined)
-								$this->att_data[$att_to_load] = $val;
-						} else
+							break;
+						default:
 							$this->att_data[$att_to_load] = $val;
-					}
+							break;
+						} // switch
+					} // not raw
 				} // if custom field loaded
 			} // for each att
 				// Set Record's label

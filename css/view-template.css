@@ -301,6 +301,19 @@ select {
 	color: red;
 }
 
+#layout-choices {
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#layout-choices img {
+	cursor: pointer;
+}
+
+#layout-choices .selected {
+	border: 1px red solid;
+}
+
 	/* Selection Glow
 	 */
 

@@ -177,19 +177,15 @@ VizMap.prototype.render = function(datastream)
 			// For each of the locate Attributes
 		locAtts.forEach(function(theLAtt) {
 			locData = rec.a[theLAtt];
-			if (locData && locData.length) {
-				parsed = locData.split(',');
-// console.log("Record "+i+"["+theLAtt+"]: "+locData);
-				if (parsed.length == 2) {
-					coord = [parseFloat(parsed[0]), parseFloat(parsed[1])];
-					newMarker = L.circleMarker(coord,
-						{	id: i, weight: 1, radius: 10,
-							fillColor: "red", color: "#000",
-							opacity: 1, fillOpacity: 1
-						}
-					);
-					mLayer.addLayer(newMarker);
-				}
+			if (locData) {
+// console.log("Record "+i+"["+theLAtt+"]: "+JSON.stringify(locData));
+				newMarker = L.circleMarker(locData,
+					{	id: i, weight: 1, radius: 10,
+						fillColor: "red", color: "#000",
+						opacity: 1, fillOpacity: 1
+					}
+				);
+				mLayer.addLayer(newMarker);
 			}
 		}); // for locAtts
 			// Increment stream index -- check if going into new Template
@@ -954,12 +950,12 @@ view0.showData(stream);
 	function clickSetLayout(event)
 	{
 			// Clear previous selection
-		// jQuery("#filter-list li").removeClass("selected");
+		jQuery("#layout-choices img").removeClass("selected");
 		var setLayoutDialog;
 
 		setLayoutDialog = jQuery("#dialog-set-layout").dialog({
-			height: 300,
-			width: 350,
+			height: 250,
+			width: 300,
 			modal: true,
 			buttons: {
 				Set: function() {
@@ -1011,14 +1007,6 @@ view0.showData(stream);
 		prspdata.e.vf.forEach(function(theVF, vIndex) {
 			if (theVF.vf == 'Browser') {
 				jQuery('#filter-list').append('<li data-type="v" data-id="'+vIndex+'">'+theVF.l+'</li>');
-			}
-		});
-
-			// Handle selection of item
-		jQuery('#filter-list').click(function(event) {
-			if (event.target.nodeName == 'LI') {
-				jQuery("#filter-list li").removeClass("selected");
-				jQuery(event.target).addClass("selected");
 			}
 		});
 	} // prepFilterData()
@@ -1088,7 +1076,23 @@ console.log("Create Filter "+fType+", "+fID);
 	jQuery('#btn-home').button({icons: { primary: 'ui-icon-home' }, text: false })
 			.click(clickGoHome);
 
-		// TO DO: Handle selection on setLayout modal
+
+		// Handle selection of item on New Filter modal
+	jQuery('#filter-list').click(function(event) {
+		if (event.target.nodeName == 'LI') {
+			jQuery("#filter-list li").removeClass("selected");
+			jQuery(event.target).addClass("selected");
+		}
+	});
+
+		// Handle selection of item on Set Layout modal
+	jQuery('#layout-choices').click(function(event) {
+console.log("Selected "+event.target.nodeName);
+		if (event.target.nodeName == 'IMG') {
+			jQuery("#layout-choices img").removeClass("selected");
+			jQuery(event.target).addClass("selected");
+		}
+	});
 
 		// Filter Control Bar
 	jQuery('#btn-new-filter').button({icons: { primary: 'ui-icon-search' }, text: false })

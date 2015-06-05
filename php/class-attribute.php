@@ -138,6 +138,26 @@ class ProspectAttribute {
 	} // get_all_attribute_ids()
 
 
+		// RETURNS: An associative array in which key is Attribute ID and the value is the Attribute definition
+	static public function get_assoc_defs()
+	{
+		$assocs = array();
+
+		$args = array('post_type' => 'prsp-attribute', 'post_status' => 'publish', 'posts_per_page' => -1 );
+		$loop = new WP_Query($args);
+		if ($loop->have_posts()) {
+			foreach ($loop->posts as $att) {
+				$att_id = get_post_meta($att->ID, 'att-id', true);
+				$att_def_meta = get_post_meta($att->ID, 'att-def', true);
+				$att_def = json_decode($att_def_meta, false);
+				$assocs[$att_id] = $att_def;
+			}
+		}
+
+		return $assocs;
+	} // get_assoc_defs()
+
+
 		// INSTANCE VARIABLES & METHODS
 		// ============================
 	public $id;				// the ID of the Attribute (and custom field name)

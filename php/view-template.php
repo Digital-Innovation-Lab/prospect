@@ -144,9 +144,11 @@
 
 	<div id="dialog-set-layout" title="Screen Layout">
 		<p class="validateTips">Choose screen layout</p>
-		<img src="<?php echo(plugins_url('assets/layout1.jpg', dirname(__FILE__))); ?>"/>
-		<img src="<?php echo(plugins_url('assets/layout2.jpg', dirname(__FILE__))); ?>"/>
-		<img src="<?php echo(plugins_url('assets/layout3.jpg', dirname(__FILE__))); ?>"/>
+		<div id="layout-choices">
+			<img src="<?php echo(plugins_url('assets/layout1.jpg', dirname(__FILE__))); ?>"/>
+			<img src="<?php echo(plugins_url('assets/layout2.jpg', dirname(__FILE__))); ?>"/>
+			<img src="<?php echo(plugins_url('assets/layout3.jpg', dirname(__FILE__))); ?>"/>
+		</div>
 	</div>
 </div>
 

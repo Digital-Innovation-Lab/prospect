@@ -177,7 +177,7 @@ class ProspectAdmin {
 			// Use nonce for verification
 		echo wp_nonce_field('prsp_save_record'.$postID, 'prsp_nonce');
 
-		$the_rec = new ProspectRecord(true, $postID, true, null);
+		$the_rec = new ProspectRecord(true, $postID, true, null, null, null);
 
 			// Special hidden fields for custom fields coordinated by JavaScript code
 		echo '<input type="hidden" name="prsp_rec_id" value="'.$the_rec->id.'"/>';
@@ -716,7 +716,7 @@ class ProspectAdmin {
 
 			// Get post ID and associated Project Data
 		$postID = (isset($_GET['post']) ? $_GET['post'] : $_POST['post']);
-		$the_record = new ProspectRecord(true, $postID, true, null);
+		$the_record = new ProspectRecord(true, $postID, true, null, null, null);
 
 			// Create appropriate filename
 		$fp = $this->createUTFOutput($the_record->id.".csv", false);
@@ -1099,6 +1099,9 @@ class ProspectAdmin {
 			// Get dependent Templates needed for Joins
 		$d_templates = $the_template->get_dependent_templates();
 
+			// Get associative array for all Attribute definitions
+		$assoc_atts = ProspectAttribute::get_assoc_defs();
+
 			// Get Records -- Need to order by Record ID, etc
 		$args = array('post_type' => 'prsp-record',
 						'post_status' => 'publish',
@@ -1112,10 +1115,11 @@ class ProspectAdmin {
 								'value' => $tmplt_id,
 								'compare' => '=')
 					);
+
 		$query = new WP_Query($args);
 		if ($query->have_posts()) {
 			foreach ($query->posts as $rec) {
-				$the_rec = new ProspectRecord(true, $rec->ID, false, $the_template, $d_templates);
+				$the_rec = new ProspectRecord(true, $rec->ID, false, $the_template, $d_templates, $assoc_atts);
 					// Extract the necessary data in proper format
 				$extracted_rec = array();
 				$extracted_rec['id'] = $the_rec->id;
