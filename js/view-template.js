@@ -733,7 +733,7 @@ var PDataHub = (function () {
 			}
 		}
 		if (done) {
-// console.log("Done loading: "+JSON.stringify(allData));
+console.log("Done loading: "+JSON.stringify(allData));
 			dataLoaded = true;
 			flowFromTop();
 		}

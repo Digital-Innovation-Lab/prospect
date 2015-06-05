@@ -153,7 +153,7 @@ class ProspectRecord {
 							$date_min = array();
 							$parts = explode('/', $val);
 							$str = $parts[0];
-							if ($str[0]) == '~') {
+							if ($str[0] == '~') {
 								$date_min['f'] = true;
 								$str = substr($str, 1);
 							} else
@@ -173,22 +173,25 @@ class ProspectRecord {
 							$date_val['min'] = $date_min;
 							if (count($parts) == 2) {	// Date has max component also
 								$str = $parts[1];
-								if ($str[0]) == '~') {
+								if ($str[0] == '~') {
 									$date_max['f'] = true;
 									$str = substr($str, 1);
-								} else
+								} else {
 									$date_max['f'] = false;
+								}
 								if ($str[0] == '-') {
 									$bce = -1;
 									$str = substr($str, 1);
-								} else
+								} else {
 									$bce = 1;
+								}
 								$subparts = explode('-', $str);
 								$date_max['y'] = (int)$subparts[0] * $bce;
 								if (count($subparts) > 1) {
 									$date_max['m'] = (int)$subparts[1];
-									if (count($subparts) == 3)
-										$date_max['d'] = (int)$subparts[2];
+									if (count($subparts) == 3) {
+										$date_max['d'] = (int)$subparts[2];										
+									}
 								}
 								$date_val['max'] = $date_max;
 							}
