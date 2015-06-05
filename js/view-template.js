@@ -773,7 +773,6 @@ console.log("Done loading: "+JSON.stringify(allData));
 			return date;
 		}, // date3Nums
 
-
 			// PURPOSE: Create Date object from three strings
 		date3Strs: function(yStr, mStr, dStr, from)
 		{
@@ -816,7 +815,6 @@ console.log("Done loading: "+JSON.stringify(allData));
 
 			return PDataHub.date3Nums(year, month, day);
 		}, // date3Strs()
-
 
 			// PURPOSE: Parse a text string as Date object
 			// RETURNS: Date object or null if error
@@ -924,13 +922,10 @@ console.log("Done loading: "+JSON.stringify(allData));
 			return newEvent;
 		}, // eventDateStr()
 
-
 			// PURPOSE: Create event object from Attribute val
-		eventDateStr: function(dStr, minBound, maxBound)
+		eventDateStr: function(dVal, minBound, maxBound)
 		{
-
 		}, // eventDateStr()
-
 
 			// PURPOSE: Create a new IndexStream: { s = index array, t = array of template params, l = total length }
 			// INPUT: 	if full, fill with entries for all Records
@@ -1141,7 +1136,7 @@ console.log("Done loading: "+JSON.stringify(allData));
 							} else
 								return lE.v;
 						}
-					} else {	// only a max value
+					} else {	// max only
 						if (val <= lE.d.max)
 							return lE.v;
 					}
@@ -1151,8 +1146,14 @@ console.log("Done loading: "+JSON.stringify(allData));
 				for (var f=0; f<lI; f++) {
 					fI = fSet[f];
 					lE = att.l[fI];
-						// Convert Date value
-				}
+						// max can be left out (= no bound)
+					if (lE.d.max) {		// min AND max
+						if (val.max.y) {
+						}
+					} else {	// min bound only
+
+					}
+				} // for f
 				break;
 			}
 			return null;

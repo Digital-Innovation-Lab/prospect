@@ -1,9 +1,5 @@
 <?php
 
-// PURPOSE: Implement Attribute objects
-
-// NOTES:   
-
 class ProspectAttribute {
 		// CLASS METHODS
 		// =============

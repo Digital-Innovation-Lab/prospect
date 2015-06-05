@@ -1,15 +1,6 @@
 <?php
 
-// PURPOSE: Implement ProspectRecord objects
-
-// NOTES:   
-
 class ProspectRecord {
-		// CLASS METHODS
-		// =============
-
-
-
 		// INSTANCE VARIABLES & METHODS
 		// ============================
 	public $id;				// the ID of the Record
@@ -77,7 +68,7 @@ class ProspectRecord {
 			$att_ids 			= $template_def->a;
 		} else {
 				// Try to load template ID -- this and id will be empty if new Record
-			$this->tmplt_id = get_post_meta($this->post_id, 'tmplt-id', true);			
+			$this->tmplt_id = get_post_meta($this->post_id, 'tmplt-id', true);
 				// If not new Record
 			if ($this->tmplt_id != '') {
 					// Get matching Attribute item
@@ -108,11 +99,10 @@ class ProspectRecord {
 			} // has template ID
 		} // no template given
 
-
 		$this->att_data = array();
 
-		if ($att_ids) {
-			foreach($att_ids as $att_to_load) {
+		if ($att_ids != null) {
+			foreach ($att_ids as $att_to_load) {
 				$val = get_post_meta($this->post_id, $att_to_load, true);
 				if ($val != '') {
 					if ($keep_raw)
@@ -156,22 +146,27 @@ class ProspectRecord {
 							if ($str[0] == '~') {
 								$date_min['f'] = true;
 								$str = substr($str, 1);
-							} else
+							} else {
 								$date_min['f'] = false;
+							}
 							if ($str[0] == '-') {
 								$bce = -1;
 								$str = substr($str, 1);
-							} else
+							} else {
 								$bce = 1;
+							}
 							$subparts = explode('-', $str);
 							$date_min['y'] = (int)$subparts[0] * $bce;
 							if (count($subparts) > 1) {
 								$date_min['m'] = (int)$subparts[1];
-								if (count($subparts) == 3)
+								if (count($subparts) == 3) {
 									$date_min['d'] = (int)$subparts[2];
+								}
 							}
 							$date_val['min'] = $date_min;
-							if (count($parts) == 2) {	// Date has max component also
+								// Date has max component also
+							if (count($parts) == 2) {
+								$date_max = array();
 								$str = $parts[1];
 								if ($str[0] == '~') {
 									$date_max['f'] = true;
@@ -190,7 +185,7 @@ class ProspectRecord {
 								if (count($subparts) > 1) {
 									$date_max['m'] = (int)$subparts[1];
 									if (count($subparts) == 3) {
-										$date_max['d'] = (int)$subparts[2];										
+										$date_max['d'] = (int)$subparts[2];
 									}
 								}
 								$date_val['max'] = $date_max;
@@ -213,10 +208,10 @@ class ProspectRecord {
 													$this->att_data[$att_to_load.'.'.$att_id] = $att_val;
 												}
 											}
-											break; // can break out of foreach loop
+											break;
 										}
 									}
-									break; // can break out of for loop
+									break;
 								}
 							} // for all Joins
 							break;
@@ -226,10 +221,11 @@ class ProspectRecord {
 						} // switch
 					} // not raw
 				} // if custom field loaded
-			} // for each att
-				// Set Record's label
-			$this->label = $this->att_data[$template_def->t];
-		} // if atts to load
-	} // _construct()
-
+			} // for atts
+			if ($template_def->t != '') {
+				$this->label = $this->att_data[$template_def->t];
+			}
+		}
+	} // construct()
 } // class ProspectRecord
+?>
