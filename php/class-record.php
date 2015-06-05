@@ -127,9 +127,10 @@ class ProspectRecord {
 							break;
 						case 'Lat-Lon':
 						case 'X-Y':
+								// If delimiter, could specify polygon
 							if ($att_def->d != '') {
 								$split = explode($att_def->d, $val);
-									// Just treat as Point if only one data item
+									// Just treat as point if only one data item
 								if (count($split) == 1) {
 									$split = explode(',', $val);
 									$this->att_data[$att_to_load] = array((float)$split[0],(float)$split[1]);
@@ -145,6 +146,53 @@ class ProspectRecord {
 								$split = explode(',', $val);
 								$this->att_data[$att_to_load] = array((float)$split[0],(float)$split[1]);
 							}
+							break;
+						case 'Dates':
+								// Parse individual elements into max/min, f/y/m/d
+							$date_val = array();
+							$date_min = array();
+							$parts = explode('/', $val);
+							$str = $parts[0];
+							if ($str[0]) == '~') {
+								$date_min['f'] = true;
+								$str = substr($str, 1);
+							} else
+								$date_min['f'] = false;
+							if ($str[0] == '-') {
+								$bce = -1;
+								$str = substr($str, 1);
+							} else
+								$bce = 1;
+							$subparts = explode('-', $str);
+							$date_min['y'] = (int)$subparts[0] * $bce;
+							if (count($subparts) > 1) {
+								$date_min['m'] = (int)$subparts[1];
+								if (count($subparts) == 3)
+									$date_min['d'] = (int)$subparts[2];
+							}
+							$date_val['min'] = $date_min;
+							if (count($parts) == 2) {	// Date has max component also
+								$str = $parts[1];
+								if ($str[0]) == '~') {
+									$date_max['f'] = true;
+									$str = substr($str, 1);
+								} else
+									$date_max['f'] = false;
+								if ($str[0] == '-') {
+									$bce = -1;
+									$str = substr($str, 1);
+								} else
+									$bce = 1;
+								$subparts = explode('-', $str);
+								$date_max['y'] = (int)$subparts[0] * $bce;
+								if (count($subparts) > 1) {
+									$date_max['m'] = (int)$subparts[1];
+									if (count($subparts) == 3)
+										$date_max['d'] = (int)$subparts[2];
+								}
+								$date_val['max'] = $date_max;
+							}
+							$this->att_data[$att_to_load] = $date_val;
 							break;
 						case 'Join':
 								// Look Attribute in Join array

@@ -158,6 +158,25 @@ class ProspectAttribute {
 	} // get_assoc_defs()
 
 
+		// PURPOSE: Determine whether black or white is best color contast
+		// INPUT:	viz_val is visual setting (could be color or icon ID)
+		// RETURNS: null if viz_val is not a color, true if black, false if white
+		// NOTES:	http://www.particletree.com/notebook/calculating-color-contrast-for-legible-text/
+		// 			http://stackoverflow.com/questions/5650924/javascript-color-contraster
+	static public function black_contrast($viz_val)
+		if (substr($viz_val, 0, 1) === '#') {
+			$brightness = ((hexdec(substr($viz_val, 1, 2)) * 299.0) +
+						(hexdec(substr($viz_val, 3, 2)) * 587.0) +
+						(hexdec(substr($viz_val, 5, 2)) * 114.0)) / 255000.0;
+			if ($brightness >= 0.5)
+				return true;
+			else
+				return false;
+		} else
+			return null;
+	} // black_contrast()
+
+
 		// INSTANCE VARIABLES & METHODS
 		// ============================
 	public $id;				// the ID of the Attribute (and custom field name)
@@ -222,19 +241,71 @@ class ProspectAttribute {
 			if ($load_range) {
 				$this->meta_range = get_post_meta($this->post_id, 'att-range', true);
 				if ($unpack) {
-					if ($this->meta_range != '')
+					if ($this->meta_range != '') {
 						$this->range = json_decode($this->meta_range, false);
-					// TO DO: Parse Number, Dates range data
+							// Process Range data for Number and Dates
+						switch ($this->def->t) {
+						case 'Number':
+							$this->range->min = (int)$this->range->min;
+							$this->range->max = (int)$this->range->max;
+							$this->range->g = (int)$this->range->g;
+							break;
+						case 'Dates':
+							$this->range->min->y = (int)$this->range->min->y;
+							if (isset($this->range->min->m))
+								$this->range->min->m = (int)$this->range->min->m;
+							if (isset($this->range->min->d))
+								$this->range->min->d = (int)$this->range->min->d;
+							if (isset($this->range->max->y))
+								$this->range->max->y = (int)$this->range->max->y;
+							if (isset($this->range->max->m))
+								$this->range->max->m = (int)$this->range->max->m;
+							if (isset($this->range->min->d))
+								$this->range->max->d = (int)$this->range->max->d;
+							break;
+						} // switch()
+					} // if meta_range
 				}
-			}
+			} // if load_range
 			if ($load_legend) {
 				$this->meta_legend = get_post_meta($this->post_id, 'att-legend', true);
 				if ($unpack) {
-					if ($this->meta_legend != '')
+					if ($this->meta_legend != '') {
 						$this->legend = json_decode($this->meta_legend, false);
-					// TO DO: Parse Number, Dates legend data
+							// Process Legend data for Number, Dates
+							// TO DO: Compute b = b/w contrast for colors
+						switch ($this->def->t) {
+						case 'Number':
+							$num = count($this->legend);
+							for ($i=0; $i<$num; $i++) {
+								$entry = $this->legend[$i];
+								if (isset($entry->d->min))
+									$entry->d->min = (int)$entry->d->min;
+								if (isset($entry->d->max))
+									$entry->d->max = (int)$entry->d->max;
+							}
+							break;
+						case 'Dates':
+							$num = count($this->legend);
+							for ($i=0; $i<$num; $i++) {
+								$entry = $this->legend[$i];
+								$entry->d->min->y = (int)$entry->d->min->y;
+								if (isset($entry->d->min->m))
+									$entry->d->min->m = (int)$entry->d->min->m;
+								if (isset($entry->d->min->d))
+									$entry->d->min->d = (int)$entry->d->min->d;
+								if (isset($entry->d->max->y))
+									$entry->d->max->y = (int)$entry->d->max->y;
+								if (isset($entry->d->max->m))
+									$entry->d->max->m = (int)$entry->d->max->m;
+								if (isset($entry->d->max->d))
+									$entry->d->max->d = (int)$entry->d->max->d;
+							}
+							break;
+						} // switch
+					} // if meta_legend
 				}
-			}
+			} // if load_legend
 		} // if post_id
 	} // __construct()
 } // class ProspectAttribute

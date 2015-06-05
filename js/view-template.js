@@ -646,6 +646,12 @@ function PFilterModel(fIndex)
 // The s array of an IndexStream contains absolute index numbers to global data array
 // TO DO: 	Change LOAD_DATA_CHUNK to Option setting passed by prspdata
 
+	// GLOBAL CONSTANTS
+var TIME_INSTANT = 1;			// Single instantaneous event (not Date range)
+var TIME_F_START = 2;			// Fuzzy start time
+var TIME_F_END = 4;				// Fuzzy end time
+
+
 var PDataHub = (function () {
 
 	// CONSTANTS
@@ -727,7 +733,7 @@ var PDataHub = (function () {
 			}
 		}
 		if (done) {
-console.log("Done loading: "+JSON.stringify(allData));
+// console.log("Done loading: "+JSON.stringify(allData));
 			dataLoaded = true;
 			flowFromTop();
 		}
@@ -747,6 +753,183 @@ console.log("Done loading: "+JSON.stringify(allData));
 			});
 			checkDataLoad();
 		}, // init()
+
+			// PURPOSE: Create Date object from three numbers
+			// INPUT:   year, month, day must be definite numbers
+			// ASSUMES: month is 0-based (not 1-based: 0=January)
+		date3Nums: function(year, month, day)
+		{
+			var date;
+
+			if (year < 0 || year > 99) { // 'Normal' dates
+				date = new Date(year, month, day);
+			} else if (year == 0) { // Year 0 is '1 BC'
+				date = new Date (-1, month, day);
+			} else {
+				// Create arbitrary year and then set the correct year
+				date = new Date(year, month, day);
+				date.setUTCFullYear(("0000" + year).slice(-4));
+			}
+			return date;
+		}, // date3Nums
+
+
+			// PURPOSE: Create Date object from three strings
+		date3Strs: function(yStr, mStr, dStr, from)
+		{
+			var yearBCE;
+			var year, month, day;
+
+				// First check for negative year
+			if (yStr.charAt(0) == '-') {
+				yearBCE = true;
+				yStr = yStr.substring(1);
+			} else {
+				yearBCE = false;
+			}
+
+			year = parseInt(yStr);
+			if (yearBCE) {
+				year = -year;
+			}
+
+				// If it's a start date, defaulted data must be early as possible
+			if (dStr == null || dStr === '') {
+				if (mStr == null || mStr ==='') {
+					if (from) {
+						month = 0; day = 1;
+					} else {
+						month = 11; day = 31;
+					}
+				} else {
+					month = parseInt(mStr) - 1;
+					if (from) {
+						day = 1;
+					} else {
+						day = 31;
+					}
+				}
+			} else {
+				month = parseInt(mStr) - 1;
+				day = parseInt(dStr);
+			}
+
+			return PDataHub.date3Nums(year, month, day);
+		}, // date3Strs()
+
+
+			// PURPOSE: Parse a text string as Date object
+			// RETURNS: Date object or null if error
+			// INPUT:   dateString = string itself containing Date
+			//          from = true if it is the from Date, false if it is the to Date
+			// ASSUMES: dateString has been trimmed; can ignore fuzzy char ~
+			// NOTE:    month # is 0-based!!
+		parseDate: function(dateString, from)
+		{
+			var strComponents;
+			var yearBCE;
+			var year, month, day;
+
+				// Check for fuzzy char indicator -- but discard if exists
+			if (dateString.charAt(0) == '~') {
+				dateString = dateString.substring(1);
+			}
+
+				// Check for negative year
+			if (dateString.charAt(0) == '-') {
+				yearBCE = true;
+				dateString = dateString.substring(1);
+			} else {
+				yearBCE = false;
+			}
+
+			strComponents = dateString.split('-');
+
+				// Year must be supplied at very least
+			year = parseInt(strComponents[0]);
+			if (yearBCE) {
+				year = -year;
+			}
+				// If it's a start date, we want defaulted data to be early as possible
+			switch (strComponents.length) {
+			case 3:
+				month = parseInt(strComponents[1]) - 1;
+				day = parseInt(strComponents[2]);
+				break;
+			case 2:
+				month = parseInt(strComponents[1]) - 1;
+				if (from) {
+					day = 1;
+				} else {
+					day = 31;
+				}
+				break;
+			case 1:
+				if (from) {
+					month = 0; day = 1;
+				} else {
+					month = 11; day = 31;
+				}
+				break;
+			} // switch
+
+			return PDataHub.date3Nums(year, month, day);
+		}, // parseDate()
+
+
+			// PURPOSE: Create event object by parsing Date range string (which can have from & to)
+			// RETURNS: Event object whose bitwise flags field represent three properties:
+			//              timeInstant = is this an instantaneous event?
+			//              timeFuzzyStart = is the beginning event fuzzy?
+			//              timeFuzzyEnd = is the end event fuzzy?
+			// INPUT:   dStr = text string representing a Date (range)
+			//          minBound = minimum Date in range
+			//          maxBound = maximum Date in range
+		eventDateStr: function(dStr, minBound, maxBound)
+		{
+			var newEvent = { flags: 0 };
+
+			var dateSegs = dStr.split('/');
+
+			var start = dateSegs[0].trim();
+			if (start === 'open') {
+				newEvent.start = minBound;
+			} else {
+				if (start.charAt(0) === '~') {
+					start = start.substr(1);
+					newEvent.flags |= TIME_F_START;
+				}
+				newEvent.start = PDataHub.parseDate(start, true);
+			}
+
+				// Is it a range of from/to?
+			if (dateSegs.length == 2) {
+				var end = dateSegs[1].trim();
+				if (end === 'open') {
+					newEvent.end = maxBound;
+				} else {
+					if (end.charAt(0) === '~') {
+						end = end.substr(1);
+						newEvent.flags |= TIME_F_END;
+					}
+					newEvent.end = PDataHub.parseDate(end, false);
+				}
+
+				// Otherwise an instantaneous event -- just set to start Date
+			} else {
+				newEvent.flags |= TIME_INSTANT;
+				newEvent.end = newEvent.start;
+			}
+
+			return newEvent;
+		}, // eventDateStr()
+
+
+			// PURPOSE: Create event object from Attribute val
+		eventDateStr: function(dStr, minBound, maxBound)
+		{
+
+		}, // eventDateStr()
 
 
 			// PURPOSE: Create a new IndexStream: { s = index array, t = array of template params, l = total length }
@@ -885,20 +1068,17 @@ console.log("Done loading: "+JSON.stringify(allData));
 			return prspdata.a[aIndex];
 		}, // getAttIndex()
 
-
 			// RETURNS: Number of Templates used by this Exhibit
 		getNumETmplts: function()
 		{
 			return prspdata.e.g.ts.length;
 		},
 
-
 			// RETURNS: The ID of this Exhibit's tIndex Template
 		getETmpltIDIndex: function(tIndex)
 		{
 			return prspdata.e.g.ts[tIndex];
 		},
-
 
 			// RETURNS: Definition of template whose ID is tID
 		getTmpltID: function(tID)
@@ -952,14 +1132,27 @@ console.log("Done loading: "+JSON.stringify(allData));
 				for (var f=0; f<lI; f++) {
 					fI = fSet[f];
 					lE = att.l[fI];
-						// Looking for match anywhere; TO DO: use RegExp?
-					if (lE.d.min <= val && val <= lE.d.max) {
-						return lE.v;
+						// either min and max can be left out (= no bound), but not both
+					if (lE.d.min) {
+						if (lE.d.min <= val) {
+							if (lE.d.max) {
+								if (val <= lE.d.max)
+									return lE.v;
+							} else
+								return lE.v;
+						}
+					} else {	// only a max value
+						if (val <= lE.d.max)
+							return lE.v;
 					}
 				}
 				break;
 			case 'Dates':
-					// TO DO
+				for (var f=0; f<lI; f++) {
+					fI = fSet[f];
+					lE = att.l[fI];
+						// Convert Date value
+				}
 				break;
 			}
 			return null;
