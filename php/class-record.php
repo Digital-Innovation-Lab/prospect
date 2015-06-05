@@ -157,8 +157,10 @@ class ProspectRecord {
 										if ($j_entry->t == $d_temp->id) {
 												// Get the Record to Join
 											$j_rec = new ProspectRecord(false, $val, false, $d_temp, null, $att_assocs);
-											foreach ($j_rec->att_data as $att_id => $att_val) {
-												$this->att_data[$att_to_load.'.'.$att_id] = $att_val;
+											if ($j_rec != null) {
+												foreach ($j_rec->att_data as $att_id => $att_val) {
+													$this->att_data[$att_to_load.'.'.$att_id] = $att_val;
+												}
 											}
 											break; // can break out of foreach loop
 										}

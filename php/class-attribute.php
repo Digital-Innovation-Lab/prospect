@@ -224,6 +224,7 @@ class ProspectAttribute {
 				if ($unpack) {
 					if ($this->meta_range != '')
 						$this->range = json_decode($this->meta_range, false);
+					// TO DO: Parse Number, Dates range data
 				}
 			}
 			if ($load_legend) {
@@ -231,9 +232,9 @@ class ProspectAttribute {
 				if ($unpack) {
 					if ($this->meta_legend != '')
 						$this->legend = json_decode($this->meta_legend, false);
+					// TO DO: Parse Number, Dates legend data
 				}
 			}
 		} // if post_id
 	} // __construct()
-
 } // class ProspectAttribute

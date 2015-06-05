@@ -115,7 +115,6 @@ VizMap.prototype.setup = function()
 	markers.options.layerName = 'TO DO';
 
 	markers.addTo(this.lMap);
-console.log("VizMap setup");
 } // setup()
 
 
@@ -127,13 +126,12 @@ VizMap.prototype.render = function(datastream)
 		// Remove previous Markers
 	mLayer.clearLayers();
 
-		// Process one Template type at a time
 	var numTmplts = PDataHub.getNumETmplts();
-	var i=0, tIndex=0, attID, locAtts, featAtts, rec;
-	var locData, parsed, coord, newMarker;
+	var i=0, tIndex=0, fAttID, fAtt, locAtts, featSet, rec;
+	var locData, fData, newMarker;
 
 	while (i<datastream.l) {
-			// If previous "fast-forward" went into empty Template, need to go to next
+			// If previous "fast-forward" went to empty Template, must go to next
 		while (i == -1) {
 			if (++tIndex == numTmplts)
 				return;
@@ -144,6 +142,7 @@ VizMap.prototype.render = function(datastream)
 			// Starting with new Template?
 		if (locAtts == null) {
 			locAtts = this.vFrame.getSelLocAtts(tIndex);
+// console.log("tIndex: "+tIndex+"; locAtts: "+JSON.stringify(locAtts));
 				// Skip Template if no locate Atts
 			if (locAtts.length == 0) {
 				locAtts = null;
@@ -156,9 +155,11 @@ VizMap.prototype.render = function(datastream)
 					continue;
 				}
 			} // if no locAtts
-			featAtts = this.vFrame.getSelFeatAtts(tIndex);
+			featSet = this.vFrame.getSelFeatAtts(tIndex);
+// console.log("tIndex: "+tIndex+"; featAtts: "+JSON.stringify(featAtts));
+
 				// Skip Templates if no feature Atts
-			if (featAtts.length == 0) {
+			if (featSet.length == 0) {
 				locAtts = null;
 					// Have we exhausted all Templates?
 				if (++tIndex == numTmplts)
@@ -169,8 +170,9 @@ VizMap.prototype.render = function(datastream)
 					continue;
 				}
 			} // if no featAtts
-				// Get Feature Attribute ID for this Template
-			attID = this.vFrame.getSelLegend(tIndex);
+				// Get Feature Attribute ID and def for this Template
+			fAttID = this.vFrame.getSelLegend(tIndex);
+			fAtt = PDataHub.getAttID(fAttID, true);
 		} // if new Template
 			// Get Record data
 		rec = PDataHub.getRecByIndex(datastream.s[i]);
@@ -178,19 +180,25 @@ VizMap.prototype.render = function(datastream)
 		locAtts.forEach(function(theLAtt) {
 			locData = rec.a[theLAtt];
 			if (locData) {
-// console.log("Record "+i+"["+theLAtt+"]: "+JSON.stringify(locData));
-				newMarker = L.circleMarker(locData,
-					{	id: i, weight: 1, radius: 10,
-						fillColor: "red", color: "#000",
-						opacity: 1, fillOpacity: 1
-					}
-				);
-				mLayer.addLayer(newMarker);
+				fData = PDataHub.getAttLgndVal(rec.a[fAttID], fAtt, featSet);
+				if (fData) {
+// console.log("Record "+i+"["+fAttID+"]: "+rec.a[fAttID]+" = "+fData);
+						// TO DO: Handle Line & Polygon data
+					newMarker = L.circleMarker(locData,
+						{	id: i, weight: 1, radius: 10,
+							fillColor: fData, color: "#000",
+							opacity: 1, fillOpacity: 1
+						}
+					);
+					mLayer.addLayer(newMarker);
+				}
 			}
 		}); // for locAtts
 			// Increment stream index -- check if going into new Template
-		if (++i == (datastream.t[tIndex].i + datastream.t[tIndex].n))
+		if (++i == (datastream.t[tIndex].i + datastream.t[tIndex].n)) {
 			locAtts = null;
+			tIndex++;
+		}
 	} // while 
 } // render()
 
@@ -281,7 +289,7 @@ function PViewFrame(vizIndex)
 		// NOTE: 	GUI already updated
 	function doLocateSelect(tmpltIndex, lID, show)
 	{
-console.log("Locate attribute "+lID+" for template "+tmpltIndex+", set to "+show);
+// console.log("Locate attribute "+lID+" for template "+tmpltIndex+", set to "+show);
 	} // doLocateSelect()
 
 
@@ -289,7 +297,7 @@ console.log("Locate attribute "+lID+" for template "+tmpltIndex+", set to "+show
 		// NOTE: 	Must update GUI
 	function doLocateSelectOnly(tmpltIndex, lID)
 	{
-console.log("Locate attribute "+lID+" only for template "+tmpltIndex);
+// console.log("Locate attribute "+lID+" only for template "+tmpltIndex);
 			// Deselect everything
 		jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
 								tmpltIndex+'"] .legend-locate .legend-entry-check').prop('checked', false);
@@ -303,7 +311,7 @@ console.log("Locate attribute "+lID+" only for template "+tmpltIndex);
 		// NOTE: 	GUI already updated
 	function doFeatureSelect(tmpltIndex, vIndex, show)
 	{
-console.log("Feature attribute "+vIndex+" for template "+tmpltIndex+", set to "+show);
+// console.log("Feature attribute "+vIndex+" for template "+tmpltIndex+", set to "+show);
 	} // doFeatureSelect()
 
 
@@ -311,7 +319,7 @@ console.log("Feature attribute "+vIndex+" for template "+tmpltIndex+", set to "+
 		// NOTE: 	Must update GUI
 	function doFeatureSelectOnly(tmpltIndex, vIndex)
 	{
-console.log("Feature attribute "+vIndex+" only selected for template "+tmpltIndex);
+// console.log("Feature attribute "+vIndex+" only selected for template "+tmpltIndex);
 			// Deselect everything
 		jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
 								tmpltIndex+'"] .legend-group .legend-entry-check').prop('checked', false);
@@ -405,10 +413,12 @@ console.log("Feature attribute "+vIndex+" only selected for template "+tmpltInde
 		var attDef = PDataHub.getAttID(attID, true);
 		attDef.l.forEach(function(legEntry, lgIndex) {
 				// TO DO: Account for both icons and colors acc. to v string
-				// TO DO: Handle children values (indented)
 			var element = '<div class="legend-value legend-entry" data-index="'+lgIndex+'"><input type="checkbox" checked="checked" class="legend-entry-check"/>'+
 						'<div class="legend-viz" style="background-color: '+legEntry.v+'"> </div> <span class="legend-value-title">'+legEntry.l+'</span></div>';
 			group.append(element);
+			if (legEntry.z && legEntry.z.length > 0) {
+				// TO DO: Handle children values (indented)
+			}
 		});
 	} // setLegendFeatures()
 
@@ -717,7 +727,7 @@ var PDataHub = (function () {
 			}
 		}
 		if (done) {
-// console.log("Done loading: "+JSON.stringify(allData));
+console.log("Done loading: "+JSON.stringify(allData));
 			dataLoaded = true;
 			flowFromTop();
 		}
@@ -901,12 +911,58 @@ var PDataHub = (function () {
 
 			// RETURNS: The visual feature for an Attribute value, or null if no match
 			// INPUT:   val = raw Attribute val (String or Number)
-			//			type = type of Attribute
-			//			lgnd = complete Legend array
-			//			indices = array of selected Legend indices
-		getAttLgndVal: function(val, type, lgnd, indices)
+			//			att = full Attribute entry
+			//			fSet = array of selected Legend indices
+		getAttLgndVal: function(val, att, fSet)
 		{
-			// TO DO
+			var fI, lI = fSet.length, lE;
+
+			switch (att.def.t) {
+			case 'Vocabulary':
+				for (var f=0; f<lI; f++) {
+					fI = fSet[f];
+					lE = att.l[fI];
+					if (lE.l == val)
+						return lE.v;
+					if (lE.z.length) {
+						var lI2 = lE.z.length, lE2;
+						for (var f2=0; f2<lI2; f2++) {
+							lE2 = lE.z[f2];
+							if (lE2.l == val) {
+								if (lE2.v && lE2.v != '')
+									return lE2.v;
+								else
+									return lE.v;
+							}
+						}
+					}
+				}
+				break;
+			case 'Text':
+				for (var f=0; f<lI; f++) {
+					fI = fSet[f];
+					lE = att.l[fI];
+						// Looking for match anywhere; TO DO: use RegExp?
+					if (val.indexOf(lE.d) != -1) {
+						return lE.v;
+					}
+				}
+				break;
+			case 'Number':
+				for (var f=0; f<lI; f++) {
+					fI = fSet[f];
+					lE = att.l[fI];
+						// Looking for match anywhere; TO DO: use RegExp?
+					if (lE.d.min <= val && val <= lE.d.max) {
+						return lE.v;
+					}
+				}
+				break;
+			case 'Dates':
+					// TO DO
+				break;
+			}
+			return null;
 		}, // getAttLgndVal()
 
 
@@ -1087,7 +1143,6 @@ console.log("Create Filter "+fType+", "+fID);
 
 		// Handle selection of item on Set Layout modal
 	jQuery('#layout-choices').click(function(event) {
-console.log("Selected "+event.target.nodeName);
 		if (event.target.nodeName == 'IMG') {
 			jQuery("#layout-choices img").removeClass("selected");
 			jQuery(event.target).addClass("selected");
