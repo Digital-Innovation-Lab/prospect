@@ -160,6 +160,7 @@ class ProspectAttribute {
 		// NOTES:	http://www.particletree.com/notebook/calculating-color-contrast-for-legible-text/
 		// 			http://stackoverflow.com/questions/5650924/javascript-color-contraster
 	static public function black_contrast($viz_val)
+	{
 		if (substr($viz_val, 0, 1) === '#') {
 			$brightness = ((hexdec(substr($viz_val, 1, 2)) * 299.0) +
 						(hexdec(substr($viz_val, 3, 2)) * 587.0) +
