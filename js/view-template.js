@@ -331,6 +331,7 @@ function PViewFrame(vizIndex)
 
 
 		// PURPOSE: Handle click anywhere on Legend
+		// TO DO: 	Handle 2ndary level (Vocab) items properly, logically??
 	function clickInLegend(event)
 	{
 			// Which Template does selection belong to?
@@ -404,6 +405,8 @@ function PViewFrame(vizIndex)
 		// NOTES: 	Does not affect menu selection itself
 	function setLegendFeatures(lIndex, attID)
 	{
+		var element;
+
 		var group = jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
 						lIndex+'"] .legend-group');
 			// Clear any previous entries
@@ -413,11 +416,19 @@ function PViewFrame(vizIndex)
 		var attDef = PDataHub.getAttID(attID, true);
 		attDef.l.forEach(function(legEntry, lgIndex) {
 				// TO DO: Account for both icons and colors acc. to v string
-			var element = '<div class="legend-value legend-entry" data-index="'+lgIndex+'"><input type="checkbox" checked="checked" class="legend-entry-check"/>'+
+			element = '<div class="legend-value legend-entry" data-index="'+lgIndex+'"><input type="checkbox" checked="checked" class="legend-entry-check"/>'+
 						'<div class="legend-viz" style="background-color: '+legEntry.v+'"> </div> <span class="legend-value-title">'+legEntry.l+'</span></div>';
 			group.append(element);
 			if (legEntry.z && legEntry.z.length > 0) {
-				// TO DO: Handle children values (indented)
+				legEntry.z.forEach(function(zEntry, zIndex) {
+					element = '<div class="legend-value legend-entry" data-index="'+lgIndex+'.'+zIndex+'"><input type="checkbox" checked="checked" class="legend-entry-check"/>';
+					if (zEntry.v && zEntry.v != '') {
+						element += '<div class="legend-viz" style="background-color: '+zEntry.v+'">';
+					} else {
+						element += '––';
+					}
+					element += '<span class="legend-value-title"> >> '+zEntry.l+'</span></div>';
+				});
 			}
 		});
 	} // setLegendFeatures()
@@ -569,12 +580,14 @@ function PViewFrame(vizIndex)
 
 
 		// RETURNS: Array of indices of currently selected feature Attribute IDs for tIndex
+		// NOTE: 	Indices are in dot notation for 2ndary-level (x.y)
 	instance.getSelFeatAtts = function(tIndex)
 	{
 		var attIndices = [];
 		var boxes = jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
 							tIndex+'"] .legend-group .legend-value input:checked');
 		boxes.each(function() {
+				// TO DO: Convert to integers? What to do with 2ndary values (x.y)
 			var attIndex = jQuery(this).parent().data('index');
 			attIndices.push(attIndex);
 		});
@@ -1087,7 +1100,7 @@ console.log("Done loading: "+JSON.stringify(allData));
 			// RETURNS: The visual feature for an Attribute value, or null if no match
 			// INPUT:   val = raw Attribute val (String or Number)
 			//			att = full Attribute entry
-			//			fSet = array of selected Legend indices
+			//			fSet = array of selected Legend indices (x.y for 2ndary level!)
 			//			multi = return array for all values of <val> (true), or just first match (false)
 		getAttLgndVal: function(val, att, fSet, multi)
 		{
@@ -1095,7 +1108,7 @@ console.log("Done loading: "+JSON.stringify(allData));
 
 			switch (att.def.t) {
 			case 'Vocabulary':
-					// TO DO: Handle multiple values (if multi)
+					// TO DO: Handle 2ndary settings properly (index val x.y)
 				function s(v) {
 					for (var f=0; f<lI; f++) {
 						fI = fSet[f];
