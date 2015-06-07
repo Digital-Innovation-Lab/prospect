@@ -180,7 +180,7 @@ VizMap.prototype.render = function(datastream)
 		locAtts.forEach(function(theLAtt) {
 			locData = rec.a[theLAtt];
 			if (locData) {
-				fData = PDataHub.getAttLgndVal(rec.a[fAttID], fAtt, featSet);
+				fData = PDataHub.getAttLgndVal(rec.a[fAttID], fAtt, featSet, false);
 				if (fData) {
 // console.log("Record "+i+"["+fAttID+"]: "+rec.a[fAttID]+" = "+fData);
 						// TO DO: Handle Line & Polygon data
@@ -954,14 +954,14 @@ console.log("Done loading: "+JSON.stringify(allData));
 
 
 			// RETURNS: Index of Template to which absolute <index> belongs
-		streamTemplate: function(index)
+		sIndex2Tmplt: function(index)
 		{
 			for (var i=0; i<allData.length; i++) {
 				var tData = allData[i];
 				if (tData.i <= index  && index < (tData.i+tData.n))
 					return i;
 			}
-		}, // streamTemplate()
+		}, // sIndex2Tmplt()
 
 
 			// RETURNS: The index of first entry in <datastream> which belongs to Template <tIndex>
@@ -1088,29 +1088,45 @@ console.log("Done loading: "+JSON.stringify(allData));
 			// INPUT:   val = raw Attribute val (String or Number)
 			//			att = full Attribute entry
 			//			fSet = array of selected Legend indices
-		getAttLgndVal: function(val, att, fSet)
+			//			multi = return array for all values of <val> (true), or just first match (false)
+		getAttLgndVal: function(val, att, fSet, multi)
 		{
 			var fI, lI = fSet.length, lE;
 
 			switch (att.def.t) {
 			case 'Vocabulary':
-				for (var f=0; f<lI; f++) {
-					fI = fSet[f];
-					lE = att.l[fI];
-					if (lE.l == val)
-						return lE.v;
-					if (lE.z.length) {
-						var lI2 = lE.z.length, lE2;
-						for (var f2=0; f2<lI2; f2++) {
-							lE2 = lE.z[f2];
-							if (lE2.l == val) {
-								if (lE2.v && lE2.v != '')
-									return lE2.v;
-								else
-									return lE.v;
+					// TO DO: Handle multiple values (if multi)
+				function s(v) {
+					for (var f=0; f<lI; f++) {
+						fI = fSet[f];
+						lE = att.l[fI];
+						if (lE.l == v)
+							return lE.v;
+						if (lE.z.length) {
+							var lI2 = lE.z.length, lE2;
+							for (var f2=0; f2<lI2; f2++) {
+								lE2 = lE.z[f2];
+								if (lE2.l == v) {
+									if (lE2.v && lE2.v != '')
+										return lE2.v;
+									else
+										return lE.v;
+								}
 							}
 						}
 					}
+				} // s()
+					// Return all multiple values
+				if (multi && att.def.d != '') {
+					var parts = val.split(att.def.d);
+					return parts.map(s);
+				} else {
+						// Could be multiple values, but just return first one
+					if (att.def.d != '') {
+						var parts = val.split(att.def.d);	// TO DO: use indexOf to get first first substring
+						return s(parts[0]);
+					} else
+						return s(val);
 				}
 				break;
 			case 'Text':
@@ -1197,6 +1213,12 @@ view0.showData(stream);
 	} // clickRecompute()
 
 
+	function doSetLayout(lIndex)
+	{
+console.log("Set layout to: "+lIndex);
+	} // doSetLayout()
+
+
 	function clickSetLayout(event)
 	{
 			// Clear previous selection
@@ -1209,10 +1231,10 @@ view0.showData(stream);
 			modal: true,
 			buttons: {
 				Set: function() {
-					// var selected = jQuery("#filter-list li.selected");
-					// if (selected.length) {
-					// 	createNewFilter(selected.data("type"), selected.data("id"));
-					// }
+					var selected = jQuery("#layout-choices img.selected");
+					if (selected.length) {
+						doSetLayout(selected.data("index"));
+					}
 						// Remove click handler
 					setLayoutDialog.dialog("close");
 				},
