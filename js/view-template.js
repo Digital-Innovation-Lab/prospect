@@ -180,17 +180,19 @@ VizMap.prototype.render = function(datastream)
 		locAtts.forEach(function(theLAtt) {
 			locData = rec.a[theLAtt];
 			if (locData) {
-				fData = PDataHub.getAttLgndVal(rec.a[fAttID], fAtt, featSet, false);
-				if (fData) {
+				if (fData = rec.a[fAttID]) {
+					fData = PDataHub.getAttLgndVal(fData, fAtt, featSet, false);
+					if (fData) {
 // console.log("Record "+i+"["+fAttID+"]: "+rec.a[fAttID]+" = "+fData);
-						// TO DO: Handle Line & Polygon data
-					newMarker = L.circleMarker(locData,
-						{	id: i, weight: 1, radius: 10,
-							fillColor: fData, color: "#000",
-							opacity: 1, fillOpacity: 1
-						}
-					);
-					mLayer.addLayer(newMarker);
+							// TO DO: Handle Line & Polygon data
+						newMarker = L.circleMarker(locData,
+							{	id: i, weight: 1, radius: 10,
+								fillColor: fData, color: "#000",
+								opacity: 1, fillOpacity: 1
+							}
+						);
+						mLayer.addLayer(newMarker);
+					}
 				}
 			}
 		}); // for locAtts
@@ -1152,16 +1154,16 @@ console.log("Done loading: "+JSON.stringify(allData));
 				} else {
 						// Could be multiple values, but just return first success
 					if (att.def.d != '') {
-						var r =[], f;
+						var f;
 						for (var vI=0; vI<val.length; vI++) {
 							f = s(val[vI]);
 							if (f != null)
 								return f;
 						}
+						return null;
 					} else
 						return s(val[0]);
 				}
-				break;
 			case 'Text':
 				for (var f=0; f<lI; f++) {
 					fI = fSet[f];
@@ -1171,7 +1173,7 @@ console.log("Done loading: "+JSON.stringify(allData));
 						return lE.v;
 					}
 				}
-				break;
+				return null;
 			case 'Number':
 				for (var f=0; f<lI; f++) {
 					fI = fSet[f];
@@ -1190,17 +1192,86 @@ console.log("Done loading: "+JSON.stringify(allData));
 							return lE.v;
 					}
 				}
-				break;
-			case 'Dates':
+				return null;
+			case 'Dates': 			// Just looking for overlap, date doesn't have to be completely contained
+									// Disqualify for overlap if (1) end of event is before min bound, or
+									//	(2) start of event is after max bound
 				for (var f=0; f<lI; f++) {
 					fI = fSet[f];
 					lE = att.l[fI];
-						// max can be left out (= no bound)
-					if (lE.d.max) {		// min AND max
-						if (val.max.y) {
+					if (lE.d.max.y) {		// max bounds
+							// Test val maxs against min bound for disqualification
+						if (val.max && val.max != 'open') {
+							if (val.max.y < lE.d.min.y)
+								continue;
+							if (val.max.y == lE.d.min.y) {
+								if (val.max.m && lE.d.min.m) {
+									if (val.max.m < lE.d.min.m)
+										continue;
+									if (val.max.m == lE.d.min.m) {
+										if (val.max.d && lE.d.min.d) {
+											if (val.max.d < lE.d.min.d)
+												continue;
+										}
+									}
+								}
+							}
 						}
-					} else {	// min bound only
+							// Test val mins against max bound for disqualification
+						if (val.min.y > lE.d.max.y)
+							continue;
+						if (val.min.y == lE.d.max.y) {
+							if (val.min.m && lE.d.max.m) {
+								if (val.min.m > lE.d.max.m)
+									continue;
+								if (val.min.m == lE.d.max.m) {
+									if (val.min.d && lE.d.max.d) {
+										if (val.min.d > lE.d.max.d)
+											continue;
+									}
+								}
+							}
+						}
+						return lE.v;
+					} else {				// min bound only
+							// Event is range
+						if (val.max) {
+							if (val.max == 'open')		// double open always overlap
+								return lE.v;
+							if (val.max.y < lE.min.y)
+								continue;
+							if (val.max.y == lE.min.y) {
+								if (val.max.m && lE.d.min.m) {
+									if (val.max.m < lE.d.min.m)
+										continue;
+									if (val.max.m == lE.d.min.m) {
+										if (val.max.d && lE.d.min.d) {
+											if (val.max.d < lE.d.min.d)
+												continue;
+										}
+									}
+								}
+							}
+							return lE.v;
 
+							// Single date
+						} else {
+							if (val.min.y < lE.min.y)
+								continue;
+							if (val.min.y == lE.min.y) {
+								if (val.min.m && lE.d.min.m) {
+									if (val.min.m < lE.d.min.m)
+										continue;
+									if (val.min.m == lE.d.min.m) {
+										if (val.min.d && lE.d.min.d) {
+											if (val.min.d < lE.d.min.d)
+												continue;
+										}
+									}
+								}
+							}
+							return lE.v;
+						}
 					}
 				} // for f
 				break;
