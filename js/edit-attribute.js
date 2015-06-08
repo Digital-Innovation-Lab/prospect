@@ -250,13 +250,23 @@ jQuery(document).ready(function() {
 			case 'Vocabulary':
 				var newZ = [];
 				lgndEntry.z.forEach(function(child) {
-					var newChild;
-					if (child.v.charAt(0) == '@') {
-						newChild.icon = getIconURL(child.v);
-						newChild.color = '';
+					var newChild = {};
+						// v is null if uses parent as default
+					if (child.v != null) {
+						newChild.v = child.v;
+						newChild.l = child.l;
+						if (child.v.charAt(0) == '@') {
+							newChild.icon = getIconURL(child.v);
+							newChild.color = '';
+						} else {
+							newChild.icon = '';
+							newChild.color = child.v;
+						}
 					} else {
+						newChild.l = child.l;
+						newChild.v = '';
 						newChild.icon = '';
-						newChild.color = child.v;
+						newChild.color = '';
 					}
 					newZ.push(newChild);
 				});
