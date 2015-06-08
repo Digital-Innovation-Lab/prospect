@@ -112,6 +112,12 @@ class ProspectRecord {
 					else {
 						$att_def = $att_assocs[$att_to_load];
 						switch($att_def->t) {
+						case 'Vocabulary':
+							if ($att_def->d != '')
+								$this->att_data[$att_to_load] = explode($att_def->d, $val);
+							else
+								$this->att_data[$att_to_load] = array($val);
+							break;
 						case 'Number':
 							$this->att_data[$att_to_load] = (int)$val;
 							break;

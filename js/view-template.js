@@ -421,13 +421,15 @@ function PViewFrame(vizIndex)
 			group.append(element);
 			if (legEntry.z && legEntry.z.length > 0) {
 				legEntry.z.forEach(function(zEntry, zIndex) {
-					element = '<div class="legend-value legend-entry" data-index="'+lgIndex+'.'+zIndex+'"><input type="checkbox" checked="checked" class="legend-entry-check"/>';
+					element = '<div class="legend-value legend-entry" data-index="'+lgIndex+','+zIndex+
+								'"><input type="checkbox" checked="checked" class="legend-entry-check"/>';
 					if (zEntry.v && zEntry.v != '') {
-						element += '<div class="legend-viz" style="background-color: '+zEntry.v+'">';
+						element += '<div class="legend-viz" style="background-color: '+zEntry.v+'"></div>';
 					} else {
-						element += '––';
+						element += '<div class="legend-viz legend-viz-empty"></div>';
 					}
-					element += '<span class="legend-value-title"> >> '+zEntry.l+'</span></div>';
+					element += ' <span class="legend-value-title"> >> '+zEntry.l+'</span></div>';
+					group.append(element);
 				});
 			}
 		});
@@ -583,13 +585,20 @@ function PViewFrame(vizIndex)
 		// NOTE: 	Indices are in dot notation for 2ndary-level (x.y)
 	instance.getSelFeatAtts = function(tIndex)
 	{
-		var attIndices = [];
+		var attIndices = [], attIndex, i;
 		var boxes = jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
 							tIndex+'"] .legend-group .legend-value input:checked');
 		boxes.each(function() {
-				// TO DO: Convert to integers? What to do with 2ndary values (x.y)
-			var attIndex = jQuery(this).parent().data('index');
-			attIndices.push(attIndex);
+			attIndex = jQuery(this).parent().data('index');
+console.log("Type of data: "+typeof attIndex);
+			if (typeof attIndex == 'number') {
+				attIndices.push(attIndex);
+			} else {
+				if ((i=attIndex.indexOf(',')) != -1) {
+					attIndices.push([parseInt(attIndex.substring(0,i),10), parseInt(attIndex.substring(i+1),10)]);
+				} else
+					attIndices.push(parseInt(attIndex,10));
+			}
 		});
 		return attIndices;
 	}; // getSelFeatAtts()
@@ -1097,12 +1106,12 @@ console.log("Done loading: "+JSON.stringify(allData));
 			}
 		}, // getTmpltID()
 
-			// RETURNS: The visual feature for an Attribute value, or null if no match
+			// RETURNS: The visual feature for an Attribute value, an array (if all), or null if no match
 			// INPUT:   val = raw Attribute val (String or Number)
 			//			att = full Attribute entry
-			//			fSet = array of selected Legend indices (x.y for 2ndary level!)
-			//			multi = return array for all values of <val> (true), or just first match (false)
-		getAttLgndVal: function(val, att, fSet, multi)
+			//			fSet = array of selected Legend indices ([x,y] for 2ndary level!)
+			//			all = return array for all possible matches for <val> (true), or just first match (false)
+		getAttLgndVal: function(val, att, fSet, all)
 		{
 			var fI, lI = fSet.length, lE;
 
@@ -1112,34 +1121,45 @@ console.log("Done loading: "+JSON.stringify(allData));
 				function s(v) {
 					for (var f=0; f<lI; f++) {
 						fI = fSet[f];
-						lE = att.l[fI];
-						if (lE.l == v)
-							return lE.v;
-						if (lE.z.length) {
-							var lI2 = lE.z.length, lE2;
-							for (var f2=0; f2<lI2; f2++) {
-								lE2 = lE.z[f2];
-								if (lE2.l == v) {
-									if (lE2.v && lE2.v != '')
-										return lE2.v;
-									else
-										return lE.v;
-								}
+							// Parent-level 
+						if (typeof fI === 'number') {
+							lE = att.l[fI];
+							if (lE.l == v)
+								return lE.v;
+							// Secondary-level
+						} else {
+							lE = att.l[fI[0]];
+							var lE2 = lE.z[fI[1]];
+							if (lE2.l == v) {
+								if (lE2.v && lE2.v != '')
+									return lE2.v;
+								else
+									return lE.v;
 							}
 						}
 					}
+					return null;
 				} // s()
-					// Return all multiple values
-				if (multi && att.def.d != '') {
-					var parts = val.split(att.def.d);
-					return parts.map(s);
+					// Return all possible matched atts?
+				if (all && att.def.d != '') {
+					var r = [], f;
+					val.forEach(function(v) {
+						f = s(v);
+						if (f != null)
+							r.push(f);
+					});
+					return r.length > 0 ? r : null;
 				} else {
-						// Could be multiple values, but just return first one
+						// Could be multiple values, but just return first success
 					if (att.def.d != '') {
-						var parts = val.split(att.def.d);	// TO DO: use indexOf to get first first substring
-						return s(parts[0]);
+						var r =[], f;
+						for (var vI=0; vI<val.length; vI++) {
+							f = s(val[vI]);
+							if (f != null)
+								return f;
+						}
 					} else
-						return s(val);
+						return s(val[0]);
 				}
 				break;
 			case 'Text':
