@@ -119,12 +119,38 @@ VizMap.prototype.setup = function()
 
 
 	// PURPOSE: Draw the Records in the given datastream
+	// NOTES: 	absolute index of Record is saved in <id> field of map marker
 VizMap.prototype.render = function(datastream)
 {
+	var self = this;
+
+		// PURPOSE: Handle click on feature
+		// TO DO:   Try putting marker layer in charge of clicks
+	function markerClick(e)
+	{
+		if (e.target && e.target.options) {
+			var id = e.target.options._pid;
+			var added = self.vFrame.toggleSelection(id);
+			if (added)
+				this.setStyle({ color: "#ff0000" });
+			else
+				this.setStyle({ color: "#000" });
+		}
+	} // markerClick()
+
+
 	var mLayer = this.markerLayer;
 
 		// Remove previous Markers
 	mLayer.clearLayers();
+
+	var rad;
+
+	switch (self.settings.size) {
+	case 's': rad=3; break;
+	case 'm': rad=6; break;
+	case 'l': rad=10; break;
+	}
 
 	var numTmplts = PDataHub.getNumETmplts();
 	var i=0, tIndex=0, fAttID, fAtt, locAtts, featSet, rec;
@@ -184,13 +210,22 @@ VizMap.prototype.render = function(datastream)
 					fData = PDataHub.getAttLgndVal(fData, fAtt, featSet, false);
 					if (fData) {
 // console.log("Record "+i+"["+fAttID+"]: "+rec.a[fAttID]+" = "+fData);
-							// TO DO: Handle Line & Polygon data
-						newMarker = L.circleMarker(locData,
-							{	id: i, weight: 1, radius: 10,
-								fillColor: fData, color: "#000",
-								opacity: 1, fillOpacity: 1
+							// TO DO: Handle PNG icons
+						if (typeof locData[0] == 'number') {
+							newMarker = L.circleMarker(locData,
+								{	_pid: i, weight: 1, radius: rad,
+									fillColor: fData, color: "#000",
+									opacity: 1, fillOpacity: 1
+								}
+							);
+						} else {
+							if (locData.length == 2) {
+								// draw line
+							} else {
+								// draw polygon
 							}
-						);
+						}
+						newMarker.on('click', markerClick);
 						mLayer.addLayer(newMarker);
 					}
 				}
@@ -203,6 +238,7 @@ VizMap.prototype.render = function(datastream)
 		}
 	} // while 
 } // render()
+
 
 VizMap.prototype.teardown = function()
 {
@@ -617,17 +653,21 @@ function PViewFrame(vizIndex)
 		return frameState;
 	} // state()
 
-		// PURPOSE: Add or remove recordID to/from current selection list
+		// PURPOSE: Toggle presence of recordID in selection list
 		// NOTES: 	Called by VizModel based on user interaction
-	instance.changeSelection = function(recordID, add)
+		// RETURNS: true if added, false if removed
+		// TO DO: 	Sort to make more efficient
+	instance.toggleSelection = function(recordID)
 	{
-		if (add) {
+		var i = _.indexOf(selRecIDS, recordID);
+		if (i == -1) {
 			selRecIDS.push(recordID);
+			return true;
 		} else {
-			var i = _.indexOf(selRecIDS, recordID);
 			selRecIDS.splice(i, 1);
+			return false;
 		}
-	} // changeSelection()
+	} // toggleSelection()
 
 		// PURPOSE: Called by external agent when new datastream is available for viewing
 		// ASSUMED: Caller has already set busy cursor
