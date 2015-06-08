@@ -172,29 +172,33 @@ class ProspectRecord {
 							$date_val['min'] = $date_min;
 								// Date has max component also
 							if (count($parts) == 2) {
-								$date_max = array();
 								$str = $parts[1];
-								if ($str[0] == '~') {
-									$date_max['f'] = true;
-									$str = substr($str, 1);
+								if ($str == 'open') {
+									$date_val['max'] = 'open';
 								} else {
-									$date_max['f'] = false;
-								}
-								if ($str[0] == '-') {
-									$bce = -1;
-									$str = substr($str, 1);
-								} else {
-									$bce = 1;
-								}
-								$subparts = explode('-', $str);
-								$date_max['y'] = (int)$subparts[0] * $bce;
-								if (count($subparts) > 1) {
-									$date_max['m'] = (int)$subparts[1];
-									if (count($subparts) == 3) {
-										$date_max['d'] = (int)$subparts[2];
+									$date_max = array();
+									if ($str[0] == '~') {
+										$date_max['f'] = true;
+										$str = substr($str, 1);
+									} else {
+										$date_max['f'] = false;
 									}
+									if ($str[0] == '-') {
+										$bce = -1;
+										$str = substr($str, 1);
+									} else {
+										$bce = 1;
+									}
+									$subparts = explode('-', $str);
+									$date_max['y'] = (int)$subparts[0] * $bce;
+									if (count($subparts) > 1) {
+										$date_max['m'] = (int)$subparts[1];
+										if (count($subparts) == 3) {
+											$date_max['d'] = (int)$subparts[2];
+										}
+									}
+									$date_val['max'] = $date_max;
 								}
-								$date_val['max'] = $date_max;
 							}
 							$this->att_data[$att_to_load] = $date_val;
 							break;
