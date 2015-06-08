@@ -479,40 +479,40 @@ function PViewFrame(vizIndex)
 				// Create Legend sections for each Template
 			prspdata.e.g.ts.forEach(function(tID, tIndex) {
 				var tmpltDef = PDataHub.getTmpltID(tID);
-						// Create DIV structure for Template's Legend entry
-				var newTLegend = jQuery('<div class="legend-template" data-index="'+tIndex+
-								'"><div class="legend-title">'+tmpltDef.l+'</div></div>');
 					// Insert locate attributes into Legends
 				var locAtts = vizModel.getLocAtts(tIndex);
 				if (locAtts && locAtts.length) {
+							// Create DIV structure for Template's Legend entry
+					var newTLegend = jQuery('<div class="legend-template" data-index="'+tIndex+
+									'"><div class="legend-title">'+tmpltDef.l+'</div></div>');
 					locAtts.forEach(function(attID, aIndex) {
 						var attDef = PDataHub.getAttID(attID, false);
 						newTLegend.append('<div class="legend-entry legend-locate" data-id="'+attID+
 							'"><input type="checkbox" checked="checked" class="legend-entry-check"/><span class="legend-value-title">'+
 							attDef.def.l+'</span></div>');
 					});
+						// Create dropdown menu of visual Attributes
+					var attSelection = vizModel.getFeatureAtts(tIndex);
+					var newStr = '<select class="legend-select">';
+					attSelection.forEach(function(attID, aIndex) {
+						var attDef = PDataHub.getAttID(attID, true);
+						newStr += '<option value="'+attID+'">'+attDef.def.l+'</option>';
+					});
+					newStr += '</select>';
+					var newSelect = jQuery(newStr);
+					newSelect.change(selectTmpltAttribute);
+					jQuery(newTLegend).append(newSelect);
+						// Create Hide/Show all checkbox
+					jQuery(newTLegend).append('<div class="legend-entry legend-sh"><input type="checkbox" checked="checked" class="legend-entry-check"/>Hide/Show All</div><div class="legend-group"></div>');
+					lgndCntr.append(newTLegend);
+					if (tIndex != (prspdata.t.length-1))
+						lgndCntr.append('<hr/>');
+						// Default feature selection is first Attribute
+					var fAttID = attSelection.length > 0 ? attSelection[0] : null;
+					legendIDs.push(fAttID);
+					if (fAttID) 
+						setLegendFeatures(tIndex, fAttID);
 				}
-					// Create dropdown menu of visual Attributes
-				var attSelection = vizModel.getFeatureAtts(tIndex);
-				var newStr = '<select class="legend-select">';
-				attSelection.forEach(function(attID, aIndex) {
-					var attDef = PDataHub.getAttID(attID, true);
-					newStr += '<option value="'+attID+'">'+attDef.def.l+'</option>';
-				});
-				newStr += '</select>';
-				var newSelect = jQuery(newStr);
-				newSelect.change(selectTmpltAttribute);
-				jQuery(newTLegend).append(newSelect);
-					// Create Hide/Show all checkbox
-				jQuery(newTLegend).append('<div class="legend-entry legend-sh"><input type="checkbox" checked="checked" class="legend-entry-check"/>Hide/Show All</div><div class="legend-group"></div>');
-				lgndCntr.append(newTLegend);
-				if (tIndex != (prspdata.t.length-1))
-					lgndCntr.append('<hr/>');
-					// Default feature selection is first Attribute
-				var fAttID = attSelection.length > 0 ? attSelection[0] : null;
-				legendIDs.push(fAttID);
-				if (fAttID) 
-					setLegendFeatures(tIndex, fAttID);
 			});
 		} else {
 				// Just hide Legend
@@ -592,7 +592,6 @@ function PViewFrame(vizIndex)
 							tIndex+'"] .legend-group .legend-value input:checked');
 		boxes.each(function() {
 			attIndex = jQuery(this).parent().data('index');
-console.log("Type of data: "+typeof attIndex);
 			if (typeof attIndex == 'number') {
 				attIndices.push(attIndex);
 			} else {
