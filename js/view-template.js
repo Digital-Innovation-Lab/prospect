@@ -30,6 +30,7 @@ function PVizModel(viewFrame, vizSettings)
 	// this.render(IndexStream)
 	// this.updateTemplate(tIndex)
 	// this.setSelection(ids)
+	// this.clearSelection()
 	// this.getPerspective()
 	// this.setPerspective(pData)
 	// this.teardown()
@@ -129,8 +130,7 @@ VizMap.prototype.render = function(datastream)
 	function markerClick(e)
 	{
 		if (e.target && e.target.options) {
-			var id = e.target.options._pid;
-			var added = self.vFrame.toggleSelection(id);
+			var added = self.vFrame.toggleSelection(e.target.options._pid);
 			if (added)
 				this.setStyle({ color: "#ff0000" });
 			else
@@ -211,6 +211,7 @@ VizMap.prototype.render = function(datastream)
 					if (fData) {
 // console.log("Record "+i+"["+fAttID+"]: "+rec.a[fAttID]+" = "+fData);
 							// TO DO: Handle PNG icons
+							// TO DO: Check to see if ID is in selection, highlight if so
 						if (typeof locData[0] == 'number') {
 							newMarker = L.circleMarker(locData,
 								{	_pid: i, weight: 1, radius: rad,
@@ -238,6 +239,13 @@ VizMap.prototype.render = function(datastream)
 		}
 	} // while 
 } // render()
+
+VizMap.prototype.clearSelection = function()
+{
+	this.markerLayer.eachLayer(function(marker) {
+		marker.setStyle({ color: "#000" });
+	});
+} // clearSelection()
 
 
 VizMap.prototype.teardown = function()
@@ -306,6 +314,8 @@ function PViewFrame(vizIndex)
 			// TO DO: Do visual clear
 			// Reset array
 		selRecIDS = [];
+		if (vizModel)
+			vizModel.clearSelection();
 		event.preventDefault();
 	} // clickClearSelection()
 

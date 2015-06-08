@@ -98,6 +98,14 @@ select {
 
 }
 
+		/* #filter-frame
+		 * 	#filter-control-bar
+		 *	#filter-instances
+		 *		.filter-instance
+		 *			.filter-head
+		 *			.filter-body
+		 */
+
 	/* All Filters go into this frame */
 #filter-frame {
 	background-color: green;
@@ -115,14 +123,27 @@ select {
 	/* All filter instances going into this scrolling area */
 #filter-instances {
 	min-height: 2px;
-	max-height: 50px;		/* Should be more like 150px */
+	max-height: 80px;		/* Should be more like 150px */
 	overflow-y: auto;
 	font-size: 12px;
 }
 
-	/* Each Filter instance has this class */
+	/* Each Filter instance has this class as outer wrapper */
 .filter-instance {
 	border: black 1px dotted;
+}
+
+	/* Title and control bar for each filter instance */
+.filter-head {
+	height: 24px;
+	padding: 2px;
+	margin: 0;
+	vertical-align: middle;
+	font-size: 10px;
+}
+
+	/* Area for filter GUI controls */
+.filter-body {
 }
 
 	/* One or two displays go into this frame */

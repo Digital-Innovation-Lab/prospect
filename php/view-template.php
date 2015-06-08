@@ -95,14 +95,6 @@
 			<button id="btn-toggle-filters">Hide/Show Filters</button>
 		</div>
 		<div id="filter-instances">
-			<div class="filter-instance">
-				<p>This is one Filter Content; it will have graphical components like sliders.
-				There can be multiple filters; each filter-instance div only takes as much space as it needs.</p>
-			</div>
-			<div class="filter-instance">
-				<p>This is another Filter Content; it will have graphical components like sliders.
-				There can be multiple filters; each filter-instance div only takes as much space as it needs.</p>
-			</div>
 		</div>
 	</div>
 
