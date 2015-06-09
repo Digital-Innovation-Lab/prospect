@@ -310,8 +310,11 @@ function PFilterModel(id, attOrFB)
 
 PFilterModel.prototype.isDirty = function(setDirty)
 {
-	if (setDirty != null)
+	if (setDirty != null) {
 		this.dirty = setDirty;
+		if (setDirty)	// TO DO: Check if class already exists? Or is that auto?
+			jQuery('#btn-recompute').addClass('highlight');
+	}
 	return this.dirty;
 } // isDirty
 
@@ -772,12 +775,17 @@ function PViewFrame(vizIndex)
 		// PURPOSE: Called by external agent when new datastream is available for viewing
 		// ASSUMED: Caller has already set busy cursor
 		// TO DO: 	Check and set frameState
-	instance.showData = function(stream)
+	instance.showStream = function(stream)
 	{
 		datastream = stream;
 		if (vizModel)
 			vizModel.render(stream);
-	} // showData()
+	} // showStream()
+
+	instance.setStream = function(stream)
+	{
+		datastream = stream;
+	} // setStream()
 
 	return instance;
 } // PViewFrame
@@ -870,6 +878,7 @@ var PDataHub = (function () {
 		if (done) {
 console.log("Done loading: "+JSON.stringify(allData));
 			dataLoaded = true;
+			// TO DO: Force view of data
 		}
 	} // checkDataLoad()
 
@@ -1399,7 +1408,6 @@ console.log("Done loading: "+JSON.stringify(allData));
 		{
 			return prspdata.e.vf[vIndex];
 		} // getVizIndex()
-
 	} // return
 })();
 
@@ -1463,7 +1471,8 @@ jQuery(document).ready(function($) {
 			} else
 				endStream = theF.f.out;
 		}
-		view0.showData(endStream);
+		jQuery('#btn-recompute').removeClass('highlight');
+		view0.showStream(endStream);
 
 		event.preventDefault();
 	} // clickRecompute()
@@ -1553,9 +1562,31 @@ console.log("Set layout to: "+lIndex);
 		var head = jQuery(this).closest('.filter-instance');
 		var fID = head.data('id');
 // console.log("Delete: "+fID);
+
+		var fI, fRec;
+		fI = filters.findIndex(function(fRec) { return fRec.id == fID; });
+		if (fI == -1)	{ alert('Bad Filter ID '+fID); return; }
+
+		filters.splice(fI, 1);
+			// Deleted last filter in stack
+		if (fI == filters.length) {
+			var endStream;
+				// No filters left, reset ViewFrame data source
+			if (filters.length == 0)
+				endStream = topStream;
+			else
+				endStream = filters[fi].out;
+			view0.setStream(endStream);
+			if (view1)
+				view1.setStream(endStream);
+			// TO DO: Set vi
+		} else {
+				// Output must be recomputed from here on
+			filters[fi].f.isDirty(true);
+		}
+
+			// Mark next filter record as dirty; reset ViewFrame data source if last
 			// Remove this DOM element
-			// Find filter record and remove it
-			// Mark next filter record as dirty
 		event.preventDefault();
 	} // clickFilterDel()
 
@@ -1609,6 +1640,8 @@ console.log("Set layout to: "+lIndex);
 		jQuery('.filter-instance[data-id="'+newID+'"] .btn-filter-del').button({
 					text: false, icons: { primary: 'ui-icon-trash' }
 				}).click(clickFilterDel);
+
+		jQuery('#btn-recompute').addClass('highlight');		// TO DO: Check first?
 
 			// Allow Filter to insert required HTML
 		newFilter.setup();

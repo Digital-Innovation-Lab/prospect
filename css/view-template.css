@@ -393,6 +393,9 @@ select {
 	50% { border-style: solid; border-color: red; border-width: 1px; }
 }
 
+.ui-button.highlight {
+	border: orange solid 2px;
+}
 
 	/* jQueryUI overrides
 	 * ==================
