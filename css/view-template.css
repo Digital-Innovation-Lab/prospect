@@ -50,6 +50,13 @@ select {
 	height: 100%;
 }
 
+	/* DOM structure of web page for visualizations:
+	 * #command-bar
+	 * #remainder
+	 * 		#filter-frame
+	 *		#viz-display-frame
+	 */
+
 	/* Command Bar always along top row of window */
 #command-bar {
 	height: 28px;
@@ -98,7 +105,8 @@ select {
 
 }
 
-		/* #filter-frame
+		/* DOM Structure of Filter Frames
+		 * #filter-frame
 		 * 	#filter-control-bar
 		 *	#filter-instances
 		 *		.filter-instance
@@ -145,6 +153,16 @@ select {
 	/* Area for filter GUI controls */
 .filter-body {
 }
+
+	/* DOM Structure of Visualization frames
+	 * #viz-display-frame
+	 *	#viz-frame-0
+	 *		.view-control-bar
+	 *		.viz-loading
+	 *		.viz-content
+	 *	#viz-frame-1
+	 *		... (same as above)
+	 */
 
 	/* One or two displays go into this frame */
 #viz-display-frame {
