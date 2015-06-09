@@ -1550,9 +1550,14 @@ console.log("Set layout to: "+lIndex);
 
 	function clickFilterDel(event)
 	{
-		jQuery(this).parent().next().slideToggle(400);
+		var head = jQuery(this).closest('.filter-instance');
+		var fID = head.data('id');
+// console.log("Delete: "+fID);
+			// Remove this DOM element
+			// Find filter record and remove it
+			// Mark next filter record as dirty
 		event.preventDefault();
-	} // clickFilterToggle()
+	} // clickFilterDel()
 
 
 		// PURPOSE: Add a new filter to the stack
@@ -1597,6 +1602,7 @@ console.log("Set layout to: "+lIndex);
 		jQuery('#filter-instances').append('<div class="filter-instance" data-id="'+newID+
 					'"><div class="filter-head">'+newFilter.title()+' <button class="btn-filter-toggle">Toggle</button>'+
 					'<button class="btn-filter-del">Delete Filter</button></div><div class="filter-body"></div></div>');
+
 		jQuery('.filter-instance[data-id="'+newID+'"] .btn-filter-toggle').button({
 					text: false, icons: { primary: 'ui-icon-carat-2-n-s' }
 				}).click(clickFilterToggle);
