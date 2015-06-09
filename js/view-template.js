@@ -304,7 +304,8 @@ function PFilterModel(id, attOrFB)
 		// All subclasses must implement the following:
 	// this.title()
 	// this.setUp()
-	// this.eval(absRecID)
+	// this.evalPrep()
+	// this.eval(rec)
 } // PFilterModel
 
 
@@ -318,11 +319,18 @@ PFilterModel.prototype.isDirty = function(setDirty)
 	return this.dirty;
 } // isDirty
 
-	// Handles default case of (un-Joined) Attribute
+	// PURPOSE: Return title for filter component
+	// NOTES: 	Handles default case of (un-Joined) Attribute
 PFilterModel.prototype.title = function()
 {
 	return this.att.def.l;
 } // title()
+
+	// PURPOSE: Return jQuery result for contents of this filter
+PFilterModel.prototype.insertPt = function()
+{
+	return jQuery('.filter-instance[data-id="'+this.id+'"] .filter-body');
+} // insertPt()
 
 
 // ============================================
@@ -337,14 +345,23 @@ PFilterText.prototype = Object.create(PFilterModel.prototype);
 
 PFilterText.prototype.constructor = PFilterText;
 
-PFilterText.prototype.eval = function(absID)
+PFilterText.prototype.evalPrep = function()
 {
-	return true;
+	this.findStr = this.insertPt().find('.filter-text').val();
+// console.log("Find string: "+this.findStr);
+} // evalPrep()
+
+PFilterText.prototype.eval = function(rec)
+{
+	var txt = rec.a[this.att.id];
+// console.log("Text value = "+txt);
+	return txt.indexOf(this.findStr) != -1;
 } // eval()
 
 PFilterText.prototype.setup = function()
 {
-	// TO DO
+	var htmlText = jQuery('#txt-load-filter-text').html().trim();
+	this.insertPt().append(htmlText);
 } // setup()
 
 
@@ -569,7 +586,7 @@ function PViewFrame(vizIndex)
 					} else {
 						element += '<div class="legend-viz legend-viz-empty"></div>';
 					}
-					element += ' <span class="legend-value-title"> >> '+zEntry.l+'</span></div>';
+					element += ' <span class="legend-value-title"> > '+zEntry.l+'</span></div>';
 					group.append(element);
 				});
 			}
@@ -877,6 +894,7 @@ var PDataHub = (function () {
 		}
 		if (done) {
 console.log("Done loading: "+JSON.stringify(allData));
+			jQuery('#btn-recompute').addClass('highlight');
 			dataLoaded = true;
 			// TO DO: Force view of data
 		}
@@ -1085,9 +1103,8 @@ console.log("Done loading: "+JSON.stringify(allData));
 			newStream.t = [];
 			newStream.l = 0;
 
-			var i;
-
 			if (full) {
+				var i;
 				for (i=0; i<allDataCount; i++)
 					newStream.s[i] = i;
 				for (i=0; i<allData.length; i++) {
@@ -1447,27 +1464,42 @@ jQuery(document).ready(function($) {
 		}
 		endStream = topStream;
 
-			// Go through filter stack -- find first dirty flag and recompute from there
+			// Go through filter stack -- find 1st dirty and recompute from there
 		var started=false, fI, theF;
 		for (fI=0; fI<filters.length; fI++) {
 			theF = filters[fI];
 				// If we've started, evaluate and propagate
 			if (started || theF.f.isDirty(null)) {
-				var nextStream = PDataHub.newIndexStream(false);
-				var relI = 0;
-				var absI, tI=0, tRi, tRn;
+				theF.f.evalPrep();
+				var newStream = PDataHub.newIndexStream(false);
+				var relI=0, absI, rec;
+				var tI=0, tRec=endStream.t[0], tRn=0;
 					// Must keep absolute indices and template params updated!
 				while (relI < endStream.l) {
-					absI = endStream.s[relI];
+						// Advance until we get to current Template rec
+					while (tRec.n == 0 || (tRec.i+tRec.n) == relI) {
+						newStream.t.push({ i: (newStream.l-tRn), n: tRn });
+						tRn = 0;
+						tRec = endStream.t[tI++];
+					}
 						// TO DO: Get Att value; check if existence required
-					if (theF.f.eval(absI)) {
-						nextStream.s[nextStream.l++] = absI;
+					absI = endStream.s[relI++];
+					rec = PDataHub.getRecByIndex(absI);
+					if (theF.f.eval(rec)) {
+						newStream.s[newStream.l++] = absI;
+						tRn++;
 					}
 				}
+					// push out any remaining Template recs
+				while (tI++ < PDataHub.getNumETmplts()) {
+					newStream.t.push( { i: (newStream.l-tRn), n: tRn } );
+					tRn = 0;
+				}
 				theF.f.isDirty(false);
-				theF.f.out = nextStream;
-				endStream = nextStream;
+				theF.f.out = newStream;
+				endStream = newStream;
 				started = true;
+console.log("Output stream: "+JSON.stringify(newStream));
 			} else
 				endStream = theF.f.out;
 		}
@@ -1581,12 +1613,12 @@ console.log("Set layout to: "+lIndex);
 				view1.setStream(endStream);
 			// TO DO: Set vi
 		} else {
-				// Output must be recomputed from here on
+				// Output must be recomputed from successor on
 			filters[fi].f.isDirty(true);
 		}
 
-			// Mark next filter record as dirty; reset ViewFrame data source if last
 			// Remove this DOM element
+		head.remove();
 		event.preventDefault();
 	} // clickFilterDel()
 

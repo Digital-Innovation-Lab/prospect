@@ -155,6 +155,7 @@ select {
 	/* Area for filter GUI controls */
 .filter-body {
 	overflow-y: auto;
+	padding-left: 8px;
 }
 
 	/* DOM Structure of Visualization frames

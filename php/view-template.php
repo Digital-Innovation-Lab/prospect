@@ -144,5 +144,10 @@
 	</div>
 </div>
 
+<!-- DYNAMICALLY LOADED TEXT -->
+<script id="txt-load-filter-text" type='text'>
+Text must include <input class="filter-text" type="text" size="20"/>
+</script>
+
 </body>
 </html>
