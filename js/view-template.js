@@ -4,11 +4,46 @@
 //		PDataHub Module for handling data
 //		PBootstrap for launching processes and organizing screen
 
+
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findIndex
+if (!Array.prototype.findIndex) {
+  Array.prototype.findIndex = function(predicate) {
+	if (this == null) {
+	  throw new TypeError('Array.prototype.find called on null or undefined');
+	}
+	if (typeof predicate !== 'function') {
+	  throw new TypeError('predicate must be a function');
+	}
+	var list = Object(this);
+	var length = list.length >>> 0;
+	var thisArg = arguments[1];
+	var value;
+
+	for (var i = 0; i < length; i++) {
+	  value = list[i];
+	  if (predicate.call(thisArg, value, i, list)) {
+		return i;
+	  }
+	}
+	return -1;
+  };
+}
+
 // NOTES: 	prspdata will pass the following information:
 //				a = array of Attribute definitions { id, def, r, l }
 //				t = array of Template definitions (no Joins) and Record numbers: { id, def, n }
 //				e = Exhibit definition { id, g, vf, w, p }
 
+	// GLOBAL CONSTANTS
+var TIME_INSTANT = 1;			// Single instantaneous event (not Date range)
+var TIME_F_START = 2;			// Fuzzy start time
+var TIME_F_END = 4;				// Fuzzy end time
+
+var PSTATE_INIT = 0;			// Internal initialization
+var PSTATE_REQ = 1;				// Waiting for requested data
+var PSTATE_PROCESS = 2;			// Processing data or handling command
+var PSTATE_BUILD = 3;			// Building visuals
+var PSTATE_READY = 4;			// Waiting for user
 
 // ========================================================================
 // PVizModel: An abstract class to be subclassed by specific visualizations
@@ -91,7 +126,7 @@ VizMap.prototype.setup = function()
 		// Leaflet requires a DIV ID to startup: create and insert one
 	jQuery(this.frameID).append('<div id="l-map-'+vIndex+'" class="max-size"></div>');
 
-	this.lMap = L.map("l-map-"+vIndex, { zoomControl:false }).setView([centerLat, centerLon], zoom);
+	this.lMap = L.map("l-map-"+vIndex, { zoomControl: false }).setView([centerLat, centerLon], zoom);
 
 		// Add an OpenStreetMap base layer
 	L.tileLayer('http://otile{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png', {
@@ -126,7 +161,8 @@ VizMap.prototype.render = function(datastream)
 	var self = this;
 
 		// PURPOSE: Handle click on feature
-		// TO DO:   Try putting marker layer in charge of clicks
+		// NOTES: 	Being within render closure makes it inefficient, but need access
+		//				to vFrame!
 	function markerClick(e)
 	{
 		if (e.target && e.target.options) {
@@ -148,8 +184,8 @@ VizMap.prototype.render = function(datastream)
 
 	switch (self.settings.size) {
 	case 's': rad=3; break;
-	case 'm': rad=6; break;
-	case 'l': rad=10; break;
+	case 'm': rad=7; break;
+	case 'l': rad=12; break;
 	}
 
 	var numTmplts = PDataHub.getNumETmplts();
@@ -253,6 +289,62 @@ VizMap.prototype.teardown = function()
 } // teardown()
 
 
+// ====================================================================
+// PFilterModel: An abstract class to be subclassed by specific filters
+
+	// INPUT: 	id = unique ID for this filter
+	//			attOrFB = pointer to complete Attribute or Facet Browser settings
+function PFilterModel(id, attOrFB)
+{
+	this.id 		= id;
+	this.att 		= attOrFB;
+
+	this.dirty 		= true;
+
+		// All subclasses must implement the following:
+	// this.title()
+	// this.setUp()
+	// this.eval(absRecID)
+} // PFilterModel
+
+
+PFilterModel.prototype.isDirty = function(setDirty)
+{
+	if (setDirty != null)
+		this.dirty = setDirty;
+	return this.dirty;
+} // isDirty
+
+	// Handles default case of (un-Joined) Attribute
+PFilterModel.prototype.title = function()
+{
+	return this.att.def.l;
+} // title()
+
+
+// ============================================
+// PFilterText: Class to filter Text Attributes
+
+var PFilterText = function(id, attRec)
+{
+	PFilterModel.call(this, id, attRec);
+} // PFilterText()
+
+PFilterText.prototype = Object.create(PFilterModel.prototype);
+
+PFilterText.prototype.constructor = PFilterText;
+
+PFilterText.prototype.eval = function(absID)
+{
+	return true;
+} // eval()
+
+PFilterText.prototype.setup = function()
+{
+	// TO DO
+} // setup()
+
+
 // ========================================================================
 // PViewFrame: Pseudo-object that manages contents of visualization frame
 //				Creates Legend and maintains selection (passed to PVizModel on update)
@@ -266,9 +358,7 @@ function PViewFrame(vizIndex)
 	// INSTANCE VARIABLES
 	//===================
 
-	var frameState = 0;				// 0 = internal initialization, 1 = waiting for data,
-									// 2 = processing data, 3 = creating visualization,
-									// 4 = ready for interaction
+	var frameState = PSTATE_INIT;	// One of PSTATE_
 	var vizSelIndex = 0;			// index of currently selected Viz
 	var vizModel = null;			// PVizModel currently in frame
 	var legendIDs = [];				// Attribute IDs of Legend selections (one per Template)
@@ -565,8 +655,6 @@ function PViewFrame(vizIndex)
 			jQuery(getFrameID()+' .legend-container').hide();
 		}
 		vizModel.setup();
-
-			// TO DO: Indicate to PDataHub that VizModel available for data -- InputQueue mechanism?
 	} // createViz()
 
 
@@ -609,9 +697,11 @@ function PViewFrame(vizIndex)
 		head.click(clickInLegend);
 
 			// Create first VF by default
+		frameState = PSTATE_INIT;
 		createViz(0);
 
-		frameState = 1;
+		frameState = PSTATE_REQ;
+			// TO DO: Indicate to PDataHub that VizModel available for data -- InputQueue mechanism?
 	}; // initDOM()
 
 
@@ -694,20 +784,6 @@ function PViewFrame(vizIndex)
 
 
 // ==========================================================
-// PFilterModel: An abstract class for data filters
-
-// INPUT: fIndex = index for this filter
-
-function PFilterModel(fIndex)
-{
-
-		// All subclasses must implement the following:
-	// this.setup()
-	// this.evaluateRec(theRec)
-} // PFilterModel
-
-
-// ==========================================================
 // PDataHub
 // PURPOSE: Manages all data, orchestrates data streams, etc.
 
@@ -718,11 +794,6 @@ function PFilterModel(fIndex)
 //				private variables and minimizing external interference
 // The s array of an IndexStream contains absolute index numbers to global data array
 // TO DO: 	Change LOAD_DATA_CHUNK to Option setting passed by prspdata
-
-	// GLOBAL CONSTANTS
-var TIME_INSTANT = 1;			// Single instantaneous event (not Date range)
-var TIME_F_START = 2;			// Fuzzy start time
-var TIME_F_END = 4;				// Fuzzy end time
 
 
 var PDataHub = (function () {
@@ -741,20 +812,11 @@ var PDataHub = (function () {
 									// Corresponding to prspdata.t
 									// { n = # loaded, i = initial index for these records, d = data array }
 	var allDataCount=0;				// Total number of Records
-	var topStream=null;				// datastream from top
+
 
 	// INTERNAL FUNCTIONS
 	// ==================
 
-		// PURPOSE: Make data flow from top of VF stack to bottom
-	function flowFromTop()
-	{
-
-	} // flowFromTop()
-
-
-	// PUBLIC INTERFACE
-	// ================
 
 		// PURPOSE: Load a particular chunk of Records
 	function loadAJAXRecs(tIndex, from, count)
@@ -808,10 +870,13 @@ var PDataHub = (function () {
 		if (done) {
 console.log("Done loading: "+JSON.stringify(allData));
 			dataLoaded = true;
-			flowFromTop();
 		}
 	} // checkDataLoad()
 
+
+
+	// PUBLIC INTERFACE
+	// ================
 
 	return {
 			// PURPOSE: Initialize data hub, initiate data loading
@@ -826,6 +891,7 @@ console.log("Done loading: "+JSON.stringify(allData));
 			});
 			checkDataLoad();
 		}, // init()
+
 
 			// PURPOSE: Create Date object from three numbers
 			// INPUT:   year, month, day must be definite numbers
@@ -1333,12 +1399,13 @@ console.log("Done loading: "+JSON.stringify(allData));
 		{
 			return prspdata.e.vf[vIndex];
 		} // getVizIndex()
+
 	} // return
 })();
 
 
 // PBootstrap -- Bootstrap for Prospect Client
-// PURPOSE: Create DOM structure, initiate services …
+// PURPOSE: Create DOM structure, initiate services, manage filters, …
 
 // USES: 	jQuery, jQueryUI, …
 // ASSUMES: prspdata is fully loaded
@@ -1353,15 +1420,51 @@ jQuery(document).ready(function($) {
 		// VARIABLES
 		//==========
 	var view0;				// Primary viewFrame
+	var view1;				// Secondary
+
+	var filters = [];		// Filter Stack: { id, f [PFilterModel], out }
+
+	var topStream;			// Top-level IndexStream
 
 		// FUNCTIONS
 		//==========
 
+		// TO DO: Check and set frameState; make cursor busy during compute!
 	function clickRecompute(event)
 	{
-			// TO DO: Check and set frameState; make cursor busy during compute!
-var stream = PDataHub.newIndexStream(true);
-view0.showData(stream);
+		var endStream;		// Final results to go to views
+
+		if (topStream == null) {
+			topStream = PDataHub.newIndexStream(true);
+		}
+		endStream = topStream;
+
+			// Go through filter stack -- find first dirty flag and recompute from there
+		var started=false, fI, theF;
+		for (fI=0; fI<filters.length; fI++) {
+			theF = filters[fI];
+				// If we've started, evaluate and propagate
+			if (started || theF.f.isDirty(null)) {
+				var nextStream = PDataHub.newIndexStream(false);
+				var relI = 0;
+				var absI, tI=0, tRi, tRn;
+					// Must keep absolute indices and template params updated!
+				while (relI < endStream.l) {
+					absI = endStream.s[relI];
+						// TO DO: Get Att value; check if existence required
+					if (theF.f.eval(absI)) {
+						nextStream.s[nextStream.l++] = absI;
+					}
+				}
+				theF.f.isDirty(false);
+				theF.f.out = nextStream;
+				endStream = nextStream;
+				started = true;
+			} else
+				endStream = theF.f.out;
+		}
+		view0.showData(endStream);
+
 		event.preventDefault();
 	} // clickRecompute()
 
@@ -1417,6 +1520,7 @@ console.log("Set layout to: "+lIndex);
 
 
 		// PURPOSE: Gather data about Filterable Attributes & Facet Browsers
+		// TO DO: 	Handle special case of Join Attributes (label needs both prefix and suffix)
 	function prepFilterData()
 	{
 		prspdata.a.forEach(function(theAttribute) {
@@ -1437,12 +1541,71 @@ console.log("Set layout to: "+lIndex);
 	} // prepFilterData()
 
 
+	function clickFilterToggle(event)
+	{
+		jQuery(this).parent().next().slideToggle(400);
+		event.preventDefault();
+	} // clickFilterToggle()
+
+
+	function clickFilterDel(event)
+	{
+		jQuery(this).parent().next().slideToggle(400);
+		event.preventDefault();
+	} // clickFilterToggle()
+
+
 		// PURPOSE: Add a new filter to the stack
 		// INPUT: 	fType = 'a' (Attribute) or 'b' (Facet Browser)
 		//			fID = Attribute ID or index of Facet Browser
 	function createNewFilter(fType, fID)
 	{
-console.log("Create Filter "+fType+", "+fID);
+// console.log("Create Filter "+fType+", "+fID);
+		var newID;
+		do {
+			newID = Math.floor((Math.random() * 1000) + 1);
+			if (filters.findIndex(function(theF) { return theF.id == newID; }) != -1)
+				newID = -1;
+		} while (newID == -1);
+
+		var newFilter;
+		if (fType == 'a') {
+			var theAtt = PDataHub.getAttID(fID, true);
+			switch (theAtt.def.t) {
+			case 'Vocabulary':
+				newFilter = new PFilterVocab(newID, theAtt);
+				break;
+			case 'Text':
+				newFilter = new PFilterText(newID, theAtt);
+				break;
+			case 'Number':
+				newFilter = new PFilterNum(newID, theAtt);
+				break;
+			case 'Dates':
+				newFilter = new PFilterDates(newID, theAtt);
+				break;
+			}
+		} else {
+			var theFB = PDataHub.getVizIndex(fID);
+				// TO DO: This will not be sufficient!
+			newFilter = new PFilterFacets(newID, theFB);
+		}
+		var newFRec = { id: newID, f: newFilter, out: null };
+		filters.push(newFRec);
+
+			// Now create DOM structure and handle clicks
+		jQuery('#filter-instances').append('<div class="filter-instance" data-id="'+newID+
+					'"><div class="filter-head">'+newFilter.title()+' <button class="btn-filter-toggle">Toggle</button>'+
+					'<button class="btn-filter-del">Delete Filter</button></div><div class="filter-body"></div></div>');
+		jQuery('.filter-instance[data-id="'+newID+'"] .btn-filter-toggle').button({
+					text: false, icons: { primary: 'ui-icon-carat-2-n-s' }
+				}).click(clickFilterToggle);
+		jQuery('.filter-instance[data-id="'+newID+'"] .btn-filter-del').button({
+					text: false, icons: { primary: 'ui-icon-trash' }
+				}).click(clickFilterDel);
+
+			// Allow Filter to insert required HTML
+		newFilter.setup();
 	} // createNewFilter()
 
 
