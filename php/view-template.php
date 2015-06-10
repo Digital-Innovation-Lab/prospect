@@ -143,6 +143,16 @@
 			<img src="<?php echo(plugins_url('assets/layout3.jpg', dirname(__FILE__))); ?>" data-index="2"/>
 		</div>
 	</div>
+
+	<div id="dialog-inspector" title="Selection Inspector">
+		<div class="inspector-header">
+			<button id="btn-inspect-left">Previous</button>
+			<span id="inspect-name"></span>
+			<button id="btn-inspect-right">Next</button>
+		</div>
+		<div class="scroll-container">
+		</div>
+	</div>
 </div>
 
 <!-- DYNAMICALLY LOADED TEXT -->

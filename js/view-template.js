@@ -35,9 +35,9 @@ if (!Array.prototype.findIndex) {
 //				e = Exhibit definition { id, g, vf, w, p }
 
 	// GLOBAL CONSTANTS
-var TIME_INSTANT = 1;			// Single instantaneous event (not Date range)
-var TIME_F_START = 2;			// Fuzzy start time
-var TIME_F_END = 4;				// Fuzzy end time
+var EVENT_INSTANT = 1;			// Single instantaneous event (not Date range)
+var EVENT_F_START = 2;			// Event has fuzzy start
+var EVENT_F_END = 4;			// Event has fuzzy end
 
 var PSTATE_INIT = 0;			// Internal initialization
 var PSTATE_REQ = 1;				// Waiting for requested data
@@ -161,16 +161,19 @@ VizMap.prototype.render = function(datastream)
 	var self = this;
 
 		// PURPOSE: Handle click on feature
-		// NOTES: 	Being within render closure makes it inefficient, but need access
-		//				to vFrame!
+		// NOTES: 	_pid is absolute index of record, but there can be multiple instances of same record!
+		//			This function reing within render closure makes it inefficient,
+		//				but need access to vFrame!
 	function markerClick(e)
 	{
 		if (e.target && e.target.options) {
-			var added = self.vFrame.toggleSelection(e.target.options._pid);
+			var added = self.vFrame.toggleSel(e.target.options._pid);
+// console.log("Added "+e.target.options._pid+"? "+added);
 			if (added)
 				this.setStyle({ color: "#ff0000" });
 			else
 				this.setStyle({ color: "#000" });
+			// TO DO: Go through all markers looking for fellows of same _pid and setStyle accordingly
 		}
 	} // markerClick()
 
@@ -189,55 +192,56 @@ VizMap.prototype.render = function(datastream)
 	}
 
 	var numTmplts = PDataHub.getNumETmplts();
-	var i=0, tIndex=0, fAttID, fAtt, locAtts, featSet, rec;
-	var locData, fData, newMarker;
+	var i=0, aI, tI=0, fAttID, fAtt, locAtts, featSet, rec;
+	var locData, fData, newMarker, s;
 
 	while (i<datastream.l) {
 			// If previous "fast-forward" went to empty Template, must go to next
 		while (i == -1) {
-			if (++tIndex == numTmplts)
+			if (++tI == numTmplts)
 				return;
 			else
 					// Fast-forward to next Template source
-				i = PDataHub.stream1stTEntry(datastream, tIndex);
+				i = PDataHub.stream1stTEntry(datastream, tI);
 		}
 			// Starting with new Template?
 		if (locAtts == null) {
-			locAtts = this.vFrame.getSelLocAtts(tIndex);
-// console.log("tIndex: "+tIndex+"; locAtts: "+JSON.stringify(locAtts));
+			locAtts = this.vFrame.getSelLocAtts(tI);
+// console.log("tIndex: "+tI+"; locAtts: "+JSON.stringify(locAtts));
 				// Skip Template if no locate Atts
 			if (locAtts.length == 0) {
 				locAtts = null;
 					// Have we exhausted all Templates?
-				if (++tIndex == numTmplts)
+				if (++tI == numTmplts)
 					return;
 				else {
 						// Fast-forward to next Template source
-					i = PDataHub.stream1stTEntry(datastream, tIndex);
+					i = PDataHub.stream1stTEntry(datastream, tI);
 					continue;
 				}
 			} // if no locAtts
-			featSet = this.vFrame.getSelFeatAtts(tIndex);
-// console.log("tIndex: "+tIndex+"; featAtts: "+JSON.stringify(featAtts));
+			featSet = self.vFrame.getSelFeatAtts(tI);
+// console.log("tIndex: "+tI+"; featAtts: "+JSON.stringify(featAtts));
 
 				// Skip Templates if no feature Atts
 			if (featSet.length == 0) {
 				locAtts = null;
 					// Have we exhausted all Templates?
-				if (++tIndex == numTmplts)
+				if (++tI == numTmplts)
 					return;
 				else {
 						// Fast-forward to next Template source
-					i = PDataHub.stream1stTEntry(datastream, tIndex);
+					i = PDataHub.stream1stTEntry(datastream, tI);
 					continue;
 				}
 			} // if no featAtts
 				// Get Feature Attribute ID and def for this Template
-			fAttID = this.vFrame.getSelLegend(tIndex);
+			fAttID = self.vFrame.getSelLegend(tI);
 			fAtt = PDataHub.getAttID(fAttID, true);
 		} // if new Template
 			// Get Record data
-		rec = PDataHub.getRecByIndex(datastream.s[i]);
+		aI = datastream.s[i];
+		rec = PDataHub.getRecByIndex(aI);
 			// For each of the locate Attributes
 		locAtts.forEach(function(theLAtt) {
 			locData = rec.a[theLAtt];
@@ -247,11 +251,11 @@ VizMap.prototype.render = function(datastream)
 					if (fData) {
 // console.log("Record "+i+"["+fAttID+"]: "+rec.a[fAttID]+" = "+fData);
 							// TO DO: Handle PNG icons
-							// TO DO: Check to see if ID is in selection, highlight if so
+						s = self.vFrame.isSel(i);
 						if (typeof locData[0] == 'number') {
 							newMarker = L.circleMarker(locData,
-								{	_pid: i, weight: 1, radius: rad,
-									fillColor: fData, color: "#000",
+								{	_pid: aI, weight: 1, radius: rad,
+									fillColor: fData, color: s ? "#ff0000" : "#000",
 									opacity: 1, fillOpacity: 1
 								}
 							);
@@ -269,9 +273,9 @@ VizMap.prototype.render = function(datastream)
 			}
 		}); // for locAtts
 			// Increment stream index -- check if going into new Template
-		if (++i == (datastream.t[tIndex].i + datastream.t[tIndex].n)) {
+		if (++i == (datastream.t[tI].i + datastream.t[tI].n)) {
 			locAtts = null;
-			tIndex++;
+			tI++;
 		}
 	} // while 
 } // render()
@@ -387,7 +391,7 @@ function PViewFrame(vizIndex)
 	var vizSelIndex = 0;			// index of currently selected Viz
 	var vizModel = null;			// PVizModel currently in frame
 	var legendIDs = [];				// Attribute IDs of Legend selections (one per Template)
-	var selRecIDS = [];				// array of IDs of selected Records
+	var recSel = [];				// array of absolute indices of selected Records in sorted order
 	var datastream = null;			// pointer to datastream given to view
 
 	// PRIVATE FUNCTIONS
@@ -420,15 +424,42 @@ function PViewFrame(vizIndex)
 		// PURPOSE: Open Inspector modal for current selection
 	function clickOpenSelection(event)
 	{
-			// TO DO
+		if (recSel.length == 0)
+			return;
+
+		var inspector;
+		var i=0;
+
+		function inspectShow()
+		{
+			var recAbsI = recSel[i];
+			var rec = PDataHub.getRecByIndex(recAbsI);
+			var title = ' '+rec.l+' ('+(i+1)+'/'+recSel.length+') ';
+			jQuery('#inspect-name').text(title);
+				// TO DO: Show all data
+		} // inspectShow()
+
+			// Show first item
+		inspectShow();
+
+		inspector = jQuery("#dialog-inspector").dialog({
+			height: 300,
+			width: 400,
+			modal: true,
+			buttons: {
+				Close: function() {
+					inspector.dialog("close");
+				}
+			}
+		});
+
 		event.preventDefault();
 	} // clickOpenSelection()
 
 	function clickClearSelection(event)
 	{
-			// TO DO: Do visual clear
 			// Reset array
-		selRecIDS = [];
+		recSel = [];
 		if (vizModel)
 			vizModel.clearSelection();
 		event.preventDefault();
@@ -778,21 +809,27 @@ function PViewFrame(vizIndex)
 		return frameState;
 	} // state()
 
-		// PURPOSE: Toggle presence of recordID in selection list
+		// PURPOSE: Toggle presence of record (by absolute index) in selection list
 		// NOTES: 	Called by VizModel based on user interaction
-		// RETURNS: true if added, false if removed
-		// TO DO: 	Sort to make more efficient
-	instance.toggleSelection = function(recordID)
+		// RETURNS: true if didn't exist (added), false if existed (removed)
+	instance.toggleSel = function(recAbsI)
 	{
-		var i = _.indexOf(selRecIDS, recordID);
-		if (i == -1) {
-			selRecIDS.push(recordID);
-			return true;
-		} else {
-			selRecIDS.splice(i, 1);
+		var i = _.sortedIndex(recSel, recAbsI, true);
+		if (recSel[i] == recAbsI) {
+			recSel.splice(i, 1);
 			return false;
+		} else {
+			recSel.splice(i, 0, recAbsI);
+			return true;
 		}
-	} // toggleSelection()
+	} // toggleSel()
+
+		// RETURNS: True if record ID is in selected list
+	instance.isSel = function(recAbsI)
+	{
+		var i = _.indexOf(recSel, recAbsI, true);
+		return (i != -1);
+	} // isSel()
 
 		// PURPOSE: Called by external agent when new datastream is available for viewing
 		// ASSUMED: Caller has already set busy cursor
@@ -898,7 +935,7 @@ var PDataHub = (function () {
 			}
 		}
 		if (done) {
-console.log("Done loading: "+JSON.stringify(allData));
+// console.log("Done loading: "+JSON.stringify(allData));
 			jQuery('#btn-recompute').addClass('highlight');
 			setTimeout(function(){ jQuery('#loading-message').hide(); }, 1500);
 			dataLoaded = true;
@@ -1067,7 +1104,7 @@ console.log("Done loading: "+JSON.stringify(allData));
 			} else {
 				if (start.charAt(0) === '~') {
 					start = start.substr(1);
-					newEvent.flags |= TIME_F_START;
+					newEvent.flags |= EVENT_F_START;
 				}
 				newEvent.start = PDataHub.parseDate(start, true);
 			}
@@ -1080,14 +1117,14 @@ console.log("Done loading: "+JSON.stringify(allData));
 				} else {
 					if (end.charAt(0) === '~') {
 						end = end.substr(1);
-						newEvent.flags |= TIME_F_END;
+						newEvent.flags |= EVENT_F_END;
 					}
 					newEvent.end = PDataHub.parseDate(end, false);
 				}
 
 				// Otherwise an instantaneous event -- just set to start Date
 			} else {
-				newEvent.flags |= TIME_INSTANT;
+				newEvent.flags |= EVENT_INSTANT;
 				newEvent.end = newEvent.start;
 			}
 
@@ -1162,15 +1199,53 @@ console.log("Done loading: "+JSON.stringify(allData));
 		}, // getRecByIndex()
 
 
-			// RETURNS: Attribute value for <attID> in Record whose absolute index is <index>
+			// RETURNS: Attribute value for <attID> in Record whose absolute index is <index>,
+			//				or null if either is non-existent
+			// INPUT: 	If <raw>, return as is; otherwise, turn into string/HTML
 			// TO DO: 	Process data?
-		getRecAtt: function(index, attID)
+		getRecAtt: function(index, attID, raw)
 		{
 			for (var i=0; i<allData.length; i++) {
 				var tData = allData[i];
 				if (tData.i <= index  && index < (tData.i+tData.n)) {
 					var rec = tData.d[index - tData.i];
-					return rec[attID];
+					var a = rec[attID];
+					if (a == null || typeof a == 'undefined')
+						return null;
+					if (raw)
+						return a;
+					var att = PDataHub.getAttID(attID);
+					switch (att.def.t) {
+					case 'Vocabulary':
+						return a.join();
+					case 'Text':
+						return a;
+					case 'Number':
+						return a.toString();
+					case 'Dates':
+						// TO DO!
+						return '';
+					case 'Lat-Lon':
+					case 'X-Y':
+						return a.join();
+						// return a[0].toString()+', '+a[1].toString();
+					case 'Image':
+						return '<img src="'+a+'" alt="'+att.def.l+'">';
+					case 'Link To':
+						return '<a href="'+a+'" target="_blank">(See Link)</a>';
+					case 'SoundCloud':
+						return '<a href="'+a+'" target="_blank">(SoundCloud)</a>';
+					case 'YouTube':
+						return '<a href="https://www.youtube.com/watch?v='+a+'" target="_blank">(YouTube)</a>';
+					case 'Transcript':
+						return '<a href="'+a+'" target="_blank">(See Transcript File)</a>';
+					case 'Timecode':
+						return a;
+					case 'Pointer':
+						// TO DO -- ?? What to do??
+						return a;
+					// case 'Join': 	// Should not appear
+					}
 				}
 			}
 			return null;
@@ -1506,13 +1581,14 @@ console.log("Start recompute");
 				theF.f.out = newStream;
 				endStream = newStream;
 				started = true;
-console.log("Output stream: "+JSON.stringify(newStream));
+console.log("Output stream ["+fI+"]: "+JSON.stringify(newStream));
 			} else
 				endStream = theF.f.out;
 		}
 		jQuery('#btn-recompute').removeClass('highlight');
+console.log("Filtering complete: visualization beginning");
 		view0.showStream(endStream);
-
+console.log("Visualization complete");
 		event.preventDefault();
 	} // clickRecompute()
 
@@ -1539,11 +1615,9 @@ console.log("Set layout to: "+lIndex);
 					if (selected.length) {
 						doSetLayout(selected.data("index"));
 					}
-						// Remove click handler
 					setLayoutDialog.dialog("close");
 				},
 				Cancel: function() {
-						// Remove click handler
 					setLayoutDialog.dialog("close");
 				}
 			},
@@ -1764,6 +1838,10 @@ console.log("Set layout to: "+lIndex);
 			.click(clickNewFilter);
 	jQuery('#btn-toggle-filters').button({icons: { primary: 'ui-icon-arrow-2-n-s' }, text: false })
 			.click(clickToggleFilters);
+
+		// Inspector Modal
+	jQuery('#btn-inspect-left').button({ icons: { primary: 'ui-icon-arrowthick-1-w' }, text: false });
+	jQuery('#btn-inspect-right').button({ icons: { primary: 'ui-icon-arrowthick-1-e' }, text: false });
 
 	prepFilterData();
 
