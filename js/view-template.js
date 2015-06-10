@@ -313,7 +313,7 @@ PFilterModel.prototype.isDirty = function(setDirty)
 {
 	if (setDirty != null) {
 		this.dirty = setDirty;
-		if (setDirty)	// TO DO: Check if class already exists? Or is that auto?
+		if (setDirty)
 			jQuery('#btn-recompute').addClass('highlight');
 	}
 	return this.dirty;
@@ -353,9 +353,14 @@ PFilterText.prototype.evalPrep = function()
 
 PFilterText.prototype.eval = function(rec)
 {
+	var str = this.findStr;
+
+	if (str == null || str == '')
+		return true;
+
 	var txt = rec.a[this.att.id];
 // console.log("Text value = "+txt);
-	return txt.indexOf(this.findStr) != -1;
+	return txt.indexOf(str) != -1;
 } // eval()
 
 PFilterText.prototype.setup = function()
@@ -895,8 +900,9 @@ var PDataHub = (function () {
 		if (done) {
 console.log("Done loading: "+JSON.stringify(allData));
 			jQuery('#btn-recompute').addClass('highlight');
+			setTimeout(function(){ jQuery('#loading-message').hide(); }, 1500);
 			dataLoaded = true;
-			// TO DO: Force view of data
+			// TO DO: initiate view of data
 		}
 	} // checkDataLoad()
 
@@ -1611,7 +1617,7 @@ console.log("Set layout to: "+lIndex);
 			view0.setStream(endStream);
 			if (view1)
 				view1.setStream(endStream);
-			// TO DO: Set vi
+			jQuery('#btn-recompute').addClass('highlight');
 		} else {
 				// Output must be recomputed from successor on
 			filters[fi].f.isDirty(true);
@@ -1673,7 +1679,7 @@ console.log("Set layout to: "+lIndex);
 					text: false, icons: { primary: 'ui-icon-trash' }
 				}).click(clickFilterDel);
 
-		jQuery('#btn-recompute').addClass('highlight');		// TO DO: Check first?
+		jQuery('#btn-recompute').addClass('highlight');
 
 			// Allow Filter to insert required HTML
 		newFilter.setup();
