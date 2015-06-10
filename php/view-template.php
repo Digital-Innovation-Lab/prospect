@@ -87,6 +87,10 @@
 	<span class="home"><span id="home-title">Home</span> <button id="btn-home">Home</button></span>
 </div>
 
+<div id="loading-message">
+	Please wait while data loads.
+</div>
+
 <div id="remainder" class="layout-1">
 	<div id="filter-frame">
 		<div id="filter-control-bar">
@@ -107,9 +111,6 @@
 				<button>Open Selection</button>
 				<button>Clear Selection</button>
 				<button>View Options</button>
-			</div>
-			<div class="viz-loading">
-				Please wait while data loads.
 			</div>
 			<div class="viz-content">
 				<div class="viz-result">
