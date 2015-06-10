@@ -178,6 +178,8 @@ select {
 	 *	#viz-frame-0
 	 *		.view-control-bar
 	 *		.viz-content
+	 *			.viz-result
+	 *			.legend-container
 	 *	#viz-frame-1
 	 *		... (same as above)
 	 */

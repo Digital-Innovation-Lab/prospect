@@ -1463,6 +1463,7 @@ jQuery(document).ready(function($) {
 		// TO DO: Check and set frameState; make cursor busy during compute!
 	function clickRecompute(event)
 	{
+console.log("Start recompute");
 		var endStream;		// Final results to go to views
 
 		if (topStream == null) {
@@ -1486,7 +1487,7 @@ jQuery(document).ready(function($) {
 					while (tRec.n == 0 || (tRec.i+tRec.n) == relI) {
 						newStream.t.push({ i: (newStream.l-tRn), n: tRn });
 						tRn = 0;
-						tRec = endStream.t[tI++];
+						tRec = endStream.t[++tI];
 					}
 						// TO DO: Get Att value; check if existence required
 					absI = endStream.s[relI++];
