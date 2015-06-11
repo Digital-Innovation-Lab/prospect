@@ -1289,29 +1289,6 @@ var PDataHub = (function () {
 			}
 		}, // getAttID()
 
-
-			// RETURNS: first part of AttID if in Join dot notation
-		getAttIDPrefix: function(attID)
-		{
-				// Test if in dot notation
-			var pos = attID.indexOf('.');
-			if (pos != -1)
-				return attID.substring(0, pos);
-			return attID;
-		}, // getAttIDPrefix()
-
-
-			// RETURNS: last part of AttID if in Join dot notation
-		getAttIDSuffix: function(attID)
-		{
-				// Test if in dot notation
-			var pos = attID.indexOf('.');
-			if (pos != -1)
-				return attID.substr(pos)+1;
-			return attID;
-		}, // getAttIDSuffix()
-
-
 		getAttIndex: function(aIndex)
 		{
 			return prspdata.a[aIndex];
