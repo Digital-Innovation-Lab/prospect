@@ -748,11 +748,8 @@ function PViewFrame(vizIndex)
 		var head = jQuery(getFrameID()+' .view-control-bar .view-viz-select');
 			// Set Dropdown to View names
 		prspdata.e.vf.forEach(function(theVF, i) {
-				// Don't treat Facet Browser as View
-			if (theVF.vf != 'Browser') {
-				var optionStr = '<option value="'+i+'">'+theVF.l+'</option>';
-				head.append(optionStr);
-			}
+			var optionStr = '<option value="'+i+'">'+theVF.l+'</option>';
+			head.append(optionStr);
 		});
 		head.change(selectChangeViz);
 
@@ -1627,7 +1624,6 @@ console.log("Set layout to: "+lIndex);
 
 
 		// PURPOSE: Gather data about Filterable Attributes & Facet Browsers
-		// TO DO: 	Handle special case of Join Attributes (label needs both prefix and suffix)
 	function prepFilterData()
 	{
 		prspdata.a.forEach(function(theAttribute) {
@@ -1636,13 +1632,8 @@ console.log("Set layout to: "+lIndex);
 			case 'Text':
 			case 'Number':
 			case 'Dates':
-				jQuery('#filter-list').append('<li data-type="a" data-id="'+theAttribute.id+'">'+theAttribute.def.l+'</li>');
+				jQuery('#filter-list').append('<li data-id="'+theAttribute.id+'">'+theAttribute.def.l+'</li>');
 				break;
-			}
-		});
-		prspdata.e.vf.forEach(function(theVF, vIndex) {
-			if (theVF.vf == 'Browser') {
-				jQuery('#filter-list').append('<li data-type="v" data-id="'+vIndex+'">'+theVF.l+'</li>');
 			}
 		});
 	} // prepFilterData()
@@ -1690,11 +1681,10 @@ console.log("Set layout to: "+lIndex);
 
 
 		// PURPOSE: Add a new filter to the stack
-		// INPUT: 	fType = 'a' (Attribute) or 'b' (Facet Browser)
-		//			fID = Attribute ID or index of Facet Browser
-	function createNewFilter(fType, fID)
+		// INPUT: 	fID = Attribute ID or index of Facet Browser
+	function createNewFilter(fID)
 	{
-// console.log("Create Filter "+fType+", "+fID);
+// console.log("Create Filter "+fID);
 		var newID;
 		do {
 			newID = Math.floor((Math.random() * 1000) + 1);
@@ -1703,27 +1693,22 @@ console.log("Set layout to: "+lIndex);
 		} while (newID == -1);
 
 		var newFilter;
-		if (fType == 'a') {
-			var theAtt = PDataHub.getAttID(fID);
-			switch (theAtt.def.t) {
-			case 'Vocabulary':
-				newFilter = new PFilterVocab(newID, theAtt);
-				break;
-			case 'Text':
-				newFilter = new PFilterText(newID, theAtt);
-				break;
-			case 'Number':
-				newFilter = new PFilterNum(newID, theAtt);
-				break;
-			case 'Dates':
-				newFilter = new PFilterDates(newID, theAtt);
-				break;
-			}
-		} else {
-			var theFB = PDataHub.getVizIndex(fID);
-				// TO DO: This will not be sufficient!
-			newFilter = new PFilterFacets(newID, theFB);
+		var theAtt = PDataHub.getAttID(fID);
+		switch (theAtt.def.t) {
+		case 'Vocabulary':
+			newFilter = new PFilterVocab(newID, theAtt);
+			break;
+		case 'Text':
+			newFilter = new PFilterText(newID, theAtt);
+			break;
+		case 'Number':
+			newFilter = new PFilterNum(newID, theAtt);
+			break;
+		case 'Dates':
+			newFilter = new PFilterDates(newID, theAtt);
+			break;
 		}
+
 		var newFRec = { id: newID, f: newFilter, out: null };
 		filters.push(newFRec);
 
@@ -1760,7 +1745,7 @@ console.log("Set layout to: "+lIndex);
 				Add: function() {
 					var selected = jQuery("#filter-list li.selected");
 					if (selected.length) {
-						createNewFilter(selected.data("type"), selected.data("id"));
+						createNewFilter(selected.data("id"));
 					}
 						// Remove click handler
 					newFilterDialog.dialog("close");
