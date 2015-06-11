@@ -73,43 +73,6 @@ class ProspectTemplate {
 	public $meta_joins;
 	public $joins;
 
-
-		// PURPOSE: Get number of Records of this Template type
-	public function get_num_records($tmplt_id)
-	{
-		$args = array('post_type' => 'prsp-record', 'meta_key' => 'tmplt-id',
-						'meta_value' => $this->id, 'post_status' => 'publish');
-		$query = new WP_Query($args);
-		return (int)$query->found_posts;
-	} // get_num_records()
-
-
-		// PURPOSE: Return array of Dependent templates joined by this Template
-		//				Ordered by ID
-	public function get_dependent_templates()
-	{
-			// Decode Join data if not already
-		if ($this->joins == null && ($this->meta_joins != null && $this->meta_joins != '' && $this->meta_joins != 'null'))
-			$this->joins = json_decode($this->meta_joins, false);
-
-		$deps = array();
-
-			// No Join data
-		if ($this->joins == null || $this->joins == '') {
-			return $deps;
-		}
-
-		foreach($this->joins as $join_pair) {
-				// As they are dependent Templates, they will not have join data
-			$the_template = new ProspectTemplate(false, $join_pair->t, true, false);
-			array_push($deps, $the_template);
-		}
-			// Sort by ID
-		usort($deps, array('ProspectTemplate', 'cmp_ids'));
-		return $deps;
-	} // get_dependent_templates()
-
-
 		// PURPOSE: Create Template object and load its definition given its ID
 		// INPUT:	if is_postid, then the_id is the WordPress post ID (not Template ID)
 		//			the_id is either (1) WordPress post ID, or
@@ -163,4 +126,81 @@ class ProspectTemplate {
 		} // if post_id
 	} // __construct()
 
+
+		// PURPOSE: Get number of Records of this Template type
+	public function get_num_records($tmplt_id)
+	{
+		$args = array('post_type' => 'prsp-record', 'meta_key' => 'tmplt-id',
+						'meta_value' => $this->id, 'post_status' => 'publish');
+		$query = new WP_Query($args);
+		return (int)$query->found_posts;
+	} // get_num_records()
+
+
+		// RETURNS: Array of Dependent templates joined by this Template ordered by ID
+	public function get_dependent_templates()
+	{
+			// Decode Join data if not already
+		if ($this->joins == null && ($this->meta_joins != null && $this->meta_joins != '' && $this->meta_joins != 'null'))
+			$this->joins = json_decode($this->meta_joins, false);
+
+		$deps = array();
+
+			// No Join data
+		if ($this->joins == null || $this->joins == '') {
+			return $deps;
+		}
+
+		foreach($this->joins as $join_pair) {
+				// As they are dependent Templates, they will not have join data
+			$the_template = new ProspectTemplate(false, $join_pair->t, true, false);
+			array_push($deps, $the_template);
+		}
+			// Sort by ID
+		usort($deps, array('ProspectTemplate', 'cmp_ids'));
+		return $deps;
+	} // get_dependent_templates()
+
+		// RETURNS: Array of all Attributes used by this Template type
+		// 				Creates pseudo-Attribute definitions for Joined Attributes
+		// INPUT:	Sort by ID if sort = true
+		// ASSUMES: This Template's Joins and definition data has been loaded
+		//			Attribute needs to be unpacked, hint is not needed
+	public function get_all_attributes($sort)
+	{
+			// Decode Definition data if not already
+		if ($this->def == null && ($this->meta_def != null && $this->meta_def != '' && $this->meta_def != 'null'))
+			$this->def = json_decode($this->meta_def, false);
+
+			// Decode Join data if not already
+		if ($this->joins == null && ($this->meta_joins != null && $this->meta_joins != '' && $this->meta_joins != 'null'))
+			$this->joins = json_decode($this->meta_joins, false);
+
+		$all_atts = array();
+
+		foreach($this->def->a as $att_id) {
+			$the_att = new ProspectAttribute(false, $att_id, true, false, true, true);
+			if ($the_att->def->t == 'Join') {
+					// Find entry in Join table and get dependent Template
+				for ($ji=0; $ji<count($this->joins); $ji++) {
+					if ($att_id == $this->joins[$ji]->id) {
+						$d_tmplt = new ProspectTemplate(false, $this->joins[$ji]->t, true, false);
+						foreach ($d_tmplt->def->a as $d_att_id) {
+								// Get dependent Attribute definition
+							$d_att = new ProspectAttribute(false, $d_att_id, true, false, true, true);
+								// Modify Joined ID and label for dot notation
+							$d_att->id = $the_att->id.'.'.$d_att->id;
+							$d_att->def->l = $the_att->def->l.' ('.$d_att->def->l.')';
+							array_push($all_atts, $d_att);
+						}
+					}
+				}
+			} else
+				array_push($all_atts, $the_att);
+		}
+		if ($sort) {
+			usort($all_atts, array('ProspectTemplate', 'cmp_ids'));
+		}
+		return $all_atts;
+	} // get_all_attributes()
 } // class ProspectTemplate

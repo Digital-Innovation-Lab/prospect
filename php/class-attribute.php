@@ -91,8 +91,8 @@ class ProspectAttribute {
 		return strcmp($a->id, $b->id);
 	} // cmp_ids()
 
-
-		// NOTES:	Only get published Attributes
+		// RETURNS: Array of all defined Attributes sorted by ID
+		// NOTES:	Selects only published Attributes
 	static public function get_all_attributes($unpack, $load_hint, $load_range, $load_legend)
 	{
 		$all_atts = array();
@@ -154,6 +154,28 @@ class ProspectAttribute {
 	} // get_assoc_defs()
 
 
+		// RETURNS: Array of Attributes sorted by ID, ensuring that IDs are unique
+	static public function unique_sorted_att_array($att_array)
+	{
+		$final = array();
+		foreach ($att_array as $this_att) {
+			$found = false;
+			foreach ($final as $final_entry) {
+				if ($this_att->id == $final_entry->id) {
+					$found = true;
+					break;
+				}
+			}
+			if (!$found) {
+				array_push($final, $this_att);
+			}
+		}
+			// Sort by ID
+		usort($final, array('ProspectAttribute', 'cmp_ids'));
+		return $final;
+	} // unique_sorted_att_array()
+
+
 		// PURPOSE: Determine whether black or white is best color contast
 		// INPUT:	viz_val is visual setting (could be color or icon ID)
 		// RETURNS: null if viz_val is not a color, true if black, false if white
@@ -189,9 +211,9 @@ class ProspectAttribute {
 
 
 		// PURPOSE: Create Attribute object and load its definition given its ID
-		// INPUT:	if is_postid, then the_id is the WordPress post ID (not Attribute ID)
-		//			the_id is either (1) WordPress post ID, or
-		//				unique ID for Attribute, or '' if this is a new Attribute definition
+		// INPUT:	if is_postid, then the_id is the WordPress post ID (not Attribute ID) or -1
+		//			the_id is either (1) WordPress post ID, (2) unique ID for Attribute, or
+		//				(3) '' if this is a new Attribute definition
 		//			only load range data if load_range is true
 		//			only load legend data if load_legend is true
 	public function __construct($is_postid, $the_id, $unpack, $load_hint, $load_range, $load_legend)

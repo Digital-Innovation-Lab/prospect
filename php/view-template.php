@@ -49,21 +49,24 @@
 		// Also need to output Template data based on Exhibit data
 	echo(' t: [ ');
 	$first = true;
+	$att_defs = array();
 	foreach($the_xhbt->gen->ts as $template_id) {
 		if (!$first)
 			echo(', ');
 		$first = false;
-		$the_template = new ProspectTemplate(false, $template_id, false, false);
+		$the_template = new ProspectTemplate(false, $template_id, true, true);
 		echo('{ id: "'.$the_template->id.'", ');
 		echo(' def: '.$the_template->meta_def.', ');
 		echo(' n: '.$the_template->get_num_records().' }');
+		$att_defs = array_merge($att_defs, $the_template->get_all_attributes());
 	}
 
 ?> ],
 		a: [ <?php
 
 		// Get all definitions of all current Attributes
-	$att_defs = ProspectAttribute::get_all_attributes(true, false, true, true);
+	// $att_defs = ProspectAttribute::get_all_attributes(true, false, true, true);
+	$att_defs = ProspectAttribute::unique_sorted_att_array($att_defs);
 		// Output each entry
 	$first = true;
 	foreach($att_defs as $the_attribute) {
