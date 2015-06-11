@@ -150,7 +150,7 @@
 			<span id="inspect-name"></span>
 			<button id="btn-inspect-right">Next</button>
 		</div>
-		<div class="scroll-container">
+		<div id="inspect-content" class="scroll-container">
 		</div>
 	</div>
 </div>

@@ -436,17 +436,35 @@ function PViewFrame(vizIndex)
 			var rec = PDataHub.getRecByIndex(recAbsI);
 			var title = ' '+rec.l+' ('+(i+1)+'/'+recSel.length+') ';
 			jQuery('#inspect-name').text(title);
-				// TO DO: Show all data
+				// Which template type?
+			var tI = PDataHub.aIndex2Tmplt(recAbsI);
+				// Show all data
+			var container = jQuery('#inspect-content');
+			container.empty();
+// console.log("Show atts: "+JSON.stringify(prspdata.e.p.modal.atts[tI]));
+			prspdata.e.p.modal.atts[tI].forEach(function(attID) {
+				var attVal = PDataHub.getRecAtt(recAbsI, attID, false);
+// console.log("AttID: "+attID+"; val: "+attVal);
+				if (attVal) {
+					var theAtt = PDataHub.getAttID(attID);
+					var html = '<b>'+theAtt.def.l+'</b>: '+attVal+'<br/>';
+					container.append(html);
+				}
+			});
 		} // inspectShow()
 
 			// Show first item
 		inspectShow();
 
+			// TO DO: Determine size based on extra widgets
 		inspector = jQuery("#dialog-inspector").dialog({
 			height: 300,
 			width: 400,
 			modal: true,
 			buttons: {
+				'See Record': function() {
+					// TO DO: AJAX call to get_permalink() to get URL!
+				},
 				Close: function() {
 					inspector.dialog("close");
 				}
@@ -1161,15 +1179,15 @@ var PDataHub = (function () {
 		}, // newIndexStream()
 
 
-			// RETURNS: Index of Template to which absolute <index> belongs
-		sIndex2Tmplt: function(index)
+			// RETURNS: Index of Template to which absolute index <absI> belongs
+		aIndex2Tmplt: function(absI)
 		{
 			for (var i=0; i<allData.length; i++) {
 				var tData = allData[i];
-				if (tData.i <= index  && index < (tData.i+tData.n))
+				if (tData.i <= absI  && absI < (tData.i+tData.n))
 					return i;
 			}
-		}, // sIndex2Tmplt()
+		}, // aIndex2Tmplt()
 
 
 			// RETURNS: The index of first entry in <datastream> which belongs to Template <tIndex>
@@ -1185,14 +1203,14 @@ var PDataHub = (function () {
 		}, // stream1stTEntry()
 
 
-			// RETURNS: Object for Record whose absolute index is <index>
-		getRecByIndex: function(index)
+			// RETURNS: Object for Record whose absolute index is <absI>
+		getRecByIndex: function(absI)
 		{
 			for (var i=0; i<allData.length; i++) {
 				var tData = allData[i];
 				if (tData.n > 0) {
-					if (tData.i <= index  && index < (tData.i+tData.n))
-						return tData.d[index - tData.i];
+					if (tData.i <= absI  && absI < (tData.i+tData.n))
+						return tData.d[absI - tData.i];
 				}
 			}
 			return null;
@@ -1203,13 +1221,13 @@ var PDataHub = (function () {
 			//				or null if either is non-existent
 			// INPUT: 	If <raw>, return as is; otherwise, turn into string/HTML
 			// TO DO: 	Process data?
-		getRecAtt: function(index, attID, raw)
+		getRecAtt: function(absI, attID, raw)
 		{
 			for (var i=0; i<allData.length; i++) {
 				var tData = allData[i];
-				if (tData.i <= index  && index < (tData.i+tData.n)) {
-					var rec = tData.d[index - tData.i];
-					var a = rec[attID];
+				if (tData.n > 0 && tData.i <= absI  && absI < (tData.i+tData.n)) {
+					var rec = tData.d[absI - tData.i];
+					var a = rec.a[attID];
 					if (a == null || typeof a == 'undefined')
 						return null;
 					if (raw)
@@ -1224,7 +1242,7 @@ var PDataHub = (function () {
 						return a.toString();
 					case 'Dates':
 						// TO DO!
-						return '';
+						return '-Date-';
 					case 'Lat-Lon':
 					case 'X-Y':
 						return a.join();

@@ -1123,6 +1123,7 @@ class ProspectAdmin {
 					// Extract the necessary data in proper format
 				$extracted_rec = array();
 				$extracted_rec['id'] = $the_rec->id;
+				$extracted_rec['wp'] = $the_rec->post_id;
 				$extracted_rec['l']  = $the_rec->label;
 				$extracted_rec['a']  = $the_rec->att_data;
 				array_push($result, $extracted_rec);
