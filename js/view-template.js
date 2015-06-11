@@ -237,7 +237,7 @@ VizMap.prototype.render = function(datastream)
 			} // if no featAtts
 				// Get Feature Attribute ID and def for this Template
 			fAttID = self.vFrame.getSelLegend(tI);
-			fAtt = PDataHub.getAttID(fAttID, true);
+			fAtt = PDataHub.getAttID(fAttID);
 		} // if new Template
 			// Get Record data
 		aI = datastream.s[i];
@@ -625,7 +625,7 @@ function PViewFrame(vizIndex)
 		group.empty();
 		legendIDs[lIndex] = attID;
 			// Insert new items
-		var attDef = PDataHub.getAttID(attID, true);
+		var attDef = PDataHub.getAttID(attID);
 		attDef.l.forEach(function(legEntry, lgIndex) {
 				// TO DO: Account for both icons and colors acc. to v string
 			element = '<div class="legend-value legend-entry" data-index="'+lgIndex+'"><input type="checkbox" checked="checked" class="legend-entry-check"/>'+
@@ -696,7 +696,7 @@ function PViewFrame(vizIndex)
 					var newTLegend = jQuery('<div class="legend-template" data-index="'+tIndex+
 									'"><div class="legend-title">'+tmpltDef.l+'</div></div>');
 					locAtts.forEach(function(attID, aIndex) {
-						var attDef = PDataHub.getAttID(attID, false);
+						var attDef = PDataHub.getAttID(attID);
 						newTLegend.append('<div class="legend-entry legend-locate" data-id="'+attID+
 							'"><input type="checkbox" checked="checked" class="legend-entry-check"/><span class="legend-value-title">'+
 							attDef.def.l+'</span></div>');
@@ -705,7 +705,7 @@ function PViewFrame(vizIndex)
 					var attSelection = vizModel.getFeatureAtts(tIndex);
 					var newStr = '<select class="legend-select">';
 					attSelection.forEach(function(attID, aIndex) {
-						var attDef = PDataHub.getAttID(attID, true);
+						var attDef = PDataHub.getAttID(attID);
 						newStr += '<option value="'+attID+'">'+attDef.def.l+'</option>';
 					});
 					newStr += '</select>';
@@ -1279,19 +1279,9 @@ var PDataHub = (function () {
 
 			// RETURNS: Attribute definition with this ID
 			// INPUT:   attID = full Attribute ID (could be in Join dot notation)
-			//			if in Join dot notation and suffix = true, find Attribute for suffix segment
-			// NOTE: 	In case that ID is Joined with dot notation, find base Attribute
 			// TO DO:   Use binary search
-		getAttID: function(attID, suffix)
+		getAttID: function(attID)
 		{
-				// Test if in dot notation
-			var pos = attID.indexOf('.');
-			if (pos != -1) {
-				if (suffix)
-					attID = attID.substr(pos+1);
-				else
-					attID = attID.substring(0, pos);
-			}
 			for (var i=0; i<prspdata.a.length; i++) {
 				var thisID = prspdata.a[i].id;
 				if (attID == thisID)
@@ -1737,7 +1727,7 @@ console.log("Set layout to: "+lIndex);
 
 		var newFilter;
 		if (fType == 'a') {
-			var theAtt = PDataHub.getAttID(fID, true);
+			var theAtt = PDataHub.getAttID(fID);
 			switch (theAtt.def.t) {
 			case 'Vocabulary':
 				newFilter = new PFilterVocab(newID, theAtt);
