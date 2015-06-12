@@ -103,7 +103,10 @@ class ProspectAttribute {
 		if ($loop->have_posts()) {
 			foreach ($loop->posts as $att) {
 				$new_att = new ProspectAttribute(true, $att->ID, $unpack, $load_hint, $load_range, $load_legend);
-				array_push($all_atts, $new_att);
+					// Ensure minimal data provided
+				if ($new_att->id != null && $new_att->id != '') {
+					array_push($all_atts, $new_att);
+				}
 			}
 		}
 			// Sort by ID

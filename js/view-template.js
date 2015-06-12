@@ -471,9 +471,12 @@ function PViewFrame(vizIndex)
 
 		function inspectSlide(diff)
 		{
-			var newI = (i+diff) % recSel.length;
-			if (newI < 0)
-				newI += recSel.length;
+			var newI = i+diff;
+			if (newI == -1)
+				newI = recSel.length-1;
+			else if (newI == recSel.length)
+				newI = 0;
+
 			if (newI != i) {
 				i = newI;
 				inspectShow();
@@ -1285,7 +1288,7 @@ var PDataHub = (function () {
 						return a.join();
 						// return a[0].toString()+', '+a[1].toString();
 					case 'Image':
-						return '<img src="'+a+'" alt="'+att.def.l+'">';
+						return '<img src="'+a+'" alt="'+att.def.l+'"/>';
 					case 'Link To':
 						return '<a href="'+a+'" target="_blank">(See Link)</a>';
 					case 'SoundCloud':
