@@ -297,11 +297,11 @@ VizMap.prototype.teardown = function()
 // PFilterModel: An abstract class to be subclassed by specific filters
 
 	// INPUT: 	id = unique ID for this filter
-	//			attOrFB = pointer to complete Attribute or Facet Browser settings
-function PFilterModel(id, attOrFB)
+	//			attRec = pointer to complete Attribute or Facet Browser settings
+function PFilterModel(id, attRec)
 {
 	this.id 		= id;
-	this.att 		= attOrFB;
+	this.att 		= attRec;
 
 	this.dirty 		= true;
 
@@ -1157,7 +1157,7 @@ var PDataHub = (function () {
 		newIndexStream: function(full)
 		{
 			var newStream = { };
-			newStream.s = new Int16Array(allDataCount);
+			newStream.s = new Uint16Array(allDataCount);
 			newStream.t = [];
 			newStream.l = 0;
 
