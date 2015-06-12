@@ -127,7 +127,10 @@ class ProspectAttribute {
 			foreach ($loop->posts as $att) {
 				if ($att->ID != $except_post_id) {
 					$new_att_id = get_post_meta($att->ID, 'att-id', true);
-					array_push($all_att_ids, $new_att_id);
+						// Ensure minimal data provided
+					if ($new_att_id != null && $new_att_id != '') {
+						array_push($all_att_ids, $new_att_id);
+					}
 				}
 			}
 		}
@@ -147,9 +150,11 @@ class ProspectAttribute {
 		if ($loop->have_posts()) {
 			foreach ($loop->posts as $att) {
 				$att_id = get_post_meta($att->ID, 'att-id', true);
-				$att_def_meta = get_post_meta($att->ID, 'att-def', true);
-				$att_def = json_decode($att_def_meta, false);
-				$assocs[$att_id] = $att_def;
+				if ($att_id != '') {
+					$att_def_meta = get_post_meta($att->ID, 'att-def', true);
+					$att_def = json_decode($att_def_meta, false);
+					$assocs[$att_id] = $att_def;
+				}
 			}
 		}
 

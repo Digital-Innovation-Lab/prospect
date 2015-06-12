@@ -21,7 +21,9 @@ class ProspectExhibit {
 		if ($loop->have_posts()) {
 			foreach ($loop->posts as $tmp) {
 				$the_exhibit = new ProspectExhibit(true, $tmp->ID, $unpack);
-				array_push($all_exhibit_defs, $the_exhibit);
+				if ($the_exhibit->id != null && $the_exhibit->id != '') {
+					array_push($all_exhibit_defs, $the_exhibit);
+				}
 			}
 		}
 

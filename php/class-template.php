@@ -28,7 +28,9 @@ class ProspectTemplate {
 			foreach ($loop->posts as $tmp) {
 				if ($tmp->ID != $except_post_id) {
 					$new_tmp_id = get_post_meta($tmp->ID, 'tmplt-id', true);
-					array_push($all_tmp_ids, $new_tmp_id);
+					if ($new_tmp_id != '') {
+						array_push($all_tmp_ids, $new_tmp_id);
+					}
 				}
 			}
 		}
@@ -51,7 +53,9 @@ class ProspectTemplate {
 			foreach ($loop->posts as $tmp) {
 				if ($tmp->ID != $except_post_id) {
 					$the_temp = new ProspectTemplate(true, $tmp->ID, $unpack, $load_joins);
-					array_push($all_tmp_defs, $the_temp);
+					if ($the_temp->id != null && $the_temp->id != '') {
+						array_push($all_tmp_defs, $the_temp);
+					}
 				}
 			}
 		}

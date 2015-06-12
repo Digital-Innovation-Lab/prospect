@@ -115,6 +115,7 @@ class ProspectRecord {
 						case 'Vocabulary':
 							if ($att_def->d != '')
 								$this->att_data[$att_to_load] = explode($att_def->d, $val);
+							// TO DO: Trim items also
 							else
 								$this->att_data[$att_to_load] = array($val);
 							break;
