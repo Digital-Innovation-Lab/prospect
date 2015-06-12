@@ -469,8 +469,30 @@ function PViewFrame(vizIndex)
 			});
 		} // inspectShow()
 
+		function inspectSlide(diff)
+		{
+			var newI = (i+diff) % recSel.length;
+			if (newI < 0)
+				newI += recSel.length;
+			if (newI != i) {
+				i = newI;
+				inspectShow();
+			}
+		} // inspectSlide()
+
+		function inspectLeft(event)
+		{
+			inspectSlide(-1);
+		}
+		function inspectRight(event)
+		{
+			inspectSlide(1);
+		}
+
 			// Show first item
 		inspectShow();
+		jQuery('#btn-inspect-left').click(inspectLeft);
+		jQuery('#btn-inspect-right').click(inspectRight);
 
 			// TO DO: Determine size based on extra widgets
 		inspector = jQuery("#dialog-inspector").dialog({
@@ -482,6 +504,8 @@ function PViewFrame(vizIndex)
 					// TO DO: AJAX call to get_permalink() to get URL!
 				},
 				Close: function() {
+					jQuery('#btn-inspect-left').off("click");
+					jQuery('#btn-inspect-right').off("click");
 					inspector.dialog("close");
 				}
 			}
