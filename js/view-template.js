@@ -298,12 +298,14 @@ VizMap.prototype.teardown = function()
 
 	// INPUT: 	id = unique ID for this filter
 	//			attRec = pointer to complete Attribute or Facet Browser settings
+	// ASSUMES: required is true by default
 function PFilterModel(id, attRec)
 {
 	this.id 		= id;
 	this.att 		= attRec;
 
 	this.dirty 		= true;
+	this.req 		= true;
 
 		// All subclasses must implement the following:
 	// this.title()
@@ -323,8 +325,18 @@ PFilterModel.prototype.isDirty = function(setDirty)
 	return this.dirty;
 } // isDirty
 
+PFilterModel.prototype.isReq = function(setReq)
+{
+	if (setReq != null) {
+		if (this.req != setReq)
+			this.isDirty(true);
+		this.req = setReq;
+	}
+	return this.dirty;
+} // isReq
+
 	// PURPOSE: Return title for filter component
-	// NOTES: 	Handles default case of (un-Joined) Attribute
+	// NOTES: 	Handles default case of Attribute label
 PFilterModel.prototype.title = function()
 {
 	return this.att.def.l;
@@ -352,7 +364,6 @@ PFilterText.prototype.constructor = PFilterText;
 PFilterText.prototype.evalPrep = function()
 {
 	this.findStr = this.insertPt().find('.filter-text').val();
-// console.log("Find string: "+this.findStr);
 } // evalPrep()
 
 PFilterText.prototype.eval = function(rec)
@@ -363,6 +374,11 @@ PFilterText.prototype.eval = function(rec)
 		return true;
 
 	var txt = rec.a[this.att.id];
+	if (typeof txt == 'undefined') {
+		if (this.req)
+			return false;
+		return true;
+	}
 // console.log("Text value = "+txt);
 	return txt.indexOf(str) != -1;
 } // eval()
@@ -1645,6 +1661,20 @@ console.log("Set layout to: "+lIndex);
 		event.preventDefault();
 	} // clickFilterToggle()
 
+	function clickFilterDirty(event)
+	{
+		var head = jQuery(this).closest('.filter-instance');
+		if (head) {
+			var fID = head.data('id');
+			var req = head.find('.req-att').is(':checked');
+			if (fID && fID != '') {
+				var fRec;
+				fRec = filters.find(function(fr) { return fr.id == fID; });
+				if (fRec == null)	{ alert('Bad Filter ID '+fID); return; }
+				fRec.f.isReq(req);
+			}
+		}
+	} // clickFilterDirty()
 
 	function clickFilterDel(event)
 	{
@@ -1682,7 +1712,7 @@ console.log("Set layout to: "+lIndex);
 
 		// PURPOSE: Add a new filter to the stack
 		// INPUT: 	fID = Attribute ID or index of Facet Browser
-	function createNewFilter(fID)
+	function createFilter(fID)
 	{
 // console.log("Create Filter "+fID);
 		var newID;
@@ -1714,21 +1744,30 @@ console.log("Set layout to: "+lIndex);
 
 			// Now create DOM structure and handle clicks
 		jQuery('#filter-instances').append('<div class="filter-instance" data-id="'+newID+
-					'"><div class="filter-head">'+newFilter.title()+' <button class="btn-filter-toggle">Toggle</button>'+
-					'<button class="btn-filter-del">Delete Filter</button></div><div class="filter-body"></div></div>');
+					'"><div class="filter-head">'+newFilter.title()+' &nbsp; <input type="checkbox" class="req-att" value="required" checked="checked"> Require attribute value '+
+					'&nbsp; &nbsp;  <button class="btn-filter-toggle">Toggle</button> <button class="btn-filter-del">Delete Filter</button></div><div class="filter-body"></div></div>');
 
-		jQuery('.filter-instance[data-id="'+newID+'"] .btn-filter-toggle').button({
+		var head = jQuery('.filter-instance[data-id="'+newID+'"]');
+		head.find('.btn-filter-toggle').button({
 					text: false, icons: { primary: 'ui-icon-carat-2-n-s' }
 				}).click(clickFilterToggle);
-		jQuery('.filter-instance[data-id="'+newID+'"] .btn-filter-del').button({
+		head.find('.btn-filter-del').button({
 					text: false, icons: { primary: 'ui-icon-trash' }
 				}).click(clickFilterDel);
+		head.find('.req-att').click(clickFilterDirty);
+
+		// jQuery('.filter-instance[data-id="'+newID+'"] .btn-filter-toggle').button({
+		// 			text: false, icons: { primary: 'ui-icon-carat-2-n-s' }
+		// 		}).click(clickFilterToggle);
+		// jQuery('.filter-instance[data-id="'+newID+'"] .btn-filter-del').button({
+		// 			text: false, icons: { primary: 'ui-icon-trash' }
+		// 		}).click(clickFilterDel);
 
 		jQuery('#btn-recompute').addClass('highlight');
 
 			// Allow Filter to insert required HTML
 		newFilter.setup();
-	} // createNewFilter()
+	} // createFilter()
 
 
 	function clickNewFilter(event)
@@ -1745,7 +1784,7 @@ console.log("Set layout to: "+lIndex);
 				Add: function() {
 					var selected = jQuery("#filter-list li.selected");
 					if (selected.length) {
-						createNewFilter(selected.data("id"));
+						createFilter(selected.data("id"));
 					}
 						// Remove click handler
 					newFilterDialog.dialog("close");
