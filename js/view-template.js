@@ -151,6 +151,12 @@ VizMap.prototype.setup = function()
 	markers.options.layerName = 'TO DO';
 
 	markers.addTo(this.lMap);
+
+		// Maintain number of visible markers per Template type
+	var numT = PDataHub.getNumETmplts();
+	this.tLCnt = new Uint16Array(numT);
+	for (var i=0; i<numT; i++)
+		this.tLCnt[i] = 0;
 } // setup()
 
 
@@ -159,26 +165,40 @@ VizMap.prototype.setup = function()
 VizMap.prototype.render = function(datastream)
 {
 	var self = this;
+	var mLayer = this.markerLayer;
 
 		// PURPOSE: Handle click on feature
-		// NOTES: 	_pid is absolute index of record, but there can be multiple instances of same record!
-		//			This function reing within render closure makes it inefficient,
+		// NOTES: 	_aid is absolute index of record, but there can be multiple instances of same record!
+		//			This function being within render closure makes it inefficient,
 		//				but need access to vFrame!
 	function markerClick(e)
 	{
 		if (e.target && e.target.options) {
-			var added = self.vFrame.toggleSel(e.target.options._pid);
-// console.log("Added "+e.target.options._pid+"? "+added);
-			if (added)
-				this.setStyle({ color: "#ff0000" });
-			else
-				this.setStyle({ color: "#000" });
-			// TO DO: Go through all markers looking for fellows of same _pid and setStyle accordingly
+			var aid = e.target.options._aid;
+			var added = self.vFrame.toggleSel(aid);
+// console.log("Added "+e.target.options._aid+"? "+added);
+
+				// Which Template type does absolute index belong to? Does it have multiple location Attributes?
+			var tI = PDataHub.aIndex2Tmplt(aid);
+				// If so, go through all markers looking for fellows of same _aid and setStyle accordingly
+			if (self.tLCnt[tI] > 1) {
+				mLayer.eachLayer(function(marker) {
+					if (marker.options._aid == aid) {
+						if (added)
+							marker.setStyle({ color: "#ff0000" });
+						else
+							marker.setStyle({ color: "#000" });
+					}
+				});
+			} else {
+				if (added)
+					this.setStyle({ color: "#ff0000" });
+				else
+					this.setStyle({ color: "#000" });
+			}
 		}
 	} // markerClick()
 
-
-	var mLayer = this.markerLayer;
 
 		// Remove previous Markers
 	mLayer.clearLayers();
@@ -195,6 +215,11 @@ VizMap.prototype.render = function(datastream)
 	var i=0, aI, tI=0, fAttID, fAtt, locAtts, featSet, rec;
 	var locData, fData, newMarker, s;
 
+		// Clear out marker counts
+	for (i=0; i<numTmplts; i++)
+		this.tLCnt[i] = 0;
+
+	i=0;
 	while (i<datastream.l) {
 			// If previous "fast-forward" went to empty Template, must go to next
 		while (i == -1) {
@@ -207,6 +232,7 @@ VizMap.prototype.render = function(datastream)
 			// Starting with new Template?
 		if (locAtts == null) {
 			locAtts = this.vFrame.getSelLocAtts(tI);
+			self.tLCnt[tI] = locAtts.length;
 // console.log("tIndex: "+tI+"; locAtts: "+JSON.stringify(locAtts));
 				// Skip Template if no locate Atts
 			if (locAtts.length == 0) {
@@ -254,7 +280,7 @@ VizMap.prototype.render = function(datastream)
 						s = self.vFrame.isSel(i);
 						if (typeof locData[0] == 'number') {
 							newMarker = L.circleMarker(locData,
-								{	_pid: aI, weight: 1, radius: rad,
+								{	_aid: aI, weight: 1, radius: rad,
 									fillColor: fData, color: s ? "#ff0000" : "#000",
 									opacity: 1, fillOpacity: 1
 								}
@@ -314,7 +340,9 @@ function PFilterModel(id, attRec)
 	// this.eval(rec)
 } // PFilterModel
 
-
+	// PURPOSE: Either set or get dirty state of Filter
+	// RETURNS: true if filter is "dirty" (has been changed and thus forces recompute)
+	// INPUT:   null if only retrieving state, else true or false
 PFilterModel.prototype.isDirty = function(setDirty)
 {
 	if (setDirty != null) {
@@ -325,6 +353,9 @@ PFilterModel.prototype.isDirty = function(setDirty)
 	return this.dirty;
 } // isDirty
 
+	// PURPOSE: Either set or get setting if Filter value is required
+	// RETURNS: true if Attribute is required by Filter, false if records without pass through
+	// INPUT:   null if only retrieving state, else true or false
 PFilterModel.prototype.isReq = function(setReq)
 {
 	if (setReq != null) {
@@ -385,8 +416,14 @@ PFilterText.prototype.eval = function(rec)
 
 PFilterText.prototype.setup = function()
 {
+	var self = this;
+	var inserted = this.insertPt();
 	var htmlText = jQuery('#txt-load-filter-text').html().trim();
-	this.insertPt().append(htmlText);
+	inserted.append(htmlText);
+		// Intercept changes to text
+	inserted.find('.filter-text').change(function() {
+		self.isDirty(true);
+	});
 } // setup()
 
 
@@ -1281,8 +1318,40 @@ var PDataHub = (function () {
 					case 'Number':
 						return a.toString();
 					case 'Dates':
-						// TO DO!
-						return '-Date-';
+						var ds;
+							// Range
+						if (a.max) {
+							ds = 'From ';
+							if (a.min.f)
+								ds += 'no later than ';
+							ds += a.min.y.toString();
+							if (a.min.m) {
+								ds += '-'+a.min.m.toString();
+								if (a.min.d)
+									ds += '-'+a.min.d.toString();
+							}
+							ds += ' to ';
+							if (a.max.f)
+								ds += 'at least ';
+							ds += a.max.y.toString();
+							if (a.max.m) {
+								ds += '-'+a.max.m.toString();
+								if (a.max.d)
+									ds += '-'+a.max.d.toString();
+							}
+						} else {
+							if (a.min.f)
+								ds = 'Approximately ';
+							else
+								ds = '';
+							ds += a.min.y.toString();
+							if (a.min.m) {
+								ds += '-'+a.min.m.toString();
+								if (a.min.d)
+									ds += '-'+a.min.d.toString();
+							}
+						}
+						return ds;
 					case 'Lat-Lon':
 					case 'X-Y':
 						return a.join();
@@ -1782,13 +1851,6 @@ console.log("Set layout to: "+lIndex);
 					text: false, icons: { primary: 'ui-icon-trash' }
 				}).click(clickFilterDel);
 		head.find('.req-att').click(clickFilterDirty);
-
-		// jQuery('.filter-instance[data-id="'+newID+'"] .btn-filter-toggle').button({
-		// 			text: false, icons: { primary: 'ui-icon-carat-2-n-s' }
-		// 		}).click(clickFilterToggle);
-		// jQuery('.filter-instance[data-id="'+newID+'"] .btn-filter-del').button({
-		// 			text: false, icons: { primary: 'ui-icon-trash' }
-		// 		}).click(clickFilterDel);
 
 		jQuery('#btn-recompute').addClass('highlight');
 
