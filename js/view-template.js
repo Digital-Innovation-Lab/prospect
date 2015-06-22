@@ -319,6 +319,115 @@ VizMap.prototype.teardown = function()
 } // teardown()
 
 
+// ==========================================================
+// VizDirectory: Class to visualize lists of Template records
+
+
+var VizDirectory = function(viewFrame, vSettings)
+{
+	PVizModel.call(this, viewFrame, vSettings);
+} // VizDirectory
+
+VizDirectory.prototype = Object.create(PVizModel.prototype);
+
+VizDirectory.prototype.constructor = VizDirectory;
+
+VizDirectory.prototype.usesLegend = function()
+{
+	return false;
+} // usesLegend()
+
+	// PURPOSE: Return IDs of locate Attributes 
+VizDirectory.prototype.getLocAtts = function(tIndex)
+{
+	return [];
+} // getLocAtts()
+
+VizDirectory.prototype.getFeatureAtts = function(tIndex)
+{
+	return [];
+} // getFeatureAtts()
+
+VizDirectory.prototype.setup = function()
+{
+	var vIndex = this.vFrame.getIndex();
+
+		// Insert a scrolling container
+	jQuery(this.frameID).append('<div id="directory-'+vIndex+'" class="scroll-container"></div>');
+} // setup()
+
+
+	// PURPOSE: Draw the Records in the given datastream
+	// NOTES: 	absolute index of Record is saved in <id> field of map marker
+VizDirectory.prototype.render = function(datastream)
+{
+	var self = this;
+
+	var numTmplts = PDataHub.getNumETmplts();
+	var i=0, aI, tI=0, tID, tRec, tDef;
+	var s, insert=null, fAtts, datum, rec, t;
+
+	var vIndex = this.vFrame.getIndex();
+
+	jQuery('#directory-'+vIndex).empty();
+
+	tRec = datastream.t[0];
+	while (i<datastream.l) {
+			// Advance until we get to current Template rec
+		while (tRec.n == 0 || (tRec.i+tRec.n) == i) {
+				// Have we run out of Templates?
+			if (++tI == numTmplts)
+				return;
+			tRec = datastream.t[tI];
+			insert = null;
+		}
+			// Starting with new Template? Create new table
+		if (insert == null) {
+console.log("Starting new Template: "+tI);
+			tID = prspdata.e.g.ts[tI];
+			tDef = PDataHub.getTmpltID(tID);
+			jQuery('#directory-'+vIndex).append('<div class="directory-label">'+tDef.l+'</div>'+
+				'<table cellspacing="0" class="viz-directory" data-id="'+tID+'"></table>');
+			insert = jQuery('#directory-'+vIndex+' table[data-id="'+tID+'"]');
+			fAtts = self.settings.cnt[tI];
+			t = '<thead><tr><th>Name</th>';
+			fAtts.forEach(function(theAtt) {
+				var att = PDataHub.getAttID(theAtt);
+				t += '<th>'+att.def.l+'</th>';
+			})
+			insert.append(t+'<tr></thead><tbody></tbody>');
+			insert = insert.find('tbody');
+		} // if new Template
+
+			// Get Record data
+		aI = datastream.s[i];
+console.log("Next record: "+i+" (absI) "+aI);
+		rec = PDataHub.getRecByIndex(aI);
+		t = '<tr><td>'+rec.l+'</td>';
+		fAtts.forEach(function(attID) {
+			datum = PDataHub.getRecAtt(aI, attID, false);		// TO DO: Create more efficient function
+			if (datum) {
+				t += '<td>'+datum+'</td>';
+			} else {
+				t += '<td></td>';
+			}
+		});
+		insert.append(t+'</tr>');
+			// Increment stream index
+		i++;
+	} // while 
+} // render()
+
+VizDirectory.prototype.clearSelection = function()
+{
+} // clearSelection()
+
+
+VizDirectory.prototype.teardown = function()
+{
+} // teardown()
+
+
 // ====================================================================
 // PFilterModel: An abstract class to be subclassed by specific filters
 
@@ -734,10 +843,10 @@ function PViewFrame(vizIndex)
 
 
 		// PURPOSE: Create appropriate VizModel within frame
-		// INPUT: 	vfIndex is index in Exhibit array
-	function createViz(vfIndex)
+		// INPUT: 	vIndex is index in Exhibit array
+	function createViz(vIndex)
 	{
-		var theVF = PDataHub.getVizIndex(vfIndex);
+		var theView = PDataHub.getVizIndex(vIndex);
 
 			// Remove current viz content
 		if (vizModel)
@@ -745,9 +854,9 @@ function PViewFrame(vizIndex)
 
 		jQuery(getFrameID()+' .viz-content .viz-result').empty();
 
-		switch (theVF.vf) {
+		switch (theView.vf) {
 		case 'Map':
-			vizModel = new VizMap(instance, theVF.c);
+			vizModel = new VizMap(instance, theView.c);
 			break;
 		case 'Cards':
 			break;
@@ -760,9 +869,10 @@ function PViewFrame(vizIndex)
 		case 'Flow':
 			break;
 		case 'Directory':
+			vizModel = new VizDirectory(instance, theView.c);
 			break;
 		}
-		vizSelIndex = vfIndex;
+		vizSelIndex = vIndex;
 
 			// Does Viz support Legend at all?
 		if (vizModel.usesLegend()) {
@@ -1672,7 +1782,6 @@ console.log("Start recompute");
 						tRn = 0;
 						tRec = endStream.t[++tI];
 					}
-						// TO DO: Get Att value; check if existence required
 					absI = endStream.s[relI++];
 					rec = PDataHub.getRecByIndex(absI);
 					if (theF.f.eval(rec)) {
