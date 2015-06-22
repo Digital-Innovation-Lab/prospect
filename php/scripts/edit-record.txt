@@ -90,33 +90,33 @@
 </script>
 
 <script id="att-type-Dates" type='text/ractive'>
-	From <input type="text" size="6" value="{{value.min.y}}" placeholder="YYYY" required pattern="(open|~?-?\d+)"/>
+	From <input type="text" size="6" value="{{value.min.y}}" placeholder="YYYY" required pattern="(^$|open|~?-?\d+)"/>
 		<input type="text" size="2" value="{{value.min.m}}" placeholder="MM" pattern="\d{0,2}"/>
 		<input type="text" size="2" value="{{value.min.d}}" placeholder="DD" pattern="\d{0,2}"/>
-	To <input type="text" size="6" value="{{value.max.y}}" placeholder="YYYY" pattern="(open|~?-?\d+)"/>
+	To <input type="text" size="6" value="{{value.max.y}}" placeholder="YYYY" pattern="(^$|open|~?-?\d+)"/>
 		<input type="text" size="2" value="{{value.max.m}}" placeholder="MM" pattern="\d{0,2}"/>
 		<input type="text" size="2" value="{{value.max.d}}" placeholder="DD" pattern="\d{0,2}"/>
 </script>
 
 <script id="att-type-Lat-Lon" type='text/ractive'>
-	Lat,Long: <input type="text" size="20" value="{{value}}" pattern="^-?\d{1,3}(\.\d*)*,-?\d{1,3}(\.\d*)*"/>
+	Lat,Long: <input type="text" size="20" value="{{value}}" pattern="^$|^-?\d{1,3}(\.\d*)*,-?\d{1,3}(\.\d*)*"/>
 	{{#if canGeoLoc}}<button on-click="setHere:{{rIndex}}">Here</button>{{/if}}
 </script>
 
 <script id="att-type-X-Y" type='text/ractive'>
-	X,Y: <input type="text" size="8" value="{{value}}" pattern="^-?\d{1,4},-?\d{1,4}"/>
+	X,Y: <input type="text" size="8" value="{{value}}" pattern="^$|^-?\d{1,4},-?\d{1,4}"/>
 </script>
 
 <script id="att-type-Image" type='text/ractive'>
-	URL for image: <input type="url" value="{{value}}" pattern="^https?://.+(\.jpg|\.jpeg|\.png)$"/>
+	URL for image: <input type="url" value="{{value}}" pattern="^$|^https?://.+(\.jpg|\.jpeg|\.png)$"/>
 </script>
 
 <script id="att-type-Link-To" type='text/ractive'>
-	URL to webpage: <input type="url" size="20" value="{{value}}" pattern="^https?://.+\.html$"/>
+	URL to webpage: <input type="url" size="20" value="{{value}}" pattern="^$|^https?://.+\.html$"/>
 </script>
 
 <script id="att-type-SoundCloud" type='text/ractive'>
-	URL to SoundCloud: <input type="url" size="20" value="{{value}}" pattern="^https?://soundcloud.com/.+"/>
+	URL to SoundCloud: <input type="url" size="20" value="{{value}}" pattern="^$|^https?://soundcloud.com/.+"/>
 </script>
 
 <script id="att-type-YouTube" type='text/ractive'>
@@ -124,20 +124,20 @@
 </script>
 
 <script id="att-type-Transcript" type='text/ractive'>
-	URL to Transcript text file: <input type="url" size="20" value="{{value}}" pattern="^https?://.+\.txt$"/>
+	URL to Transcript text file: <input type="url" size="20" value="{{value}}" pattern="^$|^https?://.+\.txt$"/>
 </script>
 
 <script id="att-type-Timecode" type='text/ractive'>
-	Timestamped extract: <input type="text" size="23" value="{{value}}" placeholder="HH:MM:SS.ms-HH:MM:SS.ms" pattern="\d\d:\d\d:\d\d\.\d{1,2}(-\d\d:\d\d:\d\d\.\d{1,2})*"/>
+	Timestamped extract: <input type="text" size="23" value="{{value}}" placeholder="HH:MM:SS.ms-HH:MM:SS.ms" pattern="^$|\d\d:\d\d:\d\d\.\d{1,2}(-\d\d:\d\d:\d\d\.\d{1,2})*"/>
 </script>
 
 <script id="att-type-Pointer" type='text/ractive'>
-	ID of {{recType}} Record: <input type="text" size="32" value="{{value}}" required pattern="[\w\-]+"/>
+	ID of {{recType}} Record: <input type="text" size="32" value="{{value}}" required pattern="^$|[\w\-]+"/>
 	<button on-click="getPointerIDs:{{rIndex}}">Select ID</button>
 </script>
 
 <script id="att-type-Join" type='text/ractive'>
-	ID of Record: <input type="text" size="32" value="{{value}}" required pattern="[\w\-]+"/>
+	ID of Record: <input type="text" size="32" value="{{value}}" required pattern="^$|[\w\-]+"/>
 	<button on-click="getJoinIDs:{{rIndex}}">Select ID</button>
 </script>
 
