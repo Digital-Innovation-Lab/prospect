@@ -554,12 +554,17 @@ function PViewFrame(vizIndex)
 		event.preventDefault();
 	} // clickOpenSelection()
 
-	function clickClearSelection(event)
+	function doClearSel()
 	{
 			// Reset array
 		recSel = [];
 		if (vizModel)
 			vizModel.clearSelection();
+	} // doClearSel
+
+	function clickClearSelection(event)
+	{
+		doClearSel();
 		event.preventDefault();
 	} // clickClearSelection()
 
@@ -926,6 +931,11 @@ function PViewFrame(vizIndex)
 		return (i != -1);
 	} // isSel()
 
+	instance.clearSel = function()
+	{
+		doClearSel();
+	} // clearSel()
+
 		// PURPOSE: Called by external agent when new datastream is available for viewing
 		// ASSUMED: Caller has already set busy cursor
 		// TO DO: 	Check and set frameState
@@ -1037,7 +1047,6 @@ var PDataHub = (function () {
 			// TO DO: initiate view of data
 		}
 	} // checkDataLoad()
-
 
 
 	// PUBLIC INTERFACE
@@ -1633,6 +1642,11 @@ jQuery(document).ready(function($) {
 	function clickRecompute(event)
 	{
 console.log("Start recompute");
+			// Recompute must clear current selection
+		view0.clearSel();
+		if (view1)
+			view1.clearSel();
+
 		var endStream;		// Final results to go to views
 
 		if (topStream == null) {
