@@ -463,7 +463,7 @@ jQuery(document).ready(function() {
 
 		// Compile Joined Facets from Joined Attributes
 	_.forEach(defJoinedAtts, function(theJAtt) {
-		switch (theJAtt.t) {
+		switch (theJAtt.def.t) {
 		case 'Vocabulary':
 		case 'Number':
 		case 'Dates':

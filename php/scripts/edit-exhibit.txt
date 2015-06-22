@@ -42,9 +42,9 @@
 			<label for="home-btn">Home button label: </label><input type='text' id="home-btn" value='{{genSettings.hbtn}}' placeholder="Enter label" size="12"/>
 			<label for="home-url">Home URL: </label><input type='url' id="home-url" value='{{genSettings.hurl}}' placeholder="Enter label" size="32" pattern="^https?://.+"/>
 		</div>
-		<h3>Views and Filters</h3>
+		<h3>Views</h3>
 		<div>
-			<button on-click="addView">Add View/Filter</button>
+			<button on-click="addView">Add View</button>
 			<hr/>
 			{{#each viewSettings:vIndex}}
 				<div>
@@ -480,12 +480,12 @@
 </script>
 
 <!-- DIALOGS -->
-<!-- Choose Attribute Dialog -->
+<!-- New View Dialog -->
 <script id="dialog-choose-vf" type='text/ractive'>
-	<dialog title="New View/Filter" width="300" height="200">
-		<label for="choose-att-label">Label for this View/Filter: </label><input type="text" id="choose-att-label" value="{{label}}" size="24" required/>
+	<dialog title="New View" width="300" height="200">
+		<label for="choose-att-label">Label for this View: </label><input type="text" id="choose-att-label" value="{{label}}" size="24" required/>
 		<br/>
-		<label for="choose-vf-type">Type of View/Filter </label>
+		<label for="choose-vf-type">Type of View </label>
 		<select id="choose-vf-type" value='{{vfType}}'>
 		{{#each vfTypes}}
 			<option>{{this}}</option>
@@ -496,13 +496,13 @@
 
 <!-- Choose Facet Dialog -->
 <script id="dialog-choose-fct" type='text/ractive'>
-	<dialog title="New View/Filter" width="400" height="200">
+	<dialog title="Add Attribute" width="400" height="200">
 		<label for="choose-facet-label">Label for this Attribute: </label><input type="text" id="choose-facet-label" value="{{label}}" size="24" required/>
 		<br/>
 		<label for="choose-facet-att">Attribute </label>
 		<select id="choose-facet-att" value='{{fid}}'>
 		{{#each facets}}
-			<option value="{{this.id}}">{{id}} ({{this.l}})</option>
+			<option value="{{this.id}}">{{id}} ({{this.def.l}})</option>
 		{{/each}}
 		</select>
 	</dialog>
