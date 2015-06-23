@@ -63,7 +63,6 @@ function PVizModel(viewFrame, vizSettings)
 	// this.getFeatureAtts(tIndex)
 	// this.setup()
 	// this.render(IndexStream)
-	// this.updateTemplate(tIndex)
 	// this.setSelection(ids)
 	// this.clearSelection()
 	// this.getPerspective()
@@ -72,9 +71,19 @@ function PVizModel(viewFrame, vizSettings)
 } // PVizModel
 
 
-PVizModel.prototype.sample = function()
+PVizModel.prototype.getLocAtts = function(tIndex)
 {
-} // PVizModel.sample
+	return [];
+} // PVizModel.getLocAtts
+
+PVizModel.prototype.getFeatureAtts = function(tIndex)
+{
+	return [];
+} // PVizModel.getFeatureAtts
+
+PVizModel.prototype.teardown = function()
+{
+} // PVizModel.teardown
 
 
 // ===================================
@@ -314,11 +323,6 @@ VizMap.prototype.clearSelection = function()
 } // clearSelection()
 
 
-VizMap.prototype.teardown = function()
-{
-} // teardown()
-
-
 // ==========================================================
 // VizDirectory: Class to visualize lists of Template records
 
@@ -337,23 +341,27 @@ VizDirectory.prototype.usesLegend = function()
 	return false;
 } // usesLegend()
 
-	// PURPOSE: Return IDs of locate Attributes 
-VizDirectory.prototype.getLocAtts = function(tIndex)
-{
-	return [];
-} // getLocAtts()
-
-VizDirectory.prototype.getFeatureAtts = function(tIndex)
-{
-	return [];
-} // getFeatureAtts()
 
 VizDirectory.prototype.setup = function()
 {
+	var self = this;
 	var vIndex = this.vFrame.getIndex();
 
 		// Insert a scrolling container
 	jQuery(this.frameID).append('<div id="directory-'+vIndex+'" class="scroll-container"></div>');
+
+		// Listen for clicks on it
+	jQuery('#directory-'+vIndex).click(function(event) {
+		if (event.target.nodeName == 'TD') {
+			var row = jQuery(event.target).closest('tr');
+			var absI = row.data('aid');
+			var s = self.vFrame.toggleSel(absI);
+			if (s)
+				row.addClass("obj-selected");
+			else
+				row.removeClass("obj-selected");
+		}
+	});
 } // setup()
 
 
@@ -384,7 +392,7 @@ VizDirectory.prototype.render = function(datastream)
 			// Starting with new Template? Create new table
 		if (insert == null) {
 // console.log("Starting new Template: "+tI);
-			tID = prspdata.e.g.ts[tI];
+			tID = PDataHub.getETmpltIndex(tI);
 			tDef = PDataHub.getTmpltID(tID);
 			jQuery('#directory-'+vIndex).append('<div class="directory-label">'+tDef.l+'</div>'+
 				'<table cellspacing="0" class="viz-directory" data-id="'+tID+'"></table>');
@@ -403,11 +411,17 @@ VizDirectory.prototype.render = function(datastream)
 		aI = datastream.s[i];
 // console.log("Next record: "+i+" (absI) "+aI);
 		rec = PDataHub.getRecByIndex(aI);
-		t = '<tr><td>'+rec.l+'</td>';
+		t = '<tr data-id="'+rec.id+'" data-aid="'+aI+'"><td>'+rec.l+'</td>';
 		fAtts.forEach(function(attID) {
-			datum = PDataHub.getRecAtt(aI, attID, false);		// TO DO: Create more efficient function
+			datum = rec.a[attID];
 			if (datum) {
-				t += '<td>'+datum+'</td>';
+				datum = PDataHub.procAttVal(attID, datum);
+				// datum = PDataHub.getRecAtt(aI, attID, false);
+				if (datum) {
+					t += '<td>'+datum+'</td>';
+				} else {
+					t += '<td></td>';
+				}
 			} else {
 				t += '<td></td>';
 			}
@@ -420,12 +434,11 @@ VizDirectory.prototype.render = function(datastream)
 
 VizDirectory.prototype.clearSelection = function()
 {
+	var vIndex = this.vFrame.getIndex();
+
+	jQuery('#directory-'+vIndex+' tr').removeClass('obj-selected');
 } // clearSelection()
 
-
-VizDirectory.prototype.teardown = function()
-{
-} // teardown()
 
 
 // ====================================================================
@@ -919,6 +932,7 @@ function PViewFrame(vizIndex)
 						setLegendFeatures(tIndex, fAttID);
 				}
 			});
+			jQuery(getFrameID()+' .legend-container').show();
 		} else {
 				// Just hide Legend
 			jQuery(getFrameID()+' .legend-container').hide();
@@ -1024,7 +1038,7 @@ function PViewFrame(vizIndex)
 		// RETURNS: true if didn't exist (added), false if existed (removed)
 	instance.toggleSel = function(recAbsI)
 	{
-		var i = _.sortedIndex(recSel, recAbsI, true);
+		var i = _.sortedIndex(recSel, recAbsI);
 		if (recSel[i] == recAbsI) {
 			recSel.splice(i, 1);
 			return false;
@@ -1154,7 +1168,7 @@ var PDataHub = (function () {
 			jQuery('#btn-recompute').addClass('highlight');
 			setTimeout(function(){ jQuery('#loading-message').hide(); }, 1500);
 			dataLoaded = true;
-			// TO DO: initiate view of data
+			// TO DO: initiate view of data -- use jQuery event?
 		}
 	} // checkDataLoad()
 
@@ -1412,6 +1426,77 @@ var PDataHub = (function () {
 			return null;
 		}, // getRecByIndex()
 
+			// RETURNS: Attribute value in string format
+			// INPUT: 	attID = ID of Attribute
+			//			a = raw attribute data
+		procAttVal: function(attID, a)
+		{
+			var att = PDataHub.getAttID(attID);
+			switch (att.def.t) {
+			case 'Vocabulary':
+				return a.join();
+			case 'Text':
+				return a;
+			case 'Number':
+				return a.toString();
+			case 'Dates':
+				var ds;
+					// Range
+				if (a.max) {
+					ds = 'From ';
+					if (a.min.f)
+						ds += 'no later than ';
+					ds += a.min.y.toString();
+					if (a.min.m) {
+						ds += '-'+a.min.m.toString();
+						if (a.min.d)
+							ds += '-'+a.min.d.toString();
+					}
+					ds += ' to ';
+					if (a.max.f)
+						ds += 'at least ';
+					ds += a.max.y.toString();
+					if (a.max.m) {
+						ds += '-'+a.max.m.toString();
+						if (a.max.d)
+							ds += '-'+a.max.d.toString();
+					}
+				} else {
+					if (a.min.f)
+						ds = 'Approximately ';
+					else
+						ds = '';
+					ds += a.min.y.toString();
+					if (a.min.m) {
+						ds += '-'+a.min.m.toString();
+						if (a.min.d)
+							ds += '-'+a.min.d.toString();
+					}
+				}
+				return ds;
+			case 'Lat-Lon':
+			case 'X-Y':
+				return a.join();
+				// return a[0].toString()+', '+a[1].toString();
+			case 'Image':
+				return '<img src="'+a+'" alt="'+att.def.l+'"/>';
+			case 'Link To':
+				return '<a href="'+a+'" target="_blank">(See Link)</a>';
+			case 'SoundCloud':
+				return '<a href="'+a+'" target="_blank">(SoundCloud)</a>';
+			case 'YouTube':
+				return '<a href="https://www.youtube.com/watch?v='+a+'" target="_blank">(YouTube)</a>';
+			case 'Transcript':
+				return '<a href="'+a+'" target="_blank">(See Transcript File)</a>';
+			case 'Timecode':
+				return a;
+			case 'Pointer':
+				// TO DO -- ?? What to do??
+				return a;
+			// case 'Join': 	// Should not appear
+			} // switch
+			return null;
+		}, // procAttVal()
 
 			// RETURNS: Attribute value for <attID> in Record whose absolute index is <index>,
 			//				or null if either is non-existent
@@ -1428,70 +1513,7 @@ var PDataHub = (function () {
 						return null;
 					if (raw)
 						return a;
-					var att = PDataHub.getAttID(attID);
-					switch (att.def.t) {
-					case 'Vocabulary':
-						return a.join();
-					case 'Text':
-						return a;
-					case 'Number':
-						return a.toString();
-					case 'Dates':
-						var ds;
-							// Range
-						if (a.max) {
-							ds = 'From ';
-							if (a.min.f)
-								ds += 'no later than ';
-							ds += a.min.y.toString();
-							if (a.min.m) {
-								ds += '-'+a.min.m.toString();
-								if (a.min.d)
-									ds += '-'+a.min.d.toString();
-							}
-							ds += ' to ';
-							if (a.max.f)
-								ds += 'at least ';
-							ds += a.max.y.toString();
-							if (a.max.m) {
-								ds += '-'+a.max.m.toString();
-								if (a.max.d)
-									ds += '-'+a.max.d.toString();
-							}
-						} else {
-							if (a.min.f)
-								ds = 'Approximately ';
-							else
-								ds = '';
-							ds += a.min.y.toString();
-							if (a.min.m) {
-								ds += '-'+a.min.m.toString();
-								if (a.min.d)
-									ds += '-'+a.min.d.toString();
-							}
-						}
-						return ds;
-					case 'Lat-Lon':
-					case 'X-Y':
-						return a.join();
-						// return a[0].toString()+', '+a[1].toString();
-					case 'Image':
-						return '<img src="'+a+'" alt="'+att.def.l+'"/>';
-					case 'Link To':
-						return '<a href="'+a+'" target="_blank">(See Link)</a>';
-					case 'SoundCloud':
-						return '<a href="'+a+'" target="_blank">(SoundCloud)</a>';
-					case 'YouTube':
-						return '<a href="https://www.youtube.com/watch?v='+a+'" target="_blank">(YouTube)</a>';
-					case 'Transcript':
-						return '<a href="'+a+'" target="_blank">(See Transcript File)</a>';
-					case 'Timecode':
-						return a;
-					case 'Pointer':
-						// TO DO -- ?? What to do??
-						return a;
-					// case 'Join': 	// Should not appear
-					}
+					return PDataHub.procAttVal(attID, a);
 				}
 			}
 			return null;
@@ -1529,7 +1551,7 @@ var PDataHub = (function () {
 		},
 
 			// RETURNS: The ID of this Exhibit's tIndex Template
-		getETmpltIDIndex: function(tIndex)
+		getETmpltIndex: function(tIndex)
 		{
 			return prspdata.e.g.ts[tIndex];
 		},

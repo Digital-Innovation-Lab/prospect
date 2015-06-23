@@ -372,39 +372,6 @@ select {
 	border: 1px red solid;
 }
 
-	/* Selection Glow
-	 */
-
-.selected-object {
-    animation: anim-bkgnd-pulse 2s infinite;
-    -0-animation: anim-bkgnd-pulse 2s infinite;
-    -moz-animation: anim-bkgnd-pulse 2s infinite;
-    -webkit-animation: anim-bkgnd-pulse 2s infinite; /* Chrome, Safari, Opera */
-}
-
-@keyframes anim-bkgnd-pulse {
-	0%, 100% { border-style: dotted; border-color: gray; border-width: 1px; }
-	50% { border-style: solid; border-color: red; border-width: 1px; }
-}
-
-@-o-keyframes anim-bkgnd-pulse {
-	0%, 100% { border-style: dotted; border-color: gray; border-width: 1px; }
-	50% { border-style: solid; border-color: red; border-width: 1px; }
-}
-
-@-moz-keyframes anim-bkgnd-pulse {
-	0%, 100% { border-style: dotted; border-color: gray; border-width: 1px; }
-	50% { border-style: solid; border-color: red; border-width: 1px; }
-}
-
-@-webkit-keyframes anim-bkgnd-pulse {
-	0%, 100% { border-style: dotted; border-color: gray; border-width: 1px; }
-	50% { border-style: solid; border-color: red; border-width: 1px; }
-}
-
-.ui-button.highlight {
-	border: orange solid 2px;
-}
 
 	/* jQueryUI overrides
 	 * ==================
@@ -426,6 +393,9 @@ label {
 	width: 5em;
 }
 
+.ui-button.highlight {
+	border: orange solid 2px;
+}
 
 	/* Inspector Modal
 	 * ===============
@@ -474,6 +444,7 @@ table.viz-directory th {
 	background: -moz-linear-gradient(top,  #ededed,  #ebebeb);
 }
 
+
 table.viz-directory th:first-child {
 	text-align: left;
 }
@@ -510,6 +481,10 @@ table.viz-directory td {
 	background: -moz-linear-gradient(top,  #fbfbfb,  #fafafa);
 }
 
+table.viz-directory td img {
+	max-width: 40px;
+}
+
 table.viz-directory tr:nth-child(even) {
 	background: #f6f6f6;
 	background: -webkit-gradient(linear, left top, left bottom, from(#f8f8f8), to(#f6f6f6));
@@ -531,3 +506,8 @@ table.viz-directory tr:last-child td:last-child {
 	-webkit-border-bottom-right-radius:3px;
 	border-bottom-right-radius:3px;
 }
+
+table.viz-directory tr.obj-selected td {
+	background: yellow;
+}
+
