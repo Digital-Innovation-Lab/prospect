@@ -379,7 +379,8 @@ select {
 	 */
 #dialog-inspector .inspector-header {
 	text-align: center;
-	margin-bottom: 5px;
+	padding-bottom: 3px;
+	margin-bottom: 4px;
 	border-bottom: dotted 1px;
 }
 

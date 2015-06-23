@@ -373,7 +373,7 @@ VizDirectory.prototype.render = function(datastream)
 
 	var numTmplts = PDataHub.getNumETmplts();
 	var i=0, aI, tI=0, tID, tRec, tDef;
-	var s, insert=null, fAtts, datum, rec, t;
+	var insert=null, fAtts, datum, rec, t;
 
 	var vIndex = this.vFrame.getIndex();
 
@@ -411,7 +411,10 @@ VizDirectory.prototype.render = function(datastream)
 		aI = datastream.s[i];
 // console.log("Next record: "+i+" (absI) "+aI);
 		rec = PDataHub.getRecByIndex(aI);
-		t = '<tr data-id="'+rec.id+'" data-aid="'+aI+'"><td>'+rec.l+'</td>';
+		t = '<tr data-id="'+rec.id+'" data-aid="'+aI+'"';
+		if (self.vFrame.isSel(aI))
+			t += ' class="obj-selected" '
+		t += '><td>'+rec.l+'</td>';
 		fAtts.forEach(function(attID) {
 			datum = rec.a[attID];
 			if (datum) {
