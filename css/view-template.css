@@ -377,11 +377,20 @@ select {
 	/* Inspector Modal
 	 * ===============
 	 */
+#dialog-inspector .inspector-header {
+	text-align: center;
+	margin-bottom: 5px;
+	border-bottom: dotted 1px;
+}
 
 #inspect-content img {
 	max-width: 250px;
 }
 
+#inspect-content .att-label {
+	font-weight: bold;
+	vertical-align: top;
+}
 
 	/* jQueryUI overrides
 	 * ==================

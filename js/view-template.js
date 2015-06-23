@@ -622,7 +622,7 @@ function PViewFrame(vizIndex)
 // console.log("AttID: "+attID+"; val: "+attVal);
 				if (attVal) {
 					var theAtt = PDataHub.getAttID(attID);
-					var html = '<b>'+theAtt.def.l+'</b>: '+attVal+'<br/>';
+					var html = '<div><span class="att-label">'+theAtt.def.l+':</span> '+attVal+'</div>';
 					container.append(html);
 				}
 			});
