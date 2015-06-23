@@ -349,7 +349,9 @@ select {
 	left: 42px; */
 }
 
-/* MODAL DIALOGS */
+	/* MODAL DIALOGS
+	 * =============
+	 */
 
 .scroll-container ul {
 
@@ -370,6 +372,14 @@ select {
 
 #layout-choices .selected {
 	border: 1px red solid;
+}
+
+	/* Inspector Modal
+	 * ===============
+	 */
+
+#inspect-content img {
+	max-width: 250px;
 }
 
 
@@ -395,14 +405,6 @@ label {
 
 .ui-button.highlight {
 	border: orange solid 2px;
-}
-
-	/* Inspector Modal
-	 * ===============
-	 */
-
-#inspect-content .img {
-	max-width: 200px;
 }
 
 	/* Visualization styles

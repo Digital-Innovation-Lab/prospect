@@ -557,17 +557,17 @@ PFilterText.prototype.setup = function()
 
 function PViewFrame(vizIndex)
 {
-	var instance = { };				// creates pseudo-instance of Object
+	var instance = { };			// creates pseudo-instance of Object
 
 	// INSTANCE VARIABLES
 	//===================
 
-	var frameState = PSTATE_INIT;	// One of PSTATE_
-	var vizSelIndex = 0;			// index of currently selected Viz
-	var vizModel = null;			// PVizModel currently in frame
-	var legendIDs = [];				// Attribute IDs of Legend selections (one per Template)
-	var recSel = [];				// array of absolute indices of selected Records in sorted order
-	var datastream = null;			// pointer to datastream given to view
+	var state = PSTATE_INIT;	// One of PSTATE_
+	var vizSelIndex = 0;		// index of currently selected Viz
+	var vizModel = null;		// PVizModel currently in frame
+	var legendIDs = [];			// Attribute IDs of Legend selections (one per Template)
+	var recSel = [];			// array of absolute indices of selected Records in sorted order
+	var datastream = null;		// pointer to datastream given to view
 
 	// PRIVATE FUNCTIONS
 	//==================
@@ -938,6 +938,9 @@ function PViewFrame(vizIndex)
 			jQuery(getFrameID()+' .legend-container').hide();
 		}
 		vizModel.setup();
+
+		if (datastream)
+			vizModel.render(datastream);		
 	} // createViz()
 
 
@@ -977,11 +980,9 @@ function PViewFrame(vizIndex)
 		head.click(clickInLegend);
 
 			// Create first VF by default
-		frameState = PSTATE_INIT;
 		createViz(0);
 
-		frameState = PSTATE_REQ;
-			// TO DO: Indicate to PDataHub that VizModel available for data -- InputQueue mechanism?
+		state = PSTATE_REQ;
 	}; // initDOM()
 
 
@@ -1028,10 +1029,10 @@ function PViewFrame(vizIndex)
 	} // getSelLegend()
 
 
-	instance.state = function()
+	instance.getState = function()
 	{
-		return frameState;
-	} // state()
+		return state;
+	} // getState()
 
 		// PURPOSE: Toggle presence of record (by absolute index) in selection list
 		// NOTES: 	Called by VizModel based on user interaction
@@ -1103,7 +1104,6 @@ var PDataHub = (function () {
 	// INTERNAL VARIABLES
 	// ==================
 
-	var dataLoaded = false;			// only true after all Record data loaded
 	var allData = [];				// "head" array of all Records, one entry per Template type
 									// Corresponding to prspdata.t
 									// { n = # loaded, i = initial index for these records, d = data array }
@@ -1166,9 +1166,8 @@ var PDataHub = (function () {
 		if (done) {
 // console.log("Done loading: "+JSON.stringify(allData));
 			jQuery('#btn-recompute').addClass('highlight');
-			setTimeout(function(){ jQuery('#loading-message').hide(); }, 1500);
-			dataLoaded = true;
-			// TO DO: initiate view of data -- use jQuery event?
+			setTimeout(function(){ jQuery('#loading-message').hide(); }, 1000);
+			jQuery("body").trigger("prospect", { pstate: PSTATE_PROCESS, component: 0 });
 		}
 	} // checkDataLoad()
 
@@ -1519,7 +1518,6 @@ var PDataHub = (function () {
 			return null;
 		}, // getRecAtt()
 
-
 			// RETURNS: Absolute index for Record whose ID is recordID
 		getRecIndexByID: function(recordID)
 		{
@@ -1529,14 +1527,26 @@ var PDataHub = (function () {
 
 			// RETURNS: Attribute definition with this ID
 			// INPUT:   attID = full Attribute ID (could be in Join dot notation)
-			// TO DO:   Use binary search
+			// TO DO: 	Use Intl.Collator for string compare??
 		getAttID: function(attID)
 		{
-			for (var i=0; i<prspdata.a.length; i++) {
-				var thisID = prspdata.a[i].id;
-				if (attID == thisID)
-					return prspdata.a[i];
+			var lo = 0;
+			var hi = prspdata.a.length;
+			var pos, cmp;
+
+			while (lo <= hi) {
+				pos = (lo + hi) >> 1;
+				cmp = prspdata.a[pos].id.localeCompare(attID);
+
+				if (cmp < 0) {
+					lo = pos + 1;
+				} else if (cmp > 0) {
+					hi = pos - 1;
+				} else {
+					return prspdata.a[pos];
+				}
 			}
+			return null;
 		}, // getAttID()
 
 		getAttIndex: function(aIndex)
@@ -1742,7 +1752,7 @@ var PDataHub = (function () {
 			return prspdata.e.vf[vIndex];
 		} // getVizIndex()
 	} // return
-})();
+})(); // PDataHub
 
 
 // PBootstrap -- Bootstrap for Prospect Client
@@ -1754,12 +1764,9 @@ var PDataHub = (function () {
 
 jQuery(document).ready(function($) {
 
-		// CONSTANTS
-		//==========
-
-
 		// VARIABLES
 		//==========
+	var state = PSTATE_INIT; // current state of Prospect web app
 	var view0;				// Primary viewFrame
 	var view1;				// Secondary
 
@@ -1770,10 +1777,11 @@ jQuery(document).ready(function($) {
 		// FUNCTIONS
 		//==========
 
-		// TO DO: Check and set frameState; make cursor busy during compute!
-	function clickRecompute(event)
+	function doRecompute()
 	{
 console.log("Start recompute");
+		state = PSTATE_BUILD;
+
 			// Recompute must clear current selection
 		view0.clearSel();
 		if (view1)
@@ -1824,10 +1832,19 @@ console.log("Output stream ["+fI+"]: "+JSON.stringify(newStream));
 			} else
 				endStream = theF.f.out;
 		}
-		jQuery('#btn-recompute').removeClass('highlight');
 console.log("Filtering complete: visualization beginning");
 		view0.showStream(endStream);
+		if (view1)
+			view1.showStream(endStream);
+		jQuery('#btn-recompute').removeClass('highlight');
 console.log("Visualization complete");
+		state = PSTATE_READY;
+	} // doRecompute()
+
+		// TO DO: Check and set frameState; make cursor busy during compute!
+	function clickRecompute(event)
+	{
+		doRecompute();
 		event.preventDefault();
 	} // clickRecompute()
 
@@ -1894,7 +1911,6 @@ console.log("Set layout to: "+lIndex);
 			}
 		});
 	} // prepFilterData()
-
 
 	function clickFilterToggle(event)
 	{
@@ -2088,10 +2104,21 @@ console.log("Set layout to: "+lIndex);
 
 	prepFilterData();
 
-		// Init hub using config settings
-	PDataHub.init();
+	state = PSTATE_REQ;
+
+		// Intercept global state changes: data { pstate, component [0=global, 1=view1, 2=view2] }
+	jQuery("body").on("prospect", function(event, data) {
+		if (data.pstate = PSTATE_PROCESS) {
+			state = PSTATE_PROCESS;
+				// TO DO: Check views for ready state until they can render -- use timer
+			doRecompute();
+		}
+	});
 
 		// Initial primary visualization frame
 	view0 = PViewFrame(0);
 	view0.initDOM();
+
+		// Init hub using config settings
+	PDataHub.init();
 });
