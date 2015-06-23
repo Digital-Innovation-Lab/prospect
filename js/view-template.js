@@ -383,7 +383,7 @@ VizDirectory.prototype.render = function(datastream)
 		}
 			// Starting with new Template? Create new table
 		if (insert == null) {
-console.log("Starting new Template: "+tI);
+// console.log("Starting new Template: "+tI);
 			tID = prspdata.e.g.ts[tI];
 			tDef = PDataHub.getTmpltID(tID);
 			jQuery('#directory-'+vIndex).append('<div class="directory-label">'+tDef.l+'</div>'+
@@ -401,7 +401,7 @@ console.log("Starting new Template: "+tI);
 
 			// Get Record data
 		aI = datastream.s[i];
-console.log("Next record: "+i+" (absI) "+aI);
+// console.log("Next record: "+i+" (absI) "+aI);
 		rec = PDataHub.getRecByIndex(aI);
 		t = '<tr><td>'+rec.l+'</td>';
 		fAtts.forEach(function(attID) {

@@ -50,6 +50,10 @@ select {
 	height: 100%;
 }
 
+.scroll-container {
+	overflow-y: auto;
+}
+
 	/* DOM structure of web page for visualizations:
 	 * #command-bar
 	 * #loading-message
@@ -347,11 +351,6 @@ select {
 
 /* MODAL DIALOGS */
 
-	/* For lists in modal Dialogs */
-.scroll-container {
-	overflow-y: auto;
-}
-
 .scroll-container ul {
 
 }
@@ -416,7 +415,6 @@ select {
 	font-family: "Trebuchet MS", "Arial", "Helvetica", "Verdana", "sans-serif";
 }
 
-
 	/* To minimize size of ui buttons */
 .ui-button-icon-only {
 	width: 1.4em !important;
@@ -428,12 +426,26 @@ label {
 	width: 5em;
 }
 
+
+	/* Inspector Modal
+	 * ===============
+	 */
+
+#inspect-content .img {
+	max-width: 200px;
+}
+
 	/* Visualization styles
 	 * ====================
 	 */
 
 	 /* Label separating Template tables */
 .directory-label {
+	display: block;
+	background-color: white;
+	color: blue;
+	font-weight: bold;
+	margin-left: 4px;
 }
 
 table.viz-directory {
@@ -498,10 +510,10 @@ table.viz-directory td {
 	background: -moz-linear-gradient(top,  #fbfbfb,  #fafafa);
 }
 
-table.viz-directory tr.even td {
+table.viz-directory tr:nth-child(even) {
 	background: #f6f6f6;
 	background: -webkit-gradient(linear, left top, left bottom, from(#f8f8f8), to(#f6f6f6));
-	background: -moz-linear-gradient(top,  #f8f8f8,  #f6f6f6);
+	background: -moz-linear-gradient(top, #f8f8f8, #f6f6f6);
 }
 
 table.viz-directory tr:last-child td {
