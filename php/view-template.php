@@ -26,6 +26,8 @@
 
 <script src="<?php echo(plugins_url('lib/leaflet/leaflet.js', dirname(__FILE__))); ?>"></script>
 
+<script src="<?php echo(plugins_url('lib/d3.js', dirname(__FILE__))); ?>"></script>
+
 <script src="<?php echo(plugins_url('js/view-template.js', dirname(__FILE__))); ?>"></script>
 
 <script>
@@ -159,8 +161,29 @@
 </div>
 
 <!-- DYNAMICALLY LOADED TEXT -->
+<script id="txt-load-filter-head" type='text'>
+<div class="filter-instance" data-id="<%= newID %>">
+	<div class="filter-head">
+		<%= title %> &nbsp;
+		<input type="checkbox" class="req-att" value="required" checked="checked">
+		Require attribute value &nbsp; &nbsp;
+		<button class="btn-filter-toggle">Toggle</button>
+		<button class="btn-filter-del">Delete Filter</button>
+	</div>
+	<div class="filter-body">
+	</div>
+</div>
+</script>
+
 <script id="txt-load-filter-text" type='text'>
 Text must include <input class="filter-text" type="text" size="20"/>
+</script>
+
+<script id="txt-load-filter-number" type='text'>
+Use minimum value <input type="checkbox" class="filter-num-min-use" value="min-use" checked="checked">
+Min <input type="number" class="filter-num-min-val" min="<%= min %>" max="<%= max %>" val="<%= min %>"> &nbsp; &nbsp; &nbsp;
+Use maximum value <input type="checkbox" class="filter-num-max-use" value="max-use" checked="checked">
+Max <input type="number" class="filter-num-min-val" min="<%= min %>" max="<%= max %>" val="<%= max %>">
 </script>
 
 </body>

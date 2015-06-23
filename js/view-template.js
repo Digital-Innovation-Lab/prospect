@@ -161,7 +161,7 @@ VizMap.prototype.setup = function()
 
 	markers.addTo(this.lMap);
 
-		// Maintain number of visible markers per Template type
+		// Maintain number of Loc Atts per Template type
 	var numT = PDataHub.getNumETmplts();
 	this.tLCnt = new Uint16Array(numT);
 	for (var i=0; i<numT; i++)
@@ -549,6 +549,74 @@ PFilterText.prototype.setup = function()
 	inserted.find('.filter-text').change(function() {
 		self.isDirty(true);
 	});
+} // setup()
+
+
+// ===================================================
+// PFilterVocab: Class to filter Vocabulary Attributes
+
+var PFilterVocab = function(id, attRec)
+{
+	PFilterModel.call(this, id, attRec);
+} // PFilterVocab()
+
+PFilterVocab.prototype = Object.create(PFilterModel.prototype);
+
+PFilterVocab.prototype.constructor = PFilterVocab;
+
+PFilterVocab.prototype.evalPrep = function()
+{
+} // evalPrep()
+
+PFilterVocab.prototype.eval = function(rec)
+{
+} // eval()
+
+PFilterVocab.prototype.setup = function()
+{
+	var self = this;
+	var inserted = this.insertPt();
+	var htmlText = jQuery('#txt-load-filter-text').html().trim();
+	inserted.append(htmlText);
+		// Intercept changes to text
+	inserted.find('.filter-text').change(function() {
+		self.isDirty(true);
+	});
+} // setup()
+
+
+// ================================================
+// PFilterNum: Class to filter Number Attributes
+
+var PFilterNum = function(id, attRec)
+{
+	PFilterModel.call(this, id, attRec);
+} // PFilterNum()
+
+PFilterNum.prototype = Object.create(PFilterModel.prototype);
+
+PFilterNum.prototype.constructor = PFilterNum;
+
+PFilterNum.prototype.evalPrep = function()
+{
+} // evalPrep()
+
+PFilterNum.prototype.eval = function(rec)
+{
+} // eval()
+
+PFilterNum.prototype.setup = function()
+{
+	var self = this;
+	var inserted = this.insertPt();
+
+	var fh = _.template(jQuery('#txt-load-filter-number').html());
+	inserted.append(fh({ min: this.att.r.min, max: this.att.r.max }));
+
+		// Intercept changes to input
+	// inserted.find('.filter-##').change(function() {
+	// 	self.isDirty(true);
+	// });
 } // setup()
 
 
@@ -2003,9 +2071,8 @@ console.log("Set layout to: "+lIndex);
 		filters.push(newFRec);
 
 			// Now create DOM structure and handle clicks
-		jQuery('#filter-instances').append('<div class="filter-instance" data-id="'+newID+
-					'"><div class="filter-head">'+newFilter.title()+' &nbsp; <input type="checkbox" class="req-att" value="required" checked="checked"> Require attribute value '+
-					'&nbsp; &nbsp;  <button class="btn-filter-toggle">Toggle</button> <button class="btn-filter-del">Delete Filter</button></div><div class="filter-body"></div></div>');
+		var fh = _.template(jQuery('#txt-load-filter-head').html());
+		jQuery('#filter-instances').append(fh({ newID: newID, title: newFilter.title() }));
 
 		var head = jQuery('.filter-instance[data-id="'+newID+'"]');
 		head.find('.btn-filter-toggle').button({
