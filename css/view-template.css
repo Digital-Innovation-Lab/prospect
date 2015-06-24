@@ -220,7 +220,7 @@ select {
 	/* Frame that displays visualization content */
 	/*	This is dynamically into .legend-body and .viz-result */
 #viz-display-frame .viz-content {
-	height: 400px;		/* Temporary hack to create viz space */
+	max-height: 400px;		/* Temporary hack to create viz space */
 }
 
 	/* All visualization results rendered here */
@@ -427,8 +427,11 @@ label {
 	display: block;
 	background-color: white;
 	color: blue;
+	margin-left: 2px;
+	padding-left: 4px;
+
 	font-weight: bold;
-	margin-left: 4px;
+	font-size: 16px;
 }
 
 table.viz-directory {
@@ -455,6 +458,9 @@ table.viz-directory th {
 	background: #ededed;
 	background: -webkit-gradient(linear, left top, left bottom, from(#ededed), to(#ebebeb));
 	background: -moz-linear-gradient(top,  #ededed,  #ebebeb);
+
+	font-weight: bold;
+	font-size: 12px;
 }
 
 
@@ -476,6 +482,9 @@ table.viz-directory tr:first-child th:last-child {
 
 table.viz-directory tr {
 	text-align: center;
+
+	font-weight: normal;
+	font-size: 12px;
 }
 
 table.viz-directory td:first-child {

@@ -600,11 +600,27 @@ PFilterNum.prototype.constructor = PFilterNum;
 PFilterNum.prototype.evalPrep = function()
 {
 	var dom = this.insertPt();
-
+	var vals = dom.find('.filter-num-slider').slider("values");
+	this.min = vals[0];
+	this.max = vals[1];
+	this.useMin = dom.find('.filter-num-min-use').is(':checked');
+	this.useMax = dom.find('.filter-num-max-use').is(':checked');
 } // evalPrep()
 
 PFilterNum.prototype.eval = function(rec)
 {
+	var num = rec.a[this.att.id];
+	if (typeof num == 'undefined') {
+		if (this.req)
+			return false;
+		return true;
+	}
+
+	if (this.useMin && num < this.min)
+		return false;
+	if (this.useMax && num > this.max)
+		return false;
+	return true;
 } // eval()
 
 PFilterNum.prototype.setup = function()
@@ -630,7 +646,6 @@ PFilterNum.prototype.setup = function()
 		var curMax = slider.slider("values", 1);
 		if (newMin <= curMax) {
 			slider.slider("values", 0, newMin);
-			// slider.slider("refresh");
 			self.isDirty(true);
 		} else {
 			jQuery(this).val(curMax);
@@ -642,7 +657,6 @@ PFilterNum.prototype.setup = function()
 		var curMin = slider.slider("values", 0);
 		if (newMax >= curMin) {
 			slider.slider("values", 1, newMax);
-			// slider.slider("refresh");
 			self.isDirty(true);
 		} else {
 			jQuery(this).val(curMin);
@@ -658,6 +672,7 @@ PFilterNum.prototype.setup = function()
 		slide: function(event, ui) {
 			inserted.find('.filter-num-min-val').val(ui.values[0]);
 			inserted.find('.filter-num-max-val').val(ui.values[1]);
+			self.isDirty(true);
 		}
 	});
 } // setup()
