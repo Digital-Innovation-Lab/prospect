@@ -599,6 +599,8 @@ PFilterNum.prototype.constructor = PFilterNum;
 
 PFilterNum.prototype.evalPrep = function()
 {
+	var dom = this.insertPt();
+
 } // evalPrep()
 
 PFilterNum.prototype.eval = function(rec)
@@ -609,6 +611,7 @@ PFilterNum.prototype.setup = function()
 {
 	var self = this;
 	var inserted = this.insertPt();
+	var slider;
 
 	var fh = _.template(jQuery('#txt-load-filter-number').html());
 	inserted.append(fh({ min: this.att.r.min, max: this.att.r.max }));
@@ -621,12 +624,41 @@ PFilterNum.prototype.setup = function()
 		self.isDirty(true);
 	});
 
+	inserted.find('.filter-num-min-val').change(function() {
+			// Ensure it is less than max
+		var newMin = jQuery(this).val();
+		var curMax = slider.slider("values", 1);
+		if (newMin <= curMax) {
+			slider.slider("values", 0, newMin);
+			// slider.slider("refresh");
+			self.isDirty(true);
+		} else {
+			jQuery(this).val(curMax);
+		}
+	});
+	inserted.find('.filter-num-max-val').change(function() {
+			// Ensure it is greater than min
+		var newMax = jQuery(this).val();
+		var curMin = slider.slider("values", 0);
+		if (newMax >= curMin) {
+			slider.slider("values", 1, newMax);
+			// slider.slider("refresh");
+			self.isDirty(true);
+		} else {
+			jQuery(this).val(curMin);
+		}
+	});
+
 		// Create jQueryUI slider
-	inserted.find('.filter-num-slider').slider({
+	slider = inserted.find('.filter-num-slider').slider({
 		range: true,
 		min: this.att.r.min,
 		max: this.att.r.max,
-		values: [ this.att.r.min, this.att.r.max ]
+		values: [ this.att.r.min, this.att.r.max ],
+		slide: function(event, ui) {
+			inserted.find('.filter-num-min-val').val(ui.values[0]);
+			inserted.find('.filter-num-max-val').val(ui.values[1]);
+		}
 	});
 } // setup()
 

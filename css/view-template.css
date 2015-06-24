@@ -540,7 +540,7 @@ table.viz-directory tr.obj-selected td {
 .filter-num-slider.ui-slider .ui-slider-handle {
 	height: 10px;
 	width: 5px;
-	padding-left: 5px;
+	/*padding-left: 5px;*/
 }
 
 .filter-num-slider.ui-slider .ui-slider-range {
