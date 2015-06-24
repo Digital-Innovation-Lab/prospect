@@ -613,10 +613,21 @@ PFilterNum.prototype.setup = function()
 	var fh = _.template(jQuery('#txt-load-filter-number').html());
 	inserted.append(fh({ min: this.att.r.min, max: this.att.r.max }));
 
-		// Intercept changes to input
-	// inserted.find('.filter-##').change(function() {
-	// 	self.isDirty(true);
-	// });
+		// Intercept changes to min & max
+	inserted.find('.filter-num-min-use').change(function() {
+		self.isDirty(true);
+	});
+	inserted.find('.filter-num-max-use').change(function() {
+		self.isDirty(true);
+	});
+
+		// Create jQueryUI slider
+	inserted.find('.filter-num-slider').slider({
+		range: true,
+		min: this.att.r.min,
+		max: this.att.r.max,
+		values: [ this.att.r.min, this.att.r.max ]
+	});
 } // setup()
 
 
@@ -2008,7 +2019,6 @@ console.log("Set layout to: "+lIndex);
 	{
 		var head = jQuery(this).closest('.filter-instance');
 		var fID = head.data('id');
-// console.log("Delete: "+fID);
 
 		var fI, fRec;
 		fI = filters.findIndex(function(fRec) { return fRec.id == fID; });
@@ -2029,7 +2039,7 @@ console.log("Set layout to: "+lIndex);
 			jQuery('#btn-recompute').addClass('highlight');
 		} else {
 				// Output must be recomputed from successor on
-			filters[fi].f.isDirty(true);
+			filters[fI].f.isDirty(true);
 		}
 
 			// Remove this DOM element

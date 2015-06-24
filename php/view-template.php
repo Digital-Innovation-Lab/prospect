@@ -21,6 +21,7 @@
 <script src="<?php echo(includes_url('js/jquery/ui/resizable.min.js')); ?>"></script>
 <script src="<?php echo(includes_url('js/jquery/ui/button.min.js')); ?>"></script>
 <script src="<?php echo(includes_url('js/jquery/ui/dialog.min.js')); ?>"></script>
+<script src="<?php echo(includes_url('js/jquery/ui/slider.min.js')); ?>"></script>
 <script src="<?php echo(includes_url('js/jquery/ui/effect.min.js')); ?>"></script>
 <script src="<?php echo(includes_url('js/jquery/ui/effect-slide.min.js')); ?>"></script>
 
@@ -180,10 +181,11 @@ Text must include <input class="filter-text" type="text" size="20"/>
 </script>
 
 <script id="txt-load-filter-number" type='text'>
-Use minimum value <input type="checkbox" class="filter-num-min-use" value="min-use" checked="checked">
-Min <input type="number" class="filter-num-min-val" min="<%= min %>" max="<%= max %>" val="<%= min %>"> &nbsp; &nbsp; &nbsp;
-Use maximum value <input type="checkbox" class="filter-num-max-use" value="max-use" checked="checked">
-Max <input type="number" class="filter-num-min-val" min="<%= min %>" max="<%= max %>" val="<%= max %>">
+	Use minimum <input type="checkbox" class="filter-num-min-use" value="min-use" checked="checked">
+	Min <input type="number" class="filter-num-min-val" min="<%= min %>" max="<%= max %>" value="<%= min %>"> &nbsp; &nbsp; &nbsp;
+	<div class="filter-num-slider"></div>
+	Use maximum <input type="checkbox" class="filter-num-max-use" value="max-use" checked="checked">
+	Max <input type="number" class="filter-num-min-val" min="<%= min %>" max="<%= max %>" value="<%= max %>">
 </script>
 
 </body>

@@ -417,6 +417,7 @@ label {
 	border: orange solid 2px;
 }
 
+
 	/* Visualization styles
 	 * ====================
 	 */
@@ -523,3 +524,24 @@ table.viz-directory tr.obj-selected td {
 	background: yellow;
 }
 
+	/* Specific Filter styles
+	 * ======================
+	 */
+
+.filter-num-slider {
+	display: inline-block;
+}
+
+.filter-num-slider.ui-slider {
+	height: 6px;
+	width: 100px;
+}
+
+.filter-num-slider.ui-slider .ui-slider-handle {
+	height: 10px;
+	width: 5px;
+	padding-left: 5px;
+}
+
+.filter-num-slider.ui-slider .ui-slider-range {
+}
