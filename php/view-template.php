@@ -88,6 +88,7 @@
 <div id="command-bar">
 	<span id="title"></span>
 	<button id="btn-recompute">Recompute</button>
+	<input type="checkbox" id="auto-refresh"> <span class="command-bar-label">Automatic Refresh</span> &nbsp; &nbsp;
 	<button id="btn-set-layout">Set Layout</button>
 	<button id="btn-perspectives">Perspectives</button>
 	<span class="home"><span id="home-title">Home</span> <button id="btn-home">Home</button></span>

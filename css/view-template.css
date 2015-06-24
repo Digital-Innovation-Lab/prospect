@@ -71,6 +71,7 @@ select {
 	font-size: 14px;
 	margin: 0px;
 	padding: 2px;
+	padding-left: 3px;
 }
 
 #command-bar .title {
@@ -84,6 +85,11 @@ select {
 
 #command-bar .home {
 	float: right;
+}
+
+.command-bar-label {
+	color: black;
+	font-size: 10px;
 }
 
 	/* Section which initially has "Loading Content" message */
@@ -220,7 +226,7 @@ select {
 	/* Frame that displays visualization content */
 	/*	This is dynamically into .legend-body and .viz-result */
 #viz-display-frame .viz-content {
-	max-height: 400px;		/* Temporary hack to create viz space */
+	height: 400px;		/* Temporary hack to create viz space */
 }
 
 	/* All visualization results rendered here */
