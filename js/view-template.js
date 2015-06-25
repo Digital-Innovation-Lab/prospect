@@ -675,6 +675,9 @@ PFilterNum.prototype.setup = function()
 			self.isDirty(true);
 		}
 	});
+
+var rCats = PDataHub.getRCats(this.att);
+console.log("RCats: "+JSON.stringify(rCats));
 } // setup()
 
 
@@ -1318,180 +1321,6 @@ var PDataHub = (function () {
 			checkDataLoad();
 		}, // init()
 
-
-			// PURPOSE: Create Date object from three numbers
-			// INPUT:   year, month, day must be definite numbers
-			// ASSUMES: month is 0-based (not 1-based: 0=January)
-		date3Nums: function(year, month, day)
-		{
-			var date;
-
-			if (year < 0 || year > 99) { // 'Normal' dates
-				date = new Date(year, month, day);
-			} else if (year == 0) { // Year 0 is '1 BC'
-				date = new Date (-1, month, day);
-			} else {
-				// Create arbitrary year and then set the correct year
-				date = new Date(year, month, day);
-				date.setUTCFullYear(("0000" + year).slice(-4));
-			}
-			return date;
-		}, // date3Nums
-
-			// PURPOSE: Create Date object from three strings
-		date3Strs: function(yStr, mStr, dStr, from)
-		{
-			var yearBCE;
-			var year, month, day;
-
-				// First check for negative year
-			if (yStr.charAt(0) == '-') {
-				yearBCE = true;
-				yStr = yStr.substring(1);
-			} else {
-				yearBCE = false;
-			}
-
-			year = parseInt(yStr);
-			if (yearBCE) {
-				year = -year;
-			}
-
-				// If it's a start date, defaulted data must be early as possible
-			if (dStr == null || dStr === '') {
-				if (mStr == null || mStr ==='') {
-					if (from) {
-						month = 0; day = 1;
-					} else {
-						month = 11; day = 31;
-					}
-				} else {
-					month = parseInt(mStr) - 1;
-					if (from) {
-						day = 1;
-					} else {
-						day = 31;
-					}
-				}
-			} else {
-				month = parseInt(mStr) - 1;
-				day = parseInt(dStr);
-			}
-
-			return PDataHub.date3Nums(year, month, day);
-		}, // date3Strs()
-
-			// PURPOSE: Parse a text string as Date object
-			// RETURNS: Date object or null if error
-			// INPUT:   dateString = string itself containing Date
-			//          from = true if it is the from Date, false if it is the to Date
-			// ASSUMES: dateString has been trimmed; can ignore fuzzy char ~
-			// NOTE:    month # is 0-based!!
-		parseDate: function(dateString, from)
-		{
-			var strComponents;
-			var yearBCE;
-			var year, month, day;
-
-				// Check for fuzzy char indicator -- but discard if exists
-			if (dateString.charAt(0) == '~') {
-				dateString = dateString.substring(1);
-			}
-
-				// Check for negative year
-			if (dateString.charAt(0) == '-') {
-				yearBCE = true;
-				dateString = dateString.substring(1);
-			} else {
-				yearBCE = false;
-			}
-
-			strComponents = dateString.split('-');
-
-				// Year must be supplied at very least
-			year = parseInt(strComponents[0]);
-			if (yearBCE) {
-				year = -year;
-			}
-				// If it's a start date, we want defaulted data to be early as possible
-			switch (strComponents.length) {
-			case 3:
-				month = parseInt(strComponents[1]) - 1;
-				day = parseInt(strComponents[2]);
-				break;
-			case 2:
-				month = parseInt(strComponents[1]) - 1;
-				if (from) {
-					day = 1;
-				} else {
-					day = 31;
-				}
-				break;
-			case 1:
-				if (from) {
-					month = 0; day = 1;
-				} else {
-					month = 11; day = 31;
-				}
-				break;
-			} // switch
-
-			return PDataHub.date3Nums(year, month, day);
-		}, // parseDate()
-
-
-			// PURPOSE: Create event object by parsing Date range string (which can have from & to)
-			// RETURNS: Event object whose bitwise flags field represent three properties:
-			//              timeInstant = is this an instantaneous event?
-			//              timeFuzzyStart = is the beginning event fuzzy?
-			//              timeFuzzyEnd = is the end event fuzzy?
-			// INPUT:   dStr = text string representing a Date (range)
-			//          minBound = minimum Date in range
-			//          maxBound = maximum Date in range
-		eventDateStr: function(dStr, minBound, maxBound)
-		{
-			var newEvent = { flags: 0 };
-
-			var dateSegs = dStr.split('/');
-
-			var start = dateSegs[0].trim();
-			if (start === 'open') {
-				newEvent.start = minBound;
-			} else {
-				if (start.charAt(0) === '~') {
-					start = start.substr(1);
-					newEvent.flags |= EVENT_F_START;
-				}
-				newEvent.start = PDataHub.parseDate(start, true);
-			}
-
-				// Is it a range of from/to?
-			if (dateSegs.length == 2) {
-				var end = dateSegs[1].trim();
-				if (end === 'open') {
-					newEvent.end = maxBound;
-				} else {
-					if (end.charAt(0) === '~') {
-						end = end.substr(1);
-						newEvent.flags |= EVENT_F_END;
-					}
-					newEvent.end = PDataHub.parseDate(end, false);
-				}
-
-				// Otherwise an instantaneous event -- just set to start Date
-			} else {
-				newEvent.flags |= EVENT_INSTANT;
-				newEvent.end = newEvent.start;
-			}
-
-			return newEvent;
-		}, // eventDateStr()
-
-			// PURPOSE: Create event object from Attribute val
-		eventDateStr: function(dVal, minBound, maxBound)
-		{
-		}, // eventDateStr()
-
 			// PURPOSE: Create a new IndexStream: { s = index array, t = array of template params, l = total length }
 			// INPUT: 	if full, fill with entries for all Records
 			// NOTE: 	JS Arrays are quirky; s is always full size, so l is used to maintain length
@@ -1605,7 +1434,6 @@ var PDataHub = (function () {
 			case 'Lat-Lon':
 			case 'X-Y':
 				return a.join();
-				// return a[0].toString()+', '+a[1].toString();
 			case 'Image':
 				return '<img src="'+a+'" alt="'+att.def.l+'"/>';
 			case 'Link To':
@@ -1647,11 +1475,18 @@ var PDataHub = (function () {
 			return null;
 		}, // getRecAtt()
 
-			// RETURNS: Absolute index for Record whose ID is recordID
-		getRecIndexByID: function(recordID)
+			// RETURNS: Absolute index for Record whose ID is recID
+		getAbsIByID: function(recID)
 		{
 				// TO DO: Binary search for each Template array
-		}, // getRecIndexByID()
+		}, // getAbsIByID()
+
+
+			// RETURNS: Record data for recID
+		getRecIByID: function(recID)
+		{
+				// TO DO: Binary search for each Template array
+		}, // getRecIByID()
 
 
 			// RETURNS: Attribute definition with this ID
@@ -1875,7 +1710,63 @@ var PDataHub = (function () {
 			return null;
 		}, // getAttLgndVal()
 
+			// PURPOSE: Return array of range categories for facet att
+			// INPUT: 	
+			// RETURNS: range category array = { l[abel], c[olor] },
+			//				or null if range categories not possible (lack of bounds)
+			// ASSUMES: Only called for Number and Dates types
+			// NOTES: 	To qualify for a Legend category, a range category only needs to start within it
+			//			A range category with no match is assigned color black
+		getRCats: function(att)
+		{
+			var rcs = [];
+			switch (att.def.t) {
+			case 'Number':
+					// Can't create range category unless both bounds provided
+				if (typeof att.r.min == 'undefined' || typeof att.r.max == 'undefined')
+					return null;
+				var inc = Math.pow(10, att.r.g);
+				var curV = att.r.min, lI=0, curL;
+				if (att.l.length > 0)
+					curL = att.l[0];
+				while (curV <= att.r.max) {
+					var rCat = { l: curV.toString() };
+						// Advance to the relevant legend category
+					while (lI < att.l.length && curL.d.max && curV > curL.d.max) {
+						curL = att.l[++lI];
+					}
+						// Is current range category before current legend category?
+					if (att.l.length == 0 || curV < curL.d.min) {
+						rCat.c = '#000000';
 
+						// Does it occur beyond last category?
+					} else if (lI == att.l.length) {
+						rCat.c = '#000000';
+
+						// Does it start within current category (inc one w/o max bound)
+					} else if (typeof curL.d.max == 'undefined' || curV <= curL.d.max) {
+						rCat.c = curL.v;
+
+					} else {
+						rCat.c = '#000000';
+					}
+					rcs.push(rCat);
+					curV += inc;
+				}
+				return rcs;
+			case 'Dates':
+				return rcs;
+			} // switch
+		}, // getRCats()
+
+			// PURPOSE: Return count of records with values in range categories defined in getRCats
+			// RETURNS: Array of counts corresponding to array returned by getRCats
+		getRCnts: function(att, stream)
+		{
+
+		}, // getRCnts()
+
+			// RETURNS: View configuration data for vIndex
 		getVizIndex: function(vIndex)
 		{
 			return prspdata.e.vf[vIndex];

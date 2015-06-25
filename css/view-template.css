@@ -54,6 +54,10 @@ select {
 	overflow-y: auto;
 }
 
+.h-scroll-container {
+	overflow-x: auto;
+}
+
 	/* DOM structure of web page for visualizations:
 	 * #command-bar
 	 * #loading-message
