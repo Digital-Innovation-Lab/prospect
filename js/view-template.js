@@ -1710,11 +1710,32 @@ var PDataHub = (function () {
 			return null;
 		}, // getAttLgndVal()
 
+
+			// PURPOSE: Create a single Date from three numbers
+			// INPUT:   year, month (1-12), day (1) must be definite numbers
+			// NOTE:    JavaScript Date month is 0-based (not 1-based: 0=January)
+		date3Nums: function(year, month, day)
+		{
+			var date;
+
+			if (year < 0 || year > 99) { // 'Normal' dates
+				date = new Date(year, month-1, day);
+			} else if (year == 0) { // Year 0 is '1 BC'
+				date = new Date (-1, month-1, day);
+			} else {
+				// Create arbitrary year and then set the correct year
+				date = new Date(year, month-1, day);
+				date.setUTCFullYear(("0000" + year).slice(-4));
+			}
+			return date;
+		}, // date3Nums
+
 			// PURPOSE: Return array of range categories for facet att
 			// INPUT: 	
 			// RETURNS: range category array = { l[abel], c[olor] },
 			//				or null if range categories not possible (lack of bounds)
 			// ASSUMES: Only called for Number and Dates types
+			//			Date range has minimum year
 			// NOTES: 	To qualify for a Legend category, a range category only needs to start within it
 			//			A range category with no match is assigned color black
 		getRCats: function(att)
@@ -1755,6 +1776,86 @@ var PDataHub = (function () {
 				}
 				return rcs;
 			case 'Dates':
+				function makeDate(y, m, d, field) {
+					if (typeof field.m != 'undefined') {
+						m = field.m;
+						if (typeof field.d != 'undefined') {
+							d = field.d;
+						}
+					}
+					return PDataHub.date3Nums(y, m, d);
+				} // makeDate()
+				function makeMaxDate(field)
+				{
+					if (typeof field.y == 'undefined') {
+						return new Date();
+					} else {
+						return makeDate(field.y, 12, 31, field);
+					}
+				} // makeMaxDate()
+
+				var maxDate = makeMaxDate(att.r.max);
+				var inc = att.r.g;
+				var curY=att.r.min.y, curM=1, curD=1;
+				if (typeof att.r.min.m != 'undefined') {
+					curM = att.r.min.m;
+					if (typeof att.r.min.d != 'undefined') {
+						curD = att.r.min.d;
+					}
+				}
+				var curDate = PDataHub.date3Nums(curY, curM, curD);
+				var lI=0, curL, lMinDate, lMaxDate;
+				if (att.l.length > 0) {
+					curL = att.l[0];
+					lMinDate = makeDate(curL.d.min.y, 1, 12, curL.d.min);
+					lMaxDate = makeMaxDate(curL.d.max);
+				}
+				while (curDate <= maxDate) {
+					var rCat = { };
+					switch (inc) {
+					case 'd':
+						rCat.l = curY.toString()+"-"+curM.toString()+"-"+curD.toString();
+						break;
+					case 'm':
+						rCat.l = curY.toString()+"-"+curM.toString();
+						break;
+					case 'y':
+					case 't':
+					case 'c':
+						rCat.l = curY.toString();
+						break;
+					}
+						// Advance to the relevant legend category
+					while (lI < att.l.length && curDate > lMaxDate) {
+						curL = att.l[++lI];
+						lMinDate = makeDate(curL.d.min.y, 1, 12, curL.d.min);
+						lMaxDate = makeMaxDate(curL.d.max);
+					}
+						// Is current range category before current legend category?
+					if (att.l.length == 0 || curDate < lMinDate) {
+						rCat.c = '#000000';
+
+						// Does it occur beyond last category?
+					} else if (lI == att.l.length) {
+						rCat.c = '#000000';
+
+						// Does it start within current category (inc one w/o max bound)
+					} else if (curDate <= lMaxDate) {
+						rCat.c = curL.v;
+
+					} else {
+						rCat.c = '#000000';
+					}
+					rcs.push(rCat);
+					switch (inc) {
+					case 'd': curD++; 		break;
+					case 'm': curM++; 		break;
+					case 'y': curY++; 		break;
+					case 't': curY += 10;	break;
+					case 'c': curY += 100;	break;
+					}
+					curDate = PDataHub.date3Nums(curY, curM, curD);
+				}
 				return rcs;
 			} // switch
 		}, // getRCats()
