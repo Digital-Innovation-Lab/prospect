@@ -56,21 +56,53 @@ function PVizModel(viewFrame, vizSettings)
 	this.vFrame   = viewFrame;
 	this.frameID  = viewFrame.getFrameID()+' .viz-content .viz-result';
 	this.settings = vizSettings;
+	this.recSel   = [];
 
 		// Subclasses can override the following:
 	// this.usesLegend()
 	// this.getLocAtts(tIndex)
 	// this.getFeatureAtts(tIndex)
 	// this.teardown()
+	// this.isSel(absI)
+	// this.getSel()
+	// this.toggleSel(absI)
 		// All subclasses must implement the following:
 	// this.setup()
 	// this.render(IndexStream)
-	// this.setSelection(ids)
-	// this.clearSelection()
-	// this.getPerspective()
-	// this.setPerspective(pData)
+	// this.setSel(absIDs)
+	// this.clearSel()
+	// this.getPersp()
+	// this.setPersp(pData)
 } // PVizModel
 
+
+	// RETURNS: True if record ID is in selected list
+PVizModel.prototype.isSel = function(absI)
+{
+	var i = _.indexOf(this.recSel, absI, true);
+	return (i != -1);
+} // isSel()
+
+	// RETURNS: Array of absolute IDs of selected records
+PVizModel.prototype.getSel = function()
+{
+	return this.recSel;
+} // isSel()
+
+	// PURPOSE: Toggle presence of record (by absolute index) in selection list
+	// NOTES: 	Called by VizModel based on user interaction
+	// RETURNS: true if didn't exist (added), false if existed (removed)
+PVizModel.prototype.toggleSel = function(absI)
+{
+	var i = _.sortedIndex(this.recSel, absI);
+	if (this.recSel[i] == absI) {
+		this.recSel.splice(i, 1);
+		return false;
+	} else {
+		this.recSel.splice(i, 0, absI);
+		return true;
+	}
+} // toggleSel()
 
 PVizModel.prototype.usesLegend = function()
 {
@@ -190,7 +222,7 @@ VizMap.prototype.render = function(datastream)
 	{
 		if (e.target && e.target.options) {
 			var aid = e.target.options._aid;
-			var added = self.vFrame.toggleSel(aid);
+			var added = self.toggleSel(aid);
 // console.log("Added "+e.target.options._aid+"? "+added);
 
 				// Which Template type does absolute index belong to? Does it have multiple location Attributes?
@@ -292,7 +324,7 @@ VizMap.prototype.render = function(datastream)
 					if (fData) {
 // console.log("Record "+i+"["+fAttID+"]: "+rec.a[fAttID]+" = "+fData);
 							// TO DO: Handle PNG icons
-						s = self.vFrame.isSel(i);
+						s = self.isSel(i);
 						if (typeof locData[0] == 'number') {
 							newMarker = L.circleMarker(locData,
 								{	_aid: aI, weight: 1, radius: rad,
@@ -321,12 +353,33 @@ VizMap.prototype.render = function(datastream)
 	} // while 
 } // render()
 
-VizMap.prototype.clearSelection = function()
+VizMap.prototype.clearSel = function()
 {
-	this.markerLayer.eachLayer(function(marker) {
-		marker.setStyle({ color: "#000" });
-	});
-} // clearSelection()
+	if (this.recSel.length > 0) {
+		this.recSel = [];
+		if (this.markerLayer) {
+			this.markerLayer.eachLayer(function(marker) {
+				marker.setStyle({ color: "#000" });
+			});
+		}
+	}
+} // clearSel()
+
+
+VizMap.prototype.setSel = function(absIArray)
+{
+	var s;
+
+	this.recSel = absIArray;
+	if (this.markerLayer) {
+		this.markerLayer.eachLayer(function(marker) {
+			if (self.isSel(marker.options._aid))
+				marker.setStyle({ color: "#ff0000" });
+			else
+				marker.setStyle({ color: "#000" });
+		});
+	}
+} // setSel()
 
 
 // ==========================================================
@@ -355,7 +408,7 @@ VizDirectory.prototype.setup = function()
 		if (event.target.nodeName == 'TD') {
 			var row = jQuery(event.target).closest('tr');
 			var absI = row.data('aid');
-			var s = self.vFrame.toggleSel(absI);
+			var s = self.toggleSel(absI);
 			if (s)
 				row.addClass("obj-selected");
 			else
@@ -412,7 +465,7 @@ VizDirectory.prototype.render = function(datastream)
 // console.log("Next record: "+i+" (absI) "+aI);
 		rec = PDataHub.getRecByIndex(aI);
 		t = '<tr data-id="'+rec.id+'" data-aid="'+aI+'"';
-		if (self.vFrame.isSel(aI))
+		if (self.isSel(aI))
 			t += ' class="obj-selected" '
 		t += '><td>'+rec.l+'</td>';
 		fAtts.forEach(function(attID) {
@@ -435,13 +488,24 @@ VizDirectory.prototype.render = function(datastream)
 	} // while 
 } // render()
 
-VizDirectory.prototype.clearSelection = function()
+VizDirectory.prototype.setSel = function(absIArray)
 {
 	var vIndex = this.vFrame.getIndex();
 
-	jQuery('#directory-'+vIndex+' tr').removeClass('obj-selected');
-} // clearSelection()
+	this.recSel = absIArray;
+	absIArray.forEach(function(absI) {
+		jQuery('#directory-'+vIndex+' tr[data-aid="'+absI+'"]').addClass('obj-selected');
+	});
+} // setSel()
 
+VizDirectory.prototype.clearSel = function()
+{
+	if (this.recSel.length > 0) {
+		this.recSel = [];
+		var vIndex = this.vFrame.getIndex();
+		jQuery('#directory-'+vIndex+' tr').removeClass('obj-selected');
+	}
+} // clearSel()
 
 
 // ====================================================================
@@ -695,7 +759,6 @@ function PViewFrame(vizIndex)
 	var vizSelIndex = 0;		// index of currently selected Viz
 	var vizModel = null;		// PVizModel currently in frame
 	var legendIDs = [];			// Attribute IDs of Legend selections (one per Template)
-	var recSel = [];			// array of absolute indices of selected Records in sorted order
 	var datastream = null;		// pointer to datastream given to view
 
 	// PRIVATE FUNCTIONS
@@ -728,7 +791,11 @@ function PViewFrame(vizIndex)
 		// PURPOSE: Open Inspector modal for current selection
 	function clickOpenSelection(event)
 	{
-		if (recSel.length == 0)
+		var recSel=null;
+
+		if (vizModel)
+			recSel = vizModel.getSel();
+		if (recSel == null || recSel.length == 0)
 			return;
 
 		var inspector;
@@ -805,17 +872,10 @@ function PViewFrame(vizIndex)
 		event.preventDefault();
 	} // clickOpenSelection()
 
-	function doClearSel()
-	{
-			// Reset array
-		recSel = [];
-		if (vizModel)
-			vizModel.clearSelection();
-	} // doClearSel
-
 	function clickClearSelection(event)
 	{
-		doClearSel();
+		if (vizModel)
+			vizModel.clearSel();
 		event.preventDefault();
 	} // clickClearSelection()
 
@@ -1163,33 +1223,6 @@ function PViewFrame(vizIndex)
 		return state;
 	} // getState()
 
-		// PURPOSE: Toggle presence of record (by absolute index) in selection list
-		// NOTES: 	Called by VizModel based on user interaction
-		// RETURNS: true if didn't exist (added), false if existed (removed)
-	instance.toggleSel = function(recAbsI)
-	{
-		var i = _.sortedIndex(recSel, recAbsI);
-		if (recSel[i] == recAbsI) {
-			recSel.splice(i, 1);
-			return false;
-		} else {
-			recSel.splice(i, 0, recAbsI);
-			return true;
-		}
-	} // toggleSel()
-
-		// RETURNS: True if record ID is in selected list
-	instance.isSel = function(recAbsI)
-	{
-		var i = _.indexOf(recSel, recAbsI, true);
-		return (i != -1);
-	} // isSel()
-
-	instance.clearSel = function()
-	{
-		doClearSel();
-	} // clearSel()
-
 		// PURPOSE: Called by external agent when new datastream is available for viewing
 		// ASSUMED: Caller has already set busy cursor
 		// TO DO: 	Check and set frameState
@@ -1204,6 +1237,12 @@ function PViewFrame(vizIndex)
 	{
 		datastream = stream;
 	} // setStream()
+
+	instance.clearSel = function()
+	{
+		if (vizModel)
+			vizModel.clearSel();
+	} // clearSel()
 
 	return instance;
 } // PViewFrame
@@ -1547,7 +1586,6 @@ var PDataHub = (function () {
 
 			switch (att.def.t) {
 			case 'Vocabulary':
-					// TO DO: Handle 2ndary settings properly (index val x.y)
 				function s(v) {
 					for (var f=0; f<lI; f++) {
 						fI = fSet[f];
