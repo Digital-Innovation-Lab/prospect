@@ -68,7 +68,6 @@
 		a: [ <?php
 
 		// Get all definitions of all current Attributes
-	// $att_defs = ProspectAttribute::get_all_attributes(true, false, true, true);
 	$att_defs = ProspectAttribute::unique_sorted_att_array($att_defs);
 		// Output each entry
 	$first = true;
@@ -79,7 +78,11 @@
 		echo('{ id: "'.$the_attribute->id.'", ');
 		echo(' def: '.json_encode($the_attribute->def).', ');
 		echo(' r: '.$the_attribute->meta_range.', ');
-		echo(' l: '.$the_attribute->meta_legend.' }');
+		echo(' l: '.json_encode($the_attribute->legend));
+		if ($the_attribute->x != null)
+			echo(', x: '.json_encode($the_attribute->x).' }');
+		else
+			echo(' }');
 	}
 ?> ] };
 
@@ -163,7 +166,7 @@
 </div>
 
 <!-- DYNAMICALLY LOADED TEXT -->
-<script id="txt-load-filter-head" type='text'>
+<script id="dltext-filter-head" type='text'>
 <div class="filter-instance" data-id="<%= newID %>">
 	<div class="filter-head">
 		<%= title %> &nbsp;
@@ -177,16 +180,18 @@
 </div>
 </script>
 
-<script id="txt-load-filter-text" type='text'>
+<script id="dltext-filter-text" type='text'>
 Text must include <input class="filter-text" type="text" size="20"/>
 </script>
 
-<script id="txt-load-filter-number" type='text'>
+<script id="dltext-filter-num-boxes" type='text'>
 	Use minimum <input type="checkbox" class="filter-num-min-use" value="min-use" checked="checked">
 	Min <input type="number" class="filter-num-min-val" min="<%= min %>" max="<%= max %>" value="<%= min %>"> &nbsp; &nbsp; &nbsp;
-	<div class="filter-num-slider"></div>
 	&nbsp; &nbsp; Use maximum <input type="checkbox" class="filter-num-max-use" value="max-use" checked="checked">
 	Max <input type="number" class="filter-num-max-val" min="<%= min %>" max="<%= max %>" value="<%= max %>">
+</script>
+
+<script id="dltext-filter-num-ranger" type='text'>
 </script>
 
 </body>

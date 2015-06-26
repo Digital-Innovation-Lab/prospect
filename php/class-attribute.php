@@ -91,8 +91,15 @@ class ProspectAttribute {
 		return strcmp($a->id, $b->id);
 	} // cmp_ids()
 
+		// PURPOSE: Compare 'l' entry in array for sorting inverted indices
+	static public function cmp_ls($a, $b)
+	{
+		return strcmp($a['l'], $b['l']);
+	} // cmp_ls()
+
 		// RETURNS: Array of all defined Attributes sorted by ID
 		// NOTES:	Selects only published Attributes
+		// ASSUMES: Attributes *not* loaded for visualization purposes
 	static public function get_all_attributes($unpack, $load_hint, $load_range, $load_legend)
 	{
 		$all_atts = array();
@@ -102,7 +109,7 @@ class ProspectAttribute {
 		$loop = new WP_Query( $args );
 		if ($loop->have_posts()) {
 			foreach ($loop->posts as $att) {
-				$new_att = new ProspectAttribute(true, $att->ID, $unpack, $load_hint, $load_range, $load_legend);
+				$new_att = new ProspectAttribute(true, $att->ID, $unpack, $load_hint, $load_range, $load_legend, false);
 					// Ensure minimal data provided
 				if ($new_att->id != null && $new_att->id != '') {
 					array_push($all_atts, $new_att);
@@ -186,7 +193,8 @@ class ProspectAttribute {
 
 		// PURPOSE: Determine whether black or white is best color contast
 		// INPUT:	viz_val is visual setting (could be color or icon ID)
-		// RETURNS: null if viz_val is not a color, true if black, false if white
+		// RETURNS: true if black, false if white
+		// ASSUMES: If visual code is icon, black will suffice
 		// NOTES:	http://www.particletree.com/notebook/calculating-color-contrast-for-legible-text/
 		// 			http://stackoverflow.com/questions/5650924/javascript-color-contraster
 	static public function black_contrast($viz_val)
@@ -200,7 +208,7 @@ class ProspectAttribute {
 			else
 				return false;
 		} else
-			return null;
+			return true;
 	} // black_contrast()
 
 
@@ -216,6 +224,7 @@ class ProspectAttribute {
 	public $range;
 	public $meta_legend;
 	public $legend;
+	public $x;				// inverted index array
 
 
 		// PURPOSE: Create Attribute object and load its definition given its ID
@@ -224,12 +233,14 @@ class ProspectAttribute {
 		//				(3) '' if this is a new Attribute definition
 		//			only load range data if load_range is true
 		//			only load legend data if load_legend is true
-	public function __construct($is_postid, $the_id, $unpack, $load_hint, $load_range, $load_legend)
+		//			if for_viz is true, prepare Attribute Legend for visualization
+	public function __construct($is_postid, $the_id, $unpack, $load_hint, $load_range, $load_legend, $for_viz)
 	{
 		$this->id			= $this->post_id = null;
 		$this->meta_def 	= $this->def = null;
 		$this->meta_range	= $this->range = null;
 		$this->meta_legend	= $this->legend = null;
+		$this->x = null;
 
 		if ($is_postid) {
 			$this->post_id = $the_id;
@@ -300,8 +311,40 @@ class ProspectAttribute {
 					if ($this->meta_legend != '') {
 						$this->legend = json_decode($this->meta_legend, false);
 							// Process Legend data for Number, Dates
-							// TO DO: Compute b = b/w contrast for colors
 						switch ($this->def->t) {
+						case 'Text':
+							if ($for_viz) {
+								$num = count($this->legend);
+								for ($i=0; $i<$num; $i++) {
+									$entry = $this->legend[$i];
+									$entry->b = ProspectAttribute::black_contrast($entry->v);
+								}
+							}
+							break;
+						case 'Vocabulary':
+							if ($for_viz) {
+								$this->x = array();
+								$i_num = count($this->legend);
+								for ($i=0; $i<$i_num; $i++) {
+									$x_item = array();
+									$entry = $this->legend[$i];
+									$entry->b = ProspectAttribute::black_contrast($entry->v);
+									$x_item['l'] = $entry->l;
+									$x_item['i'] = $i;
+									array_push($this->x, $x_item);
+									$z_num = count($entry->z);
+									for ($j=0; $j<$z_num; $j++) {
+										$z_entry = $entry->z[$j];
+										$z_entry->b = ProspectAttribute::black_contrast($z_entry->v);
+										$x_item = array();
+										$x_item['l'] = $z_entry->l;
+										$x_item['i'] = array($i, $j);
+										array_push($this->x, $x_item);
+									}
+								}
+							}
+							usort($this->x, array('ProspectAttribute', 'cmp_ls'));
+							break;
 						case 'Number':
 							$num = count($this->legend);
 							for ($i=0; $i<$num; $i++) {
@@ -310,6 +353,9 @@ class ProspectAttribute {
 									$entry->d->min = (int)$entry->d->min;
 								if (isset($entry->d->max))
 									$entry->d->max = (int)$entry->d->max;
+								if ($for_viz) {
+									$entry->b = ProspectAttribute::black_contrast($entry->v);
+								}
 							}
 							break;
 						case 'Dates':
@@ -327,6 +373,9 @@ class ProspectAttribute {
 									$entry->d->max->m = (int)$entry->d->max->m;
 								if (isset($entry->d->max->d))
 									$entry->d->max->d = (int)$entry->d->max->d;
+								if ($for_viz) {
+									$entry->b = ProspectAttribute::black_contrast($entry->v);
+								}
 							}
 							break;
 						} // switch

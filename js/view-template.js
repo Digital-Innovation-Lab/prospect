@@ -57,19 +57,25 @@ function PVizModel(viewFrame, vizSettings)
 	this.frameID  = viewFrame.getFrameID()+' .viz-content .viz-result';
 	this.settings = vizSettings;
 
-		// All subclasses must implement the following:
+		// Subclasses can override the following:
 	// this.usesLegend()
 	// this.getLocAtts(tIndex)
 	// this.getFeatureAtts(tIndex)
+	// this.teardown()
+		// All subclasses must implement the following:
 	// this.setup()
 	// this.render(IndexStream)
 	// this.setSelection(ids)
 	// this.clearSelection()
 	// this.getPerspective()
 	// this.setPerspective(pData)
-	// this.teardown()
 } // PVizModel
 
+
+PVizModel.prototype.usesLegend = function()
+{
+	return false;
+} // usesLegend()
 
 PVizModel.prototype.getLocAtts = function(tIndex)
 {
@@ -336,12 +342,6 @@ VizDirectory.prototype = Object.create(PVizModel.prototype);
 
 VizDirectory.prototype.constructor = VizDirectory;
 
-VizDirectory.prototype.usesLegend = function()
-{
-	return false;
-} // usesLegend()
-
-
 VizDirectory.prototype.setup = function()
 {
 	var self = this;
@@ -459,10 +459,11 @@ function PFilterModel(id, attRec)
 	this.req 		= true;
 
 		// All subclasses must implement the following:
-	// this.title()
 	// this.setUp()
 	// this.evalPrep()
 	// this.eval(rec)
+		// Sublcasses can override the following:
+	// this.title()
 } // PFilterModel
 
 	// PURPOSE: Either set or get dirty state of Filter
@@ -543,7 +544,7 @@ PFilterText.prototype.setup = function()
 {
 	var self = this;
 	var inserted = this.insertPt();
-	var htmlText = jQuery('#txt-load-filter-text').html().trim();
+	var htmlText = jQuery('#dltext-filter-text').html().trim();
 	inserted.append(htmlText);
 		// Intercept changes to text
 	inserted.find('.filter-text').change(function() {
@@ -576,7 +577,7 @@ PFilterVocab.prototype.setup = function()
 {
 	var self = this;
 	var inserted = this.insertPt();
-	var htmlText = jQuery('#txt-load-filter-text').html().trim();
+	var htmlText = jQuery('#dltext-filter-text').html().trim();
 	inserted.append(htmlText);
 		// Intercept changes to text
 	inserted.find('.filter-text').change(function() {
@@ -599,12 +600,16 @@ PFilterNum.prototype.constructor = PFilterNum;
 
 PFilterNum.prototype.evalPrep = function()
 {
-	var dom = this.insertPt();
-	var vals = dom.find('.filter-num-slider').slider("values");
-	this.min = vals[0];
-	this.max = vals[1];
-	this.useMin = dom.find('.filter-num-min-use').is(':checked');
-	this.useMax = dom.find('.filter-num-max-use').is(':checked');
+	if (this.rCats == null) {
+		var dom = this.insertPt();
+		this.min = parseInt(dom.find('.filter-num-min-val').val());
+		this.max = parseInt(dom.find('.filter-num-max-val').val());
+		this.useMin = dom.find('.filter-num-min-use').is(':checked');
+		this.useMax = dom.find('.filter-num-max-use').is(':checked');
+	} else {
+		this.useMin = this.useMax = true;
+		// TO DO
+	}
 } // evalPrep()
 
 PFilterNum.prototype.eval = function(rec)
@@ -626,58 +631,50 @@ PFilterNum.prototype.eval = function(rec)
 PFilterNum.prototype.setup = function()
 {
 	var self = this;
-	var inserted = this.insertPt();
-	var slider;
+	var insert = this.insertPt();
 
-	var fh = _.template(jQuery('#txt-load-filter-number').html());
-	inserted.append(fh({ min: this.att.r.min, max: this.att.r.max }));
+	this.rCats = PDataHub.getRCats(this.att);
+		// Lack of range bounds? Create generic HTML input boxes, can't create range sliders
+	if (this.rCats == null) {
+		var fh = _.template(jQuery('#dltext-filter-number').html());
+		var min = (typeof this.att.r.min == 'undefined') ? 0 : this.att.r.min;
+		var max = (typeof this.att.r.max == 'undefined') ? min+100 : this.att.r.max;
+		insert.append(fh({ min: min, max: max }));
 
-		// Intercept changes to min & max
-	inserted.find('.filter-num-min-use').change(function() {
-		self.isDirty(true);
-	});
-	inserted.find('.filter-num-max-use').change(function() {
-		self.isDirty(true);
-	});
-
-	inserted.find('.filter-num-min-val').change(function() {
-			// Ensure it is less than max
-		var newMin = jQuery(this).val();
-		var curMax = slider.slider("values", 1);
-		if (newMin <= curMax) {
-			slider.slider("values", 0, newMin);
+			// Intercept changes to min & max checkboxes
+		insert.find('.filter-num-min-use').change(function() {
 			self.isDirty(true);
-		} else {
-			jQuery(this).val(curMax);
-		}
-	});
-	inserted.find('.filter-num-max-val').change(function() {
-			// Ensure it is greater than min
-		var newMax = jQuery(this).val();
-		var curMin = slider.slider("values", 0);
-		if (newMax >= curMin) {
-			slider.slider("values", 1, newMax);
+		});
+		insert.find('.filter-num-max-use').change(function() {
 			self.isDirty(true);
-		} else {
-			jQuery(this).val(curMin);
-		}
-	});
+		});
 
-		// Create jQueryUI slider
-	slider = inserted.find('.filter-num-slider').slider({
-		range: true,
-		min: this.att.r.min,
-		max: this.att.r.max,
-		values: [ this.att.r.min, this.att.r.max ],
-		slide: function(event, ui) {
-			inserted.find('.filter-num-min-val').val(ui.values[0]);
-			inserted.find('.filter-num-max-val').val(ui.values[1]);
-			self.isDirty(true);
-		}
-	});
+		insert.find('.filter-num-min-val').change(function() {
+				// Ensure it is less than max
+			var newMin = jQuery(this).val();
+			var curMax = insert.find('.filter-num-max-val').val();
+			if (newMin <= curMax) {
+				self.isDirty(true);
+			} else {
+				jQuery(this).val(curMax);
+			}
+		});
+		insert.find('.filter-num-max-val').change(function() {
+				// Ensure it is greater than min
+			var newMax = jQuery(this).val();
+			var curMin = insert.find('.filter-num-min-val').val();
+			if (newMax >= curMin) {
+				self.isDirty(true);
+			} else {
+				jQuery(this).val(curMin);
+			}
+		});
 
-var rCats = PDataHub.getRCats(this.att);
-console.log("RCats: "+JSON.stringify(rCats));
+		// Create 
+	} else {
+
+	}
+
 } // setup()
 
 
@@ -2143,7 +2140,7 @@ console.log("Set layout to: "+lIndex);
 		filters.push(newFRec);
 
 			// Now create DOM structure and handle clicks
-		var fh = _.template(jQuery('#txt-load-filter-head').html());
+		var fh = _.template(jQuery('#dltext-filter-head').html());
 		jQuery('#filter-instances').append(fh({ newID: newID, title: newFilter.title() }));
 
 		var head = jQuery('.filter-instance[data-id="'+newID+'"]');

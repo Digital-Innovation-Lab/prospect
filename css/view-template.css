@@ -51,11 +51,7 @@ select {
 }
 
 .scroll-container {
-	overflow-y: auto;
-}
-
-.h-scroll-container {
-	overflow-x: auto;
+	overflow: auto;
 }
 
 	/* DOM structure of web page for visualizations:

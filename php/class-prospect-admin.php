@@ -117,7 +117,7 @@ class ProspectAdmin {
 		echo wp_nonce_field('prsp_save_attribute'.$postID, 'prsp_nonce');
 
 			// Load this Attribute's data
-		$theAtt = new ProspectAttribute(true, $postID, false, true, true, true);
+		$theAtt = new ProspectAttribute(true, $postID, false, true, true, true, false);
 
 			// Special hidden fields for custom fields coordinated by JavaScript code
 		echo '<input type="hidden" name="prsp_att_id" value="'.$theAtt->id.'"/>';
@@ -591,7 +591,7 @@ class ProspectAdmin {
 	 
 			// Get post ID and associated Project Data
 		$postID = (isset($_GET['post']) ? $_GET['post'] : $_POST['post']);
-		$the_att = new ProspectAttribute(true, $postID, false, true, true, true);
+		$the_att = new ProspectAttribute(true, $postID, false, true, true, true, false);
 
 			// Create appropriate filename
 		$fp = $this->createUTFOutput($the_att->id.".json", true);
@@ -758,7 +758,7 @@ class ProspectAdmin {
 
 			// Fetch and write all Attribute definitions
 		foreach ($the_template->def->a as $att_id) {
-			$the_attribute = new ProspectAttribute(false, $att_id, false, true, true, true);
+			$the_attribute = new ProspectAttribute(false, $att_id, false, true, true, true, false);
 			if ($the_attribute) {
 				$this->write_att_data($fp, $the_attribute);
 				fwrite($fp, ",\n");

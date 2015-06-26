@@ -168,7 +168,8 @@ class ProspectTemplate {
 		// RETURNS: Array of all Attributes used by this Template type
 		// 				Creates pseudo-Attribute definitions for Joined Attributes
 		// INPUT:	Sort by ID if sort = true
-		// ASSUMES: This Template's Joins and definition data has been loaded
+		// ASSUMES: Attributes are being loaded for purposes of visualization
+		//			This Template's Joins and definition data has been loaded
 		//			Attribute needs to be unpacked, hint is not needed
 	public function get_all_attributes($sort)
 	{
@@ -183,7 +184,7 @@ class ProspectTemplate {
 		$all_atts = array();
 
 		foreach($this->def->a as $att_id) {
-			$the_att = new ProspectAttribute(false, $att_id, true, false, true, true);
+			$the_att = new ProspectAttribute(false, $att_id, true, false, true, true, true);
 			if ($the_att->def->t == 'Join') {
 					// Find entry in Join table and get dependent Template
 				for ($ji=0; $ji<count($this->joins); $ji++) {
@@ -191,7 +192,7 @@ class ProspectTemplate {
 						$d_tmplt = new ProspectTemplate(false, $this->joins[$ji]->t, true, false);
 						foreach ($d_tmplt->def->a as $d_att_id) {
 								// Get dependent Attribute definition
-							$d_att = new ProspectAttribute(false, $d_att_id, true, false, true, true);
+							$d_att = new ProspectAttribute(false, $d_att_id, true, false, true, true, true);
 								// Modify Joined ID and label for dot notation
 							$d_att->id = $the_att->id.'.'.$d_att->id;
 							$d_att->def->l = $the_att->def->l.' ('.$d_att->def->l.')';
