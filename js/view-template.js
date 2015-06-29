@@ -668,6 +668,7 @@ PFilterNum.prototype = Object.create(PFilterModel.prototype);
 
 PFilterNum.prototype.constructor = PFilterNum;
 
+	// ASSUMES: Code handling brush has set min & max
 PFilterNum.prototype.evalPrep = function()
 {
 	if (this.rCats == null) {
@@ -676,9 +677,6 @@ PFilterNum.prototype.evalPrep = function()
 		this.max = parseInt(dom.find('.filter-num-max-val').val());
 		this.useMin = dom.find('.filter-num-min-use').is(':checked');
 		this.useMax = dom.find('.filter-num-max-use').is(':checked');
-	} else {
-		this.useMin = this.useMax = true;
-		// TO DO
 	}
 } // evalPrep()
 
@@ -693,8 +691,13 @@ PFilterNum.prototype.eval = function(rec)
 
 	if (this.useMin && num < this.min)
 		return false;
-	if (this.useMax && num > this.max)
-		return false;
+	if (this.rCats == null) {
+		if (this.useMax && num > this.max)
+			return false;
+	} else {
+		if (num >= this.max)
+			return false;
+	}
 	return true;
 } // eval()
 
@@ -744,7 +747,12 @@ PFilterNum.prototype.setup = function()
 		// Each range category 10 pix wide (1 pix spacing)
 	} else {
 // console.log("rCats: "+JSON.stringify(this.rCats));
-		var innerH = 120 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
+			// Set defaults
+		this.useMin = this.useMax = true;
+		this.min = this.rCats[0].min;
+		this.max = this.rCats[this.rCats.length-1].max;
+
+		var innerH = 80 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
 		var innerW = this.rCats.length*D3FG_BAR_WIDTH;
 		var brush;
 
@@ -772,8 +780,13 @@ PFilterNum.prototype.setup = function()
 				extent1[0] = Math.floor(extent0[0]);
 				extent1[1] = Math.ceil(extent0[1]);
 			}
+				// must enclose at least 1 graph!
+			extent1[1] = Math.max(extent1[1], extent1[0]+1);
 			d3.select(this).transition()
 				.call(brush.extent(extent1));
+
+			self.min = self.rCats[extent1[0]].min;
+			self.max = self.rCats[extent1[1]-1].max;
 		} // brushended()
 
 
@@ -784,7 +797,7 @@ PFilterNum.prototype.setup = function()
 		var rScale = d3.scale.ordinal().rangeRoundBands([0, innerW]);
 		rScale.domain(this.rCats.map(function(rc) { return rc.l; }));
 		var xAxis = d3.svg.axis().scale(rScale).orient("bottom");
-		var yAxis = d3.svg.axis().scale(yScale).orient("left");
+		var yAxis = d3.svg.axis().scale(yScale).orient("left").ticks(4);
 
 		var chart = d3.select(insert.get(0)).append("svg")
 			.attr("width", innerW+D3FG_MARGINS.left+D3FG_MARGINS.right)
@@ -827,6 +840,35 @@ PFilterNum.prototype.setup = function()
 			.attr("d", resizePath);
 	}
 } // setup()
+
+
+// ==============================================
+// PFilterDates: Class to filter Dates Attributes
+
+var PFilterDates = function(id, attRec)
+{
+	PFilterModel.call(this, id, attRec);
+} // PFilterDates()
+
+PFilterDates.prototype = Object.create(PFilterModel.prototype);
+
+PFilterDates.prototype.constructor = PFilterDates;
+
+PFilterDates.prototype.evalPrep = function()
+{
+	// TO DO
+} // evalPrep()
+
+PFilterDates.prototype.eval = function(rec)
+{
+	// TO DO
+} // eval()
+
+PFilterDates.prototype.setup = function()
+{
+	// TO DO
+} // setup()
+
 
 
 // ========================================================================
