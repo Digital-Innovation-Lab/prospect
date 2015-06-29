@@ -183,6 +183,37 @@ select {
 	margin: 0px;
 }
 
+.filter-body svg {
+	margin: 2px;
+	padding: 0px;
+}
+
+	/* For Filters with category range graphs */
+.filter-body svg .bar {
+}
+
+.filter-body svg .axis text {
+	font: 10px sans-serif;
+	color: black;
+}
+
+.filter-body svg .axis path,
+.filter-body svg .axis line {
+	fill: none;
+	stroke: #000;
+	shape-rendering: crispEdges;
+}
+
+.filter-body svg .x.axis path {
+	display: none;
+}
+
+.filter-body svg .brush .extent {
+	stroke: #fff;
+	fill-opacity: .125;
+	shape-rendering: crispEdges;
+}
+
 	/* DOM Structure of Visualization frames
 	 * #viz-display-frame
 	 *	#viz-frame-0

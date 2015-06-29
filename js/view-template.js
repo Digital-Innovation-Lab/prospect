@@ -45,8 +45,13 @@ var PSTATE_PROCESS = 2;			// Processing data or handling command
 var PSTATE_BUILD = 3;			// Building visuals
 var PSTATE_READY = 4;			// Waiting for user
 
-// ========================================================================
+var D3FG_BAR_WIDTH = 25;			// D3 Graphs created for filters
+var D3FG_MARGINS  = { top: 4, right: 7, bottom: 22, left: 30 };
+
+// ==============================================================================
 // PVizModel: An abstract class to be subclassed by specific visualizations
+//			VizModels are responsible for rendering graphics, handling selections
+//			and indicating types of visual attributes
 
 	// INPUT: 	viewFrame = instance variable returned from ViewModel pseudo-constructor
 	//			frameID = base ID for frame DIV
@@ -66,11 +71,11 @@ function PVizModel(viewFrame, vizSettings)
 	// this.isSel(absI)
 	// this.getSel()
 	// this.toggleSel(absI)
+	// this.clearSel()
 		// All subclasses must implement the following:
 	// this.setup()
 	// this.render(IndexStream)
 	// this.setSel(absIDs)
-	// this.clearSel()
 	// this.getPersp()
 	// this.setPersp(pData)
 } // PVizModel
@@ -103,6 +108,12 @@ PVizModel.prototype.toggleSel = function(absI)
 		return true;
 	}
 } // toggleSel()
+
+	// PURPOSE: Clear selection list (and remove visual indications of selection)
+PVizModel.prototype.clearSel = function()
+{
+	this.recSel = [];
+} // clearSel()
 
 PVizModel.prototype.usesLegend = function()
 {
@@ -522,12 +533,12 @@ function PFilterModel(id, attRec)
 	this.dirty 		= true;
 	this.req 		= true;
 
+		// Sublcasses can override the following:
+	// this.title()
 		// All subclasses must implement the following:
 	// this.setUp()
 	// this.evalPrep()
 	// this.eval(rec)
-		// Sublcasses can override the following:
-	// this.title()
 } // PFilterModel
 
 	// PURPOSE: Either set or get dirty state of Filter
@@ -631,22 +642,17 @@ PFilterVocab.prototype.constructor = PFilterVocab;
 
 PFilterVocab.prototype.evalPrep = function()
 {
+	// TO DO
 } // evalPrep()
 
 PFilterVocab.prototype.eval = function(rec)
 {
+	// TO DO
 } // eval()
 
 PFilterVocab.prototype.setup = function()
 {
-	var self = this;
-	var inserted = this.insertPt();
-	var htmlText = jQuery('#dltext-filter-text').html().trim();
-	inserted.append(htmlText);
-		// Intercept changes to text
-	inserted.find('.filter-text').change(function() {
-		self.isDirty(true);
-	});
+	// TO DO
 } // setup()
 
 
@@ -734,11 +740,92 @@ PFilterNum.prototype.setup = function()
 			}
 		});
 
-		// Create 
+		// Create range category viz & slider
+		// Each range category 10 pix wide (1 pix spacing)
 	} else {
+// console.log("rCats: "+JSON.stringify(this.rCats));
+		var innerH = 120 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
+		var innerW = this.rCats.length*D3FG_BAR_WIDTH;
+		var brush;
 
+		function resizePath(d)
+		{
+			// Create SVG path for brush resize handles
+			var e = +(d == "e"),
+				x = e ? 1 : -1,
+				y = innerH / 4; // Relative positon if handles
+			return "M"+(.5*x)+","+y+"A6,6 0 0 "+e+" "+(6.5*x)+","+(y+6)
+				+"V"+(2*y-6)+"A6,6 0 0 "+e+" "+(.5*x)+","+(2*y)
+				+"Z"+"M"+(2.5*x)+","+(y+8)+"V"+(2*y-8)
+				+"M"+(4.5*x)+","+(y+8)
+				+"V"+(2*y-8);
+		} // resizePath()
+		function brushended()
+		{
+				// Ignore unless user event
+			if (!d3.event.sourceEvent)
+				return;
+			var extent0 = brush.extent();
+			var extent1 = [Math.floor(extent0[0]), Math.floor(extent0[1]+.4)];
+				// if empty when rounded, use floor & ceil instead
+			if (extent1[0] >= extent1[1]) {
+				extent1[0] = Math.floor(extent0[0]);
+				extent1[1] = Math.ceil(extent0[1]);
+			}
+			d3.select(this).transition()
+				.call(brush.extent(extent1));
+		} // brushended()
+
+
+		var xScale = d3.scale.linear().domain([0, this.rCats.length])
+			.rangeRound([0, innerW]);
+		var yScale = d3.scale.linear().domain([0,100]).range([innerH, 0]);
+
+		var rScale = d3.scale.ordinal().rangeRoundBands([0, innerW]);
+		rScale.domain(this.rCats.map(function(rc) { return rc.l; }));
+		var xAxis = d3.svg.axis().scale(rScale).orient("bottom");
+		var yAxis = d3.svg.axis().scale(yScale).orient("left");
+
+		var chart = d3.select(insert.get(0)).append("svg")
+			.attr("width", innerW+D3FG_MARGINS.left+D3FG_MARGINS.right)
+			.attr("height", innerH+D3FG_MARGINS.top+D3FG_MARGINS.bottom)
+			.append("g")
+			.attr("transform", "translate("+D3FG_MARGINS.left+","+D3FG_MARGINS.top+")");
+
+		chart.append("g")
+			.attr("class", "x axis")
+			.attr("transform", "translate(0,"+innerH+")")
+			.call(xAxis);
+
+		chart.append("g")
+			.attr("class", "y axis")
+			.call(yAxis);
+
+		chart.selectAll(".bar")
+			.data(this.rCats)
+			.enter().append("rect")
+			.attr("class", "bar")
+			.attr("x", function(d, i) { return xScale(i); })
+			.attr("y", function(d) { return yScale(100); })
+			.attr("fill", function(d) { return d.c; })
+			.attr("height", function(d) { return innerH - yScale(100); })
+			.attr("width", D3FG_BAR_WIDTH-2);
+
+		brush = d3.svg.brush()
+			.x(xScale)
+			.extent([0, this.rCats.length])
+			.on("brushend", brushended);
+
+		var brushg = chart.append("g")
+			.attr("class", "brush")
+			.call(brush);
+		brushg.selectAll("rect")
+			.attr("y", 0)
+			.attr("height", innerH);
+		brushg.selectAll(".resize")
+			.append("path")
+			.attr("d", resizePath);
 	}
-
 } // setup()
 
 
@@ -1490,7 +1577,7 @@ var PDataHub = (function () {
 			return null;
 		}, // procAttVal()
 
-			// RETURNS: Attribute value for <attID> in Record whose absolute index is <index>,
+			// RETURNS: Attribute value for <attID> in Record whose absolute index is <index>
 			//				or null if either is non-existent
 			// INPUT: 	If <raw>, return as is; otherwise, turn into string/HTML
 			// TO DO: 	Process data?
@@ -1580,6 +1667,7 @@ var PDataHub = (function () {
 			//			att = full Attribute entry
 			//			fSet = array of selected Legend indices ([x,y] for 2ndary level!)
 			//			all = return array for all possible matches for <val> (true), or just first match (false)
+			// TO DO: 	Change to ptr to legend record so can access both <v> and <b>
 		getAttLgndVal: function(val, att, fSet, all)
 		{
 			var fI, lI = fSet.length, lE;
@@ -1745,6 +1833,33 @@ var PDataHub = (function () {
 			return null;
 		}, // getAttLgndVal()
 
+			// PURPOSE: Find the visual code for this Attribute's vocabulary item
+			// RETURNS: pointer to Legend record, or null if failure
+			// ASSUMES: <att> is a complete record for a Vocabulary Attribute
+		getVLgndVal: function(att, val)
+		{
+			var lo = 0;
+			var hi = att.x.length;
+			var pos, cmp;
+
+			while (lo <= hi) {
+				pos = (lo + hi) >> 1;
+				cmp = att.x[pos].l.localeCompare(val);
+
+				if (cmp < 0) {
+					lo = pos + 1;
+				} else if (cmp > 0) {
+					hi = pos - 1;
+				} else {
+					var i = att.x[pos].i;
+					if (typeof i == 'number')
+						return att.l[i];
+					else
+						return att.l[i[0]].z[i[1]];
+				}
+			}
+			return null;
+		}, // getVLgndVal()
 
 			// PURPOSE: Create a single Date from three numbers
 			// INPUT:   year, month (1-12), day (1) must be definite numbers
