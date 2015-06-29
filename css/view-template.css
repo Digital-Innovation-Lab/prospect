@@ -614,9 +614,9 @@ table.viz-directory tr.obj-selected td {
 
 .filter-vocab-bar {
 	height: 4px;
-	width: 20px;
+	width: 50px;
 	margin: 0px;
-	margin-left: 18px;
+	margin-left: 20px;
 	padding: 0px;
 	border: 1px black dotted;
 }

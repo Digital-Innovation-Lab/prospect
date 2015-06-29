@@ -611,7 +611,6 @@ PFilterText.prototype.eval = function(rec)
 			return false;
 		return true;
 	}
-// console.log("Text value = "+txt);
 	return txt.indexOf(str) != -1;
 } // eval()
 
@@ -644,12 +643,36 @@ PFilterVocab.prototype.constructor = PFilterVocab;
 
 PFilterVocab.prototype.evalPrep = function()
 {
-	// TO DO
+		// Create sorted array of all valid Vocabulary terms
+	var self = this;
+	this.sel = [];
+	var v = this.insertPt().find('div.filter-vocab-row input:checked');
+	v.each(function() {
+		var attID = jQuery(this).parent().data('id');
+		self.sel.push(attID);
+	});
+	self.sel.sort();
 } // evalPrep()
 
 PFilterVocab.prototype.eval = function(rec)
 {
-	// TO DO
+	if (this.sel.length == 0)
+		return false;
+	var v = rec.a[this.att.id];
+	if (typeof v == 'undefined') {
+		if (this.req)
+			return false;
+		return true;
+	}
+		// Try all possible Attribute values
+	var s, vi;
+	for (var i=0; i<v.length; i++) {
+		vi = v[i];
+		s = _.sortedIndex(this.sel, vi);
+		if (this.sel[s] == vi)
+			return true;
+	}
+	return false;
 } // eval()
 
 PFilterVocab.prototype.setup = function()
@@ -672,7 +695,14 @@ PFilterVocab.prototype.setup = function()
 		});
 		t+= '</div>';
 	});
-	this.insertPt().append(t+'</div>');
+
+	var ip = this.insertPt();
+	ip.append(t+'</div>');
+		// A click on any checkboxes dirties filter
+	ip.click(function(event) {
+		if (event.target.nodeName == 'INPUT')
+			self.isDirty(true);
+	});
 } // setup()
 
 
@@ -734,13 +764,19 @@ PFilterNum.prototype.setup = function()
 		var max = (typeof this.att.r.max == 'undefined') ? min+100 : this.att.r.max;
 		insert.append(fh({ min: min, max: max }));
 
+		insert.click(function(event) {
+			if (event.target.nodeName == 'INPUT') {
+				self.isDirty(true);
+			}
+		});
+
 			// Intercept changes to min & max checkboxes
-		insert.find('.filter-num-min-use').change(function() {
-			self.isDirty(true);
-		});
-		insert.find('.filter-num-max-use').change(function() {
-			self.isDirty(true);
-		});
+		// insert.find('.filter-num-min-use').change(function() {
+		// 	self.isDirty(true);
+		// });
+		// insert.find('.filter-num-max-use').change(function() {
+		// 	self.isDirty(true);
+		// });
 
 		insert.find('.filter-num-min-val').change(function() {
 				// Ensure it is less than max
