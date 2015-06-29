@@ -709,7 +709,7 @@ PFilterNum.prototype.setup = function()
 	this.rCats = PDataHub.getRCats(this.att);
 		// Lack of range bounds? Create generic HTML input boxes, can't create range sliders
 	if (this.rCats == null) {
-		var fh = _.template(jQuery('#dltext-filter-number').html());
+		var fh = _.template(document.getElementById('dltext-filter-number').innerHTML);
 		var min = (typeof this.att.r.min == 'undefined') ? 0 : this.att.r.min;
 		var max = (typeof this.att.r.max == 'undefined') ? min+100 : this.att.r.max;
 		insert.append(fh({ min: min, max: max }));
@@ -866,7 +866,102 @@ PFilterDates.prototype.eval = function(rec)
 
 PFilterDates.prototype.setup = function()
 {
-	// TO DO
+	var self = this;
+	var insert = this.insertPt();
+
+	this.rCats = PDataHub.getRCats(this.att);
+		// Set defaults
+	this.useMin = this.useMax = true;
+	this.min = this.rCats[0].min;
+	this.max = this.rCats[this.rCats.length-1].max;
+
+	var innerH = 80 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
+	var innerW = this.rCats.length*D3FG_BAR_WIDTH;
+	var brush;
+
+	function resizePath(d)
+	{
+		// Create SVG path for brush resize handles
+		var e = +(d == "e"),
+			x = e ? 1 : -1,
+			y = innerH / 4; // Relative positon if handles
+		return "M"+(.5*x)+","+y+"A6,6 0 0 "+e+" "+(6.5*x)+","+(y+6)
+			+"V"+(2*y-6)+"A6,6 0 0 "+e+" "+(.5*x)+","+(2*y)
+			+"Z"+"M"+(2.5*x)+","+(y+8)+"V"+(2*y-8)
+			+"M"+(4.5*x)+","+(y+8)
+			+"V"+(2*y-8);
+	} // resizePath()
+	function brushended()
+	{
+			// Ignore unless user event
+		if (!d3.event.sourceEvent)
+			return;
+		var extent0 = brush.extent();
+		var extent1 = [Math.floor(extent0[0]), Math.floor(extent0[1]+.4)];
+			// if empty when rounded, use floor & ceil instead
+		if (extent1[0] >= extent1[1]) {
+			extent1[0] = Math.floor(extent0[0]);
+			extent1[1] = Math.ceil(extent0[1]);
+		}
+			// must enclose at least 1 graph!
+		extent1[1] = Math.max(extent1[1], extent1[0]+1);
+		d3.select(this).transition()
+			.call(brush.extent(extent1));
+
+		self.min = self.rCats[extent1[0]].min;
+		self.max = self.rCats[extent1[1]-1].max;
+	} // brushended()
+
+
+	var xScale = d3.scale.linear().domain([0, this.rCats.length])
+		.rangeRound([0, innerW]);
+	var yScale = d3.scale.linear().domain([0,100]).range([innerH, 0]);
+
+	var rScale = d3.scale.ordinal().rangeRoundBands([0, innerW]);
+	rScale.domain(this.rCats.map(function(rc) { return rc.l; }));
+	var xAxis = d3.svg.axis().scale(rScale).orient("bottom");
+	var yAxis = d3.svg.axis().scale(yScale).orient("left").ticks(4);
+
+	var chart = d3.select(insert.get(0)).append("svg")
+		.attr("width", innerW+D3FG_MARGINS.left+D3FG_MARGINS.right)
+		.attr("height", innerH+D3FG_MARGINS.top+D3FG_MARGINS.bottom)
+		.append("g")
+		.attr("transform", "translate("+D3FG_MARGINS.left+","+D3FG_MARGINS.top+")");
+
+	chart.append("g")
+		.attr("class", "x axis")
+		.attr("transform", "translate(0,"+innerH+")")
+		.call(xAxis);
+
+	chart.append("g")
+		.attr("class", "y axis")
+		.call(yAxis);
+
+	chart.selectAll(".bar")
+		.data(this.rCats)
+		.enter().append("rect")
+		.attr("class", "bar")
+		.attr("x", function(d, i) { return xScale(i); })
+		.attr("y", function(d) { return yScale(100); })
+		.attr("fill", function(d) { return d.c; })
+		.attr("height", function(d) { return innerH - yScale(100); })
+		.attr("width", D3FG_BAR_WIDTH-2);
+
+	brush = d3.svg.brush()
+		.x(xScale)
+		.extent([0, this.rCats.length])
+		.on("brushend", brushended);
+
+	var brushg = chart.append("g")
+		.attr("class", "brush")
+		.call(brush);
+	brushg.selectAll("rect")
+		.attr("y", 0)
+		.attr("height", innerH);
+	brushg.selectAll(".resize")
+		.append("path")
+		.attr("d", resizePath);
+
 } // setup()
 
 
@@ -1925,13 +2020,14 @@ var PDataHub = (function () {
 			// PURPOSE: Return array of range categories for facet att
 			// INPUT: 	Complete Attribute definition <att>
 			// RETURNS: range category array = { l[abel], c[olor], min, max },
-			//				or null if range categories not possible (lack of bounds)
+			//				or null if range categories not possible (lack of bounds or not defined)
 			// ASSUMES: Only called for Number and Dates types
 			//			Date range has minimum year
 			//			JS Data creation deals with “spillover” values
 			// NOTES: 	To qualify for a Legend category, a range category only needs to start within it
 			//			A range category with no Legend match is assigned color black
 			//			max value is exclusive (must be less than, not equal!)
+			// TO DO: 	Handle case that scale of max-min and g would be too large
 		getRCats: function(att)
 		{
 			var rcs = [];
@@ -2003,7 +2099,7 @@ var PDataHub = (function () {
 				var lI=0, curL, lMinDate, lMaxDate;
 				if (att.l.length > 0) {
 					curL = att.l[0];
-					lMinDate = makeDate(curL.d.min.y, 1, 12, curL.d.min);
+					lMinDate = makeDate(curL.d.min.y, 1, 1, curL.d.min);
 					lMaxDate = makeMaxDate(curL.d.max);
 				}
 				while (curDate <= maxDate) {
@@ -2024,8 +2120,10 @@ var PDataHub = (function () {
 						// Advance to the relevant legend category
 					while (lI < att.l.length && curDate > lMaxDate) {
 						curL = att.l[++lI];
-						lMinDate = makeDate(curL.d.min.y, 1, 12, curL.d.min);
-						lMaxDate = makeMaxDate(curL.d.max);
+						if (lI < att.l.length) {
+							lMinDate = makeDate(curL.d.min.y, 1, 1, curL.d.min);
+							lMaxDate = makeMaxDate(curL.d.max);
+						}
 					}
 						// Is current range category before current legend category?
 					if (att.l.length == 0 || curDate < lMinDate) {
@@ -2335,7 +2433,7 @@ console.log("Set layout to: "+lIndex);
 		filters.push(newFRec);
 
 			// Now create DOM structure and handle clicks
-		var fh = _.template(jQuery('#dltext-filter-head').html());
+		var fh = _.template(document.getElementById('dltext-filter-head').innerHTML);
 		jQuery('#filter-instances').append(fh({ newID: newID, title: newFilter.title() }));
 
 		var head = jQuery('.filter-instance[data-id="'+newID+'"]');
