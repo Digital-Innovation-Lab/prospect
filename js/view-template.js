@@ -2464,13 +2464,13 @@ console.log("Set layout to: "+lIndex);
 
 		filters.splice(fI, 1);
 			// Deleted last filter in stack
-		if (fI == filters.length) {
+		if (fI >= filters.length) {
 			var endStream;
 				// No filters left, reset ViewFrame data source
 			if (filters.length == 0)
 				endStream = topStream;
 			else
-				endStream = filters[fi].out;
+				endStream = filters[fI-1].out;
 			view0.setStream(endStream);
 			if (view1)
 				view1.setStream(endStream);
