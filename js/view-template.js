@@ -856,12 +856,42 @@ PFilterDates.prototype.constructor = PFilterDates;
 
 PFilterDates.prototype.evalPrep = function()
 {
-	// TO DO
 } // evalPrep()
 
+	// ASSUMES: Brush code in setup sets min & max
 PFilterDates.prototype.eval = function(rec)
 {
-	// TO DO
+	function makeDate(y, m, d, field) {
+		if (typeof field.m != 'undefined') {
+			m = field.m;
+			if (typeof field.d != 'undefined') {
+				d = field.d;
+			}
+		}
+		return PDataHub.date3Nums(y, m, d);
+	} // makeDate()
+
+	var d = rec.a[this.att.id];
+	if (typeof d == 'undefined') {
+		if (this.req)
+			return false;
+		return true;
+	}
+		// Is it a single event?
+	if (typeof d.max == 'undefined') {
+		var c = makeDate(d.min.y, 1, 1, d.min);
+		return this.min <= c && c < this.max;
+	} else {
+		var s = makeDate(d.min.y, 1, 1, d.min);
+		var e;
+		if (d.max == 'open')
+			e = new Date();
+		else
+			e = makeDate(d.max.y, 12, 31, d.max);
+		if (e < this.min || s >= this.max)
+			return false;
+		return true;
+	}
 } // eval()
 
 PFilterDates.prototype.setup = function()
@@ -961,7 +991,6 @@ PFilterDates.prototype.setup = function()
 	brushg.selectAll(".resize")
 		.append("path")
 		.attr("d", resizePath);
-
 } // setup()
 
 
