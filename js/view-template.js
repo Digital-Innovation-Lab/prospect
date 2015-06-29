@@ -689,7 +689,10 @@ PFilterVocab.prototype.setup = function()
 		lEntry.z.forEach(function(zEntry, zI) {
 			t += '<div class="filter-vocab-row" data-id="'+zEntry.l+'"><input type="checkbox" value="min-use" checked="checked">'+
 				zEntry.l+'</div>';
-			if (zEntry.v.charAt(0) == '#') {
+			if (zEntry.v == null || zEntry.v == '') {
+				if (lEntry.v.charAt(0) == '#')
+					t += '<div class="filter-vocab-bar" style="background-color:'+lEntry.v+'"></div>';
+			} else if (zEntry.v.charAt(0) == '#') {
 				t += '<div class="filter-vocab-bar" style="background-color:'+zEntry.v+'"></div>';
 			}
 		});
