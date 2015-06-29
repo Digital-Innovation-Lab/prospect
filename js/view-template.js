@@ -619,7 +619,9 @@ PFilterText.prototype.setup = function()
 {
 	var self = this;
 	var inserted = this.insertPt();
-	var htmlText = jQuery('#dltext-filter-text').html().trim();
+	// var htmlText = jQuery('#dltext-filter-text').html().trim();
+	var htmlText = document.getElementById('dltext-filter-text').innerHTML;
+
 	inserted.append(htmlText);
 		// Intercept changes to text
 	inserted.find('.filter-text').change(function() {
@@ -652,7 +654,25 @@ PFilterVocab.prototype.eval = function(rec)
 
 PFilterVocab.prototype.setup = function()
 {
-	// TO DO
+	var self = this;
+	var t = '<div class="filter-vocab-container">';
+	this.att.l.forEach(function(lEntry, lI) {
+		t += '<div class="filter-vocab-entry" data-index="'+lI+'"><div class="filter-vocab-row" data-id="'+
+				lEntry.l+'">'+'<input type="checkbox" value="min-use" checked="checked">'+
+				lEntry.l+'</div>';
+		if (lEntry.v.charAt(0) == '#') {
+			t += '<div class="filter-vocab-bar" style="background-color:'+lEntry.v+'"></div>';
+		}
+		lEntry.z.forEach(function(zEntry, zI) {
+			t += '<div class="filter-vocab-row" data-id="'+zEntry.l+'"><input type="checkbox" value="min-use" checked="checked">'+
+				zEntry.l+'</div>';
+			if (zEntry.v.charAt(0) == '#') {
+				t += '<div class="filter-vocab-bar" style="background-color:'+zEntry.v+'"></div>';
+			}
+		});
+		t+= '</div>';
+	});
+	this.insertPt().append(t+'</div>');
 } // setup()
 
 
@@ -744,16 +764,13 @@ PFilterNum.prototype.setup = function()
 		});
 
 		// Create range category viz & slider
-		// Each range category 10 pix wide (1 pix spacing)
 	} else {
-// console.log("rCats: "+JSON.stringify(this.rCats));
 			// Set defaults
 		this.useMin = this.useMax = true;
 		this.min = this.rCats[0].min;
 		this.max = this.rCats[this.rCats.length-1].max;
 
 		var innerH = 80 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
-		var innerW = this.rCats.length*D3FG_BAR_WIDTH;
 		var brush;
 
 		function resizePath(d)
@@ -787,9 +804,10 @@ PFilterNum.prototype.setup = function()
 
 			self.min = self.rCats[extent1[0]].min;
 			self.max = self.rCats[extent1[1]-1].max;
+			self.isDirty(true);
 		} // brushended()
 
-
+		var innerW = this.rCats.length*D3FG_BAR_WIDTH;
 		var xScale = d3.scale.linear().domain([0, this.rCats.length])
 			.rangeRound([0, innerW]);
 		var yScale = d3.scale.linear().domain([0,100]).range([innerH, 0]);
@@ -880,7 +898,7 @@ PFilterDates.prototype.eval = function(rec)
 		// Is it a single event?
 	if (typeof d.max == 'undefined') {
 		var c = makeDate(d.min.y, 1, 1, d.min);
-		return this.min <= c && c < this.max;
+		return (this.min <= c) && (c < this.max);
 	} else {
 		var s = makeDate(d.min.y, 1, 1, d.min);
 		var e;
@@ -897,7 +915,6 @@ PFilterDates.prototype.eval = function(rec)
 PFilterDates.prototype.setup = function()
 {
 	var self = this;
-	var insert = this.insertPt();
 
 	this.rCats = PDataHub.getRCats(this.att);
 		// Set defaults
@@ -906,7 +923,6 @@ PFilterDates.prototype.setup = function()
 	this.max = this.rCats[this.rCats.length-1].max;
 
 	var innerH = 80 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
-	var innerW = this.rCats.length*D3FG_BAR_WIDTH;
 	var brush;
 
 	function resizePath(d)
@@ -940,9 +956,10 @@ PFilterDates.prototype.setup = function()
 
 		self.min = self.rCats[extent1[0]].min;
 		self.max = self.rCats[extent1[1]-1].max;
+		self.isDirty(true);
 	} // brushended()
 
-
+	var innerW = this.rCats.length*D3FG_BAR_WIDTH;
 	var xScale = d3.scale.linear().domain([0, this.rCats.length])
 		.rangeRound([0, innerW]);
 	var yScale = d3.scale.linear().domain([0,100]).range([innerH, 0]);
@@ -952,6 +969,7 @@ PFilterDates.prototype.setup = function()
 	var xAxis = d3.svg.axis().scale(rScale).orient("bottom");
 	var yAxis = d3.svg.axis().scale(yScale).orient("left").ticks(4);
 
+	var insert = this.insertPt();
 	var chart = d3.select(insert.get(0)).append("svg")
 		.attr("width", innerW+D3FG_MARGINS.left+D3FG_MARGINS.right)
 		.attr("height", innerH+D3FG_MARGINS.top+D3FG_MARGINS.bottom)

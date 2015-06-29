@@ -591,3 +591,32 @@ table.viz-directory tr.obj-selected td {
 
 .filter-num-slider.ui-slider .ui-slider-range {
 }
+
+	/* Outer container for Vocabulary filters */
+.filter-vocab-container {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	margin-bottom: 2px;
+}
+
+.filter-vocab-entry {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	min-width: 80px;
+	margin-right: 6px;
+}
+
+.filter-vocab-row {
+	display: inline-block;
+}
+
+.filter-vocab-bar {
+	height: 4px;
+	width: 20px;
+	margin: 0px;
+	margin-left: 18px;
+	padding: 0px;
+	border: 1px black dotted;
+}
