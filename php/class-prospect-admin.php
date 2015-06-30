@@ -515,6 +515,7 @@ class ProspectAdmin {
 				foreach($att_defs as $the_attribute) {
 					$an_att = array();
 					$an_att['id'] = $the_attribute->id;
+					$an_att['p'] = $the_attribute->privacy;
 					$an_att['def'] = $the_attribute->def;
 					array_push($att_data, $an_att);
 				}
@@ -576,7 +577,7 @@ class ProspectAdmin {
 	{
 			// Create header to indicate Attribute record
 		fwrite($fp, '{"type": "Attribute", "att-id": "'.$the_att->id.'", '."\n");
-		fwrite($fp, '"att-privacy": '.$the_att->privacy.", \n");
+		fwrite($fp, '"att-privacy": "'.$the_att->privacy."\", \n");
 		fwrite($fp, '"att-def": '.$the_att->meta_def.", \n");
 		fwrite($fp, '"att-range": '.$the_att->meta_range.", \n");
 		fwrite($fp, '"att-legend": '.$the_att->meta_legend."\n}");
@@ -943,7 +944,7 @@ class ProspectAdmin {
 		case 'Attribute':
 			$post_id = $this->create_entity('prsp-attribute', 'att-id', $data['att-id']);
 			if ($post_id) {
-				update_post_meta($post_id, 'att-privacy', json_encode($data['att-privacy']));
+				update_post_meta($post_id, 'att-privacy', $data['att-privacy']);
 				update_post_meta($post_id, 'att-def', json_encode($data['att-def']));
 				update_post_meta($post_id, 'att-range', json_encode($data['att-range']));
 				update_post_meta($post_id, 'att-legend', json_encode($data['att-legend']));

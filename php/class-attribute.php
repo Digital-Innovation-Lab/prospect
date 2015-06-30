@@ -148,6 +148,7 @@ class ProspectAttribute {
 
 
 		// RETURNS: An associative array in which key is Attribute ID and the value is the Attribute definition
+		// NOTES: 	Adds privacy setting as <p> field in each Attribute definition
 	static public function get_assoc_defs()
 	{
 		$assocs = array();
@@ -160,6 +161,7 @@ class ProspectAttribute {
 				if ($att_id != '') {
 					$att_def_meta = get_post_meta($att->ID, 'att-def', true);
 					$att_def = json_decode($att_def_meta, false);
+					$att_def->p = get_post_meta($att->ID, 'att-privacy', true);
 					$assocs[$att_id] = $att_def;
 				}
 			}

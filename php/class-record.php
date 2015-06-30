@@ -23,10 +23,10 @@ class ProspectRecord {
 		//				this Records from this Template type
 		//			$att_assocs is associative array for all possible Attributes: [att_id] = type
 		// ASSUMED:	Record is newly created if record-id and tmplt-id are empty
-		//			A new Record will always have $keep_raw = true, not use last fields
+		//			New Record created by Dashboard editor will always have $keep_raw = true, not use last fields
 		//			if $the_template, all of its fields will be unpacked
-		// TO DO:	If Joins and Dependent Array in alphaorder, can do sorted comparison
-		//			Evaluate value against Legend ??
+		//			Only need to apply privacy setting if $keep_raw = false
+		// TO DO:	Evaluate value against Legend ??
 	public function __construct($is_postid, $the_id, $keep_raw, $the_template, $dependent_array, $att_assocs)
 	{
 		$this->id			= $this->post_id = null;
@@ -111,6 +111,10 @@ class ProspectRecord {
 						// Process Attribute values by type
 					else {
 						$att_def = $att_assocs[$att_to_load];
+							// Ignore this Attribute if private
+						if ($att_def->p != 'o')
+							continue;
+
 						switch($att_def->t) {
 						case 'Vocabulary':
 							if ($att_def->d != '')

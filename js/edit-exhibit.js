@@ -152,7 +152,7 @@ jQuery(document).ready(function() {
 		// DATA LOADED FROM SERVER
 		// =======================
 		// List of all currently defined Attributes
-	var defAtts = prspdata.atts;			// { id, def }
+	var defAtts = prspdata.atts;				// { id, p, def }
 		// List of all currently defined Templates; joins Object is added to it
 	var defTemplates = prspdata.templates;		// { id, def, joins }
 
@@ -219,9 +219,9 @@ jQuery(document).ready(function() {
 		//		attsFct: array of Atts that can act as Facets
 		//	}
 	var iTemplates = [ ];
-		// Array of all Attributes after Joins done
+		// Array of all (open) Attributes after Joins done
 	var defJoinedAtts = [ ];
-		// Array of all Facet Attributes after Joins done
+		// Array of all (open) Facet Attributes after Joins done
 	var defJoinedFacets = [ ];
 
 		// CODE
@@ -349,10 +349,10 @@ jQuery(document).ready(function() {
 	// _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
 
 
-		// Compile array of all Attributes -- start by copying non-Join Attributes
+		// Compile array of all (open) Attributes -- start by copying non-Join Attributes
 		// Join Attributes will be handled from independent Template definitions below
 	_.forEach(defAtts, function(theAttDef) {
-		if (theAttDef.def.t != 'Join')
+		if (theAttDef.p == 'o' && theAttDef.def.t != 'Join')
 			defJoinedAtts.push(_.clone(theAttDef, true));
 	});
 
@@ -429,19 +429,24 @@ jQuery(document).ready(function() {
 					var dTemplate = getDependentTemplate(theTmplt, attDef.id);
 					_.forEach(dTemplate.def.a, function(joinAttID) {
 						var joinAtt = getAttribute(joinAttID);
-						saveAttRef(attDef.id+'.', joinAttID, joinAtt.def.t);
-							// If Joined Attribute not in global list, add it
-						var joinedID = attDef.id+'.'+joinAttID;
-						if (_.find(defJoinedAtts, function(theAtt) { return theAtt.id === joinedID; }) == null)
-						{
-							var clonedAtt = _.clone(joinAtt);
-							clonedAtt.id = joinedID;
-							defJoinedAtts.push(clonedAtt);
+							// Restrict to "Open" level of security
+						if (joinAtt.p == 'o') {
+							saveAttRef(attDef.id+'.', joinAttID, joinAtt.def.t);
+								// If Joined Attribute not in global list, add it
+							var joinedID = attDef.id+'.'+joinAttID;
+							if (_.find(defJoinedAtts, function(theAtt) { return theAtt.id === joinedID; }) == null)
+							{
+								var clonedAtt = _.clone(joinAtt);
+								clonedAtt.id = joinedID;
+								defJoinedAtts.push(clonedAtt);
+							}
 						}
 					});
 					break;
 				default:
-					saveAttRef('', theAttID, attDef.def.t);
+						// Restrict to "Open" level of security
+					if (attDef.p == 'o')
+						saveAttRef('', theAttID, attDef.def.t);
 					break;
 				}
 			}); // forEach Template Att
