@@ -595,7 +595,7 @@ jQuery(document).ready(function() {
 		switch (rApp.get('theAttribute.t')) {
 		case 'Vocabulary':
 				// Must provide a valid term, and it must not already exist
-			var newTerm = rApp.get('newVocab');
+			var newTerm = rApp.get('newVocab').trim();
 			if (newTerm.length == 0) {
 				displayError('#errmsg-no-term-name');
 				return false;
