@@ -142,7 +142,6 @@ PVizModel.prototype.teardown = function()
 var VizMap = function(viewFrame, vSettings)
 {
 	PVizModel.call(this, viewFrame, vSettings);
-		// Determine which 
 } // ViewMap
 
 VizMap.prototype = Object.create(PVizModel.prototype);
@@ -390,6 +389,70 @@ VizMap.prototype.setSel = function(absIArray)
 				marker.setStyle({ color: "#000" });
 		});
 	}
+} // setSel()
+
+
+// ====================================================
+// VizPinboard: Class to visualize images with overlays
+
+
+var VizPinboard = function(viewFrame, vSettings)
+{
+	PVizModel.call(this, viewFrame, vSettings);
+} // VizPinboard
+
+VizPinboard.prototype = Object.create(PVizModel.prototype);
+
+VizPinboard.prototype.constructor = VizPinboard;
+
+VizPinboard.prototype.usesLegend = function()
+{
+	return true;
+} // usesLegend()
+
+	// PURPOSE: Return IDs of locate Attributes 
+VizPinboard.prototype.getLocAtts = function(tIndex)
+{
+	if (tIndex != null)
+		return this.settings.cAtts[tIndex];
+	return this.settings.cAtts;
+} // getLocAtts()
+
+VizPinboard.prototype.getFeatureAtts = function(tIndex)
+{
+	if (tIndex != null)
+		return this.settings.lgnds[tIndex];
+	return this.settings.lgnds;
+} // getFeatureAtts()
+
+VizPinboard.prototype.setup = function()
+{
+	// TO DO
+} // setup
+
+	// PURPOSE: Draw the Records in the given datastream
+	// NOTES: 	absolute index of Record is saved in <id> field of map marker
+VizPinboard.prototype.render = function(datastream)
+{
+	// TO DO
+} // render()
+
+
+VizPinboard.prototype.clearSel = function()
+{
+	if (this.recSel.length > 0) {
+		this.recSel = [];
+		// TO DO
+	}
+} // clearSel()
+
+
+VizMap.prototype.setSel = function(absIArray)
+{
+	var s;
+
+	this.recSel = absIArray;
+	// TO DO
 } // setSel()
 
 
@@ -1373,6 +1436,7 @@ function PViewFrame(vizIndex)
 		case 'Cards':
 			break;
 		case 'Pinboard':
+			vizModel = new VizPinboard(instance, theView.c);
 			break;
 		case 'Timeline':
 			break;

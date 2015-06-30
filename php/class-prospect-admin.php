@@ -57,7 +57,8 @@ class ProspectAdmin {
 		return strcmp($a->id, $b->id);
 	} // cmp_ids()
 
-
+		// PURPOSE: Load data about PNG images that appear to be icons
+		// ASSUMES: Icons must not be larger than 48x48
 	static private function get_all_PNGs()
 	{
 		$pngs = array();
@@ -71,14 +72,18 @@ class ProspectAdmin {
 			)
 		);
 		foreach ($media_query->posts as $post) {
-			$onePNG = array();
-			$onePNG['id'] = $post->ID;
-			$onePNG['title'] = $post->post_title;
 			$imageData = wp_get_attachment_image_src($post->ID);
-			$onePNG['url'] = $imageData[0];
-			$onePNG['w'] = $imageData[1];
-			$onePNG['h'] = $imageData[2];
-			array_push($pngs, $onePNG);
+			$imageData[1] = (int)$imageData[1];
+			$imageData[2] = (int)$imageData[2];
+			if ($imageData[1] <= 48 && $imageData[2] <= 48) {
+				$onePNG = array();
+				$onePNG['id'] = $post->ID;
+				$onePNG['title'] = $post->post_title;
+				$onePNG['url'] = $imageData[0];
+				$onePNG['w'] = $imageData[1];
+				$onePNG['h'] = $imageData[2];
+				array_push($pngs, $onePNG);
+			}
 		}
 
 		return $pngs;
