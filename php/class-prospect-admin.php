@@ -121,6 +121,7 @@ class ProspectAdmin {
 
 			// Special hidden fields for custom fields coordinated by JavaScript code
 		echo '<input type="hidden" name="prsp_att_id" value="'.$theAtt->id.'"/>';
+		echo '<textarea name="prsp_att_privacy" form="post" spellcheck="false" style="display:none">'.$theAtt->privacy.'</textarea>';
 		echo '<textarea name="prsp_att_def" form="post" spellcheck="false" style="display:none">'.$theAtt->meta_def.'</textarea>';
 		echo '<textarea name="prsp_att_r" form="post" spellcheck="false" style="display:none">'.$theAtt->meta_range.'</textarea>';
 		echo '<textarea name="prsp_att_lgnd" form="post" spellcheck="false" style="display:none">'.$theAtt->meta_legend.'</textarea>';
@@ -251,6 +252,10 @@ class ProspectAdmin {
 			if (isset($_POST['prsp_att_id'])) {
 				$att_id = $_POST['prsp_att_id'];
 				update_post_meta($post_id, 'att-id', $att_id);
+			}
+			if (isset($_POST['prsp_att_privacy'])) {
+				$att_r = $_POST['prsp_att_privacy'];
+				update_post_meta($post_id, 'att-privacy', $att_r);
 			}
 			if (isset($_POST['prsp_att_def'])) {
 				$att_def = $_POST['prsp_att_def'];
@@ -571,6 +576,7 @@ class ProspectAdmin {
 	{
 			// Create header to indicate Attribute record
 		fwrite($fp, '{"type": "Attribute", "att-id": "'.$the_att->id.'", '."\n");
+		fwrite($fp, '"att-privacy": '.$the_att->privacy.", \n");
 		fwrite($fp, '"att-def": '.$the_att->meta_def.", \n");
 		fwrite($fp, '"att-range": '.$the_att->meta_range.", \n");
 		fwrite($fp, '"att-legend": '.$the_att->meta_legend."\n}");
@@ -937,6 +943,7 @@ class ProspectAdmin {
 		case 'Attribute':
 			$post_id = $this->create_entity('prsp-attribute', 'att-id', $data['att-id']);
 			if ($post_id) {
+				update_post_meta($post_id, 'att-privacy', json_encode($data['att-privacy']));
 				update_post_meta($post_id, 'att-def', json_encode($data['att-def']));
 				update_post_meta($post_id, 'att-range', json_encode($data['att-range']));
 				update_post_meta($post_id, 'att-legend', json_encode($data['att-legend']));

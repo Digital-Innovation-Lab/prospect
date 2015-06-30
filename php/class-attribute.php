@@ -220,6 +220,7 @@ class ProspectAttribute {
 		// Attribute-specific data
 	public $meta_def;		// JSON packed version of Attribute definition
 	public $def;			// unpacked object version
+	public $privacy;		// privacy setting: 'o' or 'p'
 	public $meta_range;
 	public $range;
 	public $meta_legend;
@@ -275,6 +276,8 @@ class ProspectAttribute {
 				if (!$load_hint)
 					unset($this->def->h);
 			}
+
+			$this->privacy = get_post_meta($this->post_id, 'att-privacy', true);
 
 			if ($load_range) {
 				$this->meta_range = get_post_meta($this->post_id, 'att-range', true);

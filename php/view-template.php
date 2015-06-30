@@ -72,17 +72,20 @@
 		// Output each entry
 	$first = true;
 	foreach($att_defs as $the_attribute) {
-		if (!$first)
-			echo(', ');
-		$first = false;
-		echo('{ id: "'.$the_attribute->id.'", ');
-		echo(' def: '.json_encode($the_attribute->def).', ');
-		echo(' r: '.$the_attribute->meta_range.', ');
-		echo(' l: '.json_encode($the_attribute->legend));
-		if ($the_attribute->x != null)
-			echo(', x: '.json_encode($the_attribute->x).' }');
-		else
-			echo(' }');
+			// Ignore Attributes whose Privacy setting protects them
+		if ($the_attribute->privacy == 'o') {
+			if (!$first)
+				echo(', ');
+			$first = false;
+			echo('{ id: "'.$the_attribute->id.'", ');
+			echo(' def: '.json_encode($the_attribute->def).', ');
+			echo(' r: '.$the_attribute->meta_range.', ');
+			echo(' l: '.json_encode($the_attribute->legend));
+			if ($the_attribute->x != null)
+				echo(', x: '.json_encode($the_attribute->x).' }');
+			else
+				echo(' }');
+		}
 	}
 ?> ] };
 

@@ -1,6 +1,6 @@
 # Prospect
 
-* Contributors: Michael Newton, Breon Williams
+* Contributors: Michael Newton
 * Tags: posts
 * Requires at least: 3.9.0
 * Tested up to: 4.0

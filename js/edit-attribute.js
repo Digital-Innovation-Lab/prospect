@@ -143,6 +143,7 @@ jQuery(document).ready(function() {
 		// LIVE DATA ABOUT THIS ATTRIBUTE
 		// ==============================
 	var attID;
+	var privacy;
 	var defAttribute = { l: '', t: 'Vocabulary', d: '', h: '' };		// l(abel), t(ype), d(elimiter), h(int)
 	var chosenCF = customFields[0] || '';
 	var defRange = { };					// current Range definition
@@ -170,6 +171,8 @@ jQuery(document).ready(function() {
 		// CODE
 		// ====
 	attID = jQuery('input[name="prsp_att_id"]').val();
+	privacy = jQuery('textarea[name="prsp_att_privacy"]').val();
+	if (privacy == '') privacy = 'o';
 
 	var embedData;
 
@@ -509,6 +512,7 @@ jQuery(document).ready(function() {
 		data: {
 			theAttribute: defAttribute,
 			attID: attID,
+			privacy: privacy,
 			dataTypes: dataTypes,
 			cfs: customFields,
 			chosenCF: chosenCF,
@@ -1257,6 +1261,8 @@ jQuery(document).ready(function() {
 				// Stuff in hidden fields
 			var theID = rApp.get('attID').trim();
 			jQuery('input[name="prsp_att_id"]').val(theID);
+			var pSetting = rApp.get('privacy');
+			jQuery('textarea[name="prsp_att_privacy"]').val(pSetting);
 			jQuery('textarea[name="prsp_att_def"]').val(JSON.stringify(attDef));
 			jQuery('textarea[name="prsp_att_r"]').val(JSON.stringify(attR));
 			jQuery('textarea[name="prsp_att_lgnd"]').val(JSON.stringify(attL));
