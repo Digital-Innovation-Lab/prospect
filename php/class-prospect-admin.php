@@ -871,7 +871,7 @@ class ProspectAdmin {
 			// Create archive header
 		fwrite($fp, '{"type": "Archive", "items": ['."\n");
 
-			// Get all definitions of all current Attributes
+			// Get all definitions of all current Exhibits
 		$exhibit_defs = ProspectExhibit::get_all_exhibit_defs(false);
 		$first = true;
 		foreach($exhibit_defs as $the_exhibit) {
@@ -880,6 +880,57 @@ class ProspectAdmin {
 			$first = false;
 			$this->write_exhibit_data($fp, $the_exhibit);
 		}
+		fwrite($fp, "\n]}");
+
+			// Close the output buffer
+		fclose($fp);
+		exit();
+	} // prsp_export_all_exhibits()
+
+
+		// PURPOSE: Export all Attribute, Template and Exhibit definitions as a JSON Archive file
+	public function prsp_export_all()
+	{
+			// ensure that this URL has not been faked by non-admin user
+		if (!current_user_can('edit_posts')) {
+			wp_die('Invalid request');
+		}
+
+			// Create appropriate filename
+		$fp = $this->createUTFOutput("totalbackup.json", true);
+
+			// Create archive header
+		fwrite($fp, '{"type": "Archive", "items": ['."\n");
+
+		$first = true;
+
+			// Get all definitions of all current Attributes
+		$att_defs = ProspectAttribute::get_all_attributes(false, true, true, true);
+		foreach($att_defs as $the_attribute) {
+			if (!$first)
+				fwrite($fp, ",\n");
+			$first = false;
+			$this->write_att_data($fp, $the_attribute);
+		}
+
+			// Get all definitions of all current Templates
+		$template_defs = ProspectTemplate::get_all_template_defs(0, false, true);
+		foreach($template_defs as $the_template) {
+			if (!$first)
+				fwrite($fp, ",\n");
+			$first = false;
+			$this->write_template_data($fp, $the_template);
+		}
+
+			// Get all definitions of all current Exhibits
+		$exhibit_defs = ProspectExhibit::get_all_exhibit_defs(false);
+		foreach($exhibit_defs as $the_exhibit) {
+			if (!$first)
+				fwrite($fp, ",\n");
+			$first = false;
+			$this->write_exhibit_data($fp, $the_exhibit);
+		}
+
 		fwrite($fp, "\n]}");
 
 			// Close the output buffer

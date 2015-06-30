@@ -271,6 +271,7 @@ class Prospect {
 		$this->loader->add_action('admin_action_prsp_export_record', $this->admin, 'prsp_export_record');
 		$this->loader->add_action('admin_action_prsp_export_exhibit', $this->admin, 'prsp_export_exhibit');
 		$this->loader->add_action('admin_action_prsp_export_all_exhibits', $this->admin, 'prsp_export_all_exhibits');
+		$this->loader->add_action('admin_action_prsp_export_all', $this->admin, 'prsp_export_all');
 
 		$this->loader->add_action('admin_init', $this->admin, 'check_archive_output');
 
