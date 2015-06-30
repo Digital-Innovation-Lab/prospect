@@ -13,10 +13,10 @@
 	<div id="error-frame">{{errorMsg}}</div>
 	{{/if}}
 	<button id="prsp-save-data" on-click="saveTemplate">Verify and Save Template Definition</button><br/>
-	<label for="ext-label">Template external label: </label><input id="ext-label" value='{{theTemplate.l}}' placeholder="Enter label" size="24" required/><br/>
-	<label for="int-id">Template internal id: </label><input id="int-id" value='{{templateID}}' placeholder="Enter id" size="24" pattern="[\w\-]+" required/><br/>
+	<label for="ext-label">Template's external label: </label><input id="ext-label" value='{{theTemplate.l}}' placeholder="Enter label" size="24" required/><br/>
+	<label for="int-id">Template's unique internal id: </label><input id="int-id" value='{{templateID}}' placeholder="Enter id" size="24" pattern="[\w\-]+" required/><br/>
 	<input id="dep-tmplt" type='checkbox' checked='{{theTemplate.d}}'> Dependent Template<br/>
-	<label for="label-att">Label for Records: </label><select id="label-att" value='{{theTemplate.t}}'>
+	<label for="label-att">Label for each Record supplied by: </label><select id="label-att" value='{{theTemplate.t}}'>
 		{{#each textAtts}}
 			<option>{{this}}</option>
 		{{/each}}

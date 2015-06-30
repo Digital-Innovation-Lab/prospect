@@ -192,13 +192,13 @@
 	<div id="error-frame">{{errorMsg}}</div>
 	{{/if}}
 	<button id="prsp-save-data" on-click="saveAttribute">Verify and Save Attribute Definition</button><br/>
-	Attribute external label: <input value='{{theAttribute.l}}' placeholder="Enter label" size="24" required/>
-	<select value='{{privacy}}'>
+	Attribute's external label: <input value='{{theAttribute.l}}' placeholder="Enter label" size="24" required/>
+	Privacy Setting: <select value='{{privacy}}'>
 		<option value="o">Open (Public)</option>
 		<option value="p">Private</option>
 	</select>
 	<br/>
-	Attribute internal id: <input value='{{attID}}' placeholder="Enter id" size="24" pattern="[\w\-]+" required/>
+	Attribute's unique internal id: <input value='{{attID}}' placeholder="Enter id" size="24" pattern="[\w\-]+" required/>
 	<select value='{{chosenCF}}'>
 		{{#each cfs}}
 			<option>{{this}}</option>
@@ -206,7 +206,7 @@
 	</select>
 	<button on-click="copyCF">Use this Custom Field name</button>
 	<br/>
-	Attribute delimiter (single character or blank): <input value='{{theAttribute.d}}' size="2"/><br/>
+	Attribute value delimiter (single character or blank): <input value='{{theAttribute.d}}' size="2"/><br/>
 	Contributor Hint: <br/>
 	<input type="text" size="64" maxlength="128" placeholder="Explain Attribute entry to contributor" value="{{theAttribute.h}}" /><br/>
 	Data type: 

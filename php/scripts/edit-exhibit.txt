@@ -31,8 +31,8 @@
 	<accordion>
 		<h3>General Settings</h3>
 		<div>
-			<label for="ext-label">Exhibit external label: </label><input id="ext-label" type='text' value='{{genSettings.l}}' placeholder="Enter label" size="24" required/>
-			<label for="int-id">Exhibit internal id: </label><input type='text' id="int-id" value='{{xhbtID}}' placeholder="Enter id" pattern="[\w\-]+" size="24" required/>
+			<label for="ext-label">Exhibit's external label: </label><input id="ext-label" type='text' value='{{genSettings.l}}' placeholder="Enter label" size="24" required/>
+			<label for="int-id">Exhibit's unique internal id: </label><input type='text' id="int-id" value='{{xhbtID}}' placeholder="Enter id" pattern="[\w\-]+" size="24" required/>
 			<br/>
 			"{{genSettings.l}}" will display Template types:<br/>
 			{{#each iTemplates}}
