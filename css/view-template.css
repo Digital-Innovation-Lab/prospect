@@ -159,7 +159,7 @@ select {
 }
 
 	/* Each Filter instance has this class as outer wrapper */
-.filter-instance {
+div.filter-instance {
 	border: black 1px dotted;
 	max-height: 300px;
 	padding-left: 8px;
@@ -168,7 +168,7 @@ select {
 }
 
 	/* Title and control bar for each filter instance */
-.filter-head {
+div.filter-head {
 	height: 24px;
 	padding: 2px;
 	margin: 0;
@@ -176,39 +176,39 @@ select {
 }
 
 	/* Area for filter GUI controls */
-.filter-body {
+div.filter-body {
 	overflow-y: auto;
 	padding: 0px;
 	padding-left: 4px;
 	margin: 0px;
 }
 
-.filter-body svg {
+div.filter-body svg {
 	margin: 2px;
 	padding: 0px;
 }
 
 	/* For Filters with category range graphs */
-.filter-body svg .bar {
+div.filter-body svg .bar {
 }
 
-.filter-body svg .axis text {
+div.filter-body svg .axis text {
 	font: 10px sans-serif;
 	color: black;
 }
 
-.filter-body svg .axis path,
-.filter-body svg .axis line {
+div.filter-body svg .axis path,
+div.filter-body svg .axis line {
 	fill: none;
 	stroke: #000;
 	shape-rendering: crispEdges;
 }
 
-.filter-body svg .x.axis path {
+div.filter-body svg .x.axis path {
 	display: none;
 }
 
-.filter-body svg .brush .extent {
+div.filter-body svg .brush .extent {
 	stroke: #fff;
 	fill-opacity: .125;
 	shape-rendering: crispEdges;
@@ -390,11 +390,11 @@ select {
 	 * =============
 	 */
 
-.scroll-container ul {
+div.scroll-container ul {
 
 }
 
-.scroll-container .selected {
+div.scroll-container .selected {
 	color: red;
 }
 
@@ -460,7 +460,7 @@ label {
 	 */
 
 	 /* Label separating Template tables */
-.directory-label {
+div.directory-label {
 	display: block;
 	background-color: white;
 	color: blue;
@@ -570,37 +570,56 @@ table.viz-directory tr.obj-selected td {
 	background: yellow;
 }
 
+	/* For all svg graphs in visualization Views */
+div.viz-result svg {
+	margin: 2px;
+	padding: 0px;
+}
+
+div.viz-result svg .axis text {
+	font: 10px sans-serif;
+	color: black;
+}
+
+div.viz-result svg .axis path,
+div.viz-result svg .axis line {
+	fill: none;
+	stroke: #000;
+	shape-rendering: crispEdges;
+}
+
+
 	/* Specific Filter styles
 	 * ======================
 	 */
 
-.filter-num-slider {
+div.filter-num-slider {
 	display: inline-block;
 }
 
-.filter-num-slider.ui-slider {
+div.filter-num-slider.ui-slider {
 	height: 6px;
 	width: 100px;
 }
 
-.filter-num-slider.ui-slider .ui-slider-handle {
+div.filter-num-slider.ui-slider .ui-slider-handle {
 	height: 10px;
 	width: 5px;
 	/*padding-left: 5px;*/
 }
 
-.filter-num-slider.ui-slider .ui-slider-range {
+div.filter-num-slider.ui-slider .ui-slider-range {
 }
 
 	/* Outer container for Vocabulary filters */
-.filter-vocab-container {
+div.filter-vocab-container {
 	display: flex;
 	flex-direction: row;
 	justify-content: flex-start;
 	margin-bottom: 2px;
 }
 
-.filter-vocab-entry {
+div.filter-vocab-entry {
 	display: flex;
 	flex-direction: column;
 	align-items: flex-start;
@@ -608,11 +627,11 @@ table.viz-directory tr.obj-selected td {
 	margin-right: 6px;
 }
 
-.filter-vocab-row {
+div.filter-vocab-row {
 	display: inline-block;
 }
 
-.filter-vocab-bar {
+div.filter-vocab-bar {
 	height: 4px;
 	width: 50px;
 	margin: 0px;

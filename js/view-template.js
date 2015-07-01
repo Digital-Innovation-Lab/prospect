@@ -59,7 +59,7 @@ var D3FG_MARGINS  = { top: 4, right: 7, bottom: 22, left: 30 };
 function PVizModel(viewFrame, vizSettings)
 {
 	this.vFrame   = viewFrame;
-	this.frameID  = viewFrame.getFrameID()+' .viz-content .viz-result';
+	this.frameID  = viewFrame.getFrameID()+' div.viz-content div.viz-result';
 	this.settings = vizSettings;
 	this.recSel   = [];
 
@@ -427,7 +427,29 @@ VizPinboard.prototype.getFeatureAtts = function(tIndex)
 
 VizPinboard.prototype.setup = function()
 {
-	// TO DO
+	var s = this.settings;
+
+	var xScale = d3.scale.linear().domain([0, s.iw])
+		.rangeRound([0, s.dw-1]);
+	var yScale = d3.scale.linear().domain([0,s.ih]).range([s.dh-1, 0]);
+
+	var xAxis = d3.svg.axis().scale(xScale).orient("top");
+	var yAxis = d3.svg.axis().scale(yScale).orient("left");
+
+	var chart = d3.select(this.frameID).append("svg")
+		.attr("width", s.dw+30+3)
+		.attr("height", s.dh+30+2)
+		.append("g")
+		.attr("transform", "translate("+30+","+30+")");
+
+	chart.append("g")
+		.attr("class", "x axis")
+		.call(xAxis);
+
+	chart.append("g")
+		.attr("class", "y axis")
+		.call(yAxis);
+
 } // setup
 
 	// PURPOSE: Draw the Records in the given datastream
@@ -447,7 +469,7 @@ VizPinboard.prototype.clearSel = function()
 } // clearSel()
 
 
-VizMap.prototype.setSel = function(absIArray)
+VizPinboard.prototype.setSel = function(absIArray)
 {
 	var s;
 
@@ -640,7 +662,7 @@ PFilterModel.prototype.title = function()
 	// PURPOSE: Return jQuery result for contents of this filter
 PFilterModel.prototype.insertPt = function()
 {
-	return jQuery('.filter-instance[data-id="'+this.id+'"] .filter-body');
+	return jQuery('div.filter-instance[data-id="'+this.id+'"] .filter-body');
 } // insertPt()
 
 
@@ -658,7 +680,7 @@ PFilterText.prototype.constructor = PFilterText;
 
 PFilterText.prototype.evalPrep = function()
 {
-	this.findStr = this.insertPt().find('.filter-text').val();
+	this.findStr = this.insertPt().find('input.filter-text').val();
 } // evalPrep()
 
 PFilterText.prototype.eval = function(rec)
@@ -686,7 +708,7 @@ PFilterText.prototype.setup = function()
 
 	inserted.append(htmlText);
 		// Intercept changes to text
-	inserted.find('.filter-text').change(function() {
+	inserted.find('input.filter-text').change(function() {
 		self.isDirty(true);
 	});
 } // setup()
@@ -789,10 +811,10 @@ PFilterNum.prototype.evalPrep = function()
 {
 	if (this.rCats == null) {
 		var dom = this.insertPt();
-		this.min = parseInt(dom.find('.filter-num-min-val').val());
-		this.max = parseInt(dom.find('.filter-num-max-val').val());
-		this.useMin = dom.find('.filter-num-min-use').is(':checked');
-		this.useMax = dom.find('.filter-num-max-use').is(':checked');
+		this.min = parseInt(dom.find('input.filter-num-min-val').val());
+		this.max = parseInt(dom.find('input.filter-num-max-val').val());
+		this.useMin = dom.find('input.filter-num-min-use').is(':checked');
+		this.useMax = dom.find('input.filter-num-max-use').is(':checked');
 	}
 } // evalPrep()
 
@@ -844,20 +866,20 @@ PFilterNum.prototype.setup = function()
 		// 	self.isDirty(true);
 		// });
 
-		insert.find('.filter-num-min-val').change(function() {
+		insert.find('input.filter-num-min-val').change(function() {
 				// Ensure it is less than max
 			var newMin = jQuery(this).val();
-			var curMax = insert.find('.filter-num-max-val').val();
+			var curMax = insert.find('input.filter-num-max-val').val();
 			if (newMin <= curMax) {
 				self.isDirty(true);
 			} else {
 				jQuery(this).val(curMax);
 			}
 		});
-		insert.find('.filter-num-max-val').change(function() {
+		insert.find('input.filter-num-max-val').change(function() {
 				// Ensure it is greater than min
 			var newMax = jQuery(this).val();
-			var curMin = insert.find('.filter-num-min-val').val();
+			var curMin = insert.find('input.filter-num-min-val').val();
 			if (newMax >= curMin) {
 				self.isDirty(true);
 			} else {
@@ -1146,7 +1168,7 @@ function PViewFrame(vizIndex)
 
 	function selectChangeViz(event)
 	{
-		var selector = jQuery(getFrameID()+' .view-control-bar .view-viz-select option:selected');
+		var selector = jQuery(getFrameID()+' div.view-control-bar select.view-viz-select option:selected');
 		var newSelIndex   = selector.val();
 		createViz(newSelIndex);
 	} // selectChangeViz()
@@ -1155,7 +1177,7 @@ function PViewFrame(vizIndex)
 	function clickShowHideLegend(event)
 	{
 		if (vizModel.usesLegend()) {
-			jQuery(getFrameID()+' .legend-container').toggle('slide', {direction: "left" });
+			jQuery(getFrameID()+' div.legend-container').toggle('slide', {direction: "left" });
 		}
 		event.preventDefault();
 	} // clickShowHideLegend()
@@ -1261,8 +1283,8 @@ function PViewFrame(vizIndex)
 		// PURPOSE: Turn on or off all feature Attributes for tmpltIndex
 	function doShowHideAll(tmpltIndex, show)
 	{
-		jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
-								tmpltIndex+'"] .legend-group .legend-entry-check').prop('checked', show);
+		jQuery(getFrameID()+' div.legend-container div.legend-template[data-index="'+
+								tmpltIndex+'"] div.legend-group input.legend-entry-check').prop('checked', show);
 	} // doShowHideAll()
 
 
@@ -1280,11 +1302,11 @@ function PViewFrame(vizIndex)
 	{
 // console.log("Locate attribute "+lID+" only for template "+tmpltIndex);
 			// Deselect everything
-		jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
-								tmpltIndex+'"] .legend-locate .legend-entry-check').prop('checked', false);
-			// Just select this one
-		jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
-								tmpltIndex+'"] .legend-locate[data-id="'+lID+'"] .legend-entry-check').prop('checked', true);
+		jQuery(getFrameID()+' div.legend-container div.legend-template[data-index="'+
+								tmpltIndex+'"] div.legend-locate input.legend-entry-check').prop('checked', false);
+			// Just reselect this one
+		jQuery(getFrameID()+' div.legend-container div.legend-template[data-index="'+
+								tmpltIndex+'"] div.legend-locate[data-id="'+lID+'"] input.legend-entry-check').prop('checked', true);
 	} // doLocateSelect()
 
 
@@ -1302,12 +1324,12 @@ function PViewFrame(vizIndex)
 	{
 // console.log("Feature attribute "+vIndex+" only selected for template "+tmpltIndex);
 			// Deselect everything
-		jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
-								tmpltIndex+'"] .legend-group .legend-entry-check').prop('checked', false);
+		jQuery(getFrameID()+' div.legend-container div.legend-template[data-index="'+
+								tmpltIndex+'"] div.legend-group input.legend-entry-check').prop('checked', false);
 			// Just select this one
-		jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
-								tmpltIndex+'"] .legend-group .legend-value[data-index="'+vIndex+
-								'"] .legend-entry-check').prop('checked', true);
+		jQuery(getFrameID()+' div.legend-container div.legend-template[data-index="'+
+								tmpltIndex+'"] div.legend-group div.legend-value[data-index="'+vIndex+
+								'"] input.legend-entry-check').prop('checked', true);
 	} // doFeatureSelectOnly()
 
 
@@ -1316,7 +1338,7 @@ function PViewFrame(vizIndex)
 	function clickInLegend(event)
 	{
 			// Which Template does selection belong to?
-		var tmpltIndex = jQuery(event.target).closest('.legend-template').data('index');
+		var tmpltIndex = jQuery(event.target).closest('div.legend-template').data('index');
 		var clickClass = event.target.className;
 		switch (clickClass) {
 		case 'legend-update':
@@ -1327,7 +1349,7 @@ function PViewFrame(vizIndex)
 			break;
 			// Turn on or off just this one value
 		case 'legend-entry-check':
-			var lEntry = jQuery(event.target).closest('.legend-entry');
+			var lEntry = jQuery(event.target).closest('div.legend-entry');
 			var isChecked = jQuery(event.target).is(':checked');
 				// What does checkbox belong to?
 			if (lEntry.hasClass('legend-sh'))
@@ -1343,7 +1365,7 @@ function PViewFrame(vizIndex)
 			// Make this only selected feature attribute
 		case 'legend-viz':
 		case 'legend-value-title': 		// Title used for both locate and feature Attributes!
-			var lEntry = jQuery(event.target).closest('.legend-entry');
+			var lEntry = jQuery(event.target).closest('div.legend-entry');
 			if (lEntry.hasClass('legend-locate'))
 				doLocateSelectOnly(tmpltIndex, lEntry.data('id'));
 			else if (lEntry.hasClass('legend-value'))
@@ -1360,7 +1382,7 @@ function PViewFrame(vizIndex)
 				// Show/Hide title?
 			if (clickClass.match(/legend-sh/i)) {
 					// Simulate click
-				var checkBox = jQuery(event.target).find('.legend-entry-check');
+				var checkBox = jQuery(event.target).find('input.legend-entry-check');
 				var isChecked = !checkBox.is(':checked');
 				checkBox.prop('checked', isChecked);
 				doShowHideAll(tmpltIndex, isChecked);
@@ -1374,7 +1396,7 @@ function PViewFrame(vizIndex)
 	function selectTmpltAttribute(event)
 	{
 			// Determine Template to which this refers
-		var tmpltIndex = jQuery(event.target).closest('.legend-template').data('index');
+		var tmpltIndex = jQuery(event.target).closest('div.legend-template').data('index');
 		var attID = jQuery(event.target).val();
 		setLegendFeatures(tmpltIndex, attID);
 	} // selectTmpltAttribute()
@@ -1388,8 +1410,8 @@ function PViewFrame(vizIndex)
 	{
 		var element;
 
-		var group = jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
-						lIndex+'"] .legend-group');
+		var group = jQuery(getFrameID()+' div.legend-container div.legend-template[data-index="'+
+						lIndex+'"] div.legend-group');
 			// Clear any previous entries
 		group.empty();
 		legendIDs[lIndex] = attID;
@@ -1427,7 +1449,7 @@ function PViewFrame(vizIndex)
 		if (vizModel)
 			vizModel.teardown();
 
-		jQuery(getFrameID()+' .viz-content .viz-result').empty();
+		jQuery(getFrameID()+' div.viz-content div.viz-result').empty();
 
 		switch (theView.vf) {
 		case 'Map':
@@ -1454,7 +1476,7 @@ function PViewFrame(vizIndex)
 		if (vizModel.usesLegend()) {
 				// Clear out previous Legend
 				// remove all previous locate Attributes
-			var lgndCntr = jQuery(getFrameID()+' .legend-container .legend-scroll');
+			var lgndCntr = jQuery(getFrameID()+' div.legend-container div.legend-scroll');
 			lgndCntr.empty();
 
 				// Create Legend sections for each Template
@@ -1495,10 +1517,10 @@ function PViewFrame(vizIndex)
 						setLegendFeatures(tIndex, fAttID);
 				}
 			});
-			jQuery(getFrameID()+' .legend-container').show();
+			jQuery(getFrameID()+' div.legend-container').show();
 		} else {
 				// Just hide Legend
-			jQuery(getFrameID()+' .legend-container').hide();
+			jQuery(getFrameID()+' div.legend-container').hide();
 		}
 		vizModel.setup();
 
@@ -1520,7 +1542,7 @@ function PViewFrame(vizIndex)
 		// PURPOSE: Initialize basic DOM structure for ViewFrame
 	instance.initDOM = function()
 	{
-		var head = jQuery(getFrameID()+' .view-control-bar .view-viz-select');
+		var head = jQuery(getFrameID()+' div.view-control-bar select.view-viz-select');
 			// Set Dropdown to View names
 		prspdata.e.vf.forEach(function(theVF, i) {
 			var optionStr = '<option value="'+i+'">'+theVF.l+'</option>';
@@ -1529,7 +1551,7 @@ function PViewFrame(vizIndex)
 		head.change(selectChangeViz);
 
 			// Hook control bar Icon buttons
-		head = jQuery(getFrameID()+' .view-control-bar button:first');
+		head = jQuery(getFrameID()+' div.view-control-bar button:first');
 		head.button({icons: { primary: 'ui-icon-bookmark' }, text: false })
 				.click(clickShowHideLegend).next()
 				.button({icons: { primary: 'ui-icon-info' }, text: false })
@@ -1539,7 +1561,7 @@ function PViewFrame(vizIndex)
 				.button({icons: { primary: 'ui-icon-gear' }, text: false })
 				.click(clickVizControls).next();
 
-		head = jQuery(getFrameID()+' .viz-content .legend-container');
+		head = jQuery(getFrameID()+' div.viz-content div.legend-container');
 		head.click(clickInLegend);
 
 			// Create first VF by default
@@ -1553,8 +1575,8 @@ function PViewFrame(vizIndex)
 	instance.getSelLocAtts = function(tIndex)
 	{
 		var attIDs = [];
-		var boxes = jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
-							tIndex+'"] .legend-locate input:checked');
+		var boxes = jQuery(getFrameID()+' div.legend-container div.legend-template[data-index="'+
+							tIndex+'"] div.legend-locate input:checked');
 		boxes.each(function() {
 			var attID = jQuery(this).parent().data('id');
 			attIDs.push(attID);
@@ -1568,8 +1590,8 @@ function PViewFrame(vizIndex)
 	instance.getSelFeatAtts = function(tIndex)
 	{
 		var attIndices = [], attIndex, i;
-		var boxes = jQuery(getFrameID()+' .legend-container .legend-template[data-index="'+
-							tIndex+'"] .legend-group .legend-value input:checked');
+		var boxes = jQuery(getFrameID()+' div.legend-container div.legend-template[data-index="'+
+							tIndex+'"] div.legend-group div.legend-value input:checked');
 		boxes.each(function() {
 			attIndex = jQuery(this).parent().data('index');
 			if (typeof attIndex == 'number') {
@@ -2328,6 +2350,7 @@ var PDataHub = (function () {
 			// NOTES: 	In case of Vocabulary, returns sorted list of { l[abel], c[ount] }
 		getRCnts: function(att, rCats, stream)
 		{
+				// TO DO
 			switch (att.def.t) {
 			case 'Number':
 				break;
@@ -2512,10 +2535,10 @@ console.log("Set layout to: "+lIndex);
 
 	function clickFilterDirty(event)
 	{
-		var head = jQuery(this).closest('.filter-instance');
+		var head = jQuery(this).closest('div.filter-instance');
 		if (head) {
 			var fID = head.data('id');
-			var req = head.find('.req-att').is(':checked');
+			var req = head.find('input.req-att').is(':checked');
 			if (fID && fID != '') {
 				var fRec;
 				fRec = filters.find(function(fr) { return fr.id == fID; });
@@ -2527,7 +2550,7 @@ console.log("Set layout to: "+lIndex);
 
 	function clickFilterDel(event)
 	{
-		var head = jQuery(this).closest('.filter-instance');
+		var head = jQuery(this).closest('div.filter-instance');
 		var fID = head.data('id');
 
 		var fI, fRec;
@@ -2594,14 +2617,14 @@ console.log("Set layout to: "+lIndex);
 		var fh = _.template(document.getElementById('dltext-filter-head').innerHTML);
 		jQuery('#filter-instances').append(fh({ newID: newID, title: newFilter.title() }));
 
-		var head = jQuery('.filter-instance[data-id="'+newID+'"]');
-		head.find('.btn-filter-toggle').button({
+		var head = jQuery('div.filter-instance[data-id="'+newID+'"]');
+		head.find('button.btn-filter-toggle').button({
 					text: false, icons: { primary: 'ui-icon-carat-2-n-s' }
 				}).click(clickFilterToggle);
-		head.find('.btn-filter-del').button({
+		head.find('button.btn-filter-del').button({
 					text: false, icons: { primary: 'ui-icon-trash' }
 				}).click(clickFilterDel);
-		head.find('.req-att').click(clickFilterDirty);
+		head.find('input.req-att').click(clickFilterDirty);
 
 		jQuery('#btn-recompute').addClass('highlight');
 
