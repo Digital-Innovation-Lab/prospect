@@ -430,8 +430,8 @@ VizPinboard.prototype.setup = function()
 	var s = this.settings;
 
 	var xScale = d3.scale.linear().domain([0, s.iw])
-		.rangeRound([0, s.dw-1]);
-	var yScale = d3.scale.linear().domain([0,s.ih]).range([s.dh-1, 0]);
+		.rangeRound([0, s.dw]);
+	var yScale = d3.scale.linear().domain([0,s.ih]).range([0,s.dh]);
 
 	var xAxis = d3.svg.axis().scale(xScale).orient("top");
 	var yAxis = d3.svg.axis().scale(yScale).orient("left");
@@ -439,8 +439,9 @@ VizPinboard.prototype.setup = function()
 	var chart = d3.select(this.frameID).append("svg")
 		.attr("width", s.dw+30+3)
 		.attr("height", s.dh+30+2)
-		.append("g")
-		.attr("transform", "translate("+30+","+30+")");
+
+	.append("g")
+		.attr("transform", "translate(30,30)");
 
 	chart.append("g")
 		.attr("class", "x axis")
@@ -449,7 +450,6 @@ VizPinboard.prototype.setup = function()
 	chart.append("g")
 		.attr("class", "y axis")
 		.call(yAxis);
-
 } // setup
 
 	// PURPOSE: Draw the Records in the given datastream
@@ -915,7 +915,7 @@ PFilterNum.prototype.setup = function()
 			if (!d3.event.sourceEvent)
 				return;
 			var extent0 = brush.extent();
-			var extent1 = [Math.floor(extent0[0]), Math.floor(extent0[1]+.4)];
+			var extent1 = [Math.floor(extent0[0]), Math.floor(extent0[1])];
 				// if empty when rounded, use floor & ceil instead
 			if (extent1[0] >= extent1[1]) {
 				extent1[0] = Math.floor(extent0[0]);
@@ -1067,7 +1067,7 @@ PFilterDates.prototype.setup = function()
 		if (!d3.event.sourceEvent)
 			return;
 		var extent0 = brush.extent();
-		var extent1 = [Math.floor(extent0[0]), Math.floor(extent0[1]+.4)];
+		var extent1 = [Math.floor(extent0[0]), Math.floor(extent0[1])];
 			// if empty when rounded, use floor & ceil instead
 		if (extent1[0] >= extent1[1]) {
 			extent1[0] = Math.floor(extent0[0]);
