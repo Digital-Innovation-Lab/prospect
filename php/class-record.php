@@ -117,6 +117,7 @@ class ProspectRecord {
 
 						switch($att_def->t) {
 						case 'Vocabulary':
+						case 'Pointer':
 							if ($att_def->d != '') {
 								$v_set = explode($att_def->d, $val);
 								$this->att_data[$att_to_load] = array_map(trim, $v_set);

@@ -1934,9 +1934,17 @@ var PDataHub = (function () {
 				return '<a href="'+a+'" target="_blank">(See Transcript File)</a>';
 			case 'Timecode':
 				return a;
-			case 'Pointer':
-				// TO DO -- Find Rec, get WP ID, create URL to it
-				return a;
+			case 'Pointer': 	// Only handle first value
+				if (a.length > 0) {
+					// TO DO -- Find Rec, get WP ID, create URL to it
+					var ptRec = PDataHub.getRecByID(a[0]);
+					var newURL = prspdata.site_url;
+					if (prspdata.site_url.charAt(prspdata.site_url.length-1) != '/')
+						newURL += '/';
+					newURL += '?p='+ ptRec.wp;
+					return '<a href="'+newURL+'" target="_blank">'+ptRec.l+'</a>';
+				} else
+					return null;
 			// case 'Join': 	// Should not appear
 			} // switch
 			return null;
@@ -1945,7 +1953,6 @@ var PDataHub = (function () {
 			// RETURNS: Attribute value for <attID> in Record whose absolute index is <index>
 			//				or null if either is non-existent
 			// INPUT: 	If <raw>, return as is; otherwise, turn into string/HTML
-			// TO DO: 	Process data?
 		getRecAtt: function(absI, attID, raw)
 		{
 			for (var i=0; i<allData.length; i++) {
@@ -1966,15 +1973,63 @@ var PDataHub = (function () {
 			// RETURNS: Absolute index for Record whose ID is recID
 		getAbsIByID: function(recID)
 		{
-				// TO DO: Binary search for each Template array
+			for (var i=0; i<allData.length; i++) {
+				var tData = allData[i];
+				if (tData.n > 0) {
+						// Try binary search in each Template
+					var lo = 0;
+					var hi = tData.n;
+					var pos, cmp;
+					var rec;
+
+					while (lo <= hi) {
+						pos = (lo + hi) >> 1;
+						rec = tData.d[pos];
+						cmp = rec.id.localeCompare(recID);
+
+						if (cmp < 0) {
+							lo = pos + 1;
+						} else if (cmp > 0) {
+							hi = pos - 1;
+						} else {
+							return tData.i+pos;
+						}
+					}
+				} // if tData
+			} // for i
+			return null;
 		}, // getAbsIByID()
 
 
 			// RETURNS: Record data for recID
-		getRecIByID: function(recID)
+		getRecByID: function(recID)
 		{
-				// TO DO: Binary search for each Template array
-		}, // getRecIByID()
+			for (var i=0; i<allData.length; i++) {
+				var tData = allData[i];
+				if (tData.n > 0) {
+						// Try binary search in each Template
+					var lo = 0;
+					var hi = tData.n;
+					var pos, cmp;
+					var rec;
+
+					while (lo <= hi) {
+						pos = (lo + hi) >> 1;
+						rec = tData.d[pos];
+						cmp = rec.id.localeCompare(recID);
+
+						if (cmp < 0) {
+							lo = pos + 1;
+						} else if (cmp > 0) {
+							hi = pos - 1;
+						} else {
+							return rec;
+						}
+					}
+				} // if tData
+			} // for i
+			return null;
+		}, // getRecByID()
 
 
 			// RETURNS: Attribute definition with this ID
@@ -2429,7 +2484,7 @@ var PDataHub = (function () {
 // PBootstrap -- Bootstrap for Prospect Client
 // PURPOSE: Create DOM structure, initiate services, manage filters, …
 
-// USES: 	jQuery, jQueryUI, …
+// USES: 	jQuery, jQueryUI, PDataHub, PViewFrame
 // ASSUMES: prspdata is fully loaded
 
 

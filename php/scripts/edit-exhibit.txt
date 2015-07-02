@@ -42,9 +42,9 @@
 			<label for="home-btn">Home button label: </label><input type='text' id="home-btn" value='{{genSettings.hbtn}}' placeholder="Enter label" size="12"/>
 			<label for="home-url">Home URL: </label><input type='url' id="home-url" value='{{genSettings.hurl}}' placeholder="Enter label" size="32" pattern="^https?://.+"/>
 		</div>
-		<h3>Views</h3>
+		<h3>Visualizations</h3>
 		<div>
-			<button on-click="addView">Add View</button>
+			<button on-click="addView">Add Visualization</button>
 			<hr/>
 			{{#each viewSettings:vIndex}}
 				<div>
@@ -153,7 +153,7 @@
 			</accordion>
 		{{/with}}</div>
 
-		<h3>Pages</h3>
+		<h3>Record Views</h3>
 		<div>{{#with pageSettings}}
 			<accordion>
 				<h3>Inspector Modal</h3>
