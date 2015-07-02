@@ -458,6 +458,13 @@ VizPinboard.prototype.setup = function()
 	chart.append("g")
 		.attr("class", "y axis")
 		.call(yAxis);
+
+	chart.append("image")
+		.attr("xlink:href", s.img)
+		.attr("x", 0)
+		.attr("y", 0)
+		.attr("height", s.dh+"px")
+		.attr("width", s.dw+"px");
 } // setup
 
 	// PURPOSE: Draw the Records in the given datastream
@@ -577,8 +584,7 @@ VizDirectory.prototype.render = function(datastream)
 		fAtts.forEach(function(attID) {
 			datum = rec.a[attID];
 			if (datum) {
-				datum = PDataHub.procAttVal(attID, datum);
-				// datum = PDataHub.getRecAtt(aI, attID, false);
+				datum = PDataHub.procAttTxt(attID, datum);
 				if (datum) {
 					t += '<td>'+datum+'</td>';
 				} else {
@@ -1874,7 +1880,7 @@ var PDataHub = (function () {
 			// RETURNS: Attribute value in string format
 			// INPUT: 	attID = ID of Attribute
 			//			a = raw attribute data
-		procAttVal: function(attID, a)
+		procAttTxt: function(attID, a)
 		{
 			var att = PDataHub.getAttID(attID);
 			switch (att.def.t) {
@@ -1948,7 +1954,7 @@ var PDataHub = (function () {
 			// case 'Join': 	// Should not appear
 			} // switch
 			return null;
-		}, // procAttVal()
+		}, // procAttTxt()
 
 			// RETURNS: Attribute value for <attID> in Record whose absolute index is <index>
 			//				or null if either is non-existent
@@ -1964,7 +1970,7 @@ var PDataHub = (function () {
 						return null;
 					if (raw)
 						return a;
-					return PDataHub.procAttVal(attID, a);
+					return PDataHub.procAttTxt(attID, a);
 				}
 			}
 			return null;

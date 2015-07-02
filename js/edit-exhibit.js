@@ -216,7 +216,7 @@ jQuery(document).ready(function() {
 		//		attsTC: array of Timecode Atts
 		//		attsPtr: array of Pointer Atts
 		//		attsCnt: array of Atts that can display content
-		//		attsFct: array of Atts that can act as Facets
+		//		attsFct: array of Atts that can be Facets (discrete values, can be sorted in order)
 		//	}
 	var iTemplates = [ ];
 		// Array of all (open) Attributes after Joins done
