@@ -68,6 +68,7 @@ function PVizModel(viewFrame, vizSettings)
 	// this.getLocAtts(tIndex)
 	// this.getFeatureAtts(tIndex)
 	// this.teardown()
+	// this.canSel
 	// this.isSel(absI)
 	// this.getSel()
 	// this.toggleSel(absI)
@@ -114,6 +115,13 @@ PVizModel.prototype.clearSel = function()
 {
 	this.recSel = [];
 } // clearSel()
+
+	// PURPOSE: Return true if this VizModel supports selection of individual Records
+	//				(rather than aggregate representation/interaction implying the selection)
+PVizModel.prototype.canSel = function()
+{
+	return true;
+} // canSel()
 
 PVizModel.prototype.usesLegend = function()
 {
@@ -378,7 +386,7 @@ VizMap.prototype.clearSel = function()
 
 VizMap.prototype.setSel = function(absIArray)
 {
-	var s;
+	var self=this;
 
 	this.recSel = absIArray;
 	if (this.markerLayer) {
@@ -504,11 +512,13 @@ VizDirectory.prototype.setup = function()
 		if (event.target.nodeName == 'TD') {
 			var row = jQuery(event.target).closest('tr');
 			var absI = row.data('aid');
-			var s = self.toggleSel(absI);
-			if (s)
-				row.addClass("obj-selected");
-			else
-				row.removeClass("obj-selected");
+			if (absI) {
+				var s = self.toggleSel(absI);
+				if (s)
+					row.addClass("obj-selected");
+				else
+					row.removeClass("obj-selected");
+			}
 		}
 	});
 } // setup()
@@ -544,7 +554,7 @@ VizDirectory.prototype.render = function(datastream)
 			tID = PDataHub.getETmpltIndex(tI);
 			tDef = PDataHub.getTmpltID(tID);
 			jQuery('#directory-'+vIndex).append('<div class="directory-label">'+tDef.l+'</div>'+
-				'<table cellspacing="0" class="viz-directory" data-id="'+tID+'"></table>');
+				'<table cellspacing="0" class="viz-directory" data-id='+tID+'></table>');
 			insert = jQuery('#directory-'+vIndex+' table[data-id="'+tID+'"]');
 			fAtts = self.settings.cnt[tI];
 			t = '<thead><tr><th>Name</th>';
@@ -560,7 +570,7 @@ VizDirectory.prototype.render = function(datastream)
 		aI = datastream.s[i];
 // console.log("Next record: "+i+" (absI) "+aI);
 		rec = PDataHub.getRecByIndex(aI);
-		t = '<tr data-id="'+rec.id+'" data-aid="'+aI+'"';
+		t = '<tr data-id="'+rec.id+'" data-aid='+aI;
 		if (self.isSel(aI))
 			t += ' class="obj-selected" '
 		t += '><td>'+rec.l+'</td>';
@@ -586,11 +596,21 @@ VizDirectory.prototype.render = function(datastream)
 
 VizDirectory.prototype.setSel = function(absIArray)
 {
+	var self=this;
 	var vIndex = this.vFrame.getIndex();
+	var absI, t;
 
 	this.recSel = absIArray;
-	absIArray.forEach(function(absI) {
-		jQuery('#directory-'+vIndex+' tr[data-aid="'+absI+'"]').addClass('obj-selected');
+	var rows = jQuery('#directory-'+vIndex+' tr');
+	rows.each(function() {
+		t = jQuery(this);
+		absI = t.data('aid');
+		if (absI != null) {
+			if (self.isSel(absI))
+				t.addClass('obj-selected');
+			else
+				t.removeClass('obj-selected');
+		}
 	});
 } // setSel()
 
@@ -1644,6 +1664,20 @@ function PViewFrame(vizIndex)
 			vizModel.clearSel();
 	} // clearSel()
 
+		// PURPOSE: Attempt to set the Selection List of the VizModel to selList
+		// RETURNS: true if possible, false if not
+	instance.setSel = function(selList)
+	{
+		if (vizModel) {
+			if (vizModel.canSel()) {
+				vizModel.setSel(selList);
+				return true;
+			}
+			return false;
+		}
+		return false;
+	} // selSel()
+
 	return instance;
 } // PViewFrame
 
@@ -1883,7 +1917,7 @@ var PDataHub = (function () {
 			case 'Timecode':
 				return a;
 			case 'Pointer':
-				// TO DO -- ?? What to do??
+				// TO DO -- Find Rec, get WP ID, create URL to it
 				return a;
 			// case 'Join': 	// Should not appear
 			} // switch
@@ -2392,7 +2426,8 @@ jQuery(document).ready(function($) {
 	var filters = [];		// Filter Stack: { id, f [PFilterModel], out }
 	var selFilter = null;	// Selector Filter
 
-	var topStream;			// Top-level IndexStream
+	var topStream;			// Top-level IndexStream (before Fitlers)
+	var endStream;			// Final resulting IndexStream (after Filters)
 
 		// FUNCTIONS
 		//==========
@@ -2406,8 +2441,6 @@ console.log("Start recompute");
 		view0.clearSel();
 		if (view1)
 			view1.clearSel();
-
-		var endStream;		// Final results to go to views
 
 		if (topStream == null) {
 			topStream = PDataHub.newIndexStream(true);
@@ -2748,7 +2781,33 @@ console.log("Set layout to: "+lIndex);
 
 	function clickApplySelector(event)
 	{
-			// TO DO
+		var selList = [], mustCopy=false;
+		if (selFilter != null && endStream != null) {
+			selFilter.evalPrep();
+			var relI=0, absI, rec;
+			while (relI < endStream.l) {
+				absI = endStream.s[relI++];
+				rec = PDataHub.getRecByIndex(absI);
+				if (selFilter.eval(rec)) {
+					selList.push(absI);
+				}
+			}
+			selFilter.isDirty(false);
+		}
+console.log("Selection: "+JSON.stringify(selList));
+
+			// Which Views to send Selection?
+		if (jQuery('#selector-v1').is(':checked')) {
+			mustCopy = view0.setSel(selList);
+		}
+		if (jQuery('#selector-v2').is(':checked')) {
+			if (view1) {
+				if (mustCopy)
+					selList = selList.slice(0);
+				view1.setSel(selList);				
+			}
+		}
+
 		event.preventDefault();
 	} // clickApplySelector()
 
