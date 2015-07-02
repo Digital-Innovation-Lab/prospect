@@ -607,7 +607,7 @@ VizDirectory.prototype.clearSel = function()
 // ====================================================================
 // PFilterModel: An abstract class to be subclassed by specific filters
 
-	// INPUT: 	id = unique ID for this filter
+	// INPUT: 	id = unique ID for this filter (0 = selector filter)
 	//			attRec = pointer to complete Attribute or Facet Browser settings
 	// ASSUMES: required is true by default
 function PFilterModel(id, attRec)
@@ -620,6 +620,7 @@ function PFilterModel(id, attRec)
 
 		// Sublcasses can override the following:
 	// this.title()
+	// this.teardown()
 		// All subclasses must implement the following:
 	// this.setUp()
 	// this.evalPrep()
@@ -633,7 +634,7 @@ PFilterModel.prototype.isDirty = function(setDirty)
 {
 	if (setDirty != null) {
 		this.dirty = setDirty;
-		if (setDirty)
+		if (setDirty && this.id > 0)
 			jQuery('#btn-recompute').addClass('highlight');
 	}
 	return this.dirty;
@@ -662,9 +663,12 @@ PFilterModel.prototype.title = function()
 	// PURPOSE: Return jQuery result for contents of this filter
 PFilterModel.prototype.insertPt = function()
 {
-	return jQuery('div.filter-instance[data-id="'+this.id+'"] .filter-body');
+	return jQuery('div.filter-instance[data-id="'+this.id+'"] div.filter-body');
 } // insertPt()
 
+PFilterModel.prototype.teardown = function()
+{
+} // teardown()
 
 // ============================================
 // PFilterText: Class to filter Text Attributes
@@ -2386,6 +2390,7 @@ jQuery(document).ready(function($) {
 	var view1;				// Secondary
 
 	var filters = [];		// Filter Stack: { id, f [PFilterModel], out }
+	var selFilter = null;	// Selector Filter
 
 	var topStream;			// Top-level IndexStream
 
@@ -2557,6 +2562,9 @@ console.log("Set layout to: "+lIndex);
 		fI = filters.findIndex(function(fRec) { return fRec.id == fID; });
 		if (fI == -1)	{ alert('Bad Filter ID '+fID); return; }
 
+		fRec = filters[fI].f;
+		fRec.teardown();
+
 		filters.splice(fI, 1);
 			// Deleted last filter in stack
 		if (fI >= filters.length) {
@@ -2580,18 +2588,33 @@ console.log("Set layout to: "+lIndex);
 		event.preventDefault();
 	} // clickFilterDel()
 
+	function doDelSelFilter()
+	{
+		if (selFilter != null) {
+			selFilter.teardown();
+			jQuery('div.filter-instance[data-id="0"]').empty();
+			selFilter = null;
+		}
+	} // doDelSelFilter()
 
 		// PURPOSE: Add a new filter to the stack
-		// INPUT: 	fID = Attribute ID or index of Facet Browser
-	function createFilter(fID)
+		// INPUT: 	fID = Attribute ID
+		//			selector = true if filter for the selector
+	function createFilter(fID, selector)
 	{
 // console.log("Create Filter "+fID);
 		var newID;
-		do {
-			newID = Math.floor((Math.random() * 1000) + 1);
-			if (filters.findIndex(function(theF) { return theF.id == newID; }) != -1)
-				newID = -1;
-		} while (newID == -1);
+		if (selector) {
+				// Remove any pre-existing selector filter
+			doDelSelFilter();
+			newID = 0;
+		} else {
+			do {
+				newID = Math.floor((Math.random() * 1000) + 1);
+				if (filters.findIndex(function(theF) { return theF.id == newID; }) != -1)
+					newID = -1;
+			} while (newID == -1);
+		}
 
 		var newFilter;
 		var theAtt = PDataHub.getAttID(fID);
@@ -2610,23 +2633,36 @@ console.log("Set layout to: "+lIndex);
 			break;
 		}
 
-		var newFRec = { id: newID, f: newFilter, out: null };
-		filters.push(newFRec);
+		if (selector) {
+			newFilter.isReq(true);
+			selFilter = newFilter;
 
-			// Now create DOM structure and handle clicks
-		var fh = _.template(document.getElementById('dltext-filter-head').innerHTML);
-		jQuery('#filter-instances').append(fh({ newID: newID, title: newFilter.title() }));
+			var fh = _.template(document.getElementById('dltext-selector-head').innerHTML);
+			var head = jQuery('div.filter-instance[data-id="0"]');
+			head.append(fh({ title: newFilter.title() }));
+			head.find('button.btn-filter-del').button({
+						text: false, icons: { primary: 'ui-icon-trash' }
+					}).click(doDelSelFilter);
 
-		var head = jQuery('div.filter-instance[data-id="'+newID+'"]');
-		head.find('button.btn-filter-toggle').button({
-					text: false, icons: { primary: 'ui-icon-carat-2-n-s' }
-				}).click(clickFilterToggle);
-		head.find('button.btn-filter-del').button({
-					text: false, icons: { primary: 'ui-icon-trash' }
-				}).click(clickFilterDel);
-		head.find('input.req-att').click(clickFilterDirty);
+		} else {
+			var newFRec = { id: newID, f: newFilter, out: null };
+			filters.push(newFRec);
 
-		jQuery('#btn-recompute').addClass('highlight');
+				// Now create DOM structure and handle clicks
+			var fh = _.template(document.getElementById('dltext-filter-head').innerHTML);
+			jQuery('#filter-instances').append(fh({ newID: newID, title: newFilter.title() }));
+
+			var head = jQuery('div.filter-instance[data-id="'+newID+'"]');
+			head.find('button.btn-filter-toggle').button({
+						text: false, icons: { primary: 'ui-icon-carat-2-n-s' }
+					}).click(clickFilterToggle);
+			head.find('button.btn-filter-del').button({
+						text: false, icons: { primary: 'ui-icon-trash' }
+					}).click(clickFilterDel);
+			head.find('input.req-att').click(clickFilterDirty);
+
+			jQuery('#btn-recompute').addClass('highlight');
+		}
 
 			// Allow Filter to insert required HTML
 		newFilter.setup();
@@ -2647,7 +2683,7 @@ console.log("Set layout to: "+lIndex);
 				Add: function() {
 					var selected = jQuery("#filter-list li.selected");
 					if (selected.length) {
-						createFilter(selected.data("id"));
+						createFilter(selected.data("id"), false);
 					}
 						// Remove click handler
 					newFilterDialog.dialog("close");
@@ -2670,6 +2706,51 @@ console.log("Set layout to: "+lIndex);
 		jQuery('#filter-instances').slideToggle(400);
 		event.preventDefault();
 	} // clickToggleFilters()
+
+
+	function clickNewSelector(event)
+	{
+			// Clear previous selection
+		jQuery("#filter-list li").removeClass("selected");
+		var newFilterDialog;
+
+		newFilterDialog = jQuery("#dialog-new-filter").dialog({
+			height: 300,
+			width: 350,
+			modal: true,
+			buttons: {
+				Add: function() {
+					var selected = jQuery("#filter-list li.selected");
+					if (selected.length) {
+						createFilter(selected.data("id"), true);
+					}
+						// Remove click handler
+					newFilterDialog.dialog("close");
+				},
+				Cancel: function() {
+						// Remove click handler
+					newFilterDialog.dialog("close");
+				}
+			},
+			close: function() {
+			}
+		});
+
+		event.preventDefault();
+	} // clickNewSelector()
+
+
+	function clickToggleSelector(event)
+	{
+		jQuery('#selector-instance').slideToggle(400);
+		event.preventDefault();
+	} // clickToggleSelector()
+
+	function clickApplySelector(event)
+	{
+			// TO DO
+		event.preventDefault();
+	} // clickApplySelector()
 
 
 		// IMMEDIATE EXECUTION
@@ -2710,6 +2791,15 @@ console.log("Set layout to: "+lIndex);
 			.click(clickNewFilter);
 	jQuery('#btn-toggle-filters').button({icons: { primary: 'ui-icon-arrow-2-n-s' }, text: false })
 			.click(clickToggleFilters);
+
+		// Selector Control Bar
+	jQuery('#btn-new-selector').button({icons: { primary: 'ui-icon-search' }, text: false })
+			.click(clickNewSelector);
+	jQuery('#btn-toggle-selector').button({icons: { primary: 'ui-icon-arrow-2-n-s' }, text: false })
+			.click(clickToggleSelector);
+	jQuery('#btn-apply-selector').button({icons: { primary: 'ui-icon-arrowreturn-1-e' }, text: false })
+			.click(clickApplySelector);
+
 
 		// Inspector Modal
 	jQuery('#btn-inspect-left').button({ icons: { primary: 'ui-icon-arrowthick-1-w' }, text: false });

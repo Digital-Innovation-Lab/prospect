@@ -59,6 +59,7 @@ div.scroll-container {
 	 * #loading-message
 	 * #remainder
 	 * 		#filter-frame
+	 *		#selector-frame
 	 *		#viz-display-frame
 	 */
 
@@ -212,6 +213,40 @@ div.filter-body svg .brush .extent {
 	stroke: #fff;
 	fill-opacity: .125;
 	shape-rendering: crispEdges;
+}
+
+
+		/* DOM Structure of Selector filter
+		 * #selector-frame
+		 * 	#selector-control-bar
+		 *	#selector-instance
+		 *		.filter-instance data-id = 0
+		 *			.filter-head
+		 *			.filter-body
+		 */
+
+	/* All Filters go into this frame */
+#selector-frame {
+	background-color: #008B8B;
+}
+
+	/* This is the control bar for filters */
+#selector-control-bar {
+	height: 28px;
+	padding: 3px;
+	margin: 0;
+	vertical-align: middle;
+	font-size: 12px;
+}
+
+	/* Any selector filter goes into this area */
+#selector-instance {
+	min-height: 2px;
+	max-height: 300px;
+	overflow-y: auto;
+	font-size: 12px;
+	margin: 0px;
+	padding: 0px;
 }
 
 	/* DOM Structure of Visualization frames

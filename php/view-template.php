@@ -94,7 +94,7 @@
 <div id="command-bar">
 	<span id="title"></span>
 	&nbsp; &nbsp; <button id="btn-recompute">Recompute</button>
-	<input type="checkbox" id="auto-refresh"> <span class="command-bar-label">Automatic Refresh</span> &nbsp; &nbsp;
+	<input type="checkbox" id="auto-refresh"/> <span class="command-bar-label">Automatic Refresh</span> &nbsp; &nbsp;
 	<button id="btn-set-layout">Set Layout</button>
 	<button id="btn-perspectives">Perspectives</button>
 	<span class="home"><span id="home-title">Home</span> <button id="btn-home">Home</button></span>
@@ -112,6 +112,20 @@
 			<button id="btn-toggle-filters">Hide/Show Filters</button>
 		</div>
 		<div id="filter-instances">
+		</div>
+	</div>
+	<div id="selector-frame">
+		<div id="selector-control-bar">
+			Selection
+			<button id="btn-new-selector">New Filter</button>
+			<button id="btn-toggle-selector">Hide/Show Filter</button>
+			<button id="btn-apply-selector">Apply Selector Filter</button>
+			<input type="checkbox" checked="checked" id="selector-v1"/> View 1
+			<input type="checkbox" checked="checked" id="selector-v2"/> View 2
+		</div>
+		<div id="selector-instance">
+			<div class="filter-instance" data-id="0">
+			</div>
 		</div>
 	</div>
 
@@ -141,7 +155,7 @@
 <!-- DYNAMIC JQUERYUI CONTENT -->
 <div style="display:none">
 	<div id="dialog-new-filter" title="New Data Filter">
-		<p class="validateTips">How should the data be filtered?</p>
+		<p class="validateTips">Choose Attribute to Filter</p>
 		<div class="scroll-container">
 			<ul id="filter-list">
 			</ul>
@@ -194,7 +208,13 @@ Text must include <input class="filter-text" type="text" size="20"/>
 	Max <input type="number" class="filter-num-max-val" min="<%= min %>" max="<%= max %>" value="<%= max %>">
 </script>
 
-<script id="dltext-filter-num-ranger" type='text'>
+<script id="dltext-selector-head" type='text'>
+<div class="filter-head">
+	<%= title %> &nbsp;
+	<button class="btn-filter-del">Delete Filter</button>
+</div>
+<div class="filter-body">
+</div>
 </script>
 
 </body>
