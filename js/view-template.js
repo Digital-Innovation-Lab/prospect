@@ -1177,7 +1177,7 @@ function PViewFrame(vizIndex)
 	function clickShowHideLegend(event)
 	{
 		if (vizModel.usesLegend()) {
-			jQuery(getFrameID()+' div.legend-container').toggle('slide', {direction: "left" });
+			jQuery(getFrameID()+' div.lgnd-container').toggle('slide', {direction: "left" });
 		}
 		event.preventDefault();
 	} // clickShowHideLegend()
@@ -1283,8 +1283,8 @@ function PViewFrame(vizIndex)
 		// PURPOSE: Turn on or off all feature Attributes for tmpltIndex
 	function doShowHideAll(tmpltIndex, show)
 	{
-		jQuery(getFrameID()+' div.legend-container div.legend-template[data-index="'+
-								tmpltIndex+'"] div.legend-group input.legend-entry-check').prop('checked', show);
+		jQuery(getFrameID()+' div.lgnd-container div.lgnd-template[data-index="'+
+								tmpltIndex+'"] div.lgnd-group input.lgnd-entry-check').prop('checked', show);
 	} // doShowHideAll()
 
 
@@ -1302,11 +1302,11 @@ function PViewFrame(vizIndex)
 	{
 // console.log("Locate attribute "+lID+" only for template "+tmpltIndex);
 			// Deselect everything
-		jQuery(getFrameID()+' div.legend-container div.legend-template[data-index="'+
-								tmpltIndex+'"] div.legend-locate input.legend-entry-check').prop('checked', false);
+		jQuery(getFrameID()+' div.lgnd-container div.lgnd-template[data-index="'+
+								tmpltIndex+'"] div.lgnd-locate input.lgnd-entry-check').prop('checked', false);
 			// Just reselect this one
-		jQuery(getFrameID()+' div.legend-container div.legend-template[data-index="'+
-								tmpltIndex+'"] div.legend-locate[data-id="'+lID+'"] input.legend-entry-check').prop('checked', true);
+		jQuery(getFrameID()+' div.lgnd-container div.lgnd-template[data-index="'+
+								tmpltIndex+'"] div.lgnd-locate[data-id="'+lID+'"] input.lgnd-entry-check').prop('checked', true);
 	} // doLocateSelect()
 
 
@@ -1324,12 +1324,12 @@ function PViewFrame(vizIndex)
 	{
 // console.log("Feature attribute "+vIndex+" only selected for template "+tmpltIndex);
 			// Deselect everything
-		jQuery(getFrameID()+' div.legend-container div.legend-template[data-index="'+
-								tmpltIndex+'"] div.legend-group input.legend-entry-check').prop('checked', false);
+		jQuery(getFrameID()+' div.lgnd-container div.lgnd-template[data-index="'+
+								tmpltIndex+'"] div.lgnd-group input.lgnd-entry-check').prop('checked', false);
 			// Just select this one
-		jQuery(getFrameID()+' div.legend-container div.legend-template[data-index="'+
-								tmpltIndex+'"] div.legend-group div.legend-value[data-index="'+vIndex+
-								'"] input.legend-entry-check').prop('checked', true);
+		jQuery(getFrameID()+' div.lgnd-container div.lgnd-template[data-index="'+
+								tmpltIndex+'"] div.lgnd-group div.lgnd-value[data-index="'+vIndex+
+								'"] input.lgnd-entry-check').prop('checked', true);
 	} // doFeatureSelectOnly()
 
 
@@ -1338,51 +1338,51 @@ function PViewFrame(vizIndex)
 	function clickInLegend(event)
 	{
 			// Which Template does selection belong to?
-		var tmpltIndex = jQuery(event.target).closest('div.legend-template').data('index');
+		var tmpltIndex = jQuery(event.target).closest('div.lgnd-template').data('index');
 		var clickClass = event.target.className;
 		switch (clickClass) {
-		case 'legend-update':
+		case 'lgnd-update':
 			if (vizModel && datastream) {
 					// TO DO: Set busy cursor
 				vizModel.render(datastream);				
 			}
 			break;
 			// Turn on or off just this one value
-		case 'legend-entry-check':
-			var lEntry = jQuery(event.target).closest('div.legend-entry');
+		case 'lgnd-entry-check':
+			var lEntry = jQuery(event.target).closest('div.lgnd-entry');
 			var isChecked = jQuery(event.target).is(':checked');
 				// What does checkbox belong to?
-			if (lEntry.hasClass('legend-sh'))
+			if (lEntry.hasClass('lgnd-sh'))
 				doShowHideAll(tmpltIndex, isChecked);
 				// A locate Attribute?
-			else if (lEntry.hasClass('legend-locate'))
+			else if (lEntry.hasClass('lgnd-locate'))
 				doLocateSelect(tmpltIndex, lEntry.data('id'), isChecked);
-					// Must belong to a legend-entry
-			else if (lEntry.hasClass('legend-value'))
+					// Must belong to a lgnd-entry
+			else if (lEntry.hasClass('lgnd-value'))
 				doFeatureSelect(tmpltIndex, lEntry.data('index'), isChecked);
 			break;
 
 			// Make this only selected feature attribute
-		case 'legend-viz':
-		case 'legend-value-title': 		// Title used for both locate and feature Attributes!
-			var lEntry = jQuery(event.target).closest('div.legend-entry');
-			if (lEntry.hasClass('legend-locate'))
+		case 'lgnd-viz':
+		case 'lgnd-value-title': 		// Title used for both locate and feature Attributes!
+			var lEntry = jQuery(event.target).closest('div.lgnd-entry');
+			if (lEntry.hasClass('lgnd-locate'))
 				doLocateSelectOnly(tmpltIndex, lEntry.data('id'));
-			else if (lEntry.hasClass('legend-value'))
+			else if (lEntry.hasClass('lgnd-value'))
 				doFeatureSelectOnly(tmpltIndex, lEntry.data('index'));
 			break;
 
-		case 'legend-template':
-		case 'legend-select':
+		case 'lgnd-template':
+		case 'lgnd-select':
 		case '':
 				// Ignore these
 			break;
 
 		default:  // could be multiple
 				// Show/Hide title?
-			if (clickClass.match(/legend-sh/i)) {
+			if (clickClass.match(/lgnd-sh/i)) {
 					// Simulate click
-				var checkBox = jQuery(event.target).find('input.legend-entry-check');
+				var checkBox = jQuery(event.target).find('input.lgnd-entry-check');
 				var isChecked = !checkBox.is(':checked');
 				checkBox.prop('checked', isChecked);
 				doShowHideAll(tmpltIndex, isChecked);
@@ -1396,7 +1396,7 @@ function PViewFrame(vizIndex)
 	function selectTmpltAttribute(event)
 	{
 			// Determine Template to which this refers
-		var tmpltIndex = jQuery(event.target).closest('div.legend-template').data('index');
+		var tmpltIndex = jQuery(event.target).closest('div.lgnd-template').data('index');
 		var attID = jQuery(event.target).val();
 		setLegendFeatures(tmpltIndex, attID);
 	} // selectTmpltAttribute()
@@ -1410,8 +1410,8 @@ function PViewFrame(vizIndex)
 	{
 		var element;
 
-		var group = jQuery(getFrameID()+' div.legend-container div.legend-template[data-index="'+
-						lIndex+'"] div.legend-group');
+		var group = jQuery(getFrameID()+' div.lgnd-container div.lgnd-template[data-index="'+
+						lIndex+'"] div.lgnd-group');
 			// Clear any previous entries
 		group.empty();
 		legendIDs[lIndex] = attID;
@@ -1419,19 +1419,19 @@ function PViewFrame(vizIndex)
 		var attDef = PDataHub.getAttID(attID);
 		attDef.l.forEach(function(legEntry, lgIndex) {
 				// TO DO: Account for both icons and colors acc. to v string
-			element = '<div class="legend-value legend-entry" data-index="'+lgIndex+'"><input type="checkbox" checked="checked" class="legend-entry-check"/>'+
-						'<div class="legend-viz" style="background-color: '+legEntry.v+'"> </div> <span class="legend-value-title">'+legEntry.l+'</span></div>';
+			element = '<div class="lgnd-value lgnd-entry" data-index="'+lgIndex+'"><input type="checkbox" checked="checked" class="lgnd-entry-check"/>'+
+						'<div class="lgnd-viz" style="background-color: '+legEntry.v+'"> </div> <span class="lgnd-value-title">'+legEntry.l+'</span></div>';
 			group.append(element);
 			if (legEntry.z && legEntry.z.length > 0) {
 				legEntry.z.forEach(function(zEntry, zIndex) {
-					element = '<div class="legend-value legend-entry" data-index="'+lgIndex+','+zIndex+
-								'"><input type="checkbox" checked="checked" class="legend-entry-check"/>';
+					element = '<div class="lgnd-value lgnd-entry" data-index="'+lgIndex+','+zIndex+
+								'"><input type="checkbox" checked="checked" class="lgnd-entry-check"/>';
 					if (zEntry.v && zEntry.v != '') {
-						element += '<div class="legend-viz" style="background-color: '+zEntry.v+'"></div>';
+						element += '<div class="lgnd-viz" style="background-color: '+zEntry.v+'"></div>';
 					} else {
-						element += '<div class="legend-viz legend-viz-empty"></div>';
+						element += '<div class="lgnd-viz lgnd-viz-empty"></div>';
 					}
-					element += ' <span class="legend-value-title"> > '+zEntry.l+'</span></div>';
+					element += ' <span class="lgnd-value-title"> > '+zEntry.l+'</span></div>';
 					group.append(element);
 				});
 			}
@@ -1476,7 +1476,7 @@ function PViewFrame(vizIndex)
 		if (vizModel.usesLegend()) {
 				// Clear out previous Legend
 				// remove all previous locate Attributes
-			var lgndCntr = jQuery(getFrameID()+' div.legend-container div.legend-scroll');
+			var lgndCntr = jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll');
 			lgndCntr.empty();
 
 				// Create Legend sections for each Template
@@ -1486,17 +1486,17 @@ function PViewFrame(vizIndex)
 				var locAtts = vizModel.getLocAtts(tIndex);
 				if (locAtts && locAtts.length) {
 							// Create DIV structure for Template's Legend entry
-					var newTLegend = jQuery('<div class="legend-template" data-index="'+tIndex+
-									'"><div class="legend-title">'+tmpltDef.l+'</div></div>');
+					var newTLegend = jQuery('<div class="lgnd-template" data-index="'+tIndex+
+									'"><div class="lgnd-title">'+tmpltDef.l+'</div></div>');
 					locAtts.forEach(function(attID, aIndex) {
 						var attDef = PDataHub.getAttID(attID);
-						newTLegend.append('<div class="legend-entry legend-locate" data-id="'+attID+
-							'"><input type="checkbox" checked="checked" class="legend-entry-check"/><span class="legend-value-title">'+
+						newTLegend.append('<div class="lgnd-entry lgnd-locate" data-id="'+attID+
+							'"><input type="checkbox" checked="checked" class="lgnd-entry-check"/><span class="lgnd-value-title">'+
 							attDef.def.l+'</span></div>');
 					});
 						// Create dropdown menu of visual Attributes
 					var attSelection = vizModel.getFeatureAtts(tIndex);
-					var newStr = '<select class="legend-select">';
+					var newStr = '<select class="lgnd-select">';
 					attSelection.forEach(function(attID, aIndex) {
 						var attDef = PDataHub.getAttID(attID);
 						newStr += '<option value="'+attID+'">'+attDef.def.l+'</option>';
@@ -1506,7 +1506,7 @@ function PViewFrame(vizIndex)
 					newSelect.change(selectTmpltAttribute);
 					jQuery(newTLegend).append(newSelect);
 						// Create Hide/Show all checkbox
-					jQuery(newTLegend).append('<div class="legend-entry legend-sh"><input type="checkbox" checked="checked" class="legend-entry-check"/>Hide/Show All</div><div class="legend-group"></div>');
+					jQuery(newTLegend).append('<div class="lgnd-entry lgnd-sh"><input type="checkbox" checked="checked" class="lgnd-entry-check"/>Hide/Show All</div><div class="lgnd-group"></div>');
 					lgndCntr.append(newTLegend);
 					if (tIndex != (prspdata.t.length-1))
 						lgndCntr.append('<hr/>');
@@ -1517,10 +1517,10 @@ function PViewFrame(vizIndex)
 						setLegendFeatures(tIndex, fAttID);
 				}
 			});
-			jQuery(getFrameID()+' div.legend-container').show();
+			jQuery(getFrameID()+' div.lgnd-container').show();
 		} else {
 				// Just hide Legend
-			jQuery(getFrameID()+' div.legend-container').hide();
+			jQuery(getFrameID()+' div.lgnd-container').hide();
 		}
 		vizModel.setup();
 
@@ -1561,7 +1561,7 @@ function PViewFrame(vizIndex)
 				.button({icons: { primary: 'ui-icon-gear' }, text: false })
 				.click(clickVizControls).next();
 
-		head = jQuery(getFrameID()+' div.viz-content div.legend-container');
+		head = jQuery(getFrameID()+' div.viz-content div.lgnd-container');
 		head.click(clickInLegend);
 
 			// Create first VF by default
@@ -1575,8 +1575,8 @@ function PViewFrame(vizIndex)
 	instance.getSelLocAtts = function(tIndex)
 	{
 		var attIDs = [];
-		var boxes = jQuery(getFrameID()+' div.legend-container div.legend-template[data-index="'+
-							tIndex+'"] div.legend-locate input:checked');
+		var boxes = jQuery(getFrameID()+' div.lgnd-container div.lgnd-template[data-index="'+
+							tIndex+'"] div.lgnd-locate input:checked');
 		boxes.each(function() {
 			var attID = jQuery(this).parent().data('id');
 			attIDs.push(attID);
@@ -1590,8 +1590,8 @@ function PViewFrame(vizIndex)
 	instance.getSelFeatAtts = function(tIndex)
 	{
 		var attIndices = [], attIndex, i;
-		var boxes = jQuery(getFrameID()+' div.legend-container div.legend-template[data-index="'+
-							tIndex+'"] div.legend-group div.legend-value input:checked');
+		var boxes = jQuery(getFrameID()+' div.lgnd-container div.lgnd-template[data-index="'+
+							tIndex+'"] div.lgnd-group div.lgnd-value input:checked');
 		boxes.each(function() {
 			attIndex = jQuery(this).parent().data('index');
 			if (typeof attIndex == 'number') {

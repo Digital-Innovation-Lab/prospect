@@ -50,7 +50,7 @@ select {
 	height: 100%;
 }
 
-.scroll-container {
+div.scroll-container {
 	overflow: auto;
 }
 
@@ -220,7 +220,7 @@ div.filter-body svg .brush .extent {
 	 *		.view-control-bar
 	 *		.viz-content
 	 *			.viz-result
-	 *			.legend-container
+	 *			.lgnd-container
 	 *	#viz-frame-1
 	 *		... (same as above)
 	 */
@@ -255,7 +255,7 @@ div.filter-body svg .brush .extent {
 }
 
 	/* Frame that displays visualization content */
-	/*	This is dynamically into .legend-body and .viz-result */
+	/*	This is dynamically into .lgnd-body and .viz-result */
 #viz-display-frame .viz-content {
 	height: 400px;		/* Temporary hack to create viz space */
 }
@@ -276,25 +276,25 @@ div.filter-body svg .brush .extent {
 }
 
 	/* Legends are semi-opaque overlays on content in top-left corner (z = 1000)
-	 * legend-container (outer)
-	 *		legend-update
-	 *		legend-scroll (scrolling area)
-	 * 		legend-template (DIV per template): data-index = index of Template
-	 *			legend-title
-	 *			legend-locate (Attribute that locates object on visualization): data-id = Attribute ID
-	 *			legend-select (menu with list of Legend Attributes)
+	 * lgnd-container (outer)
+	 *		lgnd-update
+	 *		lgnd-scroll (scrolling area)
+	 * 		lgnd-template (DIV per template): data-index = index of Template
+	 *			lgnd-title
+	 *			lgnd-locate (Attribute that locates object on visualization): data-id = Attribute ID
+	 *			lgnd-select (menu with list of Legend Attributes)
 	 *				option value = (full) Attribute ID
-	 *			legend-sh	  (show/hide option)
-	 *			legend-group  (DIV of feature selections for a Template)
-	 *				legend-value  (single legend feature): data-index = index of legend entry in array
-	 *					legend-viz   (color or icon)
+	 *			lgnd-sh	  (show/hide option)
+	 *			lgnd-group  (DIV of feature selections for a Template)
+	 *				lgnd-value  (single legend feature): data-index = index of legend entry in array
+	 *					lgnd-viz   (color or icon)
 	 *
-	 * NOTES:	Any line that begins with a checkbox is DIV of class 'legend-entry'.
-	 * 			The checkbox itself is class legend-entry-check
+	 * NOTES:	Any line that begins with a checkbox is DIV of class 'lgnd-entry'.
+	 * 			The checkbox itself is class lgnd-entry-check
 	 *			On z-index: http://philipwalton.com/articles/what-no-one-told-you-about-z-index/
 	 *				https://developer.mozilla.org/en-US/docs/Web/Guide/CSS/Understanding_z_index/Adding_z-index
 	 */
-.legend-container {
+div.lgnd-container {
 	position: relative;
 /*	top: 6px;
 */
@@ -321,7 +321,7 @@ div.filter-body svg .brush .extent {
 }
 
 	/* Button to force Re-render */
-.legend-update {
+div.lgnd-update {
 	height: 18px;
 	margin-bottom: 3px;
 	font-size: 10px;
@@ -329,12 +329,12 @@ div.filter-body svg .brush .extent {
 	color: green;
 }
 
-.legend-scroll {
+div.lgnd-scroll {
 	overflow-y: auto;
 	height: 232px;
 }
 
-.legend-title {
+div.lgnd-title {
 	font-size: 16px;
 	font-weight: bold;
 	border-bottom: 1px dotted #111;
@@ -342,7 +342,7 @@ div.filter-body svg .brush .extent {
 }
 
 	/* A selectable entry that has a checkbox */
-.legend-entry {
+div.lgnd-entry {
 	font-size: 12px;
 	height: 22px;
 	font-weight: normal;
@@ -355,12 +355,12 @@ div.filter-body svg .brush .extent {
 }
 
 	/* Legend Attribute checkbox */
-.legend-entry-check {
+div.lgnd-entry-check {
 	cursor: pointer;
 }
 
-	/* visual marker in a legend-entry */
-.legend-viz {
+	/* visual marker in a lgnd-entry */
+div.lgnd-viz {
 	border: 1px solid dotted;
 
 	width: 18px;
@@ -373,14 +373,14 @@ div.filter-body svg .brush .extent {
 	left: 22px; */
 }
 
-.legend-viz-empty {
+div.lgnd-viz-empty {
 	background: -webkit-linear-gradient(white, gray, white); /* For Safari 5.1 to 6.0 */
 	background: -o-linear-gradient(white, gray, white); /* For Opera 11.1 to 12.0 */
 	background: -moz-linear-gradient(white, gray, white); /* For Firefox 3.6 to 15 */
 	background: linear-gradient(white, gray, white); /* Standard syntax */
 }
 
-.legend-value-title {
+div.lgnd-value-title {
 	vertical-align: middle;
 /*	position: absolute;
 	left: 42px; */
