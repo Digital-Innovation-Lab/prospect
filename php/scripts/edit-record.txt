@@ -132,12 +132,17 @@
 </script>
 
 <script id="att-type-Pointer" type='text/ractive'>
-	ID of {{recType}} Record: <input type="text" size="32" value="{{value}}" required pattern="^$|[\w\-]+"/>
-	<button on-click="getPointerIDs:{{rIndex}}">Select ID</button>
+	(Record ID or IDs): <input type="text" size="32" value="{{value}}"/>
+	{{#if def.d.length > 0}}<button on-click="clearPtr:{{rIndex}}">Clear</button>{{/if}}
+	<button on-click="addPointerID:{{rIndex}}">
+		{{#if def.d.length > 0}}Add ID
+		{{else}}Set ID
+		{{/if}}
+	</button>
 </script>
 
 <script id="att-type-Join" type='text/ractive'>
-	ID of Record: <input type="text" size="32" value="{{value}}" required pattern="^$|[\w\-]+"/>
+	ID of Record to Join: <input type="text" size="32" value="{{value}}" pattern="^$|[\w\-]+"/>
 	<button on-click="getJoinIDs:{{rIndex}}">Select ID</button>
 </script>
 
@@ -145,9 +150,9 @@
 <!-- DIALOGS -->
 <!-- Choose Template Dialog -->
 <script id="dialog-choose-list" type='text/ractive'>
-	<dialog title="Choose ID" width="300" height="200">
+	<dialog title="Choose ID" width="300" height="350">
 		{{#if loading}}<p style="color: red">Please wait while remote data is loaded</p>{{/if}}
-		<br/>
+		{{#if !loading && list.length==0}}<p style="color: red">No data available -- select "Cancel"</p>{{/if}}
 		<div class="scroll-container">
 			{{#each list:index}}
 				{{#if selIndex == index}}

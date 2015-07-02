@@ -1139,6 +1139,7 @@ class ProspectAdmin {
 					array_push($result, $rec_id);
 			}
 		}
+		sort($result);
 		die(json_encode($result));
 	} // prsp_get_rec_ids()
 

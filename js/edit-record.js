@@ -408,7 +408,7 @@ jQuery(document).ready(function() {
 
 		theRec = rApp.get('defRecord['+index+']');
 			// Only Add if pre-existing value and delimiter allows multiple values
-		if (theRec.value.length && theRec.def.d.length)
+		if (theRec.value.length > 0 && theRec.def.d.length > 0)
 			newVal = theRec.value + theRec.def.d + theRec.lgndSel;
 		else
 			newVal = theRec.lgndSel;
@@ -432,11 +432,19 @@ jQuery(document).ready(function() {
 		return false;
 	});
 
+	rApp.on('clearPtr', function(event, index) {
+		rApp.set('defRecord['+index+'].value', '');
+		return false;
+	});
+
 		// Pop up modal with all IDs of some Template type, and then choose Record ID
-		// TO DO: Handle case of no Records of chosen Template type
-	rApp.on('getPointerIDs', function(event, index) {
+	rApp.on('addPointerID', function(event, index) {
 		var tmpltList = [];
-		_.forEach(defTemplates, function(theTemplate) { tmpltList.push(theTemplate.id); });
+			// Only Independent Templates!
+		_.forEach(defTemplates, function(theTemplate) {
+			if (!theTemplate.def.d)
+				tmpltList.push(theTemplate.id);
+		});
 
 		var tmpltDialog = new Ractive({
 			el: '#insert-dialog',
@@ -479,8 +487,15 @@ jQuery(document).ready(function() {
 			recDialog.on('dialog.ok', function() {
 				if (!recDialog.get('loading')) {
 					var selIndex = recDialog.get('selIndex');
-					var newID = recDialog.get('list['+selIndex+']');
-					rApp.set('defRecord['+index+'].value', newID);
+					var selID = recDialog.get('list['+selIndex+']');
+					var theRec = rApp.get('defRecord['+index+']');
+					var newVal;
+						// Only Add if pre-existing value and delimiter allows multiple values
+					if (theRec.value.length > 0 && theRec.def.d.length > 0)
+						newVal = theRec.value + theRec.def.d + selID;
+					else
+						newVal = selID;
+					rApp.set('defRecord['+index+'].value', newVal);
 				}
 				recDialog.teardown();
 				return false;

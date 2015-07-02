@@ -429,9 +429,9 @@ VizPinboard.prototype.setup = function()
 {
 	var s = this.settings;
 
-	var xScale = d3.scale.linear().domain([0, s.iw])
-		.rangeRound([0, s.dw]);
-	var yScale = d3.scale.linear().domain([0,s.ih]).range([0,s.dh]);
+	var xScale = d3.scale.linear().domain([0, s.iw-1])
+		.rangeRound([0, s.dw-1]);
+	var yScale = d3.scale.linear().domain([0,s.ih-1]).range([0,s.dh-1]);
 
 	var xAxis = d3.svg.axis().scale(xScale).orient("top");
 	var yAxis = d3.svg.axis().scale(yScale).orient("left");
