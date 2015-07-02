@@ -1165,9 +1165,9 @@ PFilterDates.prototype.setup = function()
 // PViewFrame: Pseudo-object that manages contents of visualization frame
 //				Creates Legend and maintains selection (passed to PVizModel on update)
 
-// INPUT: 	vizIndex = index for this visualization frame (0 or 1)
+// INPUT: 	vfIndex = index for this visualization frame (0 or 1)
 
-function PViewFrame(vizIndex)
+function PViewFrame(vfIndex)
 {
 	var instance = { };			// creates pseudo-instance of Object
 
@@ -1186,7 +1186,7 @@ function PViewFrame(vizIndex)
 		// PURPOSE: Return ID of Frame's outermost DIV container
 	function getFrameID()
 	{
-		return '#view-frame-'+vizIndex;
+		return '#view-frame-'+vfIndex;
 	} // getFrameID()
 
 
@@ -1211,6 +1211,7 @@ function PViewFrame(vizIndex)
 	function clickOpenSelection(event)
 	{
 		var recSel=null;
+		var rec;
 
 		if (vizModel)
 			recSel = vizModel.getSel();
@@ -1223,7 +1224,7 @@ function PViewFrame(vizIndex)
 		function inspectShow()
 		{
 			var recAbsI = recSel[i];
-			var rec = PDataHub.getRecByIndex(recAbsI);
+			rec = PDataHub.getRecByIndex(recAbsI);
 			var title = ' '+rec.l+' ('+(i+1)+'/'+recSel.length+') ';
 			jQuery('#inspect-name').text(title);
 				// Which template type?
@@ -1278,7 +1279,12 @@ function PViewFrame(vizIndex)
 			modal: true,
 			buttons: {
 				'See Record': function() {
-					// TO DO: AJAX call to get_permalink() to get URL!
+					var newURL = prspdata.site_url;
+					if (prspdata.site_url.charAt(prspdata.site_url.length-1) != '/')
+						newURL += '/';
+					newURL += '?p='+ rec.wp;
+// console.log("Go to URL: "+newURL);
+					window.open(newURL, '_blank');
 				},
 				Close: function() {
 					jQuery('#btn-inspect-left').off("click");
@@ -1546,6 +1552,18 @@ function PViewFrame(vizIndex)
 				// Just hide Legend
 			jQuery(getFrameID()+' div.lgnd-container').hide();
 		}
+
+			// Enable or disable corresponding Selector Filter 
+		var c = jQuery('#selector-v'+vfIndex);
+		if (vizModel.canSel()) {
+			c.removeAttr("disabled");
+			c.prop('checked', true);
+		} else {
+			c.attr("disabled", true);
+			c.prop('checked', false);
+			// c.removeAttr("checked"); // ?? this instead?
+		}
+
 		vizModel.setup();
 
 		if (datastream)
@@ -1560,7 +1578,7 @@ function PViewFrame(vizIndex)
 
 	instance.getIndex = function()
 	{
-		return vizIndex;
+		return vfIndex;
 	};
 
 		// PURPOSE: Initialize basic DOM structure for ViewFrame
@@ -2794,13 +2812,13 @@ console.log("Set layout to: "+lIndex);
 			}
 			selFilter.isDirty(false);
 		}
-console.log("Selection: "+JSON.stringify(selList));
+// console.log("Selection: "+JSON.stringify(selList));
 
 			// Which Views to send Selection?
-		if (jQuery('#selector-v1').is(':checked')) {
+		if (jQuery('#selector-v0').is(':checked')) {
 			mustCopy = view0.setSel(selList);
 		}
-		if (jQuery('#selector-v2').is(':checked')) {
+		if (jQuery('#selector-v1').is(':checked')) {
 			if (view1) {
 				if (mustCopy)
 					selList = selList.slice(0);

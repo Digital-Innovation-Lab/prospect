@@ -39,6 +39,9 @@
 	$blog_id = get_current_blog_id();
 	echo('"'.get_admin_url($blog_id ,'admin-ajax.php').'"');
 ?>,
+		site_url: <?php
+	echo('"'.site_url().'"');
+?>,
 		e: <?php
 	$the_xhbt = new ProspectExhibit(true, get_the_ID(), true);
 		// Put Attribute list in sorted order
@@ -120,8 +123,8 @@
 			<button id="btn-new-selector">New Filter</button>
 			<button id="btn-toggle-selector">Hide/Show Filter</button>
 			<button id="btn-apply-selector">Apply Selector Filter</button>
-			<input type="checkbox" checked="checked" id="selector-v1"/> View 1
-			<input type="checkbox" checked="checked" id="selector-v2"/> View 2
+			<input type="checkbox" checked="checked" id="selector-v0"/> View 1
+			<input type="checkbox" id="selector-v1" disabled/> View 2
 		</div>
 		<div id="selector-instance">
 			<div class="filter-instance" data-id="0">
