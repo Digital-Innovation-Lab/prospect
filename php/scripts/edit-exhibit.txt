@@ -69,6 +69,8 @@
 						{{>vfFlow}}
 					{{elseif vf === 'Directory'}}
 						{{>vfDirectory}}
+					{{elseif vf === 'TextStream'}}
+						{{>vfTextStream}}
 					{{/if}}
 				</div>
 				{{#if vIndex != (viewSettings.length-1) }}<hr/>{{/if}}
@@ -472,6 +474,49 @@
 					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
 					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveAttLeft:{{vIndex}},{{tIndex}},{{cIndex}}">Left</button>
 					<button decorator="iconButton:ui-icon-arrowthick-1-e "on-click="moveAttRight:{{vIndex}},{{tIndex}},{{cIndex}}">Right</button>
+				</span>
+			{{/each}}
+		</div>
+		{{/each}}
+	</tabs>
+</script>
+
+<script id="vfTextStream" type='text/ractive'>
+	Minimum Font Size: <input type="number" value="{{c.min}}" min="2" max="9999"/>
+	Maximum Font Size: <input type="number" value="{{c.max}}" min="2" max="9999"/>
+	<br/>
+	Combine all Template data on same display: <input type='checkbox' checked='{{c.mix}}'/> (must use same Order by Attribute)<br/>
+	Choose the Attribute(s) to use according to Template type:
+	<tabs>
+		<ul>
+		{{#each iTemplates:tIndex}}
+			<li><a href="#tmpt-vf-tab-{{vIndex}}-{{tIndex}}">{{tid}}</a></li>
+		{{/each}}
+		</ul>
+		{{#each iTemplates:tIndex}}
+		<div id="tmpt-vf-tab-{{vIndex}}-{{tIndex}}">
+			<b>Show content (1 per Template): </b>
+			{{#each c.cnt[tIndex]:cIndex}}
+				<span class="attribute-controls">
+					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+				</span>
+			{{/each}}
+			<br/><b>Order by (1 per Template): </b>
+			{{#each c.order[tIndex]}}
+				<span class="attribute-controls">
+					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+				</span>
+			{{/each}}
+			<br/><b>Text Size (1 per Template): </b>
+			{{#each c.sz[tIndex]}}
+				<span class="attribute-controls">
+					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+				</span>
+			{{/each}}
+			<br/><b>Provide Legends: </b>
+			{{#each c.lgnds[tIndex]}}
+				<span class="attribute-controls">
+					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
 				</span>
 			{{/each}}
 		</div>

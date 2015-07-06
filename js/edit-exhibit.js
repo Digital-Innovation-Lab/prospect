@@ -147,7 +147,8 @@ jQuery(document).ready(function() {
 
 		// CONSTANTS
 		// =========
-	var vfTypes = [ 'Map', 'Cards', 'Pinboard', 'Browser', 'Timeline', 'Tree', 'Flow', 'Directory' ];
+	var vfTypes = [ 'Map', 'Cards', 'Pinboard', 'Browser', 'Timeline', 'Tree', 'Flow', 'Directory',
+					'TextStream' ];
 
 		// DATA LOADED FROM SERVER
 		// =======================
@@ -204,6 +205,7 @@ jQuery(document).ready(function() {
 		//	{	tid: this Template ID,
 		//		use: used by this Exhibit (true/false),
 		//		attsTxt: array of Text Attributes from Template
+		//		attsNum: array of Number Attributes (w/"disable")
 		//		attsDates: array of Dates Atts
 		//		attsLL: array of Lat-Lon Atts
 		//		attsXY: array of X-Y Atts
@@ -360,8 +362,8 @@ jQuery(document).ready(function() {
 		//	into format usable by edit GUI
 	_.forEach(defTemplates, function(theTmplt) {
 		if (!theTmplt.def.d) {
-			var attsTxt=[], attsDates=[], attsLL=[], attsXY=[],
-				attsLgnd=[], attsSC=['disable'], attsYT=['disable'],
+			var attsTxt=[], attsDates=[], attsNum=[], attsLL=[],
+				attsXY=[], attsLgnd=[], attsSC=['disable'], attsYT=['disable'],
 				attsTrns=['disable'], attsTC=['disable'], attsPtr=[], attsCnt=[],
 				attsFct=[];
 
@@ -376,10 +378,12 @@ jQuery(document).ready(function() {
 						break;
 					case 'Text':
 						attsTxt.push(prefix+theAttID);
+						attsLgnd.push(prefix+theAttID);
 						attsCnt.push(prefix+theAttID);
 						attsFct.push(prefix+theAttID);
 						break;
 					case 'Number':
+						attsNum.push(prefix+theAttID);
 						attsLgnd.push(prefix+theAttID);
 						attsCnt.push(prefix+theAttID);
 						attsFct.push(prefix+theAttID);
@@ -455,8 +459,8 @@ jQuery(document).ready(function() {
 			var isUsed = getTemplateIndex(theTmplt.id) != -1;
 
 			var tmpltEntry = { tid: theTmplt.id, use: isUsed,
-								attsTxt: attsTxt, attsDates: attsDates, attsLL: attsLL,
-								attsXY: attsXY, attsLgnd: attsLgnd, attsSC: attsSC,
+								attsTxt: attsTxt, attsDates: attsDates, attsNum: attsNum,
+								attsLL: attsLL, attsXY: attsXY, attsLgnd: attsLgnd, attsSC: attsSC,
 								attsYT: attsYT, attsTrns: attsTrns, attsTC: attsTC,
 								attsPtr: attsPtr, attsCnt: attsCnt, attsFct: attsFct
 							};
@@ -663,6 +667,36 @@ jQuery(document).ready(function() {
 				});
 				theVF.c.cnt = newCnt;
 				break;
+			case 'TextStream':
+				var newCnt = [], newOrder=[], newLgnds = [], newSize=[];
+				iTemplates.forEach(function(theTmplt) {
+					var origTIndex = getTemplateIndex(theTmplt.tid);
+						// Was this Template absent in original config?
+					if (origTIndex == -1) {
+						newCnt.push(_.map(theTmplt.attsCnt, function(theCnt) {
+								return { attID: theCnt, useAtt: true };
+							}));
+						newOrder.push(_.map(theTmplt.attsFct, function(theFctAtt) {
+								return { attID: theFctAtt, useAtt: true };
+							}));
+						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
+								return { attID: theLgndAtt, useAtt: true };
+							}));
+						newSize.push(_.map(theTmplt.attsNum, function(theNum) {
+								return { attID: theNum, useAtt: true };
+							}))
+					} else {
+						newCnt.push(createPaddedAtts(theTmplt.attsCnt, theVF.c.cnt[origTIndex]));
+						newOrder.push(createPaddedAtts(theTmplt.attsFct, theVF.c.order[origTIndex]));
+						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
+						newSize.push(createPaddedAtts(theTmplt.attsNum, theVF.c.sz[origTIndex]));
+					}
+				});
+				theVF.c.cnt = newCnt;
+				theVF.c.order = newOrder;
+				theVF.c.lgnds = newLgnds;
+				theVF.c.sz = newSize;
+				break;
 			} // switch viewtype
 		} // for views
 	}
@@ -826,6 +860,32 @@ jQuery(document).ready(function() {
 				newVFEntry.c.cnt  = _.map(iTemplates, function(theTemplate) {
 					return _.map(theTemplate.attsCnt, function(theCntAtt) {
 						return { attID: theCntAtt, useAtt: true };
+					});
+				});
+				break;
+			case 'TextStream':
+				newVFEntry.c.min = 8;
+				newVFEntry.c.max = 50;
+				newVFEntry.c.mix = false;
+				newVFEntry.c.cnt  = _.map(iTemplates, function(theTemplate) {
+					return _.map(theTemplate.attsCnt, function(theCntAtt) {
+						return { attID: theCntAtt, useAtt: true };
+					});
+				});
+				newVFEntry.c.order  = _.map(iTemplates, function(theTemplate) {
+					return _.map(theTemplate.attsFct, function(theFctAtt) {
+						return { attID: theFctAtt, useAtt: true };
+					});
+				});
+					// Potential Legends
+				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
+					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
+						return { attID: theLgndAtt, useAtt: true };
+					});
+				});
+				newVFEntry.c.sz  = _.map(iTemplates, function(theTemplate) {
+					return _.map(theTemplate.attsNum, function(theNumAtt) {
+						return { attID: theNumAtt, useAtt: true };
 					});
 				});
 				break;
@@ -1011,6 +1071,15 @@ jQuery(document).ready(function() {
 				return newArray;
 			} // packUsedAttIDs
 
+				// PURPOSE: Return first checked Attribute ID, or else null if none
+			function firstUsedAttID(expandedArray)
+			{
+				for (i=0; i<expandedArray.length; i++)
+					if (expandedArray[i].useAtt)
+						return expandedArray[i].attID;
+				return null;
+			} // firstUsedAttID
+
 				// Compact View Attribute arrays
 			var vCount = rApp.get('viewSettings.length');
 			for (var i=0; i<vCount; i++) {
@@ -1109,6 +1178,21 @@ jQuery(document).ready(function() {
 					});
 					saveView.c.cnt = newCnt;
 					break;
+				case 'TextStream':
+					saveView.c.min = viewSettings.c.min;
+					saveView.c.max = viewSettings.c.max;
+					saveView.c.mix = viewSettings.c.mix;
+					var newCnt=[], newOrder=[], newLgnds=[], newSize=[];
+					saveTIndices.forEach(function(tIndex) {
+						newCnt.push(firstUsedAttID(viewSettings.c.cnt[tIndex]));
+						newOrder.push(firstUsedAttID(viewSettings.c.order[tIndex]));
+						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
+						newSize.push(firstUsedAttID(viewSettings.c.sz[tIndex]));
+					});
+					saveView.c.cnt = newCnt;
+					saveView.c.order = newOrder;
+					saveView.c.lgnds = newLgnds;
+					saveView.c.sz = newSize;
 				} // switch
 				saveViews.push(saveView);
 			}
