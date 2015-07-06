@@ -1590,6 +1590,9 @@ function PViewFrame(vfIndex)
 		// PURPOSE: Initialize basic DOM structure for ViewFrame
 	instance.initDOM = function()
 	{
+		var viewDOM = document.getElementById('dltext-viewframe-dom').innerHTML;
+		jQuery('#viz-display-frame').append('<div id="view-frame-'+vfIndex+'">'+viewDOM+'</div>');
+
 		var head = jQuery(getFrameID()+' div.view-control-bar select.view-viz-select');
 			// Set Dropdown to View names
 		prspdata.e.vf.forEach(function(theVF, i) {

@@ -133,25 +133,6 @@
 	</div>
 
 	<div id="viz-display-frame">
-		<div id="view-frame-0">
-			<div class="view-control-bar">
-				<select class="view-viz-select">
-				</select>
-				<button>Hide/Show Legend</button>
-				<button>Open Selection</button>
-				<button>Clear Selection</button>
-				<button>View Options</button>
-			</div>
-			<div class="viz-content">
-				<div class="viz-result">
-				</div>
-				<div class="lgnd-container">
-					<button class="lgnd-update">Update</button>
-					<div class="lgnd-scroll">
-					</div>
-				</div>
-			</div>
-		</div>
 	</div>
 </div>
 
@@ -186,6 +167,26 @@
 </div>
 
 <!-- DYNAMICALLY LOADED TEXT -->
+<script id="dltext-viewframe-dom" type='text'>
+	<div class="view-control-bar">
+		<select class="view-viz-select">
+		</select>
+		<button>Hide/Show Legend</button>
+		<button>Open Selection</button>
+		<button>Clear Selection</button>
+		<button>View Options</button>
+	</div>
+	<div class="viz-content">
+		<div class="viz-result">
+		</div>
+		<div class="lgnd-container">
+			<button class="lgnd-update">Update</button>
+			<div class="lgnd-scroll">
+			</div>
+		</div>
+	</div>
+</script>
+
 <script id="dltext-filter-head" type='text'>
 <div class="filter-instance" data-id="<%= newID %>">
 	<div class="filter-head">
