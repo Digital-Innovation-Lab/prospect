@@ -2319,7 +2319,7 @@ var PDataHub = (function () {
 			// NOTES: 	To qualify for a Legend category, a range category only needs to start within it
 			//			A range category with no Legend match is assigned color black
 			//			max value is exclusive (must be less than, not equal!)
-			// TO DO: 	Handle case that scale of max-min and g would be too large
+			// TO DO: 	Handle case that scale of max-min and g would be too large ??
 		getRCats: function(att)
 		{
 			var rcs = [];
@@ -2481,6 +2481,148 @@ var PDataHub = (function () {
 			}
 		}, // getRCnts()
 
+			// PURPOSE: Create index for all records in stream, ordered by the value of an Attribute
+			// RETURNS: Array containing objects: { i [absolute index of record], v [value] }
+			// NOTES: 	Only uses first value in the case of multiple (Vocabulary, Dates, etc)
+		orderBy: function(att, stream)
+		{
+			function vIden(v)
+			{
+				return v;
+			}
+			function vVocab(v)
+			{
+				return v[0];
+			}
+			function vDate(v)
+			{
+				var m = 1, d = 1;
+				if (typeof v.min.m != 'undefined') {
+					m = v.m;
+					if (typeof v.min.d != 'undefined')
+						d = v.d;
+				}
+				return PDataHub.date3Nums(v.min.y, m, d);
+			}
+
+			var eval, maxV;
+			switch (att.def.t) {
+			case 'Text': 		eval = vIden;	maxV = '~'; break;
+			case 'Vocabulary': 	eval = vVocab;	maxV = '~'; break;
+			case 'Number': 		eval = vIden;	maxV = att.r.max; break;
+			case 'Dates': 		eval = vDate;	maxV = new Date(); break;
+			}
+
+			var ord = [];
+			var relI=0, absI, rec, v;
+			var tI=0, tRec=stream.t[0], td=allData[0].d;
+				// Must keep absolute indices and template params updated
+			while (relI < stream.l) {
+					// Advance until we get to current Template rec
+				while (tRec.n == 0 || (tRec.i+tRec.n) == relI) {
+					tRec = stream.t[++tI];
+					td = allData[tI].d;
+				}
+				absI = stream.s[relI++];
+				// rec = tRec.d[absI-tRec.i];
+				rec = td[absI-tRec.i];
+				v = rec[att.id];
+					// If there is no value, we need to use max value
+				if (typeof v == 'undefined')
+					ord.push({ i: absI, v: maxV });
+				else
+					ord.push({ i: absI, v: eval(v) });
+			}
+
+				// Sort array
+			switch (att.def.t) {
+			case 'Text':
+			case 'Vocabulary':
+				ord.sort(function(a,b) { return a.v.localeCompare(b.v); });
+				break;
+			case 'Dates':
+			case 'Number':
+				ord.sort(function(a,b) { return a.v - b.v; });
+				break;
+			// case 'Dates':
+			// 	ord.sort(function(a,b) {
+			// 		var av = a.v.valueOf(), bv = b.v.valueOf();
+			// 		return av - bv;
+			// 	});
+			// 	break;
+			}
+
+			return ord;
+		}, // orderBy()
+
+
+			// PURPOSE: Create index for records of particular Template in stream, ordered by the value of an Attribute
+			// RETURNS: Array containing objects: { i [absolute index of record], v [value] }
+			// NOTES: 	Only uses first value in the case of multiple (Vocabulary, Dates, etc)
+		orderTBy: function(att, stream, tI)
+		{
+			function vIden(v)
+			{
+				return v;
+			}
+			function vVocab(v)
+			{
+				return v[0];
+			}
+			function vDate(v)
+			{
+				var m = 1, d = 1;
+				if (typeof v.min.m != 'undefined') {
+					m = v.m;
+					if (typeof v.min.d != 'undefined')
+						d = v.d;
+				}
+				return PDataHub.date3Nums(v.min.y, m, d);
+			}
+
+			var eval, maxV;
+			switch (att.def.t) {
+			case 'Text': 		eval = vIden;	maxV = '~'; break;
+			case 'Vocabulary': 	eval = vVocab;	maxV = '~'; break;
+			case 'Number': 		eval = vIden;	maxV = att.r.max; break;
+			case 'Dates': 		eval = vDate;	maxV = new Date(); break;
+			}
+
+			var ord = [];
+			var tRec=stream.t[tI];
+			var relI=0, absI, rec, v;
+			while (relI < tRec.n) {
+				absI = stream.s[tRec.i+relI++];
+				rec = tRec.d[absI-tRec.i];
+				v = rec[att.id];
+					// If there is no value, we need to use max value
+				if (typeof v == 'undefined')
+					ord.push({ i: absI, v: maxV });
+				else
+					ord.push({ i: absI, v: eval(v) });
+			}
+
+				// Sort array
+			switch (att.def.t) {
+			case 'Text':
+			case 'Vocabulary':
+				ord.sort(function(a,b) { return a.v.localeCompare(b.v); });
+				break;
+			case 'Dates':
+			case 'Number':
+				ord.sort(function(a,b) { return a.v - b.v; });
+				break;
+			// case 'Dates':
+			// 	ord.sort(function(a,b) {
+			// 		var av = a.v.valueOf(), bv = b.v.valueOf();
+			// 		return av - bv;
+			// 	});
+			// 	break;
+			}
+
+			return ord;
+		}, // orderBy()
+
 			// RETURNS: View configuration data for vIndex
 		getVizIndex: function(vIndex)
 		{
@@ -2508,7 +2650,7 @@ jQuery(document).ready(function($) {
 	var filters = [];		// Filter Stack: { id, f [PFilterModel], out }
 	var selFilter = null;	// Selector Filter
 
-	var topStream;			// Top-level IndexStream (before Fitlers)
+	var topStream;			// Top-level IndexStream (before Filters)
 	var endStream;			// Final resulting IndexStream (after Filters)
 
 		// FUNCTIONS
