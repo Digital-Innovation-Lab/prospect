@@ -347,8 +347,8 @@ class ProspectAttribute {
 										array_push($this->x, $x_item);
 									}
 								}
+								usort($this->x, array('ProspectAttribute', 'cmp_ls'));
 							}
-							usort($this->x, array('ProspectAttribute', 'cmp_ls'));
 							break;
 						case 'Number':
 							$num = count($this->legend);
