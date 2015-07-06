@@ -734,7 +734,7 @@ class ProspectAdmin {
 		$fp = $this->createUTFOutput($the_record->id.".csv", false);
 
 			// List of attribute IDs/custom fields to write
-		$rec_vals = array('post_title', 'post_type');
+		$rec_vals = array('post_title', 'post_type', 'record-id', 'tmplt-id');
 		foreach ($the_record->att_data as $key => $value) {
 			array_push($rec_vals, $key);
 		}
@@ -746,6 +746,8 @@ class ProspectAdmin {
 		$rec_vals = array();
 		array_push($rec_vals, get_the_title($the_record->post_id));
 		array_push($rec_vals, 'prsp-record');
+		array_push($rec_vals, get_post_meta($the_record->post_id, 'record-id', true));
+		array_push($rec_vals, get_post_meta($the_record->post_id, 'tmplt-id', true));
 		foreach ($the_record->att_data as $key => $value) {
 			array_push($rec_vals, $value);
 		}
@@ -796,7 +798,7 @@ class ProspectAdmin {
 		$fp = $this->createUTFOutput($template_id."-records.csv", false);
 
 			// List of attribute IDs/custom fields to write
-		$firstLine = array_merge(array('post_title', 'post_type'), $the_template->def->a);
+		$firstLine = array_merge(array('post_title', 'post_type', 'record-id', 'tmplt-id'), $the_template->def->a);
 
 			// Write out as first line of CSV file
 		fputcsv($fp, $firstLine);
@@ -810,6 +812,8 @@ class ProspectAdmin {
 				$rec_vals = array();
 				array_push($rec_vals, $rec->post_title);
 				array_push($rec_vals, 'prsp-record');
+				array_push($rec_vals, get_post_meta($rec->ID, 'record-id', true));
+				array_push($rec_vals, get_post_meta($rec->ID, 'tmplt-id', true));
 				foreach ($the_template->def->a as $the_attribute) {
 					$val = get_post_meta($rec->ID, $the_attribute, true);
 					array_push($rec_vals, $val);
