@@ -485,7 +485,6 @@
 	Minimum Font Size: <input type="number" value="{{c.min}}" min="2" max="9999"/>
 	Maximum Font Size: <input type="number" value="{{c.max}}" min="2" max="9999"/>
 	<br/>
-	Combine all Template data on same display: <input type='checkbox' checked='{{c.mix}}'/> (must use same Order by Attribute)<br/>
 	Choose the Attribute(s) to use according to Template type:
 	<tabs>
 		<ul>

@@ -623,6 +623,18 @@ div.viz-result svg .axis line {
 	shape-rendering: crispEdges;
 }
 
+div.viz-textstream {
+	margin: 6px;
+}
+
+div.viz-textstream div.recitem {
+	display: inline-block;
+	margin: 4px;
+}
+
+div.viz-textstream div.recitem.obj-selected {
+	border: red dotted 1px;
+}
 
 	/* Specific Filter styles
 	 * ======================

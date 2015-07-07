@@ -77,8 +77,8 @@ function PVizModel(viewFrame, vizSettings)
 	// this.setup()
 	// this.render(IndexStream)
 	// this.setSel(absIDs)
-	// this.getPersp()
-	// this.setPersp(pData)
+	// this.getState()
+	// this.setState(pData)
 } // PVizModel
 
 
@@ -383,7 +383,6 @@ VizMap.prototype.clearSel = function()
 	}
 } // clearSel()
 
-
 VizMap.prototype.setSel = function(absIArray)
 {
 	var self=this;
@@ -519,13 +518,15 @@ VizDirectory.prototype.setup = function()
 		if (event.target.nodeName == 'TD') {
 			var row = jQuery(event.target).closest('tr');
 			var absI = row.data('aid');
-			if (absI) {
+			if (absI != null) {
 				var s = self.toggleSel(absI);
 				if (s)
 					row.addClass("obj-selected");
 				else
 					row.removeClass("obj-selected");
 			}
+		} else if (event.target.nodeName == 'TH') {
+console.log("Clicked column name");
 		}
 	});
 } // setup()
@@ -564,7 +565,7 @@ VizDirectory.prototype.render = function(datastream)
 				'<table cellspacing="0" class="viz-directory" data-id='+tID+'></table>');
 			insert = jQuery('#directory-'+vIndex+' table[data-id="'+tID+'"]');
 			fAtts = self.settings.cnt[tI];
-			t = '<thead><tr><th>Name</th>';
+			t = '<thead><tr>';
 			fAtts.forEach(function(theAtt) {
 				var att = PDataHub.getAttID(theAtt);
 				t += '<th>'+att.def.l+'</th>';
@@ -580,7 +581,7 @@ VizDirectory.prototype.render = function(datastream)
 		t = '<tr data-id="'+rec.id+'" data-aid='+aI;
 		if (self.isSel(aI))
 			t += ' class="obj-selected" '
-		t += '><td>'+rec.l+'</td>';
+		t += '>';
 		fAtts.forEach(function(attID) {
 			datum = rec.a[attID];
 			if (datum) {
@@ -630,6 +631,156 @@ VizDirectory.prototype.clearSel = function()
 } // clearSel()
 
 
+// ======================================================================
+// VizTextStream: Class to visualize record data as ordered text elements
+
+
+var VizTextStream = function(viewFrame, vSettings)
+{
+	PVizModel.call(this, viewFrame, vSettings);
+} // VizTextStream
+
+VizTextStream.prototype = Object.create(PVizModel.prototype);
+
+VizTextStream.prototype.constructor = VizTextStream;
+
+VizTextStream.prototype.usesLegend = function()
+{
+	return true;
+} // usesLegend()
+
+	// PURPOSE: Return IDs of locate Attributes 
+VizPinboard.prototype.getLocAtts = function(tIndex)
+{
+	if (tIndex != null)
+		return [this.settings.order[tIndex]];
+	return _.map(this.settings.order, function(attID) { return [attID]; });
+} // getLocAtts()
+
+VizTextStream.prototype.getFeatureAtts = function(tIndex)
+{
+	if (tIndex != null)
+		return this.settings.lgnds[tIndex];
+	return this.settings.lgnds;
+} // getFeatureAtts()
+
+VizTextStream.prototype.setup = function()
+{
+	var self = this;
+	var vIndex = this.vFrame.getIndex();
+
+		// Insert a scrolling container
+	jQuery(this.frameID).append('<div id="textstream-'+vIndex+'" class="scroll-container"></div>');
+
+		// Listen for clicks on it
+	jQuery('#textstream-'+vIndex).click(function(event) {
+		if (event.target.nodeName == 'DIV') {
+// console.log("Clicked column name");
+		}
+	});
+} // setup()
+
+
+	// PURPOSE: Draw the Records in the given datastream
+	// NOTES: 	absolute index of Record is saved in <id> field of map marker
+VizTextStream.prototype.render = function(datastream)
+{
+	var self = this;
+
+	var numTmplts = PDataHub.getNumETmplts();
+	var i=0, tI=0, tID;
+	// var tRec, tDef;
+	var insert=null, rec, datum, t;
+
+	var order, oAtt, cAttID, cAtt, featSet, fAttID, fAtt, fData;
+
+	var vIndex = this.vFrame.getIndex();
+	var vizDiv = jQuery('#textstream-'+vIndex);
+
+	vizDiv.empty();
+
+	tRec = datastream.t[0];
+	while (tI<numTmplts) {
+			// Advance until we get to current Template rec
+		while (tRec.n == 0 || (tRec.i+tRec.n) == i) {
+				// Have we run out of Templates?
+			if (++tI == numTmplts)
+				return;
+			tRec = datastream.t[tI];
+		}
+
+		featSet = self.vFrame.getSelFeatAtts(tI);
+
+			// Skip Templates if no feature Atts
+		if (featSet.length == 0) {
+			tI++;
+			continue;
+		}
+			// Which Attribuet chosen for Legend?
+		fAttID = self.vFrame.getSelLegend(tI);
+		fAtt = PDataHub.getAttID(fAttID);
+
+			// Starting with new Template? Create new DIV & order Records
+		vizDiv.append('<div class="viz-textstream" data-tI='+tI+'></div>');
+		insert = vizDiv.find('div.viz-textstream[data-tI='+tI+']');
+
+		// tID = PDataHub.getETmpltIndex(tI);
+		// tDef = PDataHub.getTmpltID(tID);
+		cAttID = self.settings.cnt[tI];
+		if (cAttID) {
+			oAtt = PDataHub.getAttID(self.settings.order[tI]);
+			order = PDataHub.orderTBy(oAtt, datastream, tI);
+console.log("Order for Template "+tI+": "+JSON.stringify(order));
+
+			order.forEach(function(oRec) {
+				rec = PDataHub.getRecByIndex(oRec.i);
+					// Apply Legend
+				datum = rec.a[fAttID];
+				fData = PDataHub.getAttLgndVal(datum, fAtt, featSet, false);
+				if (fData) {
+					t = rec.a[cAttID];
+					if (t)
+						t = PDataHub.procAttTxt(cAttID, t);
+					if (t)
+					{
+						insert.append('<div class="recitem" style="color:'+fData+';font-size:12px">'+t+'</div>');
+					} // t
+				} // if fData
+			});	// forEach order
+		} // if cAtt
+	} // while 
+} // render()
+
+VizTextStream.prototype.setSel = function(absIArray)
+{
+	var self=this;
+	var vIndex = this.vFrame.getIndex();
+	var absI, t;
+
+	this.recSel = absIArray;
+	var rows = jQuery('#directory-'+vIndex+' div.recitem');
+	rows.each(function() {
+		t = jQuery(this);
+		absI = t.data('aid');
+		if (absI != null) {
+			if (self.isSel(absI))
+				t.addClass('obj-selected');
+			else
+				t.removeClass('obj-selected');
+		}
+	});
+} // setSel()
+
+VizTextStream.prototype.clearSel = function()
+{
+	if (this.recSel.length > 0) {
+		this.recSel = [];
+		var vIndex = this.vFrame.getIndex();
+		jQuery('#directory-'+vIndex+' div.recitem').removeClass('obj-selected');
+	}
+} // clearSel()
+
+
 // ====================================================================
 // PFilterModel: An abstract class to be subclassed by specific filters
 
@@ -651,6 +802,8 @@ function PFilterModel(id, attRec)
 	// this.setUp()
 	// this.evalPrep()
 	// this.eval(rec)
+	// this.getState()
+	// this.setState(data)
 } // PFilterModel
 
 	// PURPOSE: Either set or get dirty state of Filter
@@ -1505,6 +1658,9 @@ function PViewFrame(vfIndex)
 		case 'Directory':
 			vizModel = new VizDirectory(instance, theView.c);
 			break;
+		case 'TextStream':
+			vizModel = new VizTextStream(instance, theView.c);
+			break;
 		}
 		vizSelIndex = vIndex;
 
@@ -2096,7 +2252,7 @@ var PDataHub = (function () {
 			//			att = full Attribute entry
 			//			fSet = array of selected Legend indices ([x,y] for 2ndary level!)
 			//			all = return array for all possible matches for <val> (true), or just first match (false)
-			// TO DO: 	Change to ptr to legend record so can access both <v> and <b>
+			// TO DO: 	Change to ptr to legend record so can access both <v> and <b> ??
 		getAttLgndVal: function(val, att, fSet, all)
 		{
 			var fI, lI = fSet.length, lE;

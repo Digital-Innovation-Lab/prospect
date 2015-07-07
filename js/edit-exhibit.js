@@ -860,7 +860,6 @@ jQuery(document).ready(function() {
 			case 'TextStream':
 				newVFEntry.c.min = 8;
 				newVFEntry.c.max = 50;
-				newVFEntry.c.mix = false;
 				newVFEntry.c.cnt  = _.map(iTemplates, function(theTemplate) {
 					return _.map(theTemplate.attsCnt, function(theCntAtt) {
 						return { attID: theCntAtt, useAtt: true };
@@ -1166,7 +1165,6 @@ jQuery(document).ready(function() {
 				case 'TextStream':
 					saveView.c.min = viewSettings.c.min;
 					saveView.c.max = viewSettings.c.max;
-					saveView.c.mix = viewSettings.c.mix;
 					var newLgnds=[];
 					saveTIndices.forEach(function(tIndex) {
 						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
