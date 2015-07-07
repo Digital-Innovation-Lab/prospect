@@ -495,24 +495,24 @@
 		</ul>
 		{{#each iTemplates:tIndex}}
 		<div id="tmpt-vf-tab-{{vIndex}}-{{tIndex}}">
-			<b>Show content (1 per Template): </b>
-			{{#each c.cnt[tIndex]:cIndex}}
-				<span class="attribute-controls">
-					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
-				</span>
+			<b>Record visible content: </b>
+			<select value='{{c.cnt[tIndex]}}'>
+			{{#each attsFct}}
+				<option>{{this}}</option>
 			{{/each}}
-			<br/><b>Order by (1 per Template): </b>
-			{{#each c.order[tIndex]}}
-				<span class="attribute-controls">
-					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
-				</span>
+			</select>
+			<b>Order by: </b>
+			<select value='{{c.order[tIndex]}}'>
+			{{#each attsFct}}
+				<option>{{this}}</option>
 			{{/each}}
-			<br/><b>Text Size (1 per Template): </b>
-			{{#each c.sz[tIndex]}}
-				<span class="attribute-controls">
-					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
-				</span>
+			</select>
+			<b>Text Size: </b>
+			<select value='{{c.sz[tIndex]}}'>
+			{{#each attsDNum}}
+				<option>{{this}}</option>
 			{{/each}}
+			</select>
 			<br/><b>Provide Legends: </b>
 			{{#each c.lgnds[tIndex]}}
 				<span class="attribute-controls">

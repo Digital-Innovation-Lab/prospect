@@ -205,7 +205,7 @@ jQuery(document).ready(function() {
 		//	{	tid: this Template ID,
 		//		use: used by this Exhibit (true/false),
 		//		attsTxt: array of Text Attributes from Template
-		//		attsNum: array of Number Attributes (w/"disable")
+		//		attsDNum: array of Number Attributes (w/"disable")
 		//		attsDates: array of Dates Atts
 		//		attsLL: array of Lat-Lon Atts
 		//		attsXY: array of X-Y Atts
@@ -362,7 +362,7 @@ jQuery(document).ready(function() {
 		//	into format usable by edit GUI
 	_.forEach(defTemplates, function(theTmplt) {
 		if (!theTmplt.def.d) {
-			var attsTxt=[], attsDates=[], attsNum=[], attsLL=[],
+			var attsTxt=[], attsDates=[], attsDNum=['disable'], attsLL=[],
 				attsXY=[], attsLgnd=[], attsSC=['disable'], attsYT=['disable'],
 				attsTrns=['disable'], attsTC=['disable'], attsPtr=[], attsCnt=[],
 				attsFct=[];
@@ -383,7 +383,7 @@ jQuery(document).ready(function() {
 						attsFct.push(prefix+theAttID);
 						break;
 					case 'Number':
-						attsNum.push(prefix+theAttID);
+						attsDNum.push(prefix+theAttID);
 						attsLgnd.push(prefix+theAttID);
 						attsCnt.push(prefix+theAttID);
 						attsFct.push(prefix+theAttID);
@@ -459,7 +459,7 @@ jQuery(document).ready(function() {
 			var isUsed = getTemplateIndex(theTmplt.id) != -1;
 
 			var tmpltEntry = { tid: theTmplt.id, use: isUsed,
-								attsTxt: attsTxt, attsDates: attsDates, attsNum: attsNum,
+								attsTxt: attsTxt, attsDates: attsDates, attsDNum: attsDNum,
 								attsLL: attsLL, attsXY: attsXY, attsLgnd: attsLgnd, attsSC: attsSC,
 								attsYT: attsYT, attsTrns: attsTrns, attsTC: attsTC,
 								attsPtr: attsPtr, attsCnt: attsCnt, attsFct: attsFct
@@ -673,23 +673,17 @@ jQuery(document).ready(function() {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
 					if (origTIndex == -1) {
-						newCnt.push(_.map(theTmplt.attsCnt, function(theCnt) {
-								return { attID: theCnt, useAtt: true };
-							}));
-						newOrder.push(_.map(theTmplt.attsFct, function(theFctAtt) {
-								return { attID: theFctAtt, useAtt: true };
-							}));
+						newCnt.push(theTmplt.attsCnt[0]);
+						newOrder.push(theTmplt.attsFct[0]);
 						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
-						newSize.push(_.map(theTmplt.attsNum, function(theNum) {
-								return { attID: theNum, useAtt: true };
-							}))
+						newSize.push(theTmplt.attsDNum[0] || 'disable');
 					} else {
-						newCnt.push(createPaddedAtts(theTmplt.attsCnt, theVF.c.cnt[origTIndex]));
-						newOrder.push(createPaddedAtts(theTmplt.attsFct, theVF.c.order[origTIndex]));
+						newCnt.push(theVF.c.cnt[origTIndex]);
+						newOrder.push(theVF.c.order[origTIndex]);
 						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
-						newSize.push(createPaddedAtts(theTmplt.attsNum, theVF.c.sz[origTIndex]));
+						newSize.push(theVF.c.sz[origTIndex]);
 					}
 				});
 				theVF.c.cnt = newCnt;
@@ -1071,15 +1065,6 @@ jQuery(document).ready(function() {
 				return newArray;
 			} // packUsedAttIDs
 
-				// PURPOSE: Return first checked Attribute ID, or else null if none
-			function firstUsedAttID(expandedArray)
-			{
-				for (i=0; i<expandedArray.length; i++)
-					if (expandedArray[i].useAtt)
-						return expandedArray[i].attID;
-				return null;
-			} // firstUsedAttID
-
 				// Compact View Attribute arrays
 			var vCount = rApp.get('viewSettings.length');
 			for (var i=0; i<vCount; i++) {
@@ -1182,17 +1167,14 @@ jQuery(document).ready(function() {
 					saveView.c.min = viewSettings.c.min;
 					saveView.c.max = viewSettings.c.max;
 					saveView.c.mix = viewSettings.c.mix;
-					var newCnt=[], newOrder=[], newLgnds=[], newSize=[];
+					var newLgnds=[];
 					saveTIndices.forEach(function(tIndex) {
-						newCnt.push(firstUsedAttID(viewSettings.c.cnt[tIndex]));
-						newOrder.push(firstUsedAttID(viewSettings.c.order[tIndex]));
 						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
-						newSize.push(firstUsedAttID(viewSettings.c.sz[tIndex]));
 					});
-					saveView.c.cnt = newCnt;
-					saveView.c.order = newOrder;
+					saveView.c.cnt = packUsedAttIDs(viewSettings.c.cnt);
+					saveView.c.order = packUsedAttIDs(viewSettings.c.order);
 					saveView.c.lgnds = newLgnds;
-					saveView.c.sz = newSize;
+					saveView.c.sz = packUsedAttIDs(viewSettings.c.sz);
 				} // switch
 				saveViews.push(saveView);
 			}
