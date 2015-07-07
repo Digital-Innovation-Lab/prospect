@@ -132,7 +132,7 @@ class ProspectTemplate {
 
 
 		// PURPOSE: Get number of Records of this Template type
-	public function get_num_records($tmplt_id)
+	public function get_num_records()
 	{
 		$args = array('post_type' => 'prsp-record', 'meta_key' => 'tmplt-id',
 						'meta_value' => $this->id, 'post_status' => 'publish');

@@ -64,7 +64,7 @@
 		echo('{ id: "'.$the_template->id.'", ');
 		echo(' def: '.$the_template->meta_def.', ');
 		echo(' n: '.$the_template->get_num_records().' }');
-		$att_defs = array_merge($att_defs, $the_template->get_all_attributes());
+		$att_defs = array_merge($att_defs, $the_template->get_all_attributes(false));
 	}
 
 ?> ],
