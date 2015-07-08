@@ -74,14 +74,14 @@
 <!-- Partial: Legend for Vocabulary -->
 <script id="legendVocab" type='text/ractive'>
 	<h3>Configure Vocabulary Legend</h3>
-	<input type="radio" name="{{legType}}" value="color"/> Color
-	{{#if hasPNGs}}<input type="radio" name="{{legType}}" value="png"/> PNG icon{{/if}}
-	<button on-click="resetLegend">Reset Visuals</button>
-	<br/>
 	<label for="vocab-rep-terms">Replace with terms used in custom field </label> <button id="vocab-rep-terms" on-click="useTerms">Replace Terms</button>
 	<br/>
 	<input type="text" id="vocab-new-term" value='{{newVocab}}' placeholder="New Vocab Term" size="24"/> <label for="vocab-new-term"> New Term</label>
 	<button on-click="addLegend">Add Entry</button>
+	<br/>
+	<input type="radio" name="{{legType}}" value="color"/> Color
+	{{#if hasPNGs}}<input type="radio" name="{{legType}}" value="png"/> PNG icon{{/if}}
+	<button on-click="resetLegend">Reset Visuals</button>
 	<br/>
 	<div class="legend-vocab">
 		{{#if theLegend.length}}

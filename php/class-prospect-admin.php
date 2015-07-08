@@ -1217,11 +1217,14 @@ class ProspectAdmin {
 			foreach ($query->posts as $rec) {
 				$data = get_post_meta($rec->ID, $att_id, true);
 				if ($data && $data != '') {
-					$vals = array_map(trim, explode($d_char, $data));
-					foreach ($vals as $one_value) {
-						ProspectAttribute::sorted_insert($one_value, $result);
-					}
-				}
+					if ($d_char != '') {
+						$vals = array_map(trim, explode($d_char, $data));
+						foreach ($vals as $one_value) {
+							ProspectAttribute::sorted_insert($one_value, $result);
+						}
+					} else
+						ProspectAttribute::sorted_insert($data, $result);
+				} // if data
 			}
 		}
 		die(json_encode($result));

@@ -1060,7 +1060,7 @@ jQuery(document).ready(function() {
 					var newLegend = [];
 					var cfTerms = JSON.parse(data);
 
-// console.log("CFTerms: "+cfTerms);
+// console.log("CFTerms: "+JSON.stringify(cfTerms));
 					cfTerms.forEach(function(name) {
 						var newTerm = { l: name,
 							v: defViz.v, color: defViz.color, icon: defViz.icon,
