@@ -649,8 +649,8 @@ VizTextStream.prototype.usesLegend = function()
 	return true;
 } // usesLegend()
 
-	// PURPOSE: Return IDs of locate Attributes 
-VizPinboard.prototype.getLocAtts = function(tIndex)
+	// PURPOSE: Return IDs of locate Attributes
+VizTextStream.prototype.getLocAtts = function(tIndex)
 {
 	if (tIndex != null)
 		return [this.settings.order[tIndex]];
@@ -716,7 +716,7 @@ VizTextStream.prototype.render = function(datastream)
 			tI++;
 			continue;
 		}
-			// Which Attribuet chosen for Legend?
+			// Which Attribute chosen for Legend?
 		fAttID = self.vFrame.getSelLegend(tI);
 		fAtt = PDataHub.getAttID(fAttID);
 
@@ -1676,7 +1676,8 @@ function PViewFrame(vfIndex)
 				var tmpltDef = PDataHub.getTmpltID(tID);
 					// Insert locate attributes into Legends
 				var locAtts = vizModel.getLocAtts(tIndex);
-				if (locAtts && locAtts.length) {
+console.log("Got Loc Atts: "+locAtts);
+				if (locAtts && locAtts.length > 0) {
 							// Create DIV structure for Template's Legend entry
 					var newTLegend = jQuery('<div class="lgnd-template" data-index="'+tIndex+
 									'"><div class="lgnd-title">'+tmpltDef.l+'</div></div>');
@@ -1889,10 +1890,10 @@ var PDataHub = (function () {
 	// INTERNAL VARIABLES
 	// ==================
 
-	var allData = [];				// "head" array of all Records, one entry per Template type
+	var recs = [];				// "head" array of all Records, one entry per Template type
 									// Corresponding to prspdata.t
 									// { n = # loaded, i = initial index for these records, d = data array }
-	var allDataCount=0;				// Total number of Records
+	var recsCount=0;				// Total number of Records
 
 
 	// INTERNAL FUNCTIONS
@@ -1914,13 +1915,13 @@ var PDataHub = (function () {
 			success: function(data, textStatus, XMLHttpRequest)
 			{
 					// Append loaded data, update and look for more
-				var d = allData[tIndex].d;
+				var d = recs[tIndex].d;
 				var newD = JSON.parse(data);
 				if (d)
-					allData[tIndex].d = d.concat(newD);
+					recs[tIndex].d = d.concat(newD);
 				else
-					allData[tIndex].d = newD;
-				allData[tIndex].n += count;
+					recs[tIndex].d = newD;
+				recs[tIndex].n += count;
 				checkDataLoad();
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown)
@@ -1937,7 +1938,7 @@ var PDataHub = (function () {
 		var done = true;
 
 		for (var i=0; i<prspdata.t.length; i++) {
-			var current = allData[i].n;
+			var current = recs[i].n;
 			var needed = prspdata.t[i].n;
 			if (current < needed) {
 				done = false;
@@ -1949,7 +1950,7 @@ var PDataHub = (function () {
 			}
 		}
 		if (done) {
-// console.log("Done loading: "+JSON.stringify(allData));
+console.log("Done loading: "+JSON.stringify(recs));
 			jQuery('#btn-recompute').addClass('highlight');
 			setTimeout(function(){ jQuery('#loading-message').hide(); }, 1000);
 			jQuery("body").trigger("prospect", { pstate: PSTATE_PROCESS, component: 0 });
@@ -1967,9 +1968,9 @@ var PDataHub = (function () {
 				// For each entry: head entry for Record Data and collect Legends
 			prspdata.t.forEach(function(tmplt) {
 					// Head Record entry
-				var newTData = { i: allDataCount, n: 0, d: null };
-				allData.push(newTData);
-				allDataCount += tmplt.n;
+				var newTData = { i: recsCount, n: 0, d: null };
+				recs.push(newTData);
+				recsCount += tmplt.n;
 			});
 			checkDataLoad();
 		}, // init()
@@ -1980,20 +1981,20 @@ var PDataHub = (function () {
 		newIndexStream: function(full)
 		{
 			var newStream = { };
-			newStream.s = new Uint16Array(allDataCount);
+			newStream.s = new Uint16Array(recsCount);
 			newStream.t = [];
 			newStream.l = 0;
 
 			if (full) {
 				var i;
-				for (i=0; i<allDataCount; i++)
+				for (i=0; i<recsCount; i++)
 					newStream.s[i] = i;
-				for (i=0; i<allData.length; i++) {
-					var tEntry = allData[i];
+				for (i=0; i<recs.length; i++) {
+					var tEntry = recs[i];
 					var newEntry = { i: tEntry.i, n: tEntry.n };
 					newStream.t.push(newEntry);
 				}
-				newStream.l = allDataCount;
+				newStream.l = recsCount;
 			}
 			return newStream;
 		}, // newIndexStream()
@@ -2002,8 +2003,8 @@ var PDataHub = (function () {
 			// RETURNS: Index of Template to which absolute index <absI> belongs
 		aIndex2Tmplt: function(absI)
 		{
-			for (var i=0; i<allData.length; i++) {
-				var tData = allData[i];
+			for (var i=0; i<recs.length; i++) {
+				var tData = recs[i];
 				if (tData.i <= absI  && absI < (tData.i+tData.n))
 					return i;
 			}
@@ -2026,8 +2027,8 @@ var PDataHub = (function () {
 			// RETURNS: Object for Record whose absolute index is <absI>
 		getRecByIndex: function(absI)
 		{
-			for (var i=0; i<allData.length; i++) {
-				var tData = allData[i];
+			for (var i=0; i<recs.length; i++) {
+				var tData = recs[i];
 				if (tData.n > 0) {
 					if (tData.i <= absI  && absI < (tData.i+tData.n))
 						return tData.d[absI - tData.i];
@@ -2120,8 +2121,8 @@ var PDataHub = (function () {
 			// INPUT: 	If <raw>, return as is; otherwise, turn into string/HTML
 		getRecAtt: function(absI, attID, raw)
 		{
-			for (var i=0; i<allData.length; i++) {
-				var tData = allData[i];
+			for (var i=0; i<recs.length; i++) {
+				var tData = recs[i];
 				if (tData.n > 0 && tData.i <= absI  && absI < (tData.i+tData.n)) {
 					var rec = tData.d[absI - tData.i];
 					var a = rec.a[attID];
@@ -2138,8 +2139,8 @@ var PDataHub = (function () {
 			// RETURNS: Absolute index for Record whose ID is recID
 		getAbsIByID: function(recID)
 		{
-			for (var i=0; i<allData.length; i++) {
-				var tData = allData[i];
+			for (var i=0; i<recs.length; i++) {
+				var tData = recs[i];
 				if (tData.n > 0) {
 						// Try binary search in each Template
 					var lo = 0;
@@ -2169,8 +2170,8 @@ var PDataHub = (function () {
 			// RETURNS: Record data for recID
 		getRecByID: function(recID)
 		{
-			for (var i=0; i<allData.length; i++) {
-				var tData = allData[i];
+			for (var i=0; i<recs.length; i++) {
+				var tData = recs[i];
 				if (tData.n > 0) {
 						// Try binary search in each Template
 					var lo = 0;
@@ -2640,76 +2641,76 @@ var PDataHub = (function () {
 			// PURPOSE: Create index for all records in stream, ordered by the value of an Attribute
 			// RETURNS: Array containing objects: { i [absolute index of record], v [value] }
 			// NOTES: 	Only uses first value in the case of multiple (Vocabulary, Dates, etc)
-		orderBy: function(att, stream)
-		{
-			function vIden(v)
-			{
-				return v;
-			}
-			function vVocab(v)
-			{
-				return v[0];
-			}
-			function vDate(v)
-			{
-				var m = 1, d = 1;
-				if (typeof v.min.m != 'undefined') {
-					m = v.m;
-					if (typeof v.min.d != 'undefined')
-						d = v.d;
-				}
-				return PDataHub.date3Nums(v.min.y, m, d);
-			}
+		// orderBy: function(att, stream)
+		// {
+		// 	function vIden(v)
+		// 	{
+		// 		return v;
+		// 	}
+		// 	function vVocab(v)
+		// 	{
+		// 		return v[0];
+		// 	}
+		// 	function vDate(v)
+		// 	{
+		// 		var m = 1, d = 1;
+		// 		if (typeof v.min.m != 'undefined') {
+		// 			m = v.m;
+		// 			if (typeof v.min.d != 'undefined')
+		// 				d = v.d;
+		// 		}
+		// 		return PDataHub.date3Nums(v.min.y, m, d);
+		// 	}
 
-			var eval, maxV;
-			switch (att.def.t) {
-			case 'Text': 		eval = vIden;	maxV = '~'; break;
-			case 'Vocabulary': 	eval = vVocab;	maxV = '~'; break;
-			case 'Number': 		eval = vIden;	maxV = att.r.max; break;
-			case 'Dates': 		eval = vDate;	maxV = new Date(); break;
-			}
+		// 	var eval, maxV;
+		// 	switch (att.def.t) {
+		// 	case 'Text': 		eval = vIden;	maxV = '~'; break;
+		// 	case 'Vocabulary': 	eval = vVocab;	maxV = '~'; break;
+		// 	case 'Number': 		eval = vIden;	maxV = att.r.max; break;
+		// 	case 'Dates': 		eval = vDate;	maxV = new Date(); break;
+		// 	}
 
-			var ord = [];
-			var relI=0, absI, rec, v;
-			var tI=0, tRec=stream.t[0], td=allData[0].d;
-				// Must keep absolute indices and template params updated
-			while (relI < stream.l) {
-					// Advance until we get to current Template rec
-				while (tRec.n == 0 || (tRec.i+tRec.n) == relI) {
-					tRec = stream.t[++tI];
-					td = allData[tI].d;
-				}
-				absI = stream.s[relI++];
-				// rec = tRec.d[absI-tRec.i];
-				rec = td[absI-tRec.i];
-				v = rec[att.id];
-					// If there is no value, we need to use max value
-				if (typeof v == 'undefined')
-					ord.push({ i: absI, v: maxV });
-				else
-					ord.push({ i: absI, v: eval(v) });
-			}
+		// 	var ord = [];
+		// 	var relI=0, absI, rec, v;
+		// 	var tI=0, tRec=stream.t[0], td=recs[0].d;
+		// 		// Must keep absolute indices and template params updated
+		// 	while (relI < stream.l) {
+		// 			// Advance until we get to current Template rec
+		// 		while (tRec.n == 0 || (tRec.i+tRec.n) == relI) {
+		// 			tRec = stream.t[++tI];
+		// 			td = recs[tI].d;
+		// 		}
+		// 		absI = stream.s[relI++];
+		// 		// rec = tRec.d[absI-tRec.i];
+		// 		rec = td[absI-tRec.i];
+		// 		v = rec[att.id];
+		// 			// If there is no value, we need to use max value
+		// 		if (typeof v == 'undefined')
+		// 			ord.push({ i: absI, v: maxV });
+		// 		else
+		// 			ord.push({ i: absI, v: eval(v) });
+		// 	}
 
-				// Sort array
-			switch (att.def.t) {
-			case 'Text':
-			case 'Vocabulary':
-				ord.sort(function(a,b) { return a.v.localeCompare(b.v); });
-				break;
-			case 'Dates':
-			case 'Number':
-				ord.sort(function(a,b) { return a.v - b.v; });
-				break;
-			// case 'Dates':
-			// 	ord.sort(function(a,b) {
-			// 		var av = a.v.valueOf(), bv = b.v.valueOf();
-			// 		return av - bv;
-			// 	});
-			// 	break;
-			}
+		// 		// Sort array
+		// 	switch (att.def.t) {
+		// 	case 'Text':
+		// 	case 'Vocabulary':
+		// 		ord.sort(function(a,b) { return a.v.localeCompare(b.v); });
+		// 		break;
+		// 	case 'Dates':
+		// 	case 'Number':
+		// 		ord.sort(function(a,b) { return a.v - b.v; });
+		// 		break;
+		// 	// case 'Dates':
+		// 	// 	ord.sort(function(a,b) {
+		// 	// 		var av = a.v.valueOf(), bv = b.v.valueOf();
+		// 	// 		return av - bv;
+		// 	// 	});
+		// 	// 	break;
+		// 	}
 
-			return ord;
-		}, // orderBy()
+		// 	return ord;
+		// }, // orderBy()
 
 
 			// PURPOSE: Create index for records of particular Template in stream, ordered by the value of an Attribute
@@ -2745,12 +2746,14 @@ var PDataHub = (function () {
 			}
 
 			var ord = [];
-			var tRec=stream.t[tI];
+			var tRec=stream.t[tI], ad=recs[tI];
 			var relI=0, absI, rec, v;
+
 			while (relI < tRec.n) {
 				absI = stream.s[tRec.i+relI++];
-				rec = tRec.d[absI-tRec.i];
-				v = rec[att.id];
+				rec = ad.d[absI-ad.i];
+
+				v = rec.a[att.id];
 					// If there is no value, we need to use max value
 				if (typeof v == 'undefined')
 					ord.push({ i: absI, v: maxV });
@@ -2777,7 +2780,7 @@ var PDataHub = (function () {
 			}
 
 			return ord;
-		}, // orderBy()
+		}, // orderTBy()
 
 			// RETURNS: View configuration data for vIndex
 		getVizIndex: function(vIndex)
