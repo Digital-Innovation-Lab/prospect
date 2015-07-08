@@ -1175,7 +1175,7 @@ class ProspectAdmin {
 		$args = array('post_type' => 'prsp-record',
 						'post_status' => 'publish',
 						'meta_key' => 'record-id',
-						'orderby' => 'meta_value_num',
+						'orderby' => 'meta_value',
 						'order' => 'ASC',
 						'offset' => $from,
 						'posts_per_page' => $count,
