@@ -45,7 +45,7 @@ var PSTATE_PROCESS = 2;			// Processing data or handling command
 var PSTATE_BUILD = 3;			// Building visuals
 var PSTATE_READY = 4;			// Waiting for user
 
-var D3FG_BAR_WIDTH = 25;			// D3 Graphs created for filters
+var D3FG_BAR_WIDTH = 25;		// D3 Graphs created for filters
 var D3FG_MARGINS  = { top: 4, right: 7, bottom: 22, left: 30 };
 
 // ==============================================================================
@@ -3134,6 +3134,7 @@ console.log("Set layout to: "+lIndex);
 				Add: function() {
 					var selected = jQuery("#filter-list li.selected");
 					if (selected.length) {
+						jQuery('#filter-instances').show(400);
 						createFilter(selected.data("id"), false);
 					}
 						// Remove click handler
@@ -3173,6 +3174,7 @@ console.log("Set layout to: "+lIndex);
 				Add: function() {
 					var selected = jQuery("#filter-list li.selected");
 					if (selected.length) {
+						jQuery('#selector-instance').show(400);
 						createFilter(selected.data("id"), true);
 					}
 						// Remove click handler
