@@ -696,13 +696,16 @@ VizTextStream.prototype.render = function(datastream)
 
 	var numTmplts = PDataHub.getNumETmplts();
 	var i=0, tI=0, tID, tRec, tDef;
-	var insert, rec, datum, t;
+	var insert, rec, datum, t, s;
 
 	var order, oAtt, cAttID, cAtt, featSet, fAttID, fAtt, fData;
+	var szAtt, szAttID, da, dt;
 
 	var vizDiv = jQuery('#textstream-'+this.vFrame.getIndex());
 
 	vizDiv.empty();
+
+	dt = this.settings.max - this.settings.min;
 
 	tRec = datastream.t[0];
 	while (tI<numTmplts) {
@@ -741,6 +744,14 @@ VizTextStream.prototype.render = function(datastream)
 		insert.append('<div class="template-label">'+tDef.l+'</div>');
 
 		cAttID = self.settings.cnt[tI];
+		szAttID = self.settings.sz[tI];
+		if (szAttID) {
+			szAtt = PDataHub.getAttID(szAttID);
+			if (typeof szAtt.r.min == 'number' && typeof szAtt.r.max == 'number')
+				da = szAtt.r.max - szAtt.r.min;
+			else
+				szAttID = null;
+		}
 		if (cAttID) {
 			oAtt = PDataHub.getAttID(self.settings.order[tI]);
 			order = PDataHub.orderTBy(oAtt, datastream, tI);
@@ -758,7 +769,15 @@ VizTextStream.prototype.render = function(datastream)
 							t = PDataHub.procAttTxt(cAttID, t);
 						if (t)
 						{
-							insert.append('<div class="recitem" data-ai='+oRec.i+' style="color:'+fData+';font-size:16px">'+t+'</div>');
+							if (szAttID) {
+								s = rec.a[szAttID];
+								if (s) {
+									s = Math.floor(((s-szAtt.r.min)*dt)/da) + self.settings.min;
+								} else
+									s = self.settings.min;
+							} else
+								s = self.settings.min;
+							insert.append('<div class="recitem" data-ai='+oRec.i+' style="color:'+fData+';font-size:'+s+'px">'+t+'</div>');
 						} // t
 					} // if fData
 				}
