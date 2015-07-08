@@ -1138,7 +1138,7 @@ class ProspectAdmin {
 		$query = new WP_Query($args);
 		if ($query->have_posts()) {
 			foreach ($query->posts as $rec) {
-				$rec_id = get_metadata('post', $rec->ID, 'record-id', true);
+				$rec_id = get_post_meta($rec->ID, 'record-id', true);
 				if ($rec_id && $rec_id != '')
 					array_push($result, $rec_id);
 			}
@@ -1200,6 +1200,32 @@ class ProspectAdmin {
 		}
 		die(json_encode($result));
 	} // prsp_get_records()
+
+
+		// PURPOSE: Return array of record-ids of Records of a particular Template type
+		// INPUT:	$_POST['att_id'] = ID of Attribute whose values need to be fetched
+	public function prsp_get_cf_vals()
+	{
+		$att_id = $_POST['att_id'];
+		$d_char = $_POST['delim'];
+		$result = array();
+
+			// Get matching Records
+		$args = array('post_type' => 'prsp-record', 'posts_per_page' => -1);
+		$query = new WP_Query($args);
+		if ($query->have_posts()) {
+			foreach ($query->posts as $rec) {
+				$data = get_post_meta($rec->ID, $att_id, true);
+				if ($data && $data != '') {
+					$vals = array_map(trim, explode($d_char, $data));
+					foreach ($vals as $one_value) {
+						ProspectAttribute::sorted_insert($one_value, $result);
+					}
+				}
+			}
+		}
+		die(json_encode($result));
+	} // prsp_get_cf_vals()
 
 
 	// NEW OBJECT CONSTRUCTOR

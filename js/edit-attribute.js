@@ -55,7 +55,7 @@ jQuery(document).ready(function() {
 			return {
 				title: '',
 				width: 350,
-				height: 300,
+				height: 350,
 				cancel: true
 			}
 		}, // data
@@ -136,9 +136,6 @@ jQuery(document).ready(function() {
 	var customFields = prspdata.cfs;			// Custom fields used in Records
 	var iconList = prspdata.pngs;			// PNG icons in Media Library
 	var allAttributeIDs = prspdata.att_ids;	// List of previously defined Attributes (not including this one!)
-
-	var cfTerms = [];						// List of terms appearing in selected custom field (loaded via AJAX)
-	// var cfTerms = [ 'term a', 'term b', 'term c' ];					// List of terms appearing in selected custom field (loaded via AJAX)
 
 		// LIVE DATA ABOUT THIS ATTRIBUTE
 		// ==============================
@@ -1040,25 +1037,45 @@ jQuery(document).ready(function() {
 
 	rApp.on('useTerms', function() {
 			// Has custom field been specified?
-		var theCF = rApp.get('attID');
-		if (theCF.length == 0) {
+		var theAttID = rApp.get('attID');
+		if (theAttID.length == 0) {
 			displayError('#errmsg-no-custom-field');
 			return false;
 		}
 		confirmModal('#msg-confirm-replace-vocab', function()
 		{
-			var defViz = getDefViz();
-			var newLegend = [];
-// TO DO: AJAX Load with the CF
-			cfTerms.forEach(function(name) {
-				var newTerm = { l: name,
-					v: defViz.v, color: defViz.color, icon: defViz.icon,
-					z: []
-				};
-				newLegend.push(newTerm);
-			});
-			rApp.set('theLegend', newLegend);
-		});
+			var delim = rApp.get('theAttribute.d');
+
+			jQuery.ajax({
+				type: 'POST',
+				url: prspdata.ajax_url,
+				data: {
+					action: 'prsp_get_cf_vals',
+					att_id: theAttID,
+					delim: delim
+				},
+				success: function(data, textStatus, XMLHttpRequest)
+				{
+					var defViz = getDefViz();
+					var newLegend = [];
+					var cfTerms = JSON.parse(data);
+
+// console.log("CFTerms: "+cfTerms);
+					cfTerms.forEach(function(name) {
+						var newTerm = { l: name,
+							v: defViz.v, color: defViz.color, icon: defViz.icon,
+							z: []
+						};
+						newLegend.push(newTerm);
+					});
+					rApp.set('theLegend', newLegend);
+				},
+				error: function(XMLHttpRequest, textStatus, errorThrown)
+				{
+				   alert(errorThrown);
+				}
+			}); // jQuery.ajax
+		}); // confirmModal
 		return false;
 	});
 
