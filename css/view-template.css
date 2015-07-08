@@ -495,7 +495,7 @@ label {
 	 */
 
 	 /* Label separating Template tables */
-div.directory-label {
+div.template-label {
 	display: block;
 	background-color: white;
 	color: blue;
@@ -505,6 +505,8 @@ div.directory-label {
 	font-weight: bold;
 	font-size: 16px;
 }
+
+	 /* Directory styles */
 
 table.viz-directory {
 	color: #666;
@@ -623,13 +625,16 @@ div.viz-result svg .axis line {
 	shape-rendering: crispEdges;
 }
 
+	/* TextStream styles */
 div.viz-textstream {
 	margin: 6px;
+	padding: 0px;
 }
 
 div.viz-textstream div.recitem {
 	display: inline-block;
-	margin: 4px;
+	padding: 0px;
+	margin: 3px;
 }
 
 div.viz-textstream div.recitem.obj-selected {

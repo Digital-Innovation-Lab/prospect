@@ -517,7 +517,7 @@ VizDirectory.prototype.setup = function()
 	jQuery('#directory-'+vIndex).click(function(event) {
 		if (event.target.nodeName == 'TD') {
 			var row = jQuery(event.target).closest('tr');
-			var absI = row.data('aid');
+			var absI = row.data('ai');
 			if (absI != null) {
 				var s = self.toggleSel(absI);
 				if (s)
@@ -561,7 +561,7 @@ VizDirectory.prototype.render = function(datastream)
 // console.log("Starting new Template: "+tI);
 			tID = PDataHub.getETmpltIndex(tI);
 			tDef = PDataHub.getTmpltID(tID);
-			jQuery('#directory-'+vIndex).append('<div class="directory-label">'+tDef.l+'</div>'+
+			jQuery('#directory-'+vIndex).append('<div class="template-label">'+tDef.l+'</div>'+
 				'<table cellspacing="0" class="viz-directory" data-id='+tID+'></table>');
 			insert = jQuery('#directory-'+vIndex+' table[data-id="'+tID+'"]');
 			fAtts = self.settings.cnt[tI];
@@ -578,7 +578,7 @@ VizDirectory.prototype.render = function(datastream)
 		aI = datastream.s[i];
 // console.log("Next record: "+i+" (absI) "+aI);
 		rec = PDataHub.getRecByIndex(aI);
-		t = '<tr data-id="'+rec.id+'" data-aid='+aI;
+		t = '<tr data-id="'+rec.id+'" data-ai='+aI;
 		if (self.isSel(aI))
 			t += ' class="obj-selected" '
 		t += '>';
@@ -611,7 +611,7 @@ VizDirectory.prototype.setSel = function(absIArray)
 	var rows = jQuery('#directory-'+vIndex+' tr');
 	rows.each(function() {
 		t = jQuery(this);
-		absI = t.data('aid');
+		absI = t.data('ai');
 		if (absI != null) {
 			if (self.isSel(absI))
 				t.addClass('obj-selected');
@@ -633,7 +633,6 @@ VizDirectory.prototype.clearSel = function()
 
 // ======================================================================
 // VizTextStream: Class to visualize record data as ordered text elements
-
 
 var VizTextStream = function(viewFrame, vSettings)
 {
@@ -675,7 +674,15 @@ VizTextStream.prototype.setup = function()
 		// Listen for clicks on it
 	jQuery('#textstream-'+vIndex).click(function(event) {
 		if (event.target.nodeName == 'DIV') {
-// console.log("Clicked column name");
+			var word = jQuery(event.target);
+			var aI = word.data('ai');
+			if (aI && aI >= 0) {
+				var s = self.toggleSel(aI);
+				if (s)
+					word.addClass("obj-selected");
+				else
+					word.removeClass("obj-selected");
+			}
 		}
 	});
 } // setup()
@@ -688,14 +695,12 @@ VizTextStream.prototype.render = function(datastream)
 	var self = this;
 
 	var numTmplts = PDataHub.getNumETmplts();
-	var i=0, tI=0, tID;
-	// var tRec, tDef;
-	var insert=null, rec, datum, t;
+	var i=0, tI=0, tID, tRec, tDef;
+	var insert, rec, datum, t;
 
 	var order, oAtt, cAttID, cAtt, featSet, fAttID, fAtt, fData;
 
-	var vIndex = this.vFrame.getIndex();
-	var vizDiv = jQuery('#textstream-'+vIndex);
+	var vizDiv = jQuery('#textstream-'+this.vFrame.getIndex());
 
 	vizDiv.empty();
 
@@ -709,8 +714,14 @@ VizTextStream.prototype.render = function(datastream)
 			tRec = datastream.t[tI];
 		}
 
-		featSet = self.vFrame.getSelFeatAtts(tI);
+			// only 1 Location Attribute possible - skip if not selected
+		featSet = self.vFrame.getSelLocAtts(tI);
+		if (featSet.length == 0) {
+			tI++;
+			continue;
+		}
 
+		featSet = self.vFrame.getSelFeatAtts(tI);
 			// Skip Templates if no feature Atts
 		if (featSet.length == 0) {
 			tI++;
@@ -721,33 +732,39 @@ VizTextStream.prototype.render = function(datastream)
 		fAtt = PDataHub.getAttID(fAttID);
 
 			// Starting with new Template? Create new DIV & order Records
-		vizDiv.append('<div class="viz-textstream" data-tI='+tI+'></div>');
-		insert = vizDiv.find('div.viz-textstream[data-tI='+tI+']');
+		vizDiv.append('<div class="viz-textstream" data-ti='+tI+'></div>');
+		insert = vizDiv.find('div.viz-textstream[data-ti='+tI+']');
 
-		// tID = PDataHub.getETmpltIndex(tI);
-		// tDef = PDataHub.getTmpltID(tID);
+			// Begin with Template name
+		tID = PDataHub.getETmpltIndex(tI);
+		tDef = PDataHub.getTmpltID(tID);
+		insert.append('<div class="template-label">'+tDef.l+'</div>');
+
 		cAttID = self.settings.cnt[tI];
 		if (cAttID) {
 			oAtt = PDataHub.getAttID(self.settings.order[tI]);
 			order = PDataHub.orderTBy(oAtt, datastream, tI);
-console.log("Order for Template "+tI+": "+JSON.stringify(order));
+// console.log("Order for Template "+tI+": "+JSON.stringify(order));
 
 			order.forEach(function(oRec) {
 				rec = PDataHub.getRecByIndex(oRec.i);
 					// Apply Legend
 				datum = rec.a[fAttID];
-				fData = PDataHub.getAttLgndVal(datum, fAtt, featSet, false);
-				if (fData) {
-					t = rec.a[cAttID];
-					if (t)
-						t = PDataHub.procAttTxt(cAttID, t);
-					if (t)
-					{
-						insert.append('<div class="recitem" style="color:'+fData+';font-size:12px">'+t+'</div>');
-					} // t
-				} // if fData
+				if (datum) {
+					fData = PDataHub.getAttLgndVal(datum, fAtt, featSet, false);
+					if (fData) {
+						t = rec.a[cAttID];
+						if (t)
+							t = PDataHub.procAttTxt(cAttID, t);
+						if (t)
+						{
+							insert.append('<div class="recitem" data-ai='+oRec.i+' style="color:'+fData+';font-size:16px">'+t+'</div>');
+						} // t
+					} // if fData
+				}
 			});	// forEach order
 		} // if cAtt
+		tI++;
 	} // while 
 } // render()
 
@@ -758,10 +775,10 @@ VizTextStream.prototype.setSel = function(absIArray)
 	var absI, t;
 
 	this.recSel = absIArray;
-	var rows = jQuery('#directory-'+vIndex+' div.recitem');
+	var rows = jQuery('#textstream-'+vIndex+' div.recitem');
 	rows.each(function() {
 		t = jQuery(this);
-		absI = t.data('aid');
+		absI = t.data('aI');
 		if (absI != null) {
 			if (self.isSel(absI))
 				t.addClass('obj-selected');
@@ -776,7 +793,7 @@ VizTextStream.prototype.clearSel = function()
 	if (this.recSel.length > 0) {
 		this.recSel = [];
 		var vIndex = this.vFrame.getIndex();
-		jQuery('#directory-'+vIndex+' div.recitem').removeClass('obj-selected');
+		jQuery('#textstream-'+vIndex+' div.recitem').removeClass('obj-selected');
 	}
 } // clearSel()
 
@@ -1676,7 +1693,6 @@ function PViewFrame(vfIndex)
 				var tmpltDef = PDataHub.getTmpltID(tID);
 					// Insert locate attributes into Legends
 				var locAtts = vizModel.getLocAtts(tIndex);
-console.log("Got Loc Atts: "+locAtts);
 				if (locAtts && locAtts.length > 0) {
 							// Create DIV structure for Template's Legend entry
 					var newTLegend = jQuery('<div class="lgnd-template" data-index="'+tIndex+
@@ -1950,7 +1966,7 @@ var PDataHub = (function () {
 			}
 		}
 		if (done) {
-console.log("Done loading: "+JSON.stringify(recs));
+// console.log("Done loading: "+JSON.stringify(recs));
 			jQuery('#btn-recompute').addClass('highlight');
 			setTimeout(function(){ jQuery('#loading-message').hide(); }, 1000);
 			jQuery("body").trigger("prospect", { pstate: PSTATE_PROCESS, component: 0 });
