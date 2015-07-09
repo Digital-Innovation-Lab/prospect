@@ -406,6 +406,18 @@ VizMap.prototype.setSel = function(absIArray)
 var VizPinboard = function(viewFrame, vSettings)
 {
 	PVizModel.call(this, viewFrame, vSettings);
+
+	switch (vSettings.size) {
+	case 's':
+		this.idx = -6; this.idy = -10; this.iw = 12; this.ih = 12;
+		break;
+	case 'm':
+		this.idx = -12; this.idy = -20; this.iw = 24; this.ih = 24;
+		break;
+	case 'l':
+		this.idx = -16; this.idy = -30; this.iw = 32; this.ih = 32;
+		break;
+	}
 } // VizPinboard
 
 VizPinboard.prototype = Object.create(PVizModel.prototype);
@@ -436,41 +448,200 @@ VizPinboard.prototype.setup = function()
 {
 	var s = this.settings;
 
-	var xScale = d3.scale.linear().domain([0, s.iw-1])
+		// Maintain number of Loc Atts per Template type
+	var numT = PDataHub.getNumETmplts();
+	this.tLCnt = new Uint16Array(numT);
+	for (var i=0; i<numT; i++)
+		this.tLCnt[i] = 0;
+
+	this.xScale = d3.scale.linear().domain([0, s.iw-1])
 		.rangeRound([0, s.dw-1]);
-	var yScale = d3.scale.linear().domain([0,s.ih-1]).range([0,s.dh-1]);
+	this.yScale = d3.scale.linear().domain([0,s.ih-1]).range([0,s.dh-1]);
 
-	var xAxis = d3.svg.axis().scale(xScale).orient("top");
-	var yAxis = d3.svg.axis().scale(yScale).orient("left");
+	this.xAxis = d3.svg.axis().scale(this.xScale).orient("top");
+	this.yAxis = d3.svg.axis().scale(this.yScale).orient("left");
 
-	var chart = d3.select(this.frameID).append("svg")
+	var svg = d3.select(this.frameID).append("svg")
 		.attr("width", s.dw+30+3)
-		.attr("height", s.dh+30+2)
+		.attr("height", s.dh+30+2);
 
-	.append("g")
+		// Create definition for pin icon
+		// made by http://www.flaticon.com/authors/bogdan-rosu
+	var pinDef = svg.append('defs').append('g')
+		.attr('id', 'pin');
+	pinDef.append('path')
+		.attr('d', "M36.439,12.646c0-6.919-5.608-12.527-12.528-12.527S11.384,5.727,11.384,12.646c0,9.913,12.527,24.582,12.527,24.582 S36.439,22.508,36.439,12.646z M17.733,11.898c0-3.413,2.767-6.179,6.179-6.179s6.179,2.766,6.179,6.179 c0,3.413-2.767,6.179-6.179,6.179S17.733,15.311,17.733,11.898z");
+	pinDef.append('circle')
+		.attr('cx', '23.911')
+		.attr('cy', '11.898')
+		.attr('r', '3.038')
+	pinDef.append('path')
+		.attr('d', "M30.994,32.87c-1.021,1.476-1.979,2.761-2.777,3.793c7.916,0.476,13.104,2.185,15.034,3.456 c-2.261,1.491-8.979,3.587-19.338,3.587c-10.358,0-17.077-2.097-19.338-3.587c1.93-1.271,7.114-2.979,15.022-3.455 c-0.8-1.032-1.759-2.316-2.781-3.792C7.075,33.831,0,36.713,0,40.118c0,4.19,10.707,7.588,23.913,7.588 c13.207,0,23.912-3.396,23.912-7.588C47.827,36.711,40.744,33.828,30.994,32.87z");
+
+	this.chart = svg.append("g")
 		.attr("transform", "translate(30,30)");
 
-	chart.append("g")
+	this.chart.append("g")
 		.attr("class", "x axis")
-		.call(xAxis);
+		.call(this.xAxis);
 
-	chart.append("g")
+	this.chart.append("g")
 		.attr("class", "y axis")
-		.call(yAxis);
+		.call(this.yAxis);
 
-	chart.append("image")
+	this.chart.append("image")
 		.attr("xlink:href", s.img)
 		.attr("x", 0)
 		.attr("y", 0)
-		.attr("height", s.dh+"px")
-		.attr("width", s.dw+"px");
+		.attr("height", s.dh)
+		.attr("width", s.dw);
+
+		// TO DO -- add SVG layers
+
+		// Catch clicks on markers
+	this.chart.on("click", function()
+	{
+		var ai = d3.select(this).attr('data-ai');
+console.log("Clicked ai: "+ai);
+	});
 } // setup
 
 	// PURPOSE: Draw the Records in the given datastream
 	// NOTES: 	absolute index of Record is saved in <id> field of map marker
 VizPinboard.prototype.render = function(datastream)
 {
-	// TO DO
+		// Remove any previous icons
+	this.chart.select('#recs').remove();
+
+		// Start with new icon palette
+	var gRecs = this.chart.append('g')
+		.attr('id', 'recs');
+
+	var numTmplts = PDataHub.getNumETmplts();
+	var i, aI, tI=0, fAttID, fAtt, locAtts, featSet, rec;
+	var locData, fData, newMarker, s;
+
+		// Clear out marker counts
+	for (i=0; i<numTmplts; i++)
+		this.tLCnt[i] = 0;
+
+	i=0;
+	while (i<datastream.l) {
+			// If previous "fast-forward" went to empty Template, must go to next
+		while (i == -1) {
+			if (++tI == numTmplts)
+				return;
+			else
+					// Fast-forward to next Template source
+				i = PDataHub.stream1stTEntry(datastream, tI);
+		}
+			// Starting with new Template?
+		if (locAtts == null) {
+			locAtts = this.vFrame.getSelLocAtts(tI);
+			self.tLCnt[tI] = locAtts.length;
+// console.log("tIndex: "+tI+"; locAtts: "+JSON.stringify(locAtts));
+				// Skip Template if no locate Atts
+			if (locAtts.length == 0) {
+				locAtts = null;
+					// Have we exhausted all Templates?
+				if (++tI == numTmplts)
+					return;
+				else {
+						// Fast-forward to next Template source
+					i = PDataHub.stream1stTEntry(datastream, tI);
+					continue;
+				}
+			} // if no locAtts
+			featSet = self.vFrame.getSelFeatAtts(tI);
+// console.log("tIndex: "+tI+"; featAtts: "+JSON.stringify(featAtts));
+
+				// Skip Templates if no feature Atts
+			if (featSet.length == 0) {
+				locAtts = null;
+					// Have we exhausted all Templates?
+				if (++tI == numTmplts)
+					return;
+				else {
+						// Fast-forward to next Template source
+					i = PDataHub.stream1stTEntry(datastream, tI);
+					continue;
+				}
+			} // if no featAtts
+				// Get Feature Attribute ID and def for this Template
+			fAttID = self.vFrame.getSelLegend(tI);
+			fAtt = PDataHub.getAttID(fAttID);
+		} // if new Template
+			// Get Record data
+		aI = datastream.s[i];
+		rec = PDataHub.getRecByIndex(aI);
+			// For each of the locate Attributes
+		locAtts.forEach(function(theLAtt) {
+			locData = rec.a[theLAtt];
+			if (locData) {
+				if (fData = rec.a[fAttID]) {
+					fData = PDataHub.getAttLgndVal(fData, fAtt, featSet, false);
+					if (fData) {
+// console.log("Record "+i+"["+fAttID+"]: "+rec.a[fAttID]+" = "+fData);
+						s = self.isSel(i);
+							// TO DO: Mark selection, use xScale/yScale
+						if (typeof locData[0] == 'number') {
+							gRecs.append('svg')
+								.attr('x', locData[0]+this.idx)
+								.attr('y', locData[1]+this.idy)
+								.attr('width', this.iw)
+								.attr('height', this.ih)
+								.attr('data-ai', aI)
+								.attr('viewBox', '0 0 48 48')
+								.append('use')
+								.attr('xlink:href', '#pin')
+								.attr('fill', fData);
+						} else {
+							if (locData.length == 2) {
+								// draw line
+							} else {
+								// draw polygon
+							}
+						}
+					}
+				}
+			}
+		}); // for locAtts
+			// Increment stream index -- check if going into new Template
+		if (++i == (datastream.t[tI].i + datastream.t[tI].n)) {
+			locAtts = null;
+			tI++;
+		}
+	} // while 
+		// X,Y is top-left corner; need to compensate for pin location
+	// this.chart.append('svg')
+	// 	.attr('x', '200')
+	// 	.attr('y', '200')
+	// 	.attr('width', '12')
+	// 	.attr('height', '12')
+	// 	.attr('viewBox', '0 0 48 48')
+	// 	.append('use')
+	// 	.attr('xlink:href', '#pin')
+	// 	.attr('fill', 'red');
+
+	// this.chart.append('svg')
+	// 	.attr('x', '250')
+	// 	.attr('y', '200')
+	// 	.attr('width', '24')
+	// 	.attr('height', '24')
+	// 	.attr('viewBox', '0 0 48 48')
+	// 	.append('use')
+	// 	.attr('xlink:href', '#pin')
+	// 	.attr('fill', 'blue');
+
+	// this.chart.append('svg')
+	// 	.attr('x', '300')
+	// 	.attr('y', '200')
+	// 	.attr('width', '32')
+	// 	.attr('height', '32')
+	// 	.attr('viewBox', '0 0 48 48')
+	// 	.append('use')
+	// 	.attr('xlink:href', '#pin')
+	// 	.attr('fill', 'yellow');
 } // render()
 
 
