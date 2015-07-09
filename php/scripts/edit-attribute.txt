@@ -314,10 +314,23 @@
 	</dialog>
 </script>
 
+<!-- Reset Colors Dialog -->
+<script id="dialog-reset-colors" type='text/ractive'>
+	<dialog title="Reset Colors" width="300" height="200">
+		<input type='radio' name='{{reset}}' value='random'/> Random Colors
+		<br/>
+		<input type='radio' name='{{reset}}' value='gradient'/> Create Gradient
+		<br/>
+		From <span title="Click to select color" class="viz-icon" style="background-color:{{c0}}" on-click="selectColor:'0'"></span>
+		To <span title="Click to select color" class="viz-icon" style="background-color:{{c1}}" on-click="selectColor:'1'"></span>
+		<div id="insert-2nd-dialog"></div>
+	</dialog>
+</script>
+
 
 <!-- Confirm Dialog -->
 <script id="dialog-confirm" type='text/ractive'>
-	<dialog title="Confirm" width="300" height="200">
+	<dialog title="Confirm" width="320" height="300">
 		{{message}}
 	</dialog>
 </script>

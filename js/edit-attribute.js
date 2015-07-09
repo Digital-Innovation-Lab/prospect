@@ -5,8 +5,6 @@
 // USES:    jQuery, Underscore, jQueryUI, and Ractive
 // ASSUMES: 
 
-// TO DO:	"Replace Terms" functionality
-
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findIndex
 if (!Array.prototype.findIndex) {
@@ -562,21 +560,106 @@ jQuery(document).ready(function() {
 
 		// Reset all visual codes to default (based on color/PNG setting)
 	rApp.on('resetLegend', function() {
-		var defViz = getDefViz();
 		var lgnd = rApp.get('theLegend');
-			// Set to default at top level, remove defaults for any children
-		for (var i=0; i<lgnd.length; i++) {
-			var item = 'theLegend['+i+'].';
-			rApp.set(item+'v',		defViz.v);
-			rApp.set(item+'color',	defViz.color);
-			rApp.set(item+'icon',	defViz.icon);
-			var children = rApp.get(item+'z');
-			if (typeof(children) !== 'undefined') {
-				for (var j=0; j<children.length; j++) {
-					var child = item+'z['+j+'].';
-					rApp.set(child+'v', '');
-					rApp.set(child+'color', '');
-					rApp.set(child+'icon', '');
+
+		if (rApp.get('legType') === 'color') {
+			var modalDialog = new Ractive({
+				el: '#att-insert-dialog',
+				template: '#dialog-reset-colors',
+				data: {
+					reset: 'random',
+					c0: randomColor(),
+					c1: randomColor()
+				},
+				components: {
+					dialog: RJDialogComponent
+				}
+			}); // new Ractive()
+			modalDialog.on('selectColor', function(evt, i) {
+				var theColor = modalDialog.get('c'+i);
+				var colorPicker = new Ractive({
+					el: '#insert-2nd-dialog',
+					template: '#dialog-choose-color',
+					data: {
+						color: theColor
+					},
+					components: {
+						dialog: RJDialogComponent,
+						iris: RJIrisColor
+					}
+				}); // new Ractive()
+				colorPicker.on('dialog.ok', function() {
+					var finalColor = colorPicker.get('color');
+					modalDialog.set('c'+i, finalColor);
+					colorPicker.teardown();
+				});
+				colorPicker.on('dialog.cancel', colorPicker.teardown);
+			});
+			modalDialog.on('dialog.ok', function() {
+				if (modalDialog.get('reset') == 'gradient') {
+					var c0 = modalDialog.get('c0');
+					var c1 = modalDialog.get('c1');
+					var rainbow = new Rainbow();
+					rainbow.setSpectrum(c0, c1);
+					rainbow.setNumberRange(0, lgnd.length-1);
+
+					for (var i=0; i<lgnd.length; i++) {
+						var item = 'theLegend['+i+'].';
+						var grad = '#'+rainbow.colourAt(i);
+						rApp.set(item+'v',		grad);
+						rApp.set(item+'color',	grad);
+						rApp.set(item+'icon',	'');
+						var children = rApp.get(item+'z');
+						if (typeof(children) !== 'undefined') {
+							for (var j=0; j<children.length; j++) {
+								var child = item+'z['+j+'].';
+								rApp.set(child+'v', '');
+								rApp.set(child+'color', '');
+								rApp.set(child+'icon', '');
+							}
+						}
+					}
+
+				} else {	// Random colors
+					for (var i=0; i<lgnd.length; i++) {
+						var item = 'theLegend['+i+'].';
+						var r = randomColor();
+						rApp.set(item+'v',		r);
+						rApp.set(item+'color',	r);
+						rApp.set(item+'icon',	'');
+						var children = rApp.get(item+'z');
+						if (typeof(children) !== 'undefined') {
+							for (var j=0; j<children.length; j++) {
+								var child = item+'z['+j+'].';
+								r = randomColor();
+								rApp.set(child+'v', r);
+								rApp.set(child+'color', r);
+								rApp.set(child+'icon', '');
+							}
+						}
+					}
+				}
+				modalDialog.teardown();
+			});
+			modalDialog.on('dialog.cancel', function() {
+				modalDialog.teardown();
+			});
+		} else {
+			var defViz = getDefViz();
+				// Set to default at top level, remove defaults for any children
+			for (var i=0; i<lgnd.length; i++) {
+				var item = 'theLegend['+i+'].';
+				rApp.set(item+'v',		defViz.v);
+				rApp.set(item+'color',	defViz.color);
+				rApp.set(item+'icon',	defViz.icon);
+				var children = rApp.get(item+'z');
+				if (typeof(children) !== 'undefined') {
+					for (var j=0; j<children.length; j++) {
+						var child = item+'z['+j+'].';
+						rApp.set(child+'v', '');
+						rApp.set(child+'color', '');
+						rApp.set(child+'icon', '');
+					}
 				}
 			}
 		}
