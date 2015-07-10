@@ -406,18 +406,6 @@ VizMap.prototype.setSel = function(absIArray)
 var VizPinboard = function(viewFrame, vSettings)
 {
 	PVizModel.call(this, viewFrame, vSettings);
-
-	switch (vSettings.size) {
-	case 's':
-		this.idx = -6; this.idy = -10; this.iw = 12; this.ih = 12;
-		break;
-	case 'm':
-		this.idx = -12; this.idy = -20; this.iw = 24; this.ih = 24;
-		break;
-	case 'l':
-		this.idx = -16; this.idy = -30; this.iw = 32; this.ih = 32;
-		break;
-	}
 } // VizPinboard
 
 VizPinboard.prototype = Object.create(PVizModel.prototype);
@@ -498,32 +486,62 @@ VizPinboard.prototype.setup = function()
 
 		// TO DO -- add SVG layers
 
-		// Catch clicks on markers
-	this.chart.on("click", function()
-	{
-		var ai = d3.select(this).attr('data-ai');
-console.log("Clicked ai: "+ai);
-	});
+		// Create icon palette
+	this.gRecs = this.chart.append('g')
+		.attr('id', 'recs');
+
+// Doesn't recognize getSVGDocument()
+// document.getElementById("recs").getSVGDocument().onclick = function (event) {
+//                 return clickRec(event);
+//             };
+
+// 	// These don't work: invoked only when icon clicked but e.target is empty
+// 	jQuery('#recs').on('click', clickRec);
+// 	document.getElementById('recs').addEventListener('click', clickRec);
+// 	function clickRec(e)
+// 	{
+// console.log("Clicked: "+JSON.stringify(e.target));
+// 	}
+
+		// Dragging background
+	// this.chart.on("click", function()
+	// {
+	// 	// d3.event.preventDefault();
+	// });
 } // setup
 
 	// PURPOSE: Draw the Records in the given datastream
-	// NOTES: 	absolute index of Record is saved in <id> field of map marker
+	// NOTES: 	Creates nodes 
 VizPinboard.prototype.render = function(datastream)
 {
-		// Remove any previous icons
-	this.chart.select('#recs').remove();
+	var self = this;
 
-		// Start with new icon palette
-	var gRecs = this.chart.append('g')
-		.attr('id', 'recs');
+		// Remove any previous icons -- ??
+	this.gRecs.selectAll('svg.rec').remove();
 
+	var idx, idy, iw, ih;
 	var numTmplts = PDataHub.getNumETmplts();
 	var i, aI, tI=0, fAttID, fAtt, locAtts, featSet, rec;
 	var locData, fData, newMarker, s;
 
+		// { ai [absolute index], id, v[iz value], c[oords { x, y, w, h}], x[ids of connections] }
+	// var nodes = [];
+
 		// Clear out marker counts
 	for (i=0; i<numTmplts; i++)
 		this.tLCnt[i] = 0;
+
+	switch (this.settings.size) {
+	case 's':
+		idx = -6; idy = -10; iw = 12; ih = 12;
+		break;
+	case 'm':
+		idx = -12; idy = -20; iw = 24; ih = 24;
+		break;
+	case 'l':
+		idx = -16; idy = -30; iw = 32; ih = 32;
+		break;
+	}
 
 	i=0;
 	while (i<datastream.l) {
@@ -582,19 +600,23 @@ VizPinboard.prototype.render = function(datastream)
 					fData = PDataHub.getAttLgndVal(fData, fAtt, featSet, false);
 					if (fData) {
 // console.log("Record "+i+"["+fAttID+"]: "+rec.a[fAttID]+" = "+fData);
-						s = self.isSel(i);
+						// s = self.isSel(i);
 							// TO DO: Mark selection, use xScale/yScale
 						if (typeof locData[0] == 'number') {
-							gRecs.append('svg')
-								.attr('x', locData[0]+this.idx)
-								.attr('y', locData[1]+this.idy)
-								.attr('width', this.iw)
-								.attr('height', this.ih)
+							self.gRecs.append('svg')
+								.attr('x', locData[0]+idx)
+								.attr('y', locData[1]+idy)
+								.attr('width', iw)
+								.attr('height', ih)
 								.attr('data-ai', aI)
 								.attr('viewBox', '0 0 48 48')
 								.append('use')
 								.attr('xlink:href', '#pin')
 								.attr('fill', fData);
+
+							// nodes.push({ ai: aI, id: rec.id, v: fData,
+							// 			 x: locData[0]+idx, y: locData[1]+idy, w: iw, h: ih
+							// 		});
 						} else {
 							if (locData.length == 2) {
 								// draw line
@@ -611,37 +633,25 @@ VizPinboard.prototype.render = function(datastream)
 			locAtts = null;
 			tI++;
 		}
-	} // while 
-		// X,Y is top-left corner; need to compensate for pin location
-	// this.chart.append('svg')
-	// 	.attr('x', '200')
-	// 	.attr('y', '200')
-	// 	.attr('width', '12')
-	// 	.attr('height', '12')
-	// 	.attr('viewBox', '0 0 48 48')
-	// 	.append('use')
-	// 	.attr('xlink:href', '#pin')
-	// 	.attr('fill', 'red');
+	} // while
 
-	// this.chart.append('svg')
-	// 	.attr('x', '250')
-	// 	.attr('y', '200')
-	// 	.attr('width', '24')
-	// 	.attr('height', '24')
+		// Apply D3 to nodes
+	// this.gRecs.selectAll('svg.rec')
+	// 	.data(nodes)
+	// 	.enter()
+	// 	.append('svg').attr('class', 'rec')
+	// 	.attr('x', function(d) { return d.x; })
+	// 	.attr('y', function(d) { return d.y; })
+	// 	.attr('width', function(d) { return d.w; })
+	// 	.attr('height', function(d) { return d.h; })
 	// 	.attr('viewBox', '0 0 48 48')
 	// 	.append('use')
 	// 	.attr('xlink:href', '#pin')
-	// 	.attr('fill', 'blue');
+	// 	.attr('fill', function(d) { return d.v; })
+	// 	.on('click', function(d, i) {
+	// 		console.log("Clicked "+JSON.stringify(this));
+	// 	});
 
-	// this.chart.append('svg')
-	// 	.attr('x', '300')
-	// 	.attr('y', '200')
-	// 	.attr('width', '32')
-	// 	.attr('height', '32')
-	// 	.attr('viewBox', '0 0 48 48')
-	// 	.append('use')
-	// 	.attr('xlink:href', '#pin')
-	// 	.attr('fill', 'yellow');
 } // render()
 
 
