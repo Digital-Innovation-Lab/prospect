@@ -601,7 +601,7 @@ jQuery(document).ready(function() {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
 					} else {
-						newXY.push(createPaddedAtts(theTmplt.attXY, theVF.c.cAtts[origTIndex]));
+						newXY.push(createPaddedAtts(theTmplt.attsXY, theVF.c.cAtts[origTIndex]));
 						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
 					}
 				});
