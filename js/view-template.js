@@ -73,6 +73,7 @@ function PVizModel(viewFrame, vizSettings)
 	// this.getSel()
 	// this.toggleSel(absI)
 	// this.clearSel()
+	// this.optionsModal()
 		// All subclasses must implement the following:
 	// this.setup()
 	// this.render(IndexStream)
@@ -131,16 +132,20 @@ PVizModel.prototype.usesLegend = function()
 PVizModel.prototype.getLocAtts = function(tIndex)
 {
 	return [];
-} // PVizModel.getLocAtts
+} // PVizModel.getLocAtts()
 
 PVizModel.prototype.getFeatureAtts = function(tIndex)
 {
 	return [];
-} // PVizModel.getFeatureAtts
+} // PVizModel.getFeatureAtts()
 
 PVizModel.prototype.teardown = function()
 {
-} // PVizModel.teardown
+} // PVizModel.teardown()
+
+PVizModel.prototype.optionsModal = function()
+{
+} // PVizModel.optionsModal()
 
 
 // ===================================
@@ -178,7 +183,8 @@ VizMap.prototype.getFeatureAtts = function(tIndex)
 
 VizMap.prototype.setup = function()
 {
-		// Create instance of Leaflet
+	var self=this;
+
 	var centerLat = parseFloat(this.settings.clat);
 	var centerLon = parseFloat(this.settings.clon);
 	var zoom;
@@ -186,6 +192,12 @@ VizMap.prototype.setup = function()
 		parseInt(this.settings.zoom);
 	else
 		zoom = this.settings.zoom;
+
+	function resetMap()
+	{
+		self.lMap.setView([centerLat, centerLon], zoom);
+	} // resetMap()
+
 	var vIndex = this.vFrame.getIndex();
 
 		// Leaflet requires a DIV ID to startup: create and insert one
@@ -194,14 +206,28 @@ VizMap.prototype.setup = function()
 	this.lMap = L.map("l-map-"+vIndex, { zoomControl: false }).setView([centerLat, centerLon], zoom);
 
 		// Add an OpenStreetMap base layer
-	L.tileLayer('http://otile{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png', {
+	this.baseMap = L.tileLayer('http://otile{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png', {
 		subdomains: '1234',
 		attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
 	}).addTo(this.lMap);
 
-		// Create controls in top-right
-	var layerControl = L.control.zoom({position: 'topright'});
-	layerControl.addTo(this.lMap);
+	var zoomControl = L.control.zoom({position: 'topright'});
+	zoomControl.addTo(this.lMap);
+
+		// Reset button
+	var resetControl = L.control({position: 'topright'});
+
+	resetControl.onAdd = function (map) {
+		this._div = L.DomUtil.create('div', 'reset-control leaflet-bar');
+		this.update();
+		return this._div;
+	};
+	resetControl.update = function (props) {
+		this._div.innerHTML = '<a class="reset-map" ><i class="fi-refresh"></i></a>';
+	};
+	resetControl.addTo(this.lMap);
+
+	jQuery('div.reset-control').click(resetMap);
 
 	var markers;
 	if (this.settings.clster) {
@@ -216,6 +242,12 @@ VizMap.prototype.setup = function()
 	markers.options.layerName = 'TO DO';
 
 	markers.addTo(this.lMap);
+
+		// Layer controls
+	var layerControl = L.control.layers();
+	layerControl.addTo(this.lMap);
+	layerControl.addBaseLayer(this.baseMap, 'base');
+	layerControl.addOverlay(markers, 'markers');
 
 		// Maintain number of Loc Atts per Template type
 	var numT = PDataHub.getNumETmplts();
@@ -398,6 +430,41 @@ VizMap.prototype.setSel = function(absIArray)
 	}
 } // setSel()
 
+VizMap.prototype.optionsModal = function()
+{
+	var self=this;
+
+	function slide()
+	{
+		var p = jQuery(this).parent().data('i');
+// console.log("Slide "+p+" to: "+this.value);
+		if (p == -1) {
+			self.baseMap.setOpacity(this.value);
+		}
+	} // slide()
+
+	var layerPt = jQuery('#dialog-map-opacities div.layer-list');
+	layerPt.empty();
+
+	var newBit = jQuery('<div data-i="-1"><input type="checkbox" checked="checked"> Base Layer <input type=range class="op-slider" min=0 max=100 value=90 step=5></div>');
+	newBit.find('.op-slider').on('change', slide);
+	layerPt.append(newBit);
+
+	var d = jQuery("#dialog-map-opacities").dialog({
+		height: 300,
+		width: 320,
+		modal: true,
+		buttons: {
+			OK: function() {
+				d.dialog("close");
+			},
+			Cancel: function() {
+				d.dialog("close");
+			}
+		}
+	});
+} // optionsModal()
+
 
 // ====================================================
 // VizPinboard: Class to visualize images with overlays
@@ -450,9 +517,21 @@ VizPinboard.prototype.setup = function()
 		.attr("width", s.dw+30+3)
 		.attr("height", s.dh+30+2);
 
+	var defs = svg.append('defs');
+
+	defs.append("marker")
+    	.attr("id", "arrowhead")
+    	.attr("refX", 6 + 3) /*must be smarter way to calculate shift*/
+    	.attr("refY", 2)
+    	.attr("markerWidth", 6)
+    	.attr("markerHeight", 4)
+    	.attr("orient", "auto")
+    	.append("path")
+        	.attr("d", "M 0,0 V 4 L6,2 Z");
+
 		// Create definition for pin icon
 		// made by http://www.flaticon.com/authors/bogdan-rosu
-	var pinDef = svg.append('defs').append('g')
+	var pinDef = defs.append('g')
 		.attr('id', 'pin');
 	pinDef.append('path')
 		.attr('d', "M36.439,12.646c0-6.919-5.608-12.527-12.528-12.527S11.384,5.727,11.384,12.646c0,9.913,12.527,24.582,12.527,24.582 S36.439,22.508,36.439,12.646z M17.733,11.898c0-3.413,2.767-6.179,6.179-6.179s6.179,2.766,6.179,6.179 c0,3.413-2.767,6.179-6.179,6.179S17.733,15.311,17.733,11.898z");
@@ -481,17 +560,17 @@ VizPinboard.prototype.setup = function()
 		.attr("height", s.dh)
 		.attr("width", s.dw);
 
+		// Dragging background
+	this.chart.on("click", function()
+	{
+		// d3.event.preventDefault();
+	});
+
 		// TO DO -- add SVG layers
 
 		// Create icon palette
 	this.gRecs = this.chart.append('g')
 		.attr('id', 'recs');
-
-		// Dragging background
-	// this.chart.on("click", function()
-	// {
-	// 	// d3.event.preventDefault();
-	// });
 } // setup
 
 	// PURPOSE: Draw the Records in the given datastream
@@ -740,7 +819,7 @@ VizDirectory.prototype.render = function(datastream)
 		rec = PDataHub.getRecByIndex(aI);
 		t = '<tr data-id="'+rec.id+'" data-ai='+aI;
 		if (self.isSel(aI))
-			t += ' class="obj-selected" '
+			t += ' class="obj-selected" ';
 		t += '>';
 		fAtts.forEach(function(attID) {
 			datum = rec.a[attID];
@@ -1662,6 +1741,8 @@ function PViewFrame(vfIndex)
 		// PURPOSE: Hide/show viz-specific controls on right side
 	function clickVizControls(event)
 	{
+		if (vizModel)
+			vizModel.optionsModal();
 		event.preventDefault();
 	} // clickVizControls()
 
@@ -1719,7 +1800,6 @@ function PViewFrame(vfIndex)
 
 
 		// PURPOSE: Handle click anywhere on Legend
-		// TO DO: 	Handle 2ndary level (Vocab) items properly, logically??
 	function clickInLegend(event)
 	{
 			// Which Template does selection belong to?
@@ -2235,6 +2315,7 @@ var PDataHub = (function () {
 			// RETURNS: Attribute value in string format
 			// INPUT: 	attID = ID of Attribute
 			//			a = raw attribute data
+			// TO DO: 	Change attID to att definition
 		procAttTxt: function(attID, a)
 		{
 			var att = PDataHub.getAttID(attID);
@@ -2297,7 +2378,6 @@ var PDataHub = (function () {
 				return a;
 			case 'Pointer': 	// Only handle first value
 				if (a.length > 0) {
-					// TO DO -- Find Rec, get WP ID, create URL to it
 					var ptRec = PDataHub.getRecByID(a[0]);
 					var newURL = prspdata.site_url;
 					if (prspdata.site_url.charAt(prspdata.site_url.length-1) != '/')
@@ -3213,7 +3293,6 @@ console.log("Set layout to: "+lIndex);
 		//			selector = true if filter for the selector
 	function createFilter(fID, selector)
 	{
-// console.log("Create Filter "+fID);
 		var newID;
 		if (selector) {
 				// Remove any pre-existing selector filter

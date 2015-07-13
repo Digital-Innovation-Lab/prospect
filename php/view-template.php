@@ -164,7 +164,12 @@
 		<div id="inspect-content" class="scroll-container">
 		</div>
 	</div>
-</div>
+
+	<div id="dialog-map-opacities" title="Layer Opacities">
+		<div class="layer-list">
+		</div>
+	</div>
+</div> <!-- Hidden content ->
 
 <!-- DYNAMICALLY LOADED TEXT -->
 <script id="dltext-viewframe-dom" type='text'>
