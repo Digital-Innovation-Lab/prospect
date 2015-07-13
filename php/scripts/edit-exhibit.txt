@@ -334,12 +334,12 @@
 		</ul>
 		{{#each iTemplates:tIndex}}
 		<div id="tmpt-vf-tab-{{vIndex}}-{{tIndex}}">
-			<b>X,Y Attributes to use: </b>
-			{{#each c.cAtts[tIndex]}}
-				<span class="attribute-controls">
-					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
-				</span>
+			<b>X,Y Attribute to use: </b>
+			<select value='{{c.cAtts[tIndex]}}'>
+			{{#each attsXY}}
+				<option>{{this}}</option>
 			{{/each}}
+			</select>
 			<br/><b>Provide Legends: </b>
 			{{#each c.lgnds[tIndex]}}
 				<span class="attribute-controls">

@@ -594,14 +594,12 @@ jQuery(document).ready(function() {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
 					if (origTIndex == -1) {
-						newXY.push(_.map(theTmplt.attsXY, function(theXYAtt) {
-								return { attID: theXYAtt, useAtt: true };
-							}));
+						newXY.push(theTmplt.attsXY[0]);
 						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
 					} else {
-						newXY.push(createPaddedAtts(theTmplt.attsXY, theVF.c.cAtts[origTIndex]));
+						newXY.push(theVF.c.cAtts[origTIndex]);
 						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
 					}
 				});
@@ -1095,12 +1093,11 @@ jQuery(document).ready(function() {
 					saveView.c.dh   = viewSettings.c.dh;
 					saveView.c.size = viewSettings.c.size;
 					saveView.c.img  = viewSettings.c.img;
-					var newCAtts = [], newLgnds = [];
+					var newLgnds = [];
 					saveTIndices.forEach(function(tIndex) {
-						newCAtts.push(packUsedAtts(viewSettings.c.cAtts[tIndex]));
 						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
 					});
-					saveView.c.cAtts = newCAtts;
+					saveView.c.cAtts = packUsedAttIDs(viewSettings.c.cAtts);
 					saveView.c.lgnds = newLgnds;
 						// Don't need to modify svg layer settings
 					saveView.c.lyrs = viewSettings.c.lyrs;
@@ -1173,6 +1170,7 @@ jQuery(document).ready(function() {
 					saveView.c.order = packUsedAttIDs(viewSettings.c.order);
 					saveView.c.lgnds = newLgnds;
 					saveView.c.sz = packUsedAttIDs(viewSettings.c.sz);
+					break;
 				} // switch
 				saveViews.push(saveView);
 			}
