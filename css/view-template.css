@@ -625,6 +625,19 @@ div.viz-result svg .axis line {
 	shape-rendering: crispEdges;
 }
 
+	/* Pinboard styles */
+div.viz-result svg .recobj
+{
+
+}
+
+div.viz-result svg .recobj.obj-selected
+{
+	stroke: red;
+	stroke-width: 1;
+	fill: none;
+}
+
 	/* TextStream styles */
 div.viz-textstream {
 	margin: 6px;

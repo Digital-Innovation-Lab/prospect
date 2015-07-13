@@ -421,8 +421,8 @@ VizPinboard.prototype.usesLegend = function()
 VizPinboard.prototype.getLocAtts = function(tIndex)
 {
 	if (tIndex != null)
-		return this.settings.cAtts[tIndex];
-	return this.settings.cAtts;
+		return [this.settings.cAtts[tIndex]];
+	return [this.settings.cAtts];
 } // getLocAtts()
 
 VizPinboard.prototype.getFeatureAtts = function(tIndex)
@@ -487,19 +487,6 @@ VizPinboard.prototype.setup = function()
 	this.gRecs = this.chart.append('g')
 		.attr('id', 'recs');
 
-// Doesn't recognize getSVGDocument()
-// document.getElementById("recs").getSVGDocument().onclick = function (event) {
-//                 return clickRec(event);
-//             };
-
-// 	// These don't work: invoked only when icon clicked but e.target is empty
-// 	jQuery('#recs').on('click', clickRec);
-// 	document.getElementById('recs').addEventListener('click', clickRec);
-// 	function clickRec(e)
-// 	{
-// console.log("Clicked: "+JSON.stringify(e.target));
-// 	}
-
 		// Dragging background
 	// this.chart.on("click", function()
 	// {
@@ -513,16 +500,29 @@ VizPinboard.prototype.render = function(datastream)
 {
 	var self = this;
 
-		// Remove any previous icons -- ??
-	this.gRecs.selectAll('svg.rec').remove();
+	function clickPin(d, i)
+	{
+		// console.log("Clicked "+i+": "+JSON.stringify(d));
+			// Toggle class
+		var s = self.toggleSel(d.ai);
+		d3.select(this).classed('obj-selected', s);
+	} // clickPin()
+
+	function checkSel(d)
+	{
+		return self.isSel(d.ai) ? 'recobj obj-selected' : 'recobj';
+	} // checkSel()
+
+		// Remove all previous icons
+	this.gRecs.selectAll('svg.recobj').remove();
 
 	var idx, idy, iw, ih;
 	var numTmplts = PDataHub.getNumETmplts();
 	var i, aI, tI=0, fAttID, fAtt, locAtts, featSet, rec;
-	var locData, fData, newMarker, s;
+	var locData, fData;
 
-		// { ai [absolute index], id, v[iz value], c[oords { x, y, w, h}], x[ids of connections] }
-	// var nodes = [];
+		// { ai [absolute index], id, v[iz value], x, y, w, h, c [ids of connections] }
+	var nodes = [];
 
 	switch (this.settings.size) {
 	case 's':
@@ -549,7 +549,6 @@ VizPinboard.prototype.render = function(datastream)
 			// Starting with new Template?
 		if (locAtts == null) {
 			locAtts = this.vFrame.getSelLocAtts(tI);
-// console.log("tIndex: "+tI+"; locAtts: "+JSON.stringify(locAtts));
 				// Skip Template if no locate Atts
 			if (locAtts.length == 0) {
 				locAtts = null;
@@ -565,7 +564,6 @@ VizPinboard.prototype.render = function(datastream)
 				// Can only be a single Attribute on Pinboards
 			locAtts = locAtts[0];
 			featSet = self.vFrame.getSelFeatAtts(tI);
-// console.log("tIndex: "+tI+"; featAtts: "+JSON.stringify(featAtts));
 
 				// Skip Templates if no feature Atts
 			if (featSet.length == 0) {
@@ -593,33 +591,21 @@ VizPinboard.prototype.render = function(datastream)
 				fData = PDataHub.getAttLgndVal(fData, fAtt, featSet, false);
 				if (fData) {
 // console.log("Record "+i+"["+fAttID+"]: "+rec.a[fAttID]+" = "+fData);
-					// s = self.isSel(i);
-						// TO DO: Mark selection, use xScale/yScale
 					if (typeof locData[0] == 'number') {
-						self.gRecs.append('svg')
-							.attr('x', locData[0]+idx)
-							.attr('y', locData[1]+idy)
-							.attr('width', iw)
-							.attr('height', ih)
-							.attr('data-ai', aI)
-							.attr('viewBox', '0 0 48 48')
-							.append('use')
-							.attr('xlink:href', '#pin')
-							.attr('fill', fData);
-
-						// nodes.push({ ai: aI, id: rec.id, v: fData,
-						// 			 x: locData[0]+idx, y: locData[1]+idy, w: iw, h: ih
-						// 		});
+						nodes.push({ ai: aI, id: rec.id, v: fData,
+									 x: locData[0]+idx, y: locData[1]+idy, w: iw, h: ih
+								});
 					} else {
+							// TO DO: Create separate arrays to store lines & polygons?
 						if (locData.length == 2) {
 							// draw line
 						} else {
 							// draw polygon
 						}
-					}
-				}
-			}
-		}
+					} // Not a single coord
+				} // if fData
+			} // if fData
+		} // if locData
 			// Increment stream index -- check if going into new Template
 		if (++i == (datastream.t[tI].i + datastream.t[tI].n)) {
 			locAtts = null;
@@ -628,22 +614,20 @@ VizPinboard.prototype.render = function(datastream)
 	} // while
 
 		// Apply D3 to nodes
-	// this.gRecs.selectAll('svg.rec')
-	// 	.data(nodes)
-	// 	.enter()
-	// 	.append('svg').attr('class', 'rec')
-	// 	.attr('x', function(d) { return d.x; })
-	// 	.attr('y', function(d) { return d.y; })
-	// 	.attr('width', function(d) { return d.w; })
-	// 	.attr('height', function(d) { return d.h; })
-	// 	.attr('viewBox', '0 0 48 48')
-	// 	.append('use')
-	// 	.attr('xlink:href', '#pin')
-	// 	.attr('fill', function(d) { return d.v; })
-	// 	.on('click', function(d, i) {
-	// 		console.log("Clicked "+JSON.stringify(this));
-	// 	});
-
+	this.gRecs.selectAll('svg.recobj')
+		.data(nodes)
+		.enter()
+		.append('svg').attr('class', checkSel)
+		.attr('x', function(d) { return self.xScale(d.x); })
+		.attr('y', function(d) { return self.yScale(d.y); })
+		.attr('width', function(d) { return self.xScale(d.w); })
+		.attr('height', function(d) { return self.yScale(d.h); })
+		.attr('viewBox', '0 0 48 48')
+		.attr('data-ai', function(d) { return d.ai; })
+		.on('click', clickPin)
+		.append('use')
+		.attr('xlink:href', '#pin')
+		.attr('fill', function(d) { return d.v; });
 } // render()
 
 
@@ -651,17 +635,20 @@ VizPinboard.prototype.clearSel = function()
 {
 	if (this.recSel.length > 0) {
 		this.recSel = [];
-		// TO DO
+
+		this.gRecs.selectAll('svg.recobj').classed('obj-selected', false);
 	}
 } // clearSel()
 
 
 VizPinboard.prototype.setSel = function(absIArray)
 {
-	var s;
+	var self = this;
 
 	this.recSel = absIArray;
-	// TO DO
+	this.gRecs.selectAll('svg.recobj').classed('obj-selected', function(d) {
+		return self.isSel(d.ai);
+	});
 } // setSel()
 
 
