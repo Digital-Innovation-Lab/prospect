@@ -782,9 +782,7 @@ jQuery(document).ready(function() {
 				newVFEntry.c.img  = '';
 					// X,Y Coordinates
 				newVFEntry.c.cAtts= _.map(iTemplates, function(theTemplate) {
-					return _.map(theTemplate.attsXY, function(theXYAtt) {
-						return { attID: theXYAtt, useAtt: true };
-					});
+					return theTemplate.attsXY[0];
 				});
 					// Potential Legends
 				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
@@ -859,14 +857,10 @@ jQuery(document).ready(function() {
 				newVFEntry.c.min = 8;
 				newVFEntry.c.max = 50;
 				newVFEntry.c.cnt  = _.map(iTemplates, function(theTemplate) {
-					return _.map(theTemplate.attsCnt, function(theCntAtt) {
-						return { attID: theCntAtt, useAtt: true };
-					});
+					return theTemplate.attsCnt[0];
 				});
 				newVFEntry.c.order  = _.map(iTemplates, function(theTemplate) {
-					return _.map(theTemplate.attsFct, function(theFctAtt) {
-						return { attID: theFctAtt, useAtt: true };
-					});
+					return theTemplate.attsFct[0];
 				});
 					// Potential Legends
 				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
@@ -875,9 +869,7 @@ jQuery(document).ready(function() {
 					});
 				});
 				newVFEntry.c.sz  = _.map(iTemplates, function(theTemplate) {
-					return _.map(theTemplate.attsNum, function(theNumAtt) {
-						return { attID: theNumAtt, useAtt: true };
-					});
+					return 'disable';
 				});
 				break;
 			} // switch

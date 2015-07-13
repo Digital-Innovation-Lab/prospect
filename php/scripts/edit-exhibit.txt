@@ -577,10 +577,10 @@ Every Template needs an Attribute which can serve as a label, but at least one o
 </script>
 
 <script id="errmsg-vf-needs-label" type='text/ractive'>
-All View/Filter configurations need a label, but you are missing one.
+All View configurations need a label, but you are missing one.
 </script>
 
 <!-- MESSAGE -->
 <script id="msg-confirm-del-vf" type='text/ractive'>
-Are you sure that you wish to delete this View/Filter from your Exhibit?
+Are you sure that you wish to delete this View from your Exhibit?
 </script>
