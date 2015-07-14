@@ -240,6 +240,7 @@ class Prospect {
 		require_once plugin_dir_path(__FILE__).'class-template.php';
 		require_once plugin_dir_path(__FILE__).'class-record.php';
 		require_once plugin_dir_path(__FILE__).'class-exhibit.php';
+		require_once plugin_dir_path(__FILE__).'class-map.php';
 
 		require_once plugin_dir_path(__FILE__).'class-prospect-loader.php';
 		$this->loader = new ProspectLoader();
@@ -260,6 +261,7 @@ class Prospect {
 		$this->loader->add_action('add_meta_boxes_prsp-template', $this->admin, 'add_prsp_template_admin_edit');
 		$this->loader->add_action('add_meta_boxes_prsp-record', $this->admin, 'add_prsp_record_admin_edit');
 		$this->loader->add_action('add_meta_boxes_prsp-exhibit', $this->admin, 'add_prsp_exhibit_admin_edit');
+		$this->loader->add_action('add_meta_boxes_prsp-map', $this->admin, 'add_prsp_map_admin_edit');
 			// Hook for saving Dashboard data
 		$this->loader->add_action('save_post', $this->admin, 'save_post');
 
@@ -272,6 +274,8 @@ class Prospect {
 		$this->loader->add_action('admin_action_prsp_export_exhibit', $this->admin, 'prsp_export_exhibit');
 		$this->loader->add_action('admin_action_prsp_export_all_exhibits', $this->admin, 'prsp_export_all_exhibits');
 		$this->loader->add_action('admin_action_prsp_export_all', $this->admin, 'prsp_export_all');
+		$this->loader->add_action('admin_action_prsp_export_map', $this->admin, 'prsp_export_map');
+		$this->loader->add_action('admin_action_prsp_export_all_maps', $this->admin, 'prsp_export_all_maps');
 
 		$this->loader->add_action('admin_init', $this->admin, 'check_archive_output');
 

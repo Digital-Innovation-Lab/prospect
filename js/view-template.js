@@ -33,6 +33,7 @@ if (!Array.prototype.findIndex) {
 //				a = array of Attribute definitions { id, def, r, l }
 //				t = array of Template definitions (no Joins) and Record numbers: { id, def, n }
 //				e = Exhibit definition { id, g, vf, w, p }
+//				m = overlay map data
 
 	// GLOBAL CONSTANTS
 var EVENT_INSTANT = 1;			// Single instantaneous event (not Date range)
@@ -3473,6 +3474,8 @@ console.log("Set layout to: "+lIndex);
 
 		// IMMEDIATE EXECUTION
 		//====================
+
+	mapServices.init(prspdata.m);
 
 	if (prspdata.e.g.l != '')
 		jQuery('#title').append(prspdata.e.g.l);

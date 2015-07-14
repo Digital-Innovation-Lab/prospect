@@ -230,6 +230,38 @@ class ProspectAdmin {
 	} // show_prsp_exhibit_admin_edit()
 
 
+	public function add_prsp_map_admin_edit($post_type)
+	{
+		add_meta_box('prsp_map_box', 'Edit Map', array($this, 'show_prsp_map_admin_edit'),
+					'prsp-map', 'normal', 'high');
+	} // add_prsp_map_admin_edit()
+
+		// PURPOSE: Insert HTML for Dashboard Exhibit Editor and embed data
+	public function show_prsp_map_admin_edit()
+	{
+		$postID  = get_the_ID();
+
+			// Use nonce for verification
+		echo wp_nonce_field('prsp_save_map'.$postID, 'prsp_nonce');
+
+		$the_map = new ProspectMap(true, $postID);
+
+			// Can all be done in regular input fields
+		echo 'Unique ID: <input name="prsp_map_id" type="text" value="'.$the_map->id.'" size=20/><br/>';
+		echo 'Short Name: <input name="prsp_map_sname" type="text" value="'.$the_map->meta_data['sname'].'" size=30/><br/>';
+		echo 'Map URL: <input name="prsp_map_url" type="url" value="'.$the_map->meta_data['url'].'" size=60/><br/>';
+		echo 'Inverse Y? (TRUE or FALSE) <input name="prsp_map_inverse_y" type="text" value="'.$the_map->meta_data['inverseY'].'" size=5/><br/>';
+		echo 'Subdomain: <input name="prsp_map_subd" type="text" value="'.$the_map->meta_data['subd'].'" size=12/><br/>';
+		echo 'Min Zoom: <input name="prsp_map_min_zoom" type="number" value="'.$the_map->meta_data['minZoom'].'" size=2 min=1 max=20/><br/>';
+		echo 'Max Zoom: <input name="prsp_map_max_zoom" type="number" value="'.$the_map->meta_data['maxZoom'].'" size=2 min=1 max=20/><br/>';
+		echo 'Credits: <input name="prsp_map_credits" type="text" value="'.$the_map->meta_data['credits'].'" size=30/><br/>';
+		echo 'N Bounds: <input name="prsp_map_n_bounds" type="text" value="'.$the_map->meta_data['nBounds'].'" size=10/><br/>';
+		echo 'S Bounds: <input name="prsp_map_s_bounds" type="text" value="'.$the_map->meta_data['sBounds'].'" size=10/><br/>';
+		echo 'E Bounds: <input name="prsp_map_e_bounds" type="text" value="'.$the_map->meta_data['eBounds'].'" size=10/><br/>';
+		echo 'W Bounds: <input name="prsp_map_w_bounds" type="text" value="'.$the_map->meta_data['wBounds'].'" size=10/><br/>';
+	} // show_prsp_map_admin_edit()
+
+
 		// PURPOSE: Save custom fields about data entity
 	public function save_post($post_id)
 	{
@@ -345,6 +377,61 @@ class ProspectAdmin {
 			if (isset($_POST['prsp_xhbt_pages'])) {
 				$xhbt_pages = $_POST['prsp_xhbt_pages'];
 				update_post_meta($post_id, 'xhbt-pages', $xhbt_pages);
+			}
+			break;
+		case 'prsp-map':
+				// Verify the nonce is valid
+			if (!wp_verify_nonce($nonce, 'prsp_save_map'.$post_id))
+				return $post_id;
+
+				// Update each value
+			if (isset($_POST['prsp_map_id'])) {
+				$data = sanitize_text_field($_POST['prsp_map_id']);
+				update_post_meta($post_id, 'map-id', $data);
+			}
+			if (isset($_POST['prsp_map_sname'])) {
+				$data = sanitize_text_field($_POST['prsp_map_sname']);
+				update_post_meta($post_id, 'map_sname', $data);
+			}
+			if (isset($_POST['prsp_map_url'])) {
+				$data = sanitize_text_field($_POST['prsp_map_url']);
+				update_post_meta($post_id, 'map_url', $data);
+			}
+			if (isset($_POST['prsp_map_inverse_y'])) {
+				$data = sanitize_text_field($_POST['prsp_map_inverse_y']);
+				update_post_meta($post_id, 'map_inverse_y', $data);
+			}
+			if (isset($_POST['prsp_map_subd'])) {
+				$data = sanitize_text_field($_POST['prsp_map_subd']);
+				update_post_meta($post_id, 'map_subdomains', $data);
+			}
+			if (isset($_POST['prsp_map_min_zoom'])) {
+				$data = sanitize_text_field($_POST['prsp_map_min_zoom']);
+				update_post_meta($post_id, 'map_min_zoom', $data);
+			}
+			if (isset($_POST['prsp_map_max_zoom'])) {
+				$data = sanitize_text_field($_POST['prsp_map_max_zoom']);
+				update_post_meta($post_id, 'map_max_zoom', $data);
+			}
+			if (isset($_POST['prsp_map_credits'])) {
+				$data = sanitize_text_field($_POST['prsp_map_credits']);
+				update_post_meta($post_id, 'map_credits', $data);
+			}
+			if (isset($_POST['prsp_map_n_bounds'])) {
+				$data = sanitize_text_field($_POST['prsp_map_n_bounds']);
+				update_post_meta($post_id, 'map_n_bounds', $data);
+			}
+			if (isset($_POST['prsp_map_s_bounds'])) {
+				$data = sanitize_text_field($_POST['prsp_map_s_bounds']);
+				update_post_meta($post_id, 'map_s_bounds', $data);
+			}
+			if (isset($_POST['prsp_map_e_bounds'])) {
+				$data = sanitize_text_field($_POST['prsp_map_e_bounds']);
+				update_post_meta($post_id, 'map_e_bounds', $data);
+			}
+			if (isset($_POST['prsp_map_w_bounds'])) {
+				$data = sanitize_text_field($_POST['prsp_map_w_bounds']);
+				update_post_meta($post_id, 'map_w_bounds', $data);
 			}
 			break;
 		} // switch post_type
@@ -900,6 +987,82 @@ class ProspectAdmin {
 	} // prsp_export_all_exhibits()
 
 
+	public function write_map_data($fp, $the_map)
+	{
+			// Create header to indicate Exhibit record
+		fwrite($fp, '{"type": "Map", "map-id": "'.$the_map->id.'", '."\n");
+		fwrite($fp, '"map_sname": "'.$the_map->meta_data['sname']."\",\n");
+		fwrite($fp, '"map_url": "'.$the_map->meta_data['url']."\",\n");
+		fwrite($fp, '"map_inverse_y": '.$the_map->meta_data['inverseY'].",\n");
+		fwrite($fp, '"map_subdomains": "'.$the_map->meta_data['subd']."\",\n");
+		fwrite($fp, '"map_min_zoom": '.$the_map->meta_data['minZoom'].",\n");
+		fwrite($fp, '"map_max_zoom": '.$the_map->meta_data['maxZoom'].",\n");
+		fwrite($fp, '"map_credits": "'.$the_map->meta_data['credits']."\",\n");
+		fwrite($fp, '"map_n_bounds": '.$the_map->meta_data['nBounds'].",\n");
+		fwrite($fp, '"map_s_bounds": '.$the_map->meta_data['sBounds'].",\n");
+		fwrite($fp, '"map_e_bounds": '.$the_map->meta_data['eBounds'].",\n");
+		fwrite($fp, '"map_w_bounds": '.$the_map->meta_data['wBounds']."\n}");
+	} // write_map_data()
+
+
+		// PURPOSE: Export this Map definition as a JSON Archive file
+	public function prsp_export_map()
+	{
+			// ensure that this URL has not been faked by non-admin user
+		if (!current_user_can('edit_posts')) {
+			wp_die('Invalid request');
+		}
+
+		if (!(isset($_GET['post']) || isset( $_POST['post']) || (isset($_REQUEST['action']) && 'rd_duplicate_post_as_draft' == $_REQUEST['action']))) {
+			wp_die('No post to export has been supplied!');
+		}
+
+			// Get post ID and associated Map Data
+		$postID = (isset($_GET['post']) ? $_GET['post'] : $_POST['post']);
+		$the_map = new ProspectMap(true, $postID);
+
+			// Create appropriate filename
+		$fp = $this->createUTFOutput($the_map->id.".json", true);
+
+		$this->write_map_data($fp, $the_map);
+
+			// Close the output buffer
+		fclose($fp);
+		exit();
+	} // prsp_export_map()
+
+
+		// PURPOSE: Export all Map definitions as a JSON Archive file
+	public function prsp_export_all_maps()
+	{
+			// ensure that this URL has not been faked by non-admin user
+		if (!current_user_can('edit_posts')) {
+			wp_die('Invalid request');
+		}
+
+			// Create appropriate filename
+		$fp = $this->createUTFOutput("allmaps.json", true);
+
+			// Create archive header
+		fwrite($fp, '{"type": "Archive", "items": ['."\n");
+
+			// Get all definitions of all current Exhibits
+		$all_maps = ProspectMap::get_all_maps();
+		$first = true;
+		foreach($all_maps as $the_map) {
+			if (!$first)
+				fwrite($fp, ",\n");
+			$first = false;
+			$this->write_map_data($fp, $the_map);
+		}
+		fwrite($fp, "\n]}");
+
+			// Close the output buffer
+		fclose($fp);
+		exit();
+	} // prsp_export_all_maps()
+
+
 		// PURPOSE: Export all Attribute, Template and Exhibit definitions as a JSON Archive file
 	public function prsp_export_all()
 	{
@@ -948,7 +1111,7 @@ class ProspectAdmin {
 			// Close the output buffer
 		fclose($fp);
 		exit();
-	} // prsp_export_all_exhibits()
+	} // prsp_export_all()
 
 
 		// PURPOSE: Create Export link for specific posts
@@ -960,16 +1123,19 @@ class ProspectAdmin {
 
 		switch ($post->post_type) {
 		case 'prsp-attribute':
-			$actions['Prsp_A_Export'] = '<a href="admin.php?action=prsp_export_attribute&amp;post='.$post->ID.'" title="Export this Attribute as JSON archive file" rel="permalink">JSON Export</a>';
+			$actions['Prsp_Att_Export'] = '<a href="admin.php?action=prsp_export_attribute&amp;post='.$post->ID.'" title="Export this Attribute as JSON archive file" rel="permalink">JSON Export</a>';
 			break;
 		case 'prsp-template':
-			$actions['Prsp_A_Template'] = '<a href="admin.php?action=prsp_export_template&amp;post='.$post->ID.'" title="Export this Template as JSON archive file" rel="permalink">JSON Export</a>';
+			$actions['Prsp_Temp_Export'] = '<a href="admin.php?action=prsp_export_template&amp;post='.$post->ID.'" title="Export this Template as JSON archive file" rel="permalink">JSON Export</a>';
 			break;
 		case 'prsp-record':
-			$actions['Prsp_A_Record'] = '<a href="admin.php?action=prsp_export_record&amp;post='.$post->ID.'" title="Export this Record as CSV file" rel="permalink">CSV Export</a>';
+			$actions['Prsp_Rec_Export'] = '<a href="admin.php?action=prsp_export_record&amp;post='.$post->ID.'" title="Export this Record as CSV file" rel="permalink">CSV Export</a>';
 			break;
 		case 'prsp-exhibit':
-			$actions['Prsp_An_Exhibit'] = '<a href="admin.php?action=prsp_export_exhibit&amp;post='.$post->ID.'" title="Export this Exhibit as JSON archive file" rel="permalink">JSON Export</a>';
+			$actions['Prsp_Exh_Export'] = '<a href="admin.php?action=prsp_export_exhibit&amp;post='.$post->ID.'" title="Export this Exhibit as JSON archive file" rel="permalink">JSON Export</a>';
+			break;
+		case 'prsp-map':
+			$actions['Prsp_Map_Export'] = '<a href="admin.php?action=prsp_export_map&amp;post='.$post->ID.'" title="Export this Map as JSON archive file" rel="permalink">JSON Export</a>';
 			break;
 		}
 		return $actions;
@@ -1028,6 +1194,22 @@ class ProspectAdmin {
 				update_post_meta($post_id, 'xhbt-views', json_encode($data['xhbt-views']));
 				update_post_meta($post_id, 'xhbt-widgets', json_encode($data['xhbt-widgets']));
 				update_post_meta($post_id, 'xhbt-pages', json_encode($data['xhbt-pages']));
+			}
+			break;
+		case 'Map':
+			$post_id = $this->create_entity('prsp-map', 'map-id', $data['map-id']);
+			if ($post_id) {
+				update_post_meta($post_id, 'map_sname', $data['map_sname']);
+				update_post_meta($post_id, 'map_url', $data['map_url']);
+				update_post_meta($post_id, 'map_inverse_y', $data['map_inverse_y']);
+				update_post_meta($post_id, 'map_subdomains', $data['map_subdomains']);
+				update_post_meta($post_id, 'map_min_zoom', $data['map_min_zoom']);
+				update_post_meta($post_id, 'map_max_zoom', $data['map_max_zoom']);
+				update_post_meta($post_id, 'map_credits', $data['map_credits']);
+				update_post_meta($post_id, 'map_n_bounds', $data['map_n_bounds']);
+				update_post_meta($post_id, 'map_s_bounds', $data['map_s_bounds']);
+				update_post_meta($post_id, 'map_e_bounds', $data['map_e_bounds']);
+				update_post_meta($post_id, 'map_w_bounds', $data['map_w_bounds']);
 			}
 			break;
 		} // switch

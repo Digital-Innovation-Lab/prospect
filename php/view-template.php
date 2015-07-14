@@ -29,6 +29,7 @@
 
 <script src="<?php echo(plugins_url('lib/d3.js', dirname(__FILE__))); ?>"></script>
 
+<script src="<?php echo(plugins_url('js/map-hub.js', dirname(__FILE__))); ?>"></script>
 <script src="<?php echo(plugins_url('js/view-template.js', dirname(__FILE__))); ?>"></script>
 
 <script>

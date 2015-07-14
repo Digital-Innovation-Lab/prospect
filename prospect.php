@@ -22,7 +22,7 @@ function prospect_activate()
 		$role->add_cap('edit_prsp_records');
 		$role->add_cap('delete_prsp_records');
 		$role->add_cap('create_prsp_records');
-		$role->add_cap('read_prsp_exhibit');					// Exhibits
+		$role->add_cap('read_prsp_exhibit');				// Exhibits
 		$role->add_cap('read_prsp_exhibits');
 
 		$role = get_role('editor');
