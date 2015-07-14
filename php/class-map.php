@@ -23,7 +23,7 @@ class ProspectMap {
 	static function get_map_layer_list()
 	{
 		$layer_data = array();
-		$meta_data_set = array('id' => 'map_id', 'sname' => 'map_sname');
+		$meta_data_set = array('id' => 'map-id', 'sname' => 'map_sname');
 
 		$args = array('post_type' => 'prsp-map', 'posts_per_page' => -1);
 		$loop = new WP_Query($args);

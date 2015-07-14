@@ -543,7 +543,7 @@ jQuery(document).ready(function() {
 		defPages.post.atts = newPostAtts;
 	}
 
-		// Initialize View/Filter settings to correspond to iTemplates structures
+		// Initialize View settings to correspond to iTemplates structures
 	if (true) {
 		for (var i=0; i<defViews.length; i++) {
 			var theVF = defViews[i];
@@ -693,6 +693,8 @@ jQuery(document).ready(function() {
 		} // for views
 	}
 
+	PMapHub.init(prspdata.maps);
+
 		// Create our main App Ractive instance with wrapped jQueryUI components
 	rApp = new Ractive({
 		el: '#ractive-output',
@@ -704,7 +706,9 @@ jQuery(document).ready(function() {
 			viewSettings: defViews,
 			widgetSettings: defWidgets,
 			pageSettings: defPages,
-			errorMsg: errorString
+			errorMsg: errorString,
+			baseMaps: PMapHub.getBaseLayers(),
+			layerMaps: PMapHub.getOverlays()
 		},
 		components: {
 			accordion: RJAccordionComponent,
@@ -754,6 +758,7 @@ jQuery(document).ready(function() {
 						return { attID: theLgndAtt, useAtt: true };
 					});
 				});
+				newVFEntry.c.base= '.blank';
 				newVFEntry.c.lyrs= [];
 				break;
 			case 'Cards':
@@ -881,8 +886,9 @@ jQuery(document).ready(function() {
 	});
 
 	rApp.on('addMapLayer', function(event, vIndex) {
-			// TO DO: -- Select Map ID from Dialog with list
-		rApp.push('viewSettings['+vIndex+'].c.lyrs', { mapID: 'temp', o: 1 });
+		var ol = PMapHub.getOverlays();
+		var lid0 = ol.length > 0 ? ol[0].id : '';
+		rApp.push('viewSettings['+vIndex+'].c.lyrs', { lid: lid0, o: 1 });
 		return false;
 	});
 
@@ -1076,6 +1082,7 @@ jQuery(document).ready(function() {
 					saveView.c.cAtts = newCAtts;
 					saveView.c.lgnds = newLgnds;
 						// Don't need to modify map layer settings
+					saveView.c.base = viewSettings.c.base;
 					saveView.c.lyrs = viewSettings.c.lyrs;
 					break;
 				case 'Pinboard':

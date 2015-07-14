@@ -600,8 +600,10 @@ class ProspectAdmin {
 					// Prospect-specific
 				wp_enqueue_script('ractive', plugins_url('/lib/ractive.min.js', dirname(__FILE__)));
 
+				wp_enqueue_script('p-map-hub', plugins_url('/js/map-hub.js', dirname(__FILE__)),
+								array('jquery', 'underscore'));
 				wp_enqueue_script('edit-exhibit', plugins_url('/js/edit-exhibit.js', dirname(__FILE__)),
-								array('ractive', 'jquery-ui-button', 'jquery-ui-accordion', 'jquery-ui-tabs', 'underscore'));
+								array('ractive', 'jquery-ui-button', 'jquery-ui-accordion', 'jquery-ui-tabs', 'underscore', 'p-map-hub'));
 
 					// Get all definitions of all current Attributes
 				$att_defs = ProspectAttribute::get_all_attributes(true, false, false, false);
@@ -627,11 +629,14 @@ class ProspectAdmin {
 					array_push($tmp_data, $a_tmp);
 				}
 
+				$map_defs = ProspectMap::get_map_layer_list();
+
 				wp_localize_script('edit-exhibit', 'prspdata', array(
 					'ajax_url' => $dev_url,
 					'post_id' => $postID,
 					'atts' => $att_data,
-					'templates' => $tmp_data
+					'templates' => $tmp_data,
+					'maps' => $map_defs
 				));
 				break;
 			} // switch

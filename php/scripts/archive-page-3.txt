@@ -15,7 +15,7 @@
 <p><b>IMPORTANT:</b> All Records must still be exported on a Template-by-Template basis; this archive file does not include Maps.</p>
 
 <h3>Import JSON Archive File</h3>
-<p>You can import a JSON archive file containing Attribute(s), Template(s) or Exhibit(s). You must use other means for importing CSV files containing Records.</p>
+<p>You can import a JSON archive file containing Attributes, Templates, Exhibits and/or Maps. You must use other means for importing CSV files containing Records.</p>
 <p><b>WARNING:</b> Data entities whose IDs already exist are ignored, rather than overriding existing definitions.</p>
 <form id="prsp-archive-import-form" method="post" enctype="multipart/form-data">
 <label for="archive-import-select">Archive JSON File to Import</label>

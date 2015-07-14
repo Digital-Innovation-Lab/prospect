@@ -258,9 +258,18 @@
 		</div>
 		{{/each}}
 	</tabs>
+	Map Base Layer: <select value="{{c.base}}">
+	{{#each baseMaps}}
+		<option value="{{id}}">{{sname}}</option>
+	{{/each}}
+	</select>
 	Map Overlay Layers: <button on-click="addMapLayer:{{vIndex}}">Add Layer</button><br/>
 	{{#each c.lyrs:lIndex}}
-		Map ID: {{mapID}}
+		Map ID: <select value="{{lid}}">
+		{{#each layerMaps}}
+			<option value="{{id}}">{{sname}}</option>
+		{{/each}}
+		</select>
 		Opacity: <input type="range" min="0" max="1" value="{{o}}" step="0.1"/>
 		<button decorator="iconButton:ui-icon-trash" on-click="delMapLayer:{{vIndex}},{{lIndex}}">Delete</button>
 		<br/>
