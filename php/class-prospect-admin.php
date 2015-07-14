@@ -250,7 +250,7 @@ class ProspectAdmin {
 		echo 'Unique ID: <input name="prsp_map_id" type="text" value="'.$the_map->id.'" size=20/><br/>';
 		echo 'Short Name: <input name="prsp_map_sname" type="text" value="'.$the_map->meta_data['sname'].'" size=30/><br/>';
 		echo 'Map URL: <input name="prsp_map_url" type="url" value="'.$the_map->meta_data['url'].'" size=60/><br/>';
-		echo 'Inverse Y? (TRUE or FALSE) <input name="prsp_map_inverse_y" type="text" value="'.$the_map->meta_data['inverseY'].'" size=5/><br/>';
+		echo 'Inverse Y? (true or false) <input name="prsp_map_inverse_y" type="text" value="'.$the_map->meta_data['inverseY'].'" size=5 pattern="true|false"/><br/>';
 		echo 'Subdomain: <input name="prsp_map_subd" type="text" value="'.$the_map->meta_data['subd'].'" size=12/><br/>';
 		echo 'Min Zoom: <input name="prsp_map_min_zoom" type="number" value="'.$the_map->meta_data['minZoom'].'" size=2 min=1 max=20/><br/>';
 		echo 'Max Zoom: <input name="prsp_map_max_zoom" type="number" value="'.$the_map->meta_data['maxZoom'].'" size=2 min=1 max=20/><br/>';

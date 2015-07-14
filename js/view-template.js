@@ -206,18 +206,34 @@ VizMap.prototype.setup = function()
 
 	this.lMap = L.map("l-map-"+vIndex, { zoomControl: false }).setView([centerLat, centerLon], zoom);
 
-		// Add an OpenStreetMap base layer
-	this.baseMap = L.tileLayer('http://otile{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png', {
-		subdomains: '1234',
-		attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-	}).addTo(this.lMap);
+		// Layer controls
+	var layerControl = L.control.layers();
+	layerControl.addTo(this.lMap);
+
+		// Create basemap
+	this.baseMap = PMapHub.createMapLayer(this.settings.base, 1, this.lMap, layerControl);
+	// this.baseMap = L.tileLayer('http://otile{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png', {
+	// 	subdomains: '1234',
+	// 	attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+	// }).addTo(this.lMap);
+
+		// Create overlay layers
+	var opacity;
+	this.mapLayers = [];
+		// Compile map layer data into mapLayers array and create with Leaflet
+	_.each(this.settings.lyrs, function(layerToUse) {
+		opacity = layerToUse.o || 1;
+
+		var newLayer;
+		newLayer = PMapHub.createMapLayer(layerToUse.lid, opacity, self.lMap, layerControl);
+		self.mapLayers.push(newLayer);
+	});
 
 	var zoomControl = L.control.zoom({position: 'topright'});
 	zoomControl.addTo(this.lMap);
 
 		// Reset button
 	var resetControl = L.control({position: 'topright'});
-
 	resetControl.onAdd = function (map) {
 		this._div = L.DomUtil.create('div', 'reset-control leaflet-bar');
 		this.update();
@@ -231,24 +247,18 @@ VizMap.prototype.setup = function()
 	jQuery('div.reset-control').click(resetMap);
 
 	var markers;
-	if (this.settings.clster) {
-		markers = new L.MarkerClusterGroup();
-	} else {
+	// if (this.settings.clster) {
+	// 	markers = new L.MarkerClusterGroup();
+	// } else {
 		markers = L.featureGroup();            
-	}
+	// }
 	this.markerLayer = markers;
 
 		// Create options properties if they don't already exist
 	markers.options = markers.options || { };
-	markers.options.layerName = 'TO DO';
+	markers.options.layerName = 'Markers';
 
 	markers.addTo(this.lMap);
-
-		// Layer controls
-	var layerControl = L.control.layers();
-	layerControl.addTo(this.lMap);
-	layerControl.addBaseLayer(this.baseMap, 'base');
-	layerControl.addOverlay(markers, 'markers');
 
 		// Maintain number of Loc Atts per Template type
 	var numT = PDataHub.getNumETmplts();
@@ -3475,7 +3485,7 @@ console.log("Set layout to: "+lIndex);
 		// IMMEDIATE EXECUTION
 		//====================
 
-	mapServices.init(prspdata.m);
+	PMapHub.init(prspdata.m);
 
 	if (prspdata.e.g.l != '')
 		jQuery('#title').append(prspdata.e.g.l);

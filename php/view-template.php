@@ -91,7 +91,28 @@
 				echo(' }');
 		}
 	}
-?> ] };
+?> ],
+		m: [ <?php
+	$map_defs = ProspectMap::get_all_maps();
+		// Output each entry
+	$first = true;
+	foreach($map_defs as $the_map) {
+		if (!$first)
+			echo(', ');
+		$first = false;
+		echo('{ id: "'.$the_map->id.'", ');
+		echo(' sname: "'.$the_map->meta_data['sname'].'", ');
+		echo(' credits: "'.$the_map->meta_data['credits'].'", ');
+		echo(' url: "'.$the_map->meta_data['url'].'", ');
+		echo(' subd: "'.$the_map->meta_data['subd'].'", ');
+		echo(' swBounds: '.json_encode($the_map->meta_data['swBounds']).', ');
+		echo(' neBounds: '.json_encode($the_map->meta_data['neBounds']).', ');
+		echo(' minZoom: '.$the_map->meta_data['minZoom'].', ');
+		echo(' maxZoom: '.$the_map->meta_data['maxZoom'].', ');
+		echo(' inverseY: '.$the_map->meta_data['inverseY'].' }');
+	}
+
+?>	] };
 
 </script>
 

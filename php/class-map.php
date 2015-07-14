@@ -165,8 +165,8 @@ class ProspectMap {
 					$this->meta_data[$key] = floatval($this->meta_data[$key]);
 			}
 				// Create composite data
-			$this->meta_data['swBounds'] = array($this->meta_data['map_s_bounds'], $this->meta_data['map_w_bounds']);
-			$this->meta_data['neBounds'] = array($this->meta_data['map_n_bounds'], $this->meta_data['map_e_bounds']);
+			$this->meta_data['swBounds'] = array($this->meta_data['sBounds'], $this->meta_data['wBounds']);
+			$this->meta_data['neBounds'] = array($this->meta_data['nBounds'], $this->meta_data['eBounds']);
 		}
 	} // new()
 
