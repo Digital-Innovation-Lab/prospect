@@ -314,7 +314,7 @@ VizMap.prototype.render = function(datastream)
 	var rad;
 
 	switch (self.settings.size) {
-	case 's': rad=3; break;
+	case 's': rad=4; break;
 	case 'm': rad=7; break;
 	case 'l': rad=12; break;
 	}
@@ -383,8 +383,7 @@ VizMap.prototype.render = function(datastream)
 				if (fData = rec.a[fAttID]) {
 					fData = PDataHub.getAttLgndVal(fData, fAtt, featSet, false);
 					if (fData) {
-// console.log("Record "+i+"["+fAttID+"]: "+rec.a[fAttID]+" = "+fData);
-							// TO DO: Handle PNG icons
+// console.log("Record "+i+"["+fAttID+"]: "+JSON.stringify(rec.a[fAttID])+" = "+fData);
 						s = self.isSel(i);
 						if (typeof locData[0] == 'number') {
 							newMarker = L.circleMarker(locData,
@@ -2343,7 +2342,7 @@ var PDataHub = (function () {
 				if (a.max) {
 					ds = 'From ';
 					if (a.min.f)
-						ds += 'no later than ';
+						ds += 'approximately ';
 					ds += a.min.y.toString();
 					if (a.min.m) {
 						ds += '-'+a.min.m.toString();
@@ -2351,13 +2350,17 @@ var PDataHub = (function () {
 							ds += '-'+a.min.d.toString();
 					}
 					ds += ' to ';
-					if (a.max.f)
-						ds += 'at least ';
-					ds += a.max.y.toString();
-					if (a.max.m) {
-						ds += '-'+a.max.m.toString();
-						if (a.max.d)
-							ds += '-'+a.max.d.toString();
+					if (a.max == 'open') {
+						ds += 'now';
+					} else {
+						if (a.max.f)
+							ds += 'approximately ';
+						ds += a.max.y.toString();
+						if (a.max.m) {
+							ds += '-'+a.max.m.toString();
+							if (a.max.d)
+								ds += '-'+a.max.d.toString();
+						}
 					}
 				} else {
 					if (a.min.f)
@@ -2625,9 +2628,9 @@ var PDataHub = (function () {
 				for (var f=0; f<lI; f++) {
 					fI = fSet[f];
 					lE = att.l[fI];
-					if (lE.d.max.y) {		// max bounds
+					if (typeof lE.d.max.y != 'undefined') {		// max bounds
 							// Test val maxs against min bound for disqualification
-						if (val.max && val.max != 'open') {
+						if (typeof val.max != 'undefined' && val.max != 'open') {
 							if (val.max.y < lE.d.min.y)
 								continue;
 							if (val.max.y == lE.d.min.y) {
@@ -2661,12 +2664,12 @@ var PDataHub = (function () {
 						return lE.v;
 					} else {				// min bound only
 							// Event is range
-						if (val.max) {
+						if (typeof val.max != 'undefined') {
 							if (val.max == 'open')		// double open always overlap
 								return lE.v;
-							if (val.max.y < lE.min.y)
+							if (val.max.y < lE.d.min.y)
 								continue;
-							if (val.max.y == lE.min.y) {
+							if (val.max.y == lE.d.min.y) {
 								if (val.max.m && lE.d.min.m) {
 									if (val.max.m < lE.d.min.m)
 										continue;
@@ -2682,9 +2685,9 @@ var PDataHub = (function () {
 
 							// Single date
 						} else {
-							if (val.min.y < lE.min.y)
+							if (val.min.y < lE.d.min.y)
 								continue;
-							if (val.min.y == lE.min.y) {
+							if (val.min.y == lE.d.min.y) {
 								if (val.min.m && lE.d.min.m) {
 									if (val.min.m < lE.d.min.m)
 										continue;
