@@ -422,6 +422,7 @@ jQuery(document).ready(function() {
 						break;
 					case 'Pointer':
 						attsPtr.push(prefix+theAttID);
+						attsCnt.push(prefix+theAttID);
 						break;
 					}
 				} // saveAttRef()

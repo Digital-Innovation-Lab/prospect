@@ -2393,11 +2393,14 @@ var PDataHub = (function () {
 			case 'Pointer': 	// Only handle first value
 				if (a.length > 0) {
 					var ptRec = PDataHub.getRecByID(a[0]);
-					var newURL = prspdata.site_url;
-					if (prspdata.site_url.charAt(prspdata.site_url.length-1) != '/')
-						newURL += '/';
-					newURL += '?p='+ ptRec.wp;
-					return '<a href="'+newURL+'" target="_blank">'+ptRec.l+'</a>';
+					if (ptRec) {
+						var newURL = prspdata.site_url;
+						if (prspdata.site_url.charAt(prspdata.site_url.length-1) != '/')
+							newURL += '/';
+						newURL += '?p='+ ptRec.wp;
+						return '<a href="'+newURL+'" target="_blank">'+ptRec.l+'</a>';
+					} else
+						return null;
 				} else
 					return null;
 			// case 'Join': 	// Should not appear
@@ -2433,7 +2436,7 @@ var PDataHub = (function () {
 				if (tData.n > 0) {
 						// Try binary search in each Template
 					var lo = 0;
-					var hi = tData.n;
+					var hi = tData.n-1;
 					var pos, cmp;
 					var rec;
 
@@ -2464,7 +2467,7 @@ var PDataHub = (function () {
 				if (tData.n > 0) {
 						// Try binary search in each Template
 					var lo = 0;
-					var hi = tData.n;
+					var hi = tData.n-1;
 					var pos, cmp;
 					var rec;
 

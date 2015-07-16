@@ -6,10 +6,11 @@ class ProspectAttribute {
 
 		// PURPOSE: Search for $att_id in sorted Attribute array (from get_all_attributes)
 		// RETURNS: Attribute object if match found, else none
+		// NOTE: 	Algorithm from https://terenceyim.wordpress.com/2011/02/01/all-purpose-binary-search-in-php/
 	static public function find_attribute(array $atts, $att_id)
 	{
 		$lo = 0;
-		$hi = count($atts);
+		$hi = count($atts)-1;
  
 		while ($lo <= $hi) {
 			$pos = (int)(($lo + $hi) / 2);
