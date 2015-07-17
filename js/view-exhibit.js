@@ -1886,7 +1886,6 @@ function PViewFrame(vfIndex)
 			// Insert new items
 		var attDef = PDataHub.getAttID(attID);
 		attDef.l.forEach(function(legEntry, lgIndex) {
-				// TO DO: Account for both icons and colors acc. to v string
 			element = '<div class="lgnd-value lgnd-entry" data-index="'+lgIndex+'"><input type="checkbox" checked="checked" class="lgnd-entry-check"/>'+
 						'<div class="lgnd-viz" style="background-color: '+legEntry.v+'"> </div> <span class="lgnd-value-title">'+legEntry.l+'</span></div>';
 			group.append(element);
@@ -2148,12 +2147,12 @@ function PViewFrame(vfIndex)
 // PDataHub
 // PURPOSE: Manages all data, orchestrates data streams, etc.
 
-// USES: jQuery (for AJAX)
+// USES: jQuery (for AJAX), underscore
 
 // NOTES: 	There is only one hub at a time so no need for instantiating instances
 //			PDataHub is implemented with the "Module" design pattern for hiding
 //				private variables and minimizing external interference
-// The s array of an IndexStream contains absolute index numbers to global data array
+// 			The s array of an IndexStream contains absolute index numbers to global data array
 // TO DO: 	Change LOAD_DATA_CHUNK to Option setting passed by prspdata
 
 

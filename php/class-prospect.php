@@ -20,21 +20,50 @@ class Prospect {
 		// TO DO: 	Only get Attribute definitions that are used
 	public function prsp_page_template($page_template)
 	{
-		// global $post;
+		global $post;
 
 		$post_type = get_query_var('post_type');
-		// $blog_id = get_current_blog_id();
-		// $ajax_url = get_admin_url($blog_id ,'admin-ajax.php');
 
 			// What kind of page viewed?
 		switch ($post_type) {
 		case 'prsp-attribute':
 		case 'prsp-template':
+			break;
+
 		case 'prsp-record':
+			$blog_id = get_current_blog_id();
+			$ajax_url = get_admin_url($blog_id ,'admin-ajax.php');
+
+			$tmplt_id = get_post_meta($post->ID, 'tmplt-id', true);
+
+			if ($tmplt_id != '') {
+					// Load Template definition
+				$the_template = new ProspectTemplate(false, $tmplt_id, true, true);
+
+					// Get dependent Templates needed for Joins
+				$d_templates = $the_template->get_dependent_templates();
+
+					// Get associative array for all Attribute definitions
+				$assoc_atts = ProspectAttribute::get_assoc_defs();
+
+				$record = new ProspectRecord(true, $post->ID, false, $the_template, $d_templates, $assoc_atts);
+				wp_enqueue_script('jquery');
+				wp_enqueue_script('underscore');
+
+				wp_enqueue_script('view-record', plugins_url('/js/view-record.js', dirname(__FILE__)),
+								array('jquery', 'underscore'));
+
+				wp_localize_script('view-record', 'prspdata', array(
+					'ajax_url' => $ajax_url,
+					'd' => $record->att_data,
+					'a' => $assoc_atts
+				) );
+
+			}
 			break;
 
 		case 'prsp-exhibit':
-			$page_template = dirname(__FILE__).'/view-template.php';
+			$page_template = dirname(__FILE__).'/view-exhibit.php';
 			break;
 
 		case 'prsp-map':

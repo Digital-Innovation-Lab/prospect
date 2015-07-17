@@ -5,7 +5,7 @@
 	<link rel="stylesheet" href="<?php echo(plugins_url('css/jquery-ui.min.css', dirname(__FILE__))); ?>" />
 	<link rel="stylesheet" href="<?php echo(plugins_url('css/jquery-ui.theme.min.css', dirname(__FILE__))); ?>" />
 	<link rel="stylesheet" href="<?php echo(plugins_url('lib/leaflet/leaflet.css', dirname(__FILE__))); ?>" />
-	<link rel="stylesheet" href="<?php echo(plugins_url('css/view-template.css', dirname(__FILE__))); ?>" />
+	<link rel="stylesheet" href="<?php echo(plugins_url('css/view-exhibit.css', dirname(__FILE__))); ?>" />
 </head>
 
 
@@ -30,7 +30,7 @@
 <script src="<?php echo(plugins_url('lib/d3.js', dirname(__FILE__))); ?>"></script>
 
 <script src="<?php echo(plugins_url('js/map-hub.js', dirname(__FILE__))); ?>"></script>
-<script src="<?php echo(plugins_url('js/view-template.js', dirname(__FILE__))); ?>"></script>
+<script src="<?php echo(plugins_url('js/view-exhibit.js', dirname(__FILE__))); ?>"></script>
 
 <script>
 	var prspdata = {
