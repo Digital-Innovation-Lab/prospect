@@ -26,11 +26,7 @@
 <script id='legendDataEntry' type='text/ractive'>
 	<div class="legend-data-entry">
 		<span class="legend-label">{{l}}</span> <span class="legend-val">{{val}}</span>
-		{{#if color.length > 1}}
-		<span title="Click to select visual representation" class="viz-icon" style="background-color:{{color}}"  on-click="doLegendViz:{{index}}"></span>
-		{{elseif icon.length > 1}}
-		<img alt="Click to select visual representation" class="viz-icon" src="{{icon}}" on-click="doLegendViz:{{index}}"/>
-		{{/if}}
+		<span title="Click to select visual representation" class="viz-icon" style="background-color:{{v}}"  on-click="doLegendViz:{{index}}"></span>
 		{{>legendBtns}}
 	</div>
 </script>
@@ -75,13 +71,10 @@
 <script id="legendVocab" type='text/ractive'>
 	<h3>Configure Vocabulary Legend</h3>
 	<label for="vocab-rep-terms">Replace with terms used in custom field </label> <button id="vocab-rep-terms" on-click="useTerms">Replace Terms</button>
+	<button on-click="resetLegend">Reset Visuals</button>
 	<br/>
 	<input type="text" id="vocab-new-term" value='{{newVocab}}' placeholder="New Vocab Term" size="24"/> <label for="vocab-new-term"> New Term</label>
 	<button on-click="addLegend">Add Entry</button>
-	<br/>
-	<input type="radio" name="{{legType}}" value="color"/> Color
-	{{#if hasPNGs}}<input type="radio" name="{{legType}}" value="png"/> PNG icon{{/if}}
-	<button on-click="resetLegend">Reset Visuals</button>
 	<br/>
 	<div class="legend-vocab">
 		{{#if theLegend.length}}
@@ -90,13 +83,7 @@
 				<li id="vocab_{{index1}}">
 					<div>
 						<span class="legend-label">{{l}}</span>
-						{{#if color.length > 1}}
-						<span title="Click to select visual representation" class="viz-icon" style="background-color:{{color}}" on-click="doLegendViz:{{index1}}"></span>
-						{{elseif icon.length > 1}}
-						<img alt="Click to select visual representation" class="viz-icon" src="{{icon}}" on-click="doLegendViz:{{index1}}"/>
-						{{else}}
-						<span title="Click to select visual representation" class="viz-icon" on-click="doLegendViz:{{index1}},{{index2}}"></span>
-						{{/if}}
+						<span title="Click to select visual representation" class="viz-icon" style="background-color:{{v}}" on-click="doLegendViz:{{index1}}"></span>
 						<div class="ui-widget-header ui-corner-all legend-btn-set">
 							<button decorator="iconButton:ui-icon-transfer-e-w" on-click="doVocabMove:{{index1}}">Move Entries</button>
 							<button decorator="iconButton:ui-icon-arrowthick-1-n" on-click="doLegendUp:{{index1}}">Move Up</button>
@@ -111,10 +98,8 @@
 						{{#each z:index2}}
 							<li id="vocab_{{index1}}_{{index2}}">
 								<div>
-									{{#if color.length > 1}}
-									<span title="Click to select visual representation" class="viz-icon" style="background-color:{{color}}" on-click="doLegendViz:{{index1}},{{index2}}"></span>
-									{{elseif icon.length > 1}}
-									<img alt="Click to select visual representation" class="viz-icon" src="{{icon}}" on-click="doLegendViz:{{index1}},{{index2}}"/>
+									{{#if v.length > 1}}
+									<span title="Click to select visual representation" class="viz-icon" style="background-color:{{v}}" on-click="doLegendViz:{{index1}},{{index2}}"></span>
 									{{else}}
 									<span title="Click to select visual representation" class="viz-icon" on-click="doLegendViz:{{index1}},{{index2}}"></span>
 									{{/if}}
@@ -142,8 +127,6 @@
 <!-- Partial: Legend for Text -->
 <script id="legendText" type='text/ractive'>
 	<h3>Configure Text Legend</h3>
-	<input type='radio' name='{{legType}}' value='color'/> Color
-	{{#if hasPNGs}}<input type='radio' name='{{legType}}' value='png'/> PNG icon{{/if}}
 	<button on-click="resetLegend">Reset Visuals</button>
 	<button on-click="addLegend">Add Entry</button>
 	<br/>
@@ -157,8 +140,6 @@
 <!-- Partial: Legend for Number -->
 <script id="legendNum" type='text/ractive'>
 	<h3>Configure Numeric Legend</h3>
-	<input type='radio' name='{{legType}}' value='color'/> Color
-	{{#if hasPNGs}}<input type='radio' name='{{legType}}' value='png'/> PNG icon{{/if}}
 	<button on-click="resetLegend">Reset Visuals</button>
 	<button on-click="addLegend">Add Entry</button>
 	<br/>
@@ -172,8 +153,6 @@
 <!-- Partial: Legend for Dates -->
 <script id="legendDates" type='text/ractive'>
 	<h3>Configure Date Legend</h3>
-	<input type='radio' name='{{legType}}' value='color'/> Color
-	{{#if hasPNGs}}<input type='radio' name='{{legType}}' value='png'/> PNG icon{{/if}}
 	<button on-click="resetLegend">Reset Visuals</button>
 	<button on-click="addLegend">Add Entry</button>
 	<br/>
@@ -332,23 +311,6 @@
 <script id="dialog-confirm" type='text/ractive'>
 	<dialog title="Confirm" width="320" height="300">
 		{{message}}
-	</dialog>
-</script>
-
-<!-- Icon Choice Dialog -->
-<script id="dialog-choose-icon" type='text/ractive'>
-	<dialog title="Choose Icon" width="400" height="350">
-		{{#if canClear}}<input type='checkbox' checked='{{doClear}}'> Remove visuals<br/>{{/if}}
-		{{#if icons.length == 0}}You must upload PNG icons to the Media Library for any selection to appear here.<br/>{{/if}}
-		<ul class="png-container">
-			{{#each icons:index}}
-				{{#if selected === id}}
-				<li id="png-{{index}}" class="selected"><img alt="{{id}}" src="{{url}}" on-click="selectPNG:{{id}}"/></li>
-				{{else}}
-				<li id="png-{{index}}"><img alt="{{id}}" src="{{url}}" on-click="selectPNG:{{id}}"/></li>
-				{{/if}}
-			{{/each}}
-		</ul>
 	</dialog>
 </script>
 

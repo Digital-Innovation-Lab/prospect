@@ -57,38 +57,6 @@ class ProspectAdmin {
 		return strcmp($a->id, $b->id);
 	} // cmp_ids()
 
-		// PURPOSE: Load data about PNG images that appear to be icons
-		// ASSUMES: Icons must not be larger than 48x48
-	static private function get_all_PNGs()
-	{
-		$pngs = array();
-
-		$media_query = new WP_Query(
-			array(
-				'post_type' => 'attachment',
-				'post_mime_type' =>'image/png',
-				'post_status' => 'inherit',
-				'posts_per_page' => -1,
-			)
-		);
-		foreach ($media_query->posts as $post) {
-			$imageData = wp_get_attachment_image_src($post->ID);
-			$imageData[1] = (int)$imageData[1];
-			$imageData[2] = (int)$imageData[2];
-			if ($imageData[1] <= 48 && $imageData[2] <= 48) {
-				$onePNG = array();
-				$onePNG['id'] = $post->ID;
-				$onePNG['title'] = $post->post_title;
-				$onePNG['url'] = $imageData[0];
-				$onePNG['w'] = $imageData[1];
-				$onePNG['h'] = $imageData[2];
-				array_push($pngs, $onePNG);
-			}
-		}
-
-		return $pngs;
-	} // get_attached_PNGs()
-
 
 		// INSTANCE VARIABLES AND METHODS
 		// ==============================
@@ -476,15 +444,12 @@ class ProspectAdmin {
 				$cfs = ProspectAttribute::get_all_custom_field_names();
 					// Get all current Attribute IDs except this one
 				$att_ids = ProspectAttribute::get_all_attribute_ids($postID);
-					// Get all PNGs in Media Library
-				$pngs = self::get_all_PNGs();
 
 				wp_localize_script('edit-attribute', 'prspdata', array(
 					'ajax_url' => $dev_url,
 					'post_id' => $postID,
 					'cfs' => $cfs,
-					'att_ids' => $att_ids,
-					'pngs' => $pngs
+					'att_ids' => $att_ids
 				));
 				break;
 			case 'prsp-template':

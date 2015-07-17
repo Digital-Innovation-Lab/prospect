@@ -132,7 +132,6 @@ jQuery(document).ready(function() {
 		// DATA LOADED FROM SERVER
 		// =======================
 	var customFields = prspdata.cfs;			// Custom fields used in Records
-	var iconList = prspdata.pngs;			// PNG icons in Media Library
 	var allAttributeIDs = prspdata.att_ids;	// List of previously defined Attributes (not including this one!)
 
 		// LIVE DATA ABOUT THIS ATTRIBUTE
@@ -147,7 +146,6 @@ jQuery(document).ready(function() {
 		// OTHER VARS
 		// ==========
 	var rApp;							// the main Ractive application
-	var legType = 'color';				// 'color' or 'png'
 	var newVocab = '';					// new Vocabulary item
 	var errTimer;
 	var errorString = '';				// error readout
@@ -155,9 +153,9 @@ jQuery(document).ready(function() {
 	var savedLegends = [ ];				// saved Legend configurations
 
 		// Compact representations saved for Attributes are unpacked for use on GUI (unsaved unpacked fields marked with '*')
-		// Generic Legend definition: l = label (String), d = data (Type-specific), v = visual code,
-		//		val* = value (String representation), icon* = icon URL, or color* = color
-		// Vocabulary Legend definition: l = label (String), v = visual code, icon*, color*, z = children
+		// Generic Legend definition: l = label (String), d = data (Type-specific), v = visual code
+		//		val* = value (String representation)
+		// Vocabulary Legend definition: l = label (String), v = visual code, z = children
 		//   If a 2ndary child node, v = '' indicates inheriting from parent
 
 		// Data for ranges and legends are stored as strings because must allow for empty values
@@ -170,16 +168,6 @@ jQuery(document).ready(function() {
 	if (privacy == '') privacy = 'o';
 
 	var embedData;
-
-		// RETURNS: URL to PNG icon given its ID (beginning with @)
-	function getIconURL(iconID)
-	{
-		var newID = iconID.charAt(0);
-		var iconDef = _.find(iconList, function(theIcon) { return theIcon.id == iconID; });
-		if (iconDef)
-			return iconDef.url;
-		return null;
-	} // getIconURL()
 
 		// Unpack and prepare the Attribute definition
 	embedData = jQuery('textarea[name="prsp_att_def"]').val();
@@ -231,19 +219,12 @@ jQuery(document).ready(function() {
 		} // switch
 	}
 
-		// Unpack Legend data (construct val, icon, color)
+		// Unpack Legend data
 	embedData = jQuery('textarea[name="prsp_att_lgnd"]').val();
 	if (embedData && embedData.length > 2) {
 		tempLegend = JSON.parse(embedData);
 		tempLegend.forEach(function(lgndEntry) {
 			var newEntry = lgndEntry;
-			if (newEntry.v.charAt(0) == '@') {
-				newEntry.icon = getIconURL(newEntry.v);
-				newEntry.color = '';
-			} else {
-				newEntry.icon = '';
-				newEntry.color = newEntry.v;
-			}
 			switch (defAttribute.t) {
 			case 'Vocabulary':
 				var newZ = [];
@@ -253,18 +234,9 @@ jQuery(document).ready(function() {
 					if (child.v != null) {
 						newChild.v = child.v;
 						newChild.l = child.l;
-						if (child.v.charAt(0) == '@') {
-							newChild.icon = getIconURL(child.v);
-							newChild.color = '';
-						} else {
-							newChild.icon = '';
-							newChild.color = child.v;
-						}
 					} else {
 						newChild.l = child.l;
 						newChild.v = '';
-						newChild.icon = '';
-						newChild.color = '';
 					}
 					newZ.push(newChild);
 				});
@@ -355,19 +327,6 @@ jQuery(document).ready(function() {
 			}
 		}); // new Ractive()
 	} // createEditDialog()
-
-
-		// PURPOSE: Return default visual data given Color/PNG setting
-	function getDefViz() {
-		if (rApp.get('legType') === 'color') {
-			return { v:'#888888', color:'#888888', icon: '' };
-		} else {
-			if (iconList.length)
-				return { v: '@'+iconList[0]['id'], color: '', icon: iconList[0]['url'] };
-			else
-				return { v: '', color: '', icon: ''};
-		}
-	} // getDefViz()
 
 
 		// PURPOSE: Extract settings and create new Legend entry
@@ -511,11 +470,9 @@ jQuery(document).ready(function() {
 			dataTypes: dataTypes,
 			cfs: customFields,
 			chosenCF: chosenCF,
-			legType: legType,
 			theLegend: defLegend,
 			theRange: defRange,
 			newVocab: newVocab,
-			hasPNGs: (iconList.length > 0),
 			errorMsg: errorString
 		},
 	});
@@ -558,11 +515,10 @@ jQuery(document).ready(function() {
 	}); // observe theAttribute.t
 
 
-		// Reset all visual codes to default (based on color/PNG setting)
+		// Reset visual codes algorithmically
 	rApp.on('resetLegend', function() {
 		var lgnd = rApp.get('theLegend');
 
-		if (rApp.get('legType') === 'color') {
 			var modalDialog = new Ractive({
 				el: '#att-insert-dialog',
 				template: '#dialog-reset-colors',
@@ -606,16 +562,12 @@ jQuery(document).ready(function() {
 					for (var i=0; i<lgnd.length; i++) {
 						var item = 'theLegend['+i+'].';
 						var grad = '#'+rainbow.colourAt(i);
-						rApp.set(item+'v',		grad);
-						rApp.set(item+'color',	grad);
-						rApp.set(item+'icon',	'');
+						rApp.set(item+'v', grad);
 						var children = rApp.get(item+'z');
 						if (typeof(children) !== 'undefined') {
 							for (var j=0; j<children.length; j++) {
 								var child = item+'z['+j+'].';
 								rApp.set(child+'v', '');
-								rApp.set(child+'color', '');
-								rApp.set(child+'icon', '');
 							}
 						}
 					}
@@ -624,17 +576,13 @@ jQuery(document).ready(function() {
 					for (var i=0; i<lgnd.length; i++) {
 						var item = 'theLegend['+i+'].';
 						var r = randomColor();
-						rApp.set(item+'v',		r);
-						rApp.set(item+'color',	r);
-						rApp.set(item+'icon',	'');
+						rApp.set(item+'v', r);
 						var children = rApp.get(item+'z');
 						if (typeof(children) !== 'undefined') {
 							for (var j=0; j<children.length; j++) {
 								var child = item+'z['+j+'].';
 								r = randomColor();
 								rApp.set(child+'v', r);
-								rApp.set(child+'color', r);
-								rApp.set(child+'icon', '');
 							}
 						}
 					}
@@ -644,31 +592,11 @@ jQuery(document).ready(function() {
 			modalDialog.on('dialog.cancel', function() {
 				modalDialog.teardown();
 			});
-		} else {
-			var defViz = getDefViz();
-				// Set to default at top level, remove defaults for any children
-			for (var i=0; i<lgnd.length; i++) {
-				var item = 'theLegend['+i+'].';
-				rApp.set(item+'v',		defViz.v);
-				rApp.set(item+'color',	defViz.color);
-				rApp.set(item+'icon',	defViz.icon);
-				var children = rApp.get(item+'z');
-				if (typeof(children) !== 'undefined') {
-					for (var j=0; j<children.length; j++) {
-						var child = item+'z['+j+'].';
-						rApp.set(child+'v', '');
-						rApp.set(child+'color', '');
-						rApp.set(child+'icon', '');
-					}
-				}
-			}
-		}
 		return false;
 	}); // on resetLegend
 
 		// User asked for new Legend entry
 	rApp.on('addLegend', function() {
-		var defViz = getDefViz();
 		var editDialog;
 		var editBlob = { };
 
@@ -686,8 +614,7 @@ jQuery(document).ready(function() {
 				return false;
 			}
 			rApp.splice('theLegend', 0, 0,
-						{	l: newTerm, v: defViz.v,
-							color: defViz.color, icon: defViz.icon, z: []
+						{	l: newTerm, v: '#888888', z: []
 						});
 			break;
 		case 'Text':
@@ -716,9 +643,7 @@ jQuery(document).ready(function() {
 		if (editDialog) {
 			editDialog.on('dialog.ok', function(evt) {
 				var newEntry = extractLegendEntry(editDialog);
-				newEntry.v     = defViz.v;
-				newEntry.color = defViz.color;
-				newEntry.icon  = defViz.icon;
+				newEntry.v   = '#888888';
 				rApp.push('theLegend', newEntry);
 				editDialog.teardown();
 				return false;
@@ -744,7 +669,6 @@ jQuery(document).ready(function() {
 			if (i != index1)
 				parentNames.push(rApp.get('theLegend['+i+'].l'));
 
-		var defViz = getDefViz();
 		var modalDialog;
 
 			// is this a 2ndary-level child?
@@ -769,11 +693,8 @@ jQuery(document).ready(function() {
 					if (modalDialog.get('up') === 'yes') {
 						var child = spliced[0];
 							// do we need to give new default visual config?
-						if (child.v === '') {
-							child.v     = defViz.v;
-							child.icon  = defViz.icon;
-							child.color = defViz.color;
-						}
+						if (child.v === '')
+							child.v = '#888888';
 						rApp.splice('theLegend', 0, 0, child);
 					} else {
 							// Get index of new parent
@@ -813,11 +734,8 @@ jQuery(document).ready(function() {
 						var newChild = spliced[0];
 
 							// Clear visual data?
-						if (modalDialog.get('keep') === 'no') {
-							newChild.v     = '';
-							newChild.icon  = '';
-							newChild.color = '';
-						}
+						if (modalDialog.get('keep') === 'no')
+							newChild.v = '';
 							// Get index of new parent
 						var newParent = modalDialog.get('newParent');
 						var newIndex = legend.findIndex(function(item) { return item.l === newParent; });
@@ -912,9 +830,7 @@ jQuery(document).ready(function() {
 			// Intercept Save on it
 		editDialog.on('dialog.ok', function(evt) {
 			var newEntry = extractLegendEntry(editDialog);
-			newEntry.v     = origEntry.v;
-			newEntry.color = origEntry.color;
-			newEntry.icon  = origEntry.icon;
+			newEntry.v   = origEntry.v;
 			rApp.set('theLegend['+index+']', newEntry);
 			editDialog.teardown();
 			return false;
@@ -923,7 +839,7 @@ jQuery(document).ready(function() {
 		return false;
 	}); // on doLegendEdit
 
-		// PURPOSE: Select icon/color for Legend Entry
+		// PURPOSE: Select color for Legend Entry
 		// INPUT: index2 = undefined if top-level parent
 	rApp.on('doLegendViz', function(event, index1, index2) {
 		var secondary = typeof(index2) !== 'undefined';
@@ -932,82 +848,32 @@ jQuery(document).ready(function() {
 		if (secondary) {
 			lgndIndex += '.z['+index2+']';
 		}
-		switch (rApp.get('legType')) {
-		case 'color':
-			var theColor = rApp.get(lgndIndex+'.color');
-			if (theColor.length == 0 || theColor.charAt(0) !== '#')
-				theColor = '#888888';
-			var colorPicker;
-			colorPicker = new Ractive({
-				el: '#att-insert-dialog',
-				template: secondary ? '#dialog-choose-color-clear' : '#dialog-choose-color',
-				data: {
-					doClear: removeViz,
-					color: theColor
-				},
-				components: {
-					dialog: RJDialogComponent,
-					iris: RJIrisColor
-				}
-			}); // new Ractive()
-			colorPicker.on('dialog.ok', function(evt) {
-				var finalColor = colorPicker.get('color');
-				if (colorPicker.get('doClear')) {
-					rApp.set(lgndIndex+'.v', '');
-					rApp.set(lgndIndex+'.color', '');
-					rApp.set(lgndIndex+'.icon', '');
-				} else {
-					rApp.set(lgndIndex+'.v', finalColor);
-					rApp.set(lgndIndex+'.color', finalColor);
-					rApp.set(lgndIndex+'.icon', '');
-				}
-				colorPicker.teardown();
-			});
-			colorPicker.on('dialog.cancel', colorPicker.teardown);
-			break;
-		case 'png':
-			var theIcon = rApp.get(lgndIndex+'.icon');
-			if (theIcon.length == 0 || theIcon.charAt(0) !== '@')
-				theIcon = iconList[0].id;
-			else
-				theIcon = theIcon.substring(1);
-			var iconPicker;
-			iconPicker = new Ractive({
-				el: '#att-insert-dialog',
-				template: '#dialog-choose-icon',
-				data: {
-					canClear: secondary,
-					doClear: removeViz,
-					icons: iconList,
-					selected: theIcon
-				},
-				components: {
-					dialog: RJDialogComponent
-				}
-			}); // new Ractive()
-				// Make new PNG icon selection
-			iconPicker.on('selectPNG', function(evt, id) {
-				iconPicker.set('selected', id);
-			});
-			iconPicker.on('dialog.ok', function(evt) {
-					// Find icon of this name and insert URL
-				if (secondary && iconPicker.get('doClear')) {
-					rApp.set(lgndIndex+'.v', '');
-					rApp.set(lgndIndex+'.icon', '');
-					rApp.set(lgndIndex+'.color', '');
-				} else {
-					var finalIcon = iconPicker.get('selected');
-					var iconRec = _.find(iconList, function(item) { return item.id === finalIcon; });
-					rApp.set(lgndIndex+'.v', '@'+finalIcon);
-					rApp.set(lgndIndex+'.icon', iconRec.url);
-					rApp.set(lgndIndex+'.color', '');
-				}
-				iconPicker.teardown();
-				return false;
-			});
-			iconPicker.on('dialog.cancel', iconPicker.teardown);
-			break;
-		}
+		var theColor = rApp.get(lgndIndex+'.v');
+		if (theColor.length == 0 || theColor.charAt(0) !== '#')
+			theColor = '#888888';
+		var colorPicker;
+		colorPicker = new Ractive({
+			el: '#att-insert-dialog',
+			template: secondary ? '#dialog-choose-color-clear' : '#dialog-choose-color',
+			data: {
+				doClear: removeViz,
+				color: theColor
+			},
+			components: {
+				dialog: RJDialogComponent,
+				iris: RJIrisColor
+			}
+		}); // new Ractive()
+		colorPicker.on('dialog.ok', function(evt) {
+			var finalColor = colorPicker.get('color');
+			if (colorPicker.get('doClear')) {
+				rApp.set(lgndIndex+'.v', '');
+			} else {
+				rApp.set(lgndIndex+'.v', finalColor);
+			}
+			colorPicker.teardown();
+		});
+		colorPicker.on('dialog.cancel', colorPicker.teardown);
 		return false;
 	});
 
@@ -1139,16 +1005,12 @@ jQuery(document).ready(function() {
 				},
 				success: function(data, textStatus, XMLHttpRequest)
 				{
-					var defViz = getDefViz();
 					var newLegend = [];
 					var cfTerms = JSON.parse(data);
 
 // console.log("CFTerms: "+JSON.stringify(cfTerms));
 					cfTerms.forEach(function(name) {
-						var newTerm = { l: name,
-							v: defViz.v, color: defViz.color, icon: defViz.icon,
-							z: []
-						};
+						var newTerm = { l: name, v: '#888888', z: [] };
 						newLegend.push(newTerm);
 					});
 					rApp.set('theLegend', newLegend);
