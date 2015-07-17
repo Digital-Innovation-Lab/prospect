@@ -104,6 +104,7 @@ jQuery(document).ready(function() {
 	var templateID = jQuery('input[name="prsp_tmp_id"]').val();
 	var defTemplate;
 	var textAtts = [];					// Text Attributes in this Template
+	var viewAtts = [];					// Attributes that can be viewed from Record's Post page
 
 	var embedData;
 
@@ -112,6 +113,11 @@ jQuery(document).ready(function() {
 		defTemplate = JSON.parse(embedData);
 	} else {
 		defTemplate = { l: '', d: false, t: '', a: [] };
+	}
+
+	embedData = jQuery('textarea[name="prsp_tmp_view"]').val();
+	if (embedData && embedData.length > 2) {
+		viewAtts = JSON.parse(embedData);
 	}
 
 		// Must integrate Joins into Attribute array: { id: att ID, t: type, j: Template ID (if Join) } ]
@@ -125,8 +131,9 @@ jQuery(document).ready(function() {
 		var attObj = { id: attID };
 			// Find Attribute definition
 		var attDef = _.find(defAtts, function(att) { return att.id == attID; });
-			// Set Attribute type
+			// Set Attribute entry data
 		if (attDef) {
+			attObj.view = viewAtts.findIndex(function(att) { return att.id == attDef.id; } ) != -1;
 			attObj.t = attDef.def.t;
 			if (attDef.def.t == 'Join') {
 					// Find Join entry and add template ID
@@ -139,6 +146,7 @@ jQuery(document).ready(function() {
 		} else {
 			attObj.t = '';
 			attObj.j = '';
+			attObj.view = false;
 		}
 			// Convert to Object
 		defTemplate.a[i] = attObj;
@@ -269,7 +277,7 @@ jQuery(document).ready(function() {
 			if (!isDep || attDef.def.t != 'Join') {
 					// Ensure not already used
 				if (curList.findIndex(function(item) { return item.id === attDef.id; }) == -1) {
-					var choice = { l: attDef.def.l, id: attDef.id, t: attDef.def.t };
+					var choice = { l: attDef.def.l, id: attDef.id, t: attDef.def.t, view: true };
 					attChoices.push(choice);
 				}
 			}
@@ -408,9 +416,12 @@ jQuery(document).ready(function() {
 
 			tmpltDef.a = [];
 			var tmpJoins = [];
+			var tmpView = [];
 
 			atts.forEach(function(theAtt) {
 				tmpltDef.a.push(theAtt.id);
+				if (theAtt.view)
+					tmpView.push(theAtt.id);
 				if (theAtt.t == 'Join') {
 						// Attempt to add Join Attribute to dependent Template?
 					if (tmpltDef.d) {
@@ -427,11 +438,13 @@ jQuery(document).ready(function() {
 				displayError(theError);
 				return false;
 			}
+console.log("View: "+JSON.stringify(tmpView));
 
 				// Stuff results into hidden form fields
 			jQuery('input[name="prsp_tmp_id"]').val(rApp.get('templateID').trim());
 			jQuery('textarea[name="prsp_tmp_def"]').val(JSON.stringify(tmpltDef));
 			jQuery('textarea[name="prsp_tmp_joins"]').val(JSON.stringify(tmpJoins));
+			jQuery('textarea[name="prsp_tmp_view"]').val(JSON.stringify(tmpView));
 		}
 		return false;
 	});

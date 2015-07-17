@@ -122,12 +122,13 @@ class ProspectAdmin {
 		echo wp_nonce_field('prsp_save_template'.$postID, 'prsp_nonce');
 
 			// Load this Template's data
-		$the_tmp = new ProspectTemplate(true, $postID, false, true);
+		$the_tmp = new ProspectTemplate(true, $postID, false, true, true);
 
 			// Special hidden fields for custom fields coordinated by JavaScript code
 		echo '<input type="hidden" name="prsp_tmp_id" value="'.$the_tmp->id.'"/>';
 		echo '<textarea name="prsp_tmp_def" form="post" spellcheck="false" style="display:none">'.$the_tmp->meta_def.'</textarea>';
 		echo '<textarea name="prsp_tmp_joins" form="post" spellcheck="false" style="display:none">'.$the_tmp->meta_joins.'</textarea>';
+		echo '<textarea name="prsp_tmp_view" form="post" spellcheck="false" style="display:none">'.$the_tmp->meta_view.'</textarea>';
 
 		echo '<div id="ractive-output"></div>';
 
@@ -292,6 +293,10 @@ class ProspectAdmin {
 			if (isset($_POST['prsp_tmp_joins'])) {
 				$tmp_joins = $_POST['prsp_tmp_joins'];
 				update_post_meta($post_id, 'tmplt-joins', $tmp_joins);
+			}
+			if (isset($_POST['prsp_tmp_view'])) {
+				$tmp_view = $_POST['prsp_tmp_view'];
+				update_post_meta($post_id, 'tmplt-view', $tmp_joins);
 			}
 			break;
 		case 'prsp-record':
@@ -712,7 +717,8 @@ class ProspectAdmin {
 			// Create header to indicate Template record
 		fwrite($fp, '{"type": "Template", "tmplt-id": "'.$the_template->id.'", '."\n");
 		fwrite($fp, '"tmplt-def": '.$the_template->meta_def.",\n");
-		fwrite($fp, '"tmplt-joins": '.$the_template->meta_joins."\n}");
+		fwrite($fp, '"tmplt-joins": '.$the_template->meta_joins.",\n");
+		fwrite($fp, '"tmplt-view": '.$the_template->meta_view."\n}");
 	} // write_template_data()
 
 
@@ -730,7 +736,7 @@ class ProspectAdmin {
 
 			// Get post ID and associated Project Data
 		$postID = (isset($_GET['post']) ? $_GET['post'] : $_POST['post']);
-		$the_template = new ProspectTemplate(true, $postID, false, true);
+		$the_template = new ProspectTemplate(true, $postID, false, true, true);
 
 			// Create appropriate filename
 		$fp = $this->createUTFOutput($the_template->id.".json", true);
@@ -823,7 +829,7 @@ class ProspectAdmin {
 		// PURPOSE: Export a Template definition and all Attributes that belong to it as a JSON file
 	public function prsp_export_template_and_atts($template_id)
 	{
-		$the_template = new ProspectTemplate(false, $template_id, true, true);
+		$the_template = new ProspectTemplate(false, $template_id, true, true, true);
 
 			// Create appropriate filename
 		$fp = $this->createUTFOutput($template_id."-archive.json", true);
@@ -852,7 +858,7 @@ class ProspectAdmin {
 		// PURPOSE: Export all Records that belong to a particular Template type as a CSV file
 	public function prsp_export_all_template_records($template_id)
 	{
-		$the_template = new ProspectTemplate(false, $template_id, true, false);
+		$the_template = new ProspectTemplate(false, $template_id, true, false, false);
 
 			// Create appropriate filename
 		$fp = $this->createUTFOutput($template_id."-records.csv", false);
@@ -1154,6 +1160,7 @@ class ProspectAdmin {
 			if ($post_id) {
 				update_post_meta($post_id, 'tmplt-def', json_encode($data['tmplt-def']));
 				update_post_meta($post_id, 'tmplt-joins', json_encode($data['tmplt-joins']));
+				update_post_meta($post_id, 'tmplt-view', json_encode($data['tmplt-view']));
 			}
 			break;
 		case 'Exhibit':
@@ -1318,7 +1325,7 @@ class ProspectAdmin {
 		$result = array();
 
 			// Load Template definition
-		$the_template = new ProspectTemplate(false, $tmplt_id, true, true);
+		$the_template = new ProspectTemplate(false, $tmplt_id, true, true, false);
 
 			// Get dependent Templates needed for Joins
 		$d_templates = $the_template->get_dependent_templates();

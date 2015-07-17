@@ -52,7 +52,7 @@ class ProspectTemplate {
 		if ($loop->have_posts()) {
 			foreach ($loop->posts as $tmp) {
 				if ($tmp->ID != $except_post_id) {
-					$the_temp = new ProspectTemplate(true, $tmp->ID, $unpack, $load_joins);
+					$the_temp = new ProspectTemplate(true, $tmp->ID, $unpack, $load_joins, false);
 					if ($the_temp->id != null && $the_temp->id != '') {
 						array_push($all_tmp_defs, $the_temp);
 					}
@@ -76,17 +76,21 @@ class ProspectTemplate {
 	public $def;			// unpacked object version
 	public $meta_joins;
 	public $joins;
+	public $meta_view;
+	public $view;
 
 		// PURPOSE: Create Template object and load its definition given its ID
 		// INPUT:	if is_postid, then the_id is the WordPress post ID (not Template ID)
 		//			the_id is either (1) WordPress post ID, or
 		//				unique ID for Template, or '' if this is a new Template definition
-		//			only load joins data if load_joins is true
-	public function __construct($is_postid, $the_id, $unpack, $load_joins)
+		//			only load joins data if $load_joins is true
+		//			only load view data if $load_view is true
+	public function __construct($is_postid, $the_id, $unpack, $load_joins, $load_view)
 	{
 		$this->id			= $this->post_id = null;
 		$this->meta_def 	= $this->def = null;
 		$this->meta_joins	= $this->joins = null;
+
 
 		if ($is_postid) {
 			$this->post_id = $the_id;
@@ -127,6 +131,13 @@ class ProspectTemplate {
 						$this->joins = json_decode($this->meta_joins, false);
 				}
 			}
+			if ($load_view) {
+				$this->meta_view = get_post_meta($this->post_id, 'tmplt-view', true);
+				if ($unpack) {
+					if ($this->meta_view != '' && $this->meta_view != 'null')
+						$this->view = json_decode($this->meta_view, false);
+				}
+			}
 		} // if post_id
 	} // __construct()
 
@@ -157,7 +168,7 @@ class ProspectTemplate {
 
 		foreach($this->joins as $join_pair) {
 				// As they are dependent Templates, they will not have join data
-			$the_template = new ProspectTemplate(false, $join_pair->t, true, false);
+			$the_template = new ProspectTemplate(false, $join_pair->t, true, false, false);
 			array_push($deps, $the_template);
 		}
 			// Sort by ID
@@ -189,7 +200,7 @@ class ProspectTemplate {
 					// Find entry in Join table and get dependent Template
 				for ($ji=0; $ji<count($this->joins); $ji++) {
 					if ($att_id == $this->joins[$ji]->id) {
-						$d_tmplt = new ProspectTemplate(false, $this->joins[$ji]->t, true, false);
+						$d_tmplt = new ProspectTemplate(false, $this->joins[$ji]->t, true, false, false);
 						foreach ($d_tmplt->def->a as $d_att_id) {
 								// Get dependent Attribute definition
 							$d_att = new ProspectAttribute(false, $d_att_id, true, false, true, true, true);

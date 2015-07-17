@@ -61,13 +61,12 @@
 		if (!$first)
 			echo(', ');
 		$first = false;
-		$the_template = new ProspectTemplate(false, $template_id, true, true);
+		$the_template = new ProspectTemplate(false, $template_id, true, true, false);
 		echo('{ id: "'.$the_template->id.'", ');
 		echo(' def: '.$the_template->meta_def.', ');
 		echo(' n: '.$the_template->get_num_records().' }');
 		$att_defs = array_merge($att_defs, $the_template->get_all_attributes(false));
 	}
-
 ?> ],
 		a: [ <?php
 
@@ -111,7 +110,6 @@
 		echo(' maxZoom: '.$the_map->meta_data['maxZoom'].', ');
 		echo(' inverseY: '.$the_map->meta_data['inverseY'].' }');
 	}
-
 ?>	] };
 
 </script>

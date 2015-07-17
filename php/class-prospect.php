@@ -38,7 +38,7 @@ class Prospect {
 
 			if ($tmplt_id != '') {
 					// Load Template definition
-				$the_template = new ProspectTemplate(false, $tmplt_id, true, true);
+				$the_template = new ProspectTemplate(false, $tmplt_id, true, true, true);
 
 					// Get dependent Templates needed for Joins
 				$d_templates = $the_template->get_dependent_templates();

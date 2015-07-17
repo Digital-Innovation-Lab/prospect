@@ -90,6 +90,10 @@
 	background-color: #AAAAAA;
 }
 
+.att-table tr {
+	text-align: center;
+}
+
 .att-table tr:nth-child(even) {
 	background-color: #CCC;
 }

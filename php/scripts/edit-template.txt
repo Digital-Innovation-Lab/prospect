@@ -27,12 +27,14 @@
 			<th>Attribute ID</th>
 			<th>Type</th>
 			<th>Join Dependent</th>
+			<th>Display on Post</th>
   		</tr>
 		{{#each theTemplate.a:index}}
 			<tr>
 				<td>{{id}}</td>
 				<td>{{t}}</td>
 				<td on-click="selJoin:{{index}}">{{j}}</td>
+				<td><input type='checkbox' checked='{{view}}'/></td>
 				<td><button decorator="iconButton:ui-icon-trash" on-click="delAttribute:{{index}}">Delete</button></td>
 			</tr>
 		{{/each}}
