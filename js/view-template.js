@@ -212,14 +212,11 @@ VizMap.prototype.setup = function()
 
 		// Create basemap
 	this.baseMap = PMapHub.createMapLayer(this.settings.base, 1, this.lMap, layerControl);
-	// this.baseMap = L.tileLayer('http://otile{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png', {
-	// 	subdomains: '1234',
-	// 	attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-	// }).addTo(this.lMap);
 
 		// Create overlay layers
 	var opacity;
 	this.mapLayers = [];
+
 		// Compile map layer data into mapLayers array and create with Leaflet
 	_.each(this.settings.lyrs, function(layerToUse) {
 		opacity = layerToUse.o || 1;
@@ -1097,9 +1094,9 @@ function PFilterModel(id, attRec)
 PFilterModel.prototype.isDirty = function(setDirty)
 {
 	if (setDirty != null) {
-		this.dirty = setDirty;
-		if (setDirty && this.id > 0)
+		if (!this.dirty && setDirty && this.id > 0)
 			jQuery('#btn-recompute').addClass('highlight');
+		this.dirty = setDirty;
 	}
 	return this.dirty;
 } // isDirty
@@ -1495,7 +1492,7 @@ PFilterDates.prototype.eval = function(rec)
 		var s = makeDate(d.min.y, 1, 1, d.min);
 		var e;
 		if (d.max == 'open')
-			e = new Date();
+			e = this.today;
 		else
 			e = makeDate(d.max.y, 12, 31, d.max);
 		if (e < this.min || s >= this.max)
@@ -1507,6 +1504,8 @@ PFilterDates.prototype.eval = function(rec)
 PFilterDates.prototype.setup = function()
 {
 	var self = this;
+
+	this.today = new Date();
 
 	this.rCats = PDataHub.getRCats(this.att);
 		// Set defaults
@@ -1602,7 +1601,6 @@ PFilterDates.prototype.setup = function()
 		.append("path")
 		.attr("d", resizePath);
 } // setup()
-
 
 
 // ========================================================================
@@ -1723,12 +1721,7 @@ function PViewFrame(vfIndex)
 			modal: true,
 			buttons: {
 				'See Record': function() {
-					var newURL = prspdata.site_url;
-					if (prspdata.site_url.charAt(prspdata.site_url.length-1) != '/')
-						newURL += '/';
-					newURL += '?p='+ rec.wp;
-// console.log("Go to URL: "+newURL);
-					window.open(newURL, '_blank');
+					window.open(prspdata.site_url+'?p='+rec.wp, '_blank');
 				},
 				Close: function() {
 					jQuery('#btn-inspect-left').off("click");
@@ -2170,7 +2163,12 @@ var PDataHub = (function () {
 	// =========
 
 	var LOAD_DATA_CHUNK = 1000;
+	var dltextFrom;
+	var dltextTo;
+	var dltextApprox;
+	var dltextNow;
 
+	var today = new Date();
 
 	// INTERNAL VARIABLES
 	// ==================
@@ -2250,6 +2248,11 @@ var PDataHub = (function () {
 			// PURPOSE: Initialize data hub, initiate data loading
 		init: function()
 		{
+			dltextFrom = document.getElementById('dltext-from').innerHTML;
+			dltextTo = document.getElementById('dltext-to').innerHTML;
+			dltextApprox = document.getElementById('dltext-approximately').innerHTML;
+			dltextNow = document.getElementById('dltext-now').innerHTML;
+
 				// For each entry: head entry for Record Data and collect Legends
 			prspdata.t.forEach(function(tmplt) {
 					// Head Record entry
@@ -2331,7 +2334,7 @@ var PDataHub = (function () {
 			var att = PDataHub.getAttID(attID);
 			switch (att.def.t) {
 			case 'Vocabulary':
-				return a.join();
+				return a.join(', ');
 			case 'Text':
 				return a;
 			case 'Number':
@@ -2340,21 +2343,21 @@ var PDataHub = (function () {
 				var ds;
 					// Range
 				if (a.max) {
-					ds = 'From ';
+					ds = dltextFrom;
 					if (a.min.f)
-						ds += 'approximately ';
+						ds += dltextApprox;
 					ds += a.min.y.toString();
 					if (a.min.m) {
 						ds += '-'+a.min.m.toString();
 						if (a.min.d)
 							ds += '-'+a.min.d.toString();
 					}
-					ds += ' to ';
+					ds += dltextTo;
 					if (a.max == 'open') {
-						ds += 'now';
+						ds += dltextNow;
 					} else {
 						if (a.max.f)
-							ds += 'approximately ';
+							ds += dltextApprox+' ';
 						ds += a.max.y.toString();
 						if (a.max.m) {
 							ds += '-'+a.max.m.toString();
@@ -2364,7 +2367,7 @@ var PDataHub = (function () {
 					}
 				} else {
 					if (a.min.f)
-						ds = 'Approximately ';
+						ds = dltextApprox;
 					else
 						ds = '';
 					ds += a.min.y.toString();
@@ -2390,17 +2393,16 @@ var PDataHub = (function () {
 				return '<a href="'+a+'" target="_blank">(See Transcript File)</a>';
 			case 'Timecode':
 				return a;
-			case 'Pointer': 	// Only handle first value
+			case 'Pointer': 	// TO DO: Collate all values
 				if (a.length > 0) {
-					var ptRec = PDataHub.getRecByID(a[0]);
-					if (ptRec) {
-						var newURL = prspdata.site_url;
-						if (prspdata.site_url.charAt(prspdata.site_url.length-1) != '/')
-							newURL += '/';
-						newURL += '?p='+ ptRec.wp;
-						return '<a href="'+newURL+'" target="_blank">'+ptRec.l+'</a>';
-					} else
-						return null;
+					var t = '';
+					a.forEach(function(onePtr) {
+						var ptrRec = PDataHub.getRecByID(onePtr);
+						if (ptrRec) {
+							t += '<a href="'+prspdata.site_url+'?p='+ptrRec.wp+'" target="_blank">'+ptrRec.l+'</a> ';
+						}
+					});
+					return t;
 				} else
 					return null;
 			// case 'Join': 	// Should not appear
@@ -2496,7 +2498,7 @@ var PDataHub = (function () {
 		getAttID: function(attID)
 		{
 			var lo = 0;
-			var hi = prspdata.a.length;
+			var hi = prspdata.a.length-1;
 			var pos, cmp;
 
 			while (lo <= hi) {
@@ -2717,7 +2719,7 @@ var PDataHub = (function () {
 		getVLgndVal: function(att, val)
 		{
 			var lo = 0;
-			var hi = att.x.length;
+			var hi = att.x.length-1;
 			var pos, cmp;
 
 			while (lo <= hi) {
@@ -2821,7 +2823,7 @@ var PDataHub = (function () {
 				function makeMaxDate(field)
 				{
 					if (typeof field.y == 'undefined') {
-						return new Date();
+						return today;
 					} else {
 						return makeDate(field.y, 12, 31, field);
 					}
@@ -2959,7 +2961,7 @@ var PDataHub = (function () {
 		// 	case 'Text': 		eval = vIden;	maxV = '~'; break;
 		// 	case 'Vocabulary': 	eval = vVocab;	maxV = '~'; break;
 		// 	case 'Number': 		eval = vIden;	maxV = att.r.max; break;
-		// 	case 'Dates': 		eval = vDate;	maxV = new Date(); break;
+		// 	case 'Dates': 		eval = vDate;	maxV = today; break;
 		// 	}
 
 		// 	var ord = [];
@@ -3034,7 +3036,7 @@ var PDataHub = (function () {
 			case 'Text': 		eval = vIden;	maxV = '~'; break;
 			case 'Vocabulary': 	eval = vVocab;	maxV = '~'; break;
 			case 'Number': 		eval = vIden;	maxV = att.r.max; break;
-			case 'Dates': 		eval = vDate;	maxV = new Date(); break;
+			case 'Dates': 		eval = vDate;	maxV = today; break;
 			}
 
 			var ord = [];
@@ -3492,6 +3494,10 @@ console.log("Set layout to: "+lIndex);
 		//====================
 
 	PMapHub.init(prspdata.m);
+
+		// Ensure proper ending for creating URLs
+	if (prspdata.site_url.charAt(prspdata.site_url.length-1) != '/')
+		prspdata.site_url += '/';
 
 	if (prspdata.e.g.l != '')
 		jQuery('#title').append(prspdata.e.g.l);

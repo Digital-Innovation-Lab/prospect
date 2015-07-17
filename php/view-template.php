@@ -240,13 +240,30 @@ Text must include <input class="filter-text" type="text" size="20"/>
 </script>
 
 <script id="dltext-selector-head" type='text'>
-<div class="filter-head">
-	<%= title %> &nbsp;
-	<button class="btn-filter-del">Delete Filter</button>
-</div>
-<div class="filter-body">
-</div>
+	<div class="filter-head">
+		<%= title %> &nbsp;
+		<button class="btn-filter-del">Delete Filter</button>
+	</div>
+	<div class="filter-body">
+	</div>
 </script>
+
+<script id="dltext-from" type="text">
+From
+</script>
+
+<script id="dltext-to" type="text">
+to
+</script>
+
+<script id="dltext-approximately" type="text">
+approximately
+</script>
+
+<script id="dltext-now" type="text">
+now
+</script>
+
 
 </body>
 </html>
