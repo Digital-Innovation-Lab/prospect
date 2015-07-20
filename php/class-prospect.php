@@ -14,6 +14,13 @@ class Prospect {
 	protected $admin;
 
 
+		// PURPOSE: Compare two IDs for sorting
+	static public function cmp_ids($a, $b)
+	{
+		return strcmp($a['id'], $b['id']);
+	} // cmp_ids()
+
+
 		// PURPOSE:	Called by WP to modify output when viewing any post type
 		// INPUT:	$page_template = default path to file to use for template to render page
 		// RETURNS:	Modified $page_template setting (file path to new php template file)
@@ -44,7 +51,7 @@ class Prospect {
 				$d_templates = $the_template->get_dependent_templates();
 
 					// Get associative array for all Attribute definitions
-				$assoc_atts = ProspectAttribute::get_assoc_defs();
+				$assoc_atts = ProspectAttribute::get_assoc_defs();				
 
 				$record = new ProspectRecord(true, $post->ID, false, $the_template, $d_templates, $assoc_atts);
 				wp_enqueue_script('jquery');
@@ -53,12 +60,23 @@ class Prospect {
 				wp_enqueue_script('view-record', plugins_url('/js/view-record.js', dirname(__FILE__)),
 								array('jquery', 'underscore'));
 
+					// Convert attributes to serial array
+				$att_array = array();
+				foreach ($assoc_atts as $key => $value) {
+					$att_entry = array();
+					$att_entry['id'] = $key;
+					$att_entry['def'] = $value;
+					array_push($att_array, $att_entry);
+				}
+					// Sort by ID
+				usort($att_array, array('Prospect', 'cmp_ids'));
+
 				wp_localize_script('view-record', 'prspdata', array(
 					'ajax_url' => $ajax_url,
 					'd' => $record->att_data,
-					'a' => $assoc_atts
+					'a' => $att_array,
+					'v' => $the_template->view
 				) );
-
 			}
 			break;
 

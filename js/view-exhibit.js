@@ -2392,7 +2392,7 @@ var PDataHub = (function () {
 				return '<a href="'+a+'" target="_blank">(See Transcript File)</a>';
 			case 'Timecode':
 				return a;
-			case 'Pointer': 	// TO DO: Collate all values
+			case 'Pointer':
 				if (a.length > 0) {
 					var t = '';
 					a.forEach(function(onePtr) {

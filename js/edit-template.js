@@ -511,7 +511,7 @@ jQuery(document).ready(function() {
 			tmpView.t.tcAtt = rApp.get('viewAtts.t.tcAtt');
 			tmpView.cnt 	= tmpCnt;
 
-console.log("View: "+JSON.stringify(tmpView));
+// console.log("View: "+JSON.stringify(tmpView));
 
 				// Stuff results into hidden form fields
 			jQuery('input[name="prsp_tmp_id"]').val(rApp.get('templateID').trim());
