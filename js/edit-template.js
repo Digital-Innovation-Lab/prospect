@@ -104,7 +104,8 @@ jQuery(document).ready(function() {
 	var templateID = jQuery('input[name="prsp_tmp_id"]').val();
 	var defTemplate;
 	var textAtts = [];					// Text Attributes in this Template
-	var viewAtts = [];					// Attributes that can be viewed from Record's Post page
+	var viewAtts;						// Attributes that can be viewed from Record's Post page
+	var scAtts, ytAtts, trAtts, tcAtts;	// Attribute IDs for configuring widgets of specific types
 
 	var embedData;
 
@@ -118,6 +119,13 @@ jQuery(document).ready(function() {
 	embedData = jQuery('textarea[name="prsp_tmp_view"]').val();
 	if (embedData && embedData.length > 2) {
 		viewAtts = JSON.parse(embedData);
+	} else {
+			// Create default settings in case of new Template
+		viewAtts 	= {};
+		viewAtts.sc = 'disable';
+		viewAtts.yt = 'disable';
+		viewAtts.t 	= { t1Att: 'disable', t2Att: 'disable', tcAtt: 'disable' };
+		viewAtts.cnt= [];
 	}
 
 		// Must integrate Joins into Attribute array: { id: att ID, t: type, j: Template ID (if Join) } ]
@@ -133,7 +141,7 @@ jQuery(document).ready(function() {
 		var attDef = _.find(defAtts, function(att) { return att.id == attID; });
 			// Set Attribute entry data
 		if (attDef) {
-			attObj.view = viewAtts.findIndex(function(att) { return att.id == attDef.id; } ) != -1;
+			attObj.view = viewAtts.cnt.findIndex(function(att) { return att == attDef.id; } ) != -1;
 			attObj.t = attDef.def.t;
 			if (attDef.def.t == 'Join') {
 					// Find Join entry and add template ID
@@ -241,16 +249,71 @@ jQuery(document).ready(function() {
 		modalDialog.on('dialog.cancel', modalDialog.teardown);
 	} // confirmModal()
 
-		// PURPOSE: Provide default setting for Template title
-		// NOTES:   To overcome Ractive quirk
-	function setTextAttDefault()
+		// PURPOSE: Recompute arrays of Attributes for configuring widget on Record page
+		// INPUT: 	if update = true, rApp already created, need to update it
+		//				otherwise, we are preparing for it
+	function compileAttOptions(update)
 	{
-		if (rApp.get('theTemplate.t') == '') {
-			if (rApp.get('textAtts.length') > 0)
-				rApp.set('theTemplate.t', rApp.get('textAtts[0]'));
-		}
-	} // setTextAttDefault()
+		textAtts = [];
+		scAtts = ['disable'];
+		ytAtts = ['disable'];
+		trAtts = ['disable'];
+		tcAtts = ['disable'];
 
+		var curAttDefs;
+		if (update)
+			curAttDefs = rApp.get('theTemplate.a');
+		else
+			curAttDefs = defTemplate.a;
+
+			// Get initial list of TextAttributes
+		curAttDefs.forEach(function(theAtt) {
+			switch (theAtt.t) {
+			case 'Text':
+				textAtts.push(theAtt.id);
+				break;
+			case 'SoundCloud':
+				scAtts.push(theAtt.id);
+				break;
+			case 'YouTube':
+				ytAtts.push(theAtt.id);
+				break;
+			case 'Transcript':
+				trAtts.push(theAtt.id);
+				break;
+			case 'Timecode':
+				tcAtts.push(theAtt.id);
+				break;
+			}
+		});
+
+		if (update)
+		{
+			rApp.set('textAtts', textAtts);
+			rApp.set('scAtts', scAtts);
+			rApp.set('ytAtts', ytAtts);
+			rApp.set('trAtts', trAtts);
+			rApp.set('tcAtts', tcAtts);
+
+				// NOTES: These forced resets overcome a Ractive quirk
+			if (rApp.get('theTemplate.t') == '') {
+				if (textAtts.length > 0)
+					rApp.set('theTemplate.t', textAtts[0]);
+			}
+			if (rApp.get('viewAtts.sc') == '')
+				rApp.set('viewAtts.sc', 'disable');
+			if (rApp.get('viewAtts.yt') == '')
+				rApp.set('viewAtts.yt', 'disable');
+			if (rApp.get('viewAtts.t.t1Att') == '')
+				rApp.set('viewAtts.t.t1Att', 'disable');
+			if (rApp.get('viewAtts.t.t2Att') == '')
+				rApp.set('viewAtts.t.t2Att', 'disable');
+			if (rApp.get('viewAtts.t.tcAtt') == '')
+				rApp.set('viewAtts.t.tcAtt', 'disable');
+		}
+	} // compileAttOptions()
+
+	compileAttOptions(false);
 
 		// Create our main App Ractive instance with wrapped jQueryUI components
 	rApp = new Ractive({
@@ -259,7 +322,12 @@ jQuery(document).ready(function() {
 		data: {
 			templateID: templateID,
 			theTemplate: defTemplate,
+			viewAtts: viewAtts,
 			textAtts: textAtts,
+			scAtts: scAtts,
+			ytAtts: ytAtts,
+			trAtts: trAtts,
+			tcAtts: tcAtts,
 			errorMsg: errorString
 		},
 	});
@@ -311,7 +379,7 @@ jQuery(document).ready(function() {
 		attDialog.on('dialog.ok', function() {
 			var i = attDialog.get('selIndex');
 			var useAttDef = attChoices[i];
-			var newAttRec = { id: useAttDef.id, t: useAttDef.t, j: '' };
+			var newAttRec = { id: useAttDef.id, t: useAttDef.t, j: '', view: false };
 
 			rApp.push('theTemplate.a', newAttRec);
 
@@ -334,14 +402,9 @@ jQuery(document).ready(function() {
 		// Compile Text Attribute list when Attributes change
 		// 	initially oldValue == undefined
 	rApp.observe('theTemplate.a', function (newValue, oldValue, keypath) {
-		rApp.set('textAtts', []);
-		var curAttDefs = rApp.get('theTemplate.a');
-			// Get initial list of TextAttributes
-		curAttDefs.forEach(function(theAtt) {
-			if (theAtt.t == 'Text')
-				rApp.push('textAtts', theAtt.id);
-		});
-		setTextAttDefault();
+			// Refresh what Attributes are available for Inspector settings
+		if (typeof oldValue != 'undefined')
+			compileAttOptions(true);
 	});
 
 
@@ -416,12 +479,12 @@ jQuery(document).ready(function() {
 
 			tmpltDef.a = [];
 			var tmpJoins = [];
-			var tmpView = [];
+			var tmpCnt = [];
 
 			atts.forEach(function(theAtt) {
 				tmpltDef.a.push(theAtt.id);
 				if (theAtt.view)
-					tmpView.push(theAtt.id);
+					tmpCnt.push(theAtt.id);
 				if (theAtt.t == 'Join') {
 						// Attempt to add Join Attribute to dependent Template?
 					if (tmpltDef.d) {
@@ -438,6 +501,16 @@ jQuery(document).ready(function() {
 				displayError(theError);
 				return false;
 			}
+
+			var tmpView = { };
+			tmpView.sc = rApp.get('viewAtts.sc');
+			tmpView.yt = rApp.get('viewAtts.yt');
+			tmpView.t = { };
+			tmpView.t.t1Att = rApp.get('viewAtts.t.t1Att');
+			tmpView.t.t2Att = rApp.get('viewAtts.t.t2Att');
+			tmpView.t.tcAtt = rApp.get('viewAtts.t.tcAtt');
+			tmpView.cnt 	= tmpCnt;
+
 console.log("View: "+JSON.stringify(tmpView));
 
 				// Stuff results into hidden form fields

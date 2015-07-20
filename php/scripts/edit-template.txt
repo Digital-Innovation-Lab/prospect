@@ -14,13 +14,15 @@
 	{{/if}}
 	<button id="prsp-save-data" on-click="saveTemplate">Verify and Save Template Definition</button><br/>
 	<label for="ext-label">Template's external label: </label><input id="ext-label" value='{{theTemplate.l}}' placeholder="Enter label" size="24" required/><br/>
-	<label for="int-id">Template's unique internal id: </label><input id="int-id" value='{{templateID}}' placeholder="Enter id" size="24" pattern="[\w\-]+" required/><br/>
+	<label for="int-id">Template's unique internal id: </label><input id="int-id" value='{{templateID}}' placeholder="Enter id" size="24" pattern="[\w\-]+" required/>&nbsp;&nbsp;
 	<input id="dep-tmplt" type='checkbox' checked='{{theTemplate.d}}'> Dependent Template<br/>
-	<label for="label-att">Label for each Record supplied by: </label><select id="label-att" value='{{theTemplate.t}}'>
+
+	<label for="label-latt">Label for each Record supplied by: </label> <select id="label-latt" value='{{theTemplate.t}}'>
 		{{#each textAtts}}
 			<option>{{this}}</option>
 		{{/each}}
 	</select><br/>
+
 	<button on-click="addAttribute">Add Attribute</button><br/>
 	<table class='att-table'>
 		<tr>
@@ -39,6 +41,34 @@
 			</tr>
 		{{/each}}
 	</table>
+
+	<h2>Configure Widgets on Post Page displays</h2>
+	<label for="label-scatt">SoundCloud: </label> <select id="label-scatt" value='{{viewAtts.sc}}'>
+		{{#each scAtts}}
+			<option>{{this}}</option>
+		{{/each}}
+	</select>
+	<label for="label-ytatt">YouTube: </label> <select id="label-ytatt" value='{{viewAtts.yt}}'>
+		{{#each ytAtts}}
+			<option>{{this}}</option>
+		{{/each}}
+	</select><br/>
+
+	<label for="label-tr1att">Transcript1: </label> <select id="label-tr1att" value='{{viewAtts.t.t1Att}}'>
+		{{#each trAtts}}
+			<option>{{this}}</option>
+		{{/each}}
+	</select>
+	<label for="label-tr2att">Transcript2: </label> <select id="label-tr2att" value='{{viewAtts.t.t2Att}}'>
+		{{#each trAtts}}
+			<option>{{this}}</option>
+		{{/each}}
+	</select>
+	<label for="label-tcatt">TimeCode: </label> <select id="label-tcatt" value='{{viewAtts.t.tcAtt}}'>
+		{{#each tcAtts}}
+			<option>{{this}}</option>
+		{{/each}}
+	</select>
 	<br/>
 </script>
 

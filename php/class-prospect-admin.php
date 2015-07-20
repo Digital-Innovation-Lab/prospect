@@ -295,7 +295,7 @@ class ProspectAdmin {
 			}
 			if (isset($_POST['prsp_tmp_view'])) {
 				$tmp_view = $_POST['prsp_tmp_view'];
-				update_post_meta($post_id, 'tmplt-view', $tmp_joins);
+				update_post_meta($post_id, 'tmplt-view', $tmp_view);
 			}
 			break;
 		case 'prsp-record':
