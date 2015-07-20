@@ -77,9 +77,38 @@
 			{{/each}}
 		</div>
 
-		<h3>Widgets</h3>
-		<div>{{#with widgetSettings}}
+		<h3>Inspector</h3>
+		<div>{{#with inspectSettings}}
+			<div>
+				Widgets to Use: 
+				<input type='checkbox' checked='{{modal.scOn}}'/> SoundCloud
+				<input type='checkbox' checked='{{modal.ytOn}}'/> YouTube
+				<input type='checkbox' checked='{{modal.tOn}}'/> Transcript
+			</div>
 			<accordion>
+				<h3>Attribute Contents</h3>
+				<div>
+					Choose the Attribute(s) to display according to Template type:
+					<tabs>
+						<ul>
+						{{#each iTemplates:tIndex}}
+							<li><a href="#inspect-tab-{{tIndex}}">{{tid}}</a></li>
+						{{/each}}
+						</ul>
+						{{#each iTemplates:tIndex}}
+						<div id="inspect-tab-{{tIndex}}">
+							{{#each modal.atts[tIndex]:aIndex}}
+								<span class="attribute-controls">
+									<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+									<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveAttLeft:'i',{{tIndex}},{{aIndex}}">Left</button>
+									<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveAttRight:'i',{{tIndex}},{{aIndex}}">Right</button>
+								</span>
+							{{/each}}
+						</div>
+						{{/each}}
+					</tabs>
+				</div>
+
 				<h3>SoundCloud Widget</h3>
 				<div>
 					Choose the SoundCloud Attribute (if any) according to Template type:
@@ -148,69 +177,6 @@
 								<option>{{this}}</option>
 							{{/each}}
 							</select>
-						</div>
-						{{/each}}
-					</tabs>
-				</div>
-			</accordion>
-		{{/with}}</div>
-
-		<h3>Record Views</h3>
-		<div>{{#with pageSettings}}
-			<accordion>
-				<h3>Inspector Modal</h3>
-				<div>
-					Widgets to Use: 
-					<input type='checkbox' checked='{{modal.scOn}}'/> SoundCloud
-					<input type='checkbox' checked='{{modal.ytOn}}'/> YouTube
-					<input type='checkbox' checked='{{modal.tOn}}'/> Transcript
-					<br/>
-
-					Choose the Attribute(s) to display according to Template type:
-					<tabs>
-						<ul>
-						{{#each iTemplates:tIndex}}
-							<li><a href="#inspect-tab-{{tIndex}}">{{tid}}</a></li>
-						{{/each}}
-						</ul>
-						{{#each iTemplates:tIndex}}
-						<div id="inspect-tab-{{tIndex}}">
-							{{#each modal.atts[tIndex]:aIndex}}
-								<span class="attribute-controls">
-									<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
-									<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveAttLeft:'i',{{tIndex}},{{aIndex}}">Left</button>
-									<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveAttRight:'i',{{tIndex}},{{aIndex}}">Right</button>
-								</span>
-							{{/each}}
-						</div>
-						{{/each}}
-					</tabs>
-
-				</div>
-				<h3>Post Page (View of single Record)</h3>
-				<div>
-					Widgets to Use: 
-					<input type='checkbox' checked='{{post.scOn}}'/> SoundCloud
-					<input type='checkbox' checked='{{post.ytOn}}'/> YouTube
-					<input type='checkbox' checked='{{post.tOn}}'/> Transcript
-					<br/>
-
-					Choose the Attribute(s) to display according to Template type:
-					<tabs>
-						<ul>
-						{{#each iTemplates:tIndex}}
-							<li><a href="#post-tab-{{tIndex}}">{{tid}}</a></li>
-						{{/each}}
-						</ul>
-						{{#each iTemplates:tIndex}}
-						<div id="post-tab-{{tIndex}}">
-							{{#each post.atts[tIndex]:aIndex}}
-								<span class="attribute-controls">
-									<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
-									<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveAttLeft:'p',{{tIndex}},{{aIndex}}">Left</button>
-									<button decorator="iconButton:ui-icon-arrowthick-1-e "on-click="moveAttRight:'p',{{tIndex}},{{aIndex}}">Right</button>
-								</span>
-							{{/each}}
 						</div>
 						{{/each}}
 					</tabs>

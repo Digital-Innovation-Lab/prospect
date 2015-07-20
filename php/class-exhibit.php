@@ -41,10 +41,8 @@ class ProspectExhibit {
 	public $gen;			// unpacked object version
 	public $meta_views;		// JSON packed version of view settings
 	public $views;			// unpacked object version
-	public $meta_widgets;	// JSON packed version of widget settings
-	public $widgets;		// unpacked object version
-	public $meta_pages;		// JSON packed version of page settings
-	public $pages;			// unpacked object version
+	public $meta_inspect;	// JSON packed version of Inspector settings
+	public $inspect;		// unpacked object version
 
 		// PURPOSE: Create Exhibit object and load its definition given its ID
 		// INPUT:	if is_postid, then the_id is the WordPress post ID (not Exhibit ID)
@@ -92,17 +90,11 @@ class ProspectExhibit {
 				if ($this->meta_views != '')
 					$this->views = json_decode($this->meta_views, false);
 			}
-				// Load widgets configuration
-			$this->meta_widgets = get_post_meta($this->post_id, 'xhbt-widgets', true);
+				// Load Inspector configuration
+			$this->meta_inspect = get_post_meta($this->post_id, 'xhbt-inspect', true);
 			if ($unpack) {
-				if ($this->meta_widgets != '')
-					$this->widgets = json_decode($this->meta_widgets, false);
-			}
-				// Load pages configuration
-			$this->meta_pages = get_post_meta($this->post_id, 'xhbt-pages', true);
-			if ($unpack) {
-				if ($this->meta_pages != '')
-					$this->pages = json_decode($this->meta_pages, false);
+				if ($this->meta_inspect != '')
+					$this->inspect = json_decode($this->meta_inspect, false);
 			}
 		} // if post_id
 	} // _construct()

@@ -188,8 +188,7 @@ class ProspectAdmin {
 		echo '<input type="hidden" name="prsp_xhbt_id" value="'.$the_exhibit->id.'"/>';
 		echo '<textarea name="prsp_xhbt_gen" form="post" spellcheck="false" style="display:none">'.$the_exhibit->meta_gen.'</textarea>';
 		echo '<textarea name="prsp_xhbt_views" form="post" spellcheck="false" style="display:none">'.$the_exhibit->meta_views.'</textarea>';
-		echo '<textarea name="prsp_xhbt_widgets" form="post" spellcheck="false" style="display:none">'.$the_exhibit->meta_widgets.'</textarea>';
-		echo '<textarea name="prsp_xhbt_pages" form="post" spellcheck="false" style="display:none">'.$the_exhibit->meta_pages.'</textarea>';
+		echo '<textarea name="prsp_xhbt_inspect" form="post" spellcheck="false" style="display:none">'.$the_exhibit->meta_inspect.'</textarea>';
 
 		echo '<div id="ractive-output"></div>';
 
@@ -343,13 +342,9 @@ class ProspectAdmin {
 				$xhbt_views = $_POST['prsp_xhbt_views'];
 				update_post_meta($post_id, 'xhbt-views', $xhbt_views);
 			}
-			if (isset($_POST['prsp_xhbt_widgets'])) {
-				$xhbt_widgets = $_POST['prsp_xhbt_widgets'];
-				update_post_meta($post_id, 'xhbt-widgets', $xhbt_widgets);
-			}
-			if (isset($_POST['prsp_xhbt_pages'])) {
-				$xhbt_pages = $_POST['prsp_xhbt_pages'];
-				update_post_meta($post_id, 'xhbt-pages', $xhbt_pages);
+			if (isset($_POST['prsp_xhbt_inspect'])) {
+				$xhbt_inspect = $_POST['prsp_xhbt_inspect'];
+				update_post_meta($post_id, 'xhbt-inspect', $xhbt_inspect);
 			}
 			break;
 		case 'prsp-map':
@@ -900,8 +895,7 @@ class ProspectAdmin {
 		fwrite($fp, '{"type": "Exhibit", "xhbt-id": "'.$the_exhibit->id.'", '."\n");
 		fwrite($fp, '"xhbt-gen": '.$the_exhibit->meta_gen.",\n");
 		fwrite($fp, '"xhbt-views": '.$the_exhibit->meta_views.",\n");
-		fwrite($fp, '"xhbt-widgets": '.$the_exhibit->meta_widgets.",\n");
-		fwrite($fp, '"xhbt-pages": '.$the_exhibit->meta_pages."\n}");
+		fwrite($fp, '"xhbt-inspect": '.$the_exhibit->meta_inspect."\n}");
 	} // write_exhibit_data()
 
 
@@ -1169,8 +1163,7 @@ class ProspectAdmin {
 				update_post_meta($post_id, 'xhbt-def', json_encode($data['xhbt-def']));
 				update_post_meta($post_id, 'xhbt-gen', json_encode($data['xhbt-gen']));
 				update_post_meta($post_id, 'xhbt-views', json_encode($data['xhbt-views']));
-				update_post_meta($post_id, 'xhbt-widgets', json_encode($data['xhbt-widgets']));
-				update_post_meta($post_id, 'xhbt-pages', json_encode($data['xhbt-pages']));
+				update_post_meta($post_id, 'xhbt-inspect', json_encode($data['xhbt-inspect']));
 			}
 			break;
 		case 'Map':

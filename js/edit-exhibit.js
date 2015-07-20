@@ -179,19 +179,12 @@ jQuery(document).ready(function() {
 	if (embedData && embedData != 'null' && embedData.length > 4) {
 		defViews = JSON.parse(embedData);
 	}
-		// Configurations of Widgets
-	var defWidgets = { sc: { atts: [] }, yt: { atts: [] }, t: { t1Atts: [], t2Atts: [], tcAtts: [] } };
-	embedData = jQuery('textarea[name="prsp_xhbt_widgets"]').val();
+		// Configurations of Inspector
+	var defInspect = { sc: { atts: [] }, yt: { atts: [] }, t: { t1Atts: [], t2Atts: [], tcAtts: [] },
+					modal: { scOn: false, ytOn: false, tOn: false, atts: [] } };
+	embedData = jQuery('textarea[name="prsp_xhbt_inspect"]').val();
 	if (embedData && embedData != 'null' && embedData.length > 4) {
-		defWidgets = JSON.parse(embedData);
-	}
-		// Configurations of Page
-	var defPages = { modal: { scOn: false, ytOn: false, tOn: false, atts: [] },
-					 post:  { scOn: false, ytOn: false, tOn: false, atts: [] }
-					};
-	embedData = jQuery('textarea[name="prsp_xhbt_pages"]').val();
-	if (embedData && embedData != 'null' && embedData.length > 4) {
-		defPages = JSON.parse(embedData);
+		defInspect = JSON.parse(embedData);
 	}
 
 		// RUN-TIME VARS
@@ -502,46 +495,41 @@ jQuery(document).ready(function() {
 
 
 		// Closure for temporary vars
-		// Initialize widgets & pages settings to correspond to iTemplates structures
+		// Initialize settings to correspond to iTemplates structures
 	if (true) {
 		var newSCAtts = [], newYTAtts = [], newT1Atts = [], newT2Atts = [], newTCAtts = [],
-			newModalAtts = [], newPostAtts = [];
+			newModalAtts = [];
 		_.forEach(iTemplates, function(theTmplt) {
 			var origTIndex = getTemplateIndex(theTmplt.tid);
 				// Is Template absent in original configuration?
 			if (origTIndex == -1) {
-					// Initialize widgetSettings so that everything starts disabled
+					// Initialize inspectSettings so that everything starts disabled
 				newSCAtts.push('disable');
 				newYTAtts.push('disable');
 				newT1Atts.push('disable');
 				newT2Atts.push('disable');
 				newTCAtts.push('disable');
-					// Initialize pageSettings with all content Attributes
+					// Initialize with all content Attributes
 				newModalAtts.push(_.map(theTmplt.attsCnt, function(theCntAtt) {
 								return { attID: theCntAtt, useAtt: true };
 							}));
-				newPostAtts.push(_.map(theTmplt.attsCnt, function(theCntAtt) {
-								return { attID: theCntAtt, useAtt: true };
-							}));
 			} else {
-				newSCAtts.push(defWidgets.sc.atts[origTIndex] || 'disable');
-				newYTAtts.push(defWidgets.yt.atts[origTIndex] || 'disable');
-				newT1Atts.push(defWidgets.t.t1Atts[origTIndex] || 'disable');
-				newT2Atts.push(defWidgets.t.t2Atts[origTIndex] || 'disable');
-				newTCAtts.push(defWidgets.t.tcAtts[origTIndex] || 'disable');
+				newSCAtts.push(defInspect.sc.atts[origTIndex] || 'disable');
+				newYTAtts.push(defInspect.yt.atts[origTIndex] || 'disable');
+				newT1Atts.push(defInspect.t.t1Atts[origTIndex] || 'disable');
+				newT2Atts.push(defInspect.t.t2Atts[origTIndex] || 'disable');
+				newTCAtts.push(defInspect.t.tcAtts[origTIndex] || 'disable');
 					// Fill in unused Attributes with useAtt: false
-				newModalAtts.push(createPaddedAtts(theTmplt.attsCnt, defPages.modal.atts[origTIndex]));
-				newPostAtts.push(createPaddedAtts(theTmplt.attsCnt, defPages.post.atts[origTIndex]));
+				newModalAtts.push(createPaddedAtts(theTmplt.attsCnt, defInspect.modal.atts[origTIndex]));
 			} // in original config
 		}); // for iTemplate
 			// Save recomputed values
-		defWidgets.sc.atts = newSCAtts;
-		defWidgets.yt.atts = newYTAtts;
-		defWidgets.t.t1Atts = newT1Atts;
-		defWidgets.t.t2Atts = newT2Atts;
-		defWidgets.t.tcAtts = newTCAtts;
-		defPages.modal.atts = newModalAtts;
-		defPages.post.atts = newPostAtts;
+		defInspect.sc.atts = newSCAtts;
+		defInspect.yt.atts = newYTAtts;
+		defInspect.t.t1Atts = newT1Atts;
+		defInspect.t.t2Atts = newT2Atts;
+		defInspect.t.tcAtts = newTCAtts;
+		defInspect.modal.atts = newModalAtts;
 	}
 
 		// Initialize View settings to correspond to iTemplates structures
@@ -704,9 +692,8 @@ jQuery(document).ready(function() {
 			xhbtID: xhbtID,
 			genSettings: defGen,
 			iTemplates: iTemplates,
+			inspectSettings: defInspect,
 			viewSettings: defViews,
-			widgetSettings: defWidgets,
-			pageSettings: defPages,
 			errorMsg: errorString,
 			baseMaps: PMapHub.getBaseLayers(),
 			layerMaps: PMapHub.getOverlays()
@@ -977,10 +964,7 @@ jQuery(document).ready(function() {
 		if (typeof(a) == 'string') {
 			var keypath;
 
-			if (a == 'p')
-				keypath = 'pageSettings.post.atts['+b+']';
-			else
-				keypath = 'pageSettings.modal.atts['+b+']';
+			keypath = 'inspectSettings.modal.atts['+b+']';
 			if (c) {
 				rApp.splice(keypath, c, 1).then(function(spliced) {
 					rApp.splice(keypath, c-1, 0, spliced[0]);
@@ -1004,10 +988,7 @@ jQuery(document).ready(function() {
 		if (typeof(a) == 'string') {
 			var keypath;
 
-			if (a == 'p')
-				keypath = 'pageSettings.post.atts['+b+']';
-			else
-				keypath = 'pageSettings.modal.atts['+b+']';
+			keypath = 'inspectSettings.modal.atts['+b+']';
 			var atts = rApp.get(keypath);
 			if (c < (atts.length-1)) {
 				rApp.splice(keypath, c, 1).then(function(spliced) {
@@ -1035,7 +1016,7 @@ jQuery(document).ready(function() {
 			var saveGen = result[0]; 		// saveGen.ts is list of all Template IDs to be saved!
 			var saveTIndices = result[1];
 			var saveID = rApp.get('xhbtID').trim();
-			var saveViews=[], saveWidgets={}, savePages={};
+			var saveViews=[], saveInspect={};
 
 				// PURPOSE: Only return Attribute IDs which are marked as used (in same order)
 			function packUsedAtts(expandedArray)
@@ -1175,49 +1156,36 @@ jQuery(document).ready(function() {
 				saveViews.push(saveView);
 			}
 
-				// Compact Widgets settings
-			var widgetSettings = rApp.get('widgetSettings');
-			saveWidgets.sc = {};
-			saveWidgets.sc.atts = packUsedAttIDs(widgetSettings.sc.atts);
-			saveWidgets.yt = {};
-			saveWidgets.yt.atts = packUsedAttIDs(widgetSettings.yt.atts);
-			saveWidgets.t = {};
-			saveWidgets.t.t1Atts = packUsedAttIDs(widgetSettings.t.t1Atts);
-			saveWidgets.t.t2Atts = packUsedAttIDs(widgetSettings.t.t2Atts);
-			saveWidgets.t.tcAtts = packUsedAttIDs(widgetSettings.t.tcAtts);
-				// Compact Page settings
-			var pageSettings = rApp.get('pageSettings');
-			savePages.modal =  {};
-			savePages.modal.scOn = pageSettings.modal.scOn;
-			savePages.modal.ytOn = pageSettings.modal.ytOn;
-			savePages.modal.tOn  = pageSettings.modal.tOn;
+				// Compact Inspector settings
+			var inspectSettings = rApp.get('inspectSettings');
+			saveInspect.sc = {};
+			saveInspect.sc.atts = packUsedAttIDs(inspectSettings.sc.atts);
+			saveInspect.yt = {};
+			saveInspect.yt.atts = packUsedAttIDs(inspectSettings.yt.atts);
+			saveInspect.t = {};
+			saveInspect.t.t1Atts = packUsedAttIDs(inspectSettings.t.t1Atts);
+			saveInspect.t.t2Atts = packUsedAttIDs(inspectSettings.t.t2Atts);
+			saveInspect.t.tcAtts = packUsedAttIDs(inspectSettings.t.tcAtts);
+			saveInspect.modal =  {};
+			saveInspect.modal.scOn = inspectSettings.modal.scOn;
+			saveInspect.modal.ytOn = inspectSettings.modal.ytOn;
+			saveInspect.modal.tOn  = inspectSettings.modal.tOn;
 			var newModalCnt = [];
 			saveTIndices.forEach(function(tIndex) {
-				newModalCnt.push(packUsedAtts(pageSettings.modal.atts[tIndex]));
+				newModalCnt.push(packUsedAtts(inspectSettings.modal.atts[tIndex]));
 			});
-			savePages.modal.atts = newModalCnt;
-			savePages.post = {};
-			savePages.post.scOn = pageSettings.post.scOn;
-			savePages.post.ytOn = pageSettings.post.ytOn;
-			savePages.post.tOn  = pageSettings.post.tOn;
-			var newPostCnt = [];
-			saveTIndices.forEach(function(tIndex) {
-				newPostCnt.push(packUsedAtts(pageSettings.post.atts[tIndex]));
-			});
-			savePages.post.atts = newPostCnt;
+			saveInspect.modal.atts = newModalCnt;
 
 // console.log("Saving: ");
 // console.log("prsp_xhbt_gen: "+JSON.stringify(saveGen));
 // console.log("prsp_xhbt_views: "+JSON.stringify(saveViews));
-// console.log("prsp_xhbt_widgets: "+JSON.stringify(saveWidgets));
-// console.log("prsp_xhbt_pages: "+JSON.stringify(savePages));
+// console.log("prsp_xhbt_inspect: "+JSON.stringify(saveInspect));
 
 				// Insert values into hidden fields if no problems
 			jQuery('input[name="prsp_xhbt_id"]').val(saveID);
 			jQuery('textarea[name="prsp_xhbt_gen"]').val(JSON.stringify(saveGen));
 			jQuery('textarea[name="prsp_xhbt_views"]').val(JSON.stringify(saveViews));
-			jQuery('textarea[name="prsp_xhbt_widgets"]').val(JSON.stringify(saveWidgets));
-			jQuery('textarea[name="prsp_xhbt_pages"]').val(JSON.stringify(savePages));
+			jQuery('textarea[name="prsp_xhbt_inspect"]').val(JSON.stringify(saveInspect));
 		} // if saveGe
 		return false;
 	});
