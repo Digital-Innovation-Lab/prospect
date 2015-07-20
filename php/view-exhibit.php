@@ -50,8 +50,7 @@
 	echo(' { id: "'.$the_xhbt->id.'", ');
 	echo(' g: '.json_encode($the_xhbt->gen).', ');
 	echo(' vf: '.$the_xhbt->meta_views.', ');
-	echo(' w: '.$the_xhbt->meta_widgets.', ');
-	echo(' p: '.$the_xhbt->meta_pages.' }, ');
+	echo(' i: '.$the_xhbt->meta_inspect.' }, ');
 
 		// Also need to output Template data based on Exhibit data
 	echo(' t: [ ');

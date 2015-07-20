@@ -32,7 +32,7 @@ if (!Array.prototype.findIndex) {
 // NOTES: 	prspdata will pass the following information:
 //				a = array of Attribute definitions { id, def, r, l }
 //				t = array of Template definitions (no Joins) and Record numbers: { id, def, n }
-//				e = Exhibit definition { id, g, vf, w, p }
+//				e = Exhibit definition { id, g, vf, i }
 //				m = overlay map data
 
 	// GLOBAL CONSTANTS
@@ -1674,8 +1674,8 @@ function PViewFrame(vfIndex)
 				// Show all data
 			var container = jQuery('#inspect-content');
 			container.empty();
-// console.log("Show atts: "+JSON.stringify(prspdata.e.p.modal.atts[tI]));
-			prspdata.e.p.modal.atts[tI].forEach(function(attID) {
+// console.log("Show atts: "+JSON.stringify(prspdata.e.i.modal.atts[tI]));
+			prspdata.e.i.modal.atts[tI].forEach(function(attID) {
 				var attVal = PDataHub.getRecAtt(recAbsI, attID, false);
 // console.log("AttID: "+attID+"; val: "+attVal);
 				if (attVal) {
