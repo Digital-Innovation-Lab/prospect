@@ -115,17 +115,41 @@ jQuery(document).ready(function($) {
 		return null;
 	} // procAttTxt()
 
+	var newText = '';
 
 		// Output all of the Post view Attributes
-		// TO DO: process dot-notation Attribute names
 	prspdata.v.cnt.forEach(function(attID) {
+		function appendAttData(id, att, l)
+		{
+			var datum = procAttTxt(id, att);
+			if (datum)
+				newText += '<div><b>'+l+'</b>: '+datum+'</div>';
+		} // appendAttData
+
 		var att = getAttID(attID);
 
+			// If a Join Attribute, must apply dependent Template's View table
 		if (att) {
-			var attPrefix = '';
-			var datum = procAttTxt(attID, att);
-			if (datum)
-				insertCnt.append('<div><b>'+att.def.l+'</b>: '+datum+'</div>');
+			if (att.def.t == 'Join') {
+					// Look up Attribute name in Join table
+				var join = _.find(prspdata.j, function(theJoin) { return theJoin.id === attID; });
+				if (join) {
+						// Find dependent Template
+					var dTemp = _.find(prspdata.t, function(theDTmplt) { return theDTmplt.id === join.t; });
+					if (dTemp) {
+							// Output all dependent view Attributes
+						dTemp.v.cnt.forEach(function(jAttID) {
+							var jAtt = getAttID(jAttID);
+							if (jAtt) {
+								appendAttData(attID+'.'+jAttID, jAtt, att.def.l+' ('+jAtt.def.l+')');
+							}
+						});
+					}
+				}
+			} else
+				appendAttData(attID, att, att.def.l);
 		}
 	});
+	if (newText.length > 0)
+		insertCnt.prepend(newText);
 });

@@ -48,7 +48,7 @@ class Prospect {
 				$the_template = new ProspectTemplate(false, $tmplt_id, true, true, true);
 
 					// Get dependent Templates needed for Joins
-				$d_templates = $the_template->get_dependent_templates();
+				$d_templates = $the_template->get_dependent_templates(true);
 
 					// Get associative array for all Attribute definitions
 				$assoc_atts = ProspectAttribute::get_assoc_defs();				
@@ -71,11 +71,22 @@ class Prospect {
 					// Sort by ID
 				usort($att_array, array('Prospect', 'cmp_ids'));
 
+					// Compile Dependent Template view data
+				$d_t_array = array();
+				foreach ($d_templates as $this_temp) {
+					$d_t_entry = array();
+					$d_t_entry['id'] = $this_temp->id;
+					$d_t_entry['v'] = $this_temp->view;
+					array_push($d_t_array, $d_t_entry);
+				}
+
 				wp_localize_script('view-record', 'prspdata', array(
 					'ajax_url' => $ajax_url,
 					'd' => $record->att_data,
 					'a' => $att_array,
-					'v' => $the_template->view
+					'v' => $the_template->view,
+					'j' => $the_template->joins,
+					't' => $d_t_array
 				) );
 			}
 			break;

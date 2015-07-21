@@ -153,7 +153,8 @@ class ProspectTemplate {
 
 
 		// RETURNS: Array of Dependent templates joined by this Template ordered by ID
-	public function get_dependent_templates()
+		// INPUT: 	$view is passed as $load_view parameter
+	public function get_dependent_templates($view)
 	{
 			// Decode Join data if not already
 		if ($this->joins == null && ($this->meta_joins != null && $this->meta_joins != '' && $this->meta_joins != 'null'))
@@ -168,7 +169,7 @@ class ProspectTemplate {
 
 		foreach($this->joins as $join_pair) {
 				// As they are dependent Templates, they will not have join data
-			$the_template = new ProspectTemplate(false, $join_pair->t, true, false, false);
+			$the_template = new ProspectTemplate(false, $join_pair->t, true, false, $view);
 			array_push($deps, $the_template);
 		}
 			// Sort by ID

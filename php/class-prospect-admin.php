@@ -1321,7 +1321,7 @@ class ProspectAdmin {
 		$the_template = new ProspectTemplate(false, $tmplt_id, true, true, false);
 
 			// Get dependent Templates needed for Joins
-		$d_templates = $the_template->get_dependent_templates();
+		$d_templates = $the_template->get_dependent_templates(false);
 
 			// Get associative array for all Attribute definitions
 		$assoc_atts = ProspectAttribute::get_assoc_defs();
