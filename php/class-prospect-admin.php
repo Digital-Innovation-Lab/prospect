@@ -482,7 +482,7 @@ class ProspectAdmin {
 				}
 
 					// Get all definitions of all other current Templates
-				$tmp_defs = ProspectTemplate::get_all_template_defs($postID, true, false);
+				$tmp_defs = ProspectTemplate::get_all_template_defs($postID, true, false, false);
 					// Compile into array
 				$tmp_data = array();
 				foreach($tmp_defs as $the_template) {
@@ -530,7 +530,7 @@ class ProspectAdmin {
 				}
 
 					// Get all definitions of all current Templates
-				$tmp_defs = ProspectTemplate::get_all_template_defs(0, true, true);
+				$tmp_defs = ProspectTemplate::get_all_template_defs(0, true, true, false);
 					// Compile into array
 				$tmp_data = array();
 				foreach($tmp_defs as $the_template) {
@@ -583,7 +583,7 @@ class ProspectAdmin {
 				}
 
 					// Get all definitions of all current Templates
-				$tmp_defs = ProspectTemplate::get_all_template_defs(0, true, true);
+				$tmp_defs = ProspectTemplate::get_all_template_defs(0, true, true, false);
 					// Compile into array
 				$tmp_data = array();
 				foreach($tmp_defs as $the_template) {
@@ -713,7 +713,7 @@ class ProspectAdmin {
 		fwrite($fp, '{"type": "Template", "tmplt-id": "'.$the_template->id.'", '."\n");
 		fwrite($fp, '"tmplt-def": '.$the_template->meta_def.",\n");
 		fwrite($fp, '"tmplt-joins": '.$the_template->meta_joins.",\n");
-		fwrite($fp, '"tmplt-view": '.$the_template->meta_view."\n}");
+		fwrite($fp, '"tmplt-view": '.$the_template->meta_view." \n}");
 	} // write_template_data()
 
 
@@ -759,7 +759,7 @@ class ProspectAdmin {
 		fwrite($fp, '{"type": "Archive", "items": ['."\n");
 
 			// Get all definitions of all current Templates
-		$template_defs = ProspectTemplate::get_all_template_defs(0, false, true);
+		$template_defs = ProspectTemplate::get_all_template_defs(0, false, true, true);
 		$first = true;
 		foreach($template_defs as $the_template) {
 			if (!$first)
@@ -1059,7 +1059,7 @@ class ProspectAdmin {
 		}
 
 			// Get all definitions of all current Templates
-		$template_defs = ProspectTemplate::get_all_template_defs(0, false, true);
+		$template_defs = ProspectTemplate::get_all_template_defs(0, false, true, true);
 		foreach($template_defs as $the_template) {
 			if (!$first)
 				fwrite($fp, ",\n");

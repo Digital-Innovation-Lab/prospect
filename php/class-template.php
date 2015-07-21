@@ -42,7 +42,7 @@ class ProspectTemplate {
 
 		// RETURNS: An array of all Template definitions (except $except_post_id)
 		// INPUT: 	Ignore the Template whose WP post ID is $except_post_id
-	static public function get_all_template_defs($except_post_id, $unpack, $load_joins)
+	static public function get_all_template_defs($except_post_id, $unpack, $load_joins, $load_views)
 	{
 		$all_tmp_defs = array();
 
@@ -52,7 +52,7 @@ class ProspectTemplate {
 		if ($loop->have_posts()) {
 			foreach ($loop->posts as $tmp) {
 				if ($tmp->ID != $except_post_id) {
-					$the_temp = new ProspectTemplate(true, $tmp->ID, $unpack, $load_joins, false);
+					$the_temp = new ProspectTemplate(true, $tmp->ID, $unpack, $load_joins, $load_views);
 					if ($the_temp->id != null && $the_temp->id != '') {
 						array_push($all_tmp_defs, $the_temp);
 					}
@@ -87,9 +87,10 @@ class ProspectTemplate {
 		//			only load view data if $load_view is true
 	public function __construct($is_postid, $the_id, $unpack, $load_joins, $load_view)
 	{
-		$this->id			= $this->post_id = null;
-		$this->meta_def 	= $this->def = null;
-		$this->meta_joins	= $this->joins = null;
+		$this->id			= $this->post_id= null;
+		$this->meta_def 	= $this->def 	= null;
+		$this->meta_joins	= $this->joins 	= null;
+		$this->meta_view	= $this->view 	= null;
 
 
 		if ($is_postid) {
