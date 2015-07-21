@@ -40,7 +40,7 @@
 				{{>att-type-X-Y}}
 			{{elseif def.t == 'Image'}}
 				{{>att-type-Image}}
-			{{elseif def.t == 'Link-To'}}
+			{{elseif def.t == 'Link To'}}
 				{{>att-type-Link-To}}
 			{{elseif def.t == 'SoundCloud'}}
 				{{>att-type-SoundCloud}}
