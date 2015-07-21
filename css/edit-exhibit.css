@@ -35,9 +35,13 @@ input[type=range] {
 	border-color: #ccc;
 }
 
+#prsp_exhibit_box button:active {
+    background: #ccc;
+}
+
 #prsp_exhibit_box input[type="text"], #prsp_exhibit_box input {
 	padding: 6px 12px;
-	margin: 15px 0;
+	margin: 5px 0;
 	font-size: 14px;
 	line-height: 1.42857143;
 	color: #555;
@@ -50,6 +54,10 @@ input[type=range] {
 	-webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
 	-o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
 	transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+}
+
+#prsp_exhibit_box input[type="checkbox"] {
+    margin: 15px 0 15px 15px;
 }
 
 	/* Error for displaying Error Messages */
@@ -76,7 +84,6 @@ input[type=range] {
 	margin: 3px;
 	margin-bottom: 6px;
 	padding: 3px;
-	border: dotted gray 1px;
 }
 
 

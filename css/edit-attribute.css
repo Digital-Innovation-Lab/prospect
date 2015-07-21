@@ -29,9 +29,13 @@
 	border-color: #ccc;
 }
 
+#prsp_attribute_box button:active {
+    background: #ccc;
+}
+
 #prsp_attribute_box input[type="text"], #prsp_attribute_box input {
 	padding: 6px 12px;
-	margin: 15px 0;
+	margin: 5px 0;
 	font-size: 14px;
 	line-height: 1.42857143;
 	color: #555;
@@ -44,6 +48,10 @@
 	-webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
 	-o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
 	transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+}
+
+#prsp_attribute_box input[type="checkbox"] {
+    margin: 15px 0 15px 15px;
 }
 
 #ractive-output {
@@ -125,31 +133,3 @@ ol.vocab-children {
 	margin-left: 20px;
 }
 
-	/* Container for PNG icons in Icon Choice Modal */
-.png-container {
-	list-style: none;
-	padding-left: 0;
-}
-
-.png-container li {
-	max-width: 32px;
-	max-height: 32px;
-	border: 2px dotted gray;
-	list-style-type: none;
-	margin: 4px;
-	float: left;
-}
-
-.png-container li img {
-	max-width: 32px;
-	max-height: 32px;
-}
-
-.png-container li.selected {
-	border: 2px solid red;
-	background-color: yellow;
-}
-
-.png-container li:hover {
-	border: 2px dotted orange;
-}

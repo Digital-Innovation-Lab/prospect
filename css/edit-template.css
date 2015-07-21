@@ -33,9 +33,13 @@
 	border-color: #ccc;
 }
 
+#prsp_template_box button:active {
+    background: #ccc;
+}
+
 #prsp_template_box input[type="text"], #prsp_template_box input {
 	padding: 6px 12px;
-	margin: 15px 0;
+	margin: 5px 0;
 	font-size: 14px;
 	line-height: 1.42857143;
 	color: #555;
@@ -48,6 +52,10 @@
 	-webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
 	-o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
 	transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+}
+
+#prsp_template_box input[type="checkbox"] {
+    margin: 15px 0 15px 15px;
 }
 
 .jq-dialog-template {
