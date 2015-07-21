@@ -88,6 +88,9 @@ class Prospect {
 					'j' => $the_template->joins,
 					't' => $d_t_array
 				) );
+
+				$dltext = ProspectAdmin::get_script_text('view-record.txt');
+				echo $dltext;
 			}
 			break;
 

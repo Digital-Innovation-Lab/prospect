@@ -1,0 +1,15 @@
+<script id="dltext-from" type="text">
+From
+</script>
+
+<script id="dltext-to" type="text">
+to
+</script>
+
+<script id="dltext-approximately" type="text">
+approximately
+</script>
+
+<script id="dltext-now" type="text">
+now
+</script>

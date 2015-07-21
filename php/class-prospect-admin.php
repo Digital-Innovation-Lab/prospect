@@ -38,7 +38,7 @@ class ProspectAdmin {
 		// PURPOSE: Called to retrieve file content to insert HTML fragments into a particular page
 		// INPUT:   $scriptname = base name of HTML file (not pathname)
 		// RETURNS: Contents of file as string
-	static private function get_script_text($scriptname)
+	static public function get_script_text($scriptname)
 	{
 		$scriptpath = plugin_dir_path(__FILE__).'scripts/'.$scriptname;
 		if (!file_exists($scriptpath)) {

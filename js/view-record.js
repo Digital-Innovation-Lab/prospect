@@ -8,15 +8,17 @@
 //				a = array of all Attribute data
 //				ajax_url
 //				d = Object of all Record (meta)data
-//				v = View configuration
+//				j = Template's Join table
+//				t = array of dependent Templates
+//				v = Template's View configuration
 
 jQuery(document).ready(function($) {
 	var insertCnt = $('.entry-content');
 
-	var dltextFrom = 'From';
-	var dltextTo = 'to';
-	var dltextApprox = 'approximately';
-	var dltextNow = 'now';
+	var dltextFrom = document.getElementById('dltext-from').innerHTML;
+	var dltextTo = document.getElementById('dltext-to').innerHTML;
+	var dltextApprox = document.getElementById('dltext-approximately').innerHTML;
+	var dltextNow = document.getElementById('dltext-now').innerHTML;
 
 		// RETURNS: Attribute definition with this ID
 		// INPUT:   attID = full Attribute ID (could be in Join dot notation)
