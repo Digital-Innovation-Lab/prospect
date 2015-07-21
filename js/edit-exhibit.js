@@ -210,6 +210,7 @@ jQuery(document).ready(function() {
 		//		attsTrns: array of Transcript Atts
 		//		attsTC: array of Timecode Atts
 		//		attsPtr: array of Pointer Atts
+		//		attsDPtr: array of Pointer Atts (w/"disable")
 		//		attsCnt: array of Atts that can display content
 		//		attsFct: array of Atts that can be Facets (discrete values, can be sorted in order)
 		//	}
@@ -357,8 +358,8 @@ jQuery(document).ready(function() {
 		if (!theTmplt.def.d) {
 			var attsTxt=[], attsDates=[], attsDNum=['disable'], attsLL=[],
 				attsXY=[], attsLgnd=[], attsSC=['disable'], attsYT=['disable'],
-				attsTrns=['disable'], attsTC=['disable'], attsPtr=[], attsCnt=[],
-				attsFct=[];
+				attsTrns=['disable'], attsTC=['disable'], attsPtr=[],
+				attsDPtr=['disable'], attsCnt=[], attsFct=[];
 
 			_.forEach(theTmplt.def.a, function(theAttID) {
 				function saveAttRef(prefix, theAttID, type)
@@ -415,6 +416,7 @@ jQuery(document).ready(function() {
 						break;
 					case 'Pointer':
 						attsPtr.push(prefix+theAttID);
+						attsDPtr.push(prefix+theAttID);
 						attsCnt.push(prefix+theAttID);
 						break;
 					}
@@ -456,7 +458,8 @@ jQuery(document).ready(function() {
 								attsTxt: attsTxt, attsDates: attsDates, attsDNum: attsDNum,
 								attsLL: attsLL, attsXY: attsXY, attsLgnd: attsLgnd, attsSC: attsSC,
 								attsYT: attsYT, attsTrns: attsTrns, attsTC: attsTC,
-								attsPtr: attsPtr, attsCnt: attsCnt, attsFct: attsFct
+								attsPtr: attsPtr, attsDPtr: attsDPtr, attsCnt: attsCnt,
+								attsFct: attsFct
 							};
 			iTemplates.push(tmpltEntry);
 		}
@@ -538,7 +541,7 @@ jQuery(document).ready(function() {
 			var theVF = defViews[i];
 			switch (theVF.vf) {
 			case 'Map':
-				var newLL = [], newLgnds = [];
+				var newLL=[], newLgnds=[], newPtrs=[];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
@@ -546,15 +549,18 @@ jQuery(document).ready(function() {
 						newLL.push(_.map(theTmplt.attsLL, function(theLLAtt) {
 								return { attID: theLLAtt, useAtt: true };
 							}));
+						newPtrs.push('disable');
 						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
 					} else {
 						newLL.push(createPaddedAtts(theTmplt.attLL, theVF.c.cAtts[origTIndex]));
+						newPtrs.push(theVF.c.ptrs[origTIndex]);
 						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
 					}
 				});
 				theVF.c.cAtts = newLL;
+				theVF.c.ptrs = newPtrs;
 				theVF.c.lgnds = newLgnds;
 				break;
 			case 'Cards':
@@ -578,21 +584,24 @@ jQuery(document).ready(function() {
 				theVF.c.cnt = newCnt;
 				break;
 			case 'Pinboard':
-				var newXY = [], newLgnds = [];
+				var newXY=[], newLgnds=[], newPtrs=[];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
 					if (origTIndex == -1) {
 						newXY.push(theTmplt.attsXY[0]);
+						newPtrs.push('disable');
 						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
 					} else {
 						newXY.push(theVF.c.cAtts[origTIndex]);
+						newPtrs.push(theVF.c.ptrs[origTIndex]);
 						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
 					}
 				});
 				theVF.c.cAtts = newXY;
+				theVF.c.pts = newPtrs;
 				theVF.c.lgnds = newLgnds;
 				break;
 			case 'Browser':
@@ -740,6 +749,10 @@ jQuery(document).ready(function() {
 						return { attID: theLLAtt, useAtt: true };
 					})
 				});
+					// Potential Pointers
+				newVFEntry.c.ptrs= _.map(iTemplates, function(theTemplate) {
+					return 'disable';
+				});
 					// Potential Legends
 				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
 					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
@@ -776,6 +789,10 @@ jQuery(document).ready(function() {
 					// X,Y Coordinates
 				newVFEntry.c.cAtts= _.map(iTemplates, function(theTemplate) {
 					return theTemplate.attsXY[0];
+				});
+					// Potential Pointers
+				newVFEntry.c.ptrs= _.map(iTemplates, function(theTemplate) {
+					return 'disable';
 				});
 					// Potential Legends
 				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
@@ -1063,6 +1080,7 @@ jQuery(document).ready(function() {
 					});
 					saveView.c.cAtts = newCAtts;
 					saveView.c.lgnds = newLgnds;
+					saveView.c.ptrs = packUsedAttIDs(viewSettings.c.ptrs);
 						// Don't need to modify map layer settings
 					saveView.c.base = viewSettings.c.base;
 					saveView.c.lyrs = viewSettings.c.lyrs;
@@ -1080,6 +1098,7 @@ jQuery(document).ready(function() {
 					});
 					saveView.c.cAtts = packUsedAttIDs(viewSettings.c.cAtts);
 					saveView.c.lgnds = newLgnds;
+					saveView.c.ptrs = packUsedAttIDs(viewSettings.c.ptrs);
 						// Don't need to modify svg layer settings
 					saveView.c.lyrs = viewSettings.c.lyrs;
 					break;

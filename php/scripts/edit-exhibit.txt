@@ -86,7 +86,7 @@
 				<input type='checkbox' checked='{{modal.tOn}}'/> Transcript
 			</div>
 			<accordion>
-				<h3>Attribute Contents</h3>
+				<h3>Attributes to Display</h3>
 				<div>
 					Choose the Attribute(s) to display according to Template type:
 					<tabs>
@@ -215,7 +215,14 @@
 					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
 				</span>
 			{{/each}}
-			<br/><b>Provide Legends:</b> 
+			<br/>
+			<b>Point to: </b>
+			<select value='{{c.ptrs[tIndex]}}'>
+			{{#each attsDPtr}}
+				<option>{{this}}</option>
+			{{/each}}
+			</select><br/>
+			<b>Provide Legends:</b> 
 			{{#each c.lgnds[tIndex]}}
 				<span class="attribute-controls">
 					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
@@ -314,8 +321,14 @@
 			{{#each attsXY}}
 				<option>{{this}}</option>
 			{{/each}}
-			</select>
-			<br/><b>Provide Legends: </b>
+			</select><br/>
+			<b>Point to: </b>
+			<select value='{{c.ptrs[tIndex]}}'>
+			{{#each attsDPtr}}
+				<option>{{this}}</option>
+			{{/each}}
+			</select><br/>
+			<b>Provide Legends: </b>
 			{{#each c.lgnds[tIndex]}}
 				<span class="attribute-controls">
 					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
