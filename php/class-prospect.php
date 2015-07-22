@@ -338,10 +338,10 @@ class Prospect {
 		$this->loader->add_action('admin_action_prsp_export_map', $this->admin, 'prsp_export_map');
 		$this->loader->add_action('admin_action_prsp_export_all_maps', $this->admin, 'prsp_export_all_maps');
 
-		$this->loader->add_action('admin_init', $this->admin, 'check_archive_output');
+		$this->loader->add_action('admin_init', $this->admin, 'do_prsp_init');
 
 			// Hook for Archive page
-		$this->loader->add_action('admin_menu', $this->admin, 'add_prsp_archive_menu');
+		$this->loader->add_action('admin_menu', $this->admin, 'add_prsp_menus');
 
 			// AJAX calls
 		$this->loader->add_action('wp_ajax_prsp_get_rec_ids', $this->admin, 'prsp_get_rec_ids');

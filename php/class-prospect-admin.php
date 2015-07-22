@@ -6,6 +6,7 @@
 // TO DO: 	
 
 class ProspectAdmin {
+
 		// CLASS METHODS
 		// =============
 
@@ -1221,10 +1222,10 @@ class ProspectAdmin {
 	} // import_archive_file()
 
 
-		// PURPOSE: Check to see if POST with parameters sent to program that were generated
+		// NOTES: 	Must check POST vars at 'admin_init' as it creates file in output buffer
+		// 			Check to see if POST with parameters sent to program that were generated
 		//				from form on show_prsp_archive_page()
-		// NOTES: 	Must add this action with 'admin_init' as it creates file in output buffer
-	public function check_archive_output()
+	public function do_prsp_init()
 	{
 			// Check to see if we've been sent here by a form operation
 		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -1238,7 +1239,39 @@ class ProspectAdmin {
 				$this->import_archive_file();
 			}
 		}
-	} // check_archive_output()
+
+
+			// To save options in DB
+		register_setting(
+			'prsp_option_group', // Option group
+			'prsp_base_options', // Option name
+			array($this, 'sanitize_options') // Sanitize
+		);
+
+			// To show settings on Options page
+		add_settings_section(
+			'prsp_settings', // ID
+			'Prospect Customization Settings', // Title
+			array($this, 'prsp_settings_info'), // Callback
+			'prsp-settings-page' // Page
+		);
+
+		add_settings_field(
+			'prsp_chunks', // ID
+			'Number of Records per AJAX request', // Title
+			array($this, 'prsp_chunks_callback'), // Callback
+			'prsp-settings-page', // Page
+			'prsp_settings' // Section
+		);
+
+		add_settings_field(
+			'prsp_lang',
+			'Language to use',
+			array($this, 'prsp_lang_callback'),
+			'prsp-settings-page',
+			'prsp_settings'
+		);
+	} // do_prsp_init()
 
 
 		// PURPOSE: Code to create Archive page
@@ -1269,12 +1302,76 @@ class ProspectAdmin {
 	} // show_prsp_archive_page()
 
 
+		// PURPOSE: Sanitize each options field as needed
+		// INPUT:   $input = all settings fields as array keys
+	public function sanitize_options($input)
+	{
+		$new_input = array();
+
+		if (isset($input['prsp_chunks']))
+			$new_input['prsp_chunks'] = sanitize_text_field($input['prsp_chunks']);
+		if (isset($input['prsp_lang']))
+			$new_input['prsp_lang'] = sanitize_text_field($input['prsp_lang']);
+
+		return $new_input;
+	} // sanitize_options()
+
+
+		// PURPOSE: Print the Section text
+	public function prsp_settings_info()
+	{
+		echo '<p>Customize Prospect on this website with these settings</p>';
+	}
+
+		// PURPOSE: Get the settings option array and print one of its values
+	public function prsp_chunks_callback()
+	{
+		printf(
+			'<input type="text" id="prsp_chunks" name="prsp_base_options[prsp_chunks]" value="%s" />',
+			isset( $this->options['prsp_chunks'] ) ? esc_attr( $this->options['prsp_chunks']) : ''
+		);
+	} // prsp_chunks_callback()
+
+		// PURPOSE: Get the settings option array and print one of its values
+	public function prsp_lang_callback()
+	{
+		printf(
+			'<input type="text" id="prsp_lang" name="prsp_base_options[prsp_lang]" value="%s" size="48" />',
+			isset( $this->options['prsp_lang'] ) ? esc_attr( $this->options['prsp_lang']) : ''
+		);
+	} // prsp_lang_callback()
+
+
+		// PURPOSE: Code to create Settings page
+	public function show_prsp_settings_page()
+	{
+		// Set class property
+		$this->options = get_option('prsp_base_options');
+		?>
+		<div class="wrap">
+			<h2>Prospect Settings</h2>
+			<form method="post" action="options.php">
+			<?php
+				// This prints out all hidden setting fields
+				settings_fields('prsp_option_group');
+				do_settings_sections('prsp-settings-page');
+				submit_button();
+			?>
+			</form>
+		</div>
+		<?php
+	} // show_prsp_settings_page()
+
+
+
 		// PURPOSE: Register archive menu and hook to page creation function
-	public function add_prsp_archive_menu()
+	public function add_prsp_menus()
 	{
 		add_submenu_page('prsp-top-level-handle', 'Archive', 'Archive', 'manage_options', 'prsp-archive-menu', 
 			array($this, 'show_prsp_archive_page'));
-	} // add_prsp_archive_menu()
+		add_submenu_page('prsp-top-level-handle', 'Settings', 'Settings', 'manage_options', 'prsp-settings-page',
+			array($this, 'show_prsp_settings_page'));
+	} // add_prsp_menus()
 
 
 	// AJAX CALLS
