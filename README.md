@@ -15,6 +15,8 @@ Prospect is a Digital Humanities platform for data collaboration, visualization 
 Prospect is a flexible and powerful plugin that allows administrators to create curated Digital
 Humanities projects whose data can be visualized, accessed and analyzed in flexible ways.
 
+Requires PHP 5.4 or later.
+
 ## License
 
 Single Post Meta Manager is licensed under the [GPL v2](LICENSE.txt) or later.

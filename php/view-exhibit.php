@@ -56,7 +56,7 @@
 		// Put Attribute list in sorted order
 	sort($the_xhbt->gen->ts);
 	echo(' { id: "'.$the_xhbt->id.'", ');
-	echo(' g: '.json_encode($the_xhbt->gen).', ');
+	echo(' g: '.json_encode($the_xhbt->gen, JSON_UNESCAPED_UNICODE).', ');
 	echo(' vf: '.$the_xhbt->meta_views.', ');
 	echo(' i: '.$the_xhbt->meta_inspect.' }, ');
 
@@ -88,11 +88,11 @@
 				echo(', ');
 			$first = false;
 			echo('{ id: "'.$the_attribute->id.'", ');
-			echo(' def: '.json_encode($the_attribute->def).', ');
+			echo(' def: '.json_encode($the_attribute->def, JSON_UNESCAPED_UNICODE).', ');
 			echo(' r: '.$the_attribute->meta_range.', ');
-			echo(' l: '.json_encode($the_attribute->legend));
+			echo(' l: '.json_encode($the_attribute->legend, JSON_UNESCAPED_UNICODE));
 			if ($the_attribute->x != null)
-				echo(', x: '.json_encode($the_attribute->x).' }');
+				echo(', x: '.json_encode($the_attribute->x, JSON_UNESCAPED_UNICODE).' }');
 			else
 				echo(' }');
 		}
