@@ -81,11 +81,19 @@ input[type=range] {
 
 	/*  grouping controls that belong to an Attribute  */
 .attribute-controls {
-	margin: 3px;
-	margin-bottom: 6px;
-	padding: 3px;
+	margin: 1px;
+	padding: 2px;
+    display: inline-block;
+    line-height: 1em;
 }
 
+.map-layer-div {
+	vertical-align: middle;
+}
+
+.map-layer-div input {
+	vertical-align: middle;
+}
 
 /* ========== jQueryUI components =========== */
 /* == Overrides to make styling work in WP == */
