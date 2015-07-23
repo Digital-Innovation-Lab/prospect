@@ -266,6 +266,7 @@ div.filter-body svg .brush .extent {
 	/* The first visualization display */
 #view-frame-0 {
 	border: #aaa 1px solid;
+	position: relative;
 }
 
 	/* The second visualization display */
@@ -328,12 +329,9 @@ div.filter-body svg .brush .extent {
 	 *				https://developer.mozilla.org/en-US/docs/Web/Guide/CSS/Understanding_z_index/Adding_z-index
 	 */
 div.lgnd-container {
-	position: relative;
-	/*	top: 6px;
-	*/
-	top: -390px;
+	position: absolute;
+	top: 50px;
 	left: 10px;
-	opacity: 0.85;
 	z-index: 100;
 
 	width: 270px;
@@ -341,9 +339,7 @@ div.lgnd-container {
 	max-height: 265px;
 
 	padding: 6px;
-
-	background: #fff;
-	background-color: rgba(255, 255, 255, .95);
+	background-color: rgba(255, 255, 255, .8);
 
 	color: #222;
 	font-family: "Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;
@@ -423,6 +419,7 @@ div.lgnd-value-title {
 	 * =============
 	 */
 
+
 div.ui-dialog-content p {
 	margin: 2px;
 	padding: 0;
@@ -433,10 +430,11 @@ div.scroll-container ul {
 	margin: 3px;
 	padding: 0;
 	padding-left: 4px;
+	cursor: pointer;
 }
 
 div.scroll-container .selected {
-	color: red;
+	color: #56A0D3;
 }
 
 #layout-choices {
