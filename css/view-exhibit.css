@@ -423,8 +423,16 @@ div.lgnd-value-title {
 	 * =============
 	 */
 
-div.scroll-container ul {
+div.ui-dialog-content p {
+	margin: 2px;
+	padding: 0;
+}
 
+div.scroll-container ul {
+	list-style-position: inside;
+	margin: 3px;
+	padding: 0;
+	padding-left: 4px;
 }
 
 div.scroll-container .selected {
