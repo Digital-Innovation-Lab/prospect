@@ -3239,6 +3239,7 @@ console.log("Set layout to: "+lIndex);
 
 	function clickGoHome(event)
 	{
+		window.location.href=prspdata.e.g.hurl;
 		event.preventDefault();
 	} // clickGoHome()
 
@@ -3516,7 +3517,7 @@ console.log("Set layout to: "+lIndex);
 		prspdata.site_url += '/';
 
 	if (prspdata.e.g.l != '')
-		jQuery('#title').append(prspdata.e.g.l);
+		jQuery('#title').text(prspdata.e.g.l);
 
 		// Command Bar
 	jQuery('#btn-recompute').button({icons: { primary: 'ui-icon-refresh' }, text: false })
