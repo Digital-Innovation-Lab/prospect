@@ -1331,7 +1331,7 @@ class ProspectAdmin {
 	{
 		printf(
 			'<input type="number" id="prsp_chunks" name="prsp_base_options[prsp_chunks]" value="%s" />',
-			isset($this->options['prsp_chunks']) ? esc_attr($this->options['prsp_chunks']) : ''
+			isset($this->options['prsp_chunks']) ? esc_attr($this->options['prsp_chunks']) : 1000
 		);
 	} // prsp_chunks_callback()
 

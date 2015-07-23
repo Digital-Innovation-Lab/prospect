@@ -260,8 +260,6 @@ VizMap.prototype.setup = function()
 		// Maintain number of Loc Atts per Template type
 	var numT = PDataHub.getNumETmplts();
 	this.tLCnt = new Uint16Array(numT);
-	for (var i=0; i<numT; i++)
-		this.tLCnt[i] = 0;
 } // setup()
 
 
@@ -317,12 +315,21 @@ VizMap.prototype.render = function(datastream)
 	}
 
 	var numTmplts = PDataHub.getNumETmplts();
-	var i=0, aI, tI=0, fAttID, fAtt, locAtts, featSet, rec;
+	var i=0, aI, tI=0, fAttID, fAtt, locAtts, featSet, pAttID, pAtt, rec;
 	var locData, fData, newMarker, s;
 
 		// Clear out marker counts
 	for (i=0; i<numTmplts; i++)
 		this.tLCnt[i] = 0;
+
+		// For caching marker data, if need to construct Pointer links
+		// { id, c(oordinates)[], p(ointers)[] }
+	var mCache=null;
+	for (i=0; i<numTmplts; i++)
+		if (this.settings.ptrs[i] != 'disable') {
+			mCache=[];
+			break;
+		}
 
 	i=0;
 	while (i<datastream.l) {
@@ -369,12 +376,19 @@ VizMap.prototype.render = function(datastream)
 				// Get Feature Attribute ID and def for this Template
 			fAttID = self.vFrame.getSelLegend(tI);
 			fAtt = PDataHub.getAttID(fAttID);
+
+			pAttID = self.settings.ptrs[tI];
 		} // if new Template
+
 			// Get Record data
 		aI = datastream.s[i];
 		rec = PDataHub.getRecByIndex(aI);
 			// For each of the locate Attributes
 		locAtts.forEach(function(theLAtt) {
+			var cEntry=null;
+			if (mCache) {
+				cEntry={ id: rec.id };
+			}
 			locData = rec.a[theLAtt];
 			if (locData) {
 				if (fData = rec.a[fAttID]) {
@@ -2252,6 +2266,9 @@ var PDataHub = (function () {
 			dltextApprox = document.getElementById('dltext-approximately').innerHTML;
 			dltextNow = document.getElementById('dltext-now').innerHTML;
 
+			if (typeof prspdata.chunk == 'number' && prspdata.chunk > 0)
+				LOAD_DATA_CHUNK = prspdata.chunk;
+
 				// For each entry: head entry for Record Data and collect Legends
 			prspdata.t.forEach(function(tmplt) {
 					// Head Record entry
@@ -3519,6 +3536,10 @@ console.log("Set layout to: "+lIndex);
 			jQuery(event.target).addClass("selected");
 		}
 	});
+
+		// Create options on Layout modal
+	jQuery('#layout-choices').append('<img src="'+prspdata.assets+'layout1.jpg" data-index="0"/><img src="'+
+			prspdata.assets+'layout2.jpg" data-index="1"/><img src="'+prspdata.assets+'layout3.jpg" data-index="2"/>');
 
 		// Handle selection of item on Set Layout modal
 	jQuery('#layout-choices').click(function(event) {

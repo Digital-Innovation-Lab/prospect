@@ -43,6 +43,14 @@
 		site_url: <?php
 	echo('"'.site_url().'"');
 ?>,
+		chunks: <?php
+	$options = get_option('prsp_base_options');
+	$chunk = isset($options['prsp_chunks']) ? (int)$options['prsp_chunks'] : 1000;
+	echo $chunk;
+?>,
+		assets: <?
+	echo('"'.plugins_url('/assets/', dirname(__FILE__)).'"');
+?>,
 		e: <?php
 	$the_xhbt = new ProspectExhibit(true, get_the_ID(), true);
 		// Put Attribute list in sorted order
