@@ -3525,8 +3525,15 @@ console.log("Set layout to: "+lIndex);
 			.click(clickSetLayout);
 	jQuery('#btn-perspectives').button({icons: { primary: 'ui-icon-note' }, text: false })
 			.click(clickPerspectives);
-	jQuery('#btn-home').button({icons: { primary: 'ui-icon-home' }, text: false })
-			.click(clickGoHome);
+
+		// Are there Home settings?
+	if (prspdata.e.g.hbtn.length > 0 && prspdata.e.g.hurl.length > 0) {
+		jQuery('#home-title').text(prspdata.e.g.hbtn);
+		jQuery('#btn-home').button({icons: { primary: 'ui-icon-home' }, text: false })
+				.click(clickGoHome);
+	} else {
+		jQuery('#btn-home').remove();
+	}
 
 
 		// Handle selection of item on New Filter modal
