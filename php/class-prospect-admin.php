@@ -41,7 +41,11 @@ class ProspectAdmin {
 		// RETURNS: Contents of file as string
 	static public function get_script_text($scriptname)
 	{
-		$scriptpath = plugin_dir_path(__FILE__).'scripts/'.$scriptname;
+		$options = get_option('prsp_base_options');
+		$lang = isset($options['prsp_lang']) ? $options['prsp_lang'] : 'english-us';
+
+		$scriptpath = plugin_dir_path(__FILE__).'scripts/'.$lang.'/'.$scriptname;
+
 		if (!file_exists($scriptpath)) {
 			trigger_error("Script file ".$scriptpath." not found");
 		}
@@ -1240,7 +1244,6 @@ class ProspectAdmin {
 			}
 		}
 
-
 			// To save options in DB
 		register_setting(
 			'prsp_option_group', // Option group
@@ -1327,18 +1330,39 @@ class ProspectAdmin {
 	public function prsp_chunks_callback()
 	{
 		printf(
-			'<input type="text" id="prsp_chunks" name="prsp_base_options[prsp_chunks]" value="%s" />',
-			isset( $this->options['prsp_chunks'] ) ? esc_attr( $this->options['prsp_chunks']) : ''
+			'<input type="number" id="prsp_chunks" name="prsp_base_options[prsp_chunks]" value="%s" />',
+			isset($this->options['prsp_chunks']) ? esc_attr($this->options['prsp_chunks']) : ''
 		);
 	} // prsp_chunks_callback()
 
 		// PURPOSE: Get the settings option array and print one of its values
 	public function prsp_lang_callback()
 	{
-		printf(
-			'<input type="text" id="prsp_lang" name="prsp_base_options[prsp_lang]" value="%s" size="48" />',
-			isset( $this->options['prsp_lang'] ) ? esc_attr( $this->options['prsp_lang']) : ''
-		);
+		$dirs = array();
+		$scriptpath = plugin_dir_path(__FILE__).'scripts/';
+		$dirIt = new DirectoryIterator($scriptpath);
+		foreach ($dirIt as $fileinfo) {
+			if ($fileinfo->isDir() && !$fileinfo->isDot()) {
+				array_push($dirs, $fileinfo->getFilename());
+			}
+		}
+
+		$current = isset($this->options['prsp_lang']) ? esc_attr($this->options['prsp_lang']) : 'english-us';
+
+		$html = '<select id="prsp_lang" name="prsp_base_options[prsp_lang]">';
+ 
+		foreach ($dirs as $this_dir)
+		{
+			$html .= '<option value="'.$this_dir.'"';
+	 
+			if ($this_dir == $this->options['prsp_lang'])
+				$html .= ' selected="selected"';
+	 
+			$html .= '>'. $this_dir .'</option>';
+		}
+		$html .= '</select>';
+ 
+		echo($html);
 	} // prsp_lang_callback()
 
 
@@ -1361,7 +1385,6 @@ class ProspectAdmin {
 		</div>
 		<?php
 	} // show_prsp_settings_page()
-
 
 
 		// PURPOSE: Register archive menu and hook to page creation function
