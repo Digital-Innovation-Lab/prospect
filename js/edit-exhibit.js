@@ -3,7 +3,8 @@
 // ASSUMES: A view area for the browser has been marked with HTML div as "ractive-output"
 // NOTES:   
 // USES:    jQuery, Underscore, jQueryUI, and Ractive
-// ASSUMES: 
+// ASSUMES: All data not to be edited by user passed in prspdata
+//			All data to be edited by user passed in hidden fields
 
 // TO DO:	Check if Template & Attribute definitions changed since previous configuration??
 
@@ -541,7 +542,7 @@ jQuery(document).ready(function() {
 			var theVF = defViews[i];
 			switch (theVF.vf) {
 			case 'Map':
-				var newLL=[], newLgnds=[], newPtrs=[];
+				var newLL=[], newLgnds=[], newPAtts=[], newSAtts=[];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
@@ -549,18 +550,21 @@ jQuery(document).ready(function() {
 						newLL.push(_.map(theTmplt.attsLL, function(theLLAtt) {
 								return { attID: theLLAtt, useAtt: true };
 							}));
-						newPtrs.push('disable');
+						newPAtts.push('disable');
+						newSAtts.push(theTmplt.attsDNum[0] || 'disable');
 						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
 					} else {
 						newLL.push(createPaddedAtts(theTmplt.attLL, theVF.c.cAtts[origTIndex]));
-						newPtrs.push(theVF.c.ptrs[origTIndex]);
+						newPAtts.push(theVF.c.pAtts[origTIndex] || 'disable');
+						newSAtts.push(theVF.c.sAtts[origTIndex] || 'disable');
 						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
 					}
 				});
 				theVF.c.cAtts = newLL;
-				theVF.c.ptrs = newPtrs;
+				theVF.c.pAtts = newPAtts;
+				theVF.c.sAtts = newSAtts;
 				theVF.c.lgnds = newLgnds;
 				break;
 			case 'Cards':
@@ -584,24 +588,27 @@ jQuery(document).ready(function() {
 				theVF.c.cnt = newCnt;
 				break;
 			case 'Pinboard':
-				var newXY=[], newLgnds=[], newPtrs=[];
+				var newXY=[], newLgnds=[], newPAtts=[], newSAtts=[];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
 					if (origTIndex == -1) {
 						newXY.push(theTmplt.attsXY[0]);
-						newPtrs.push('disable');
+						newPAtts.push('disable');
+						newSAtts.push(theTmplt.attsDNum[0] || 'disable');
 						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
 					} else {
-						newXY.push(theVF.c.cAtts[origTIndex]);
-						newPtrs.push(theVF.c.ptrs[origTIndex]);
+						newXY.push(theVF.c.cAtts[origTIndex] || 'disable');
+						newPAtts.push(theVF.c.pAtts[origTIndex] || 'disable');
+						newSAtts.push(theVF.c.sAtts[origTIndex] || 'disable');
 						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
 					}
 				});
 				theVF.c.cAtts = newXY;
-				theVF.c.pts = newPtrs;
+				theVF.c.pAtts = newPAtts;
+				theVF.c.sAtts = newSAtts;
 				theVF.c.lgnds = newLgnds;
 				break;
 			case 'Browser':
@@ -679,13 +686,13 @@ jQuery(document).ready(function() {
 						newCnt.push(theVF.c.cnt[origTIndex]);
 						newOrder.push(theVF.c.order[origTIndex]);
 						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
-						newSize.push(theVF.c.sz[origTIndex]);
+						newSize.push(theVF.c.sAtts[origTIndex] || 'disable');
 					}
 				});
 				theVF.c.cnt = newCnt;
 				theVF.c.order = newOrder;
 				theVF.c.lgnds = newLgnds;
-				theVF.c.sz = newSize;
+				theVF.c.sAtts = newSize;
 				break;
 			} // switch viewtype
 		} // for views
@@ -741,7 +748,9 @@ jQuery(document).ready(function() {
 				newVFEntry.c.clat = '';
 				newVFEntry.c.clon = '';
 				newVFEntry.c.zoom = 10;
-				newVFEntry.c.size = 's';
+				newVFEntry.c.min = 7;
+				newVFEntry.c.max = 7;
+				newVFEntry.c.lclr = '#00CCFF';
 				newVFEntry.c.clstr= false;
 					// Lat-Long Coordinates
 				newVFEntry.c.cAtts= _.map(iTemplates, function(theTemplate) {
@@ -750,7 +759,11 @@ jQuery(document).ready(function() {
 					})
 				});
 					// Potential Pointers
-				newVFEntry.c.ptrs= _.map(iTemplates, function(theTemplate) {
+				newVFEntry.c.pAtts= _.map(iTemplates, function(theTemplate) {
+					return 'disable';
+				});
+					// Potential Size
+				newVFEntry.c.sAtts= _.map(iTemplates, function(theTemplate) {
 					return 'disable';
 				});
 					// Potential Legends
@@ -784,14 +797,20 @@ jQuery(document).ready(function() {
 				newVFEntry.c.ih   = 500;
 				newVFEntry.c.dw   = 500;
 				newVFEntry.c.dh   = 500;
-				newVFEntry.c.size = 's';
+				newVFEntry.c.min = 7;
+				newVFEntry.c.max = 7;
+				newVFEntry.c.lclr = '#00CCFF';
 				newVFEntry.c.img  = '';
 					// X,Y Coordinates
 				newVFEntry.c.cAtts= _.map(iTemplates, function(theTemplate) {
 					return theTemplate.attsXY[0];
 				});
 					// Potential Pointers
-				newVFEntry.c.ptrs= _.map(iTemplates, function(theTemplate) {
+				newVFEntry.c.pAtts= _.map(iTemplates, function(theTemplate) {
+					return 'disable';
+				});
+					// Potential Size
+				newVFEntry.c.sAtts= _.map(iTemplates, function(theTemplate) {
 					return 'disable';
 				});
 					// Potential Legends
@@ -872,14 +891,14 @@ jQuery(document).ready(function() {
 				newVFEntry.c.order  = _.map(iTemplates, function(theTemplate) {
 					return theTemplate.attsFct[0];
 				});
+				newVFEntry.c.sAtts  = _.map(iTemplates, function(theTemplate) {
+					return 'disable';
+				});
 					// Potential Legends
 				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
 					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
 						return { attID: theLgndAtt, useAtt: true };
 					});
-				});
-				newVFEntry.c.sz  = _.map(iTemplates, function(theTemplate) {
-					return 'disable';
 				});
 				break;
 			} // switch
@@ -1071,7 +1090,9 @@ jQuery(document).ready(function() {
 					saveView.c.clat = viewSettings.c.clat;
 					saveView.c.clon = viewSettings.c.clon;
 					saveView.c.zoom = viewSettings.c.zoom;
-					saveView.c.size = viewSettings.c.size;
+					saveView.c.min  = viewSettings.c.min;
+					saveView.c.max  = viewSettings.c.max;
+					saveView.c.lclr = viewSettings.c.lclr;
 					saveView.c.clstr= viewSettings.c.clstr;
 					var newCAtts = [], newLgnds = [];
 					saveTIndices.forEach(function(tIndex) {
@@ -1080,7 +1101,8 @@ jQuery(document).ready(function() {
 					});
 					saveView.c.cAtts = newCAtts;
 					saveView.c.lgnds = newLgnds;
-					saveView.c.ptrs = packUsedAttIDs(viewSettings.c.ptrs);
+					saveView.c.pAtts = packUsedAttIDs(viewSettings.c.pAtts);
+					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts);
 						// Don't need to modify map layer settings
 					saveView.c.base = viewSettings.c.base;
 					saveView.c.lyrs = viewSettings.c.lyrs;
@@ -1090,7 +1112,9 @@ jQuery(document).ready(function() {
 					saveView.c.ih   = viewSettings.c.ih;
 					saveView.c.dw   = viewSettings.c.dw;
 					saveView.c.dh   = viewSettings.c.dh;
-					saveView.c.size = viewSettings.c.size;
+					saveView.c.min  = viewSettings.c.min;
+					saveView.c.max  = viewSettings.c.max;
+					saveView.c.lclr = viewSettings.c.lclr;
 					saveView.c.img  = viewSettings.c.img;
 					var newLgnds = [];
 					saveTIndices.forEach(function(tIndex) {
@@ -1098,7 +1122,8 @@ jQuery(document).ready(function() {
 					});
 					saveView.c.cAtts = packUsedAttIDs(viewSettings.c.cAtts);
 					saveView.c.lgnds = newLgnds;
-					saveView.c.ptrs = packUsedAttIDs(viewSettings.c.ptrs);
+					saveView.c.pAtts = packUsedAttIDs(viewSettings.c.pAtts);
+					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts);
 						// Don't need to modify svg layer settings
 					saveView.c.lyrs = viewSettings.c.lyrs;
 					break;
@@ -1169,7 +1194,7 @@ jQuery(document).ready(function() {
 					saveView.c.cnt = packUsedAttIDs(viewSettings.c.cnt);
 					saveView.c.order = packUsedAttIDs(viewSettings.c.order);
 					saveView.c.lgnds = newLgnds;
-					saveView.c.sz = packUsedAttIDs(viewSettings.c.sz);
+					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts);
 					break;
 				} // switch
 				saveViews.push(saveView);

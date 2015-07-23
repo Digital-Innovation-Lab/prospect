@@ -1,9 +1,5 @@
 <?php
 
-// PURPOSE: Implement Template objects
-
-// NOTES:   
-
 class ProspectTemplate {
 		// CLASS METHODS
 		// =============

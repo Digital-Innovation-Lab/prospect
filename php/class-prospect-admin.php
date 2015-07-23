@@ -3,8 +3,6 @@
 // PURPOSE: Code that handles Dashboard backend functionality
 //				and all interface between WordPress and JS
 
-// TO DO: 	
-
 class ProspectAdmin {
 
 		// CLASS METHODS
@@ -13,21 +11,21 @@ class ProspectAdmin {
 		// PURPOSE: "clean" extraneous data from string passed via internet
 	static private function clean_string($orig_string)
 	{
-		$new_string = $orig_string;
-		for ($i = 0; $i <= 31; ++$i) { 
-			$new_string = str_replace(chr($i), "", $new_string);
-		}
-		$new_string = str_replace(chr(127), "", $new_string);
+		// $new_string = $orig_string;
+		// for ($i = 0; $i <= 31; ++$i) { 
+		// 	$new_string = str_replace(chr($i), "", $new_string);
+		// }
+		// $new_string = str_replace(chr(127), "", $new_string);
 
-		if (0 === strpos(bin2hex($new_string), 'efbbbf')) {
-			$new_string = substr($new_string, 3);
-		}
+		// if (0 === strpos(bin2hex($new_string), 'efbbbf')) {
+		// 	$new_string = substr($new_string, 3);
+		// }
 
-		$new_string = preg_replace("/\p{Cc}*$/u", "", $new_string);
+		// $new_string = preg_replace("/\p{Cc}*$/u", "", $new_string);
 
-		$new_string = rtrim($new_string, "\0");
+		// $new_string = rtrim($new_string, "\0");
 
-		$new_string = preg_replace('/,\s*([\]}])/m', '$1', $new_string);
+		// $new_string = preg_replace('/,\s*([\]}])/m', '$1', $new_string);
 
 			// This seems to be the crucial process
 		$new_string = stripslashes(str_replace('\"', '"', $new_string));

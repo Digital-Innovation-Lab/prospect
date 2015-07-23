@@ -1,9 +1,5 @@
 <?php
 
-// PURPOSE: Implement ProspectExhibit objects
-
-// NOTES:   
-
 class ProspectExhibit {
 		// CLASS METHODS
 		// =============

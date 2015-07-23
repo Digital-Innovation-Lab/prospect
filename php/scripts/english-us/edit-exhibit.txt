@@ -192,12 +192,9 @@
 	Longitude: <input type="text" value="{{c.clon}}" size="10" pattern="^-?\d{1,3}(\.\d*)*" required/>
 	Initial Zoom: <input type="number" value="{{c.zoom}}" min="1" max="20" required/>
 	<br/>
-	Marker Size:
-		<select value="{{c.size}}">
-			<option value="s">Small</option>
-			<option value="m">Medium</option>
-			<option value="l">Large</option>
-		</select>
+	Min Radius: <input type="number" value="{{c.min}}" min="1" max="20" required/>
+	Max Radius: <input type="number" value="{{c.max}}" min="1" max="20" required/>
+	Link Line Color: <input type="text" value="{{c.lclr}}" size="10"/>
 	Clustering: <input type='checkbox' checked='{{c.clstr}}'/>
 	<br/>
 	Choose the Attribute(s) to visualize each Template type
@@ -216,12 +213,19 @@
 				</span>
 			{{/each}}
 			<br/>
-			<b>Point to: </b>
-			<select value='{{c.ptrs[tIndex]}}'>
+			<b>Marker Radius Size: </b>
+			<select value='{{c.sAtts[tIndex]}}'>
+			{{#each attsDNum}}
+				<option>{{this}}</option>
+			{{/each}}
+			</select>
+			<b>Connect to: </b>
+			<select value='{{c.pAtts[tIndex]}}'>
 			{{#each attsDPtr}}
 				<option>{{this}}</option>
 			{{/each}}
-			</select><br/>
+			</select>
+			<br/>
 			<b>Provide Legends:</b> 
 			{{#each c.lgnds[tIndex]}}
 				<span class="attribute-controls">
@@ -301,12 +305,10 @@
 	Height: <input type="number" value="{{c.ih}}" min="1" max="9999"/><br/>
 	Display Width: <input type="number" value="{{c.dw}}" min="1" max="9999"/>
 	Height: <input type="number" value="{{c.dh}}" min="1" max="9999"/>
-	Marker Size:
-		<select value="{{c.size}}">
-			<option value="s">Small</option>
-			<option value="m">Medium</option>
-			<option value="l">Large</option>
-		</select>
+	<br/>
+	Min Radius: <input type="number" value="{{c.min}}" min="1" max="20" required/>
+	Max Radius: <input type="number" value="{{c.max}}" min="1" max="20" required/>
+	Link Line Color: <input type="text" value="{{c.lclr}}" size="10"/>
 	<br/>
 	Choose the Attribute(s) to visualize according to Template type:
 	<tabs>
@@ -323,8 +325,14 @@
 				<option>{{this}}</option>
 			{{/each}}
 			</select><br/>
-			<b>Point to: </b>
-			<select value='{{c.ptrs[tIndex]}}'>
+			<b>Marker Radius Size: </b>
+			<select value='{{c.sAtts[tIndex]}}'>
+			{{#each attsDNum}}
+				<option>{{this}}</option>
+			{{/each}}
+			</select>
+			<b>Link to: </b>
+			<select value='{{c.pAtts[tIndex]}}'>
 			{{#each attsDPtr}}
 				<option>{{this}}</option>
 			{{/each}}
@@ -497,7 +505,7 @@
 			{{/each}}
 			</select>
 			<b>Text Size: </b>
-			<select value='{{c.sz[tIndex]}}'>
+			<select value='{{c.sAtts[tIndex]}}'>
 			{{#each attsDNum}}
 				<option>{{this}}</option>
 			{{/each}}

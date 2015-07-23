@@ -308,11 +308,8 @@ VizMap.prototype.render = function(datastream)
 
 	var rad;
 
-	switch (self.settings.size) {
-	case 's': rad=4; break;
-	case 'm': rad=7; break;
-	case 'l': rad=12; break;
-	}
+		// TO DO
+	rad=7;
 
 	var numTmplts = PDataHub.getNumETmplts();
 	var i=0, aI, tI=0, fAttID, fAtt, locAtts, featSet, pAttID, pAtt, rec;
@@ -624,17 +621,20 @@ VizPinboard.prototype.render = function(datastream)
 		// { ai [absolute index], id, v[iz value], x, y, w, h, c [ids of connections] }
 	var nodes = [];
 
-	switch (this.settings.size) {
-	case 's':
-		idx = -6; idy = -10; iw = 12; ih = 12;
-		break;
-	case 'm':
-		idx = -12; idy = -20; iw = 24; ih = 24;
-		break;
-	case 'l':
-		idx = -16; idy = -30; iw = 32; ih = 32;
-		break;
-	}
+	// switch (this.settings.size) {
+	// case 's':
+	// 	idx = -6; idy = -10; iw = 12; ih = 12;
+	// 	break;
+	// case 'm':
+	// 	idx = -12; idy = -20; iw = 24; ih = 24;
+	// 	break;
+	// case 'l':
+	// 	idx = -16; idy = -30; iw = 32; ih = 32;
+	// 	break;
+	// }
+
+		// TO DO
+	idx = -12; idy = -20; iw = 24; ih = 24;
 
 	i=0;
 	while (i<datastream.l) {
@@ -1004,7 +1004,7 @@ VizTextStream.prototype.render = function(datastream)
 		insert.append('<div class="template-label">'+tDef.l+'</div>');
 
 		cAttID = self.settings.cnt[tI];
-		szAttID = self.settings.sz[tI];
+		szAttID = self.settings.sAtts[tI];
 		if (szAttID) {
 			szAtt = PDataHub.getAttID(szAttID);
 			if (typeof szAtt.r.min == 'number' && typeof szAtt.r.max == 'number')
