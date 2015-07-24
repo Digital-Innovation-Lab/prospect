@@ -243,11 +243,11 @@ VizMap.prototype.setup = function()
 
 	jQuery('div.reset-control').click(resetMap);
 
-	var markers;
+	// var markers;
 	// if (this.settings.clster) {
 	// 	markers = new L.MarkerClusterGroup();
 	// } else {
-		markers = L.featureGroup();            
+	var markers = L.featureGroup();            
 	// }
 	this.markerLayer = markers;
 
@@ -256,6 +256,10 @@ VizMap.prototype.setup = function()
 	markers.options.layerName = 'Markers';
 
 	markers.addTo(this.lMap);
+
+	var lines = L.featureGroup();
+	this.lineLayer = lines;
+	lines.addTo(this.lMap);
 
 		// Maintain number of Loc Atts per Template type
 	var numT = PDataHub.getNumETmplts();
@@ -306,105 +310,90 @@ VizMap.prototype.render = function(datastream)
 		// Remove previous Markers
 	mLayer.clearLayers();
 
-	var rad;
+	var lines = this.lineLayer;
+	lines.clearLayers();
 
-		// TO DO
-	rad=7;
+	var rad=this.settings.min;
 
 	var numTmplts = PDataHub.getNumETmplts();
-	var i=0, aI, tI=0, fAttID, fAtt, locAtts, featSet, pAttID, pAtt, rec;
+	var i=0, aI, tI=0, tRec, rec;
+	var fAttID, fAtt, locAtts, featSet, pAttID, sAttID;
 	var locData, fData, newMarker, s;
 
 		// Clear out marker counts
 	for (i=0; i<numTmplts; i++)
 		this.tLCnt[i] = 0;
 
-		// For caching marker data, if need to construct Pointer links
-		// { id, c(oordinates)[], p(ointers)[] }
-	var mCache=null;
+		// If Pointers used, need to cach marker data need to construct links
+		//		{ id, c(oordinates)[], p(ointers)[] }
+	var mCache;
 	for (i=0; i<numTmplts; i++)
-		if (this.settings.ptrs[i] != 'disable') {
+		if (this.settings.pAtts[i] != 'disable') {
 			mCache=[];
 			break;
 		}
 
-	i=0;
+	i=0; tI=-1;
+	doStream:
 	while (i<datastream.l) {
-			// If previous "fast-forward" went to empty Template, must go to next
-		while (i == -1) {
-			if (++tI == numTmplts)
-				return;
-			else
-					// Fast-forward to next Template source
-				i = PDataHub.stream1stTEntry(datastream, tI);
-		}
 			// Starting with new Template?
 		if (locAtts == null) {
+			do {
+				if (++tI == numTmplts)
+					break doStream;
+				tRec = datastream.t[tI];
+			} while (tRec.n == 0 || (tRec.i+tRec.n) == i);
+
 			locAtts = this.vFrame.getSelLocAtts(tI);
-			self.tLCnt[tI] = locAtts.length;
-// console.log("tIndex: "+tI+"; locAtts: "+JSON.stringify(locAtts));
 				// Skip Template if no locate Atts
 			if (locAtts.length == 0) {
 				locAtts = null;
-					// Have we exhausted all Templates?
-				if (++tI == numTmplts)
-					return;
-				else {
-						// Fast-forward to next Template source
-					i = PDataHub.stream1stTEntry(datastream, tI);
-					continue;
-				}
+				continue;
 			} // if no locAtts
 			featSet = self.vFrame.getSelFeatAtts(tI);
-// console.log("tIndex: "+tI+"; featAtts: "+JSON.stringify(featAtts));
-
 				// Skip Templates if no feature Atts
 			if (featSet.length == 0) {
 				locAtts = null;
-					// Have we exhausted all Templates?
-				if (++tI == numTmplts)
-					return;
-				else {
-						// Fast-forward to next Template source
-					i = PDataHub.stream1stTEntry(datastream, tI);
-					continue;
-				}
+				continue;
 			} // if no featAtts
+
+			self.tLCnt[tI] = locAtts.length;
+
 				// Get Feature Attribute ID and def for this Template
 			fAttID = self.vFrame.getSelLegend(tI);
 			fAtt = PDataHub.getAttID(fAttID);
 
-			pAttID = self.settings.ptrs[tI];
+			pAttID = self.settings.pAtts[tI];
 		} // if new Template
 
-			// Get Record data
+			// Get Record data and create cache entry
 		aI = datastream.s[i];
 		rec = PDataHub.getRecByIndex(aI);
+		var cEntry;
+		if (mCache) {
+			cEntry={ id: rec.id, c: [], p: rec.a[pAttID] };
+		}
 			// For each of the locate Attributes
 		locAtts.forEach(function(theLAtt) {
-			var cEntry=null;
-			if (mCache) {
-				cEntry={ id: rec.id };
-			}
 			locData = rec.a[theLAtt];
 			if (locData) {
 				if (fData = rec.a[fAttID]) {
 					fData = PDataHub.getAttLgndVal(fData, fAtt, featSet, false);
 					if (fData) {
-// console.log("Record "+i+"["+fAttID+"]: "+JSON.stringify(rec.a[fAttID])+" = "+fData);
 						s = self.isSel(i);
 						if (typeof locData[0] == 'number') {
 							newMarker = L.circleMarker(locData,
 								{	_aid: aI, weight: 1, radius: rad,
 									fillColor: fData, color: s ? "#ff0000" : "#000",
 									opacity: 1, fillOpacity: 1
-								}
-							);
+								});
+							if (cEntry)
+								cEntry.c.push(locData);
 						} else {
 							if (locData.length == 2) {
-								// draw line
+								// TO DO: draw line
 							} else {
-								// draw polygon
+								// TO DO: draw polygon
 							}
 						}
 						newMarker.on('click', markerClick);
@@ -413,12 +402,42 @@ VizMap.prototype.render = function(datastream)
 				}
 			}
 		}); // for locAtts
+// console.log("cEntry: "+JSON.stringify(cEntry));
+		if (cEntry && cEntry.c.length > 0)
+			mCache.push(cEntry);
 			// Increment stream index -- check if going into new Template
-		if (++i == (datastream.t[tI].i + datastream.t[tI].n)) {
+		if (++i == (tRec.i + tRec.n)) {
 			locAtts = null;
-			tI++;
 		}
-	} // while 
+	} // while
+
+		// Use cache to create connections
+	if (mCache) {
+		mCache.sort(function(a,b) { return a.id.localeCompare(b.id); });
+		var links=[];		// { f, t }
+		mCache.forEach(function(node) {
+			if (node.p) {
+					// Iterate the node's Pointers
+				node.p.forEach(function(aPtr) {
+					i = _.sortedIndex(mCache, { id: aPtr }, 'id');
+					var cnnctd = mCache[i];
+					if (cnnctd.id == aPtr) {
+						node.c.forEach(function(from) {
+							cnnctd.c.forEach(function(to) {
+								if (from[0] != to[0] || from[1] != to[1])
+									links.push([from, to]);
+							})
+						})
+					}
+				});
+			}
+		});
+
+		var c = this.settings.lclr;
+		links.forEach(function(latlngs) {
+			lines.addLayer(L.polyline(latlngs, {color: c, weight: 2 }));
+		});
+	} // mCache
 } // render()
 
 VizMap.prototype.clearSel = function()
@@ -615,11 +634,18 @@ VizPinboard.prototype.render = function(datastream)
 
 	var idx, idy, iw, ih;
 	var numTmplts = PDataHub.getNumETmplts();
-	var i, aI, tI=0, fAttID, fAtt, locAtts, featSet, rec;
+	var i, aI, tI=0, tRec, rec;
+	var fAttID, fAtt, locAtts, featSet, pAttID;
 	var locData, fData;
 
-		// { ai [absolute index], id, v[iz value], x, y, w, h, c [ids of connections] }
-	var nodes = [];
+		// If Pointers used, need to cach marker data need to construct links
+		//		{ id, c(oordinates)[], p(ointers)[] }
+	var mCache;
+	for (i=0; i<numTmplts; i++)
+		if (this.settings.pAtts[i] != 'disable') {
+			mCache=[];
+			break;
+		}
 
 	// switch (this.settings.size) {
 	// case 's':
@@ -636,54 +662,43 @@ VizPinboard.prototype.render = function(datastream)
 		// TO DO
 	idx = -12; idy = -20; iw = 24; ih = 24;
 
-	i=0;
+	i=0; tI=-1;
+	doStream:
 	while (i<datastream.l) {
-			// If previous "fast-forward" went to empty Template, must go to next
-		while (i == -1) {
-			if (++tI == numTmplts)
-				return;
-			else
-					// Fast-forward to next Template source
-				i = PDataHub.stream1stTEntry(datastream, tI);
-		}
 			// Starting with new Template?
 		if (locAtts == null) {
+			do {
+				if (++tI == numTmplts)
+					break doStream;
+				tRec = datastream.t[tI];
+			} while (tRec.n == 0 || (tRec.i+tRec.n) == i);
+
 			locAtts = this.vFrame.getSelLocAtts(tI);
 				// Skip Template if no locate Atts
 			if (locAtts.length == 0) {
 				locAtts = null;
-					// Have we exhausted all Templates?
-				if (++tI == numTmplts)
-					return;
-				else {
-						// Fast-forward to next Template source
-					i = PDataHub.stream1stTEntry(datastream, tI);
-					continue;
-				}
+				continue;
 			} // if no locAtts
 				// Can only be a single Attribute on Pinboards
 			locAtts = locAtts[0];
 			featSet = self.vFrame.getSelFeatAtts(tI);
-
 				// Skip Templates if no feature Atts
 			if (featSet.length == 0) {
 				locAtts = null;
-					// Have we exhausted all Templates?
-				if (++tI == numTmplts)
-					return;
-				else {
-						// Fast-forward to next Template source
-					i = PDataHub.stream1stTEntry(datastream, tI);
-					continue;
-				}
+				continue;
 			} // if no featAtts
 				// Get Feature Attribute ID and def for this Template
 			fAttID = self.vFrame.getSelLegend(tI);
 			fAtt = PDataHub.getAttID(fAttID);
+			pAttID = self.settings.pAtts[tI];
 		} // if new Template
 			// Get Record data
 		aI = datastream.s[i];
 		rec = PDataHub.getRecByIndex(aI);
+		var cEntry;
+		if (mCache) {
+			cEntry={ id: rec.id, c: null, p: rec.a[pAttID] };
+		}
 
 		locData = rec.a[locAtts];
 		if (locData) {
@@ -695,6 +710,8 @@ VizPinboard.prototype.render = function(datastream)
 						nodes.push({ ai: aI, id: rec.id, v: fData,
 									 x: locData[0]+idx, y: locData[1]+idy, w: iw, h: ih
 								});
+						if (cEntry)
+							cEntry.c = locData;
 					} else {
 							// TO DO: Create separate arrays to store lines & polygons?
 						if (locData.length == 2) {
@@ -706,10 +723,11 @@ VizPinboard.prototype.render = function(datastream)
 				} // if fData
 			} // if fData
 		} // if locData
+		if (cEntry && cEntry.c.length > 0)
+			mCache.push(cEntry);
 			// Increment stream index -- check if going into new Template
-		if (++i == (datastream.t[tI].i + datastream.t[tI].n)) {
+		if (++i == (tRec.i + tRec.n)) {
 			locAtts = null;
-			tI++;
 		}
 	} // while
 
