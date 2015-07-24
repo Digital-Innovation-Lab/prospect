@@ -511,10 +511,6 @@ div.template-label {
 }
 
 	/* Map Styles */
-div.leaflet-popup-content-wrapper {
-	text-align: center;
-}
-
 input.leaflet-control-layers-selector {
 	margin-top: 2px;
 	position: relative;
@@ -528,28 +524,8 @@ div.leaflet-bar a, div.leaflet-bar a:hover {
 	font-size: 22px;
 }
 
-div.leaflet-control.reset-control {
-}
-
-div.leaflet-control.reset-control a {
-	padding-top: 8px;
-	line-height: 38px;
-	font-size: 20px;
-	color: #21759b;
-}
-
-div.olControlZoom {
-	top:70px;
-}
-
-div.olControlZoom .reset-map {
-	margin-top: 5px;
-	padding-top: 2px;
-	-webkit-border-radius: 4px;
-	-moz-border-radius: 4px;
-	border-radius: 4px;
-	cursor: pointer;
-	font-size: 18px;
+div.leaflet-control-layers.leaflet-control-layers-expanded {
+	width: auto;
 }
 
 	/* Directory styles */

@@ -194,10 +194,10 @@ VizMap.prototype.setup = function()
 	else
 		zoom = this.settings.zoom;
 
-	function resetMap()
-	{
-		self.lMap.setView([centerLat, centerLon], zoom);
-	} // resetMap()
+	// function resetMap()
+	// {
+	// 	self.lMap.setView([centerLat, centerLon], zoom);
+	// } // resetMap()
 
 	var vIndex = this.vFrame.getIndex();
 
@@ -230,18 +230,18 @@ VizMap.prototype.setup = function()
 	zoomControl.addTo(this.lMap);
 
 		// Reset button
-	var resetControl = L.control({position: 'topright'});
-	resetControl.onAdd = function (map) {
-		this._div = L.DomUtil.create('div', 'reset-control leaflet-bar');
-		this.update();
-		return this._div;
-	};
-	resetControl.update = function (props) {
-		this._div.innerHTML = '<a class="reset-map" ><i class="fi-refresh"></i></a>';
-	};
-	resetControl.addTo(this.lMap);
-
-	jQuery('div.reset-control').click(resetMap);
+	// var resetControl = L.control({position: 'topright'});
+	// resetControl.onAdd = function (map) {
+	// 	this._div = L.DomUtil.create('div', 'reset-control leaflet-bar');
+	// 	this.update();
+	// 	return this._div;
+	// };
+	// resetControl.update = function (props) {
+	// 	this._div.innerHTML = '<span class="ui-icon ui-icon-arrowrefresh-1-e"></span>';
+	// 	this._div.innerHTML = '<a class="reset-map" ><i class="fi-refresh"></i></a>';
+	// };
+	// resetControl.addTo(this.lMap);
+	// jQuery('div.reset-control').click(resetMap);
 
 	// var markers;
 	// if (this.settings.clster) {
