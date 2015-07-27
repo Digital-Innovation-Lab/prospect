@@ -467,41 +467,6 @@ VizMap.prototype.setSel = function(absIArray)
 	}
 } // setSel()
 
-VizMap.prototype.optionsModal = function()
-{
-	var self=this;
-
-	function slide()
-	{
-		var p = jQuery(this).parent().data('i');
-// console.log("Slide "+p+" to: "+this.value);
-		if (p == -1) {
-			self.baseMap.setOpacity(this.value);
-		}
-	} // slide()
-
-	var layerPt = jQuery('#dialog-map-opacities div.layer-list');
-	layerPt.empty();
-
-	var newBit = jQuery('<div data-i="-1"><input type="checkbox" checked="checked"> Base Layer <input type=range class="op-slider" min=0 max=100 value=90 step=5></div>');
-	newBit.find('.op-slider').on('change', slide);
-	layerPt.append(newBit);
-
-	var d = jQuery("#dialog-map-opacities").dialog({
-		height: 300,
-		width: 320,
-		modal: true,
-		buttons: {
-			OK: function() {
-				d.dialog("close");
-			},
-			Cancel: function() {
-				d.dialog("close");
-			}
-		}
-	});
-} // optionsModal()
-
 
 // ====================================================
 // VizPinboard: Class to visualize images with overlays
@@ -768,6 +733,41 @@ VizPinboard.prototype.setSel = function(absIArray)
 		return self.isSel(d.ai);
 	});
 } // setSel()
+
+VizPinboard.prototype.optionsModal = function()
+{
+	var self=this;
+
+	function slide()
+	{
+		var p = jQuery(this).parent().data('i');
+// console.log("Slide "+p+" to: "+this.value);
+		if (p == -1) {
+			// self.baseMap.setOpacity(this.value);
+		}
+	} // slide()
+
+	var layerPt = jQuery('#dialog-opacities div.layer-list');
+	layerPt.empty();
+
+	var newBit = jQuery('<div data-i="-1"><input type="checkbox" checked="checked"> Base Image <input type=range class="op-slider" min=0 max=100 value=90 step=5></div>');
+	newBit.find('.op-slider').on('change', slide);
+	layerPt.append(newBit);
+
+	var d = jQuery("#dialog-map-opacities").dialog({
+		height: 300,
+		width: 320,
+		modal: true,
+		buttons: {
+			OK: function() {
+				d.dialog("close");
+			},
+			Cancel: function() {
+				d.dialog("close");
+			}
+		}
+	});
+} // optionsModal()
 
 
 // ==========================================================
@@ -1781,6 +1781,14 @@ function PViewFrame(vfIndex)
 		event.preventDefault();
 	} // clickVizControls()
 
+		// PURPOSE: Hide/show the annotation for this View Frame
+	function clickAnnotation(event)
+	{
+		// TO DO
+		event.preventDefault();
+	} // clickAnnotation()
+
+
 		// PURPOSE: Turn on or off all feature Attributes for tmpltIndex
 	function doShowHideAll(tmpltIndex, show)
 	{
@@ -2076,7 +2084,9 @@ function PViewFrame(vfIndex)
 				.button({icons: { primary: 'ui-icon-close' }, text: false })
 				.click(clickClearSelection).next()
 				.button({icons: { primary: 'ui-icon-gear' }, text: false })
-				.click(clickVizControls).next();
+				.click(clickVizControls).next()
+				.button({icons: { primary: 'ui-icon-comment' }, text: false })
+				.click(clickAnnotation).next();
 
 		head = jQuery(getFrameID()+' div.viz-content div.lgnd-container');
 		head.click(clickInLegend);
@@ -3249,6 +3259,25 @@ console.log("Set layout to: "+lIndex);
 	} // clickSetLayout()
 
 
+	function clickAbout(event)
+	{
+		var aboutDialog;
+
+		aboutDialog = jQuery("#dialog-about").dialog({
+			height: 250,
+			width: 350,
+			modal: true,
+			buttons: {
+				OK: function() {
+					aboutDialog.dialog("close");
+				}
+			}
+		});
+
+		event.preventDefault();
+	} // clickAbout()
+
+
 	function clickPerspectives(event)
 	{
 		event.preventDefault();
@@ -3538,6 +3567,8 @@ console.log("Set layout to: "+lIndex);
 		jQuery('#title').text(prspdata.e.g.l);
 
 		// Command Bar
+	jQuery('#btn-about').button({icons: { primary: 'ui-icon-info' }, text: false })
+			.click(clickAbout);
 	jQuery('#btn-recompute').button({icons: { primary: 'ui-icon-refresh' }, text: false })
 			.click(clickRecompute);
 	jQuery('#btn-set-layout').button({icons: { primary: 'ui-icon-newwin' }, text: false })

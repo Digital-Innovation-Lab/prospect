@@ -1,6 +1,9 @@
 <div id="command-bar">
 	<span id="title"></span>
-	&nbsp; &nbsp; <button id="btn-recompute">Recompute</button>
+	&nbsp; &nbsp;
+	<button id="btn-about">About Prospect</button>
+	&nbsp; &nbsp;
+	<button id="btn-recompute">Recompute</button>
 	<button id="btn-set-layout">Set Layout</button>
 	<button id="btn-perspectives">Perspectives</button>
 	<span class="home"><span id="home-title"></span> <button id="btn-home">Home</button></span>
@@ -65,8 +68,17 @@
 		</div>
 	</div>
 
-	<div id="dialog-map-opacities" title="Layer Opacities">
+	<div id="dialog-opacities" title="Layer Opacities">
 		<div class="layer-list">
+		</div>
+	</div>
+
+	<div id="dialog-about" title="About Prospect">
+		<div class="scroll-container">
+			<p>Prospect&#8482; was developed in the <a href="http://digitalinnovation.unc.edu" target="_blank">Digital Innovation Lab</a> of the <a href="http://www.unc.edu" target="_blank">University of North Carolina, Chapel Hill</a>.</p>
+			<p><b>Credits:</b><br/>
+			Michael Newton: Software architect and developer.<br/>
+			Breon Williams: CSS contributions.</p>
 		</div>
 	</div>
 </div> <!-- Hidden content ->
@@ -80,6 +92,7 @@
 		<button>Open Selection</button>
 		<button>Clear Selection</button>
 		<button>View Options</button>
+		<button>Notes</button>
 	</div>
 	<div class="viz-content">
 		<div class="viz-result">
