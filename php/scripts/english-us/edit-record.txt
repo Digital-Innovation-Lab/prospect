@@ -112,7 +112,7 @@
 </script>
 
 <script id="att-type-Link-To" type='text/ractive'>
-	URL to webpage: <input type="url" size="20" value="{{value}}" pattern="^$|^https?://.+\.html$"/>
+	URL to webpage: <input type="url" size="20" value="{{value}}" pattern="^$|^https?://.+$"/>
 </script>
 
 <script id="att-type-SoundCloud" type='text/ractive'>
