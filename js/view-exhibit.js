@@ -316,7 +316,7 @@ VizMap.prototype.render = function(datastream)
 	var rad=this.settings.min;
 
 	var numTmplts = PDataHub.getNumETmplts();
-	var i=0, aI, tI=0, tRec, rec;
+	var i=0, aI, tI=0, tRec, tLClr, rec;
 	var fAttID, fAtt, locAtts, featSet, pAttID, sAttID;
 	var locData, fData, newMarker, s;
 
@@ -364,6 +364,7 @@ VizMap.prototype.render = function(datastream)
 			fAtt = PDataHub.getAttID(fAttID);
 
 			pAttID = self.settings.pAtts[tI];
+			tLClr = self.settings.lClrs[tI];
 		} // if new Template
 
 			// Get Record data and create cache entry
@@ -371,7 +372,7 @@ VizMap.prototype.render = function(datastream)
 		rec = PDataHub.getRecByIndex(aI);
 		var cEntry;
 		if (mCache) {
-			cEntry={ id: rec.id, c: [], p: rec.a[pAttID] };
+			cEntry={ id: rec.id, c: [], p: rec.a[pAttID], l: tLClr };
 		}
 			// For each of the locate Attributes
 		locAtts.forEach(function(theLAtt) {
@@ -414,7 +415,7 @@ VizMap.prototype.render = function(datastream)
 		// Use cache to create connections
 	if (mCache) {
 		mCache.sort(function(a,b) { return a.id.localeCompare(b.id); });
-		var links=[];		// { f, t }
+		var links=[];
 		mCache.forEach(function(node) {
 			if (node.p) {
 					// Iterate the node's Pointers
@@ -425,7 +426,7 @@ VizMap.prototype.render = function(datastream)
 						node.c.forEach(function(from) {
 							cnnctd.c.forEach(function(to) {
 								if (from[0] != to[0] || from[1] != to[1])
-									links.push([from, to]);
+									links.push({p: [from, to], c: node.l });
 							})
 						})
 					}
@@ -433,9 +434,8 @@ VizMap.prototype.render = function(datastream)
 			}
 		});
 
-		var c = this.settings.lclr;
-		links.forEach(function(latlngs) {
-			lines.addLayer(L.polyline(latlngs, {color: c, weight: 2 }));
+		links.forEach(function(c) {
+			lines.addLayer(L.polyline(c.p, {color: c.c, weight: 2 }));
 		});
 	} // mCache
 } // render()

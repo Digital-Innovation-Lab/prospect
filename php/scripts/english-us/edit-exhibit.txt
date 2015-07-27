@@ -194,7 +194,6 @@
 	<br/>
 	Min Radius: <input type="number" value="{{c.min}}" min="1" max="20" required/>
 	Max Radius: <input type="number" value="{{c.max}}" min="1" max="20" required/>
-	Link Line Color: <input type="text" value="{{c.lclr}}" size="10"/>
 	Clustering: <input type='checkbox' checked='{{c.clstr}}'/>
 	<br/>
 	Choose the Attribute(s) to visualize each Template type
@@ -219,12 +218,14 @@
 				<option>{{this}}</option>
 			{{/each}}
 			</select>
+			<br/>
 			<b>Connect to: </b>
 			<select value='{{c.pAtts[tIndex]}}'>
 			{{#each attsDPtr}}
 				<option>{{this}}</option>
 			{{/each}}
 			</select>
+			Link Line Color: <input type="text" value="{{c.lClrs[tIndex]}}" size="10"/>
 			<br/>
 			<b>Provide Legends:</b> 
 			{{#each c.lgnds[tIndex]}}
@@ -308,7 +309,6 @@
 	<br/>
 	Min Radius: <input type="number" value="{{c.min}}" min="1" max="20" required/>
 	Max Radius: <input type="number" value="{{c.max}}" min="1" max="20" required/>
-	Link Line Color: <input type="text" value="{{c.lclr}}" size="10"/>
 	<br/>
 	Choose the Attribute(s) to visualize according to Template type:
 	<tabs>
@@ -331,12 +331,14 @@
 				<option>{{this}}</option>
 			{{/each}}
 			</select>
-			<b>Link to: </b>
+			<b>Connect to: </b>
 			<select value='{{c.pAtts[tIndex]}}'>
 			{{#each attsDPtr}}
 				<option>{{this}}</option>
 			{{/each}}
-			</select><br/>
+			</select>
+			Link Line Color: <input type="text" value="{{c.lClrs[tIndex]}}" size="10"/>
+			<br/>
 			<b>Provide Legends: </b>
 			{{#each c.lgnds[tIndex]}}
 				<span class="attribute-controls">

@@ -542,7 +542,7 @@ jQuery(document).ready(function() {
 			var theVF = defViews[i];
 			switch (theVF.vf) {
 			case 'Map':
-				var newLL=[], newLgnds=[], newPAtts=[], newSAtts=[];
+				var newLL=[], newLgnds=[], newPAtts=[], newSAtts=[], newLClrs=[];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
@@ -551,6 +551,7 @@ jQuery(document).ready(function() {
 								return { attID: theLLAtt, useAtt: true };
 							}));
 						newPAtts.push('disable');
+						newLClrs.push('#FFD700');
 						newSAtts.push(theTmplt.attsDNum[0] || 'disable');
 						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
@@ -558,12 +559,14 @@ jQuery(document).ready(function() {
 					} else {
 						newLL.push(createPaddedAtts(theTmplt.attLL, theVF.c.cAtts[origTIndex]));
 						newPAtts.push(theVF.c.pAtts[origTIndex] || 'disable');
+						newLClrs.push(theVF.c.lClrs[origTIndex]);
 						newSAtts.push(theVF.c.sAtts[origTIndex] || 'disable');
 						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
 					}
 				});
 				theVF.c.cAtts = newLL;
 				theVF.c.pAtts = newPAtts;
+				theVF.c.lClrs = newLClrs;
 				theVF.c.sAtts = newSAtts;
 				theVF.c.lgnds = newLgnds;
 				break;
@@ -588,13 +591,14 @@ jQuery(document).ready(function() {
 				theVF.c.cnt = newCnt;
 				break;
 			case 'Pinboard':
-				var newXY=[], newLgnds=[], newPAtts=[], newSAtts=[];
+				var newXY=[], newLgnds=[], newPAtts=[], newSAtts=[], newLClrs=[];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
 					if (origTIndex == -1) {
 						newXY.push(theTmplt.attsXY[0]);
 						newPAtts.push('disable');
+						newLClrs.push('#FFD700');
 						newSAtts.push(theTmplt.attsDNum[0] || 'disable');
 						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
@@ -602,12 +606,14 @@ jQuery(document).ready(function() {
 					} else {
 						newXY.push(theVF.c.cAtts[origTIndex] || 'disable');
 						newPAtts.push(theVF.c.pAtts[origTIndex] || 'disable');
+						newLClrs.push(theVF.c.lClrs[origTIndex]);
 						newSAtts.push(theVF.c.sAtts[origTIndex] || 'disable');
 						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
 					}
 				});
 				theVF.c.cAtts = newXY;
 				theVF.c.pAtts = newPAtts;
+				theVF.c.lClrs = newLClrs;
 				theVF.c.sAtts = newSAtts;
 				theVF.c.lgnds = newLgnds;
 				break;
@@ -750,7 +756,6 @@ jQuery(document).ready(function() {
 				newVFEntry.c.zoom = 10;
 				newVFEntry.c.min = 7;
 				newVFEntry.c.max = 7;
-				newVFEntry.c.lclr = '#00CCFF';
 				newVFEntry.c.clstr= false;
 					// Lat-Long Coordinates
 				newVFEntry.c.cAtts= _.map(iTemplates, function(theTemplate) {
@@ -761,6 +766,10 @@ jQuery(document).ready(function() {
 					// Potential Pointers
 				newVFEntry.c.pAtts= _.map(iTemplates, function(theTemplate) {
 					return 'disable';
+				});
+					// Connection colors
+				newVFEntry.c.lClrs= _.map(iTemplates, function(theTemplate) {
+					return '#FFD700';
 				});
 					// Potential Size
 				newVFEntry.c.sAtts= _.map(iTemplates, function(theTemplate) {
@@ -808,6 +817,10 @@ jQuery(document).ready(function() {
 					// Potential Pointers
 				newVFEntry.c.pAtts= _.map(iTemplates, function(theTemplate) {
 					return 'disable';
+				});
+					// Connection colors
+				newVFEntry.c.lClrs= _.map(iTemplates, function(theTemplate) {
+					return '#FFD700';
 				});
 					// Potential Size
 				newVFEntry.c.sAtts= _.map(iTemplates, function(theTemplate) {
@@ -1094,13 +1107,15 @@ jQuery(document).ready(function() {
 					saveView.c.max  = viewSettings.c.max;
 					saveView.c.lclr = viewSettings.c.lclr;
 					saveView.c.clstr= viewSettings.c.clstr;
-					var newCAtts = [], newLgnds = [];
+					var newCAtts=[], newLgnds=[], newLClrs=[];
 					saveTIndices.forEach(function(tIndex) {
 						newCAtts.push(packUsedAtts(viewSettings.c.cAtts[tIndex]));
 						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
+						newLClrs.push(viewSettings.c.lClrs[tIndex]);
 					});
 					saveView.c.cAtts = newCAtts;
 					saveView.c.lgnds = newLgnds;
+					saveView.c.lClrs = newLClrs;
 					saveView.c.pAtts = packUsedAttIDs(viewSettings.c.pAtts);
 					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts);
 						// Don't need to modify map layer settings
@@ -1116,13 +1131,15 @@ jQuery(document).ready(function() {
 					saveView.c.max  = viewSettings.c.max;
 					saveView.c.lclr = viewSettings.c.lclr;
 					saveView.c.img  = viewSettings.c.img;
-					var newLgnds = [];
+					var newLgnds=[], newLClrs=[];
 					saveTIndices.forEach(function(tIndex) {
 						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
+						newLClrs.push(viewSettings.c.lClrs[tIndex]);
 					});
 					saveView.c.cAtts = packUsedAttIDs(viewSettings.c.cAtts);
 					saveView.c.lgnds = newLgnds;
 					saveView.c.pAtts = packUsedAttIDs(viewSettings.c.pAtts);
+					saveView.c.lClrs = newLClrs;
 					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts);
 						// Don't need to modify svg layer settings
 					saveView.c.lyrs = viewSettings.c.lyrs;
@@ -1131,7 +1148,7 @@ jQuery(document).ready(function() {
 					saveView.c.lOn  = viewSettings.c.lOn;
 					saveView.c.w    = viewSettings.c.w;
 					saveView.c.h    = viewSettings.c.h;
-					var newLgnds = [], newCnt = [];
+					var newLgnds=[], newCnt=[];
 					saveTIndices.forEach(function(tIndex) {
 						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
 						newCnt.push(packUsedAtts(viewSettings.c.cnt[tIndex]));

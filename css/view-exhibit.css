@@ -511,12 +511,6 @@ div.template-label {
 }
 
 	/* Map Styles */
-input.leaflet-control-layers-selector {
-	margin-top: 2px;
-	position: relative;
-	top: 1px;
-}
-
 div.leaflet-bar a, div.leaflet-bar a:hover {
 	width: 36px;
 	height: 36px;
@@ -525,7 +519,7 @@ div.leaflet-bar a, div.leaflet-bar a:hover {
 }
 
 div.leaflet-control-layers.leaflet-control-layers-expanded {
-	width: auto;
+	width: 150px;
 }
 
 	/* Directory styles */
