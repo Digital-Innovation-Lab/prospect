@@ -514,6 +514,78 @@ div.leaflet-control-layers.leaflet-control-layers-expanded {
 	width: 150px;
 }
 
+	/* Cards styles */
+div.cards {
+	padding: 4px;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	justify-content: space-around;
+	align-items: flex-start;
+	align-content: flex-start;
+}
+
+div.card {
+	margin: 3px;
+	border: black solid 1px;
+	box-shadow: 3px 2px 3px rgba(0, 0, 0, 0.3);
+	padding: 2px;
+	overflow: hidden;
+	transition: all 0.6s ease;
+}
+
+div.card:hover {
+	transform:scale(1.4);
+	z-index: 2;
+}
+
+div.card.obj-selected {
+	border: red solid 1px;
+}
+
+div.card.wt {
+	width: 100px;
+}
+div.card.wm {
+	width: 150px;
+}
+div.card.ww {
+	width: 200px;
+}
+div.card.hs {
+	height: 100px;
+}
+div.card.hm {
+	height: 150px;
+}
+div.card.ht {
+	height: 200px;
+}
+
+div.card > div.card-title {
+	height: 14px;
+	font-size: 10px;
+	font-weight: bold;
+	vertical-align: middle;
+	overflow: hidden;
+}
+
+div.card > div.card-body {
+	display: flex;
+	align-items: flex-start;
+	font-size: 10px;
+	font-weight: normal;
+}
+
+div.card > div.card-body > img {
+	margin: 2px;
+	width: 50px;
+}
+
+div.card > div.card-body > div.card-cnt {
+	flex-grow: 1;
+}
+
 	/* Directory styles */
 table.viz-directory {
 	color: #666;
@@ -635,7 +707,6 @@ div.viz-result svg .axis line {
 	/* Pinboard styles */
 div.viz-result svg .recobj
 {
-
 }
 
 div.viz-result svg .recobj.obj-selected
@@ -658,7 +729,7 @@ div.viz-textstream div.recitem {
 }
 
 div.viz-textstream div.recitem.obj-selected {
-	border: red dotted 1px;
+	border: red solid 1px;
 }
 
 	/* Specific Filter styles

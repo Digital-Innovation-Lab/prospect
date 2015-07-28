@@ -66,6 +66,7 @@ function PVizModel(viewFrame, vizSettings)
 
 		// Subclasses can override the following:
 	// this.usesLegend()
+	// this.reqLocAtts()
 	// this.getLocAtts(tIndex)
 	// this.getFeatureAtts(tIndex)
 	// this.teardown()
@@ -130,6 +131,11 @@ PVizModel.prototype.usesLegend = function()
 	return false;
 } // usesLegend()
 
+PVizModel.prototype.reqLocAtts = function()
+{
+	return false;
+} // PVizModel.reqLocAtts()
+
 PVizModel.prototype.getLocAtts = function(tIndex)
 {
 	return [];
@@ -166,6 +172,11 @@ VizMap.prototype.usesLegend = function()
 {
 	return true;
 } // usesLegend()
+
+VizMap.prototype.reqLocAtts = function()
+{
+	return true;
+}
 
 	// PURPOSE: Return IDs of locate Attributes 
 VizMap.prototype.getLocAtts = function(tIndex)
@@ -381,7 +392,7 @@ VizMap.prototype.render = function(datastream)
 				if (fData = rec.a[fAttID]) {
 					fData = PDataHub.getAttLgndVal(fData, fAtt, featSet, false);
 					if (fData) {
-						s = self.isSel(i);
+						s = self.isSel(aI);
 						if (typeof locData[0] == 'number') {
 							newMarker = L.circleMarker(locData,
 								{	_aid: aI, weight: 1, radius: rad,
@@ -468,9 +479,189 @@ VizMap.prototype.setSel = function(absIArray)
 } // setSel()
 
 
+// =============================================
+// VizCards: Class to visualize records as Cards
+
+var VizCards = function(viewFrame, vSettings)
+{
+console.log("init Cards 4");
+	PVizModel.call(this, viewFrame, vSettings);
+} // VizCards
+
+VizCards.prototype = Object.create(PVizModel.prototype);
+
+VizCards.prototype.constructor = VizCards;
+
+VizCards.prototype.usesLegend = function()
+{
+	return true;
+} // usesLegend()
+
+VizCards.prototype.reqLocAtts = function()
+{
+	return false;
+}
+
+VizCards.prototype.getFeatureAtts = function(tIndex)
+{
+	if (tIndex != null)
+		return this.settings.lgnds[tIndex];
+	return this.settings.lgnds;
+} // getFeatureAtts()
+
+VizCards.prototype.setup = function()
+{
+	var self = this;
+	// var vIndex = this.vFrame.getIndex();
+
+		// Insert a scrolling container
+	// jQuery(this.frameID).append('<div id="directory-'+vIndex+'" class="scroll-container"></div>');
+
+	// var thisFrame = jQuery(this.frameID);
+	// thisFrame.addClass('v-scroll-container');
+	// thisFrame.append('<div id="directory-'+vIndex+'" class="max-v-size"></div>');
+
+		// Listen for clicks on it
+	// jQuery('#directory-'+vIndex).click(function(event) {
+	jQuery(this.frameID).on("click.vf", function(event) {
+		if (event.target.nodeName == 'DIV') {
+			var card = jQuery(event.target).closest('div.card');
+			if (card.size() == 1) {
+				var absI = card.data('ai');
+				if (absI != null) {
+					var s = self.toggleSel(absI);
+					if (s)
+						card.addClass("obj-selected");
+					else
+						card.removeClass("obj-selected");
+				}
+			}
+		}
+	});
+} // setup()
+
+
+	// PURPOSE: Draw the Records in the given datastream
+	// NOTES: 	absolute index of Record is saved in <id> field of map marker
+VizCards.prototype.render = function(datastream)
+{
+	var self = this;
+
+	var numTmplts = PDataHub.getNumETmplts();
+	var i=0, aI, tI=-1, tID, tRec, tDef;
+	var newT=true, fAttID, fAtt, iAttID, cnt;
+	var featSet, rec, datum, c, s, t;
+
+	var thisFrame = jQuery(this.frameID);
+	thisFrame.empty();
+
+	var insert;
+
+	var div = 'w'+this.settings.w+' h'+this.settings.h;
+
+	while (i<datastream.l) {
+			// Starting with new Template?
+		if (newT) {
+			do {
+				if (++tI == numTmplts)
+					return;
+				tRec = datastream.t[tI];
+			} while (tRec.n == 0 || (tRec.i+tRec.n) == i);
+
+			tID = PDataHub.getETmpltIndex(tI);
+			tDef = PDataHub.getTmpltID(tID);
+
+			featSet = self.vFrame.getSelFeatAtts(tI);
+				// Skip Templates if no feature Atts
+			if (featSet.length == 0) {
+				newT = true;
+				continue;
+			} // if no featAtts
+
+			thisFrame.append('<div class="template-label">'+tDef.l+'</div><div class="cards" data-ti="'+tI+'"></div>');
+			insert = jQuery('div.cards[data-ti="'+tI+'"]');
+
+				// Get Feature Attribute ID and def for this Template
+			fAttID = self.vFrame.getSelLegend(tI);
+			fAtt = PDataHub.getAttID(fAttID);
+
+			iAttID = self.settings.iAtts[tI];
+			cnt = self.settings.cnt[tI];
+			newT = false;
+		} // if new Template
+
+			// Get Record data and create cache entry
+		aI = datastream.s[i];
+		rec = PDataHub.getRecByIndex(aI);
+			// Eval Legend
+		if (datum = rec.a[fAttID]) {
+			c = PDataHub.getAttLgndVal(datum, fAtt, featSet, false);
+
+			if (c) {
+				s = self.isSel(aI) ? ' obj-selected' : '';
+				t = self.settings.lOn ? '<div class="card-title">'+rec.l+'</div>' : '';
+					// Any image?
+				if (datum = rec.a[iAttID]) {
+					t += '<div class="card-body"><img src="'+datum+'"/><div class="card-cnt">';
+				} else {
+					t += '<div class="card-body"><div class="card-cnt">';
+				}
+					// Add content
+				if (cnt && cnt.length > 0) {
+					cnt.forEach(function(theAttID) {
+						if (datum = rec.a[theAttID])
+							if (datum = PDataHub.procAttTxt(theAttID, datum))
+								t += datum+'<br/>';
+					});
+				}
+				t += '</div>';
+				insert.append('<div class="card '+div+s+'" style="background-color:'+c+'" data-ai="'+aI+'">'+t+'</div>');
+			} // if Legend selected
+		} // if Legend datum
+		if (++i == (tRec.i + tRec.n)) {
+			newT = true;
+		}
+	} // while
+} // render()
+
+VizCards.prototype.teardown = function()
+{
+	jQuery(this.frameID).off("click.vf");
+}
+
+VizCards.prototype.setSel = function(absIArray)
+{
+	var self=this;
+	// var vIndex = this.vFrame.getIndex();
+	var absI, t;
+
+	this.recSel = absIArray;
+
+	var rows = jQuery(this.frameID).find('div.card');
+
+	rows.each(function() {
+		t = jQuery(this);
+		absI = t.data('ai');
+		if (absI != null) {
+			if (self.isSel(absI))
+				t.addClass('obj-selected');
+			else
+				t.removeClass('obj-selected');
+		}
+	});
+} // setSel()
+
+VizCards.prototype.clearSel = function()
+{
+	if (this.recSel.length > 0) {
+		this.recSel = [];
+		jQuery(this.frameID).find('div.card').removeClass('obj-selected');
+	}
+} // clearSel()
+
+
 // ====================================================
 // VizPinboard: Class to visualize images with overlays
-
 
 var VizPinboard = function(viewFrame, vSettings)
 {
@@ -485,6 +676,11 @@ VizPinboard.prototype.usesLegend = function()
 {
 	return true;
 } // usesLegend()
+
+VizPinboard.prototype.reqLocAtts = function()
+{
+	return true;
+}
 
 	// PURPOSE: Return IDs of locate Attributes 
 VizPinboard.prototype.getLocAtts = function(tIndex)
@@ -713,7 +909,6 @@ VizPinboard.prototype.render = function(datastream)
 		.attr('fill', function(d) { return d.v; });
 } // render()
 
-
 VizPinboard.prototype.clearSel = function()
 {
 	if (this.recSel.length > 0) {
@@ -722,7 +917,6 @@ VizPinboard.prototype.clearSel = function()
 		this.gRecs.selectAll('svg.recobj').classed('obj-selected', false);
 	}
 } // clearSel()
-
 
 VizPinboard.prototype.setSel = function(absIArray)
 {
@@ -772,7 +966,6 @@ VizPinboard.prototype.optionsModal = function()
 
 // ==========================================================
 // VizDirectory: Class to visualize lists of Template records
-
 
 var VizDirectory = function(viewFrame, vSettings)
 {
@@ -826,6 +1019,7 @@ VizDirectory.prototype.render = function(datastream)
 	var insert=null, fAtts, datum, rec, t;
 
 	var thisFrame = jQuery(this.frameID);
+	thisFrame.empty();
 
 	tRec = datastream.t[0];
 	while (i<datastream.l) {
@@ -934,6 +1128,11 @@ VizTextStream.prototype.usesLegend = function()
 {
 	return true;
 } // usesLegend()
+
+VizTextStream.prototype.reqLocAtts = function()
+{
+	return true;
+}
 
 	// PURPOSE: Return IDs of locate Attributes
 VizTextStream.prototype.getLocAtts = function(tIndex)
@@ -1984,6 +2183,7 @@ function PViewFrame(vfIndex)
 			vizModel = new VizMap(instance, theView.c);
 			break;
 		case 'Cards':
+			vizModel = new VizCards(instance, theView.c);
 			break;
 		case 'Pinboard':
 			vizModel = new VizPinboard(instance, theView.c);
@@ -2015,16 +2215,17 @@ function PViewFrame(vfIndex)
 				var tmpltDef = PDataHub.getTmpltID(tID);
 					// Insert locate attributes into Legends
 				var locAtts = vizModel.getLocAtts(tIndex);
-				if (locAtts && locAtts.length > 0) {
+				if ((locAtts && locAtts.length > 0) || !vizModel.reqLocAtts()) {
 							// Create DIV structure for Template's Legend entry
 					var newTLegend = jQuery('<div class="lgnd-template" data-index="'+tIndex+
 									'"><div class="lgnd-title">'+tmpltDef.l+'</div></div>');
-					locAtts.forEach(function(attID, aIndex) {
-						var attDef = PDataHub.getAttID(attID);
-						newTLegend.append('<div class="lgnd-entry lgnd-locate" data-id="'+attID+
-							'"><input type="checkbox" checked="checked" class="lgnd-entry-check"/><span class="lgnd-value-title">'+
-							attDef.def.l+'</span></div>');
-					});
+					if (locAtts)
+						locAtts.forEach(function(attID, aIndex) {
+							var attDef = PDataHub.getAttID(attID);
+							newTLegend.append('<div class="lgnd-entry lgnd-locate" data-id="'+attID+
+								'"><input type="checkbox" checked="checked" class="lgnd-entry-check"/><span class="lgnd-value-title">'+
+								attDef.def.l+'</span></div>');
+						});
 						// Create dropdown menu of visual Attributes
 					var attSelection = vizModel.getFeatureAtts(tIndex);
 					var newStr = '<select class="lgnd-select">';

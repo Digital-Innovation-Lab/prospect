@@ -203,7 +203,7 @@ jQuery(document).ready(function() {
 		//		attsDates: array of Dates Atts
 		//		attsLL: array of Lat-Lon Atts
 		//		attsXY: array of X-Y Atts
-		//		attsImg: array of Image Atts
+		//		attsImg: array of Image Atts (w/"disable")
 		//		attsLgnd: array of all Atts that can supply a Legend
 		//		attsLink: array of Link Atts
 		//		attsSC: array of SoundCloud Atts
@@ -358,9 +358,9 @@ jQuery(document).ready(function() {
 	_.forEach(defTemplates, function(theTmplt) {
 		if (!theTmplt.def.d) {
 			var attsTxt=[], attsDates=[], attsDNum=['disable'], attsLL=[],
-				attsXY=[], attsLgnd=[], attsSC=['disable'], attsYT=['disable'],
-				attsTrns=['disable'], attsTC=['disable'], attsPtr=[],
-				attsDPtr=['disable'], attsCnt=[], attsFct=[];
+				attsXY=[], attsImg=['disable'], attsLgnd=[], attsSC=['disable'],
+				attsYT=['disable'], attsTrns=['disable'], attsTC=['disable'],
+				attsPtr=[], attsDPtr=['disable'], attsCnt=[], attsFct=[];
 
 			_.forEach(theTmplt.def.a, function(theAttID) {
 				function saveAttRef(prefix, theAttID, type)
@@ -399,6 +399,7 @@ jQuery(document).ready(function() {
 						break;
 					case 'Image':
 						attsCnt.push(prefix+theAttID);
+						attsImg.push(prefix+theAttID);
 						break;
 					case 'Link To':
 						attsCnt.push(prefix+theAttID);
@@ -457,8 +458,8 @@ jQuery(document).ready(function() {
 
 			var tmpltEntry = { tid: theTmplt.id, use: isUsed,
 								attsTxt: attsTxt, attsDates: attsDates, attsDNum: attsDNum,
-								attsLL: attsLL, attsXY: attsXY, attsLgnd: attsLgnd, attsSC: attsSC,
-								attsYT: attsYT, attsTrns: attsTrns, attsTC: attsTC,
+								attsLL: attsLL, attsXY: attsXY, attsLgnd: attsLgnd, attsImg: attsImg,
+								attsSC: attsSC, attsYT: attsYT, attsTrns: attsTrns, attsTC: attsTC,
 								attsPtr: attsPtr, attsDPtr: attsDPtr, attsCnt: attsCnt,
 								attsFct: attsFct
 							};
@@ -571,7 +572,7 @@ jQuery(document).ready(function() {
 				theVF.c.lgnds = newLgnds;
 				break;
 			case 'Cards':
-				var newLgnds = [], newCnt = [];
+				var newLgnds=[], newIAtts=[], newCnt=[];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
@@ -579,16 +580,19 @@ jQuery(document).ready(function() {
 						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
-						newCnt.push(_.map(theTmplt.attsCnt, function(theCnt) {
+						newCnt.push(_.map(theTmplt.attsFct, function(theCnt) {
 								return { attID: theCnt, useAtt: true };
 							}));
+						newIAtts.push(theTmplt.attsImg[0] || 'disable');
 					} else {
 						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
-						newCnt.push(createPaddedAtts(theTmplt.attsCnt, theVF.c.cnt[origTIndex]));
+						newCnt.push(createPaddedAtts(theTmplt.attsFct, theVF.c.cnt[origTIndex]));
+						newIAtts.push(theVF.c.iAtts[origTIndex] || 'disable');
 					}
 				});
-				theVF.c.lgnds = newLgnds;
 				theVF.c.cnt = newCnt;
+				theVF.c.iAtts = newIAtts;
+				theVF.c.lgnds = newLgnds;
 				break;
 			case 'Pinboard':
 				var newXY=[], newLgnds=[], newPAtts=[], newSAtts=[], newLClrs=[];
@@ -794,9 +798,13 @@ jQuery(document).ready(function() {
 						return { attID: theLgndAtt, useAtt: true };
 					});
 				});
-					// Attribute Content to display
+					// Image Attribute
+				newVFEntry.c.iAtts= _.map(iTemplates, function(theTemplate) {
+					return 'disable';
+				});
+					// Content currently corresponds to Facet values
 				newVFEntry.c.cnt  = _.map(iTemplates, function(theTemplate) {
-					return _.map(theTemplate.attsCnt, function(theCntAtt) {
+					return _.map(theTemplate.attsFct, function(theCntAtt) {
 						return { attID: theCntAtt, useAtt: true };
 					});
 				});
@@ -1155,6 +1163,7 @@ jQuery(document).ready(function() {
 					});
 					saveView.c.lgnds = newLgnds;
 					saveView.c.cnt = newCnt;
+					saveView.c.iAtts = packUsedAttIDs(viewSettings.c.iAtts);
 					break;
 				case 'Flow':
 					saveView.c.w = viewSettings.c.w;

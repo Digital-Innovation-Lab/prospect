@@ -256,17 +256,15 @@
 </script>
 
 <script id="vfCards" type='text/ractive'>
-	Show Title: <input type='checkbox' checked='{{c.lOn}}'/>
+	<input type='checkbox' checked='{{c.lOn}}'/> Show Title &nbsp;&nbsp;
 	Width:
 		<select value="{{c.w}}">
-			<option value="a">Automatic</option>
 			<option value="t">Thin</option>
 			<option value="m">Medium</option>
 			<option value="w">Wide</option>
 		</select>
 	Height:
 		<select value="{{c.h}}">
-			<option value="a">Automatic</option>
 			<option value="s">Short</option>
 			<option value="m">Medium</option>
 			<option value="t">Tall</option>
@@ -281,6 +279,13 @@
 		</ul>
 		{{#each iTemplates:tIndex}}
 		<div id="tmpt-vf-tab-{{vIndex}}-{{tIndex}}">
+			<b>Image: </b>
+			<select value='{{c.iAtts[tIndex]}}'>
+			{{#each attsImg}}
+				<option>{{this}}</option>
+			{{/each}}
+			</select>
+			<br/>
 			<b>Show content: </b>
 			{{#each c.cnt[tIndex]:cIndex}}
 				<span class="attribute-controls">
