@@ -786,13 +786,18 @@ VizDirectory.prototype.constructor = VizDirectory;
 VizDirectory.prototype.setup = function()
 {
 	var self = this;
-	var vIndex = this.vFrame.getIndex();
+	// var vIndex = this.vFrame.getIndex();
 
 		// Insert a scrolling container
-	jQuery(this.frameID).append('<div id="directory-'+vIndex+'" class="scroll-container"></div>');
+	// jQuery(this.frameID).append('<div id="directory-'+vIndex+'" class="scroll-container"></div>');
+
+	var thisFrame = jQuery(this.frameID);
+	// thisFrame.addClass('v-scroll-container');
+	// thisFrame.append('<div id="directory-'+vIndex+'" class="max-v-size"></div>');
 
 		// Listen for clicks on it
-	jQuery('#directory-'+vIndex).click(function(event) {
+	// jQuery('#directory-'+vIndex).click(function(event) {
+	thisFrame.on("click.vf", function(event) {
 		if (event.target.nodeName == 'TD') {
 			var row = jQuery(event.target).closest('tr');
 			var absI = row.data('ai');
@@ -820,9 +825,7 @@ VizDirectory.prototype.render = function(datastream)
 	var i=0, aI, tI=0, tID, tRec, tDef;
 	var insert=null, fAtts, datum, rec, t;
 
-	var vIndex = this.vFrame.getIndex();
-
-	jQuery('#directory-'+vIndex).empty();
+	var thisFrame = jQuery(this.frameID);
 
 	tRec = datastream.t[0];
 	while (i<datastream.l) {
@@ -839,9 +842,9 @@ VizDirectory.prototype.render = function(datastream)
 // console.log("Starting new Template: "+tI);
 			tID = PDataHub.getETmpltIndex(tI);
 			tDef = PDataHub.getTmpltID(tID);
-			jQuery('#directory-'+vIndex).append('<div class="template-label">'+tDef.l+'</div>'+
+			thisFrame.append('<div class="template-label">'+tDef.l+'</div>'+
 				'<table cellspacing="0" class="viz-directory" data-id='+tID+'></table>');
-			insert = jQuery('#directory-'+vIndex+' table[data-id="'+tID+'"]');
+			insert = thisFrame.find('table[data-id="'+tID+'"]');
 			fAtts = self.settings.cnt[tI];
 			t = '<thead><tr>';
 			fAtts.forEach(function(theAtt) {
@@ -882,11 +885,13 @@ VizDirectory.prototype.render = function(datastream)
 VizDirectory.prototype.setSel = function(absIArray)
 {
 	var self=this;
-	var vIndex = this.vFrame.getIndex();
+	// var vIndex = this.vFrame.getIndex();
 	var absI, t;
 
 	this.recSel = absIArray;
-	var rows = jQuery('#directory-'+vIndex+' tr');
+
+	var rows = jQuery(this.frameID).find('tr');
+
 	rows.each(function() {
 		t = jQuery(this);
 		absI = t.data('ai');
@@ -903,11 +908,14 @@ VizDirectory.prototype.clearSel = function()
 {
 	if (this.recSel.length > 0) {
 		this.recSel = [];
-		var vIndex = this.vFrame.getIndex();
-		jQuery('#directory-'+vIndex+' tr').removeClass('obj-selected');
+		jQuery(this.frameID).find('tr').removeClass('obj-selected');
 	}
 } // clearSel()
 
+VizDirectory.prototype.teardown = function()
+{
+	jQuery(this.frameID).off("click.vf");
+}
 
 // ======================================================================
 // VizTextStream: Class to visualize record data as ordered text elements
