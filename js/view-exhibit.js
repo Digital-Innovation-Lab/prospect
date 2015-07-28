@@ -791,13 +791,13 @@ VizDirectory.prototype.setup = function()
 		// Insert a scrolling container
 	// jQuery(this.frameID).append('<div id="directory-'+vIndex+'" class="scroll-container"></div>');
 
-	var thisFrame = jQuery(this.frameID);
+	// var thisFrame = jQuery(this.frameID);
 	// thisFrame.addClass('v-scroll-container');
 	// thisFrame.append('<div id="directory-'+vIndex+'" class="max-v-size"></div>');
 
 		// Listen for clicks on it
 	// jQuery('#directory-'+vIndex).click(function(event) {
-	thisFrame.on("click.vf", function(event) {
+	jQuery(this.frameID).on("click.vf", function(event) {
 		if (event.target.nodeName == 'TD') {
 			var row = jQuery(event.target).closest('tr');
 			var absI = row.data('ai');
@@ -882,6 +882,11 @@ VizDirectory.prototype.render = function(datastream)
 	} // while 
 } // render()
 
+VizDirectory.prototype.teardown = function()
+{
+	jQuery(this.frameID).off("click.vf");
+}
+
 VizDirectory.prototype.setSel = function(absIArray)
 {
 	var self=this;
@@ -912,10 +917,6 @@ VizDirectory.prototype.clearSel = function()
 	}
 } // clearSel()
 
-VizDirectory.prototype.teardown = function()
-{
-	jQuery(this.frameID).off("click.vf");
-}
 
 // ======================================================================
 // VizTextStream: Class to visualize record data as ordered text elements
@@ -952,13 +953,14 @@ VizTextStream.prototype.getFeatureAtts = function(tIndex)
 VizTextStream.prototype.setup = function()
 {
 	var self = this;
-	var vIndex = this.vFrame.getIndex();
+	// var vIndex = this.vFrame.getIndex();
 
 		// Insert a scrolling container
-	jQuery(this.frameID).append('<div id="textstream-'+vIndex+'" class="scroll-container"></div>');
+	// jQuery(this.frameID).append('<div id="textstream-'+vIndex+'" class="scroll-container"></div>');
 
 		// Listen for clicks on it
-	jQuery('#textstream-'+vIndex).click(function(event) {
+	// jQuery('#textstream-'+vIndex).click(function(event) {
+	jQuery(this.frameID).on("click.vf", function(event) {
 		if (event.target.nodeName == 'DIV') {
 			var word = jQuery(event.target);
 			var aI = word.data('ai');
@@ -973,7 +975,6 @@ VizTextStream.prototype.setup = function()
 	});
 } // setup()
 
-
 	// PURPOSE: Draw the Records in the given datastream
 	// NOTES: 	absolute index of Record is saved in <id> field of map marker
 VizTextStream.prototype.render = function(datastream)
@@ -982,12 +983,13 @@ VizTextStream.prototype.render = function(datastream)
 
 	var numTmplts = PDataHub.getNumETmplts();
 	var i=0, tI=0, tID, tRec, tDef;
-	var insert, rec, datum, t, s;
+	var insert, rec, datum, t, s, h;
 
 	var order, oAtt, cAttID, cAtt, featSet, fAttID, fAtt, fData;
 	var szAtt, szAttID, da, dt;
 
-	var vizDiv = jQuery('#textstream-'+this.vFrame.getIndex());
+	// var vizDiv = jQuery('#textstream-'+this.vFrame.getIndex());
+	var vizDiv = jQuery(this.frameID);
 
 	vizDiv.empty();
 
@@ -1063,7 +1065,8 @@ VizTextStream.prototype.render = function(datastream)
 									s = self.settings.min;
 							} else
 								s = self.settings.min;
-							insert.append('<div class="recitem" data-ai='+oRec.i+' style="color:'+fData+';font-size:'+s+'px">'+t+'</div>');
+							h = self.isSel(oRec.i) ? ' obj-selected' : '';
+							insert.append('<div class="recitem'+h+'" data-ai='+oRec.i+' style="color:'+fData+';font-size:'+s+'px">'+t+'</div>');
 						} // t
 					} // if fData
 				}
@@ -1073,6 +1076,11 @@ VizTextStream.prototype.render = function(datastream)
 	} // while 
 } // render()
 
+VizTextStream.prototype.teardown = function()
+{
+	jQuery(this.frameID).off("click.vf");
+}
+
 VizTextStream.prototype.setSel = function(absIArray)
 {
 	var self=this;
@@ -1080,10 +1088,13 @@ VizTextStream.prototype.setSel = function(absIArray)
 	var absI, t;
 
 	this.recSel = absIArray;
-	var rows = jQuery('#textstream-'+vIndex+' div.recitem');
+
+	// var rows = jQuery('#textstream-'+vIndex+' div.recitem');
+	var rows = jQuery(this.frameID).find('div.recitem');
+
 	rows.each(function() {
 		t = jQuery(this);
-		absI = t.data('aI');
+		absI = t.data('ai');
 		if (absI != null) {
 			if (self.isSel(absI))
 				t.addClass('obj-selected');
@@ -1097,8 +1108,10 @@ VizTextStream.prototype.clearSel = function()
 {
 	if (this.recSel.length > 0) {
 		this.recSel = [];
-		var vIndex = this.vFrame.getIndex();
-		jQuery('#textstream-'+vIndex+' div.recitem').removeClass('obj-selected');
+
+		// var vIndex = this.vFrame.getIndex();
+		// jQuery('#textstream-'+vIndex+' div.recitem').removeClass('obj-selected');
+		jQuery(this.frameID).find('div.recitem').removeClass('obj-selected');
 	}
 } // clearSel()
 
