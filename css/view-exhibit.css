@@ -21,6 +21,9 @@ body {
 	min-height: 100%;
 	display: flex;
 	flex-direction: column;
+	-webkit-display: flex;
+	flex-direction: column;
+	-webkit-flex-direction: column;
 
 	background-color: gray;
 
@@ -34,39 +37,39 @@ body.waiting * {
 	cursor: wait !important;
 }
 
-	/* set reasonable defaults */
-select {
-/*	height: 1.1em;
-	line-height: 1em;
-	min-height: auto;
-	width: auto;
-	min-width: auto;
-	max-width: auto; */
-}
-
-	/* For maximal expansion of element */
-.max-size {
+	/* For maximal expansion of an element */
+div.max-size {
 	width: 100%;
 	height: 100%;
+/*
+	width: auto;
+	height: auto; */
+}
+
+div.max-v-size {
+	height: 100%;
+/*	height: auto; */
 }
 
 div.scroll-container {
 	overflow: auto;
 }
 
+div.v-scroll-container {
+	overflow-y: auto;
+}
+
 	/* DOM structure of web page for visualizations:
 	 * #command-bar
 	 * #loading-message
-	 * #remainder
-	 * 		#filter-frame
-	 *		#selector-frame
-	 *		#viz-display-frame
+	 * #filter-frame
+	 * #selector-frame
+	 * #viz-display-frame
 	 */
 
 	/* Command Bar always along top row of window */
 #command-bar {
 	height: 28px;
-	/*	width: 100%; */
 	background-color: #56A0D3;
 	color: #222;
 	font-size: 14px;
@@ -101,30 +104,7 @@ div.scroll-container {
 	color: red;
 	margin: 0px;
 	text-align: center;
-}
-
-	/* Rest of window excluding command bar */
-#remainder {
-	flex: 1;
-}
-
-	/* One of the following three class styles are added to the remainder div
-	 *	to produce different layouts of filter and display
-	 */
-
-	/* Filters on left half; viz-display on right, split vertically for two */
-.layout-1 {		
-
-}
-
-	/* Filters on top half; viz-displays directly below; (stack of three) */
-.layout-2 {		
-
-}
-
-	/* Filters on top half; viz-displays directly below, split horizontally */
-.layout-3 {		
-
+	font-weight: bold;
 }
 
 		/* DOM Structure of Filter Frames
@@ -152,7 +132,7 @@ div.scroll-container {
 
 	/* All filter instances going into this scrolling area */
 #filter-instances {
-	min-height: 2px;
+	min-height: 0px;
 	max-height: 300px;
 	overflow-y: auto;
 	font-size: 12px;
@@ -215,7 +195,6 @@ div.filter-body svg .brush .extent {
 	shape-rendering: crispEdges;
 }
 
-
 		/* DOM Structure of Selector filter
 		 * #selector-frame
 		 * 	#selector-control-bar
@@ -251,32 +230,44 @@ div.filter-body svg .brush .extent {
 
 	/* DOM Structure of Visualization frames
 	 * #viz-display-frame
-	 *	#viz-frame-0
+	 *	 #viz-frame-0
 	 *		.view-control-bar
 	 *		.viz-content
 	 *			.viz-result
 	 *			.lgnd-container
-	 *	#viz-frame-1
+	 *	 #viz-frame-1
 	 *		... (same as above)
 	 */
 
 	/* One or two displays go into this frame */
 #viz-display-frame {
-	display: inline;
+	flex-grow: 1;
+	-webkit-flex-grow: 1;
+	display: flex;
+	-webkit-display: flex;
+	flex-direction: row;
+	-webkit-flex-direction: row;
 }
 
 	/* The first visualization display */
 #view-frame-0 {
-	border: #aaa 1px solid;
+	flex-grow: 1;
+	-webkit-flex-grow: 1;
+/*	display: flex;
+	flex-direction: column; */
 	position: relative;
 }
 
 	/* The second visualization display */
 #view-frame-1 {
-	border: red 1px dashed;
+	flex-grow: 1;
+	-webkit-flex-grow: 1;
+/*	display: flex;
+	flex-direction: column; */
+	position: relative;
 }
 
-#viz-display-frame .view-control-bar {
+#viz-display-frame div.view-control-bar {
 	height: 28px;
 	padding: 15px 20px 25px;
 	margin: 0;
@@ -285,30 +276,29 @@ div.filter-body svg .brush .extent {
 	background: #eee;
 }
 
-
-#viz-display-frame .view-control-bar .ui-icon {
+#viz-display-frame div.view-control-bar .ui-icon {
 	cursor: pointer;
 }
 
-	/* Frame that displays visualization content */
-	/*	This is dynamically into .lgnd-body and .viz-result */
-#viz-display-frame .viz-content {
-	height: 400px;		/* Temporary hack to create viz space */
+#viz-display-frame div.viz-content {
+/*	flex-grow: 1; */
+/*	display: flex;
+	flex-direction: column; */
+	position: relative;
+	height: calc(100% - 28px);
 }
 
 	/* All visualization results rendered here */
-#viz-display-frame .viz-content .viz-result {
-/*	position: absolute;
-	top: 0px;
-	left: 0px;
-*/
-/*	opacity: 99;
-	z-index: 1;
-*/
+#viz-display-frame div.viz-content div.viz-result {
 	margin: 0px;
 	padding: 2px;
-	width: 100%;
-	height: 100%;
+/*	width: auto;
+	height: auto; */
+/*	width: 100%;
+	height: 100%; */
+/*	flex-grow: 1; */
+/*	flex: 1 1 auto; */
+	height: calc(100% - 28px);
 }
 
 	/* Legends are semi-opaque overlays on content in top-left corner (z = 1000)

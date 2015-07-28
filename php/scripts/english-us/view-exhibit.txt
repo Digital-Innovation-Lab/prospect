@@ -13,33 +13,32 @@
 	Please wait while data loads.
 </div>
 
-<div id="remainder" class="layout-1">
-	<div id="filter-frame">
-		<div id="filter-control-bar">
-			Filters
-			<button id="btn-new-filter">New Filter</button>
-			<button id="btn-toggle-filters">Hide/Show Filters</button>
-		</div>
-		<div id="filter-instances">
-		</div>
+<div id="filter-frame">
+	<div id="filter-control-bar">
+		Filters
+		<button id="btn-new-filter">New Filter</button>
+		<button id="btn-toggle-filters">Hide/Show Filters</button>
 	</div>
-	<div id="selector-frame">
-		<div id="selector-control-bar">
-			Selection
-			<button id="btn-new-selector">New Filter</button>
-			<button id="btn-toggle-selector">Hide/Show Filter</button>
-			<button id="btn-apply-selector">Apply Selector Filter</button>
-			<input type="checkbox" checked="checked" id="selector-v0"/> View 1
-			<input type="checkbox" id="selector-v1" disabled/> View 2
-		</div>
-		<div id="selector-instance">
-			<div class="filter-instance" data-id="0">
-			</div>
-		</div>
+	<div id="filter-instances">
 	</div>
+</div>
 
-	<div id="viz-display-frame">
+<div id="selector-frame">
+	<div id="selector-control-bar">
+		Selection
+		<button id="btn-new-selector">New Filter</button>
+		<button id="btn-toggle-selector">Hide/Show Filter</button>
+		<button id="btn-apply-selector">Apply Selector Filter</button>
+		<input type="checkbox" checked="checked" id="selector-v0"/> View 1
+		<input type="checkbox" id="selector-v1" disabled/> View 2
 	</div>
+	<div id="selector-instance">
+		<div class="filter-instance" data-id="0">
+		</div>
+	</div>
+</div>
+
+<div id="viz-display-frame">
 </div>
 
 <!-- DYNAMIC JQUERYUI CONTENT -->
