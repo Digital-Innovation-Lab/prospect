@@ -254,7 +254,7 @@ div.filter-body svg .brush .extent {
 
 	display: flex;
 	display: -webkit-box;
-	display: -moz-box;
+/*	display: -moz-box;  This breaks things! */
 	display: -ms-flexbox;
 	display: -webkit-flex;
 

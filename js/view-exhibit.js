@@ -484,7 +484,6 @@ VizMap.prototype.setSel = function(absIArray)
 
 var VizCards = function(viewFrame, vSettings)
 {
-console.log("init Cards 4");
 	PVizModel.call(this, viewFrame, vSettings);
 } // VizCards
 
@@ -512,17 +511,7 @@ VizCards.prototype.getFeatureAtts = function(tIndex)
 VizCards.prototype.setup = function()
 {
 	var self = this;
-	// var vIndex = this.vFrame.getIndex();
 
-		// Insert a scrolling container
-	// jQuery(this.frameID).append('<div id="directory-'+vIndex+'" class="scroll-container"></div>');
-
-	// var thisFrame = jQuery(this.frameID);
-	// thisFrame.addClass('v-scroll-container');
-	// thisFrame.append('<div id="directory-'+vIndex+'" class="max-v-size"></div>');
-
-		// Listen for clicks on it
-	// jQuery('#directory-'+vIndex).click(function(event) {
 	jQuery(this.frameID).on("click.vf", function(event) {
 		if (event.target.nodeName == 'DIV') {
 			var card = jQuery(event.target).closest('div.card');
@@ -542,7 +531,6 @@ VizCards.prototype.setup = function()
 
 
 	// PURPOSE: Draw the Records in the given datastream
-	// NOTES: 	absolute index of Record is saved in <id> field of map marker
 VizCards.prototype.render = function(datastream)
 {
 	var self = this;
@@ -3451,40 +3439,53 @@ console.log("Visualization complete");
 	} // clickRecompute()
 
 
-	function doSetLayout(lIndex)
+		// PURPOSE: Add 2nd window if not already there; remove if so
+		// TO DO: 	Set state
+	function clickTog2nd()
 	{
-console.log("Set layout to: "+lIndex);
-	} // doSetLayout()
+		if (view1 != null) {
+			jQuery('#view-frame-1').remove();
+			view1 = null;
+		} else {
+			view1 = PViewFrame(1);
+			view1.initDOM();
+			view1.showStream(endStream);
+		}
+	} // clickTog2nd()
+
+	// function doSetLayout(lIndex)
+	// {
+	// } // doSetLayout()
 
 
-	function clickSetLayout(event)
-	{
-			// Clear previous selection
-		jQuery("#layout-choices img").removeClass("selected");
-		var setLayoutDialog;
+	// function clickSetLayout(event)
+	// {
+	// 		// Clear previous selection
+	// 	jQuery("#layout-choices img").removeClass("selected");
+	// 	var setLayoutDialog;
 
-		setLayoutDialog = jQuery("#dialog-set-layout").dialog({
-			height: 250,
-			width: 300,
-			modal: true,
-			buttons: {
-				Set: function() {
-					var selected = jQuery("#layout-choices img.selected");
-					if (selected.length) {
-						doSetLayout(selected.data("index"));
-					}
-					setLayoutDialog.dialog("close");
-				},
-				Cancel: function() {
-					setLayoutDialog.dialog("close");
-				}
-			},
-			close: function() {
-			}
-		});
+	// 	setLayoutDialog = jQuery("#dialog-set-layout").dialog({
+	// 		height: 250,
+	// 		width: 300,
+	// 		modal: true,
+	// 		buttons: {
+	// 			Set: function() {
+	// 				var selected = jQuery("#layout-choices img.selected");
+	// 				if (selected.length) {
+	// 					doSetLayout(selected.data("index"));
+	// 				}
+	// 				setLayoutDialog.dialog("close");
+	// 			},
+	// 			Cancel: function() {
+	// 				setLayoutDialog.dialog("close");
+	// 			}
+	// 		},
+	// 		close: function() {
+	// 		}
+	// 	});
 
-		event.preventDefault();
-	} // clickSetLayout()
+	// 	event.preventDefault();
+	// } // clickSetLayout()
 
 
 	function clickAbout(event)
@@ -3799,8 +3800,10 @@ console.log("Set layout to: "+lIndex);
 			.click(clickAbout);
 	jQuery('#btn-recompute').button({icons: { primary: 'ui-icon-refresh' }, text: false })
 			.click(clickRecompute);
+	// jQuery('#btn-set-layout').button({icons: { primary: 'ui-icon-newwin' }, text: false })
+	// 		.click(clickSetLayout);
 	jQuery('#btn-set-layout').button({icons: { primary: 'ui-icon-newwin' }, text: false })
-			.click(clickSetLayout);
+			.click(clickTog2nd);
 	jQuery('#btn-perspectives').button({icons: { primary: 'ui-icon-note' }, text: false })
 			.click(clickPerspectives);
 
@@ -3823,8 +3826,8 @@ console.log("Set layout to: "+lIndex);
 	});
 
 		// Create options on Layout modal
-	jQuery('#layout-choices').append('<img src="'+prspdata.assets+'layout1.jpg" data-index="0"/><img src="'+
-			prspdata.assets+'layout2.jpg" data-index="1"/><img src="'+prspdata.assets+'layout3.jpg" data-index="2"/>');
+	// jQuery('#layout-choices').append('<img src="'+prspdata.assets+'layout1.jpg" data-index="0"/><img src="'+
+	// 		prspdata.assets+'layout2.jpg" data-index="1"/><img src="'+prspdata.assets+'layout3.jpg" data-index="2"/>');
 
 		// Handle selection of item on Set Layout modal
 	jQuery('#layout-choices').click(function(event) {
@@ -3847,7 +3850,6 @@ console.log("Set layout to: "+lIndex);
 			.click(clickToggleSelector);
 	jQuery('#btn-apply-selector').button({icons: { primary: 'ui-icon-arrowreturn-1-e' }, text: false })
 			.click(clickApplySelector);
-
 
 		// Inspector Modal
 	jQuery('#btn-inspect-left').button({ icons: { primary: 'ui-icon-arrowthick-1-w' }, text: false });
