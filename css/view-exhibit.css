@@ -656,6 +656,18 @@ div.card.ww > div.card-body > img {
 	margin: 3px;
 	width: 70px;
 }
+div.card.wt > div.card-body > img.full {
+	margin: 2px;
+	width: 92px;
+}
+div.card.wm > div.card-body > img.full {
+	margin: 2px;
+	width: 144px;
+}
+div.card.ww > div.card-body > img.full {
+	margin: 3px;
+	width: 290px;
+}
 
 div.card > div.card-body > div.card-cnt {
 	flex-grow: 1;

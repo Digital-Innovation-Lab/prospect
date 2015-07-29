@@ -549,8 +549,9 @@ VizCards.prototype.render = function(datastream)
 
 	var numTmplts = PDataHub.getNumETmplts();
 	var i=0, aI, tI=-1, tID, tRec, tDef;
-	var newT=true, fAttID, fAtt, iAttID, cnt;
-	var featSet, rec, datum, c, s, t;
+	var newT=true, fAttID, fAtt, iAttID;
+	var featSet, rec, c, s;
+	var hasC, cnt, datum, t, tDiv;
 
 	var thisFrame = jQuery(this.frameID);
 	thisFrame.empty();
@@ -599,23 +600,28 @@ VizCards.prototype.render = function(datastream)
 
 			if (c) {
 				s = self.isSel(aI) ? ' obj-selected' : '';
-				t = self.settings.lOn ? '<div class="card-title">'+rec.l+'</div>' : '';
-					// Any image?
-				if (datum = rec.a[iAttID]) {
-					t += '<div class="card-body"><img src="'+datum+'"/><div class="card-cnt">';
-				} else {
-					t += '<div class="card-body"><div class="card-cnt">';
-				}
-					// Add content
+				tDiv = self.settings.lOn ? '<div class="card-title">'+rec.l+'</div>' : '';
+					// Get and add textual content
+				hasC = false; t = '';
 				if (cnt && cnt.length > 0) {
 					cnt.forEach(function(theAttID) {
 						if (datum = rec.a[theAttID])
-							if (datum = PDataHub.procAttTxt(theAttID, datum))
+							if (datum = PDataHub.procAttTxt(theAttID, datum)) {
+								hasC = true;
 								t += datum+'<br/>';
+							}
 					});
 				}
-				t += '</div>';
-				insert.append('<div class="card '+div+s+'" style="background-color:'+c+'" data-ai="'+aI+'">'+t+'</div>');
+					// Any image?
+				if (datum = rec.a[iAttID]) {
+					if (hasC)
+						t = '<div class="card-body"><img src="'+datum+'"/><div class="card-cnt">'+t+'</div></div>';
+					else
+						t = '<div class="card-body"><img class="full" src="'+datum+'"/></div>';
+				} else {
+					t = '<div class="card-body"><div class="card-cnt">'+t+'</div>';
+				}
+				insert.append('<div class="card '+div+s+'" style="background-color:'+c+'" data-ai="'+aI+'">'+tDiv+t+'</div>');
 			} // if Legend selected
 		} // if Legend datum
 		if (++i == (tRec.i + tRec.n)) {
