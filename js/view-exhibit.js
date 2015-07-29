@@ -1,7 +1,7 @@
 // This file contains:
 //		PVizModel abstract Class
 //		PViewFrame Object
-//		PDataHub Module for handling data
+//		PData Module for handling data
 //		PBootstrap for launching processes and organizing screen
 
 
@@ -273,7 +273,7 @@ VizMap.prototype.setup = function()
 	lines.addTo(this.lMap);
 
 		// Maintain number of Loc Atts per Template type
-	var numT = PDataHub.getNumETmplts();
+	var numT = PData.getNumETmplts();
 	this.tLCnt = new Uint16Array(numT);
 } // setup()
 
@@ -297,7 +297,7 @@ VizMap.prototype.render = function(datastream)
 // console.log("Added "+e.target.options._aid+"? "+added);
 
 				// Which Template type does absolute index belong to? Does it have multiple location Attributes?
-			var tI = PDataHub.aIndex2Tmplt(aid);
+			var tI = PData.aIndex2Tmplt(aid);
 				// If so, go through all markers looking for fellows of same _aid and setStyle accordingly
 			if (self.tLCnt[tI] > 1) {
 				mLayer.eachLayer(function(marker) {
@@ -326,7 +326,7 @@ VizMap.prototype.render = function(datastream)
 
 	var rad=this.settings.min;
 
-	var numTmplts = PDataHub.getNumETmplts();
+	var numTmplts = PData.getNumETmplts();
 	var i=0, aI, tI=0, tRec, tLClr, rec;
 	var fAttID, fAtt, locAtts, featSet, pAttID, sAttID;
 	var locData, fData, newMarker, s;
@@ -372,7 +372,7 @@ VizMap.prototype.render = function(datastream)
 
 				// Get Feature Attribute ID and def for this Template
 			fAttID = self.vFrame.getSelLegend(tI);
-			fAtt = PDataHub.getAttID(fAttID);
+			fAtt = PData.getAttID(fAttID);
 
 			pAttID = self.settings.pAtts[tI];
 			tLClr = self.settings.lClrs[tI];
@@ -380,7 +380,7 @@ VizMap.prototype.render = function(datastream)
 
 			// Get Record data and create cache entry
 		aI = datastream.s[i];
-		rec = PDataHub.getRecByIndex(aI);
+		rec = PData.getRecByIndex(aI);
 		var cEntry;
 		if (mCache) {
 			cEntry={ id: rec.id, c: [], p: rec.a[pAttID], l: tLClr };
@@ -390,7 +390,7 @@ VizMap.prototype.render = function(datastream)
 			locData = rec.a[theLAtt];
 			if (locData) {
 				if (fData = rec.a[fAttID]) {
-					fData = PDataHub.getAttLgndVal(fData, fAtt, featSet);
+					fData = PData.getAttLgndVal(fData, fAtt, featSet);
 					if (fData) {
 						s = self.isSel(aI);
 						if (typeof locData[0] == 'number') {
@@ -535,7 +535,7 @@ VizCards.prototype.render = function(datastream)
 {
 	var self = this;
 
-	var numTmplts = PDataHub.getNumETmplts();
+	var numTmplts = PData.getNumETmplts();
 	var i=0, aI, tI=-1, tID, tRec, tDef;
 	var newT=true, fAttID, fAtt, iAttID;
 	var featSet, rec, c, s;
@@ -557,8 +557,8 @@ VizCards.prototype.render = function(datastream)
 				tRec = datastream.t[tI];
 			} while (tRec.n == 0 || (tRec.i+tRec.n) == i);
 
-			tID = PDataHub.getETmpltIndex(tI);
-			tDef = PDataHub.getTmpltID(tID);
+			tID = PData.getETmpltIndex(tI);
+			tDef = PData.getTmpltID(tID);
 
 			featSet = self.vFrame.getSelFeatAtts(tI);
 				// Skip Templates if no feature Atts
@@ -572,7 +572,7 @@ VizCards.prototype.render = function(datastream)
 
 				// Get Feature Attribute ID and def for this Template
 			fAttID = self.vFrame.getSelLegend(tI);
-			fAtt = PDataHub.getAttID(fAttID);
+			fAtt = PData.getAttID(fAttID);
 
 			iAttID = self.settings.iAtts[tI];
 			cnt = self.settings.cnt[tI];
@@ -581,10 +581,10 @@ VizCards.prototype.render = function(datastream)
 
 			// Get Record data and create cache entry
 		aI = datastream.s[i];
-		rec = PDataHub.getRecByIndex(aI);
+		rec = PData.getRecByIndex(aI);
 			// Eval Legend
 		if (datum = rec.a[fAttID]) {
-			c = PDataHub.getAttLgndRecs(datum, fAtt, featSet, false);
+			c = PData.getAttLgndRecs(datum, fAtt, featSet, false);
 
 			if (c) {
 				s = self.isSel(aI) ? ' obj-selected' : '';
@@ -595,7 +595,7 @@ VizCards.prototype.render = function(datastream)
 					tC = c.b ? ' style="color:black"' : '';
 					cnt.forEach(function(theAttID) {
 						if (datum = rec.a[theAttID])
-							if (datum = PDataHub.procAttTxt(theAttID, datum)) {
+							if (datum = PData.procAttTxt(theAttID, datum)) {
 								hasC = true;
 								t += datum+'<br/>';
 							}
@@ -697,7 +697,7 @@ VizPinboard.prototype.setup = function()
 	var s = this.settings;
 
 		// Maintain number of Loc Atts per Template type
-	var numT = PDataHub.getNumETmplts();
+	var numT = PData.getNumETmplts();
 
 	this.xScale = d3.scale.linear().domain([0, s.iw-1])
 		.rangeRound([0, s.dw-1]);
@@ -789,7 +789,7 @@ VizPinboard.prototype.render = function(datastream)
 	this.gRecs.selectAll('svg.recobj').remove();
 
 	var idx, idy, iw, ih;
-	var numTmplts = PDataHub.getNumETmplts();
+	var numTmplts = PData.getNumETmplts();
 	var i, aI, tI=0, tRec, rec;
 	var fAttID, fAtt, locAtts, featSet, pAttID;
 	var locData, fData;
@@ -845,12 +845,12 @@ VizPinboard.prototype.render = function(datastream)
 			} // if no featAtts
 				// Get Feature Attribute ID and def for this Template
 			fAttID = self.vFrame.getSelLegend(tI);
-			fAtt = PDataHub.getAttID(fAttID);
+			fAtt = PData.getAttID(fAttID);
 			pAttID = self.settings.pAtts[tI];
 		} // if new Template
 			// Get Record data
 		aI = datastream.s[i];
-		rec = PDataHub.getRecByIndex(aI);
+		rec = PData.getRecByIndex(aI);
 		var cEntry;
 		if (mCache) {
 			cEntry={ id: rec.id, c: null, p: rec.a[pAttID] };
@@ -859,7 +859,7 @@ VizPinboard.prototype.render = function(datastream)
 		locData = rec.a[locAtts];
 		if (locData) {
 			if (fData = rec.a[fAttID]) {
-				fData = PDataHub.getAttLgndVal(fData, fAtt, featSet);
+				fData = PData.getAttLgndVal(fData, fAtt, featSet);
 				if (fData) {
 // console.log("Record "+i+"["+fAttID+"]: "+rec.a[fAttID]+" = "+fData);
 					if (typeof locData[0] == 'number') {
@@ -1009,7 +1009,7 @@ VizDirectory.prototype.render = function(datastream)
 {
 	var self = this;
 
-	var numTmplts = PDataHub.getNumETmplts();
+	var numTmplts = PData.getNumETmplts();
 	var i=0, aI, tI=0, tID, tRec, tDef;
 	var insert=null, fAtts, datum, rec, t;
 
@@ -1029,15 +1029,15 @@ VizDirectory.prototype.render = function(datastream)
 			// Starting with new Template? Create new table
 		if (insert == null) {
 // console.log("Starting new Template: "+tI);
-			tID = PDataHub.getETmpltIndex(tI);
-			tDef = PDataHub.getTmpltID(tID);
+			tID = PData.getETmpltIndex(tI);
+			tDef = PData.getTmpltID(tID);
 			thisFrame.append('<div class="template-label">'+tDef.l+'</div>'+
 				'<table cellspacing="0" class="viz-directory" data-id='+tID+'></table>');
 			insert = thisFrame.find('table[data-id="'+tID+'"]');
 			fAtts = self.settings.cnt[tI];
 			t = '<thead><tr>';
 			fAtts.forEach(function(theAtt) {
-				var att = PDataHub.getAttID(theAtt);
+				var att = PData.getAttID(theAtt);
 				t += '<th>'+att.def.l+'</th>';
 			})
 			insert.append(t+'<tr></thead><tbody></tbody>');
@@ -1047,7 +1047,7 @@ VizDirectory.prototype.render = function(datastream)
 			// Get Record data
 		aI = datastream.s[i];
 // console.log("Next record: "+i+" (absI) "+aI);
-		rec = PDataHub.getRecByIndex(aI);
+		rec = PData.getRecByIndex(aI);
 		t = '<tr data-id="'+rec.id+'" data-ai='+aI;
 		if (self.isSel(aI))
 			t += ' class="obj-selected" ';
@@ -1055,7 +1055,7 @@ VizDirectory.prototype.render = function(datastream)
 		fAtts.forEach(function(attID) {
 			datum = rec.a[attID];
 			if (datum) {
-				datum = PDataHub.procAttTxt(attID, datum);
+				datum = PData.procAttTxt(attID, datum);
 				if (datum) {
 					t += '<td>'+datum+'</td>';
 				} else {
@@ -1175,7 +1175,7 @@ VizTextStream.prototype.render = function(datastream)
 {
 	var self = this;
 
-	var numTmplts = PDataHub.getNumETmplts();
+	var numTmplts = PData.getNumETmplts();
 	var i=0, tI=0, tID, tRec, tDef;
 	var insert, rec, datum, t, s, h;
 
@@ -1214,41 +1214,41 @@ VizTextStream.prototype.render = function(datastream)
 		}
 			// Which Attribute chosen for Legend?
 		fAttID = self.vFrame.getSelLegend(tI);
-		fAtt = PDataHub.getAttID(fAttID);
+		fAtt = PData.getAttID(fAttID);
 
 			// Starting with new Template? Create new DIV & order Records
 		vizDiv.append('<div class="viz-textstream" data-ti='+tI+'></div>');
 		insert = vizDiv.find('div.viz-textstream[data-ti='+tI+']');
 
 			// Begin with Template name
-		tID = PDataHub.getETmpltIndex(tI);
-		tDef = PDataHub.getTmpltID(tID);
+		tID = PData.getETmpltIndex(tI);
+		tDef = PData.getTmpltID(tID);
 		insert.append('<div class="template-label">'+tDef.l+'</div>');
 
 		cAttID = self.settings.cnt[tI];
 		szAttID = self.settings.sAtts[tI];
 		if (szAttID) {
-			szAtt = PDataHub.getAttID(szAttID);
+			szAtt = PData.getAttID(szAttID);
 			if (typeof szAtt.r.min == 'number' && typeof szAtt.r.max == 'number')
 				da = szAtt.r.max - szAtt.r.min;
 			else
 				szAttID = null;
 		}
 		if (cAttID) {
-			oAtt = PDataHub.getAttID(self.settings.order[tI]);
-			order = PDataHub.orderTBy(oAtt, datastream, tI);
+			oAtt = PData.getAttID(self.settings.order[tI]);
+			order = PData.orderTBy(oAtt, datastream, tI);
 // console.log("Order for Template "+tI+": "+JSON.stringify(order));
 
 			order.forEach(function(oRec) {
-				rec = PDataHub.getRecByIndex(oRec.i);
+				rec = PData.getRecByIndex(oRec.i);
 					// Apply Legend
 				datum = rec.a[fAttID];
 				if (datum) {
-					fData = PDataHub.getAttLgndVal(datum, fAtt, featSet);
+					fData = PData.getAttLgndVal(datum, fAtt, featSet);
 					if (fData) {
 						t = rec.a[cAttID];
 						if (t)
-							t = PDataHub.procAttTxt(cAttID, t);
+							t = PData.procAttTxt(cAttID, t);
 						if (t)
 						{
 							if (szAttID) {
@@ -1556,7 +1556,7 @@ PFilterNum.prototype.setup = function()
 	var self = this;
 	var insert = this.insertPt();
 
-	this.rCats = PDataHub.getRCats(this.att);
+	this.rCats = PData.getRCats(this.att);
 		// Lack of range bounds? Create generic HTML input boxes, can't create range sliders
 	if (this.rCats == null) {
 		var fh = _.template(document.getElementById('dltext-filter-number').innerHTML);
@@ -1722,7 +1722,7 @@ PFilterDates.prototype.eval = function(rec)
 				d = field.d;
 			}
 		}
-		return PDataHub.date3Nums(y, m, d);
+		return PData.date3Nums(y, m, d);
 	} // makeDate()
 
 	var d = rec.a[this.att.id];
@@ -1754,7 +1754,7 @@ PFilterDates.prototype.setup = function()
 
 	this.today = new Date();
 
-	this.rCats = PDataHub.getRCats(this.att);
+	this.rCats = PData.getRCats(this.att);
 		// Set defaults
 	this.useMin = this.useMax = true;
 	this.min = this.rCats[0].min;
@@ -1913,20 +1913,20 @@ function PViewFrame(vfIndex)
 		function inspectShow()
 		{
 			var recAbsI = recSel[i];
-			rec = PDataHub.getRecByIndex(recAbsI);
+			rec = PData.getRecByIndex(recAbsI);
 			var title = ' '+rec.l+' ('+(i+1)+'/'+recSel.length+') ';
 			jQuery('#inspect-name').text(title);
 				// Which template type?
-			var tI = PDataHub.aIndex2Tmplt(recAbsI);
+			var tI = PData.aIndex2Tmplt(recAbsI);
 				// Show all data
 			var container = jQuery('#inspect-content');
 			container.empty();
 // console.log("Show atts: "+JSON.stringify(prspdata.e.i.modal.atts[tI]));
 			prspdata.e.i.modal.atts[tI].forEach(function(attID) {
-				var attVal = PDataHub.getRecAtt(recAbsI, attID, false);
+				var attVal = PData.getRecAtt(recAbsI, attID, false);
 // console.log("AttID: "+attID+"; val: "+attVal);
 				if (attVal) {
-					var theAtt = PDataHub.getAttID(attID);
+					var theAtt = PData.getAttID(attID);
 					var html = '<div><span class="att-label">'+theAtt.def.l+':</span> '+attVal+'</div>';
 					container.append(html);
 				}
@@ -2139,7 +2139,7 @@ function PViewFrame(vfIndex)
 		group.empty();
 		legendIDs[lIndex] = attID;
 			// Insert new items
-		var attDef = PDataHub.getAttID(attID);
+		var attDef = PData.getAttID(attID);
 		attDef.l.forEach(function(legEntry, lgIndex) {
 			element = '<div class="lgnd-value lgnd-entry" data-index="'+lgIndex+'"><input type="checkbox" checked="checked" class="lgnd-entry-check"/>'+
 						'<div class="lgnd-viz" style="background-color: '+legEntry.v+'"> </div> <span class="lgnd-value-title">'+legEntry.l+'</span></div>';
@@ -2165,7 +2165,7 @@ function PViewFrame(vfIndex)
 		// INPUT: 	vIndex is index in Exhibit array
 	function createViz(vIndex)
 	{
-		var theView = PDataHub.getVizIndex(vIndex);
+		var theView = PData.getVizIndex(vIndex);
 
 			// Remove current viz content
 		if (vizModel)
@@ -2207,7 +2207,7 @@ function PViewFrame(vfIndex)
 
 				// Create Legend sections for each Template
 			prspdata.e.g.ts.forEach(function(tID, tIndex) {
-				var tmpltDef = PDataHub.getTmpltID(tID);
+				var tmpltDef = PData.getTmpltID(tID);
 					// Insert locate attributes into Legends
 				var locAtts = vizModel.getLocAtts(tIndex);
 				if ((locAtts && locAtts.length > 0) || !vizModel.reqLocAtts()) {
@@ -2216,7 +2216,7 @@ function PViewFrame(vfIndex)
 									'"><div class="lgnd-title">'+tmpltDef.l+'</div></div>');
 					if (locAtts)
 						locAtts.forEach(function(attID, aIndex) {
-							var attDef = PDataHub.getAttID(attID);
+							var attDef = PData.getAttID(attID);
 							newTLegend.append('<div class="lgnd-entry lgnd-locate" data-id="'+attID+
 								'"><input type="checkbox" checked="checked" class="lgnd-entry-check"/><span class="lgnd-value-title">'+
 								attDef.def.l+'</span></div>');
@@ -2225,7 +2225,7 @@ function PViewFrame(vfIndex)
 					var attSelection = vizModel.getFeatureAtts(tIndex);
 					var newStr = '<select class="lgnd-select">';
 					attSelection.forEach(function(attID, aIndex) {
-						var attDef = PDataHub.getAttID(attID);
+						var attDef = PData.getAttID(attID);
 						newStr += '<option value="'+attID+'">'+attDef.def.l+'</option>';
 					});
 					newStr += '</select>';
@@ -2403,19 +2403,19 @@ function PViewFrame(vfIndex)
 
 
 // ==========================================================
-// PDataHub
+// PData
 // PURPOSE: Manages all data, orchestrates data streams, etc.
 
 // USES: jQuery (for AJAX), underscore
 
 // NOTES: 	There is only one hub at a time so no need for instantiating instances
-//			PDataHub is implemented with the "Module" design pattern for hiding
+//			PData is implemented with the "Module" design pattern for hiding
 //				private variables and minimizing external interference
 // 			The s array of an IndexStream contains absolute index numbers to global data array
 // TO DO: 	Change LOAD_DATA_CHUNK to Option setting passed by prspdata
 
 
-var PDataHub = (function () {
+var PData = (function () {
 
 	// CONSTANTS
 	// =========
@@ -2592,7 +2592,7 @@ var PDataHub = (function () {
 			// TO DO: 	Change attID to att definition
 		procAttTxt: function(attID, a)
 		{
-			var att = PDataHub.getAttID(attID);
+			var att = PData.getAttID(attID);
 			switch (att.def.t) {
 			case 'Vocabulary':
 				return a.join(', ');
@@ -2658,7 +2658,7 @@ var PDataHub = (function () {
 				if (a.length > 0) {
 					var t = '';
 					a.forEach(function(onePtr) {
-						var ptrRec = PDataHub.getRecByID(onePtr);
+						var ptrRec = PData.getRecByID(onePtr);
 						if (ptrRec) {
 							t += '<a href="'+prspdata.site_url+'?p='+ptrRec.wp+'" target="_blank">'+ptrRec.l+'</a> ';
 						}
@@ -2685,7 +2685,7 @@ var PDataHub = (function () {
 						return null;
 					if (raw)
 						return a;
-					return PDataHub.procAttTxt(attID, a);
+					return PData.procAttTxt(attID, a);
 				}
 			}
 			return null;
@@ -2984,7 +2984,7 @@ var PDataHub = (function () {
 		{
 			var rec;
 
-			if (rec = PDataHub.getAttLgndRecs(val, att, fSet, false)) {
+			if (rec = PData.getAttLgndRecs(val, att, fSet, false)) {
 				return rec.v;
 			} else
 				return null
@@ -3096,7 +3096,7 @@ var PDataHub = (function () {
 							d = field.d;
 						}
 					}
-					return PDataHub.date3Nums(y, m, d);
+					return PData.date3Nums(y, m, d);
 				} // makeDate()
 				function makeMaxDate(field)
 				{
@@ -3116,7 +3116,7 @@ var PDataHub = (function () {
 						curD = att.r.min.d;
 					}
 				}
-				var curDate = PDataHub.date3Nums(curY, curM, curD);
+				var curDate = PData.date3Nums(curY, curM, curD);
 				var lI=0, curL, lMinDate, lMaxDate;
 				if (att.l.length > 0) {
 					curL = att.l[0];
@@ -3164,28 +3164,28 @@ var PDataHub = (function () {
 					rCat.min = curDate;
 					switch (inc) {
 					case 'd':
-						rCat.max = PDataHub.date3Nums(curY, curM, curD+1);
+						rCat.max = PData.date3Nums(curY, curM, curD+1);
 						curD++;
 						break;
 					case 'm':
-						rCat.max = PDataHub.date3Nums(curY, curM+1, curD);
+						rCat.max = PData.date3Nums(curY, curM+1, curD);
 						curM++;
 						break;
 					case 'y':
-						rCat.max = PDataHub.date3Nums(curY+1, curM, curD);
+						rCat.max = PData.date3Nums(curY+1, curM, curD);
 						curY++;
 						break;
 					case 't':
-						rCat.max = PDataHub.date3Nums(curY+10, curM, curD);
+						rCat.max = PData.date3Nums(curY+10, curM, curD);
 						curY += 10;
 						break;
 					case 'c':
-						rCat.max = PDataHub.date3Nums(curY+100, curM, curD);
+						rCat.max = PData.date3Nums(curY+100, curM, curD);
 						curY += 100;
 						break;
 					}
 					rcs.push(rCat);
-					curDate = PDataHub.date3Nums(curY, curM, curD);
+					curDate = PData.date3Nums(curY, curM, curD);
 				}
 				return rcs;
 			} // switch
@@ -3231,7 +3231,7 @@ var PDataHub = (function () {
 		// 			if (typeof v.min.d != 'undefined')
 		// 				d = v.d;
 		// 		}
-		// 		return PDataHub.date3Nums(v.min.y, m, d);
+		// 		return PData.date3Nums(v.min.y, m, d);
 		// 	}
 
 		// 	var eval, maxV;
@@ -3306,7 +3306,7 @@ var PDataHub = (function () {
 					if (typeof v.min.d != 'undefined')
 						d = v.d;
 				}
-				return PDataHub.date3Nums(v.min.y, m, d);
+				return PData.date3Nums(v.min.y, m, d);
 			}
 
 			var eval, maxV;
@@ -3360,13 +3360,13 @@ var PDataHub = (function () {
 			return prspdata.e.vf[vIndex];
 		} // getVizIndex()
 	} // return
-})(); // PDataHub
+})(); // PData
 
 
 // PBootstrap -- Bootstrap for Prospect Client
 // PURPOSE: Create DOM structure, initiate services, manage filters, …
 
-// USES: 	jQuery, jQueryUI, PDataHub, PViewFrame
+// USES: 	jQuery, jQueryUI, PData, PViewFrame
 // ASSUMES: prspdata is fully loaded
 
 
@@ -3398,7 +3398,7 @@ console.log("Start recompute");
 			view1.clearSel();
 
 		if (topStream == null) {
-			topStream = PDataHub.newIndexStream(true);
+			topStream = PData.newIndexStream(true);
 		}
 		endStream = topStream;
 
@@ -3410,7 +3410,7 @@ console.log("Start recompute");
 			if (started || theF.f.isDirty(null)) {
 				started = true;
 				theF.f.evalPrep();
-				var newStream = PDataHub.newIndexStream(false);
+				var newStream = PData.newIndexStream(false);
 				var relI=0, absI, rec;
 				var tI=0, tRec=endStream.t[0], tRn=0;
 					// Must keep absolute indices and template params updated!
@@ -3422,14 +3422,14 @@ console.log("Start recompute");
 						tRec = endStream.t[++tI];
 					}
 					absI = endStream.s[relI++];
-					rec = PDataHub.getRecByIndex(absI);
+					rec = PData.getRecByIndex(absI);
 					if (theF.f.eval(rec)) {
 						newStream.s[newStream.l++] = absI;
 						tRn++;
 					}
 				}
 					// push out any remaining Template recs
-				while (tI++ < PDataHub.getNumETmplts()) {
+				while (tI++ < PData.getNumETmplts()) {
 					newStream.t.push( { i: (newStream.l-tRn), n: tRn } );
 					tRn = 0;
 				}
@@ -3637,7 +3637,7 @@ console.log("Visualization complete");
 		}
 
 		var newFilter;
-		var theAtt = PDataHub.getAttID(fID);
+		var theAtt = PData.getAttID(fID);
 		switch (theAtt.def.t) {
 		case 'Vocabulary':
 			newFilter = new PFilterVocab(newID, theAtt);
@@ -3776,7 +3776,7 @@ console.log("Visualization complete");
 			var relI=0, absI, rec;
 			while (relI < endStream.l) {
 				absI = endStream.s[relI++];
-				rec = PDataHub.getRecByIndex(absI);
+				rec = PData.getRecByIndex(absI);
 				if (selFilter.eval(rec)) {
 					selList.push(absI);
 				}
@@ -3891,5 +3891,5 @@ console.log("Visualization complete");
 	view0.initDOM();
 
 		// Init hub using config settings
-	PDataHub.init();
+	PData.init();
 });
