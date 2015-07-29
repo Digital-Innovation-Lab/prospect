@@ -390,7 +390,7 @@ VizMap.prototype.render = function(datastream)
 			locData = rec.a[theLAtt];
 			if (locData) {
 				if (fData = rec.a[fAttID]) {
-					fData = PDataHub.getAttLgndVal(fData, fAtt, featSet, false);
+					fData = PDataHub.getAttLgndVal(fData, fAtt, featSet);
 					if (fData) {
 						s = self.isSel(aI);
 						if (typeof locData[0] == 'number') {
@@ -539,7 +539,7 @@ VizCards.prototype.render = function(datastream)
 	var i=0, aI, tI=-1, tID, tRec, tDef;
 	var newT=true, fAttID, fAtt, iAttID;
 	var featSet, rec, c, s;
-	var hasC, cnt, datum, t, tDiv;
+	var hasC, cnt, datum, t, tDiv, tC;
 
 	var thisFrame = jQuery(this.frameID);
 	thisFrame.empty();
@@ -584,7 +584,7 @@ VizCards.prototype.render = function(datastream)
 		rec = PDataHub.getRecByIndex(aI);
 			// Eval Legend
 		if (datum = rec.a[fAttID]) {
-			c = PDataHub.getAttLgndVal(datum, fAtt, featSet, false);
+			c = PDataHub.getAttLgndRecs(datum, fAtt, featSet, false);
 
 			if (c) {
 				s = self.isSel(aI) ? ' obj-selected' : '';
@@ -592,6 +592,7 @@ VizCards.prototype.render = function(datastream)
 					// Get and add textual content
 				hasC = false; t = '';
 				if (cnt && cnt.length > 0) {
+					tC = c.b ? ' style="color:black"' : '';
 					cnt.forEach(function(theAttID) {
 						if (datum = rec.a[theAttID])
 							if (datum = PDataHub.procAttTxt(theAttID, datum)) {
@@ -603,13 +604,13 @@ VizCards.prototype.render = function(datastream)
 					// Any image?
 				if (datum = rec.a[iAttID]) {
 					if (hasC)
-						t = '<div class="card-body"><img src="'+datum+'"/><div class="card-cnt">'+t+'</div></div>';
+						t = '<div class="card-body"><img src="'+datum+'"/><div class="card-cnt"'+tC+'>'+t+'</div></div>';
 					else
 						t = '<div class="card-body"><img class="full" src="'+datum+'"/></div>';
 				} else {
-					t = '<div class="card-body"><div class="card-cnt">'+t+'</div>';
+					t = '<div class="card-body"><div class="card-cnt"'+tC+'>'+t+'</div>';
 				}
-				insert.append('<div class="card '+div+s+'" style="background-color:'+c+'" data-ai="'+aI+'">'+tDiv+t+'</div>');
+				insert.append('<div class="card '+div+s+'" style="background-color:'+c.v+'" data-ai="'+aI+'">'+tDiv+t+'</div>');
 			} // if Legend selected
 		} // if Legend datum
 		if (++i == (tRec.i + tRec.n)) {
@@ -858,7 +859,7 @@ VizPinboard.prototype.render = function(datastream)
 		locData = rec.a[locAtts];
 		if (locData) {
 			if (fData = rec.a[fAttID]) {
-				fData = PDataHub.getAttLgndVal(fData, fAtt, featSet, false);
+				fData = PDataHub.getAttLgndVal(fData, fAtt, featSet);
 				if (fData) {
 // console.log("Record "+i+"["+fAttID+"]: "+rec.a[fAttID]+" = "+fData);
 					if (typeof locData[0] == 'number') {
@@ -1243,7 +1244,7 @@ VizTextStream.prototype.render = function(datastream)
 					// Apply Legend
 				datum = rec.a[fAttID];
 				if (datum) {
-					fData = PDataHub.getAttLgndVal(datum, fAtt, featSet, false);
+					fData = PDataHub.getAttLgndVal(datum, fAtt, featSet);
 					if (fData) {
 						t = rec.a[cAttID];
 						if (t)
@@ -2807,8 +2808,7 @@ var PDataHub = (function () {
 			//			att = full Attribute entry
 			//			fSet = array of selected Legend indices ([x,y] for 2ndary level!)
 			//			all = return array for all possible matches for <val> (true), or just first match (false)
-			// TO DO: 	Change to ptr to legend record so can access both <v> and <b> ??
-		getAttLgndVal: function(val, att, fSet, all)
+		getAttLgndRecs: function(val, att, fSet, all)
 		{
 			var fI, lI = fSet.length, lE;
 
@@ -2821,16 +2821,16 @@ var PDataHub = (function () {
 						if (typeof fI === 'number') {
 							lE = att.l[fI];
 							if (lE.l == v)
-								return lE.v;
+								return lE;
 							// Secondary-level
 						} else {
 							lE = att.l[fI[0]];
 							var lE2 = lE.z[fI[1]];
 							if (lE2.l == v) {
 								if (lE2.v && lE2.v != '')
-									return lE2.v;
+									return lE2;
 								else
-									return lE.v;
+									return lE;
 							}
 						}
 					}
@@ -2864,7 +2864,7 @@ var PDataHub = (function () {
 					lE = att.l[fI];
 						// Looking for match anywhere; TO DO: use RegExp?
 					if (val.indexOf(lE.d) != -1) {
-						return lE.v;
+						return lE;
 					}
 				}
 				return null;
@@ -2877,13 +2877,13 @@ var PDataHub = (function () {
 						if (lE.d.min <= val) {
 							if (lE.d.max) {
 								if (val <= lE.d.max)
-									return lE.v;
+									return lE;
 							} else
-								return lE.v;
+								return lE;
 						}
 					} else {	// max only
 						if (val <= lE.d.max)
-							return lE.v;
+							return lE;
 					}
 				}
 				return null;
@@ -2926,12 +2926,12 @@ var PDataHub = (function () {
 								}
 							}
 						}
-						return lE.v;
+						return lE;
 					} else {				// min bound only
 							// Event is range
 						if (typeof val.max != 'undefined') {
 							if (val.max == 'open')		// double open always overlap
-								return lE.v;
+								return lE;
 							if (val.max.y < lE.d.min.y)
 								continue;
 							if (val.max.y == lE.d.min.y) {
@@ -2946,7 +2946,7 @@ var PDataHub = (function () {
 									}
 								}
 							}
-							return lE.v;
+							return lE;
 
 							// Single date
 						} else {
@@ -2964,14 +2964,32 @@ var PDataHub = (function () {
 									}
 								}
 							}
-							return lE.v;
+							return lE;
 						}
 					}
 				} // for f
 				break;
 			}
 			return null;
+		}, // getAttLgndRecs()
+
+
+			// RETURNS: Just color code for an Attribute value, an array (if all), or null if no match
+			// INPUT:   val = raw Attribute val (String or Number)
+			//			att = full Attribute entry
+			//			fSet = array of selected Legend indices ([x,y] for 2ndary level!)
+			//			all = return array for all possible matches for <val> (true), or just first match (false)
+			// TO DO: 	Change to ptr to legend record so can access both <v> and <b> ??
+		getAttLgndVal: function(val, att, fSet)
+		{
+			var rec;
+
+			if (rec = PDataHub.getAttLgndRecs(val, att, fSet, false)) {
+				return rec.v;
+			} else
+				return null
 		}, // getAttLgndVal()
+
 
 			// PURPOSE: Find the visual code for this Attribute's vocabulary item
 			// RETURNS: pointer to Legend record, or null if failure

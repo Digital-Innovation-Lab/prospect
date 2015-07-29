@@ -623,6 +623,7 @@ div.card > div.card-title {
 	font-weight: bold;
 	vertical-align: middle;
 	overflow: hidden;
+	color: black;
 	background-color: #F0F8FF;
 	border: 1px black solid;
 	padding-left: 2px;
@@ -670,6 +671,8 @@ div.card.ww > div.card-body > img.full {
 }
 
 div.card > div.card-body > div.card-cnt {
+	color: white;
+
 	flex-grow: 1;
 	-webkit-flex-grow: 1;
 	-moz-flex-grow: 1;
