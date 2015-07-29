@@ -1180,7 +1180,7 @@ VizTextStream.prototype.render = function(datastream)
 	var insert, rec, datum, t, s, h;
 
 	var order, oAtt, cAttID, cAtt, featSet, fAttID, fAtt, fData;
-	var szAtt, szAttID, da, dt;
+	var szAtt, szAttID, da, dt, bC;
 
 	// var vizDiv = jQuery('#textstream-'+this.vFrame.getIndex());
 	var vizDiv = jQuery(this.frameID);
@@ -1244,7 +1244,7 @@ VizTextStream.prototype.render = function(datastream)
 					// Apply Legend
 				datum = rec.a[fAttID];
 				if (datum) {
-					fData = PData.getAttLgndVal(datum, fAtt, featSet);
+					fData = PData.getAttLgndRecs(datum, fAtt, featSet, false);
 					if (fData) {
 						t = rec.a[cAttID];
 						if (t)
@@ -1260,7 +1260,8 @@ VizTextStream.prototype.render = function(datastream)
 							} else
 								s = self.settings.min;
 							h = self.isSel(oRec.i) ? ' obj-selected' : '';
-							insert.append('<div class="recitem'+h+'" data-ai='+oRec.i+' style="color:'+fData+';font-size:'+s+'px">'+t+'</div>');
+							bC = fData.b ? ';background-color:black' : '';
+							insert.append('<div class="recitem'+h+'" data-ai='+oRec.i+' style="color:'+fData.v+bC+';font-size:'+s+'px">'+t+'</div>');
 						} // t
 					} // if fData
 				}
