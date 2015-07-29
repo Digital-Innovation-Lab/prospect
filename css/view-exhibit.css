@@ -814,8 +814,10 @@ div.viz-textstream {
 
 div.viz-textstream div.recitem {
 	display: inline-block;
-	padding: 0px;
+	padding: 2px;
 	margin: 3px;
+	background-color: white;
+	border: black solid 1px;
 }
 
 div.viz-textstream div.recitem.obj-selected {
