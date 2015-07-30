@@ -80,7 +80,7 @@ div.v-scroll-container {
 	color: #222;
 	font-size: 14px;
 	margin: 0px;
-	padding: 15px 20px 35px;
+	padding: 12px 20px 30px;
 
 	vertical-align: middle;
 }
@@ -130,7 +130,7 @@ div.v-scroll-container {
 	/* This is the control bar for filters */
 #filter-control-bar {
 	height: 28px;
-	padding: 15px 20px 25px;
+	padding: 10px 20px 20px;
 	margin: 0;
 	vertical-align: middle;
 	font-size: 12px;
@@ -218,7 +218,7 @@ div.filter-body svg .brush .extent {
 	/* This is the control bar for filters */
 #selector-control-bar {
 	height: 28px;
-	padding: 15px 20px 25px;
+	padding: 10px 20px 22px;
 	margin: 0;
 	vertical-align: middle;
 	font-size: 12px;
@@ -291,7 +291,7 @@ div.filter-body svg .brush .extent {
 #viz-display-frame div.view-control-bar {
 	height: 28px;
 	width: 100%;
-	padding: 15px 20px 25px;
+	padding: 10px 20px 21px;
 	margin: 0;
 	vertical-align: middle;
 	font-size: 12px;

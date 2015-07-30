@@ -2259,7 +2259,6 @@ function PViewFrame(vfIndex)
 		} else {
 			c.attr("disabled", true);
 			c.prop('checked', false);
-			// c.removeAttr("checked"); // ?? this instead?
 		}
 
 		vizModel.setup();

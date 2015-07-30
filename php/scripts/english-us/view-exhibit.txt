@@ -27,7 +27,7 @@
 		<button id="btn-new-selector">New Filter</button>
 		<button id="btn-toggle-selector">Hide/Show Filter</button>
 		<button id="btn-apply-selector">Apply Selector Filter</button>
-		<input type="checkbox" checked="checked" id="selector-v0"/> View 1
+		<input type="checkbox" id="selector-v0" checked="checked"/> View 1
 		<input type="checkbox" id="selector-v1" disabled/> View 2
 	</div>
 	<div id="selector-instance">
