@@ -507,6 +507,14 @@ label {
 	border: orange solid 2px;
 }
 
+	/* z-index must be greater than Leaflet's and Legend */
+.ui-front {
+	z-index: 1000 !important;
+}
+
+.ui-dialog {
+	z-index: 2000 !important;
+}
 
 	/* Visualization styles
 	 * ====================
