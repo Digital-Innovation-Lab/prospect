@@ -78,7 +78,7 @@ function PVizModel(viewFrame, vizSettings)
 	// this.optionsModal()
 		// All subclasses must implement the following:
 	// this.setup()
-	// this.render(IndexStream)
+	// this.render(stream)
 	// this.setSel(absIDs)
 	// this.getState()
 	// this.setState(pData)
@@ -157,7 +157,6 @@ PVizModel.prototype.optionsModal = function()
 
 // ===================================
 // VizMap: Class to visualize GIS maps
-
 
 var VizMap = function(viewFrame, vSettings)
 {
@@ -280,7 +279,7 @@ VizMap.prototype.setup = function()
 
 	// PURPOSE: Draw the Records in the given datastream
 	// NOTES: 	absolute index of Record is saved in <id> field of map marker
-VizMap.prototype.render = function(datastream)
+VizMap.prototype.render = function(stream)
 {
 	var self = this;
 	var mLayer = this.markerLayer;
@@ -294,7 +293,6 @@ VizMap.prototype.render = function(datastream)
 		if (e.target && e.target.options) {
 			var aid = e.target.options._aid;
 			var added = self.toggleSel(aid);
-// console.log("Added "+e.target.options._aid+"? "+added);
 
 				// Which Template type does absolute index belong to? Does it have multiple location Attributes?
 			var tI = PData.aIndex2Tmplt(aid);
@@ -346,13 +344,13 @@ VizMap.prototype.render = function(datastream)
 
 	i=0; tI=-1;
 	doStream:
-	while (i<datastream.l) {
+	while (i<stream.l) {
 			// Starting with new Template?
 		if (locAtts == null) {
 			do {
 				if (++tI == numTmplts)
 					break doStream;
-				tRec = datastream.t[tI];
+				tRec = stream.t[tI];
 			} while (tRec.n == 0 || (tRec.i+tRec.n) == i);
 
 			locAtts = this.vFrame.getSelLocAtts(tI);
@@ -379,7 +377,7 @@ VizMap.prototype.render = function(datastream)
 		} // if new Template
 
 			// Get Record data and create cache entry
-		aI = datastream.s[i];
+		aI = stream.s[i];
 		rec = PData.getRecByIndex(aI);
 		var cEntry;
 		if (mCache) {
@@ -530,8 +528,8 @@ VizCards.prototype.setup = function()
 } // setup()
 
 
-	// PURPOSE: Draw the Records in the given datastream
-VizCards.prototype.render = function(datastream)
+	// PURPOSE: Draw the Records in the given stream
+VizCards.prototype.render = function(stream)
 {
 	var self = this;
 
@@ -548,13 +546,13 @@ VizCards.prototype.render = function(datastream)
 
 	var div = 'w'+this.settings.w+' h'+this.settings.h;
 
-	while (i<datastream.l) {
+	while (i<stream.l) {
 			// Starting with new Template?
 		if (newT) {
 			do {
 				if (++tI == numTmplts)
 					return;
-				tRec = datastream.t[tI];
+				tRec = stream.t[tI];
 			} while (tRec.n == 0 || (tRec.i+tRec.n) == i);
 
 			tID = PData.getETmpltIndex(tI);
@@ -580,7 +578,7 @@ VizCards.prototype.render = function(datastream)
 		} // if new Template
 
 			// Get Record data and create cache entry
-		aI = datastream.s[i];
+		aI = stream.s[i];
 		rec = PData.getRecByIndex(aI);
 			// Eval Legend
 		if (datum = rec.a[fAttID]) {
@@ -766,9 +764,9 @@ VizPinboard.prototype.setup = function()
 		.attr('id', 'recs');
 } // setup
 
-	// PURPOSE: Draw the Records in the given datastream
+	// PURPOSE: Draw the Records in the given stream
 	// NOTES: 	Creates nodes 
-VizPinboard.prototype.render = function(datastream)
+VizPinboard.prototype.render = function(stream)
 {
 	var self = this;
 
@@ -820,13 +818,13 @@ VizPinboard.prototype.render = function(datastream)
 
 	i=0; tI=-1;
 	doStream:
-	while (i<datastream.l) {
+	while (i<stream.l) {
 			// Starting with new Template?
 		if (locAtts == null) {
 			do {
 				if (++tI == numTmplts)
 					break doStream;
-				tRec = datastream.t[tI];
+				tRec = stream.t[tI];
 			} while (tRec.n == 0 || (tRec.i+tRec.n) == i);
 
 			locAtts = this.vFrame.getSelLocAtts(tI);
@@ -849,7 +847,7 @@ VizPinboard.prototype.render = function(datastream)
 			pAttID = self.settings.pAtts[tI];
 		} // if new Template
 			// Get Record data
-		aI = datastream.s[i];
+		aI = stream.s[i];
 		rec = PData.getRecByIndex(aI);
 		var cEntry;
 		if (mCache) {
@@ -959,6 +957,173 @@ VizPinboard.prototype.optionsModal = function()
 } // optionsModal()
 
 
+// ===============================================
+// VizTime: Class to visualize Records on Timeline
+
+var VizTime = function(viewFrame, vSettings)
+{
+	PVizModel.call(this, viewFrame, vSettings);
+} // VizTime
+
+VizTime.prototype = Object.create(PVizModel.prototype);
+
+VizTime.prototype.constructor = VizTime;
+
+VizTime.prototype.usesLegend = function()
+{
+	return true;
+} // usesLegend()
+
+VizTime.prototype.reqLocAtts = function()
+{
+	return false;
+}
+
+VizTime.prototype.getFeatureAtts = function(tIndex)
+{
+	if (tIndex != null)
+		return this.settings.lgnds[tIndex];
+	return this.settings.lgnds;
+} // getFeatureAtts()
+
+VizTime.prototype.setup = function()
+{
+	var self = this;
+	var s = this.settings;
+
+		// Create SVG palette of temporary size
+	var svg = d3.select(this.frameID).append("svg")
+		.attr("width", 100)
+		.attr("height", 100);
+
+	var defs = svg.append('defs');
+} // setup()
+
+
+	// PURPOSE: Draw the Records in the given datastream
+VizTime.prototype.render = function(stream)
+{
+	var self = this;
+
+	var numTmplts = PData.getNumETmplts();
+	var i=0, aI, tI=-1, tID, tRec, tDef;
+	var newT=true, fAttID, fAtt, iAttID;
+	var featSet, rec, c, s;
+	var hasC, cnt, datum, t, tDiv, tC;
+
+	var thisFrame = jQuery(this.frameID);
+	thisFrame.empty();
+
+	var insert;
+
+	var div = 'w'+this.settings.w+' h'+this.settings.h;
+
+	while (i<stream.l) {
+			// Starting with new Template?
+		if (newT) {
+			do {
+				if (++tI == numTmplts)
+					return;
+				tRec = stream.t[tI];
+			} while (tRec.n == 0 || (tRec.i+tRec.n) == i);
+
+			tID = PData.getETmpltIndex(tI);
+			tDef = PData.getTmpltID(tID);
+
+			featSet = self.vFrame.getSelFeatAtts(tI);
+				// Skip Templates if no feature Atts
+			if (featSet.length == 0) {
+				newT = true;
+				continue;
+			} // if no featAtts
+
+			thisFrame.append('<div class="template-label">'+tDef.l+'</div><div class="cards" data-ti="'+tI+'"></div>');
+			insert = jQuery('div.cards[data-ti="'+tI+'"]');
+
+				// Get Feature Attribute ID and def for this Template
+			fAttID = self.vFrame.getSelLegend(tI);
+			fAtt = PData.getAttID(fAttID);
+
+			iAttID = self.settings.iAtts[tI];
+			cnt = self.settings.cnt[tI];
+			newT = false;
+		} // if new Template
+
+			// Get Record data and create cache entry
+		aI = stream.s[i];
+		rec = PData.getRecByIndex(aI);
+			// Eval Legend
+		if (datum = rec.a[fAttID]) {
+			c = PData.getAttLgndRecs(datum, fAtt, featSet, false);
+
+			if (c) {
+				s = self.isSel(aI) ? ' obj-selected' : '';
+				tDiv = self.settings.lOn ? '<div class="card-title">'+rec.l+'</div>' : '';
+					// Get and add textual content
+				hasC = false; t = '';
+				if (cnt && cnt.length > 0) {
+					tC = c.b ? ' style="color:black"' : '';
+					cnt.forEach(function(theAttID) {
+						if (datum = rec.a[theAttID])
+							if (datum = PData.procAttTxt(theAttID, datum)) {
+								hasC = true;
+								t += datum+'<br/>';
+							}
+					});
+				}
+					// Any image?
+				if (datum = rec.a[iAttID]) {
+					if (hasC)
+						t = '<div class="card-body"><img src="'+datum+'"/><div class="card-cnt"'+tC+'>'+t+'</div></div>';
+					else
+						t = '<div class="card-body"><img class="full" src="'+datum+'"/></div>';
+				} else {
+					t = '<div class="card-body"><div class="card-cnt"'+tC+'>'+t+'</div>';
+				}
+				insert.append('<div class="card '+div+s+'" style="background-color:'+c.v+'" data-ai="'+aI+'">'+tDiv+t+'</div>');
+			} // if Legend selected
+		} // if Legend datum
+		if (++i == (tRec.i + tRec.n)) {
+			newT = true;
+		}
+	} // while
+} // render()
+
+VizTime.prototype.teardown = function()
+{
+	jQuery(this.frameID).off("click.vf");
+}
+
+VizTime.prototype.setSel = function(absIArray)
+{
+	var self=this;
+	var absI, t;
+
+	this.recSel = absIArray;
+
+	var rows = jQuery(this.frameID).find('div.card');
+
+	rows.each(function() {
+		t = jQuery(this);
+		absI = t.data('ai');
+		if (absI != null) {
+			if (self.isSel(absI))
+				t.addClass('obj-selected');
+			else
+				t.removeClass('obj-selected');
+		}
+	});
+} // setSel()
+
+VizTime.prototype.clearSel = function()
+{
+	if (this.recSel.length > 0) {
+		this.recSel = [];
+		jQuery(this.frameID).find('div.card').removeClass('obj-selected');
+	}
+} // clearSel()
+
+
 // ==========================================================
 // VizDirectory: Class to visualize lists of Template records
 
@@ -974,17 +1139,7 @@ VizDirectory.prototype.constructor = VizDirectory;
 VizDirectory.prototype.setup = function()
 {
 	var self = this;
-	// var vIndex = this.vFrame.getIndex();
 
-		// Insert a scrolling container
-	// jQuery(this.frameID).append('<div id="directory-'+vIndex+'" class="scroll-container"></div>');
-
-	// var thisFrame = jQuery(this.frameID);
-	// thisFrame.addClass('v-scroll-container');
-	// thisFrame.append('<div id="directory-'+vIndex+'" class="max-v-size"></div>');
-
-		// Listen for clicks on it
-	// jQuery('#directory-'+vIndex).click(function(event) {
 	jQuery(this.frameID).on("click.vf", function(event) {
 		if (event.target.nodeName == 'TD') {
 			var row = jQuery(event.target).closest('tr');
@@ -997,7 +1152,6 @@ VizDirectory.prototype.setup = function()
 					row.removeClass("obj-selected");
 			}
 		} else if (event.target.nodeName == 'TH') {
-console.log("Clicked column name");
 		}
 	});
 } // setup()
@@ -1005,7 +1159,7 @@ console.log("Clicked column name");
 
 	// PURPOSE: Draw the Records in the given datastream
 	// NOTES: 	absolute index of Record is saved in <id> field of map marker
-VizDirectory.prototype.render = function(datastream)
+VizDirectory.prototype.render = function(stream)
 {
 	var self = this;
 
@@ -1016,14 +1170,14 @@ VizDirectory.prototype.render = function(datastream)
 	var thisFrame = jQuery(this.frameID);
 	thisFrame.empty();
 
-	tRec = datastream.t[0];
-	while (i<datastream.l) {
+	tRec = stream.t[0];
+	while (i<stream.l) {
 			// Advance until we get to current Template rec
 		while (tRec.n == 0 || (tRec.i+tRec.n) == i) {
 				// Have we run out of Templates?
 			if (++tI == numTmplts)
 				return;
-			tRec = datastream.t[tI];
+			tRec = stream.t[tI];
 			insert = null;
 		}
 			// Starting with new Template? Create new table
@@ -1045,7 +1199,7 @@ VizDirectory.prototype.render = function(datastream)
 		} // if new Template
 
 			// Get Record data
-		aI = datastream.s[i];
+		aI = stream.s[i];
 // console.log("Next record: "+i+" (absI) "+aI);
 		rec = PData.getRecByIndex(aI);
 		t = '<tr data-id="'+rec.id+'" data-ai='+aI;
@@ -1079,7 +1233,6 @@ VizDirectory.prototype.teardown = function()
 VizDirectory.prototype.setSel = function(absIArray)
 {
 	var self=this;
-	// var vIndex = this.vFrame.getIndex();
 	var absI, t;
 
 	this.recSel = absIArray;
@@ -1147,13 +1300,7 @@ VizTextStream.prototype.getFeatureAtts = function(tIndex)
 VizTextStream.prototype.setup = function()
 {
 	var self = this;
-	// var vIndex = this.vFrame.getIndex();
 
-		// Insert a scrolling container
-	// jQuery(this.frameID).append('<div id="textstream-'+vIndex+'" class="scroll-container"></div>');
-
-		// Listen for clicks on it
-	// jQuery('#textstream-'+vIndex).click(function(event) {
 	jQuery(this.frameID).on("click.vf", function(event) {
 		if (event.target.nodeName == 'DIV') {
 			var word = jQuery(event.target);
@@ -1171,7 +1318,7 @@ VizTextStream.prototype.setup = function()
 
 	// PURPOSE: Draw the Records in the given datastream
 	// NOTES: 	absolute index of Record is saved in <id> field of map marker
-VizTextStream.prototype.render = function(datastream)
+VizTextStream.prototype.render = function(stream)
 {
 	var self = this;
 
@@ -1182,21 +1329,20 @@ VizTextStream.prototype.render = function(datastream)
 	var order, oAtt, cAttID, cAtt, featSet, fAttID, fAtt, fData;
 	var szAtt, szAttID, da, dt, bC;
 
-	// var vizDiv = jQuery('#textstream-'+this.vFrame.getIndex());
 	var vizDiv = jQuery(this.frameID);
 
 	vizDiv.empty();
 
 	dt = this.settings.max - this.settings.min;
 
-	tRec = datastream.t[0];
+	tRec = stream.t[0];
 	while (tI<numTmplts) {
 			// Advance until we get to current Template rec
 		while (tRec.n == 0 || (tRec.i+tRec.n) == i) {
 				// Have we run out of Templates?
 			if (++tI == numTmplts)
 				return;
-			tRec = datastream.t[tI];
+			tRec = stream.t[tI];
 		}
 
 			// only 1 Location Attribute possible - skip if not selected
@@ -1236,7 +1382,7 @@ VizTextStream.prototype.render = function(datastream)
 		}
 		if (cAttID) {
 			oAtt = PData.getAttID(self.settings.order[tI]);
-			order = PData.orderTBy(oAtt, datastream, tI);
+			order = PData.orderTBy(oAtt, stream, tI);
 // console.log("Order for Template "+tI+": "+JSON.stringify(order));
 
 			order.forEach(function(oRec) {
@@ -1284,7 +1430,6 @@ VizTextStream.prototype.setSel = function(absIArray)
 
 	this.recSel = absIArray;
 
-	// var rows = jQuery('#textstream-'+vIndex+' div.recitem');
 	var rows = jQuery(this.frameID).find('div.recitem');
 
 	rows.each(function() {
@@ -1304,8 +1449,6 @@ VizTextStream.prototype.clearSel = function()
 	if (this.recSel.length > 0) {
 		this.recSel = [];
 
-		// var vIndex = this.vFrame.getIndex();
-		// jQuery('#textstream-'+vIndex+' div.recitem').removeClass('obj-selected');
 		jQuery(this.frameID).find('div.recitem').removeClass('obj-selected');
 	}
 } // clearSel()
@@ -2185,6 +2328,7 @@ function PViewFrame(vfIndex)
 			vizModel = new VizPinboard(instance, theView.c);
 			break;
 		case 'Timeline':
+			vizModel = new VizTime(instance, theView.c);
 			break;
 		case 'Tree':
 			break;

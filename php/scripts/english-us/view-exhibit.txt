@@ -145,7 +145,7 @@ to
 </script>
 
 <script id="dltext-approximately" type="text">
-approximately
+about
 </script>
 
 <script id="dltext-now" type="text">

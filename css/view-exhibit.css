@@ -594,10 +594,10 @@ div.card {
 }
 
 div.card:hover {
-	transform: scale(1.4);
-	-webkit-transform: scale(1.4);
-	-moz-transform: scale(1.4);
-	-ms-transform: scale(1.4);
+	transform: scale(1.5);
+	-webkit-transform: scale(1.5);
+	-moz-transform: scale(1.5);
+	-ms-transform: scale(1.5);
 
 	z-index: 2;
 }
