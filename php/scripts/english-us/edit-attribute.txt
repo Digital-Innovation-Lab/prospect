@@ -80,38 +80,34 @@
 		{{#if theLegend.length}}
 		<ol class="vocab-parent">
 			{{#each theLegend:index1}}
-				<li id="vocab_{{index1}}">
-					<div>
-						<span class="legend-label">{{l}}</span>
-						<span title="Click to select visual representation" class="viz-icon" style="background-color:{{v}}" on-click="doLegendViz:{{index1}}"></span>
-						<div class="ui-widget-header ui-corner-all legend-btn-set">
-							<button decorator="iconButton:ui-icon-transfer-e-w" on-click="doVocabMove:{{index1}}">Move Entries</button>
-							<button decorator="iconButton:ui-icon-arrowthick-1-n" on-click="doLegendUp:{{index1}}">Move Up</button>
-							<button decorator="iconButton:ui-icon-arrowthickstop-1-n" on-click="doLegendTop:{{index1}}">Move To Top</button>
-							<button decorator="iconButton:ui-icon-arrowthick-1-s" on-click="doLegendDown:{{index1}}">Move Down</button>
-							<button decorator="iconButton:ui-icon-arrowthickstop-1-s" on-click="doLegendBottom:{{index1}}">Move To Bottom</button>
-							<button decorator="iconButton:ui-icon-trash" on-click="doLegendDel:{{index1}}">Delete</button>
-						</div>
+				<li class="legend-data-entry" id="vocab_{{index1}}">
+					<span class="legend-label">{{l}}</span>
+					<span title="Click to select visual representation" class="viz-icon" style="background-color:{{v}}" on-click="doLegendViz:{{index1}}"></span>
+					<div class="ui-widget-header ui-corner-all legend-btn-set">
+						<button decorator="iconButton:ui-icon-transfer-e-w" on-click="doVocabMove:{{index1}}">Move Entries</button>
+						<button decorator="iconButton:ui-icon-arrowthick-1-n" on-click="doLegendUp:{{index1}}">Move Up</button>
+						<button decorator="iconButton:ui-icon-arrowthickstop-1-n" on-click="doLegendTop:{{index1}}">Move To Top</button>
+						<button decorator="iconButton:ui-icon-arrowthick-1-s" on-click="doLegendDown:{{index1}}">Move Down</button>
+						<button decorator="iconButton:ui-icon-arrowthickstop-1-s" on-click="doLegendBottom:{{index1}}">Move To Bottom</button>
+						<button decorator="iconButton:ui-icon-trash" on-click="doLegendDel:{{index1}}">Delete</button>
 					</div>
 					{{#if z.length >= 1}}
 					<ol class='vocab-children'>
 						{{#each z:index2}}
-							<li id="vocab_{{index1}}_{{index2}}">
-								<div>
-									{{#if v.length > 1}}
-									<span title="Click to select visual representation" class="viz-icon" style="background-color:{{v}}" on-click="doLegendViz:{{index1}},{{index2}}"></span>
-									{{else}}
-									<span title="Click to select visual representation" class="viz-icon" on-click="doLegendViz:{{index1}},{{index2}}"></span>
-									{{/if}}
-									{{l}}
-									<div class="ui-widget-header ui-corner-all legend-btn-set">
-										<button decorator="iconButton:ui-icon-transfer-e-w" on-click="doVocabMove:{{index1}},{{index2}}">Move Entry</button>
-										<button decorator="iconButton:ui-icon-arrowthick-1-n" on-click="doLegendUp:{{index1}},{{index2}}">Move Up</button>
-										<button decorator="iconButton:ui-icon-arrowthickstop-1-n" on-click="doLegendTop:{{index1}},{{index2}}">Move To Top</button>
-										<button decorator="iconButton:ui-icon-arrowthick-1-s" on-click="doLegendDown:{{index1}},{{index2}}">Move Down</button>
-										<button decorator="iconButton:ui-icon-arrowthickstop-1-s" on-click="doLegendBottom:{{index1}},{{index2}}">Move To Bottom</button>
-										<button decorator="iconButton:ui-icon-trash" on-click="doLegendDel:{{index1}},{{index2}}">Delete</button>
-									</div>
+							<li class="legend-data-entry" id="vocab_{{index1}}_{{index2}}">
+								{{l}}
+								{{#if v.length > 1}}
+								<span title="Click to select visual representation" class="viz-icon" style="background-color:{{v}}" on-click="doLegendViz:{{index1}},{{index2}}"></span>
+								{{else}}
+								<span title="Click to select visual representation" class="viz-icon" on-click="doLegendViz:{{index1}},{{index2}}"></span>
+								{{/if}}
+								<div class="ui-widget-header ui-corner-all legend-btn-set">
+									<button decorator="iconButton:ui-icon-transfer-e-w" on-click="doVocabMove:{{index1}},{{index2}}">Move Entry</button>
+									<button decorator="iconButton:ui-icon-arrowthick-1-n" on-click="doLegendUp:{{index1}},{{index2}}">Move Up</button>
+									<button decorator="iconButton:ui-icon-arrowthickstop-1-n" on-click="doLegendTop:{{index1}},{{index2}}">Move To Top</button>
+									<button decorator="iconButton:ui-icon-arrowthick-1-s" on-click="doLegendDown:{{index1}},{{index2}}">Move Down</button>
+									<button decorator="iconButton:ui-icon-arrowthickstop-1-s" on-click="doLegendBottom:{{index1}},{{index2}}">Move To Bottom</button>
+									<button decorator="iconButton:ui-icon-trash" on-click="doLegendDel:{{index1}},{{index2}}">Delete</button>
 								</div>
 							</li>
 						{{/each}}
