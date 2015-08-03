@@ -49,6 +49,11 @@ var PSTATE_READY = 4;			// Waiting for user
 var D3FG_BAR_WIDTH = 25;		// D3 Graphs created for filters
 var D3FG_MARGINS  = { top: 4, right: 7, bottom: 22, left: 30 };
 
+var V_FLAG_LGND = 0x1;			// Uses Legend
+var V_FLAG_SEL = 0x2;			// Can select individual Records
+var V_FLAG_LOC = 0x4;			// Requires Location Attributes
+var V_FLAG_SET = 0x8;			// Has an Options dialog
+
 // ==============================================================================
 // PVizModel: An abstract class to be subclassed by specific visualizations
 //			VizModels are responsible for rendering graphics, handling selections
@@ -65,18 +70,16 @@ function PVizModel(viewFrame, vizSettings)
 	this.recSel   = [];
 
 		// Subclasses can override the following:
-	// this.usesLegend()
-	// this.reqLocAtts()
 	// this.getLocAtts(tIndex)
 	// this.getFeatureAtts(tIndex)
 	// this.teardown()
-	// this.canSel
 	// this.isSel(absI)
 	// this.getSel()
 	// this.toggleSel(absI)
 	// this.clearSel()
 	// this.optionsModal()
 		// All subclasses must implement the following:
+	// this.flags()
 	// this.setup()
 	// this.render(stream)
 	// this.setSel(absIDs)
@@ -84,6 +87,11 @@ function PVizModel(viewFrame, vizSettings)
 	// this.setState(pData)
 } // PVizModel
 
+	// PURPOSE: Describe Visualizations's capabilities
+PVizModel.prototype.flags = function()
+{
+	return 0;
+} // flags()
 
 	// RETURNS: True if record ID is in selected list
 PVizModel.prototype.isSel = function(absI)
@@ -119,23 +127,6 @@ PVizModel.prototype.clearSel = function()
 	this.recSel = [];
 } // clearSel()
 
-	// PURPOSE: Return true if this VizModel supports selection of individual Records
-	//				(rather than aggregate representation/interaction implying the selection)
-PVizModel.prototype.canSel = function()
-{
-	return true;
-} // canSel()
-
-PVizModel.prototype.usesLegend = function()
-{
-	return false;
-} // usesLegend()
-
-PVizModel.prototype.reqLocAtts = function()
-{
-	return false;
-} // PVizModel.reqLocAtts()
-
 PVizModel.prototype.getLocAtts = function(tIndex)
 {
 	return [];
@@ -167,15 +158,10 @@ VizMap.prototype = Object.create(PVizModel.prototype);
 
 VizMap.prototype.constructor = VizMap;
 
-VizMap.prototype.usesLegend = function()
+VizMap.prototype.flags = function()
 {
-	return true;
-} // usesLegend()
-
-VizMap.prototype.reqLocAtts = function()
-{
-	return true;
-}
+	return V_FLAG_LGND | V_FLAG_SEL | V_FLAG_LOC;
+} // flags()
 
 	// PURPOSE: Return IDs of locate Attributes 
 VizMap.prototype.getLocAtts = function(tIndex)
@@ -489,15 +475,10 @@ VizCards.prototype = Object.create(PVizModel.prototype);
 
 VizCards.prototype.constructor = VizCards;
 
-VizCards.prototype.usesLegend = function()
+VizCards.prototype.flags = function()
 {
-	return true;
-} // usesLegend()
-
-VizCards.prototype.reqLocAtts = function()
-{
-	return false;
-}
+	return V_FLAG_LGND | V_FLAG_SEL;
+} // flags()
 
 VizCards.prototype.getFeatureAtts = function(tIndex)
 {
@@ -665,15 +646,10 @@ VizPinboard.prototype = Object.create(PVizModel.prototype);
 
 VizPinboard.prototype.constructor = VizPinboard;
 
-VizPinboard.prototype.usesLegend = function()
+VizPinboard.prototype.flags = function()
 {
-	return true;
-} // usesLegend()
-
-VizPinboard.prototype.reqLocAtts = function()
-{
-	return true;
-}
+	return V_FLAG_LGND | V_FLAG_SEL | V_FLAG_LOC;
+} // flags()
 
 	// PURPOSE: Return IDs of locate Attributes 
 VizPinboard.prototype.getLocAtts = function(tIndex)
@@ -969,15 +945,10 @@ VizTime.prototype = Object.create(PVizModel.prototype);
 
 VizTime.prototype.constructor = VizTime;
 
-VizTime.prototype.usesLegend = function()
+VizTime.prototype.flags = function()
 {
-	return true;
-} // usesLegend()
-
-VizTime.prototype.reqLocAtts = function()
-{
-	return false;
-}
+	return V_FLAG_LGND | V_FLAG_SEL | V_FLAG_LOC;
+} // flags()
 
 VizTime.prototype.getFeatureAtts = function(tIndex)
 {
@@ -998,7 +969,6 @@ VizTime.prototype.setup = function()
 
 	var defs = svg.append('defs');
 } // setup()
-
 
 	// PURPOSE: Draw the Records in the given datastream
 VizTime.prototype.render = function(stream)
@@ -1091,35 +1061,17 @@ VizTime.prototype.render = function(stream)
 
 VizTime.prototype.teardown = function()
 {
-	jQuery(this.frameID).off("click.vf");
 }
 
 VizTime.prototype.setSel = function(absIArray)
 {
 	var self=this;
-	var absI, t;
-
-	this.recSel = absIArray;
-
-	var rows = jQuery(this.frameID).find('div.card');
-
-	rows.each(function() {
-		t = jQuery(this);
-		absI = t.data('ai');
-		if (absI != null) {
-			if (self.isSel(absI))
-				t.addClass('obj-selected');
-			else
-				t.removeClass('obj-selected');
-		}
-	});
 } // setSel()
 
 VizTime.prototype.clearSel = function()
 {
 	if (this.recSel.length > 0) {
 		this.recSel = [];
-		jQuery(this.frameID).find('div.card').removeClass('obj-selected');
 	}
 } // clearSel()
 
@@ -1135,6 +1087,11 @@ var VizDirectory = function(viewFrame, vSettings)
 VizDirectory.prototype = Object.create(PVizModel.prototype);
 
 VizDirectory.prototype.constructor = VizDirectory;
+
+VizDirectory.prototype.flags = function()
+{
+	return V_FLAG_SEL;
+} // flags()
 
 VizDirectory.prototype.setup = function()
 {
@@ -1272,15 +1229,10 @@ VizTextStream.prototype = Object.create(PVizModel.prototype);
 
 VizTextStream.prototype.constructor = VizTextStream;
 
-VizTextStream.prototype.usesLegend = function()
+VizTextStream.prototype.flags = function()
 {
-	return true;
+	return V_FLAG_LGND | V_FLAG_SEL | V_FLAG_LOC;
 } // usesLegend()
-
-VizTextStream.prototype.reqLocAtts = function()
-{
-	return true;
-}
 
 	// PURPOSE: Return IDs of locate Attributes
 VizTextStream.prototype.getLocAtts = function(tIndex)
@@ -2033,7 +1985,7 @@ function PViewFrame(vfIndex)
 
 	function clickShowHideLegend(event)
 	{
-		if (vizModel.usesLegend()) {
+		if (vizModel.flags() & V_FLAG_LGND) {
 			jQuery(getFrameID()+' div.lgnd-container').toggle('slide', {direction: "left" });
 		}
 		event.preventDefault();
@@ -2342,9 +2294,11 @@ function PViewFrame(vfIndex)
 			break;
 		}
 		vizSelIndex = vIndex;
+		var flags = vizModel.flags();
 
 			// Does Viz support Legend at all?
-		if (vizModel.usesLegend()) {
+		if (flags & V_FLAG_LGND) {
+			jQuery(getFrameID()+' .hslgnd').button("enable");
 				// Clear out previous Legend
 				// remove all previous locate Attributes
 			var lgndCntr = jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll');
@@ -2355,7 +2309,7 @@ function PViewFrame(vfIndex)
 				var tmpltDef = PData.getTmpltID(tID);
 					// Insert locate attributes into Legends
 				var locAtts = vizModel.getLocAtts(tIndex);
-				if ((locAtts && locAtts.length > 0) || !vizModel.reqLocAtts()) {
+				if ((locAtts && locAtts.length > 0) || !(flags & V_FLAG_LOC)) {
 							// Create DIV structure for Template's Legend entry
 					var newTLegend = jQuery('<div class="lgnd-template" data-index="'+tIndex+
 									'"><div class="lgnd-title">'+tmpltDef.l+'</div></div>');
@@ -2391,18 +2345,28 @@ function PViewFrame(vfIndex)
 			});
 			jQuery(getFrameID()+' div.lgnd-container').show();
 		} else {
+			jQuery(getFrameID()+' .hslgnd').button("disable");
 				// Just hide Legend
 			jQuery(getFrameID()+' div.lgnd-container').hide();
 		}
 
 			// Enable or disable corresponding Selector Filter 
 		var c = jQuery('#selector-v'+vfIndex);
-		if (vizModel.canSel()) {
+		if (flags & V_FLAG_SEL) {
+			jQuery(getFrameID()+' .xsel').button("enable");
 			c.removeAttr("disabled");
 			c.prop('checked', true);
 		} else {
+			jQuery(getFrameID()+' .xsel').button("disable");
 			c.attr("disabled", true);
 			c.prop('checked', false);
+		}
+
+			// Does Viz have an Options dialog?
+		if (flags & V_FLAG_SET) {
+			jQuery(getFrameID()+' .vopts').button("enable");
+		} else {
+			jQuery(getFrameID()+' .vopts').button("disable");
 		}
 
 		vizModel.setup();
@@ -2533,7 +2497,7 @@ function PViewFrame(vfIndex)
 	instance.setSel = function(selList)
 	{
 		if (vizModel) {
-			if (vizModel.canSel()) {
+			if (vizModel.flags() & V_FLAG_SEL) {
 				vizModel.setSel(selList);
 				return true;
 			}

@@ -85,11 +85,11 @@
 	<div class="view-control-bar">
 		<select class="view-viz-select">
 		</select>
-		<button>Hide/Show Legend</button>
-		<button>Open Selection</button>
-		<button>Clear Selection</button>
-		<button>View Options</button>
-		<button>Notes</button>
+		<button class="hslgnd">Hide/Show Legend</button>
+		<button class="osel">Open Selection</button>
+		<button class="xsel">Clear Selection</button>
+		<button class="vopts">View Options</button>
+		<button class="notes">Notes</button>
 	</div>
 	<div class="viz-content">
 		<div class="viz-result">
