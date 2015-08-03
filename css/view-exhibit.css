@@ -432,9 +432,13 @@ div.lgnd-value-title {
 
 div.annote {
 	position: absolute;
-	top: 10px;
-	left: calc(100% - 280px);
 	z-index: 1000;		/* Leaflet uses 400, so we need larger number */
+	top: 10px;
+
+	left: 90%;
+    left: calc(100% - 280px);
+	left: -webkit-calc(100% - 280px);
+/*    left: -moz-calc(100% - 280px); */
 
 	width: 270px;
 
