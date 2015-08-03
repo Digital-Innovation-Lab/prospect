@@ -241,6 +241,7 @@ div.filter-body svg .brush .extent {
 	 *		.viz-content
 	 *			.viz-result
 	 *			.lgnd-container
+	 *			.annote
 	 *	 #viz-frame-1
 	 *		... (same as above)
 	 */
@@ -428,6 +429,28 @@ div.lgnd-value-title {
 /*	position: absolute;
 	left: 42px; */
 }
+
+div.annote {
+	position: absolute;
+	top: 10px;
+	left: calc(100% - 280px);
+	z-index: 1000;		/* Leaflet uses 400, so we need larger number */
+
+	width: 270px;
+
+	max-height: 265px;
+
+	padding: 6px;
+	background-color: rgba(255, 255, 255, .8);
+
+	color: #222;
+	font-family: "Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;
+
+	-moz-box-shadow: 0 0 5px 5px rgba(0,0,0,0.3);
+	-webkit-box-shadow: 0 0 5px 5px rgba(0,0,0,0.3);
+	box-shadow: 0 0 5px 5px rgba(0,0,0,0.3);
+}
+
 
 	/* MODAL DIALOGS
 	 * =============

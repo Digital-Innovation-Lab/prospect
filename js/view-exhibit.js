@@ -2095,10 +2095,9 @@ function PViewFrame(vfIndex)
 		// PURPOSE: Hide/show the annotation for this View Frame
 	function clickAnnotation(event)
 	{
-		// TO DO
+		jQuery(getFrameID()+' div.annote').toggle('slide', {direction: "right" });
 		event.preventDefault();
 	} // clickAnnotation()
-
 
 		// PURPOSE: Turn on or off all feature Attributes for tmpltIndex
 	function doShowHideAll(tmpltIndex, show)
@@ -2415,6 +2414,8 @@ function PViewFrame(vfIndex)
 
 		head = jQuery(getFrameID()+' div.viz-content div.lgnd-container');
 		head.click(clickInLegend);
+
+		jQuery(getFrameID()+' div.annote').hide();
 
 			// Create first VF by default
 		createViz(0);

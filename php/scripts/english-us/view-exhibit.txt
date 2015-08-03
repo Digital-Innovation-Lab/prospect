@@ -99,6 +99,9 @@
 			<div class="lgnd-scroll">
 			</div>
 		</div>
+		<div class="annote">
+			<p>This is a note about this visualization.</p>
+		</div>
 	</div>
 </script>
 
