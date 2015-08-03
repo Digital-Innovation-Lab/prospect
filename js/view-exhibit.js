@@ -961,13 +961,50 @@ VizTime.prototype.setup = function()
 {
 	var self = this;
 	var s = this.settings;
+	var minY, minM, minD, maxY, maxM, maxD;
+
+		// Determine min & max time bounds for macro window
+	if (this.settings.from.length > 0) {
+
+	}
+	if (this.setting.to.length > 0) {
+
+	}
 
 		// Create SVG palette of temporary size
 	var svg = d3.select(this.frameID).append("svg")
 		.attr("width", 100)
 		.attr("height", 100);
 
+		// Create gradations for fuzzy dates
 	var defs = svg.append('defs');
+	// var gradDef;
+
+	// dhpTimeline.legendTerms.forEach(function(item) {
+	// 		// First entry for Legend is "header", no color info
+	// 	if (item.icon_url) {
+	// 		var color = item.icon_url;
+	// 		if (color.charAt(0) !== '#') {
+	// 			throw new Error('Using a non-color Legend for Timeline View');
+	// 		}
+	// 		var name = color.substr(1);
+	// 			// Create three variants of each color
+	// 		gradDef = defSpace.append('linearGradient').attr('id', name+'-fs');
+	// 		gradDef.append('stop').attr('offset', '0%').attr('stop-color', 'white');
+	// 		gradDef.append('stop').attr('offset', '5%').attr('stop-color', color);
+	// 		gradDef.append('stop').attr('offset', '100%').attr('stop-color', color);
+	// 		gradDef = defSpace.append('linearGradient').attr('id', name+'-fe');
+	// 		gradDef.append('stop').attr('offset', '0%').attr('stop-color', color);
+	// 		gradDef.append('stop').attr('offset', '95%').attr('stop-color', color);
+	// 		gradDef.append('stop').attr('offset', '100%').attr('stop-color', 'white');
+	// 		gradDef = defSpace.append('linearGradient').attr('id', name+'-fb');
+	// 		gradDef.append('stop').attr('offset', '0%').attr('stop-color', 'white');
+	// 		gradDef.append('stop').attr('offset', '5%').attr('stop-color', color);
+	// 		gradDef.append('stop').attr('offset', '95%').attr('stop-color', color);
+	// 		gradDef.append('stop').attr('offset', '100%').attr('stop-color', 'white');
+	// 	}
+	// });
+
 } // setup()
 
 	// PURPOSE: Draw the Records in the given datastream
