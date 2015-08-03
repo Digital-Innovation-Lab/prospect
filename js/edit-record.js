@@ -260,7 +260,7 @@ jQuery(document).ready(function() {
 			attObject.def.r= theAttribute.r;
 				// Create default values
 			switch(theAttribute.def.t) {
-			case 'Vocabulary':
+			case 'V':
 					// Create new arrays for selecting Legend values
 				attObject.def.newLgnd = [];
 				_.forEach(theAttribute.lgnd, function(theLegend) {
@@ -278,10 +278,10 @@ jQuery(document).ready(function() {
 					attObject.lgndSel = '';
 				attObject.value = defVal || '';
 				break;
-			case 'Text':
+			case 'T':
 				attObject.value = defVal || '';
 				break;
-			case 'Number':
+			case 'N':
 				if (defVal && defVal != '')
 					attObject.value = defVal.toString();
 				else if (theAttribute.r.min)
@@ -289,7 +289,7 @@ jQuery(document).ready(function() {
 				else
 					attObject.value = 0;
 				break;
-			case 'Dates':
+			case 'D':
 					// Is there some value given?
 				if (defVal && defVal != '') {
 					function parseDate(dateStr) {
@@ -333,36 +333,36 @@ jQuery(document).ready(function() {
 					attObject.value.min.d = theAttribute.r.min.d || '';
 				}
 				break;
-			case 'Lat-Lon':
+			case 'L':
 					// Use a single string in case of multiple pts
 				attObject.value = defVal || '';
 				break;
-			case 'X-Y':
+			case 'X':
 					// Use a single string in case of multiple pts
 				attObject.value = defVal || '';
 				break;
-			case 'Image':
+			case 'I':
 				attObject.value = defVal || '';
 				break;
-			case 'Link To':
+			case 'l': 	// Link To
 				attObject.value = defVal || '';
 				break;
-			case 'SoundCloud':
+			case 'S':
 				attObject.value = defVal || '';
 				break;
-			case 'YouTube':
+			case 'Y':
 				attObject.value = defVal || '';
 				break;
-			case 'Transcript':
+			case 'x': 	// Transcript
 				attObject.value = defVal || '';
 				break;
-			case 'Timecode':
+			case 't': 	// Timecode
 				attObject.value = defVal || '';
 				break;
-			case 'Pointer':
+			case 'P':
 				attObject.value = defVal || '';
 				break;
-			case 'Join':
+			case 'J':
 				attObject.value = defVal || '';
 				break;
 			} // switch
@@ -604,14 +604,14 @@ jQuery(document).ready(function() {
 
 				// Only need special processing for Numbers and Dates
 			switch (thisAtt.def.t) {
-			case 'Number':
+			case 'N':
 				if (newVal < thisAtt.def.r.min || newVal > thisAtt.def.r.max) {
 					displayError('#errmsg-number-range');
 					return false;
 				}
 				newVal = newVal.toString();
 				break;
-			case 'Dates':
+			case 'D':
 					// TO DO: Range check
 				var newDate = newVal.min.y;
 				if (newVal.min.m && newVal.min.m != '') {

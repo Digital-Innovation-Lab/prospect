@@ -187,25 +187,25 @@
 	Data type: 
 	<select value='{{theAttribute.t}}'>
 		{{#each dataTypes}}
-			<option>{{this}}</option>
+			<option value="{{code}}">{{label}}</option>
 		{{/each}}
 	</select><br/>
 
-	{{#if theAttribute.t == 'Number'}}
+	{{#if theAttribute.t == 'N'}}
 		{{>rangeNum}}
-	{{elseif theAttribute.t == 'Dates'}}
+	{{elseif theAttribute.t == 'D'}}
 		{{>rangeDates}}
 	{{else}}
 		(no Range settings for this data type)<br/>
 	{{/if}}
 
-	{{#if theAttribute.t == 'Vocabulary'}}
+	{{#if theAttribute.t == 'V'}}
 		{{>legendVocab}}
-	{{elseif theAttribute.t == 'Text'}}
+	{{elseif theAttribute.t == 'T'}}
 		{{>legendText}}
-	{{elseif theAttribute.t == 'Number'}}
+	{{elseif theAttribute.t == 'N'}}
 		{{>legendNum}}
-	{{elseif theAttribute.t == 'Dates'}}
+	{{elseif theAttribute.t == 'D'}}
 		{{>legendDates}}
 	{{else}}
 		(no Legend available for this data type)<br/>

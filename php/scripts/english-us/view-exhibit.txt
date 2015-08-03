@@ -100,7 +100,7 @@
 			</div>
 		</div>
 		<div class="annote">
-			<p>Notes about visualization go here.</p>
+			<p>Notes about visualization can go here.</p>
 		</div>
 	</div>
 </script>

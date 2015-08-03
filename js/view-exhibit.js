@@ -2740,13 +2740,13 @@ var PData = (function () {
 		{
 			var att = PData.getAttID(attID);
 			switch (att.def.t) {
-			case 'Vocabulary':
+			case 'V':
 				return a.join(', ');
-			case 'Text':
+			case 'T':
 				return a;
-			case 'Number':
+			case 'N':
 				return a.toString();
-			case 'Dates':
+			case 'D':
 				var ds;
 					// Range
 				if (a.max) {
@@ -2785,22 +2785,22 @@ var PData = (function () {
 					}
 				}
 				return ds;
-			case 'Lat-Lon':
-			case 'X-Y':
-				return a.join();
-			case 'Image':
+			case 'L':
+			case 'X':
+				return a.join(', ');
+			case 'I':
 				return '<img src="'+a+'" alt="'+att.def.l+'"/>';
-			case 'Link To':
+			case 'l': 	// Link To
 				return '<a href="'+a+'" target="_blank">(See Link)</a>';
-			case 'SoundCloud':
+			case 'S':
 				return '<a href="'+a+'" target="_blank">(SoundCloud)</a>';
-			case 'YouTube':
+			case 'Y':
 				return '<a href="https://www.youtube.com/watch?v='+a+'" target="_blank">(YouTube)</a>';
-			case 'Transcript':
+			case 'x': 	// Transcript
 				return '<a href="'+a+'" target="_blank">(See Transcript File)</a>';
-			case 'Timecode':
+			case 't': 	// Timecode
 				return a;
-			case 'Pointer':
+			case 'P':
 				if (a.length > 0) {
 					var t = '';
 					a.forEach(function(onePtr) {
@@ -2812,7 +2812,7 @@ var PData = (function () {
 					return t;
 				} else
 					return null;
-			// case 'Join': 	// Should not appear
+			// case 'J': 	// Should not appear
 			} // switch
 			return null;
 		}, // procAttTxt()
@@ -2959,7 +2959,7 @@ var PData = (function () {
 			var fI, lI = fSet.length, lE;
 
 			switch (att.def.t) {
-			case 'Vocabulary':
+			case 'V':
 				function s(v) {
 					for (var f=0; f<lI; f++) {
 						fI = fSet[f];
@@ -3004,7 +3004,7 @@ var PData = (function () {
 					} else
 						return s(val[0]);
 				}
-			case 'Text':
+			case 'T':
 				for (var f=0; f<lI; f++) {
 					fI = fSet[f];
 					lE = att.l[fI];
@@ -3014,7 +3014,7 @@ var PData = (function () {
 					}
 				}
 				return null;
-			case 'Number':
+			case 'N':
 				for (var f=0; f<lI; f++) {
 					fI = fSet[f];
 					lE = att.l[fI];
@@ -3033,9 +3033,9 @@ var PData = (function () {
 					}
 				}
 				return null;
-			case 'Dates': 			// Just looking for overlap, date doesn't have to be completely contained
-									// Disqualify for overlap if (1) end of event is before min bound, or
-									//	(2) start of event is after max bound
+			case 'D': 			// Just looking for overlap, date doesn't have to be completely contained
+								// Disqualify for overlap if (1) end of event is before min bound, or
+								//	(2) start of event is after max bound
 				for (var f=0; f<lI; f++) {
 					fI = fSet[f];
 					lE = att.l[fI];
@@ -3199,7 +3199,7 @@ var PData = (function () {
 		{
 			var rcs = [];
 			switch (att.def.t) {
-			case 'Number':
+			case 'N':
 					// Can't create range category unless both bounds provided
 				if (typeof att.r.min == 'undefined' || typeof att.r.max == 'undefined')
 					return null;
@@ -3234,7 +3234,7 @@ var PData = (function () {
 					rcs.push(rCat);
 				}
 				return rcs;
-			case 'Dates':
+			case 'D':
 				function makeDate(y, m, d, field) {
 					if (typeof field.m != 'undefined') {
 						m = field.m;
@@ -3347,11 +3347,11 @@ var PData = (function () {
 		{
 				// TO DO
 			switch (att.def.t) {
-			case 'Number':
+			case 'N':
 				break;
-			case 'Dates':
+			case 'D':
 				break;
-			case 'Vocabulary':
+			case 'V':
 				break;
 			}
 		}, // getRCnts()
@@ -3382,10 +3382,10 @@ var PData = (function () {
 
 		// 	var eval, maxV;
 		// 	switch (att.def.t) {
-		// 	case 'Text': 		eval = vIden;	maxV = '~'; break;
-		// 	case 'Vocabulary': 	eval = vVocab;	maxV = '~'; break;
-		// 	case 'Number': 		eval = vIden;	maxV = att.r.max; break;
-		// 	case 'Dates': 		eval = vDate;	maxV = today; break;
+		// 	case 'T': 	eval = vIden;	maxV = '~'; break;
+		// 	case 'V': 	eval = vVocab;	maxV = '~'; break;
+		// 	case 'N': 	eval = vIden;	maxV = att.r.max; break;
+		// 	case 'D': 	eval = vDate;	maxV = today; break;
 		// 	}
 
 		// 	var ord = [];
@@ -3411,15 +3411,15 @@ var PData = (function () {
 
 		// 		// Sort array
 		// 	switch (att.def.t) {
-		// 	case 'Text':
-		// 	case 'Vocabulary':
+		// 	case 'T':
+		// 	case 'V':
 		// 		ord.sort(function(a,b) { return a.v.localeCompare(b.v); });
 		// 		break;
-		// 	case 'Dates':
-		// 	case 'Number':
+		// 	case 'D':
+		// 	case 'N':
 		// 		ord.sort(function(a,b) { return a.v - b.v; });
 		// 		break;
-		// 	// case 'Dates':
+		// 	// case 'D':
 		// 	// 	ord.sort(function(a,b) {
 		// 	// 		var av = a.v.valueOf(), bv = b.v.valueOf();
 		// 	// 		return av - bv;
@@ -3433,7 +3433,7 @@ var PData = (function () {
 
 			// PURPOSE: Create index for records of particular Template in stream, ordered by the value of an Attribute
 			// RETURNS: Array containing objects: { i [absolute index of record], v [value] }
-			// NOTES: 	Only uses first value in the case of multiple (Vocabulary, Dates, etc)
+			// NOTES: 	Only uses first value in the case of multiple (V, D, etc)
 		orderTBy: function(att, stream, tI)
 		{
 			function vIden(v)
@@ -3457,10 +3457,10 @@ var PData = (function () {
 
 			var eval, maxV;
 			switch (att.def.t) {
-			case 'Text': 		eval = vIden;	maxV = '~'; break;
-			case 'Vocabulary': 	eval = vVocab;	maxV = '~'; break;
-			case 'Number': 		eval = vIden;	maxV = att.r.max; break;
-			case 'Dates': 		eval = vDate;	maxV = today; break;
+			case 'T': 	eval = vIden;	maxV = '~'; break;
+			case 'V': 	eval = vVocab;	maxV = '~'; break;
+			case 'N': 	eval = vIden;	maxV = att.r.max; break;
+			case 'D': 	eval = vDate;	maxV = today; break;
 			}
 
 			var ord = [];
@@ -3481,15 +3481,15 @@ var PData = (function () {
 
 				// Sort array
 			switch (att.def.t) {
-			case 'Text':
-			case 'Vocabulary':
+			case 'T':
+			case 'V':
 				ord.sort(function(a,b) { return a.v.localeCompare(b.v); });
 				break;
-			case 'Dates':
-			case 'Number':
+			case 'D':
+			case 'N':
 				ord.sort(function(a,b) { return a.v - b.v; });
 				break;
-			// case 'Dates':
+			// case 'D':
 			// 	ord.sort(function(a,b) {
 			// 		var av = a.v.valueOf(), bv = b.v.valueOf();
 			// 		return av - bv;
@@ -3543,9 +3543,8 @@ console.log("Start recompute");
 		if (view1)
 			view1.clearSel();
 
-		if (topStream == null) {
+		if (topStream == null)
 			topStream = PData.newIndexStream(true);
-		}
 		endStream = topStream;
 
 			// Go through filter stack -- find 1st dirty and recompute from there
@@ -3689,10 +3688,10 @@ console.log("Visualization complete");
 	{
 		prspdata.a.forEach(function(theAttribute) {
 			switch (theAttribute.def.t) {
-			case 'Vocabulary':
-			case 'Text':
-			case 'Number':
-			case 'Dates':
+			case 'V':
+			case 'T':
+			case 'N':
+			case 'D':
 				jQuery('#filter-list').append('<li data-id="'+theAttribute.id+'">'+theAttribute.def.l+'</li>');
 				break;
 			}
@@ -3785,16 +3784,16 @@ console.log("Visualization complete");
 		var newFilter;
 		var theAtt = PData.getAttID(fID);
 		switch (theAtt.def.t) {
-		case 'Vocabulary':
+		case 'V':
 			newFilter = new PFilterVocab(newID, theAtt);
 			break;
-		case 'Text':
+		case 'T':
 			newFilter = new PFilterText(newID, theAtt);
 			break;
-		case 'Number':
+		case 'N':
 			newFilter = new PFilterNum(newID, theAtt);
 			break;
-		case 'Dates':
+		case 'D':
 			newFilter = new PFilterDates(newID, theAtt);
 			break;
 		}

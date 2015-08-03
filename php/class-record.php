@@ -116,19 +116,19 @@ class ProspectRecord {
 							continue;
 
 						switch($att_def->t) {
-						case 'Vocabulary':
-						case 'Pointer':
+						case 'V':
+						case 'P':
 							if ($att_def->d != '') {
 								$v_set = explode($att_def->d, $val);
 								$this->att_data[$att_to_load] = array_map(trim, $v_set);
 							} else
 								$this->att_data[$att_to_load] = array(trim($val));
 							break;
-						case 'Number':
+						case 'N':
 							$this->att_data[$att_to_load] = (int)$val;
 							break;
-						case 'Lat-Lon':
-						case 'X-Y':
+						case 'L':
+						case 'X':
 								// If delimiter, could specify polygon
 							if ($att_def->d != '') {
 								$split = explode($att_def->d, $val);
@@ -149,7 +149,7 @@ class ProspectRecord {
 								$this->att_data[$att_to_load] = array((float)$split[0],(float)$split[1]);
 							}
 							break;
-						case 'Dates':
+						case 'D':
 								// Parse individual elements into max/min, f/y/m/d
 							$date_val = array();
 							$date_min = array();
@@ -208,7 +208,7 @@ class ProspectRecord {
 							}
 							$this->att_data[$att_to_load] = $date_val;
 							break;
-						case 'Join':
+						case 'J':
 								// Look Attribute in Join array
 							for ($i=0, $jlen=count($joins); $i<$jlen; $i++) {
 								$j_entry = $joins[$i];

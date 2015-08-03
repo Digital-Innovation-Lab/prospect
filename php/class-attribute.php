@@ -289,12 +289,12 @@ class ProspectAttribute {
 						$this->range = json_decode($this->meta_range, false);
 							// Process Range data for Number and Dates
 						switch ($this->def->t) {
-						case 'Number':
+						case 'N':
 							$this->range->min = (int)$this->range->min;
 							$this->range->max = (int)$this->range->max;
 							$this->range->g = (int)$this->range->g;
 							break;
-						case 'Dates':
+						case 'D':
 							$this->range->min->y = (int)$this->range->min->y;
 							if (isset($this->range->min->m))
 								$this->range->min->m = (int)$this->range->min->m;
@@ -318,7 +318,7 @@ class ProspectAttribute {
 						$this->legend = json_decode($this->meta_legend, false);
 							// Process Legend data for Number, Dates
 						switch ($this->def->t) {
-						case 'Text':
+						case 'T':
 							if ($for_viz) {
 								$num = count($this->legend);
 								for ($i=0; $i<$num; $i++) {
@@ -327,7 +327,7 @@ class ProspectAttribute {
 								}
 							}
 							break;
-						case 'Vocabulary':
+						case 'V':
 							if ($for_viz) {
 								$this->x = array();
 								$i_num = count($this->legend);
@@ -351,7 +351,7 @@ class ProspectAttribute {
 								usort($this->x, array('ProspectAttribute', 'cmp_ls'));
 							}
 							break;
-						case 'Number':
+						case 'N':
 							$num = count($this->legend);
 							for ($i=0; $i<$num; $i++) {
 								$entry = $this->legend[$i];
@@ -364,7 +364,7 @@ class ProspectAttribute {
 								}
 							}
 							break;
-						case 'Dates':
+						case 'D':
 							$num = count($this->legend);
 							for ($i=0; $i<$num; $i++) {
 								$entry = $this->legend[$i];

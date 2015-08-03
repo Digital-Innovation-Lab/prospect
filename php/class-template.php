@@ -194,7 +194,7 @@ class ProspectTemplate {
 
 		foreach($this->def->a as $att_id) {
 			$the_att = new ProspectAttribute(false, $att_id, true, false, true, true, true);
-			if ($the_att->def->t == 'Join') {
+			if ($the_att->def->t == 'J') {
 					// Find entry in Join table and get dependent Template
 				for ($ji=0; $ji<count($this->joins); $ji++) {
 					if ($att_id == $this->joins[$ji]->id) {

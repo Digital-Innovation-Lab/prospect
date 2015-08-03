@@ -106,6 +106,21 @@ jQuery(document).ready(function() {
 	var textAtts = [];					// Text Attributes in this Template
 	var viewAtts;						// Attributes that can be viewed from Record's Post page
 	var scAtts, ytAtts, trAtts, tcAtts;	// Attribute IDs for configuring widgets of specific types
+	var attMap = {};					// For translating from code to label/name
+		attMap.V = 'Vocabulary';
+		attMap.T = 'Text';
+		attMap.V = 'Number';
+		attMap.D = 'Dates';
+		attMap.L = 'Lat-Lon';
+		attMap.X = 'X-Y';
+		attMap.I = 'Image';
+		attMap.l = 'Link To';
+		attMap.S = 'SoundCloud';
+		attMap.Y = 'YouTube';
+		attMap.x = 'Transcript';
+		attMap.t = 'Timecode';
+		attMap.P = 'Pointer';
+		attMap.J = 'Join';
 
 	var embedData;
 
@@ -143,7 +158,7 @@ jQuery(document).ready(function() {
 		if (attDef) {
 			attObj.view = viewAtts.cnt.findIndex(function(att) { return att == attDef.id; } ) != -1;
 			attObj.t = attDef.def.t;
-			if (attDef.def.t == 'Join') {
+			if (attDef.def.t == 'J') {
 					// Find Join entry and add template ID
 				var joinDef = _.find(joins, function(j) { return j.id == attID; });
 				if (joinDef)
@@ -266,22 +281,22 @@ jQuery(document).ready(function() {
 		else
 			curAttDefs = defTemplate.a;
 
-			// Get initial list of TextAttributes
+			// Get initial list of Attributes
 		curAttDefs.forEach(function(theAtt) {
 			switch (theAtt.t) {
-			case 'Text':
+			case 'T':
 				textAtts.push(theAtt.id);
 				break;
-			case 'SoundCloud':
+			case 'S':
 				scAtts.push(theAtt.id);
 				break;
-			case 'YouTube':
+			case 'Y':
 				ytAtts.push(theAtt.id);
 				break;
-			case 'Transcript':
+			case 'x': 	// Transcript
 				trAtts.push(theAtt.id);
 				break;
-			case 'Timecode':
+			case 't': 	// Timecode
 				tcAtts.push(theAtt.id);
 				break;
 			}
@@ -328,6 +343,7 @@ jQuery(document).ready(function() {
 			ytAtts: ytAtts,
 			trAtts: trAtts,
 			tcAtts: tcAtts,
+			attMap: attMap,
 			errorMsg: errorString
 		},
 	});
@@ -342,7 +358,7 @@ jQuery(document).ready(function() {
 		var attChoices = [ ];
 		_.forEach(defAtts, function(attDef) {
 				// If this dependent template, don't allow Join Attributes!
-			if (!isDep || attDef.def.t != 'Join') {
+			if (!isDep || attDef.def.t != 'J') {
 					// Ensure not already used
 				if (curList.findIndex(function(item) { return item.id === attDef.id; }) == -1) {
 					var choice = { l: attDef.def.l, id: attDef.id, t: attDef.def.t, view: true };
@@ -415,7 +431,7 @@ jQuery(document).ready(function() {
 
 		var attIndex = 'theTemplate.a['+index+']';
 		var type = rApp.get(attIndex+'.t');
-		if (type != 'Join') {
+		if (type != 'J') {
 			displayError('#errmsg-not-join');
 			return false;
 		}
@@ -485,7 +501,7 @@ jQuery(document).ready(function() {
 				tmpltDef.a.push(theAtt.id);
 				if (theAtt.view)
 					tmpCnt.push(theAtt.id);
-				if (theAtt.t == 'Join') {
+				if (theAtt.t == 'J') {
 						// Attempt to add Join Attribute to dependent Template?
 					if (tmpltDef.d) {
 						theError = '#errmsg-no-join-for-dep';

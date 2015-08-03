@@ -349,7 +349,7 @@ jQuery(document).ready(function() {
 		// Compile array of all (open) Attributes -- start by copying non-Join Attributes
 		// Join Attributes will be handled from independent Template definitions below
 	_.forEach(defAtts, function(theAttDef) {
-		if (theAttDef.p == 'o' && theAttDef.def.t != 'Join')
+		if (theAttDef.p == 'o' && theAttDef.def.t != 'J')
 			defJoinedAtts.push(_.clone(theAttDef, true));
 	});
 
@@ -366,57 +366,57 @@ jQuery(document).ready(function() {
 				function saveAttRef(prefix, theAttID, type)
 				{
 					switch (type) {
-					case 'Vocabulary':
+					case 'V':
 						attsLgnd.push(prefix+theAttID);
 						attsCnt.push(prefix+theAttID);
 						attsFct.push(prefix+theAttID);
 						break;
-					case 'Text':
+					case 'T':
 						attsTxt.push(prefix+theAttID);
 						attsLgnd.push(prefix+theAttID);
 						attsCnt.push(prefix+theAttID);
 						attsFct.push(prefix+theAttID);
 						break;
-					case 'Number':
+					case 'N':
 						attsDNum.push(prefix+theAttID);
 						attsLgnd.push(prefix+theAttID);
 						attsCnt.push(prefix+theAttID);
 						attsFct.push(prefix+theAttID);
 						break;
-					case 'Dates':
+					case 'D':
 						attsLgnd.push(prefix+theAttID);
 						attsDates.push(prefix+theAttID);
 						attsCnt.push(prefix+theAttID);
 						attsFct.push(prefix+theAttID);
 						break;
-					case 'Lat-Lon':
+					case 'L':
 						attsLL.push(prefix+theAttID);
 						attsCnt.push(prefix+theAttID);
 						break;
-					case 'X-Y':
+					case 'X':
 						attsXY.push(prefix+theAttID);
 						attsCnt.push(prefix+theAttID);
 						break;
-					case 'Image':
+					case 'I':
 						attsCnt.push(prefix+theAttID);
 						attsImg.push(prefix+theAttID);
 						break;
-					case 'Link To':
+					case 'l': // Link To
 						attsCnt.push(prefix+theAttID);
 						break;
-					case 'SoundCloud':
+					case 'S':
 						attsSC.push(prefix+theAttID);
 						break;
-					case 'YouTube':
+					case 'Y':
 						attsYT.push(prefix+theAttID);
 						break;
-					case 'Transcript':
+					case 'x': 	// Transcript
 						attsTrns.push(prefix+theAttID);
 						break;
-					case 'Timecode':
+					case 't': 	// Timecode
 						attsTC.push(prefix+theAttID);
 						break;
-					case 'Pointer':
+					case 'P':
 						attsPtr.push(prefix+theAttID);
 						attsDPtr.push(prefix+theAttID);
 						attsCnt.push(prefix+theAttID);
@@ -427,7 +427,7 @@ jQuery(document).ready(function() {
 				var attDef = getAttribute(theAttID);
 				switch (attDef.def.t) {
 					// Do Join for dependent Template Attributes
-				case 'Join':
+				case 'J':
 					var dTemplate = getDependentTemplate(theTmplt, attDef.id);
 					_.forEach(dTemplate.def.a, function(joinAttID) {
 						var joinAtt = getAttribute(joinAttID);
@@ -472,9 +472,9 @@ jQuery(document).ready(function() {
 		// Compile Joined Facets from Joined Attributes
 	_.forEach(defJoinedAtts, function(theJAtt) {
 		switch (theJAtt.def.t) {
-		case 'Vocabulary':
-		case 'Number':
-		case 'Dates':
+		case 'V':
+		case 'N':
+		case 'D':
 			defJoinedFacets.push(_.clone(theJAtt));
 			break;
 		}

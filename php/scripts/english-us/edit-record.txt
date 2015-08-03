@@ -26,33 +26,33 @@
 	<div>
 		{{#each defRecord:rIndex}}
 			<b>{{def.l}}</b>
-			{{#if def.t == 'Vocabulary'}}
+			{{#if def.t == 'V'}}
 				{{>att-type-Vocabulary}}
-			{{elseif def.t == 'Text'}}
+			{{elseif def.t == 'T'}}
 				{{>att-type-Text}}
-			{{elseif def.t == 'Number'}}
+			{{elseif def.t == 'N'}}
 				{{>att-type-Number}}
-			{{elseif def.t == 'Dates'}}
+			{{elseif def.t == 'D'}}
 				{{>att-type-Dates}}
-			{{elseif def.t == 'Lat-Lon'}}
+			{{elseif def.t == 'L'}}
 				{{>att-type-Lat-Lon}}
-			{{elseif def.t == 'X-Y'}}
+			{{elseif def.t == 'X'}}
 				{{>att-type-X-Y}}
-			{{elseif def.t == 'Image'}}
+			{{elseif def.t == 'I'}}
 				{{>att-type-Image}}
-			{{elseif def.t == 'Link To'}}
+			{{elseif def.t == 'l'}}
 				{{>att-type-Link-To}}
-			{{elseif def.t == 'SoundCloud'}}
+			{{elseif def.t == 'S'}}
 				{{>att-type-SoundCloud}}
-			{{elseif def.t == 'YouTube'}}
+			{{elseif def.t == 'Y'}}
 				{{>att-type-YouTube}}
-			{{elseif def.t == 'Transcript'}}
+			{{elseif def.t == 'x'}}
 				{{>att-type-Transcript}}
-			{{elseif def.t == 'Timecode'}}
+			{{elseif def.t == 't'}}
 				{{>att-type-Timecode}}
-			{{elseif def.t == 'Pointer'}}
+			{{elseif def.t == 'P'}}
 				{{>att-type-Pointer}}
-			{{elseif def.t == 'Join'}}
+			{{elseif def.t == 'J'}}
 				{{>att-type-Join}}
 			{{/if}}
 			{{#if def.h.length > 0}}

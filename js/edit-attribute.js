@@ -124,9 +124,20 @@ jQuery(document).ready(function() {
 
 		// CONSTANTS
 		// =========
-	var dataTypes = [ 'Vocabulary', 'Text', 'Number', 'Dates', 'Lat-Lon', 'X-Y',
-						'Image', 'Link To', 'SoundCloud', 'YouTube', 'Transcript', 'Timecode',
-						'Pointer', 'Join'
+	var dataTypes = [	{ code: 'V', label: 'Vocabulary' },
+						{ code: 'T', label: 'Text' },
+						{ code: 'N', label: 'Number' },
+						{ code: 'D', label: 'Dates' },
+						{ code: 'L', label: 'Lat-Lon' },
+						{ code: 'X', label: 'X-Y' },
+						{ code: 'I', label: 'Image' },
+						{ code: 'l', label: 'Link To' },
+						{ code: 'S', label: 'SoundCloud' },
+						{ code: 'Y', label: 'YouTube' },
+						{ code: 'x', label: 'Transcript' },
+						{ code: 't', label: 'Timecode' },
+						{ code: 'P', label: 'Pointer' },
+						{ code: 'J', label: 'Join' }
 					];
 
 		// DATA LOADED FROM SERVER
@@ -138,7 +149,7 @@ jQuery(document).ready(function() {
 		// ==============================
 	var attID;
 	var privacy;
-	var defAttribute = { l: '', t: 'Vocabulary', d: '', h: '' };		// l(abel), t(ype), d(elimiter), h(int)
+	var defAttribute = { l: '', t: 'V', d: '', h: '' };		// l(abel), t(ype), d(elimiter), h(int)
 	var chosenCF = customFields[0] || '';
 	var defRange = { };					// current Range definition
 	var defLegend = [ ];				// current Legend definition
@@ -181,7 +192,7 @@ jQuery(document).ready(function() {
 		defRange = JSON.parse(embedData);
 			// Interpret undefined range values -- turn into strings
 		switch (defAttribute.t) {
-		case 'Number':
+		case 'N':
 			if (typeof(defRange.min) == 'undefined')
 				defRange.min = '';
 			else
@@ -191,7 +202,7 @@ jQuery(document).ready(function() {
 			else
 				defRange.max = defRange.max.toString();
 			break;
-		case 'Dates':
+		case 'D':
 				// Convert into 
 			defRange.min.y = defRange.min.y.toString();
 			if (typeof(defRange.min.m) == 'undefined')
@@ -226,7 +237,7 @@ jQuery(document).ready(function() {
 		tempLegend.forEach(function(lgndEntry) {
 			var newEntry = lgndEntry;
 			switch (defAttribute.t) {
-			case 'Vocabulary':
+			case 'V':
 				var newZ = [];
 				lgndEntry.z.forEach(function(child) {
 					var newChild = {};
@@ -242,10 +253,10 @@ jQuery(document).ready(function() {
 				});
 				newEntry.z = newZ;
 				break;
-			case 'Text':
+			case 'T':
 				newEntry.val = newEntry.d;
 				break;
-			case 'Number':
+			case 'N':
 				if (typeof(lgndEntry.d.min) == 'undefined')
 					newEntry.d.min = '';
 				else
@@ -258,7 +269,7 @@ jQuery(document).ready(function() {
 				newEntry.val += ' to ';
 				newEntry.val += (newEntry.d.max.length == 0) ? '(none)' : newEntry.d.max;
 				break;
-			case 'Dates':
+			case 'D':
 				newEntry.d.min.y = newEntry.d.min.y.toString();
 				if (typeof(newEntry.d.min.m) == 'undefined')
 					newEntry.d.min.m = '';
@@ -337,17 +348,17 @@ jQuery(document).ready(function() {
 		newEntry.l = editDialog.get('label');
 
 		switch (rApp.get('theAttribute.t')) {
-		case 'Text':
+		case 'T':
 			newEntry.d = editDialog.get('pattern');
 			newEntry.val = newEntry.d;
 			break;
-		case 'Number':
+		case 'N':
 			newEntry.d = { min: editDialog.get('min').trim(), max: editDialog.get('max').trim() };
 			newEntry.val = (newEntry.d.min.length == 0) ? '(none)' : newEntry.d.min;
 			newEntry.val += ' to ';
 			newEntry.val += (newEntry.d.max.length == 0) ? '(none)' : newEntry.d.max;
 			break;
-		case 'Dates':
+		case 'D':
 			newEntry.d = { };
 			newEntry.d.min = { y: editDialog.get('min.y'), m: editDialog.get('min.m'), d: editDialog.get('min.d') };
 			newEntry.d.max = { y: editDialog.get('max.y'), m: editDialog.get('max.m'), d: editDialog.get('max.d') };
@@ -499,10 +510,10 @@ jQuery(document).ready(function() {
 			} else {
 					// Create new defaults
 				switch(newValue) {
-				case 'Number':
+				case 'N':
 					rApp.set('theRange', { min: '', max: '', g: 0 });
 					break;
-				case 'Dates':
+				case 'D':
 					rApp.set('theRange', {
 								min: { d: '', m: '', y: '' }, 
 								max: { d: '', m: '', y: '' },
@@ -601,7 +612,7 @@ jQuery(document).ready(function() {
 		var editBlob = { };
 
 		switch (rApp.get('theAttribute.t')) {
-		case 'Vocabulary':
+		case 'V':
 				// Must provide a valid term, and it must not already exist
 			var newTerm = rApp.get('newVocab').trim();
 			if (newTerm.length == 0) {
@@ -617,18 +628,18 @@ jQuery(document).ready(function() {
 						{	l: newTerm, v: '#888888', z: []
 						});
 			break;
-		case 'Text':
+		case 'T':
 			editBlob.label = 'Name me';
 			editBlob.pattern = '*';
 			editDialog = createEditDialog('#dialog-legend-text', editBlob);
 			break;
-		case 'Number':
+		case 'N':
 			editBlob.label = 'Name me';
 			editBlob.min = rApp.get('theRange.min');
 			editBlob.max = rApp.get('theRange.max');
 			editDialog = createEditDialog('#dialog-legend-number', editBlob);
 			break;
-		case 'Dates':
+		case 'D':
 			editBlob.label = 'Name me';
 			editBlob.min = { y: rApp.get('theRange.min.y'),
 							 m: rApp.get('theRange.min.m'),
@@ -808,18 +819,18 @@ jQuery(document).ready(function() {
 
 			// Create dialog to edit values
 		switch (rApp.get('theAttribute.t')) {
-		case 'Text':
+		case 'T':
 			editBlob.label = origEntry.l;
 			editBlob.pattern = origEntry.val;
 			editDialog = createEditDialog('#dialog-legend-text', editBlob);
 			break;
-		case 'Number':
+		case 'N':
 			editBlob.label = origEntry.l;
 			editBlob.min = origEntry.d.min;
 			editBlob.max = origEntry.d.max;
 			editDialog = createEditDialog('#dialog-legend-number', editBlob);
 			break;
-		case 'Dates':
+		case 'D':
 			editBlob.label = origEntry.l;
 			editBlob.min = { y: origEntry.d.min.y, m: origEntry.d.min.m, d: origEntry.d.min.d };
 			editBlob.max = { y: origEntry.d.max.y, m: origEntry.d.max.m, d: origEntry.d.max.d };
@@ -1033,7 +1044,7 @@ jQuery(document).ready(function() {
 			var attL = [ ];
 
 			switch(attDef.t) {
-			case 'Vocabulary':
+			case 'V':
 				var legend = rApp.get('theLegend');
 				_.forEach(legend, function(parent) {
 					var newParent = { };
@@ -1052,7 +1063,7 @@ jQuery(document).ready(function() {
 				});
 				break;
 
-			case 'Text':
+			case 'T':
 				var legend = rApp.get('theLegend');
 				_.forEach(legend, function(entry) {
 					var newEntry = { };
@@ -1063,7 +1074,7 @@ jQuery(document).ready(function() {
 				});
 				break;
 
-			case 'Number':
+			case 'N':
 				var minN = rApp.get('theRange.min');
 				var maxN = rApp.get('theRange.max');
 					// Allow one but not both to be empty
@@ -1103,7 +1114,7 @@ jQuery(document).ready(function() {
 				});
 				break;
 
-			case 'Dates':
+			case 'D':
 				attR.min = { }; attR.max = { };
 				attR.g = rApp.get('theRange.g');
 					// minimum Date

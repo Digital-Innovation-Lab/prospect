@@ -51,13 +51,13 @@ jQuery(document).ready(function($) {
 			return null;
 
 		switch (att.def.t) {
-		case 'Vocabulary':
+		case 'V':
 			return a.join(', ');
-		case 'Text':
+		case 'T':
 			return a;
-		case 'Number':
+		case 'N':
 			return a.toString();
-		case 'Dates':
+		case 'D':
 			var ds;
 				// Range
 			if (a.max) {
@@ -96,23 +96,23 @@ jQuery(document).ready(function($) {
 				}
 			}
 			return ds;
-		case 'Lat-Lon':
-		case 'X-Y':
+		case 'L':
+		case 'X':
 			return a.join();
-		case 'Image':
+		case 'I':
 			return '<img src="'+a+'" alt="'+att.def.l+'"/>';
-		case 'Link To':
+		case 'l':
 			return '<a href="'+a+'" target="_blank">(See Link)</a>';
-		case 'SoundCloud':
+		case 'S':
 			return '<a href="'+a+'" target="_blank">(SoundCloud)</a>';
-		case 'YouTube':
+		case 'Y':
 			return '<a href="https://www.youtube.com/watch?v='+a+'" target="_blank">(YouTube)</a>';
-		case 'Transcript':
+		case 'x':
 			return '<a href="'+a+'" target="_blank">(See Transcript File)</a>';
-		case 'Timecode':
+		case 't':
 			return a;
-		// case 'Pointer': 	// Can't process this without rest of DB
-		// case 'Join': 	// Should not appear
+		// case 'P': 	// Can't process this without rest of DB
+		// case 'J': 	// Should not appear
 		} // switch
 		return null;
 	} // procAttTxt()
@@ -132,7 +132,7 @@ jQuery(document).ready(function($) {
 
 			// If a Join Attribute, must apply dependent Template's View table
 		if (att) {
-			if (att.def.t == 'Join') {
+			if (att.def.t == 'J') {
 					// Look up Attribute name in Join table
 				var join = _.find(prspdata.j, function(theJoin) { return theJoin.id === attID; });
 				if (join) {
