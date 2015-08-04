@@ -48,7 +48,7 @@
 	$chunk = isset($options['prsp_chunks']) ? (int)$options['prsp_chunks'] : 1000;
 	echo $chunk;
 ?>,
-		assets: <?
+		assets: <?php
 	echo('"'.plugins_url('/assets/', dirname(__FILE__)).'"');
 ?>,
 		e: <?php
