@@ -1,5 +1,6 @@
 // This file contains:
-//		PVizModel abstract Class
+//		PVizModel abstract Class & implementations
+//		PFilterModal abstract Class & implementations
 //		PViewFrame Object
 //		PData Module for handling data
 //		PBootstrap for launching processes and organizing screen
@@ -957,19 +958,126 @@ VizTime.prototype.getFeatureAtts = function(tIndex)
 	return this.settings.lgnds;
 } // getFeatureAtts()
 
+	// PURPOSE: Return IDs of locate Attributes 
+VizTime.prototype.getLocAtts = function(tIndex)
+{
+	if (tIndex != null)
+		return [this.settings.dAtts[tIndex]];
+	return [this.settings.dAtts];
+} // getLocAtts()
+
 VizTime.prototype.setup = function()
 {
 	var self = this;
 	var s = this.settings;
 	var minY, minM, minD, maxY, maxM, maxD;
 
-		// Determine min & max time bounds for macro window
-	if (this.settings.from.length > 0) {
+	var today = new Date();
 
-	}
-	if (this.setting.to.length > 0) {
+		// By default, use min & max time bounds from Dates Attributes
+	s.dAtts.forEach(function(dAttID) {
+		if (dAttID != null && dAttID != 'disable') {
+			var dAtt = PData.getAttID(dAttID);
+			if (dAtt) {
+					// Check mins
+				if (minY == null || dAtt.r.min.y < minY) {
+					minY = dAtt.r.min.y;
+					if (typeof dAtt.r.min.m != 'undefined') {
+						minM = dAtt.r.min.m;
+						if (typeof dAtt.r.min.d != 'undefined')
+							minD = dAtt.r.min.d;
+						else
+							minD = 1;
+					} else {
+						minM = 1; minD = 1;
+					}
+				} else if (dAtt.r.min.y == minY) {
+					if (typeof dAtt.r.min.m != 'undefined') {
+						if (dAtt.r.min.m < minM) {
+							minM = dAtt.r.min.m;
+							if (typeof dAtt.r.min.d != 'undefined')
+								minD = dAtt.r.min.d;
+							else
+								minD = 1;
+						} else if (dAtt.r.min.m == minM) {
+							if (typeof dAtt.r.min.d != 'undefined') {
+								if (dAtt.r.min.d < minD)
+									minD = dAtt.r.min.d;
+							}
+						}
+					}
+				}
+					// Check maxs
+				if (maxY == null) {
+					if (typeof dAtt.r.max.y == 'undefined') {
+						maxY = today.getUTCFullYear();
+						maxM = today.getMonth() + 1;
+						maxD = today.getDate();
+					} else {
+						maxY = dAtt.r.max.y;
+						if (typeof dAtt.r.max.m != 'undefined') {
+							maxM = dAtt.r.max.m;
+							if (typeof dAtt.r.max.d != 'undefined')
+								maxD = dAtt.r.max.d;
+							else
+								maxD = 12;
+						} else {
+							maxM = 12; maxD = 31;
+						}
+					}
+				} else if (dAtt.r.max.y > maxY) {
+					maxY = dAtt.r.max.y;
+					if (typeof dAtt.r.max.m != 'undefined') {
+						maxM = dAtt.r.max.m;
+						if (typeof dAtt.r.max.d != 'undefined')
+							maxD = dAtt.r.max.d;
+						else
+							maxD = 12;
+					} else {
+						maxM = 12; maxD = 31;
+					}
+				} else if (dAtt.r.max.y == maxY) {
+					if (typeof dAtt.r.max.m != 'undefined') {
+						if (dAtt.r.max.m > maxM) {
+							maxM = dAtt.r.max.m;
+							if (typeof dAtt.r.max.d != 'undefined')
+								maxD = dAtt.r.max.d;
+							else
+								maxD = 31;
+						} else if (dAtt.r.max.m == maxM) {
+							if (typeof dAtt.r.max.d != 'undefined') {
+								if (dAtt.r.max.d > maxD)
+									maxD = dAtt.r.max.d;
+							}
+						}
+					}
+				}
+			} // if dAtt
+		} // dAttID valid
+	});
 
+		// Override default min & max bounds?
+	if (s.from.length > 0) {
+		var cmpts = s.from.split('-');
+		minY = parseInt(cmpts[0]); minM = 1; minD = 1;
+		if (cmpts.length > 1) {
+			minM = parseInt(cmpts[1]);
+			if (cmpts.length == 3)
+				minD = parseInt(cmpts[2]);
+		}
 	}
+	if (s.to.length > 0) {
+		var cmpts = s.to.split('-');
+		maxY = parseInt(cmpts[0]); maxM = 12; maxD = 31;
+		if (cmpts.length > 1) {
+			maxM = parseInt(cmpts[1]);
+			if (cmpts.length == 3)
+				maxD = parseInt(cmpts[2]);
+		}
+	}
+
+// console.log("Min: "+minY+"-"+minM+"-"+minD);
+// console.log("Max: "+maxY+"-"+maxM+"-"+maxD);
 
 		// Create SVG palette of temporary size
 	var svg = d3.select(this.frameID).append("svg")
@@ -1023,77 +1131,77 @@ VizTime.prototype.render = function(stream)
 
 	var insert;
 
-	var div = 'w'+this.settings.w+' h'+this.settings.h;
+	// var div = 'w'+this.settings.w+' h'+this.settings.h;
 
-	while (i<stream.l) {
-			// Starting with new Template?
-		if (newT) {
-			do {
-				if (++tI == numTmplts)
-					return;
-				tRec = stream.t[tI];
-			} while (tRec.n == 0 || (tRec.i+tRec.n) == i);
+	// while (i<stream.l) {
+	// 		// Starting with new Template?
+	// 	if (newT) {
+	// 		do {
+	// 			if (++tI == numTmplts)
+	// 				return;
+	// 			tRec = stream.t[tI];
+	// 		} while (tRec.n == 0 || (tRec.i+tRec.n) == i);
 
-			tID = PData.getETmpltIndex(tI);
-			tDef = PData.getTmpltID(tID);
+	// 		tID = PData.getETmpltIndex(tI);
+	// 		tDef = PData.getTmpltID(tID);
 
-			featSet = self.vFrame.getSelFeatAtts(tI);
-				// Skip Templates if no feature Atts
-			if (featSet.length == 0) {
-				newT = true;
-				continue;
-			} // if no featAtts
+	// 		featSet = self.vFrame.getSelFeatAtts(tI);
+	// 			// Skip Templates if no feature Atts
+	// 		if (featSet.length == 0) {
+	// 			newT = true;
+	// 			continue;
+	// 		} // if no featAtts
 
-			thisFrame.append('<div class="template-label">'+tDef.l+'</div><div class="cards" data-ti="'+tI+'"></div>');
-			insert = jQuery('div.cards[data-ti="'+tI+'"]');
+	// 		thisFrame.append('<div class="template-label">'+tDef.l+'</div><div class="cards" data-ti="'+tI+'"></div>');
+	// 		insert = jQuery('div.cards[data-ti="'+tI+'"]');
 
-				// Get Feature Attribute ID and def for this Template
-			fAttID = self.vFrame.getSelLegend(tI);
-			fAtt = PData.getAttID(fAttID);
+	// 			// Get Feature Attribute ID and def for this Template
+	// 		fAttID = self.vFrame.getSelLegend(tI);
+	// 		fAtt = PData.getAttID(fAttID);
 
-			iAttID = self.settings.iAtts[tI];
-			cnt = self.settings.cnt[tI];
-			newT = false;
-		} // if new Template
+	// 		iAttID = self.settings.iAtts[tI];
+	// 		cnt = self.settings.cnt[tI];
+	// 		newT = false;
+	// 	} // if new Template
 
-			// Get Record data and create cache entry
-		aI = stream.s[i];
-		rec = PData.getRecByIndex(aI);
-			// Eval Legend
-		if (datum = rec.a[fAttID]) {
-			c = PData.getAttLgndRecs(datum, fAtt, featSet, false);
+	// 		// Get Record data and create cache entry
+	// 	aI = stream.s[i];
+	// 	rec = PData.getRecByIndex(aI);
+	// 		// Eval Legend
+	// 	if (datum = rec.a[fAttID]) {
+	// 		c = PData.getAttLgndRecs(datum, fAtt, featSet, false);
 
-			if (c) {
-				s = self.isSel(aI) ? ' obj-selected' : '';
-				tDiv = self.settings.lOn ? '<div class="card-title">'+rec.l+'</div>' : '';
-					// Get and add textual content
-				hasC = false; t = '';
-				if (cnt && cnt.length > 0) {
-					tC = c.b ? ' style="color:black"' : '';
-					cnt.forEach(function(theAttID) {
-						if (datum = rec.a[theAttID])
-							if (datum = PData.procAttTxt(theAttID, datum)) {
-								hasC = true;
-								t += datum+'<br/>';
-							}
-					});
-				}
-					// Any image?
-				if (datum = rec.a[iAttID]) {
-					if (hasC)
-						t = '<div class="card-body"><img src="'+datum+'"/><div class="card-cnt"'+tC+'>'+t+'</div></div>';
-					else
-						t = '<div class="card-body"><img class="full" src="'+datum+'"/></div>';
-				} else {
-					t = '<div class="card-body"><div class="card-cnt"'+tC+'>'+t+'</div>';
-				}
-				insert.append('<div class="card '+div+s+'" style="background-color:'+c.v+'" data-ai="'+aI+'">'+tDiv+t+'</div>');
-			} // if Legend selected
-		} // if Legend datum
-		if (++i == (tRec.i + tRec.n)) {
-			newT = true;
-		}
-	} // while
+	// 		if (c) {
+	// 			s = self.isSel(aI) ? ' obj-selected' : '';
+	// 			tDiv = self.settings.lOn ? '<div class="card-title">'+rec.l+'</div>' : '';
+	// 				// Get and add textual content
+	// 			hasC = false; t = '';
+	// 			if (cnt && cnt.length > 0) {
+	// 				tC = c.b ? ' style="color:black"' : '';
+	// 				cnt.forEach(function(theAttID) {
+	// 					if (datum = rec.a[theAttID])
+	// 						if (datum = PData.procAttTxt(theAttID, datum)) {
+	// 							hasC = true;
+	// 							t += datum+'<br/>';
+	// 						}
+	// 				});
+	// 			}
+	// 				// Any image?
+	// 			if (datum = rec.a[iAttID]) {
+	// 				if (hasC)
+	// 					t = '<div class="card-body"><img src="'+datum+'"/><div class="card-cnt"'+tC+'>'+t+'</div></div>';
+	// 				else
+	// 					t = '<div class="card-body"><img class="full" src="'+datum+'"/></div>';
+	// 			} else {
+	// 				t = '<div class="card-body"><div class="card-cnt"'+tC+'>'+t+'</div>';
+	// 			}
+	// 			insert.append('<div class="card '+div+s+'" style="background-color:'+c.v+'" data-ai="'+aI+'">'+tDiv+t+'</div>');
+	// 		} // if Legend selected
+	// 	} // if Legend datum
+	// 	if (++i == (tRec.i + tRec.n)) {
+	// 		newT = true;
+	// 	}
+	// } // while
 } // render()
 
 VizTime.prototype.teardown = function()
