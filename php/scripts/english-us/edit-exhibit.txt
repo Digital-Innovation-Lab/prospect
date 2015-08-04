@@ -391,13 +391,14 @@
 		</ul>
 		{{#each iTemplates:tIndex}}
 		<div id="tmpt-vf-tab-{{vIndex}}-{{tIndex}}">
-			<b>Dates Attributes to use: </b>
-			{{#each c.dAtts[tIndex]}}
-				<span class="attribute-controls">
-					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
-				</span>
+			<b>Dates Attribute to use: </b>
+			<select value='{{c.dAtts[tIndex]}}'>
+			{{#each attsDates}}
+				<option>{{this}}</option>
 			{{/each}}
-			<br/><b>Provide Legends: </b>
+			</select>
+			<br/>
+			<b>Provide Legends: </b>
 			{{#each c.lgnds[tIndex]}}
 				<span class="attribute-controls">
 					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
@@ -433,13 +434,15 @@
 		</ul>
 		{{#each iTemplates:tIndex}}
 		<div id="tmpt-vf-tab-{{vIndex}}-{{tIndex}}">
-			<b>Pointer Attribute to descendants (1 per Template): </b>
-			{{#each c.pAtts[tIndex]}}
-				<span class="attribute-controls">
-					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
-				</span>
+			<b>Pointer Attribute to descendants: </b>
+			<select value='{{c.pAtts[tIndex]}}'>
+			{{#each attsPtr}}
+				<option>{{this}}</option>
 			{{/each}}
-			<br/><b>Provide Legends: </b>
+			</select>
+			Link Line Color: <input type="text" value="{{c.lClrs[tIndex]}}" size="10"/>
+			<br/>
+			<b>Provide Legends: </b>
 			{{#each c.lgnds[tIndex]}}
 				<span class="attribute-controls">
 					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}

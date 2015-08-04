@@ -355,6 +355,8 @@ jQuery(document).ready(function() {
 
 		// Compile array about independent Template types from input configuration data
 		//	into format usable by edit GUI
+		//  'disable' applies to features that can be turned on or off
+		//	'' (empty) means no suitable choice exists for required setting
 	_.forEach(defTemplates, function(theTmplt) {
 		if (!theTmplt.def.d) {
 			var attsTxt=[], attsDates=[], attsDNum=['disable'], attsLL=[],
@@ -600,7 +602,7 @@ jQuery(document).ready(function() {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
 					if (origTIndex == -1) {
-						newXY.push(theTmplt.attsXY[0]);
+						newXY.push(theTmplt.attsXY[0] || '');
 						newPAtts.push('disable');
 						newLClrs.push('#FFD700');
 						newSAtts.push(theTmplt.attsDNum[0] || 'disable');
@@ -608,7 +610,7 @@ jQuery(document).ready(function() {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
 					} else {
-						newXY.push(theVF.c.cAtts[origTIndex] || 'disable');
+						newXY.push(theVF.c.cAtts[origTIndex] || '');
 						newPAtts.push(theVF.c.pAtts[origTIndex] || 'disable');
 						newLClrs.push(theVF.c.lClrs[origTIndex]);
 						newSAtts.push(theVF.c.sAtts[origTIndex] || 'disable');
@@ -626,19 +628,17 @@ jQuery(document).ready(function() {
 				// Just a list -- nothing to do
 				break;
 			case 'Timeline':
-				var newD = [], newLgnds = [];
+				var newD=[], newLgnds=[];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
 					if (origTIndex == -1) {
-						newD.push(_.map(theTmplt.attsDates, function(theDAtt) {
-								return { attID: theDAtt, useAtt: true };
-							}));
+						newD.push(theTmplt.attsDates[0] || '');
 						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
 					} else {
-						newD.push(createPaddedAtts(theTmplt.attsDates, theVF.c.dAtts[origTIndex]));
+						newD.push(theVF.c.dAtts[origTIndex] || '');
 						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
 					}
 				});
@@ -646,23 +646,24 @@ jQuery(document).ready(function() {
 				theVF.c.lgnds = newLgnds;
 				break;
 			case 'Tree':
-				var newP = [], newLgnds = [];
+				var newP=[], newLgnds=[], newLClrs=[];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
 					if (origTIndex == -1) {
-						newP.push(_.map(theTmplt.attsPtr, function(thePAtt) {
-								return { attID: thePAtt, useAtt: true };
-							}));
+						newP.push(theTmplt.attsPtr[0] || '');
+						newLClrs.push('#FFD700');
 						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
 					} else {
-						newP.push(createPaddedAtts(theTmplt.attsPtr, theVF.c.pAtts[origTIndex]));
+						newP.push(theVF.c.pAtts[origTIndex] || '');
+						newLClrs.push(theVF.c.lClrs[origTIndex]);
 						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
 					}
 				});
 				theVF.c.pAtts = newP;
+				theVF.c.lClrs = newLClrs;
 				theVF.c.lgnds = newLgnds;
 				break;
 			case 'Directory':
@@ -686,15 +687,15 @@ jQuery(document).ready(function() {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
 					if (origTIndex == -1) {
-						newCnt.push(theTmplt.attsCnt[0]);
-						newOrder.push(theTmplt.attsFct[0]);
+						newCnt.push(theTmplt.attsCnt[0] || '');
+						newOrder.push(theTmplt.attsFct[0] || '');
 						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
 						newSize.push(theTmplt.attsDNum[0] || 'disable');
 					} else {
-						newCnt.push(theVF.c.cnt[origTIndex]);
-						newOrder.push(theVF.c.order[origTIndex]);
+						newCnt.push(theVF.c.cnt[origTIndex] || '');
+						newOrder.push(theVF.c.order[origTIndex] || '');
 						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
 						newSize.push(theVF.c.sAtts[origTIndex] || 'disable');
 					}
@@ -820,7 +821,7 @@ jQuery(document).ready(function() {
 				newVFEntry.c.img  = '';
 					// X,Y Coordinates
 				newVFEntry.c.cAtts= _.map(iTemplates, function(theTemplate) {
-					return theTemplate.attsXY[0];
+					return theTemplate.attsXY[0] || '';
 				});
 					// Potential Pointers
 				newVFEntry.c.pAtts= _.map(iTemplates, function(theTemplate) {
@@ -858,9 +859,7 @@ jQuery(document).ready(function() {
 				newVFEntry.c.zTo    = '';
 					// Dates Attribute (to place)
 				newVFEntry.c.dAtts= _.map(iTemplates, function(theTemplate) {
-					return _.map(theTemplate.attsDates, function(theDAtt) {
-						return { attID: theDAtt, useAtt: true };
-					});
+					return theTemplate.attsDates[0] || '';
 				});
 					// Potential Legends
 				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
@@ -879,9 +878,11 @@ jQuery(document).ready(function() {
 				newVFEntry.c.pad  = 100;
 					// Pointers to children
 				newVFEntry.c.pAtts= _.map(iTemplates, function(theTemplate) {
-					return _.map(theTemplate.attsPtr, function(thePAtt) {
-						return { attID: thePAtt, useAtt: true };
-					});
+					return theTemplate.attsPtr[0] || '';
+				});
+					// Connection colors
+				newVFEntry.c.lClrs= _.map(iTemplates, function(theTemplate) {
+					return '#FFD700';
 				});
 					// Potential Legends
 				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
@@ -907,10 +908,10 @@ jQuery(document).ready(function() {
 				newVFEntry.c.min = 8;
 				newVFEntry.c.max = 50;
 				newVFEntry.c.cnt  = _.map(iTemplates, function(theTemplate) {
-					return theTemplate.attsCnt[0];
+					return theTemplate.attsCnt[0] || '';
 				});
 				newVFEntry.c.order  = _.map(iTemplates, function(theTemplate) {
-					return theTemplate.attsFct[0];
+					return theTemplate.attsFct[0] || '';
 				});
 				newVFEntry.c.sAtts  = _.map(iTemplates, function(theTemplate) {
 					return 'disable';
@@ -1092,7 +1093,7 @@ jQuery(document).ready(function() {
 				var newArray = [];
 				saveTIndices.forEach(function(tIndex) {
 					var theID = expandedArray[tIndex];
-					if (theID == 'disable')
+					if (theID == '' || theID == 'disable')
 						theID = null;
 					newArray.push(theID);
 				});
@@ -1179,12 +1180,11 @@ jQuery(document).ready(function() {
 					saveView.c.to   = viewSettings.c.to;
 					saveView.c.zFrom= viewSettings.c.zFrom;
 					saveView.c.zTo  = viewSettings.c.zTo;
-					var newDAtts = [], newLgnds = [];
+					var newLgnds=[];
 					saveTIndices.forEach(function(tIndex) {
-						newDAtts.push(packUsedAtts(viewSettings.c.dAtts[tIndex]));
 						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
 					});
-					saveView.c.dAtts = newDAtts;
+					saveView.c.dAtts = packUsedAttIDs(viewSettings.c.dAtts);
 					saveView.c.lgnds = newLgnds;
 					break;
 				case 'Tree':
@@ -1195,12 +1195,13 @@ jQuery(document).ready(function() {
 					saveView.c.r     = viewSettings.c.r;
 					saveView.c.f     = viewSettings.c.f;
 					saveView.c.pad   = viewSettings.c.pad;
-					var newPAtts = [], newLgnds = [];
+					var newLgnds=[], newLClrs=[];
 					saveTIndices.forEach(function(tIndex) {
-						newPAtts.push(packUsedAtts(viewSettings.c.pAtts[tIndex]));
+						newLClrs.push(viewSettings.c.lClrs[tIndex]);
 						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
 					});
-					saveView.c.pAtts = newPAtts;
+					saveView.c.pAtts = packUsedAttIDs(viewSettings.c.pAtts);
+					saveView.c.lClrs = newLClrs;
 					saveView.c.lgnds = newLgnds;
 					break;
 				case 'Directory':
