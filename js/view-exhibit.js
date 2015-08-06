@@ -80,6 +80,7 @@ function PVizModel(viewFrame, vizSettings)
 	// this.getSel()
 	// this.toggleSel(absI)
 	// this.clearSel()
+	// this.resize()
 	// this.optionsModal()
 		// All subclasses must implement the following:
 	// this.flags()
@@ -143,6 +144,10 @@ PVizModel.prototype.getFeatureAtts = function(tIndex)
 PVizModel.prototype.teardown = function()
 {
 } // PVizModel.teardown()
+
+PVizModel.prototype.resize = function()
+{
+} // PVizModel.resize()
 
 PVizModel.prototype.optionsModal = function()
 {
@@ -968,6 +973,15 @@ VizTime.prototype.getLocAtts = function(tIndex)
 	return [this.settings.dAtts];
 } // getLocAtts()
 
+	// RETURNS: Pixel width available for the various containers:
+	//              0 = total width (ViewFrame), 1 = outer svg-container, 2 = inner chart
+	// NOTES:   Must account for margins of outer #dhp-timeline (inc. scrollbar)
+	//              as well as margins of inner container
+VizTime.prototype.getWidths = function()
+{
+
+} // getWidths()
+
 VizTime.prototype.setup = function()
 {
 	var s = this.settings;
@@ -1121,16 +1135,16 @@ VizTime.prototype.setup = function()
 			// Create three variants of each color
 		gradDef = defs.append('linearGradient').attr('id', name+'-fs');
 		gradDef.append('stop').attr('offset', '0%').attr('stop-color', 'white');
-		gradDef.append('stop').attr('offset', '5%').attr('stop-color', color);
-		gradDef.append('stop').attr('offset', '100%').attr('stop-color', color);
+		gradDef.append('stop').attr('offset', '5%').attr('stop-color', cVal);
+		gradDef.append('stop').attr('offset', '100%').attr('stop-color', cVal);
 		gradDef = defs.append('linearGradient').attr('id', name+'-fe');
-		gradDef.append('stop').attr('offset', '0%').attr('stop-color', color);
-		gradDef.append('stop').attr('offset', '95%').attr('stop-color', color);
+		gradDef.append('stop').attr('offset', '0%').attr('stop-color', cVal);
+		gradDef.append('stop').attr('offset', '95%').attr('stop-color', cVal);
 		gradDef.append('stop').attr('offset', '100%').attr('stop-color', 'white');
 		gradDef = defs.append('linearGradient').attr('id', name+'-fb');
 		gradDef.append('stop').attr('offset', '0%').attr('stop-color', 'white');
-		gradDef.append('stop').attr('offset', '5%').attr('stop-color', color);
-		gradDef.append('stop').attr('offset', '95%').attr('stop-color', color);
+		gradDef.append('stop').attr('offset', '5%').attr('stop-color', cVal);
+		gradDef.append('stop').attr('offset', '95%').attr('stop-color', cVal);
 		gradDef.append('stop').attr('offset', '100%').attr('stop-color', 'white');
 	});
 } // setup()
@@ -1262,7 +1276,7 @@ VizTime.prototype.render = function(stream)
 					// Record relevant time period in track -- this will append to array if at end
 				tracks[n] = v.s;
 			});
-console.log("Events for Template "+tI+": "+JSON.stringify(events));
+// console.log("Events for Template "+tI+": "+JSON.stringify(events));
 
 				// Save this Template's data
 			var tEntry={ tI: tI, e: events, h: tracks.length };
@@ -2724,6 +2738,13 @@ function PViewFrame(vfIndex)
 		return false;
 	} // selSel()
 
+		// PURPOSE: Alert inner visualization that view frame has resized
+	instance.resize = function()
+	{
+		if (vizModel)
+			vizModel.resize();
+	} // resize
+
 	return instance;
 } // PViewFrame
 
@@ -3792,6 +3813,7 @@ console.log("Visualization complete");
 			view1.initDOM();
 			view1.showStream(endStream);
 		}
+		view0.resize();
 	} // clickTog2nd()
 
 	// function doSetLayout(lIndex)
@@ -4207,6 +4229,14 @@ console.log("Visualization complete");
 				// TO DO: Check views for ready state until they can render -- use timer
 			doRecompute();
 		}
+	});
+
+		// Allow ViewFrames to handle changes in size
+	jQuery(window).resize(function() {
+		if (view0)
+			view0.resize();
+		if (view1)
+			view1.resize();
 	});
 
 		// Initial primary visualization frame
