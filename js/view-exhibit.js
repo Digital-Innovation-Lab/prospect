@@ -55,6 +55,8 @@ var V_FLAG_SEL = 0x2;			// Can select individual Records
 var V_FLAG_LOC = 0x4;			// Requires Location Attributes
 var V_FLAG_SET = 0x8;			// Has an Options dialog
 
+var TODAY = new Date();
+
 // ==============================================================================
 // PVizModel: An abstract class to be subclassed by specific visualizations
 //			VizModels are responsible for rendering graphics, handling selections
@@ -968,11 +970,8 @@ VizTime.prototype.getLocAtts = function(tIndex)
 
 VizTime.prototype.setup = function()
 {
-	var self = this;
 	var s = this.settings;
 	var minY, minM, minD, maxY, maxM, maxD;
-
-	var today = new Date();
 
 		// By default, use min & max time bounds from Dates Attributes
 	s.dAtts.forEach(function(dAttID) {
@@ -1010,9 +1009,9 @@ VizTime.prototype.setup = function()
 					// Check maxs
 				if (maxY == null) {
 					if (typeof dAtt.r.max.y == 'undefined') {
-						maxY = today.getUTCFullYear();
-						maxM = today.getMonth() + 1;
-						maxD = today.getDate();
+						maxY = TODAY.getUTCFullYear();
+						maxM = TODAY.getMonth() + 1;
+						maxD = TODAY.getDate();
 					} else {
 						maxY = dAtt.r.max.y;
 						if (typeof dAtt.r.max.m != 'undefined') {
@@ -1079,129 +1078,204 @@ VizTime.prototype.setup = function()
 // console.log("Min: "+minY+"-"+minM+"-"+minD);
 // console.log("Max: "+maxY+"-"+maxM+"-"+maxD);
 
+	this.minDate = PData.date3Nums(minY, minM, minD);
+	this.maxDate = PData.date3Nums(maxY, maxM, maxD);
+		// Size of instananeous event: 3% of total time period space
+	this.instGap = (this.maxDate - this.minDate) * .03;
+
 		// Create SVG palette of temporary size
 	var svg = d3.select(this.frameID).append("svg")
+    	.attr("id", "outer")
 		.attr("width", 100)
 		.attr("height", 100);
 
+		// Get all unique Legend Attribute IDs
+	var lAttIDs=[];
+	s.lgnds.forEach(function(tArray) {
+		tArray.forEach(function(lAttID) {
+			lAttIDs.push(lAttID);
+		});
+	});
+	lAttIDs = _.uniq(lAttIDs);
+
+		// Gather all color values for all possible Legends
+	var cVals=[];
+	lAttIDs.forEach(function(lAttID) {
+		var att = PData.getAttID(lAttID);
+		if (att) {
+			att.l.forEach(function(lVal) {
+				cVals.push(lVal.v);				
+			});
+		}
+	});
+	cVals = _.uniq(cVals);
+	cVals.sort();
+
 		// Create gradations for fuzzy dates
 	var defs = svg.append('defs');
-	// var gradDef;
+	var gradDef, name;
 
-	// dhpTimeline.legendTerms.forEach(function(item) {
-	// 		// First entry for Legend is "header", no color info
-	// 	if (item.icon_url) {
-	// 		var color = item.icon_url;
-	// 		if (color.charAt(0) !== '#') {
-	// 			throw new Error('Using a non-color Legend for Timeline View');
-	// 		}
-	// 		var name = color.substr(1);
-	// 			// Create three variants of each color
-	// 		gradDef = defSpace.append('linearGradient').attr('id', name+'-fs');
-	// 		gradDef.append('stop').attr('offset', '0%').attr('stop-color', 'white');
-	// 		gradDef.append('stop').attr('offset', '5%').attr('stop-color', color);
-	// 		gradDef.append('stop').attr('offset', '100%').attr('stop-color', color);
-	// 		gradDef = defSpace.append('linearGradient').attr('id', name+'-fe');
-	// 		gradDef.append('stop').attr('offset', '0%').attr('stop-color', color);
-	// 		gradDef.append('stop').attr('offset', '95%').attr('stop-color', color);
-	// 		gradDef.append('stop').attr('offset', '100%').attr('stop-color', 'white');
-	// 		gradDef = defSpace.append('linearGradient').attr('id', name+'-fb');
-	// 		gradDef.append('stop').attr('offset', '0%').attr('stop-color', 'white');
-	// 		gradDef.append('stop').attr('offset', '5%').attr('stop-color', color);
-	// 		gradDef.append('stop').attr('offset', '95%').attr('stop-color', color);
-	// 		gradDef.append('stop').attr('offset', '100%').attr('stop-color', 'white');
-	// 	}
-	// });
-
+	cVals.forEach(function(cVal) {
+			// First entry for Legend is "header", no color info
+		name = cVal.substr(1);
+			// Create three variants of each color
+		gradDef = defs.append('linearGradient').attr('id', name+'-fs');
+		gradDef.append('stop').attr('offset', '0%').attr('stop-color', 'white');
+		gradDef.append('stop').attr('offset', '5%').attr('stop-color', color);
+		gradDef.append('stop').attr('offset', '100%').attr('stop-color', color);
+		gradDef = defs.append('linearGradient').attr('id', name+'-fe');
+		gradDef.append('stop').attr('offset', '0%').attr('stop-color', color);
+		gradDef.append('stop').attr('offset', '95%').attr('stop-color', color);
+		gradDef.append('stop').attr('offset', '100%').attr('stop-color', 'white');
+		gradDef = defs.append('linearGradient').attr('id', name+'-fb');
+		gradDef.append('stop').attr('offset', '0%').attr('stop-color', 'white');
+		gradDef.append('stop').attr('offset', '5%').attr('stop-color', color);
+		gradDef.append('stop').attr('offset', '95%').attr('stop-color', color);
+		gradDef.append('stop').attr('offset', '100%').attr('stop-color', 'white');
+	});
 } // setup()
 
 	// PURPOSE: Draw the Records in the given datastream
 VizTime.prototype.render = function(stream)
 {
+		// PURPOSE: Compare two dates for descending sort
+	function compDesc(i1, i2) {
+		var r = i1.s - i2.s;
+			// later first
+		if (r < 0) { return 1; }
+		if (r > 0) { return -1; }
+			// shorter time period first (if equal start)
+		r = i2.e - i1.e;
+		if (r < 0) { return 1; }
+		if (r > 0) { return -1; }
+		return 0;
+	} // compDesc()
+
 	var self = this;
 
-	var numTmplts = PData.getNumETmplts();
-	var i=0, aI, tI=-1, tID, tRec, tDef;
-	var newT=true, fAttID, fAtt, iAttID;
-	var featSet, rec, c, s;
-	var hasC, cnt, datum, t, tDiv, tC;
+	this.tData=[];		// Store temporal data for each Template type
 
-	var thisFrame = jQuery(this.frameID);
-	thisFrame.empty();
+	function procTmplts()
+	{
+		var numTmplts = PData.getNumETmplts();
+		var tI=0, tID, tRec, aI;
+		var featSet, dAttID, fData, dData;
 
-	var insert;
+			// Process the Date data by each Template type
+		while (tI<numTmplts) {
+			tRec = stream.t[tI];
+				// Advance until we get to current Template rec
+			while (tRec.n == 0) {
+					// Have we run out of Templates?
+				if (++tI == numTmplts)
+					return;
+				tRec = stream.t[tI];
+			}
 
-	// var div = 'w'+this.settings.w+' h'+this.settings.h;
+				// only 1 Location Attribute possible - skip if not selected
+			featSet = self.vFrame.getSelLocAtts(tI);
+			if (featSet.length == 0) {
+				tI++;
+				continue;
+			}
 
-	// while (i<stream.l) {
-	// 		// Starting with new Template?
-	// 	if (newT) {
-	// 		do {
-	// 			if (++tI == numTmplts)
-	// 				return;
-	// 			tRec = stream.t[tI];
-	// 		} while (tRec.n == 0 || (tRec.i+tRec.n) == i);
+			featSet = self.vFrame.getSelFeatAtts(tI);
+				// Skip Templates if no feature Atts
+			if (featSet.length == 0) {
+				tI++;
+				continue;
+			}
+				// Get Feature Attribute ID and def for this Template
+			fAttID = self.vFrame.getSelLegend(tI);
+			fAtt = PData.getAttID(fAttID);
+			dAttID = self.settings.dAtts[tI];
 
-	// 		tID = PData.getETmpltIndex(tI);
-	// 		tDef = PData.getTmpltID(tID);
+				// Each Template's events { s[tart], e[nd], ai, f[lags], c[olor], l[abel], t[rack] }
+			var events=[];
+			var y, m, d;
+			var s, e, f, l;
 
-	// 		featSet = self.vFrame.getSelFeatAtts(tI);
-	// 			// Skip Templates if no feature Atts
-	// 		if (featSet.length == 0) {
-	// 			newT = true;
-	// 			continue;
-	// 		} // if no featAtts
+			for (var i=tRec.i; i<(tRec.i+tRec.n); i++) {
+				aI = stream.s[i];
 
-	// 		thisFrame.append('<div class="template-label">'+tDef.l+'</div><div class="cards" data-ti="'+tI+'"></div>');
-	// 		insert = jQuery('div.cards[data-ti="'+tI+'"]');
+				rec = PData.getRecByIndex(aI);
+				if (fData = rec.a[fAttID]) {
+						// TO DO: Change to getAttLgndRec, save b flag
+					if (fData = PData.getAttLgndVal(fData, fAtt, featSet)) {
+						if (dData = rec.a[dAttID]) {
+							f = dData.min.f ? EVENT_F_START : 0;
+							y = dData.min.y;
+							if (typeof dData.min.m == 'undefined') {
+								m = 1; d = 1;
+							} else {
+								m = dData.min.m;
+								if (typeof dData.min.d == 'undefined')
+									d = 1;
+								else
+									d = dData.min.d;
+							}
+							s = PData.date3Nums(y,m,d);
+							if (typeof dData.max == 'undefined') {
+								f |= EVENT_INSTANT;
+								e = s;
+							} else {
+								if (dData.max == 'open')
+									e = TODAY;
+								else {
+									if (dData.max.f)
+										f |= EVENT_F_END;
+									y = dData.max.y;
+									if (typeof dData.max.m == 'undefined') {
+										m = 12; d = 31;
+									} else {
+										m = dData.max.m;
+										if (typeof dData.max.d == 'undefined')
+											d = 31;
+										else
+											d = dData.max.d;
+									}
+									e = PData.date3Nums(y,m,d);
+								} // number
+							}
+							var v = { s: s, e: e, ai: aI, f: f, c: fData, l: rec.l, t: 0 };
+							events.push(v);
+						}
+					} // translates to Legend value
+				} // has Legend value
+			} // for
+			events.sort(compDesc);
 
-	// 			// Get Feature Attribute ID and def for this Template
-	// 		fAttID = self.vFrame.getSelLegend(tI);
-	// 		fAtt = PData.getAttID(fAttID);
+			var tracks = [];
+			var n;
 
-	// 		iAttID = self.settings.iAtts[tI];
-	// 		cnt = self.settings.cnt[tI];
-	// 		newT = false;
-	// 	} // if new Template
+				// Lay events out on tracks: older items end deeper
+			events.forEach(function(v) {
+					// Find the first track where it fits
+				for (n=0; n<tracks.length; n++) {
+						// First check to see if track has any value
+					if (v.e < tracks[n]) {
+						break;
+					}
+				}
+					// Record track that event "fits" into -- this will append to array if at end
+				v.t = n;
+					// Record relevant time period in track -- this will append to array if at end
+				tracks[n] = v.s;
+			});
+console.log("Events for Template "+tI+": "+JSON.stringify(events));
 
-	// 		// Get Record data and create cache entry
-	// 	aI = stream.s[i];
-	// 	rec = PData.getRecByIndex(aI);
-	// 		// Eval Legend
-	// 	if (datum = rec.a[fAttID]) {
-	// 		c = PData.getAttLgndRecs(datum, fAtt, featSet, false);
+				// Save this Template's data
+			var tEntry={ tI: tI, e: events, h: tracks.length };
+			self.tData.push(tEntry);
+			tI++;
+		} // while 
+	} // procTmplts
 
-	// 		if (c) {
-	// 			s = self.isSel(aI) ? ' obj-selected' : '';
-	// 			tDiv = self.settings.lOn ? '<div class="card-title">'+rec.l+'</div>' : '';
-	// 				// Get and add textual content
-	// 			hasC = false; t = '';
-	// 			if (cnt && cnt.length > 0) {
-	// 				tC = c.b ? ' style="color:black"' : '';
-	// 				cnt.forEach(function(theAttID) {
-	// 					if (datum = rec.a[theAttID])
-	// 						if (datum = PData.procAttTxt(theAttID, datum)) {
-	// 							hasC = true;
-	// 							t += datum+'<br/>';
-	// 						}
-	// 				});
-	// 			}
-	// 				// Any image?
-	// 			if (datum = rec.a[iAttID]) {
-	// 				if (hasC)
-	// 					t = '<div class="card-body"><img src="'+datum+'"/><div class="card-cnt"'+tC+'>'+t+'</div></div>';
-	// 				else
-	// 					t = '<div class="card-body"><img class="full" src="'+datum+'"/></div>';
-	// 			} else {
-	// 				t = '<div class="card-body"><div class="card-cnt"'+tC+'>'+t+'</div>';
-	// 			}
-	// 			insert.append('<div class="card '+div+s+'" style="background-color:'+c.v+'" data-ai="'+aI+'">'+tDiv+t+'</div>');
-	// 		} // if Legend selected
-	// 	} // if Legend datum
-	// 	if (++i == (tRec.i + tRec.n)) {
-	// 		newT = true;
-	// 	}
-	// } // while
+	procTmplts();
+
+		// Empty micro & macro svgs; modify based on track data
+
+
 } // render()
 
 VizTime.prototype.teardown = function()
@@ -1420,7 +1494,7 @@ VizTextStream.prototype.render = function(stream)
 	var self = this;
 
 	var numTmplts = PData.getNumETmplts();
-	var i=0, tI=0, tID, tRec, tDef;
+	var tI=0, tID, tRec, tDef;
 	var insert, rec, datum, t, s, h;
 
 	var order, oAtt, cAttID, cAtt, featSet, fAttID, fAtt, fData;
@@ -1435,7 +1509,7 @@ VizTextStream.prototype.render = function(stream)
 	tRec = stream.t[0];
 	while (tI<numTmplts) {
 			// Advance until we get to current Template rec
-		while (tRec.n == 0 || (tRec.i+tRec.n) == i) {
+		while (tRec.n == 0) {
 				// Have we run out of Templates?
 			if (++tI == numTmplts)
 				return;
@@ -1980,7 +2054,7 @@ PFilterDates.prototype.eval = function(rec)
 		var s = makeDate(d.min.y, 1, 1, d.min);
 		var e;
 		if (d.max == 'open')
-			e = this.today;
+			e = TODAY;
 		else
 			e = makeDate(d.max.y, 12, 31, d.max);
 		if (e < this.min || s >= this.max)
@@ -1992,8 +2066,6 @@ PFilterDates.prototype.eval = function(rec)
 PFilterDates.prototype.setup = function()
 {
 	var self = this;
-
-	this.today = new Date();
 
 	this.rCats = PData.getRCats(this.att);
 		// Set defaults
@@ -2680,8 +2752,6 @@ var PData = (function () {
 	var dltextApprox;
 	var dltextNow;
 
-	var today = new Date();
-
 	// INTERNAL VARIABLES
 	// ==================
 
@@ -3355,7 +3425,7 @@ var PData = (function () {
 				function makeMaxDate(field)
 				{
 					if (typeof field.y == 'undefined') {
-						return today;
+						return TODAY;
 					} else {
 						return makeDate(field.y, 12, 31, field);
 					}
@@ -3493,7 +3563,7 @@ var PData = (function () {
 		// 	case 'T': 	eval = vIden;	maxV = '~'; break;
 		// 	case 'V': 	eval = vVocab;	maxV = '~'; break;
 		// 	case 'N': 	eval = vIden;	maxV = att.r.max; break;
-		// 	case 'D': 	eval = vDate;	maxV = today; break;
+		// 	case 'D': 	eval = vDate;	maxV = TODAY; break;
 		// 	}
 
 		// 	var ord = [];
@@ -3568,7 +3638,7 @@ var PData = (function () {
 			case 'T': 	eval = vIden;	maxV = '~'; break;
 			case 'V': 	eval = vVocab;	maxV = '~'; break;
 			case 'N': 	eval = vIden;	maxV = att.r.max; break;
-			case 'D': 	eval = vDate;	maxV = today; break;
+			case 'D': 	eval = vDate;	maxV = TODAY; break;
 			}
 
 			var ord = [];

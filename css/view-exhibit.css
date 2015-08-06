@@ -844,6 +844,25 @@ div.viz-result svg .recobj.obj-selected
 	fill: none;
 }
 
+	/* Timeline styles
+	 * DOM structure
+	 * 	tl-vf  (Outermost SVG)
+	 *		tl-band tl-b-0		(Macro)
+	 *			tl-ta	(1 per Template)
+	 *				tl-lgnd-bck		(Legend color background)
+	 *				tl-axis
+	 *				tl-event
+	 *		tl-band tl-b-1 		(Zoom)
+	 *			tl-ta	(1 per Template)
+	 *				tl-lgnd-bck		(Legend color background)
+	 *				tl-lgnd-ttl		(Legend era title)
+	 *				tl-axis
+	 *				tl-event
+	 **/
+
+div.viz-result svg.tl-vf {
+}
+
 	/* TextStream styles */
 div.viz-textstream {
 	margin: 6px;
