@@ -55,7 +55,10 @@ var V_FLAG_SEL = 0x2;			// Can select individual Records
 var V_FLAG_LOC = 0x4;			// Requires Location Attributes
 var V_FLAG_SET = 0x8;			// Has an Options dialog
 
+	// GLOBAL VARS
 var TODAY = new Date();
+var localD3;					// For localizing D3
+
 
 // ==============================================================================
 // PVizModel: An abstract class to be subclassed by specific visualizations
@@ -947,6 +950,9 @@ VizPinboard.prototype.optionsModal = function()
 var VizTime = function(viewFrame, vSettings)
 {
 	PVizModel.call(this, viewFrame, vSettings);
+
+	if (typeof this.settings.xLbl != 'number')
+		this.settings.xLbl = parseInt(this.settings.xLbl);
 } // VizTime
 
 VizTime.prototype = Object.create(PVizModel.prototype);
@@ -975,58 +981,93 @@ VizTime.prototype.getLocAtts = function(tIndex)
 
 	// RETURNS: Pixel width available for the various containers:
 	//              0 = total width (ViewFrame), 1 = outer svg-container, 2 = inner chart
-	// NOTES:   Must account for margins of outer #dhp-timeline (inc. scrollbar)
-	//              as well as margins of inner container
+	// NOTES:   Must account for margins of outer container (inc. scrollbar) and margins of inner container
+	// TO DO: 	Make into getRects()?
 VizTime.prototype.getWidths = function()
 {
+			// svgMargin is for space inside of dhp-timeline occupied by #svg-container
+	var svgMargin = { top: 6, right: 22, bottom: 6, left: 6 };
+			// chartMargin is for space inside of #svg-container occupied by timeline chart
+	var chartMargin = { top: 4, right: 9, bottom: 4, left: 4 };
+	var widths = [];
+	var svgWidth;
 
+	var curWidth = jQuery(this.frameID).width();
+
+		// Total width of window
+	widths.push(curWidth);
+		// Width of svg-container
+	svgWidth = curWidth - (svgMargin.left + svgMargin.right);
+	widths.push(svgWidth);
+		// Width of chart itself
+	widths.push(svgWidth-(chartMargin.left + chartMargin.right));
+
+		// Automatically recompute
+	this.threshold  = (widths[2] / (this.settings.xLbl*6.25));
+
+	return widths;
 } // getWidths()
 
 VizTime.prototype.setup = function()
 {
 	var s = this.settings;
-	var minY, minM, minD, maxY, maxM, maxD;
 
-		// By default, use min & max time bounds from Dates Attributes
-	s.dAtts.forEach(function(dAttID) {
-		if (dAttID != null && dAttID != 'disable') {
-			var dAtt = PData.getAttID(dAttID);
-			if (dAtt) {
-					// Check mins
-				if (minY == null || dAtt.r.min.y < minY) {
-					minY = dAtt.r.min.y;
-					if (typeof dAtt.r.min.m != 'undefined') {
-						minM = dAtt.r.min.m;
-						if (typeof dAtt.r.min.d != 'undefined')
-							minD = dAtt.r.min.d;
-						else
-							minD = 1;
-					} else {
-						minM = 1; minD = 1;
-					}
-				} else if (dAtt.r.min.y == minY) {
-					if (typeof dAtt.r.min.m != 'undefined') {
-						if (dAtt.r.min.m < minM) {
+	function minMaxDates()
+	{
+		var minY, minM, minD, maxY, maxM, maxD;
+
+			// By default, use min & max time bounds from Dates Attributes
+		s.dAtts.forEach(function(dAttID) {
+			if (dAttID != null && dAttID != 'disable') {
+				var dAtt = PData.getAttID(dAttID);
+				if (dAtt) {
+						// Check mins
+					if (minY == null || dAtt.r.min.y < minY) {
+						minY = dAtt.r.min.y;
+						if (typeof dAtt.r.min.m != 'undefined') {
 							minM = dAtt.r.min.m;
 							if (typeof dAtt.r.min.d != 'undefined')
 								minD = dAtt.r.min.d;
 							else
 								minD = 1;
-						} else if (dAtt.r.min.m == minM) {
-							if (typeof dAtt.r.min.d != 'undefined') {
-								if (dAtt.r.min.d < minD)
+						} else {
+							minM = 1; minD = 1;
+						}
+					} else if (dAtt.r.min.y == minY) {
+						if (typeof dAtt.r.min.m != 'undefined') {
+							if (dAtt.r.min.m < minM) {
+								minM = dAtt.r.min.m;
+								if (typeof dAtt.r.min.d != 'undefined')
 									minD = dAtt.r.min.d;
+								else
+									minD = 1;
+							} else if (dAtt.r.min.m == minM) {
+								if (typeof dAtt.r.min.d != 'undefined') {
+									if (dAtt.r.min.d < minD)
+										minD = dAtt.r.min.d;
+								}
 							}
 						}
 					}
-				}
-					// Check maxs
-				if (maxY == null) {
-					if (typeof dAtt.r.max.y == 'undefined') {
-						maxY = TODAY.getUTCFullYear();
-						maxM = TODAY.getMonth() + 1;
-						maxD = TODAY.getDate();
-					} else {
+						// Check maxs
+					if (maxY == null) {
+						if (typeof dAtt.r.max.y == 'undefined') {
+							maxY = TODAY.getUTCFullYear();
+							maxM = TODAY.getMonth() + 1;
+							maxD = TODAY.getDate();
+						} else {
+							maxY = dAtt.r.max.y;
+							if (typeof dAtt.r.max.m != 'undefined') {
+								maxM = dAtt.r.max.m;
+								if (typeof dAtt.r.max.d != 'undefined')
+									maxD = dAtt.r.max.d;
+								else
+									maxD = 12;
+							} else {
+								maxM = 12; maxD = 31;
+							}
+						}
+					} else if (dAtt.r.max.y > maxY) {
 						maxY = dAtt.r.max.y;
 						if (typeof dAtt.r.max.m != 'undefined') {
 							maxM = dAtt.r.max.m;
@@ -1037,116 +1078,356 @@ VizTime.prototype.setup = function()
 						} else {
 							maxM = 12; maxD = 31;
 						}
-					}
-				} else if (dAtt.r.max.y > maxY) {
-					maxY = dAtt.r.max.y;
-					if (typeof dAtt.r.max.m != 'undefined') {
-						maxM = dAtt.r.max.m;
-						if (typeof dAtt.r.max.d != 'undefined')
-							maxD = dAtt.r.max.d;
-						else
-							maxD = 12;
-					} else {
-						maxM = 12; maxD = 31;
-					}
-				} else if (dAtt.r.max.y == maxY) {
-					if (typeof dAtt.r.max.m != 'undefined') {
-						if (dAtt.r.max.m > maxM) {
-							maxM = dAtt.r.max.m;
-							if (typeof dAtt.r.max.d != 'undefined')
-								maxD = dAtt.r.max.d;
-							else
-								maxD = 31;
-						} else if (dAtt.r.max.m == maxM) {
-							if (typeof dAtt.r.max.d != 'undefined') {
-								if (dAtt.r.max.d > maxD)
+					} else if (dAtt.r.max.y == maxY) {
+						if (typeof dAtt.r.max.m != 'undefined') {
+							if (dAtt.r.max.m > maxM) {
+								maxM = dAtt.r.max.m;
+								if (typeof dAtt.r.max.d != 'undefined')
 									maxD = dAtt.r.max.d;
+								else
+									maxD = 31;
+							} else if (dAtt.r.max.m == maxM) {
+								if (typeof dAtt.r.max.d != 'undefined') {
+									if (dAtt.r.max.d > maxD)
+										maxD = dAtt.r.max.d;
+								}
 							}
 						}
 					}
-				}
-			} // if dAtt
-		} // dAttID valid
-	});
+				} // if dAtt
+			} // dAttID valid
+		});
 
-		// Override default min & max bounds?
-	if (s.from.length > 0) {
-		var cmpts = s.from.split('-');
-		minY = parseInt(cmpts[0]); minM = 1; minD = 1;
-		if (cmpts.length > 1) {
-			minM = parseInt(cmpts[1]);
-			if (cmpts.length == 3)
-				minD = parseInt(cmpts[2]);
-		}
-	}
-	if (s.to.length > 0) {
-		var cmpts = s.to.split('-');
-		maxY = parseInt(cmpts[0]); maxM = 12; maxD = 31;
-		if (cmpts.length > 1) {
-			maxM = parseInt(cmpts[1]);
-			if (cmpts.length == 3)
-				maxD = parseInt(cmpts[2]);
-		}
-	}
-
+			// Override default min & max bounds?
+		if (s.from.length > 0)
+			this.minDate = PData.parseDate(s.from, 1, 1);
+		else
+			this.minDate = PData.date3Nums(minY, minM, minD);
+		if (s.to.length > 0)
+			this.maxDate = PData.parseDate(s.to, 12, 31);
+		else
+			this.maxDate = PData.date3Nums(maxY, maxM, maxD);
 // console.log("Min: "+minY+"-"+minM+"-"+minD);
 // console.log("Max: "+maxY+"-"+maxM+"-"+maxD);
 
-	this.minDate = PData.date3Nums(minY, minM, minD);
-	this.maxDate = PData.date3Nums(maxY, maxM, maxD);
-		// Size of instananeous event: 3% of total time period space
-	this.instGap = (this.maxDate - this.minDate) * .03;
+			// Size of instananeous event: 3% of total time period space
+		this.instGap = (this.maxDate - this.minDate) * .03;
+	} // minMaxDates
 
-		// Create SVG palette of temporary size
+	minMaxDates();
+
+		// Create outer SVG container
+	var widths = this.getWidths();
+// console.log("Widths: "+widths);
+
 	var svg = d3.select(this.frameID).append("svg")
-    	.attr("id", "outer")
-		.attr("width", 100)
-		.attr("height", 100);
+    	.attr("class", "tl-vf")
+		.attr("width", widths[1]);
 
-		// Get all unique Legend Attribute IDs
-	var lAttIDs=[];
-	s.lgnds.forEach(function(tArray) {
-		tArray.forEach(function(lAttID) {
-			lAttIDs.push(lAttID);
-		});
-	});
-	lAttIDs = _.uniq(lAttIDs);
-
-		// Gather all color values for all possible Legends
-	var cVals=[];
-	lAttIDs.forEach(function(lAttID) {
-		var att = PData.getAttID(lAttID);
-		if (att) {
-			att.l.forEach(function(lVal) {
-				cVals.push(lVal.v);				
+	function makeDefs()
+	{
+			// Get all unique Legend Attribute IDs
+		var lAttIDs=[];
+		s.lgnds.forEach(function(tArray) {
+			tArray.forEach(function(lAttID) {
+				lAttIDs.push(lAttID);
 			});
+		});
+		lAttIDs = _.uniq(lAttIDs);
+
+			// Gather all color values for all possible Legends
+		var cVals=[];
+		lAttIDs.forEach(function(lAttID) {
+			var att = PData.getAttID(lAttID);
+			if (att) {
+				att.l.forEach(function(lVal) {
+					cVals.push(lVal.v);				
+				});
+			}
+		});
+		cVals = _.uniq(cVals);
+		cVals.sort();
+
+			// Create gradations for fuzzy dates
+		var defs = svg.append('defs');
+		var gradDef, name;
+
+		cVals.forEach(function(cVal) {
+				// First entry for Legend is "header", no color info
+			name = cVal.substr(1);
+				// Create three variants of each color
+			gradDef = defs.append('linearGradient').attr('id', name+'-fs');
+			gradDef.append('stop').attr('offset', '0%').attr('stop-color', 'white');
+			gradDef.append('stop').attr('offset', '5%').attr('stop-color', cVal);
+			gradDef.append('stop').attr('offset', '100%').attr('stop-color', cVal);
+			gradDef = defs.append('linearGradient').attr('id', name+'-fe');
+			gradDef.append('stop').attr('offset', '0%').attr('stop-color', cVal);
+			gradDef.append('stop').attr('offset', '95%').attr('stop-color', cVal);
+			gradDef.append('stop').attr('offset', '100%').attr('stop-color', 'white');
+			gradDef = defs.append('linearGradient').attr('id', name+'-fb');
+			gradDef.append('stop').attr('offset', '0%').attr('stop-color', 'white');
+			gradDef.append('stop').attr('offset', '5%').attr('stop-color', cVal);
+			gradDef.append('stop').attr('offset', '95%').attr('stop-color', cVal);
+			gradDef.append('stop').attr('offset', '100%').attr('stop-color', 'white');
+		});
+	} // makeDefs
+
+	makeDefs();
+
+		// Create further SVG elements (will resize later)
+	var vIndex = this.vFrame.getIndex();
+
+		// Create inset frame
+	svg.append("g")
+		.attr("class", "tl-c1")
+		.attr("transform", "translate(6,6)");
+
+		// Clip all graphics to inner area of chart
+	svg.append("clipPath")
+		.attr("class", "tl-clip")
+		.attr("id", "tl-clip-"+vIndex)
+		.append("rect")
+		.attr("width", widths[2]);
+
+	this.chart = svg.append("g")
+		.attr("class", "chart")
+		.attr("clip-path", "url(#tl-clip-"+vIndex+")");
+
+		// Calculate other Timeline Object variables
+	this.instRad = (s.bHt / 2) - 1; // pixel radius of instantaneous circle
+
+		// Prepare band info
+	this.bands = Array(2);
+
+	this.cmpnts=[];		// GUI components to draw & refresh
+
+		// PURPOSE: Create macro & zoom bands
+		// INPUT: 	bi = 0 for top macro band, b1 for lower zoom band
+	function createBand(bi)
+	{
+			// Create band record (w/ placeholders)
+		var band = { id: bi, l: 0, t:0, h:0, w: widths[2] };
+
+			// Bottom zoom view?
+		if (bi) {
+			band.tHt = self.settings.bHt;
+			band.iHt = band.tHt-2;
+
+			// Top macro band?
+		} else {
+			band.tHt = 3;
+			band.iHt = 2;
 		}
-	});
-	cVals = _.uniq(cVals);
-	cVals.sort();
 
-		// Create gradations for fuzzy dates
-	var defs = svg.append('defs');
-	var gradDef, name;
+		band.parts = [];
 
-	cVals.forEach(function(cVal) {
-			// First entry for Legend is "header", no color info
-		name = cVal.substr(1);
-			// Create three variants of each color
-		gradDef = defs.append('linearGradient').attr('id', name+'-fs');
-		gradDef.append('stop').attr('offset', '0%').attr('stop-color', 'white');
-		gradDef.append('stop').attr('offset', '5%').attr('stop-color', cVal);
-		gradDef.append('stop').attr('offset', '100%').attr('stop-color', cVal);
-		gradDef = defs.append('linearGradient').attr('id', name+'-fe');
-		gradDef.append('stop').attr('offset', '0%').attr('stop-color', cVal);
-		gradDef.append('stop').attr('offset', '95%').attr('stop-color', cVal);
-		gradDef.append('stop').attr('offset', '100%').attr('stop-color', 'white');
-		gradDef = defs.append('linearGradient').attr('id', name+'-fb');
-		gradDef.append('stop').attr('offset', '0%').attr('stop-color', 'white');
-		gradDef.append('stop').attr('offset', '5%').attr('stop-color', cVal);
-		gradDef.append('stop').attr('offset', '95%').attr('stop-color', cVal);
-		gradDef.append('stop').attr('offset', '100%').attr('stop-color', 'white');
-	});
+		band.xScale = d3.time.scale();
+		if (bi) {
+			var zMin=self.minDate, zMax=self.maxDate;
+			if (self.settings.zFrom.length > 0)
+				zMin = PData.parseDate(self.settings.zFrom, 1, 1);
+			if (self.settings.zTo.length > 0)
+				zMax = PData.parseDate(self.settings.zTo, 12, 31);
+			band.xScale.domain([zMin, zMax]);
+		} else {
+			band.xScale.domain([self.minDate, self.maxDate]);
+		}
+		band.xScale.range([0, band.w]);
+
+			// Define the y-pos based on track #
+		band.yScale = function(t) {
+			return t * band.tHt;
+		};
+
+			// Create a div for this band
+		band.g = self.chart.append("g")
+			.attr("id", "tl-b-"+vIndex+"-"+bi)
+			.attr("class", "tl-band")
+			.attr("width", band.w);
+
+		// 	// Create enclosing container for the entire band
+		// band.g.append("rect")
+		// 	.attr("class", "tl-b-cnt")
+		// 	.attr("width", band.w);
+
+			// TO DO: Create Legend backgrounds
+
+			// Save all band data
+		self.bands[bi] = band;
+		self.cmpnts.push(band);
+	} // createBand()
+
+	createBand(0);
+	createBand(1);
+
+	function createXAxis(bi)
+	{
+		var band = dhpTimeline.bands[bi];
+
+			// Create the D3 object for axis
+		var axis = d3.svg.axis()
+			.scale(band.xScale)
+			.orient("bottom")
+			.tickSize(6, 0)
+				// For now, let D3 determine what label to show -- below is alternative DIY logic
+				// This version (below) *does* look better for dates < 1000 CE
+			// .tickFormat(function (d) {
+			//     var dates = band.xScale.domain();
+			//     var timeDiff = dates[1].getFullYear() - dates[0].getFullYear();
+			//         // What to print on label depends on scale of time periods
+			//         // Have tried to use reasonable heuristic
+			//     if (timeDiff > dhpTimeline.threshold) {
+			//         return d.getUTCFullYear();
+			//     } else {
+			//         timeDiff = (timeDiff*12)+(dates[1].getMonth() - dates[0].getMonth());
+			//         if (timeDiff > dhpTimeline.threshold) {
+			//             return dhpTimeline.months[d.getMonth()];
+			//         } else {
+			//             return d.getDate();
+			//         }
+			//     }
+			// } )
+			;
+
+			// Do we need to localize the axis labels?
+		if (localD3)
+			axis.tickFormat(localD3);
+
+			// Create SVG components
+		var axisSVG = band.g.append("g")
+			.attr("id", 'axis-'+vIndex+'-'+bi)
+			.attr("class", "axis")
+			.style("font-size", '10px');
+
+			// PURPOSE: Draw itself when called
+		axisSVG.redraw = function () {
+			axisSVG.call(axis);
+		};
+
+		band.parts.push(axisSVG); // for brush.redraw
+		self.cmpnts.push(axisSVG); // for timeline.redraw
+	} // createXAxis()
+
+	createXAxis(0);
+	createXAxis(1);
+
+	function createLabels(bi)
+	{
+		var band = dhpTimeline.bands[bi];
+
+		var labelH;
+			// Zoom band has double height labels
+		if (bi == 1) {
+			labelH = 32;
+		} else {
+			labelH = 16;
+		}
+
+			// The data associated with Labels
+		var sLbl = {		name: 's-'+vIndex+'-'+bi,
+							x: function() { return 0; },
+							left: function() { return 0; },
+							anchor: 'start',
+							textDelta: 2,
+							whichDate: function(min, max) { return min; }
+						};
+		var eLbl = {		name: 'e-'+vIndex+'-'+bi,
+							x: function() { return band.l + band.w; },
+							left: function() { return band.l + band.w - self.settings.xLbl; },
+							anchor: 'end',
+							textDelta: -3,
+							whichDate: function(min, max) { return max; }
+						};
+		var lblDefs = [sLbl, eLbl];
+
+			// Create graphic container for labels just below main chart space
+			// These only specify vertical dimension -- essentially take entire width
+		var bLblSVGs = band.g.selectAll(".bLblCntr")
+				// Create "g" for each of the start & end labels
+			.data(lblDefs)
+			.enter().append("g")
+			.attr("class", "bLblCntr");
+
+			// Create containing rects for labels
+		bLblSVGs.append("rect")
+			.attr("class", "bLbl")
+			.attr("id", function(l) { return "rect-"+l.name; } )
+			.attr("x", function(l) { return l.left(); })
+			.attr("width", self.settings.xLbl)
+			.attr("height", labelH);
+			// .style("opacity", 1);
+
+			// Add textual features for labels
+		var yLabels = bLblSVGs.append("text")
+			.attr("class", 'bMinMaxLbl')
+			.attr("id", function(l) { return "txt-"+l.name; } )
+			.attr("x", function(l) { return l.x()+l.textDelta; } )
+			.attr("y", 12)
+			.attr("text-anchor", function(l) { return l.anchor; });
+
+			// Needs to know how to draw itself
+		yLabels.redraw = function ()
+		{
+			var domainVals = band.xScale.domain();
+			var min = domainVals[0],
+				max = domainVals[1];
+
+				// This will be called for each label in turn
+			yLabels.text(function(label) {
+				return label.whichDate(min,max).getUTCFullYear();
+			})
+		}; // redraw()
+
+			// Add initial labels to components needed to be drawn
+		band.parts.push(yLabels);
+		self.cmpnts.push(yLabels);
+
+			// If creating zoom band, need to add text features for months
+		if (bi == 1) {
+			var mLabels = bLblSVGs.append("text")
+				.attr("class", 'bMinMaxLbl')
+				.attr("id", function(label) { return 'm-txt-'+label.name; } )
+				.attr("x", function(label) { return label.x()+label.textDelta; } )
+				.attr("y", labelH-4)
+				.attr("text-anchor", function(label) { return label.anchor; });
+
+				// Needs to know how to draw itself
+			mLabels.redraw = function ()
+			{
+				var domainVals = band.xScale.domain();
+				var min = domainVals[0],
+					max = domainVals[1];
+
+				mLabels.text(function (label) {
+					var timeDiff = max.getUTCFullYear() - min.getUTCFullYear();
+					if (timeDiff > self.threshold) {
+						return '';
+					} else {
+						return label.whichDate(min,max).getMonth();
+						// return dhpTimeline.months[label.whichDate(min,max).getMonth()];
+					}
+				})
+			}; // redraw()
+
+				// Add additional labels to components needed to be drawn
+			band.parts.push(mLabels);
+			self.cmpnts.push(mLabels);
+		} // if zoom
+
+			// Need to store these labels in the band for redrawing on resize
+		band.labels = lblDefs;
+		band.labelSVGs = bLblSVGs;
+	} // createLabels()
+
+	createLabels(0);
+	createLabels(1);
+
+	function createBrush()
+	{
+		// TO DO
+	} // createBrush()
+
+	createBrush();
 } // setup()
 
 	// PURPOSE: Draw the Records in the given datastream
@@ -1166,9 +1447,14 @@ VizTime.prototype.render = function(stream)
 	} // compDesc()
 
 	var self = this;
+	var vIndex = 
 
-	this.tData=[];		// Store temporal data for each Template type
+	self.tData=[];		// Data for each Template type
+	self.events=[];		// All event data
 
+	var numTracks=0;
+
+		// Process each Template's data
 	function procTmplts()
 	{
 		var numTmplts = PData.getNumETmplts();
@@ -1205,7 +1491,7 @@ VizTime.prototype.render = function(stream)
 			dAttID = self.settings.dAtts[tI];
 
 				// Each Template's events { s[tart], e[nd], ai, f[lags], c[olor], l[abel], t[rack] }
-			var events=[];
+			var te=[];
 			var y, m, d;
 			var s, e, f, l;
 
@@ -1252,18 +1538,18 @@ VizTime.prototype.render = function(stream)
 								} // number
 							}
 							var v = { s: s, e: e, ai: aI, f: f, c: fData, l: rec.l, t: 0 };
-							events.push(v);
-						}
+							te.push(v);
+						} // has Date data
 					} // translates to Legend value
 				} // has Legend value
 			} // for
-			events.sort(compDesc);
+			te.sort(compDesc);
 
 			var tracks = [];
 			var n;
 
 				// Lay events out on tracks: older items end deeper
-			events.forEach(function(v) {
+			te.forEach(function(v) {
 					// Find the first track where it fits
 				for (n=0; n<tracks.length; n++) {
 						// First check to see if track has any value
@@ -1272,39 +1558,207 @@ VizTime.prototype.render = function(stream)
 					}
 				}
 					// Record track that event "fits" into -- this will append to array if at end
-				v.t = n;
+				v.t = n+numTracks+1;
 					// Record relevant time period in track -- this will append to array if at end
 				tracks[n] = v.s;
 			});
 // console.log("Events for Template "+tI+": "+JSON.stringify(events));
 
-				// Save this Template's data
-			var tEntry={ tI: tI, e: events, h: tracks.length };
+				// Save this Template's data (l is track position for Template's Legend labels)
+			var tEntry={ tI: tI, l: numTracks, h: tracks.length };
 			self.tData.push(tEntry);
+				// Add track position for Template legend labels
+			numTracks += tracks.length+1;
+				// Append event data
+			self.events = self.events.concat(te);
+
 			tI++;
 		} // while 
 	} // procTmplts
 
 	procTmplts();
+console.log("Total # tracks: "+numTracks);
 
-		// Empty micro & macro svgs; modify based on track data
+	var widths = self.getWidths();
 
+		// PURPOSE: Update macro & zoom band info based on track data
+		// INPUT: 	i = 0 for top macro band, 1 for lower zoom band
+	function updateBand(bi)
+	{
+			// Band specific parameters for instantaneous events
+		var instCX, instCY, instR, instLX;
 
+			// Create record about band
+		var band = self.bands[bi];
+
+			// Bottom zoom view?
+		if (i) {
+			band.t = ((numTracks+self.tData.length) * band.tHt) + 37;
+
+			instCX = instCY = instR = self.instRad;
+			instLX = (self.instRad*2)+3
+
+			// Top macro band?
+		} else {
+			band.t = 0;
+
+			instCX = instCY = instR = 1;
+		}
+		band.h = ((numTracks+self.tData.length) * band.tHt) + 2;
+
+			// Update band's vertical position and size
+		band.g.attr("transform", "translate(0," + band.t +  ")")
+			.attr("height", band.h);	// ?? Needed ??
+
+			// TO DO: Modify Legend background colors
+
+			// Only bottom zoom band will have text labels -- compute relative size and position
+		var fHt, fPos;
+		if (index == 1) {
+			fHt = '' + (band.iHt*.75) +'px';
+			fPos = band.iHt*.80;
+		}
+
+			// Remove all events in this band
+		var allEs = band.g.selectAll(".event").remove();
+
+			// Create svg's for all of the time events in the band with appropriate height and class
+			//  -- will finish specifying data for each below
+		allEs = band.g.data(self.events)
+			.enter().append("g")
+			.attr("y", function (d) { return band.yScale(d.t); })
+			.attr("height", band.iHt)
+			.attr("class", function (d) { return (d.f & EVENT_INSTANT) ? "event instant" : "event range"; })
+			.on("click", function(d) {
+console.log("Clicked on "+d.ai);
+			});
+
+			// TO DO: Check for event in current selection
+
+			// Finish specifying data for date ranges
+		var ranges = band.g.selectAll(".range");
+			// Solid rectangle to fill interval with color
+		ranges.append("rect")
+			.attr("width", "100%")
+			.attr("height", "100%")
+			.attr("fill", function(d) {
+					// check to see if fuzzy start or end
+				if (bi == 1 && (d.f & (EVENT_F_START|EVENT_F_END))) {
+						// both?
+					if ((d.f & (EVENT_F_START|EVENT_F_END)) == (EVENT_F_START|EVENT_F_END)) {
+						return 'url('+d.c+'-fb)';
+					} else if ((d.f & EVENT_F_START) === EVENT_F_START) {
+						return 'url('+d.c+'-fs)';
+					} else {
+						return 'url('+d.c+'-fe)';
+					}
+				} else {
+					return d.c;
+				}
+			});
+
+			// Label for range -- zoom band only
+		if (bi == 1) {
+			ranges.append("text")
+				.attr("class", "rangeLbl")
+				.attr("x", 4)
+				.attr("y", fPos)
+				.attr("fill", function(d) {
+					return d.c;
+				})
+				.style("font-size", fSize)
+				.text(function (d) {
+					return d.l;
+				});
+		}
+
+			// Finish specifying data for instantaneous events
+		var instants = band.g.selectAll(".instant");
+			// Create circle for these
+		instants.append("circle")
+			.attr("cx", instCX)
+			.attr("cy", instCY)
+			.attr("r", instR)
+			.attr("fill", function(d) {
+				return d.c;
+			});
+
+			// Labels on zoom band only
+		if (bi == 1) {
+				// Create label
+			instants.append("text")
+				.attr("class", "instantLabel")
+				.attr("x", instLX)
+				.attr("y", fontPos)
+				.style("font-size", fSize)
+				.text(function (d) {
+					return d.l;
+				});
+		}
+	} // updateBand()
+
+	updateBand(0);
+	updateBand(1);
+
+		// PURPOSE: Update the clipping rectangle
+	function updateSizes()
+	{
+		var zoom = self.bands[1];
+		var h = zoom.t + zoom.h;		// TO DO: Also need to take labels and xAxis into account
+
+			// Set total height of chart container
+		d3.select(this.frameID+" .tl-vf").attr("height", h);
+
+			// update clipping rectangle
+		d3.select('#tl-clip-'+vIndex+' rec').attr("height", h);
+	} // updateClip()
+
+	updateSizes();
+
+	function updateXAxis(bi)
+	{
+		var band = self.bands[bi];
+
+		band.g.select('.axis')
+			.attr("transform", "translate(0," + (band.t + band.h)  + ")");
+	} // updateXAxis()
+
+	updateXAxis(0);
+	updateXAxis(1);
+
+	function updateLabels(bi)
+	{
+		var band = self.bands[bi];
+
+		band.g.select(".bLbls")
+			.attr("transform", "translate(0," + (band.t + band.h + 1) +  ")")
+	} // updateLabels()
+
+	updateLabels(0);
+	updateLabels(1);
 } // render()
+
+	// PURPOSE: Handle resize of drawing area
+VizTime.prototype.resize = function()
+{
+	// TO DO
+} // resize()
 
 VizTime.prototype.teardown = function()
 {
-}
+} // teardown()
 
 VizTime.prototype.setSel = function(absIArray)
 {
 	var self=this;
+		// TO DO
 } // setSel()
 
 VizTime.prototype.clearSel = function()
 {
 	if (this.recSel.length > 0) {
 		this.recSel = [];
+		// TO DO
 	}
 } // clearSel()
 
@@ -2801,13 +3255,13 @@ var PData = (function () {
 			success: function(data, textStatus, XMLHttpRequest)
 			{
 					// Append loaded data, update and look for more
-				var d = recs[tIndex].d;
+				var r = recs[tIndex];
 				var newD = JSON.parse(data);
-				if (d)
-					recs[tIndex].d = d.concat(newD);
+				if (r.d)
+					r.d = r.d.concat(newD);
 				else
-					recs[tIndex].d = newD;
-				recs[tIndex].n += count;
+					r.d = newD;
+				r.n += count;
 				checkDataLoad();
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown)
@@ -3382,6 +3836,35 @@ var PData = (function () {
 			}
 			return date;
 		}, // date3Nums
+
+			// PURPOSE: Create a Date from minimal specification in Object fields
+		objDate: function(field, m, d) {
+			if (typeof field.m != 'undefined') {
+				m = field.m;
+				if (typeof field.d != 'undefined') {
+					d = field.d;
+				}
+			}
+			return PData.date3Nums(field.y, m, d);
+		}, // objDate()
+
+			// PURPOSE: Create Date by parsing string
+		parseDate: function(str, m, d)
+		{
+			if (str == 'open')
+				return TODAY;
+
+			var cmpts = str.split('-');
+			var y = parseInt(cmpts[0]);
+			if (cmpts.length > 1) {
+				m = parseInt(cmpts[1]);
+				if (cmpts.length == 3)
+					d = parseInt(cmpts[2]);
+			}
+
+			return PData.date3Nums(y, m, d);
+		}, // parseDate()
+
 
 			// PURPOSE: Return array of range categories for facet att
 			// INPUT: 	Complete Attribute definition <att>
@@ -4145,6 +4628,26 @@ console.log("Visualization complete");
 		event.preventDefault();
 	} // clickApplySelector()
 
+	function localize()
+	{
+			// Do we need to localize D3?
+		var d3Local;
+		if (d3Local = document.getElementById('dltext-d3-local')) {
+			if ((d3Local = d3Local.innerHTML) && (d3Local.length > 1))
+			{
+				var locale = d3.locale(JSON.parse(d3Local));
+				localD3 = locale.timeFormat.multi([
+					["%H:%M", function(d) { return d.getMinutes(); }],
+					["%H:%M", function(d) { return d.getHours(); }],
+					["%a %d", function(d) { return d.getDay() && d.getDate() != 1; }],
+					["%b %d", function(d) { return d.getDate() != 1; }],
+					["%B", function(d) { return d.getMonth(); }],
+					["%Y", function() { return true; }]
+				]);
+			}
+		}
+	} // localize()
+
 
 		// IMMEDIATE EXECUTION
 		//====================
@@ -4157,6 +4660,8 @@ console.log("Visualization complete");
 
 	if (prspdata.e.g.l != '')
 		jQuery('#title').text(prspdata.e.g.l);
+
+	localize();
 
 		// Command Bar
 	jQuery('#btn-about').button({icons: { primary: 'ui-icon-info' }, text: false })

@@ -436,7 +436,7 @@ div.annote {
 	top: 10px;
 
 	left: 90%;
-    left: calc(100% - 280px);
+	left: calc(100% - 280px);
 	left: -webkit-calc(100% - 280px);
 /*    left: -moz-calc(100% - 280px); */
 
@@ -846,21 +846,115 @@ div.viz-result svg .recobj.obj-selected
 
 	/* Timeline styles
 	 * DOM structure
-	 * 	tl-vf  (Outermost SVG)
-	 *		tl-band tl-b-0		(Macro)
-	 *			tl-ta	(1 per Template)
+	 * 	tl-vf	(Outermost SVG)
+	 *	  tl-c1	(inner container)
+	 *		tl-band tl-b-<vf>-0		(Macro)
+	 *			tl-cnt	(containing rect)
 	 *				tl-lgnd-bck		(Legend color background)
-	 *				tl-axis
+	 *				tl-axis axis-<vf>-0
 	 *				tl-event
-	 *		tl-band tl-b-1 		(Zoom)
-	 *			tl-ta	(1 per Template)
+	 *		tl-band tl-b-<vf>-1 	(Zoom)
+	 *			tl-cnt	(containing rect)
 	 *				tl-lgnd-bck		(Legend color background)
 	 *				tl-lgnd-ttl		(Legend era title)
-	 *				tl-axis
+	 *				tl-axis axis-<vf>-1
 	 *				tl-event
 	 **/
 
 div.viz-result svg.tl-vf {
+	border-style: solid;
+	border-width: 1px;
+	border-color: black;
+	background-color: #F0F0F0;
+}
+
+
+	/* Inner space containing chart */
+div.viz-result svg.tl-vf .chart {
+	fill: #EEEEEE;
+}
+
+	/* axis labels */
+div.viz-result svg.tl-vf .axis {
+	fill: #808080;
+	font-family: sans-serif;
+	font-size: 10px;
+}
+
+	/* axis tick marks */
+div.viz-result svg.tl-vf .axis line {
+	stroke-width : 1;
+	stroke: gray;
+	shape-rendering: crispEdges;
+}
+
+	/* axis line */
+div.viz-result svg.tl-vf .axis path {
+	stroke-width : 1;
+	stroke: gray;
+	shape-rendering: crispEdges;
+}
+
+	/* band background */
+div.viz-result svg.tl-vf .band {
+	fill: #FAFAFA;
+}
+
+div.viz-result svg.tl-vf .event.range {
+	fill: #AAFFFF;
+	cursor : default;
+	pointer-events: true;
+	stroke-width: 1;
+	stroke: black;
+	stroke-opacity: 0.8;
+}
+
+div.viz-result svg.tl-vf .event.instant {
+	fill: #FFAAFF;
+	cursor : default;
+	pointer-events: true;
+	stroke-width: 1;
+	stroke: black;
+	stroke-opacity: 0.8;
+}
+
+div.viz-result svg.tl-vf .instantLbl {
+	font: 10px sans-serif;
+	font-weight: 300;
+	fill: black;                    /* instantaneous event labels always on white background */
+	stroke-width: 0;
+	stroke: none;
+	shape-rendering: crispEdges;
+}
+
+div.viz-result svg.tl-vf .rangeLbl {
+	font: 10px sans-serif;
+	font-weight: 300;
+	stroke: none;
+	stroke-width: 0;
+	shape-rendering: crispEdges;
+}
+
+div.viz-result svg.tl-vf .bLbl {
+	fill: #99CCCC;
+}
+
+div.viz-result svg.tl-vf .bMinMaxLbl {
+	fill: #000066;
+	font: 10px sans-serif;
+	font-weight: bold;
+}
+
+div.viz-result svg.tl-vf .brush .extent {
+	stroke: midnightblue;
+	fill: blue;
+	fill-opacity: .2;
+}
+
+div.viz-result svg.tl-vf .brush .dragger {
+	fill: #99CCCC;
+	stroke: black;
+	stroke-width: 1;
 }
 
 	/* TextStream styles */
