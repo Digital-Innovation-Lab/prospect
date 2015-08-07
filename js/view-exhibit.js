@@ -1176,7 +1176,7 @@ VizTime.prototype.setup = function()
 	makeDefs();
 
 		// Create further SVG elements (will resize later)
-	var vIndex = this.vFrame.getIndex();
+	var vI = this.vFrame.getIndex();
 
 		// Create inset frame
 	svg.append("g")
@@ -1185,13 +1185,13 @@ VizTime.prototype.setup = function()
 
 		// Clip all graphics to inner area of chart
 	svg.append("clipPath")
-		.attr("id", "tl-clip-"+vIndex)
+		.attr("id", "tl-clip-"+vI)
 		.append("rect")
 		.attr("width", widths[2]);
 
 	self.chart = svg.append("g")
 		.attr("class", "chart")
-		.attr("clip-path", "url(#tl-clip-"+vIndex+")");
+		.attr("clip-path", "url(#tl-clip-"+vI+")");
 
 		// Calculate other Timeline Object variables
 	self.instRad = (s.bHt / 2) - 1; // pixel radius of instantaneous circle
@@ -1219,7 +1219,7 @@ VizTime.prototype.setup = function()
 			band.iHt = 2;
 		}
 
-		band.parts = [];
+		band.parts=[];
 
 		band.xScale = d3.time.scale();
 		if (bi) {
@@ -1241,7 +1241,7 @@ VizTime.prototype.setup = function()
 
 			// Create a div for this band
 		band.g = self.chart.append("g")
-			.attr("id", "tl-b-"+vIndex+"-"+bi)
+			.attr("id", "tl-b-"+vI+"-"+bi)
 			.attr("class", "tl-band")
 			.attr("width", band.w);
 
@@ -1255,7 +1255,7 @@ VizTime.prototype.setup = function()
 
 			// Item needs to know how to draw itself (will be called)
 			// Recalibrate position on graph given new scale ratios
-		band.redraw = function () {
+		band.redraw = function() {
 			band.g.selectAll('.events')
 				.attr("x", function (d) { return band.xScale(d.s); })
 				.attr("width", function (d) {
@@ -1307,17 +1307,19 @@ VizTime.prototype.setup = function()
 
 			// Create SVG components
 		var axisSVG = band.g.append("g")
-			.attr("id", 'axis-'+vIndex+'-'+bi)
+			.attr("id", 'axis-'+vI+'-'+bi)
 			.attr("class", "axis")
 			.style("font-size", '10px');
 
+		var axisDraw = {};
+
 			// PURPOSE: Draw itself when called
-		axisSVG.redraw = function () {
+		axisDraw.redraw = function () {
 			axisSVG.call(axis);
 		};
 
-		band.parts.push(axisSVG); // for brush.redraw
-		self.cmpnts.push(axisSVG); // for timeline.redraw
+		band.parts.push(axisDraw); // for brush.redraw
+		self.cmpnts.push(axisDraw); // for timeline.redraw
 	} // createXAxis()
 
 	createXAxis(0);
@@ -1336,14 +1338,14 @@ VizTime.prototype.setup = function()
 		}
 
 			// The data associated with Labels
-		var sLbl = {		name: 's-'+vIndex+'-'+bi,
+		var sLbl = {		name: 's-'+vI+'-'+bi,
 							x: function() { return 0; },
 							left: function() { return 0; },
 							anchor: 'start',
 							tDelta: 2,
 							whichDate: function(min, max) { return min; }
 						};
-		var eLbl = {		name: 'e-'+vIndex+'-'+bi,
+		var eLbl = {		name: 'e-'+vI+'-'+bi,
 							x: function() { return band.l + band.w; },
 							left: function() { return band.l + band.w - self.settings.xLbl; },
 							anchor: 'end',
@@ -1380,15 +1382,15 @@ VizTime.prototype.setup = function()
 		var yLabeler={};
 
 			// Needs to know how to draw itself
-		yLabeler.redraw = function ()
+		yLabeler.redraw = function()
 		{
-			var domainVals = band.xScale.domain();
-			var min = domainVals[0],
-				max = domainVals[1];
+			var dVals = band.xScale.domain();
+			var min = dVals[0],
+				max = dVals[1];
 
 				// This will be called for each label in turn
-			yLabels.text(function(label) {
-				return label.whichDate(min,max).getUTCFullYear();
+			yLabels.text(function(l) {
+				return l.whichDate(min,max).getUTCFullYear();
 			})
 		}; // redraw()
 
@@ -1400,26 +1402,26 @@ VizTime.prototype.setup = function()
 		if (bi == 1) {
 			var mLabels = bLblSVGs.append("text")
 				.attr("class", 'bMinMaxLbl')
-				.attr("id", function(label) { return 'm-txt-'+label.name; } )
-				.attr("x", function(label) { return label.x()+label.textDelta; } )
+				.attr("id", function(l) { return 'm-txt-'+l.name; } )
+				.attr("x", function(l) { return l.x()+l.tDelta; } )
 				.attr("y", labelH-4)
-				.attr("text-anchor", function(label) { return label.anchor; });
+				.attr("text-anchor", function(l) { return l.anchor; });
 
 			var mLabeler={};
 
 				// Needs to know how to draw itself
-			mLabeler.redraw = function ()
+			mLabeler.redraw = function()
 			{
 				var dVals = band.xScale.domain();
 				var min = dVals[0],
 					max = dVals[1];
 
-				mLabels.text(function (label) {
+				mLabels.text(function(l) {
 					var diff = max.getUTCFullYear() - min.getUTCFullYear();
 					if (diff > self.threshold) {
 						return '';
 					} else {
-						return label.whichDate(min,max).getMonth();
+						return l.whichDate(min,max).getMonth();
 						// return months[label.whichDate(min,max).getMonth()];
 					}
 				})
@@ -1463,7 +1465,7 @@ VizTime.prototype.render = function(stream)
 	} // compDesc()
 
 	var self = this;
-	var vIndex = 
+	var vI = self.vFrame.getIndex();
 
 	self.tData=[];		// Data for each Template type
 	self.events=[];		// All event data
@@ -1590,9 +1592,11 @@ VizTime.prototype.render = function(stream)
 
 			tI++;
 		} // while 
-	} // procTmplts
+	} // procTmplts()
 
 	procTmplts();
+
+// console.log("Events: "+JSON.stringify(self.events));
 
 	var widths = self.getWidths();
 
@@ -1635,8 +1639,8 @@ VizTime.prototype.render = function(stream)
 		}
 
 			// Remove all events in this band
-		// var allEs = band.g.selectAll(".event").remove();
-		var allEs;
+		var allEs = band.g.selectAll("svg.event").remove();
+		// var allEs;
 
 			// Create svg's for all of the time events in the band with appropriate height and class
 			//  -- will finish specifying data for each below
@@ -1704,7 +1708,7 @@ console.log("Clicked on "+d.ai);
 		if (bi == 1) {
 				// Create label
 			allEs.append("text")
-				.attr("class", "instantLabel")
+				.attr("class", "instantLbl")
 				.attr("x", instLX)
 				.attr("y", fPos)
 				.style("font-size", fHt)
@@ -1723,11 +1727,11 @@ console.log("Clicked on "+d.ai);
 		var zoom = self.bands[1];
 		var h = zoom.t + zoom.h;		// TO DO: Also need to take labels and xAxis into account
 
-			// Set total height of chart container
-		d3.select(this.frameID+" .tl-vf").attr("height", h);
+			// Set total height of chart container -- Does not happen
+		d3.select(self.frameID+" svg.tl-vf").attr("height", h);
 
-			// update clipping rectangle
-		d3.select('#tl-clip-'+vIndex+' rec').attr("height", h);
+			// update clipping rectangle -- Does not happen
+		d3.select('#tl-clip-'+vI+' rec').attr("height", h);
 	} // updateClip()
 
 	updateSizes();
