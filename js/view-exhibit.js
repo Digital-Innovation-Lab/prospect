@@ -985,7 +985,7 @@ VizTime.prototype.getLocAtts = function(tIndex)
 	// TO DO: 	Make into getRects()?
 VizTime.prototype.getWidths = function()
 {
-			// svgMargin is for space inside of dhp-timeline occupied by #svg-container
+			// svgMargin is for space inside of outer container occupied by #svg-container
 	var svgMargin = { top: 6, right: 22, bottom: 6, left: 6 };
 			// chartMargin is for space inside of #svg-container occupied by timeline chart
 	var chartMargin = { top: 4, right: 9, bottom: 4, left: 4 };
@@ -1010,6 +1010,7 @@ VizTime.prototype.getWidths = function()
 
 VizTime.prototype.setup = function()
 {
+	var self = this;
 	var s = this.settings;
 
 	function minMaxDates()
@@ -1184,22 +1185,21 @@ VizTime.prototype.setup = function()
 
 		// Clip all graphics to inner area of chart
 	svg.append("clipPath")
-		.attr("class", "tl-clip")
 		.attr("id", "tl-clip-"+vIndex)
 		.append("rect")
 		.attr("width", widths[2]);
 
-	this.chart = svg.append("g")
+	self.chart = svg.append("g")
 		.attr("class", "chart")
 		.attr("clip-path", "url(#tl-clip-"+vIndex+")");
 
 		// Calculate other Timeline Object variables
-	this.instRad = (s.bHt / 2) - 1; // pixel radius of instantaneous circle
+	self.instRad = (s.bHt / 2) - 1; // pixel radius of instantaneous circle
 
 		// Prepare band info
-	this.bands = Array(2);
+	self.bands = Array(2);
 
-	this.cmpnts=[];		// GUI components to draw & refresh
+	self.cmpnts=[];		// GUI components to draw & refresh
 
 		// PURPOSE: Create macro & zoom bands
 		// INPUT: 	bi = 0 for top macro band, b1 for lower zoom band
@@ -1252,6 +1252,18 @@ VizTime.prototype.setup = function()
 
 			// TO DO: Create Legend backgrounds
 
+
+			// Item needs to know how to draw itself (will be called)
+			// Recalibrate position on graph given new scale ratios
+		band.redraw = function () {
+			band.g.selectAll('.events')
+				.attr("x", function (d) { return band.xScale(d.s); })
+				.attr("width", function (d) {
+					return band.xScale(d.e) - band.xScale(d.s);
+					});
+			band.parts.forEach(function(p) { p.redraw(); })
+		}; // redraw()
+
 			// Save all band data
 		self.bands[bi] = band;
 		self.cmpnts.push(band);
@@ -1262,7 +1274,7 @@ VizTime.prototype.setup = function()
 
 	function createXAxis(bi)
 	{
-		var band = dhpTimeline.bands[bi];
+		var band = self.bands[bi];
 
 			// Create the D3 object for axis
 		var axis = d3.svg.axis()
@@ -1276,12 +1288,12 @@ VizTime.prototype.setup = function()
 			//     var timeDiff = dates[1].getFullYear() - dates[0].getFullYear();
 			//         // What to print on label depends on scale of time periods
 			//         // Have tried to use reasonable heuristic
-			//     if (timeDiff > dhpTimeline.threshold) {
+			//     if (timeDiff > self.threshold) {
 			//         return d.getUTCFullYear();
 			//     } else {
 			//         timeDiff = (timeDiff*12)+(dates[1].getMonth() - dates[0].getMonth());
-			//         if (timeDiff > dhpTimeline.threshold) {
-			//             return dhpTimeline.months[d.getMonth()];
+			//         if (timeDiff > self.threshold) {
+			//             return self.months[d.getMonth()];
 			//         } else {
 			//             return d.getDate();
 			//         }
@@ -1313,7 +1325,7 @@ VizTime.prototype.setup = function()
 
 	function createLabels(bi)
 	{
-		var band = dhpTimeline.bands[bi];
+		var band = self.bands[bi];
 
 		var labelH;
 			// Zoom band has double height labels
@@ -1328,14 +1340,14 @@ VizTime.prototype.setup = function()
 							x: function() { return 0; },
 							left: function() { return 0; },
 							anchor: 'start',
-							textDelta: 2,
+							tDelta: 2,
 							whichDate: function(min, max) { return min; }
 						};
 		var eLbl = {		name: 'e-'+vIndex+'-'+bi,
 							x: function() { return band.l + band.w; },
 							left: function() { return band.l + band.w - self.settings.xLbl; },
 							anchor: 'end',
-							textDelta: -3,
+							tDelta: -3,
 							whichDate: function(min, max) { return max; }
 						};
 		var lblDefs = [sLbl, eLbl];
@@ -1361,12 +1373,14 @@ VizTime.prototype.setup = function()
 		var yLabels = bLblSVGs.append("text")
 			.attr("class", 'bMinMaxLbl')
 			.attr("id", function(l) { return "txt-"+l.name; } )
-			.attr("x", function(l) { return l.x()+l.textDelta; } )
+			.attr("x", function(l) { return l.x()+l.tDelta; } )
 			.attr("y", 12)
 			.attr("text-anchor", function(l) { return l.anchor; });
 
+		var yLabeler={};
+
 			// Needs to know how to draw itself
-		yLabels.redraw = function ()
+		yLabeler.redraw = function ()
 		{
 			var domainVals = band.xScale.domain();
 			var min = domainVals[0],
@@ -1379,8 +1393,8 @@ VizTime.prototype.setup = function()
 		}; // redraw()
 
 			// Add initial labels to components needed to be drawn
-		band.parts.push(yLabels);
-		self.cmpnts.push(yLabels);
+		band.parts.push(yLabeler);
+		self.cmpnts.push(yLabeler);
 
 			// If creating zoom band, need to add text features for months
 		if (bi == 1) {
@@ -1391,27 +1405,29 @@ VizTime.prototype.setup = function()
 				.attr("y", labelH-4)
 				.attr("text-anchor", function(label) { return label.anchor; });
 
+			var mLabeler={};
+
 				// Needs to know how to draw itself
-			mLabels.redraw = function ()
+			mLabeler.redraw = function ()
 			{
-				var domainVals = band.xScale.domain();
-				var min = domainVals[0],
-					max = domainVals[1];
+				var dVals = band.xScale.domain();
+				var min = dVals[0],
+					max = dVals[1];
 
 				mLabels.text(function (label) {
-					var timeDiff = max.getUTCFullYear() - min.getUTCFullYear();
-					if (timeDiff > self.threshold) {
+					var diff = max.getUTCFullYear() - min.getUTCFullYear();
+					if (diff > self.threshold) {
 						return '';
 					} else {
 						return label.whichDate(min,max).getMonth();
-						// return dhpTimeline.months[label.whichDate(min,max).getMonth()];
+						// return months[label.whichDate(min,max).getMonth()];
 					}
 				})
 			}; // redraw()
 
 				// Add additional labels to components needed to be drawn
-			band.parts.push(mLabels);
-			self.cmpnts.push(mLabels);
+			band.parts.push(mLabeler);
+			self.cmpnts.push(mLabeler);
 		} // if zoom
 
 			// Need to store these labels in the band for redrawing on resize
@@ -1577,7 +1593,6 @@ VizTime.prototype.render = function(stream)
 	} // procTmplts
 
 	procTmplts();
-console.log("Total # tracks: "+numTracks);
 
 	var widths = self.getWidths();
 
@@ -1592,7 +1607,7 @@ console.log("Total # tracks: "+numTracks);
 		var band = self.bands[bi];
 
 			// Bottom zoom view?
-		if (i) {
+		if (bi) {
 			band.t = ((numTracks+self.tData.length) * band.tHt) + 37;
 
 			instCX = instCY = instR = self.instRad;
@@ -1614,31 +1629,33 @@ console.log("Total # tracks: "+numTracks);
 
 			// Only bottom zoom band will have text labels -- compute relative size and position
 		var fHt, fPos;
-		if (index == 1) {
-			fHt = '' + (band.iHt*.75) +'px';
+		if (bi) {
+			fHt = (band.iHt*.75) +'px';
 			fPos = band.iHt*.80;
 		}
 
 			// Remove all events in this band
-		var allEs = band.g.selectAll(".event").remove();
+		// var allEs = band.g.selectAll(".event").remove();
+		var allEs;
 
 			// Create svg's for all of the time events in the band with appropriate height and class
 			//  -- will finish specifying data for each below
-		allEs = band.g.data(self.events)
-			.enter().append("g")
+		allEs = band.g.selectAll("svg.event")
+			.data(self.events)
+			.enter().append("svg")
+			.attr("class", function (d) { return (d.f & EVENT_INSTANT) ? "event instant" : "event range"; })
 			.attr("y", function (d) { return band.yScale(d.t); })
 			.attr("height", band.iHt)
-			.attr("class", function (d) { return (d.f & EVENT_INSTANT) ? "event instant" : "event range"; })
 			.on("click", function(d) {
 console.log("Clicked on "+d.ai);
 			});
 
 			// TO DO: Check for event in current selection
 
-			// Finish specifying data for date ranges
-		var ranges = band.g.selectAll(".range");
+			// Complete specifying data for date ranges
+		allEs = band.g.selectAll(".range");
 			// Solid rectangle to fill interval with color
-		ranges.append("rect")
+		allEs.append("rect")
 			.attr("width", "100%")
 			.attr("height", "100%")
 			.attr("fill", function(d) {
@@ -1659,23 +1676,23 @@ console.log("Clicked on "+d.ai);
 
 			// Label for range -- zoom band only
 		if (bi == 1) {
-			ranges.append("text")
+			allEs.append("text")
 				.attr("class", "rangeLbl")
 				.attr("x", 4)
 				.attr("y", fPos)
 				.attr("fill", function(d) {
 					return d.c;
 				})
-				.style("font-size", fSize)
+				.style("font-size", fHt)
 				.text(function (d) {
 					return d.l;
 				});
 		}
 
 			// Finish specifying data for instantaneous events
-		var instants = band.g.selectAll(".instant");
+		allEs = band.g.selectAll(".instant");
 			// Create circle for these
-		instants.append("circle")
+		allEs.append("circle")
 			.attr("cx", instCX)
 			.attr("cy", instCY)
 			.attr("r", instR)
@@ -1686,11 +1703,11 @@ console.log("Clicked on "+d.ai);
 			// Labels on zoom band only
 		if (bi == 1) {
 				// Create label
-			instants.append("text")
+			allEs.append("text")
 				.attr("class", "instantLabel")
 				.attr("x", instLX)
-				.attr("y", fontPos)
-				.style("font-size", fSize)
+				.attr("y", fPos)
+				.style("font-size", fHt)
 				.text(function (d) {
 					return d.l;
 				});
@@ -1736,6 +1753,10 @@ console.log("Clicked on "+d.ai);
 
 	updateLabels(0);
 	updateLabels(1);
+
+	self.cmpnts.forEach(function(c) {
+		c.redraw();
+	});
 } // render()
 
 	// PURPOSE: Handle resize of drawing area
