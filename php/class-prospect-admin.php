@@ -1199,13 +1199,16 @@ class ProspectAdmin {
 	public function import_archive_file()
 	{
 		$fname = $_FILES['archive-import-select']['tmp_name'];
-		$res = fopen($fname, 'rb');
+		$res = fopen($fname, 'r');
+		// $res = fopen($fname, 'rb');
+
 			// Return if file not found or empty file
 		if ($res == false || $_FILES['archive-import-select']['size'] == 0)
 			return;
+		fclose($res);
 
-			// TO DO: Why doesn't isn't text in UTF-8 encoded JSON file correct?
-			// 			Tried all combinations of the following code
+			// Why isn't text in UTF-8 encoded JSON file correct?
+			// 		Tried all combinations of the following code
 		// $opts = array(
 		// 	'http' => array(
 		// 		'method'=>"GET",
@@ -1221,13 +1224,12 @@ class ProspectAdmin {
 			trigger_error('Failed to get file contents.', E_USER_WARNING);
 		}
 
+		// $contents = utf8_encode($contents);
+
 		// $contents = mb_convert_encoding($contents, 'UTF-8',
 		// 			 mb_detect_encoding($contents, 'UTF-8, ISO-8859-1', true));
 
-		// $contents = utf8_encode($contents);
-
 			// Skip any UTF-8 header
-			// 	None of the above UTF-8 encoding tricks work; JSON parse crashes without this
 		$header = substr($contents, 0, 3);
 		if ($header == pack('CCC', 0xef, 0xbb, 0xbf))
 			$contents = substr($contents, 3);
