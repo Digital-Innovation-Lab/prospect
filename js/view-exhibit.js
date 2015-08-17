@@ -1101,25 +1101,24 @@ VizTime.prototype.setup = function()
 
 			// Override default min & max bounds?
 		if (s.from.length > 0)
-			this.minDate = PData.parseDate(s.from, 1, 1);
+			self.minDate = PData.parseDate(s.from, 1, 1);
 		else
-			this.minDate = PData.date3Nums(minY, minM, minD);
+			self.minDate = PData.date3Nums(minY, minM, minD);
 		if (s.to.length > 0)
-			this.maxDate = PData.parseDate(s.to, 12, 31);
+			self.maxDate = PData.parseDate(s.to, 12, 31);
 		else
-			this.maxDate = PData.date3Nums(maxY, maxM, maxD);
+			self.maxDate = PData.date3Nums(maxY, maxM, maxD);
 // console.log("Min: "+minY+"-"+minM+"-"+minD);
 // console.log("Max: "+maxY+"-"+maxM+"-"+maxD);
 
 			// Size of instananeous event: 3% of total time period space
-		this.instGap = (this.maxDate - this.minDate) * .03;
+		self.instGap = (self.maxDate - self.minDate) * .03;
 	} // minMaxDates
 
 	minMaxDates();
 
 		// Create outer SVG container
-	var widths = this.getWidths();
-// console.log("Widths: "+widths);
+	var widths = self.getWidths();
 
 	var svg = d3.select(this.frameID).append("svg")
     	.attr("class", "tl-vf")
@@ -1179,9 +1178,9 @@ VizTime.prototype.setup = function()
 	var vI = this.vFrame.getIndex();
 
 		// Create inset frame
-	svg.append("g")
-		.attr("class", "tl-c1")
-		.attr("transform", "translate(6,6)");
+	// svg.append("g")
+	// 	.attr("class", "tl-c1")
+	// 	.attr("transform", "translate(6,6)");
 
 		// Clip all graphics to inner area of chart
 	svg.append("clipPath")
@@ -1206,7 +1205,7 @@ VizTime.prototype.setup = function()
 	function createBand(bi)
 	{
 			// Create band record (w/ placeholders)
-		var band = { id: bi, l: 0, t:0, h:0, w: widths[2] };
+		var band = { id: bi, l: 0, t:0, h:0, w: widths[2], svgID: "#tl-b-"+vI+"-"+bi };
 
 			// Bottom zoom view?
 		if (bi) {
@@ -1224,15 +1223,19 @@ VizTime.prototype.setup = function()
 		band.xScale = d3.time.scale();
 		if (bi) {
 			var zMin=self.minDate, zMax=self.maxDate;
+// console.log("Calculated minDate, maxDate: "+JSON.stringify(self.minDate)+", "+JSON.stringify(self.maxDate));
 			if (self.settings.zFrom.length > 0)
 				zMin = PData.parseDate(self.settings.zFrom, 1, 1);
 			if (self.settings.zTo.length > 0)
 				zMax = PData.parseDate(self.settings.zTo, 12, 31);
+// console.log("Use zMin, zMax: "+JSON.stringify(zMin)+", "+JSON.stringify(zMax));
 			band.xScale.domain([zMin, zMax]);
 		} else {
+// console.log("Use minDate, maxDate: "+JSON.stringify(self.minDate)+", "+JSON.stringify(self.maxDate));
 			band.xScale.domain([self.minDate, self.maxDate]);
 		}
 		band.xScale.range([0, band.w]);
+// console.log("xScale(0): "+band.xScale(PData.parseDate("0",1,1)));
 
 			// Define the y-pos based on track #
 		band.yScale = function(t) {
@@ -1241,28 +1244,12 @@ VizTime.prototype.setup = function()
 
 			// Create a div for this band
 		band.g = self.chart.append("g")
-			.attr("id", "tl-b-"+vI+"-"+bi)
+			.attr("id", band.svgID.substring(1))
 			.attr("class", "tl-band")
 			.attr("width", band.w);
 
-		// 	// Create enclosing container for the entire band
-		// band.g.append("rect")
-		// 	.attr("class", "tl-b-cnt")
-		// 	.attr("width", band.w);
-
 			// TO DO: Create Legend backgrounds
 
-
-			// Item needs to know how to draw itself (will be called)
-			// Recalibrate position on graph given new scale ratios
-		band.redraw = function() {
-			band.g.selectAll('.events')
-				.attr("x", function (d) { return band.xScale(d.s); })
-				.attr("width", function (d) {
-					return band.xScale(d.e) - band.xScale(d.s);
-					});
-			band.parts.forEach(function(p) { p.redraw(); })
-		}; // redraw()
 
 			// Save all band data
 		self.bands[bi] = band;
@@ -1319,7 +1306,7 @@ VizTime.prototype.setup = function()
 		};
 
 		band.parts.push(axisDraw); // for brush.redraw
-		self.cmpnts.push(axisDraw); // for timeline.redraw
+		self.cmpnts.push(axisDraw); // for timeline.redraw -- Need both??
 	} // createXAxis()
 
 	createXAxis(0);
@@ -1352,13 +1339,13 @@ VizTime.prototype.setup = function()
 							tDelta: -3,
 							whichDate: function(min, max) { return max; }
 						};
-		var lblDefs = [sLbl, eLbl];
+		band.labels = [sLbl, eLbl];
 
 			// Create graphic container for labels just below main chart space
 			// These only specify vertical dimension -- essentially take entire width
-		var bLblSVGs = band.g.selectAll(".bLblCntr")
+		var bLblSVGs = d3.select(band.svgID).selectAll(".bLblCntr")
 				// Create "g" for each of the start & end labels
-			.data(lblDefs)
+			.data(band.labels)
 			.enter().append("g")
 			.attr("class", "bLblCntr");
 
@@ -1390,8 +1377,10 @@ VizTime.prototype.setup = function()
 
 				// This will be called for each label in turn
 			yLabels.text(function(l) {
+// console.log("Which Date: "+JSON.stringify(l.whichDate(min,max)));
 				return l.whichDate(min,max).getUTCFullYear();
-			})
+				// ?? does not return proper value ??
+			});
 		}; // redraw()
 
 			// Add initial labels to components needed to be drawn
@@ -1433,7 +1422,6 @@ VizTime.prototype.setup = function()
 		} // if zoom
 
 			// Need to store these labels in the band for redrawing on resize
-		band.labels = lblDefs;
 		band.labelSVGs = bLblSVGs;
 	} // createLabels()
 
@@ -1639,12 +1627,12 @@ VizTime.prototype.render = function(stream)
 		}
 
 			// Remove all events in this band
-		var allEs = band.g.selectAll("svg.event").remove();
-		// var allEs;
+		var allEs;
+		// allEs = d3.select(band.svgID).selectAll(".event").remove();
 
 			// Create svg's for all of the time events in the band with appropriate height and class
 			//  -- will finish specifying data for each below
-		allEs = band.g.selectAll("svg.event")
+		allEs = d3.select(band.svgID).selectAll(".event")
 			.data(self.events)
 			.enter().append("svg")
 			.attr("class", function (d) { return (d.f & EVENT_INSTANT) ? "event instant" : "event range"; })
@@ -1657,9 +1645,9 @@ console.log("Clicked on "+d.ai);
 			// TO DO: Check for event in current selection
 
 			// Complete specifying data for date ranges
-		allEs = band.g.selectAll(".range");
+		var ranges = d3.select(band.svgID).selectAll(".range");
 			// Solid rectangle to fill interval with color
-		allEs.append("rect")
+		ranges.append("rect")
 			.attr("width", "100%")
 			.attr("height", "100%")
 			.attr("fill", function(d) {
@@ -1680,7 +1668,7 @@ console.log("Clicked on "+d.ai);
 
 			// Label for range -- zoom band only
 		if (bi == 1) {
-			allEs.append("text")
+			ranges.append("text")
 				.attr("class", "rangeLbl")
 				.attr("x", 4)
 				.attr("y", fPos)
@@ -1694,9 +1682,9 @@ console.log("Clicked on "+d.ai);
 		}
 
 			// Finish specifying data for instantaneous events
-		allEs = band.g.selectAll(".instant");
+		var instants = d3.select(band.svgID).selectAll(".instant");
 			// Create circle for these
-		allEs.append("circle")
+		instants.append("circle")
 			.attr("cx", instCX)
 			.attr("cy", instCY)
 			.attr("r", instR)
@@ -1707,7 +1695,7 @@ console.log("Clicked on "+d.ai);
 			// Labels on zoom band only
 		if (bi == 1) {
 				// Create label
-			allEs.append("text")
+			instants.append("text")
 				.attr("class", "instantLbl")
 				.attr("x", instLX)
 				.attr("y", fPos)
@@ -1716,6 +1704,16 @@ console.log("Clicked on "+d.ai);
 					return d.l;
 				});
 		}
+
+			// Item needs to know how to draw itself (will be called)
+			// Recalibrate position on graph given new scale ratios
+		band.redraw = function() {
+			allEs.attr("x", function (d) { return band.xScale(d.s); })
+				.attr("width", function (d) {
+						return band.xScale(d.e) - band.xScale(d.s);
+					});
+			band.parts.forEach(function(p) { p.redraw(); })
+		}; // redraw()
 	} // updateBand()
 
 	updateBand(0);
@@ -1727,11 +1725,11 @@ console.log("Clicked on "+d.ai);
 		var zoom = self.bands[1];
 		var h = zoom.t + zoom.h;		// TO DO: Also need to take labels and xAxis into account
 
-			// Set total height of chart container -- Does not happen
+			// Set total height of chart container
 		d3.select(self.frameID+" svg.tl-vf").attr("height", h);
 
-			// update clipping rectangle -- Does not happen
-		d3.select('#tl-clip-'+vI+' rec').attr("height", h);
+			// update clipping rectangle
+		d3.select('#tl-clip-'+vI+' rect').attr("height", h);
 	} // updateClip()
 
 	updateSizes();
@@ -1740,7 +1738,7 @@ console.log("Clicked on "+d.ai);
 	{
 		var band = self.bands[bi];
 
-		band.g.select('.axis')
+		d3.select(band.svgID).select('.axis')
 			.attr("transform", "translate(0," + (band.t + band.h)  + ")");
 	} // updateXAxis()
 
@@ -1751,7 +1749,7 @@ console.log("Clicked on "+d.ai);
 	{
 		var band = self.bands[bi];
 
-		band.g.select(".bLbls")
+		d3.select(band.svgID).select(".bLblCntr")
 			.attr("transform", "translate(0," + (band.t + band.h + 1) +  ")")
 	} // updateLabels()
 
