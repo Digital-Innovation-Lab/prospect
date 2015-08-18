@@ -1113,6 +1113,7 @@ VizTime.prototype.setup = function()
 
 			// Size of instananeous event: 3% of total time period space
 		self.instGap = (self.maxDate - self.minDate) * .03;
+console.log("InstGap = "+JSON.stringify(self.instGap));
 	} // minMaxDates
 
 	minMaxDates();
@@ -1523,7 +1524,7 @@ VizTime.prototype.render = function(stream)
 							s = PData.date3Nums(y,m,d);
 							if (typeof dData.max == 'undefined') {
 								f |= EVENT_INSTANT;
-								e = s;
+								e = s + self.instGap;
 							} else {
 								if (dData.max == 'open')
 									e = TODAY;
@@ -1600,7 +1601,9 @@ VizTime.prototype.render = function(stream)
 
 			// Bottom zoom view?
 		if (bi) {
-			band.t = ((numTracks+self.tData.length) * band.tHt) + 37;
+			var macroBand = self.bands[0];
+
+			band.t = ((numTracks+self.tData.length) * macroBand.tHt) + 37;
 
 			instCX = instCY = instR = self.instRad;
 			instLX = (self.instRad*2)+3
@@ -1628,7 +1631,7 @@ VizTime.prototype.render = function(stream)
 
 			// Remove all events in this band
 		var allEs;
-		// allEs = d3.select(band.svgID).selectAll(".event").remove();
+		allEs = d3.select(band.svgID).selectAll(".event").remove();
 
 			// Create svg's for all of the time events in the band with appropriate height and class
 			//  -- will finish specifying data for each below
@@ -1673,7 +1676,8 @@ console.log("Clicked on "+d.ai);
 				.attr("x", 4)
 				.attr("y", fPos)
 				.attr("fill", function(d) {
-					return d.c;
+					return "#000";
+					// return d.c;	// TO DO!
 				})
 				.style("font-size", fHt)
 				.text(function (d) {
@@ -1723,7 +1727,7 @@ console.log("Clicked on "+d.ai);
 	function updateSizes()
 	{
 		var zoom = self.bands[1];
-		var h = zoom.t + zoom.h;		// TO DO: Also need to take labels and xAxis into account
+		var h = zoom.t + zoom.h + 55;
 
 			// Set total height of chart container
 		d3.select(self.frameID+" svg.tl-vf").attr("height", h);
@@ -3113,7 +3117,7 @@ function PViewFrame(vfIndex)
 				.click(clickShowHideLegend).next()
 				.button({icons: { primary: 'ui-icon-info' }, text: false })
 				.click(clickOpenSelection).next()
-				.button({icons: { primary: 'ui-icon-close' }, text: false })
+				.button({icons: { primary: 'ui-icon-cancel' }, text: false })
 				.click(clickClearSelection).next()
 				.button({icons: { primary: 'ui-icon-gear' }, text: false })
 				.click(clickVizControls).next()
@@ -4314,10 +4318,12 @@ console.log("Visualization complete");
 		if (view1 != null) {
 			jQuery('#view-frame-1').remove();
 			view1 = null;
+			jQuery('#selector-v1').button("disable");
 		} else {
 			view1 = PViewFrame(1);
 			view1.initDOM();
 			view1.showStream(endStream);
+			jQuery('#selector-v1').button("enable");
 		}
 		view0.resize();
 	} // clickTog2nd()
@@ -4389,7 +4395,7 @@ console.log("Visualization complete");
 	} // clickGoHome()
 
 
-		// PURPOSE: Gather data about Filterable Attributes & Facet Browsers
+		// PURPOSE: Gather data about Filterable Attributes
 	function prepFilterData()
 	{
 		prspdata.a.forEach(function(theAttribute) {
