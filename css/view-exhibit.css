@@ -530,8 +530,34 @@ label {
 	width: 5em;
 }
 
-.ui-button.highlight {
-	border: orange solid 2px;
+@-webkit-keyframes pulse {
+	0% { border-color: red; transform: scale(1.1);}
+	50% { border-color: yellow; transform: scale(0.8);}
+	100% { border-color: red; transform: scale(1.0);}
+}
+@-moz-keyframes pulse {
+	0% { border-color: red; transform: scale(1.1); }
+	50% { border-color: yellow; transform: scale(0.8); }
+	100% { border-color: red; transform: scale(1.0); }
+}
+@-ms-keyframes pulse {
+	0% { border-color: red; transform: scale(1.1); }
+	50% { border-color: yellow; transform: scale(0.8); }
+	100% { border-color: red; transform: scale(1.0); }
+}
+@keyframes pulse {
+	0% { border-color: red; transform: scale(1.1); }
+	50% { border-color: yellow; transform: scale(0.8); }
+	100% { border-color: red; transform: scale(1.0); }
+}
+
+.ui-button.pulse {
+	-webkit-animation-name: pulse;
+	-webkit-animation-duration: 1.25s;
+	-webkit-animation-iteration-count: infinite;
+	-moz-animation: pulse 1.25s infinite;
+	-ms-animation: pulse 1.25s infinite;
+	animation: pulse 1.25s infinite;
 }
 
 	/* z-index must be greater than Leaflet's and Legend */
@@ -867,7 +893,6 @@ div.viz-result svg.tl-vf {
 	border-color: black;
 	background-color: #F0F0F0;
 }
-
 
 	/* Inner space containing chart */
 div.viz-result svg.tl-vf .chart {

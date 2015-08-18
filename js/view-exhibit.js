@@ -118,12 +118,17 @@ PVizModel.prototype.getSel = function()
 	// RETURNS: true if didn't exist (added), false if existed (removed)
 PVizModel.prototype.toggleSel = function(absI)
 {
+	var sz = this.recSel.length;
 	var i = _.sortedIndex(this.recSel, absI);
 	if (this.recSel[i] == absI) {
 		this.recSel.splice(i, 1);
+		if (sz > 0 && this.recSel.length == 0)
+			this.vFrame.selBtns(false);
 		return false;
 	} else {
 		this.recSel.splice(i, 0, absI);
+		if (sz == 0 && this.recSel.length > 0)
+			this.vFrame.selBtns(true);
 		return true;
 	}
 } // toggleSel()
@@ -2152,7 +2157,7 @@ PFilterModel.prototype.isDirty = function(setDirty)
 {
 	if (setDirty != null) {
 		if (!this.dirty && setDirty && this.id > 0)
-			jQuery('#btn-recompute').addClass('highlight');
+			jQuery('#btn-recompute').addClass('pulse');
 		this.dirty = setDirty;
 	}
 	return this.dirty;
@@ -2789,10 +2794,26 @@ function PViewFrame(vfIndex)
 		event.preventDefault();
 	} // clickOpenSelection()
 
+	function doSelBtns(enable)
+	{
+		var vCnxt = jQuery(getFrameID()+' .view-control-bar');
+
+		if (enable) {
+			vCnxt.find('.osel').button("enable");
+			vCnxt.find('.osel').addClass("pulse");
+			vCnxt.find('.xsel').button("enable");
+		} else {
+			vCnxt.find('.osel').button("disable");
+			vCnxt.find('.osel').removeClass("pulse");
+			vCnxt.find('.xsel').button("disable");
+		}
+	} // doSelBtns()
+
 	function clickClearSelection(event)
 	{
 		if (vizModel)
 			vizModel.clearSel();
+		doSelBtns(false);
 		event.preventDefault();
 	} // clickClearSelection()
 
@@ -3021,7 +3042,7 @@ function PViewFrame(vfIndex)
 					// Insert locate attributes into Legends
 				var locAtts = vizModel.getLocAtts(tIndex);
 				if ((locAtts && locAtts.length > 0) || !(flags & V_FLAG_LOC)) {
-							// Create DIV structure for Template's Legend entry
+						// Create DIV structure for Template's Legend entry
 					var newTLegend = jQuery('<div class="lgnd-template" data-index="'+tIndex+
 									'"><div class="lgnd-title">'+tmpltDef.l+'</div></div>');
 					if (locAtts)
@@ -3081,6 +3102,7 @@ function PViewFrame(vfIndex)
 		}
 
 		vizModel.setup();
+		doSelBtns(false);
 
 		if (datastream)
 			vizModel.render(datastream);		
@@ -3199,10 +3221,17 @@ function PViewFrame(vfIndex)
 		datastream = stream;
 	} // setStream()
 
+		// PURPOSE: Either enable or disable selection buttons for this ViewFrame
+	instance.selBtns = function(enable)
+	{
+		doSelBtns(enable);
+	} // selBtns()
+
 	instance.clearSel = function()
 	{
 		if (vizModel)
 			vizModel.clearSel();
+		doSelBtns(false);
 	} // clearSel()
 
 		// PURPOSE: Attempt to set the Selection List of the VizModel to selList
@@ -3212,6 +3241,7 @@ function PViewFrame(vfIndex)
 		if (vizModel) {
 			if (vizModel.flags() & V_FLAG_SEL) {
 				vizModel.setSel(selList);
+				doSelBtns(selList.length > 0);
 				return true;
 			}
 			return false;
@@ -3318,7 +3348,7 @@ var PData = (function () {
 		}
 		if (done) {
 // console.log("Done loading: "+JSON.stringify(recs));
-			jQuery('#btn-recompute').addClass('highlight');
+			jQuery('#btn-recompute').addClass('pulse');
 			setTimeout(function(){ jQuery('#loading-message').hide(); }, 1000);
 			jQuery("body").trigger("prospect", { pstate: PSTATE_PROCESS, component: 0 });
 		}
@@ -4298,7 +4328,7 @@ console.log("Filtering complete: visualization beginning");
 		view0.showStream(endStream);
 		if (view1)
 			view1.showStream(endStream);
-		jQuery('#btn-recompute').removeClass('highlight');
+		jQuery('#btn-recompute').removeClass('pulse');
 console.log("Visualization complete");
 		state = PSTATE_READY;
 	} // doRecompute()
@@ -4455,7 +4485,7 @@ console.log("Visualization complete");
 			view0.setStream(endStream);
 			if (view1)
 				view1.setStream(endStream);
-			jQuery('#btn-recompute').addClass('highlight');
+			jQuery('#btn-recompute').addClass('pulse');
 		} else {
 				// Output must be recomputed from successor on
 			filters[fI].f.isDirty(true);
@@ -4538,7 +4568,7 @@ console.log("Visualization complete");
 					}).click(clickFilterDel);
 			head.find('input.req-att').click(clickFilterDirty);
 
-			jQuery('#btn-recompute').addClass('highlight');
+			jQuery('#btn-recompute').addClass('pulse');
 		}
 
 			// Allow Filter to insert required HTML
