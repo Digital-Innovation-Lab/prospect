@@ -1118,7 +1118,7 @@ VizTime.prototype.setup = function()
 
 			// Size of instananeous event: 3% of total time period space
 		self.instGap = (self.maxDate - self.minDate) * .03;
-console.log("InstGap = "+JSON.stringify(self.instGap));
+// console.log("InstGap = "+JSON.stringify(self.instGap));
 	} // minMaxDates
 
 	minMaxDates();
@@ -1331,20 +1331,20 @@ console.log("InstGap = "+JSON.stringify(self.instGap));
 		}
 
 			// The data associated with Labels
-		var sLbl = {		name: 's-'+vI+'-'+bi,
-							x: function() { return 0; },
-							left: function() { return 0; },
-							anchor: 'start',
-							tDelta: 2,
-							whichDate: function(min, max) { return min; }
-						};
-		var eLbl = {		name: 'e-'+vI+'-'+bi,
-							x: function() { return band.l + band.w; },
-							left: function() { return band.l + band.w - self.settings.xLbl; },
-							anchor: 'end',
-							tDelta: -3,
-							whichDate: function(min, max) { return max; }
-						};
+		var sLbl = { 	name: 's-'+vI+'-'+bi,
+						x: function() { return 0; },
+						left: function() { return 0; },
+						anchor: 'start',
+						tDelta: 2,
+						whichDate: function(min, max) { return min; }
+					};
+		var eLbl = {	name: 'e-'+vI+'-'+bi,
+						x: function() { return band.l + band.w; },
+						left: function() { return band.l + band.w - self.settings.xLbl; },
+						anchor: 'end',
+						tDelta: -3,
+						whichDate: function(min, max) { return max; }
+					};
 		band.labels = [sLbl, eLbl];
 
 			// Create graphic container for labels just below main chart space
@@ -1529,7 +1529,7 @@ VizTime.prototype.render = function(stream)
 							s = PData.date3Nums(y,m,d);
 							if (typeof dData.max == 'undefined') {
 								f |= EVENT_INSTANT;
-								e = s + self.instGap;
+								e = s.getTime() + self.instGap;
 							} else {
 								if (dData.max == 'open')
 									e = TODAY;
@@ -1549,8 +1549,7 @@ VizTime.prototype.render = function(stream)
 									e = PData.date3Nums(y,m,d);
 								} // number
 							}
-							var v = { s: s, e: e, ai: aI, f: f, c: fData, l: rec.l, t: 0 };
-							te.push(v);
+							te.push({ s: s, e: e, ai: aI, f: f, c: fData, l: rec.l, t: 0 });
 						} // has Date data
 					} // translates to Legend value
 				} // has Legend value
@@ -1747,7 +1746,7 @@ console.log("Clicked on "+d.ai);
 	{
 		var band = self.bands[bi];
 
-		d3.select(band.svgID).select('.axis')
+		d3.select(band.svgID).selectAll('.axis')
 			.attr("transform", "translate(0," + (band.t + band.h)  + ")");
 	} // updateXAxis()
 
@@ -1758,7 +1757,7 @@ console.log("Clicked on "+d.ai);
 	{
 		var band = self.bands[bi];
 
-		d3.select(band.svgID).select(".bLblCntr")
+		d3.select(band.svgID).selectAll(".bLblCntr")
 			.attr("transform", "translate(0," + (band.t + band.h + 1) +  ")")
 	} // updateLabels()
 
