@@ -1016,6 +1016,23 @@ VizTime.prototype.getWidths = function()
 VizTime.prototype.setup = function()
 {
 	var self = this;
+
+		// NOTE: Only change SVG class for zoom band, regardless of which clicked
+	// function clickBand()
+	// {
+
+	// 	var t = d3.select(d3.event.target);
+	// 	if (t.attr("class") == null || !t.attr("class").includes('event'))
+	// 		t = d3.select(d3.event.target.parentNode);
+	// 	var d;
+	// 	if (d = t.datum())
+	// 	{
+	// 		var s = self.toggleSel(d.ai);
+	// 		t.classed('obj-selected', s);
+	// 		d3.event.preventDefault();
+	// 	}
+	// } // clickBand()
+
 	var s = this.settings;
 
 	if (typeof s.bHt === 'string')
@@ -1186,11 +1203,6 @@ VizTime.prototype.setup = function()
 		// Create further SVG elements (will resize later)
 	var vI = this.vFrame.getIndex();
 
-		// Create inset frame
-	// svg.append("g")
-	// 	.attr("class", "tl-c1")
-	// 	.attr("transform", "translate(6,6)");
-
 		// Clip all graphics to inner area of chart
 	svg.append("clipPath")
 		.attr("id", "tl-clip-"+vI)
@@ -1251,25 +1263,24 @@ VizTime.prototype.setup = function()
 		band.xScale = d3.time.scale();
 		if (bi) {
 			var zMin=self.minDate, zMax=self.maxDate;
-// console.log("Calculated minDate, maxDate: "+JSON.stringify(self.minDate)+", "+JSON.stringify(self.maxDate));
 			if (self.settings.zFrom.length > 0)
 				zMin = PData.parseDate(self.settings.zFrom, 1, 1);
 			if (self.settings.zTo.length > 0)
 				zMax = PData.parseDate(self.settings.zTo, 12, 31);
-// console.log("Use zMin, zMax: "+JSON.stringify(zMin)+", "+JSON.stringify(zMax));
 			band.xScale.domain([zMin, zMax]);
 		} else {
-// console.log("Use minDate, maxDate: "+JSON.stringify(self.minDate)+", "+JSON.stringify(self.maxDate));
 			band.xScale.domain([self.minDate, self.maxDate]);
 		}
 		band.xScale.range([0, band.w]);
-// console.log("xScale(0): "+band.xScale(PData.parseDate("0",1,1)));
 
 			// Create a div for this band
 		band.g = self.chart.append("g")
 			.attr("id", band.svgID.substring(1))
 			.attr("class", "tl-band")
 			.attr("width", band.w);
+
+		// if (bi == 1)
+		// 	band.g.on("click", clickBand);
 
 			// TO DO: Create Legend backgrounds
 
@@ -1365,7 +1376,7 @@ VizTime.prototype.setup = function()
 		band.labels = [sLbl, eLbl];
 
 			// Create graphic container for labels just below main chart space
-			// These only specify vertical dimension -- essentially take entire width
+			// These only specify vertical dimension -- occupy entire width
 		var bLblSVGs = d3.select(band.svgID).selectAll(".bLblCntr")
 				// Create "g" for each of the start & end labels
 			.data(band.labels)
@@ -1613,6 +1624,29 @@ VizTime.prototype.render = function(stream)
 		// INPUT: 	i = 0 for top macro band, 1 for lower zoom band
 	function updateBand(bi)
 	{
+		function eventClass(d)
+		{
+				// Only highlight for zoom band
+			if (bi == 1 && self.isSel(d.ai)) {
+				if (d.f & EVENT_INSTANT)
+					return "event instant obj-selected";
+				else
+					return "event range obj-selected";
+			} else {
+				if (d.f & EVENT_INSTANT)
+					return "event instant";
+				else
+					return "event range";
+			}
+		} // checkSel()
+
+			// NOTE: Only zoom band responds to click
+		function clickEvent(d, i)
+		{
+			var s = self.toggleSel(d.ai);
+			d3.select(this).classed('obj-selected', s);
+		} // clickEvent()
+
 			// Band specific parameters for instantaneous events
 		var instCX, instCY, instR, instLX;
 
@@ -1638,7 +1672,7 @@ VizTime.prototype.render = function(stream)
 
 			// Update band's vertical position and size
 		band.g.attr("transform", "translate(0," + band.t +  ")")
-			.attr("height", band.h);	// ?? Needed ??
+			.attr("height", band.h);
 
 			// TO DO: Modify Legend background colors
 
@@ -1658,14 +1692,13 @@ VizTime.prototype.render = function(stream)
 		allEs = d3.select(band.svgID).selectAll(".event")
 			.data(self.events)
 			.enter().append("svg")
-			.attr("class", function (d) { return (d.f & EVENT_INSTANT) ? "event instant" : "event range"; })
+			// .attr("id", function(d) { return "tl-ev-"+vI+"-"+d.ai; })
+			.attr("class", eventClass)
 			.attr("y", function (d) { return band.yScale(d.t); })
-			.attr("height", band.iHt)
-			.on("click", function(d) {
-console.log("Clicked on "+d.ai);
-			});
+			.attr("height", band.iHt);
 
-			// TO DO: Check for event in current selection
+		if (bi == 1)
+			allEs.on("click", clickEvent);
 
 			// Complete specifying data for date ranges
 		var ranges = d3.select(band.svgID).selectAll(".range");
@@ -1798,14 +1831,43 @@ VizTime.prototype.teardown = function()
 VizTime.prototype.setSel = function(absIArray)
 {
 	var self=this;
-		// TO DO
+
+	self.recSel = absIArray;
+	function eventClass(d)
+	{
+		if (self.isSel(d.ai)) {
+			if (d.f & EVENT_INSTANT)
+				return "event instant obj-selected";
+			else
+				return "event range obj-selected";
+		} else {
+			if (d.f & EVENT_INSTANT)
+				return "event instant";
+			else
+				return "event range";
+		}
+	} // checkSel()
+
+		// Only zoom band events are selected
+	d3.select(this.bands[1].svgID).selectAll(".event")
+			.attr("class", eventClass);
 } // setSel()
 
 VizTime.prototype.clearSel = function()
 {
+	function eventClass(d)
+	{
+		if (d.f & EVENT_INSTANT)
+			return "event instant";
+		else
+			return "event range";
+	} // checkSel()
+
 	if (this.recSel.length > 0) {
 		this.recSel = [];
-		// TO DO
+			// Only zoom band events are selected
+		d3.select(this.bands[1].svgID).selectAll(".event")
+				.attr("class", eventClass);
 	}
 } // clearSel()
 

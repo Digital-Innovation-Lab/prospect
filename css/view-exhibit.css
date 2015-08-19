@@ -943,10 +943,15 @@ div.viz-result svg.tl-vf .event.instant {
 	stroke-opacity: 0.8;
 }
 
+div.viz-result svg.tl-vf .event.obj-selected
+{
+	stroke: red;
+	stroke-width: 2px;
+}
+
 div.viz-result svg.tl-vf .instantLbl {
 	font: 10px sans-serif;
 	font-weight: 300;
-	fill: black;                    /* instantaneous event labels always on white background */
 	stroke-width: 0;
 	stroke: none;
 	shape-rendering: crispEdges;
