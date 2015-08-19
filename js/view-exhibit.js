@@ -1540,8 +1540,7 @@ VizTime.prototype.render = function(stream)
 
 				rec = PData.getRecByIndex(aI);
 				if (fData = rec.a[fAttID]) {
-						// TO DO: Change to getAttLgndRec, save b flag
-					if (fData = PData.getAttLgndVal(fData, fAtt, featSet)) {
+					if (fData = PData.getAttLgndRecs(fData, fAtt, featSet, false)) {
 						if (dData = rec.a[dAttID]) {
 							f = dData.min.f ? EVENT_F_START : 0;
 							y = dData.min.y;
@@ -1711,14 +1710,14 @@ VizTime.prototype.render = function(stream)
 				if (bi == 1 && (d.f & (EVENT_F_START|EVENT_F_END))) {
 						// both?
 					if ((d.f & (EVENT_F_START|EVENT_F_END)) == (EVENT_F_START|EVENT_F_END)) {
-						return 'url('+d.c+'-fb)';
+						return 'url('+d.c.v+'-fb)';
 					} else if ((d.f & EVENT_F_START) === EVENT_F_START) {
-						return 'url('+d.c+'-fs)';
+						return 'url('+d.c.v+'-fs)';
 					} else {
-						return 'url('+d.c+'-fe)';
+						return 'url('+d.c.v+'-fe)';
 					}
 				} else {
-					return d.c;
+					return d.c.v;
 				}
 			});
 
@@ -1729,8 +1728,7 @@ VizTime.prototype.render = function(stream)
 				.attr("x", 4)
 				.attr("y", fPos)
 				.attr("fill", function(d) {
-					return "#000";
-					// return d.c;	// TO DO!
+					return d.c.b ? "#000000" : "#FFFFFF";
 				})
 				.style("font-size", fHt)
 				.text(function (d) {
@@ -1746,12 +1744,13 @@ VizTime.prototype.render = function(stream)
 			.attr("cy", instCY)
 			.attr("r", instR)
 			.attr("fill", function(d) {
-				return d.c;
+				return d.c.v;
 			});
 
 			// Labels on zoom band only
 		if (bi == 1) {
 				// Create label
+				// TO DO: How to contrast text color???  Create white label background??
 			instants.append("text")
 				.attr("class", "instantLbl")
 				.attr("x", instLX)

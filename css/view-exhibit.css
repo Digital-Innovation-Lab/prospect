@@ -935,7 +935,6 @@ div.viz-result svg.tl-vf .event.range {
 }
 
 div.viz-result svg.tl-vf .event.instant {
-	fill: #FFAAFF;
 	cursor : default;
 	pointer-events: true;
 	stroke-width: 1;
@@ -952,6 +951,7 @@ div.viz-result svg.tl-vf .event.obj-sel
 div.viz-result svg.tl-vf .instantLbl {
 	font: 10px sans-serif;
 	font-weight: 300;
+	fill: #000000;	/* just default color */
 	stroke-width: 0;
 	stroke: none;
 	shape-rendering: crispEdges;
