@@ -3,7 +3,10 @@
 // PURPOSE: Code that handles Dashboard backend functionality
 //				and all interface between WordPress and JS
 // TO DO:	Why doesn't UTF-8 text in JSON Archive file load/decode properly?
-//			Encode all text going to files with utf8_encode()?
+//				Is this a problem with way Archive files are written? Need more use of utf8_encode()?
+//				Should data first be written to memory and then encoded? http://php.net/manual/en/function.fopen.php#104325
+//				Use special UTF-8-aware JSON encoding? http://php.net/manual/en/function.json-encode.php#100835
+//				See embedded comments (or search for UTF-8)
 
 class ProspectAdmin {
 
@@ -616,7 +619,7 @@ class ProspectAdmin {
 
 
 		// PURPOSE: Open a UTF-8 file that will be written out to browser
-		// INPUT: 	If $json, then MIME type will be application/json, otherwise text/csv
+		// INPUT: 	If $json, then MIME type will be text/plain, otherwise text/csv
 	public function createUTFOutput($filename, $json)
 	{
 			// Tells the browser to expect a json file and bring up the save dialog in the browser
@@ -627,12 +630,10 @@ class ProspectAdmin {
 
 		if ($json)
 			header('Content-Type: text/plain; charset=utf-8');
-			// header('Content-Type: application/json; charset=utf-8');
 		else
 			header('Content-Type: text/csv; charset=utf-8');
 		header('Content-Disposition: attachment; filename="'.$filename.'";');
 		header("Content-Transfer-Encoding: binary");
-		// header('Content-Description: File Transfer');
 
 			// This opens up the output buffer as a "file"
 		$fp = fopen('php://output', 'w');
@@ -1196,6 +1197,9 @@ class ProspectAdmin {
 		// ASSUMES: File info in the $_FILES['archive-import-select'] array
 		// NOTES:   Array contents: 'name', 'type' [mimetype], 'size', 'error', 'tmp_name'
 		//				Use 'tmp_name' for opening file
+		// TO DO: 	There does not seem to be any general solution (running on PHP PHP 5.6.99-hhvm)
+		//				that correctly imports UTF-8 encoded archive files. All attempted solutions
+		//				have been kept in place but commented out. See notes below.
 	public function import_archive_file()
 	{
 		$fname = $_FILES['archive-import-select']['tmp_name'];
@@ -1207,8 +1211,8 @@ class ProspectAdmin {
 			return;
 		fclose($res);
 
-			// Why isn't text in UTF-8 encoded JSON file correct?
-			// 		Tried all combinations of the following code
+			// Should convert UTF-8 characters on input but does not work with
+			//	archive files that contain them
 		// $opts = array(
 		// 	'http' => array(
 		// 		'method'=>"GET",
@@ -1224,11 +1228,18 @@ class ProspectAdmin {
 			trigger_error('Failed to get file contents.', E_USER_WARNING);
 		}
 
-		// $contents = utf8_encode($contents);
+			// This successfully converted an archive file with UTF-8 encoded characters
+			//	but not one lacking any
+		// $contents = mb_convert_encoding($contents, 'HTML-ENTITIES', 'UTF-8');
 
+			// The following techniques did not work
+		// $contents = utf8_encode($contents);
 		// $contents = mb_convert_encoding($contents, 'UTF-8',
 		// 			 mb_detect_encoding($contents, 'UTF-8, ISO-8859-1', true));
+		// $contents = iconv('windows-1250', 'utf-8', $contents);
 
+			// The following section successfully reads files without any UTF-8-encoded
+			//	characters, but fails to interpret special characters properly
 			// Skip any UTF-8 header
 		$header = substr($contents, 0, 3);
 		if ($header == pack('CCC', 0xef, 0xbb, 0xbf))
