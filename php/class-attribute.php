@@ -197,7 +197,6 @@ class ProspectAttribute {
 		// PURPOSE: Determine whether black or white is best color contast
 		// INPUT:	viz_val is visual setting (could be color or icon ID)
 		// RETURNS: true if black, false if white
-		// ASSUMES: If visual code is icon, black will suffice
 		// NOTES:	http://www.particletree.com/notebook/calculating-color-contrast-for-legible-text/
 		// 			http://stackoverflow.com/questions/5650924/javascript-color-contraster
 	static public function black_contrast($viz_val)

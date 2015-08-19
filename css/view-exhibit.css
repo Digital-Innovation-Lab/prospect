@@ -925,6 +925,12 @@ div.viz-result svg.tl-vf .band {
 	fill: #FAFAFA;
 }
 
+	/* Legend "Epoch" Background Label */
+div.viz-result svg.tl-vf .lgBdLbl {
+	font: sans-serif;
+	font-weight: bold;
+}
+
 div.viz-result svg.tl-vf .event.range {
 	fill: #AAFFFF;
 	cursor : default;

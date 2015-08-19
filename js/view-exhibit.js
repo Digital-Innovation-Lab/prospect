@@ -1020,7 +1020,6 @@ VizTime.prototype.setup = function()
 		// NOTE: Only change SVG class for zoom band, regardless of which clicked
 	// function clickBand()
 	// {
-
 	// 	var t = d3.select(d3.event.target);
 	// 	if (t.attr("class") == null || !t.attr("class").includes('event'))
 	// 		t = d3.select(d3.event.target.parentNode);
@@ -1489,8 +1488,8 @@ VizTime.prototype.render = function(stream)
 	var self = this;
 	var vI = self.vFrame.getIndex();
 
-	self.tData=[];		// Data for each Template type
 	self.events=[];		// All event data
+	self.lgBds=[];		// Date Legend Backgrounds: { s[tart], e[nd], t[top track #], h[eight], d[ata in Legend rec] }
 
 	var numTracks=0;
 
@@ -1498,8 +1497,8 @@ VizTime.prototype.render = function(stream)
 	function procTmplts()
 	{
 		var numTmplts = PData.getNumETmplts();
-		var tI=0, tID, tRec, aI;
-		var featSet, dAttID, fData, dData;
+		var tI=0, tRec, aI;
+		var featSet, dAttID, dAtt, fData, dData;
 
 			// Process the Date data by each Template type
 		while (tI<numTmplts) {
@@ -1530,10 +1529,11 @@ VizTime.prototype.render = function(stream)
 			fAtt = PData.getAttID(fAttID);
 			dAttID = self.settings.dAtts[tI];
 
-				// Event records { s[tart], e[nd], ai, f[lags], c[olor], l[abel], t[rack] }
-			var te=[];
 			var y, m, d;
 			var s, e, f, l;
+
+				// Event records { s[tart], e[nd], ai, f[lags], c[olor data], l[abel], t[rack] }
+			var te=[];
 
 			for (var i=tRec.i; i<(tRec.i+tRec.n); i++) {
 				aI = stream.s[i];
@@ -1602,8 +1602,39 @@ VizTime.prototype.render = function(stream)
 			});
 // console.log("Events for Template "+tI+": "+JSON.stringify(events));
 
-				// Save this Template's data (l is track position for Template's Legend labels)
-			self.tData.push({ tI: tI, l: numTracks, h: tracks.length });
+				// Process Date Legend Background data
+			dAtt = PData.getAttID(dAttID);
+			dAtt.l.forEach(function(lEntry) {
+				l = lEntry.d;
+				y = l.min.y;
+				if (typeof l.min.m == 'undefined') {
+					m = 1; d = 1;
+				} else {
+					m = l.min.m;
+					if (typeof l.min.d == 'undefined')
+						d = 1;
+					else
+						d = l.min.d;
+				}
+				s = PData.date3Nums(y,m,d);
+				if (typeof l.max.y == 'undefined') {
+					e = TODAY;
+				} else {
+					y = l.max.y;
+					if (typeof l.max.m == 'undefined') {
+						m = 12; d = 31;
+					} else {
+						m = l.max.m;
+						if (typeof l.max.d == 'undefined')
+							d = 31;
+						else
+							d = l.max.d;
+					}
+					e = PData.date3Nums(y,m,d);
+				}
+				self.lgBds.push({s: s, e: e, t: numTracks, h: tracks.length+1, d: lEntry });
+			});
+
 				// Add track position for Template legend labels
 			numTracks += tracks.length+1;
 				// Append event data
@@ -1616,6 +1647,7 @@ VizTime.prototype.render = function(stream)
 	procTmplts();
 
 // console.log("Events: "+JSON.stringify(self.events));
+// console.log("Legend Backgrounds: "+JSON.stringify(self.lgBds));
 
 	var widths = self.getWidths();
 
@@ -1673,8 +1705,6 @@ VizTime.prototype.render = function(stream)
 		band.g.attr("transform", "translate(0," + band.t +  ")")
 			.attr("height", band.h);
 
-			// TO DO: Modify Legend background colors
-
 			// Only bottom zoom band will have text labels -- compute relative size and position
 		var fHt, fPos;
 		if (bi) {
@@ -1682,8 +1712,36 @@ VizTime.prototype.render = function(stream)
 			fPos = band.iHt*.80;
 		}
 
-			// Remove all events in this band
+		var allLgBds;
+
+			// Remove previous Legend Backgrounds
+		allLgBds = d3.select(band.svgID).selectAll(".lgBd").remove();
+
+			// Create svg's for all of Legend Backgrounds
+		allLgBds = d3.select(band.svgID).selectAll(".lgBd")
+			.data(self.lgBds)
+			.enter().append("svg")
+			.attr("y", function(d) { return band.yScale(d.t); })
+			.attr("height", function(d) { return band.yScale(d.h); })
+		.append("rect")
+			.attr("width", "100%")
+			.attr("height", "100%")
+			.attr("fill", function(d) { return d.d.v; })
+		.append("text")
+			.attr("class", "rangeLbl")
+			.attr("x", 4)
+			.attr("y", fPos)
+			.attr("fill", function(d) {
+				return d.d.b ? "#000000" : "#FFFFFF";
+			})
+			.style("font-size", fHt)
+			.text(function (d) {
+				return d.d.l;
+			});
+
 		var allEs;
+
+			// Remove all events in this band
 		allEs = d3.select(band.svgID).selectAll(".event").remove();
 
 			// Create svg's for all of the time events in the band with appropriate height and class
@@ -1691,7 +1749,6 @@ VizTime.prototype.render = function(stream)
 		allEs = d3.select(band.svgID).selectAll(".event")
 			.data(self.events)
 			.enter().append("svg")
-			// .attr("id", function(d) { return "tl-ev-"+vI+"-"+d.ai; })
 			.attr("class", eventClass)
 			.attr("y", function (d) { return band.yScale(d.t); })
 			.attr("height", band.iHt);
@@ -1764,6 +1821,10 @@ VizTime.prototype.render = function(stream)
 			// Item needs to know how to draw itself (will be called)
 			// Recalibrate position on graph given new scale ratios
 		band.redraw = function() {
+			allLgBds.attr("x", function (d) { return band.xScale(d.s); })
+				.attr("width", function (d) {
+						return band.xScale(d.e) - band.xScale(d.s);
+					});
 			allEs.attr("x", function (d) { return band.xScale(d.s); })
 				.attr("width", function (d) {
 						return band.xScale(d.e) - band.xScale(d.s);
@@ -1812,6 +1873,7 @@ VizTime.prototype.render = function(stream)
 	updateLabels(0);
 	updateLabels(1);
 
+		// Invoke code that sets x & width attributes
 	self.cmpnts.forEach(function(c) {
 		c.redraw();
 	});
