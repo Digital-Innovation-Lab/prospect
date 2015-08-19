@@ -1018,6 +1018,9 @@ VizTime.prototype.setup = function()
 	var self = this;
 	var s = this.settings;
 
+	if (typeof s.bHt === 'string')
+		s.bHt = parseInt(s.bHt, 10);
+
 	function minMaxDates()
 	{
 		var minY, minM, minD, maxY, maxM, maxD;
@@ -1210,8 +1213,29 @@ VizTime.prototype.setup = function()
 		// INPUT: 	bi = 0 for top macro band, b1 for lower zoom band
 	function createBand(bi)
 	{
-			// Create band record (w/ placeholders)
-		var band = { id: bi, l: 0, t:0, h:0, w: widths[2], svgID: "#tl-b-"+vI+"-"+bi };
+			// Create band record (w/ placeholders); NOTE: Band frame includes axis
+			//	l = left pixel position for left side of band frame
+			//	t = top pixel position for band frame
+			//	h = pixel height of band frame (not inc x axis and labels)
+			//	w = pixel width of inner (drawable portion of) band
+			//	svgID = unique ID for band's svg container
+			//	tHt = total pixel height of each track
+			//	iHt = pixel height of item drawn within track
+			//	xScale = D3 scale for xAxis
+			//	yScale = function to provide Y position of track
+			//	parts = drawable components in band
+			//	g = SVG created by D3 to contain band
+			//	labels = year/month label definitions
+			//	labelSVGs = SVGs created by D3 for labels
+		var band = {	id: bi, l: 0, t:0, h:0, w: widths[2],
+						svgID: "#tl-b-"+vI+"-"+bi,
+						tHt: 0, iHt: 0,
+						xScale: null,
+						yScale: function(t) { return t * band.tHt; },
+						parts: [],
+						g: null,
+						labels: null, labelSVGs: null
+					};
 
 			// Bottom zoom view?
 		if (bi) {
@@ -1223,8 +1247,6 @@ VizTime.prototype.setup = function()
 			band.tHt = 3;
 			band.iHt = 2;
 		}
-
-		band.parts=[];
 
 		band.xScale = d3.time.scale();
 		if (bi) {
@@ -1242,11 +1264,6 @@ VizTime.prototype.setup = function()
 		}
 		band.xScale.range([0, band.w]);
 // console.log("xScale(0): "+band.xScale(PData.parseDate("0",1,1)));
-
-			// Define the y-pos based on track #
-		band.yScale = function(t) {
-			return t * band.tHt;
-		};
 
 			// Create a div for this band
 		band.g = self.chart.append("g")
@@ -1502,7 +1519,7 @@ VizTime.prototype.render = function(stream)
 			fAtt = PData.getAttID(fAttID);
 			dAttID = self.settings.dAtts[tI];
 
-				// Each Template's events { s[tart], e[nd], ai, f[lags], c[olor], l[abel], t[rack] }
+				// Event records { s[tart], e[nd], ai, f[lags], c[olor], l[abel], t[rack] }
 			var te=[];
 			var y, m, d;
 			var s, e, f, l;
@@ -1568,7 +1585,7 @@ VizTime.prototype.render = function(stream)
 						break;
 					}
 				}
-					// Record track that event "fits" into -- this will append to array if at end
+					// Record track that event "fits" into (skipping top label slot)
 				v.t = n+numTracks+1;
 					// Record relevant time period in track -- this will append to array if at end
 				tracks[n] = v.s;
@@ -1576,8 +1593,7 @@ VizTime.prototype.render = function(stream)
 // console.log("Events for Template "+tI+": "+JSON.stringify(events));
 
 				// Save this Template's data (l is track position for Template's Legend labels)
-			var tEntry={ tI: tI, l: numTracks, h: tracks.length };
-			self.tData.push(tEntry);
+			self.tData.push({ tI: tI, l: numTracks, h: tracks.length });
 				// Add track position for Template legend labels
 			numTracks += tracks.length+1;
 				// Append event data
@@ -1607,7 +1623,7 @@ VizTime.prototype.render = function(stream)
 		if (bi) {
 			var macroBand = self.bands[0];
 
-			band.t = ((numTracks+self.tData.length) * macroBand.tHt) + 37;
+			band.t = macroBand.t + macroBand.h + 37;
 
 			instCX = instCY = instR = self.instRad;
 			instLX = (self.instRad*2)+3
@@ -1618,7 +1634,7 @@ VizTime.prototype.render = function(stream)
 
 			instCX = instCY = instR = 1;
 		}
-		band.h = ((numTracks+self.tData.length) * band.tHt) + 2;
+		band.h = (numTracks * band.tHt) + 2;
 
 			// Update band's vertical position and size
 		band.g.attr("transform", "translate(0," + band.t +  ")")
@@ -1731,7 +1747,7 @@ console.log("Clicked on "+d.ai);
 	function updateSizes()
 	{
 		var zoom = self.bands[1];
-		var h = zoom.t + zoom.h + 55;
+		var h = zoom.t + zoom.h + 45;
 
 			// Set total height of chart container
 		d3.select(self.frameID+" svg.tl-vf").attr("height", h);
@@ -1747,7 +1763,7 @@ console.log("Clicked on "+d.ai);
 		var band = self.bands[bi];
 
 		d3.select(band.svgID).selectAll('.axis')
-			.attr("transform", "translate(0," + (band.t + band.h)  + ")");
+			.attr("transform", "translate(0," + band.h  + ")");
 	} // updateXAxis()
 
 	updateXAxis(0);
@@ -1758,7 +1774,7 @@ console.log("Clicked on "+d.ai);
 		var band = self.bands[bi];
 
 		d3.select(band.svgID).selectAll(".bLblCntr")
-			.attr("transform", "translate(0," + (band.t + band.h + 1) +  ")")
+			.attr("transform", "translate(0," + (band.h + 1).toString() +  ")");
 	} // updateLabels()
 
 	updateLabels(0);
