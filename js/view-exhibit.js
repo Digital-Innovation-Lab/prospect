@@ -515,9 +515,9 @@ VizCards.prototype.setup = function()
 				if (absI != null) {
 					var s = self.toggleSel(absI);
 					if (s)
-						card.addClass("obj-selected");
+						card.addClass("obj-sel");
 					else
-						card.removeClass("obj-selected");
+						card.removeClass("obj-sel");
 				}
 			}
 		}
@@ -582,7 +582,7 @@ VizCards.prototype.render = function(stream)
 			c = PData.getAttLgndRecs(datum, fAtt, featSet, false);
 
 			if (c) {
-				s = self.isSel(aI) ? ' obj-selected' : '';
+				s = self.isSel(aI) ? ' obj-sel' : '';
 				tDiv = self.settings.lOn ? '<div class="card-title">'+rec.l+'</div>' : '';
 					// Get and add textual content
 				hasC = false; t = '';
@@ -634,9 +634,9 @@ VizCards.prototype.setSel = function(absIArray)
 		absI = t.data('ai');
 		if (absI != null) {
 			if (self.isSel(absI))
-				t.addClass('obj-selected');
+				t.addClass('obj-sel');
 			else
-				t.removeClass('obj-selected');
+				t.removeClass('obj-sel');
 		}
 	});
 } // setSel()
@@ -645,7 +645,7 @@ VizCards.prototype.clearSel = function()
 {
 	if (this.recSel.length > 0) {
 		this.recSel = [];
-		jQuery(this.frameID).find('div.card').removeClass('obj-selected');
+		jQuery(this.frameID).find('div.card').removeClass('obj-sel');
 	}
 } // clearSel()
 
@@ -767,12 +767,12 @@ VizPinboard.prototype.render = function(stream)
 		// console.log("Clicked "+i+": "+JSON.stringify(d));
 			// Toggle class
 		var s = self.toggleSel(d.ai);
-		d3.select(this).classed('obj-selected', s);
+		d3.select(this).classed('obj-sel', s);
 	} // clickPin()
 
 	function checkSel(d)
 	{
-		return self.isSel(d.ai) ? 'recobj obj-selected' : 'recobj';
+		return self.isSel(d.ai) ? 'recobj obj-sel' : 'recobj';
 	} // checkSel()
 
 		// Remove all previous icons
@@ -899,7 +899,7 @@ VizPinboard.prototype.clearSel = function()
 	if (this.recSel.length > 0) {
 		this.recSel = [];
 
-		this.gRecs.selectAll('svg.recobj').classed('obj-selected', false);
+		this.gRecs.selectAll('svg.recobj').classed('obj-sel', false);
 	}
 } // clearSel()
 
@@ -908,7 +908,7 @@ VizPinboard.prototype.setSel = function(absIArray)
 	var self = this;
 
 	this.recSel = absIArray;
-	this.gRecs.selectAll('svg.recobj').classed('obj-selected', function(d) {
+	this.gRecs.selectAll('svg.recobj').classed('obj-sel', function(d) {
 		return self.isSel(d.ai);
 	});
 } // setSel()
@@ -1028,7 +1028,7 @@ VizTime.prototype.setup = function()
 	// 	if (d = t.datum())
 	// 	{
 	// 		var s = self.toggleSel(d.ai);
-	// 		t.classed('obj-selected', s);
+	// 		t.classed('obj-sel', s);
 	// 		d3.event.preventDefault();
 	// 	}
 	// } // clickBand()
@@ -1629,9 +1629,9 @@ VizTime.prototype.render = function(stream)
 				// Only highlight for zoom band
 			if (bi == 1 && self.isSel(d.ai)) {
 				if (d.f & EVENT_INSTANT)
-					return "event instant obj-selected";
+					return "event instant obj-sel";
 				else
-					return "event range obj-selected";
+					return "event range obj-sel";
 			} else {
 				if (d.f & EVENT_INSTANT)
 					return "event instant";
@@ -1644,7 +1644,7 @@ VizTime.prototype.render = function(stream)
 		function clickEvent(d, i)
 		{
 			var s = self.toggleSel(d.ai);
-			d3.select(this).classed('obj-selected', s);
+			d3.select(this).classed('obj-sel', s);
 		} // clickEvent()
 
 			// Band specific parameters for instantaneous events
@@ -1837,9 +1837,9 @@ VizTime.prototype.setSel = function(absIArray)
 	{
 		if (self.isSel(d.ai)) {
 			if (d.f & EVENT_INSTANT)
-				return "event instant obj-selected";
+				return "event instant obj-sel";
 			else
-				return "event range obj-selected";
+				return "event range obj-sel";
 		} else {
 			if (d.f & EVENT_INSTANT)
 				return "event instant";
@@ -1900,9 +1900,9 @@ VizDirectory.prototype.setup = function()
 			if (absI != null) {
 				var s = self.toggleSel(absI);
 				if (s)
-					row.addClass("obj-selected");
+					row.addClass("obj-sel");
 				else
-					row.removeClass("obj-selected");
+					row.removeClass("obj-sel");
 			}
 		} else if (event.target.nodeName == 'TH') {
 		}
@@ -1957,7 +1957,7 @@ VizDirectory.prototype.render = function(stream)
 		rec = PData.getRecByIndex(aI);
 		t = '<tr data-id="'+rec.id+'" data-ai='+aI;
 		if (self.isSel(aI))
-			t += ' class="obj-selected" ';
+			t += ' class="obj-sel" ';
 		t += '>';
 		fAtts.forEach(function(attID) {
 			datum = rec.a[attID];
@@ -1997,9 +1997,9 @@ VizDirectory.prototype.setSel = function(absIArray)
 		absI = t.data('ai');
 		if (absI != null) {
 			if (self.isSel(absI))
-				t.addClass('obj-selected');
+				t.addClass('obj-sel');
 			else
-				t.removeClass('obj-selected');
+				t.removeClass('obj-sel');
 		}
 	});
 } // setSel()
@@ -2008,7 +2008,7 @@ VizDirectory.prototype.clearSel = function()
 {
 	if (this.recSel.length > 0) {
 		this.recSel = [];
-		jQuery(this.frameID).find('tr').removeClass('obj-selected');
+		jQuery(this.frameID).find('tr').removeClass('obj-sel');
 	}
 } // clearSel()
 
@@ -2056,9 +2056,9 @@ VizTextStream.prototype.setup = function()
 			if (aI && aI >= 0) {
 				var s = self.toggleSel(aI);
 				if (s)
-					word.addClass("obj-selected");
+					word.addClass("obj-sel");
 				else
-					word.removeClass("obj-selected");
+					word.removeClass("obj-sel");
 			}
 		}
 	});
@@ -2153,7 +2153,7 @@ VizTextStream.prototype.render = function(stream)
 									s = self.settings.min;
 							} else
 								s = self.settings.min;
-							h = self.isSel(oRec.i) ? ' obj-selected' : '';
+							h = self.isSel(oRec.i) ? ' obj-sel' : '';
 							bC = fData.b ? ';background-color:black' : '';
 							insert.append('<div class="recitem'+h+'" data-ai='+oRec.i+' style="color:'+fData.v+bC+';font-size:'+s+'px">'+t+'</div>');
 						} // t
@@ -2185,9 +2185,9 @@ VizTextStream.prototype.setSel = function(absIArray)
 		absI = t.data('ai');
 		if (absI != null) {
 			if (self.isSel(absI))
-				t.addClass('obj-selected');
+				t.addClass('obj-sel');
 			else
-				t.removeClass('obj-selected');
+				t.removeClass('obj-sel');
 		}
 	});
 } // setSel()
@@ -2197,7 +2197,7 @@ VizTextStream.prototype.clearSel = function()
 	if (this.recSel.length > 0) {
 		this.recSel = [];
 
-		jQuery(this.frameID).find('div.recitem').removeClass('obj-selected');
+		jQuery(this.frameID).find('div.recitem').removeClass('obj-sel');
 	}
 } // clearSel()
 

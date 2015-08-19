@@ -655,7 +655,7 @@ div.card:hover {
 	z-index: 2;
 }
 
-div.card.obj-selected {
+div.card.obj-sel {
 	border: red solid 1px;
 }
 
@@ -836,7 +836,7 @@ table.viz-directory tr:last-child td:last-child {
 	border-bottom-right-radius:3px;
 }
 
-table.viz-directory tr.obj-selected td {
+table.viz-directory tr.obj-sel td {
 	background: yellow;
 }
 
@@ -863,7 +863,7 @@ div.viz-result svg .recobj
 {
 }
 
-div.viz-result svg .recobj.obj-selected
+div.viz-result svg .recobj.obj-sel
 {
 	stroke: red;
 	stroke-width: 1;
@@ -943,7 +943,7 @@ div.viz-result svg.tl-vf .event.instant {
 	stroke-opacity: 0.8;
 }
 
-div.viz-result svg.tl-vf .event.obj-selected
+div.viz-result svg.tl-vf .event.obj-sel
 {
 	stroke: red;
 	stroke-width: 2px;
@@ -1001,7 +1001,7 @@ div.viz-textstream div.recitem {
 	border: black solid 1px;
 }
 
-div.viz-textstream div.recitem.obj-selected {
+div.viz-textstream div.recitem.obj-sel {
 	border: red solid 1px;
 }
 
