@@ -58,7 +58,7 @@ var V_FLAG_SET = 0x8;			// Has an Options dialog
 	// GLOBAL VARS
 var TODAY = new Date();
 var localD3;					// For localizing D3
-
+var months;
 
 // ==============================================================================
 // PVizModel: An abstract class to be subclassed by specific visualizations
@@ -1008,7 +1008,7 @@ VizTime.prototype.getWidths = function()
 	widths.push(svgWidth-(chartMargin.left + chartMargin.right));
 
 		// Automatically recompute
-	this.threshold  = (widths[2] / (this.settings.xLbl*6.25));
+	this.threshold  = widths[2] / (this.settings.xLbl*6.25);
 
 	return widths;
 } // getWidths()
@@ -1017,7 +1017,7 @@ VizTime.prototype.setup = function()
 {
 	var self = this;
 
-		// NOTE: Only change SVG class for zoom band, regardless of which clicked
+		// PURPOSE: Handle clicks for entire band, find appropriate object
 	// function clickBand()
 	// {
 	// 	var t = d3.select(d3.event.target);
@@ -1260,13 +1260,16 @@ VizTime.prototype.setup = function()
 		}
 
 		band.xScale = d3.time.scale();
-		if (bi) {
+		if (bi == 1)
+		{
 			var zMin=self.minDate, zMax=self.maxDate;
 			if (self.settings.zFrom.length > 0)
 				zMin = PData.parseDate(self.settings.zFrom, 1, 1);
 			if (self.settings.zTo.length > 0)
 				zMax = PData.parseDate(self.settings.zTo, 12, 31);
 			band.xScale.domain([zMin, zMax]);
+			self.zMinDate = zMin;
+			self.zMaxDate = zMax;
 		} else {
 			band.xScale.domain([self.minDate, self.maxDate]);
 		}
@@ -1280,9 +1283,6 @@ VizTime.prototype.setup = function()
 
 		// if (bi == 1)
 		// 	band.g.on("click", clickBand);
-
-			// TO DO: Create Legend backgrounds
-
 
 			// Save all band data
 		self.bands[bi] = band;
@@ -1443,8 +1443,7 @@ VizTime.prototype.setup = function()
 					if (diff > self.threshold) {
 						return '';
 					} else {
-						return l.whichDate(min,max).getMonth();
-						// return months[label.whichDate(min,max).getMonth()];
+						return months[l.whichDate(min,max).getMonth()];
 					}
 				})
 			}; // redraw()
@@ -1460,13 +1459,6 @@ VizTime.prototype.setup = function()
 
 	createLabels(0);
 	createLabels(1);
-
-	function createBrush()
-	{
-		// TO DO
-	} // createBrush()
-
-	createBrush();
 } // setup()
 
 	// PURPOSE: Draw the Records in the given datastream
@@ -1600,7 +1592,6 @@ VizTime.prototype.render = function(stream)
 					// Record relevant time period in track -- this will append to array if at end
 				tracks[n] = v.s;
 			});
-// console.log("Events for Template "+tI+": "+JSON.stringify(events));
 
 				// Process Date Legend Background data
 			dAtt = PData.getAttID(dAttID);
@@ -1836,6 +1827,142 @@ VizTime.prototype.render = function(stream)
 
 	updateBand(0);
 	updateBand(1);
+
+		// NOTES: 	Brush SVGs must be "on top" of everything else and hence must be created last
+		//			Code must destroy any previous SVG which would now be below stack
+	function createBrush()
+	{
+			// Object for creating brush handles, variant of: http://bl.ocks.org/jisaacks/5678983
+			// NOTE: Assumes that self.brush has already been created
+		var BrushHandler = (function() {
+			function BrushHandles(g, height) {
+				this._height = height;
+				this.g = g;
+				this.mask  = this.g.attr("class", "brush").call(self.brush);
+				this.mask.selectAll("rect").attr("y", 0).attr("height", height);
+
+				this.left  = this.mask.append("polygon").attr("class","dragger");
+				this.right = this.mask.append("polygon").attr("class","dragger");
+				this._x = null;
+				this._top = null;
+				this._bottom = null;
+			}
+
+			BrushHandles.prototype.style = function(prop, val) {
+				this.left.style(prop, val);
+				this.right.style(prop, val);
+				return this;
+			}
+
+			BrushHandles.prototype.x = function(f) {
+				if (f == null) { return this._x; }
+				this._x = f;
+				return this;
+			};
+
+			BrushHandles.prototype.height = function(h) {
+				if (h == null) { return this._height; }
+				this._height = h;
+				this.mask.selectAll("rect").attr("height", h);
+				return this;
+			};
+
+				// NOTE: This only redraws handles
+			BrushHandles.prototype.redraw = function() {
+				var lTime, rTime, lp, rp, xRange, theExtent;
+
+				theExtent = self.brush.extent();
+
+				xRange = this._x.range();
+				lTime = theExtent[0];
+				rTime = theExtent[1];
+				lp = this._x(lTime);
+				rp = this._x(rTime);
+
+					// Side handles -- but they are not "hot" themselves, so may be misleading
+				// var midH = this._height / 2;
+				// this.left.attr("points", "" + lp+","+(midH-5) + " " + lp+","+(midH+5) + " " + (lp-5)+","+(midH+5) + " " +
+				//                 (lp-9)+","+midH + " " + (lp-5)+","+(midH-5) + " " + lp+","+(midH-5));
+				// this.right.attr("points", "" + rp+","+(midH-5) + " " + (rp+5)+","+(midH-5) + " " + (rp+9)+","+midH + " " +
+				//                 (rp+5)+","+(midH+5) + " " + rp+","+(midH+5) + " " + rp+","+(midH-5));
+
+					// Bottom handles
+				this.left.attr("points", "" + lp+","+this._height + " " + (lp+5)+","+(this._height+5) + " " + (lp+5)+","+(this._height+9) + " " +
+								(lp-5)+","+(this._height+9) + " " + (lp-5)+","+(this._height+5) + " " + lp+","+this._height);
+				this.right.attr("points", "" + rp+","+this._height + " " + (rp+5)+","+(this._height+5) + " " + (rp+5)+","+(this._height+9) + " " +
+								(rp-5)+","+(this._height+9) + " " + (rp-5)+","+(this._height+5) + " " + rp+","+this._height);
+				return this;
+			};
+
+			return BrushHandles;
+		})();
+
+		var band = self.bands[0];	// Place brush in top macro band
+
+			// This calculation is not well supported by current JS Date
+		// var openTime = self.minDate.getTime();
+		// var timeSpan = self.maxDate - self.minDate;
+
+			// Create logical controller
+		self.brush = d3.svg.brush()
+			.x(band.xScale.range([0, band.w]))
+				// Start with default zoom position
+			.extent([self.zMinDate, self.zMaxDate])
+				// Code to bind when brush moves
+			.on('brush', function() {
+				var extent0 = self.brush.extent(); // "original" default value
+				var extent1;                  		// new recomputed value
+
+				  // if dragging, preserve the width of the extent, rounding by days
+				if (d3.event.mode === "move") {
+					var d0 = d3.time.day.round(extent0[0]),
+						d1 = d3.time.day.offset(d0, Math.round((extent0[1] - extent0[0]) / 864e5));
+					extent1 = [d0, d1];
+
+					// otherwise, if new position, round both dates
+				} else {
+					extent1 = extent0.map(d3.time.day.round);
+
+						// if empty when rounded, create minimal sized lens -- at least 1 day long
+					if (extent1[0] >= extent1[1]) {
+						extent1[0] = d3.time.day.floor(extent0[0]);
+						extent1[1] = d3.time.day.ceil(d3.time.day.offset(extent1[0], Math.round(self.instGap / 864e5)));
+					}
+				}
+
+					// "this" will actually point to the brushSVG object
+					// Replaces SVG data to correspond to new brush params
+				// d3.select(this).call(self.brush.extent(extent1));
+
+				self.brush.extent(extent1);
+				self.brushHandler.redraw();
+
+					// Rescale top timeline(s) according to bottom brush
+				macro = self.bands[1];
+				macro.xScale.domain(extent1);
+				macro.redraw();
+			});
+
+			// SVG area where brush will be created
+		self.brushSVG = band.g.append("svg");
+
+		self.brushHandler =
+			new BrushHandler(self.brushSVG, band.h-1)
+				.x(band.xScale)
+				.redraw();
+
+			// Create SVG component and connect to controller
+		// self.brushSVG = band.g.append("svg")
+		//     .attr("class", "brush")
+		//     .call(self.brush);
+
+		//     // Container is opaque rectangle
+		// self.brushSVG.selectAll("rect")
+		//     .attr("y", 0)
+		//     .attr("height", band.h-1);
+	} // createBrush()
+
+	createBrush();
 
 		// PURPOSE: Update the clipping rectangle
 	function updateSizes()
@@ -4828,12 +4955,16 @@ console.log("Visualization complete");
 
 	function localize()
 	{
+		var text;
+
+		text = document.getElementById('dltext-month-names').innerHTML;
+		months = text.trim().split('|');
+
 			// Do we need to localize D3?
-		var d3Local;
-		if (d3Local = document.getElementById('dltext-d3-local')) {
-			if ((d3Local = d3Local.innerHTML) && (d3Local.length > 1))
+		if (text = document.getElementById('dltext-d3-local')) {
+			if ((text = text.innerHTML) && (text.length > 1))
 			{
-				var locale = d3.locale(JSON.parse(d3Local));
+				var locale = d3.locale(JSON.parse(text));
 				localD3 = locale.timeFormat.multi([
 					["%H:%M", function(d) { return d.getMinutes(); }],
 					["%H:%M", function(d) { return d.getHours(); }],

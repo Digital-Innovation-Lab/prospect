@@ -154,3 +154,12 @@ about
 <script id="dltext-now" type="text">
 now
 </script>
+
+<script id="dltext-month-names" type="text">
+Jan|Feb|Mar|Apr|May|June|July|Aug|Sep|Oct|Nov|Dec
+</script>
+
+<!-- Localization data for D3JS: see https://github.com/mbostock/d3/wiki/Localization -->
+<!-- Leave empty if no localization needed -->
+<script id="dltext-d3-local" type="text">
+</script>
