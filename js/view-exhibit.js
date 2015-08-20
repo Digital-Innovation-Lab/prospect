@@ -1721,23 +1721,24 @@ VizTime.prototype.render = function(stream)
 		allLgBds = d3.select(band.svgID).selectAll(".lgBd")
 			.data(self.lgBds)
 			.enter().append("svg")
+			.attr("class", "lgBd")
 			.attr("y", function(d) { return band.yScale(d.t); })
-			.attr("height", function(d) { return band.yScale(d.h); })
-		.append("rect")
+			.attr("height", function(d) { return band.yScale(d.h); });
+		allLgBds.append("rect")
 			.attr("width", "100%")
 			.attr("height", "100%")
-			.attr("fill", function(d) { return d.d.v; })
-		.append("text")
-			.attr("class", "rangeLbl")
-			.attr("x", 4)
-			.attr("y", fPos)
-			.attr("fill", function(d) {
-				return d.d.b ? "#000000" : "#FFFFFF";
-			})
-			.style("font-size", fHt)
-			.text(function (d) {
-				return d.d.l;
-			});
+			.attr("fill", function(d) { return d.d.v; });
+		if (bi == 1) {
+			allLgBds.append("text")
+				.attr("class", "lgBdLbl")
+				.attr("x", 2)
+				.attr("y", fPos)
+				.attr("fill", function(d) { return d.d.b ? "#000000" : "#FFFFFF"; })
+				.style("font-size", fHt)
+				.text(function (d) {
+					return d.d.l;
+				});
+		}
 
 		var allEs;
 
