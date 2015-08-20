@@ -955,9 +955,6 @@ VizPinboard.prototype.optionsModal = function()
 var VizTime = function(viewFrame, vSettings)
 {
 	PVizModel.call(this, viewFrame, vSettings);
-
-	if (typeof this.settings.xLbl != 'number')
-		this.settings.xLbl = parseInt(this.settings.xLbl);
 } // VizTime
 
 VizTime.prototype = Object.create(PVizModel.prototype);
@@ -1016,6 +1013,12 @@ VizTime.prototype.getWidths = function()
 VizTime.prototype.setup = function()
 {
 	var self = this;
+
+	if (typeof this.settings.xLbl != 'number')
+		this.settings.xLbl = parseInt(this.settings.xLbl);
+
+	this.brush = null;
+	this.brushSVG = null;
 
 		// PURPOSE: Handle clicks for entire band, find appropriate object
 	// function clickBand()
@@ -1319,7 +1322,7 @@ VizTime.prototype.setup = function()
 			//     } else {
 			//         timeDiff = (timeDiff*12)+(dates[1].getMonth() - dates[0].getMonth());
 			//         if (timeDiff > self.threshold) {
-			//             return self.months[d.getMonth()];
+			//             return months[d.getMonth()];
 			//         } else {
 			//             return d.getDate();
 			//         }
@@ -1345,7 +1348,7 @@ VizTime.prototype.setup = function()
 		};
 
 		band.parts.push(axisDraw); // for brush.redraw
-		self.cmpnts.push(axisDraw); // for timeline.redraw -- Need both??
+		self.cmpnts.push(axisDraw); // for timeline.redraw -- TO DO: Need both?? Test
 	} // createXAxis()
 
 	createXAxis(0);
@@ -1465,6 +1468,53 @@ VizTime.prototype.setup = function()
 
 	createLabels(0);
 	createLabels(1);
+
+	function createBrush()
+	{
+		var band = self.bands[0];	// Place brush in top macro band
+
+			// Create logical controller
+		self.brush = d3.svg.brush()
+			.x(band.xScale.range([0, band.w]))
+				// Start with default zoom position
+			.extent([self.zMinDate, self.zMaxDate])
+				// Code to bind when brush moves
+			.on('brush', function() {
+				var extent0 = self.brush.extent(); // "original" default value
+				var extent1;                  		// new recomputed value
+
+				  // if dragging, preserve the width of the extent, rounding by days
+				if (d3.event.mode === "move") {
+					var d0 = d3.time.day.round(extent0[0]),
+						d1 = d3.time.day.offset(d0, Math.round((extent0[1] - extent0[0]) / 864e5));
+					extent1 = [d0, d1];
+
+					// otherwise, if new position, round both dates
+				} else {
+					extent1 = extent0.map(d3.time.day.round);
+
+						// if empty when rounded, create minimal sized lens -- at least 1 day long
+					if (extent1[0] >= extent1[1]) {
+						extent1[0] = d3.time.day.floor(extent0[0]);
+						extent1[1] = d3.time.day.ceil(d3.time.day.offset(extent1[0], Math.round(self.instGap / 864e5)));
+					}
+				}
+
+					// "this" will actually point to the brushSVG object
+					// Replaces SVG data to correspond to new brush params
+				// d3.select(this).call(self.brush.extent(extent1));
+
+				self.brush.extent(extent1);
+				self.brushHandler.redraw();
+
+					// Rescale top timeline(s) according to bottom brush
+				macro = self.bands[1];
+				macro.xScale.domain(extent1);
+				macro.redraw();
+			});
+	} // createBrush()
+
+	createBrush();
 } // setup()
 
 	// PURPOSE: Draw the Records in the given datastream
@@ -1837,7 +1887,7 @@ VizTime.prototype.render = function(stream)
 
 		// NOTES: 	Brush SVGs must be "on top" of everything else and hence must be created last
 		//			Code must destroy any previous SVG which would now be below stack
-	function createBrush()
+	function updateBrush()
 	{
 			// Object for creating brush handles, variant of: http://bl.ocks.org/jisaacks/5678983
 			// NOTE: Assumes that self.brush has already been created
@@ -1855,6 +1905,14 @@ VizTime.prototype.render = function(stream)
 				this._bottom = null;
 			}
 
+				// PURPOSE: Remove all SVGs created for BrushHandle
+			// BrushHandles.prototype.delSVGs = function(g) {
+			// 		// Remove items in reverse order
+			// 	this.right.remove();
+			// 	this.left.remove();
+			// 	this.mask.selectAll("rect").remove();
+			// }
+
 			BrushHandles.prototype.style = function(prop, val) {
 				this.left.style(prop, val);
 				this.right.style(prop, val);
@@ -1865,14 +1923,14 @@ VizTime.prototype.render = function(stream)
 				if (f == null) { return this._x; }
 				this._x = f;
 				return this;
-			};
+			}
 
 			BrushHandles.prototype.height = function(h) {
 				if (h == null) { return this._height; }
 				this._height = h;
 				this.mask.selectAll("rect").attr("height", h);
 				return this;
-			};
+			}
 
 				// NOTE: This only redraws handles
 			BrushHandles.prototype.redraw = function() {
@@ -1899,77 +1957,25 @@ VizTime.prototype.render = function(stream)
 				this.right.attr("points", "" + rp+","+this._height + " " + (rp+5)+","+(this._height+5) + " " + (rp+5)+","+(this._height+9) + " " +
 								(rp-5)+","+(this._height+9) + " " + (rp-5)+","+(this._height+5) + " " + rp+","+this._height);
 				return this;
-			};
+			}
 
 			return BrushHandles;
 		})();
 
 		var band = self.bands[0];	// Place brush in top macro band
 
-			// This calculation is not well supported by current JS Date
-		// var openTime = self.minDate.getTime();
-		// var timeSpan = self.maxDate - self.minDate;
-
-			// Create logical controller
-		self.brush = d3.svg.brush()
-			.x(band.xScale.range([0, band.w]))
-				// Start with default zoom position
-			.extent([self.zMinDate, self.zMaxDate])
-				// Code to bind when brush moves
-			.on('brush', function() {
-				var extent0 = self.brush.extent(); // "original" default value
-				var extent1;                  		// new recomputed value
-
-				  // if dragging, preserve the width of the extent, rounding by days
-				if (d3.event.mode === "move") {
-					var d0 = d3.time.day.round(extent0[0]),
-						d1 = d3.time.day.offset(d0, Math.round((extent0[1] - extent0[0]) / 864e5));
-					extent1 = [d0, d1];
-
-					// otherwise, if new position, round both dates
-				} else {
-					extent1 = extent0.map(d3.time.day.round);
-
-						// if empty when rounded, create minimal sized lens -- at least 1 day long
-					if (extent1[0] >= extent1[1]) {
-						extent1[0] = d3.time.day.floor(extent0[0]);
-						extent1[1] = d3.time.day.ceil(d3.time.day.offset(extent1[0], Math.round(self.instGap / 864e5)));
-					}
-				}
-
-					// "this" will actually point to the brushSVG object
-					// Replaces SVG data to correspond to new brush params
-				// d3.select(this).call(self.brush.extent(extent1));
-
-				self.brush.extent(extent1);
-				self.brushHandler.redraw();
-
-					// Rescale top timeline(s) according to bottom brush
-				macro = self.bands[1];
-				macro.xScale.domain(extent1);
-				macro.redraw();
-			});
-
 			// SVG area where brush will be created
+		if (self.brushSVG != null)
+			self.brushSVG.remove();
 		self.brushSVG = band.g.append("svg");
 
 		self.brushHandler =
 			new BrushHandler(self.brushSVG, band.h-1)
 				.x(band.xScale)
 				.redraw();
+	} // updateBrush()
 
-			// Create SVG component and connect to controller
-		// self.brushSVG = band.g.append("svg")
-		//     .attr("class", "brush")
-		//     .call(self.brush);
-
-		//     // Container is opaque rectangle
-		// self.brushSVG.selectAll("rect")
-		//     .attr("y", 0)
-		//     .attr("height", band.h-1);
-	} // createBrush()
-
-	createBrush();
+	updateBrush();
 
 		// PURPOSE: Update the clipping rectangle
 	function updateSizes()
