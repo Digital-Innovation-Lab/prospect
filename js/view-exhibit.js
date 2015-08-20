@@ -1195,6 +1195,12 @@ VizTime.prototype.setup = function()
 			gradDef.append('stop').attr('offset', '95%').attr('stop-color', cVal);
 			gradDef.append('stop').attr('offset', '100%').attr('stop-color', 'white');
 		});
+
+			// The XOR filter ensures that text contrasts with any background
+		var filter = defs.append('filter')
+			.attr('id', 'xortext');
+		filter.append('feComposite')
+			.attr('operator', "xor");
 	} // makeDefs
 
 	makeDefs();
@@ -1805,6 +1811,7 @@ VizTime.prototype.render = function(stream)
 				.attr("x", instLX)
 				.attr("y", fPos)
 				.style("font-size", fHt)
+				.attr('filter', "url(#xortext)")
 				.text(function (d) {
 					return d.l;
 				});
