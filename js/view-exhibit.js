@@ -50,10 +50,13 @@ var PSTATE_READY = 4;			// Waiting for user
 var D3FG_BAR_WIDTH = 25;		// D3 Graphs created for filters
 var D3FG_MARGINS  = { top: 4, right: 7, bottom: 22, left: 30 };
 
-var V_FLAG_LGND = 0x1;			// Uses Legend
-var V_FLAG_SEL = 0x2;			// Can select individual Records
-var V_FLAG_LOC = 0x4;			// Requires Location Attributes
-var V_FLAG_SET = 0x8;			// Has an Options dialog
+	// Flags for properties of Visualizations
+var V_FLAG_LGND  = 0x01;		// Uses Legend
+var V_FLAG_SEL   = 0x02;		// Can select individual Records
+var V_FLAG_LOC   = 0x04;		// Requires Location Attributes
+var V_FLAG_SET   = 0x08;		// Has an Options dialog
+var V_FLAG_VSCRL = 0x10;		// Add vertical scroll bar
+var V_FLAG_HSCRL = 0x20;		// Add horizontal scroll bar
 
 	// GLOBAL VARS
 var TODAY = new Date();
@@ -493,7 +496,7 @@ VizCards.prototype.constructor = VizCards;
 
 VizCards.prototype.flags = function()
 {
-	return V_FLAG_LGND | V_FLAG_SEL;
+	return V_FLAG_LGND | V_FLAG_SEL | V_FLAG_VSCRL;
 } // flags()
 
 VizCards.prototype.getFeatureAtts = function(tIndex)
@@ -963,7 +966,7 @@ VizTime.prototype.constructor = VizTime;
 
 VizTime.prototype.flags = function()
 {
-	return V_FLAG_LGND | V_FLAG_SEL | V_FLAG_LOC;
+	return V_FLAG_LGND | V_FLAG_SEL | V_FLAG_LOC | V_FLAG_VSCRL;
 } // flags()
 
 VizTime.prototype.getFeatureAtts = function(tIndex)
@@ -1138,8 +1141,8 @@ VizTime.prototype.setup = function()
 // console.log("Min: "+minY+"-"+minM+"-"+minD);
 // console.log("Max: "+maxY+"-"+maxM+"-"+maxD);
 
-			// Size of instananeous event: 3% of total time period space
-		self.instGap = (self.maxDate - self.minDate) * .03;
+			// Size of instananeous event: 1.5% of total time period space
+		self.instGap = (self.maxDate - self.minDate) * .015;
 // console.log("InstGap = "+JSON.stringify(self.instGap));
 	} // minMaxDates
 
@@ -1200,6 +1203,7 @@ VizTime.prototype.setup = function()
 		});
 
 			// The XOR filter ensures that text contrasts with any background
+			// TO DO: Not quite working properly...
 		var filter = defs.append('filter')
 			.attr('id', 'xortext');
 		filter.append('feComposite')
@@ -1419,9 +1423,7 @@ VizTime.prototype.setup = function()
 
 				// This will be called for each label in turn
 			yLabels.text(function(l) {
-// console.log("Which Date: "+JSON.stringify(l.whichDate(min,max)));
 				return l.whichDate(min,max).getUTCFullYear();
-				// ?? does not return proper value ??
 			});
 		}; // redraw()
 
@@ -1832,6 +1834,7 @@ VizTime.prototype.render = function(stream)
 				.attr("class", "rangeLbl")
 				.attr("x", 4)
 				.attr("y", fPos)
+				// .style('filter', "url(#xortext)")
 				.attr("fill", function(d) {
 					return d.c.b ? "#000000" : "#FFFFFF";
 				})
@@ -1855,13 +1858,13 @@ VizTime.prototype.render = function(stream)
 			// Labels on zoom band only
 		if (bi == 1) {
 				// Create label
-				// TO DO: How to contrast text color???  Create white label background??
+				// XOR filter not quite working...
 			instants.append("text")
 				.attr("class", "instantLbl")
 				.attr("x", instLX)
 				.attr("y", fPos)
 				.style("font-size", fHt)
-				.attr('filter', "url(#xortext)")
+				.style('filter', "url(#xortext)")
 				.text(function (d) {
 					return d.l;
 				});
@@ -2023,7 +2026,57 @@ VizTime.prototype.render = function(stream)
 	// PURPOSE: Handle resize of drawing area
 VizTime.prototype.resize = function()
 {
-	// TO DO
+	var self=this;
+	var s=this.settings;
+
+		// Height of timeline chart itself will not change, but container will (enable scroll bars)
+		// Height = total viz space minus height of navbar, margins, border & scroll bar itself
+	// var newH = jQuery('#dhp-visual').height() - (dhpTimeline.controlHeight+10);
+	// jQuery('#dhp-timeline').height(newH);
+
+		// Expand width of containers for visual space
+	var widths = self.getWidths();
+
+	// 	// -6 necessary to compensate for left inset of 6 in CSS
+	// jQuery('#dhp-timeline').width(newWidths[0]-6);
+	// jQuery('#svg-container').width(newWidths[1]);
+
+	var fd3 = d3.select(self.frameID+" svg.tl-vf");
+
+	// d3.select(self.frameID+" svg.tl-vf").attr("height", h);
+
+	// 	// Clip all graphics to inner area of chart
+	// d3.select("#chart-area rect").attr("width", widths[2]);
+
+	// 	// Now update each band
+	// _.each(self.bands, function(band, index) {
+	// 	theBand.w = newWidths[2];
+	// 	theBand.g.select(".band").attr("width", newWidths[2]);
+	// 	theBand.xScale.range([0, newWidths[2]]);
+
+	// 		// Need to update position of end labels (rect and text)
+	// 	var toLabel = theBand.labels[1];
+	// 	var txtLeft = toLabel.x()+toLabel.textDelta;
+	// 	theBand.labelSVGs.select('#rect-to-'+index).attr("x", toLabel.left() );
+	// 	theBand.labelSVGs.select('#txt-to-'+index).attr("x", txtLeft);
+	// 	if (index == 0) {
+
+	// if (self.brush) {
+	// 		// Update brush by reinstating its extent
+	// 	var extent = self.brush.extent();
+
+	// 	d3.select('.brush').call(self.brush.extent(extent));
+	// 	dhpTimeline.brushHandler.redraw();
+	// }
+
+	// 		theBand.labelSVGs.select('#m-txt-to-'+index).attr("x", txtLeft);
+	// 	}
+	// });
+
+	// 	// Now redraw everything!
+	// dhpTimeline.components.forEach(function(component) {
+	// 	component.redraw();
+	// });
 } // resize()
 
 VizTime.prototype.teardown = function()
@@ -2088,7 +2141,7 @@ VizDirectory.prototype.constructor = VizDirectory;
 
 VizDirectory.prototype.flags = function()
 {
-	return V_FLAG_SEL;
+	return V_FLAG_SEL | V_FLAG_VSCRL;
 } // flags()
 
 VizDirectory.prototype.setup = function()
@@ -2107,6 +2160,7 @@ VizDirectory.prototype.setup = function()
 					row.removeClass("obj-sel");
 			}
 		} else if (event.target.nodeName == 'TH') {
+			// TO DO: Sort by this column
 		}
 	});
 } // setup()
@@ -2229,7 +2283,7 @@ VizTextStream.prototype.constructor = VizTextStream;
 
 VizTextStream.prototype.flags = function()
 {
-	return V_FLAG_LGND | V_FLAG_SEL | V_FLAG_LOC;
+	return V_FLAG_LGND | V_FLAG_SEL | V_FLAG_LOC | V_FLAG_VSCRL;
 } // usesLegend()
 
 	// PURPOSE: Return IDs of locate Attributes
@@ -3278,7 +3332,9 @@ function PViewFrame(vfIndex)
 		if (vizModel)
 			vizModel.teardown();
 
-		jQuery(getFrameID()+' div.viz-content div.viz-result').empty();
+		var frame = jQuery(getFrameID());
+
+		frame.find('div.viz-content div.viz-result').empty();
 
 		switch (theView.vf) {
 		case 'Map':
@@ -3307,12 +3363,22 @@ function PViewFrame(vfIndex)
 		vizSelIndex = vIndex;
 		var flags = vizModel.flags();
 
+			// Add or remove scroll bars
+		// if (flags & V_FLAG_HSCRL)
+		// 	frame.find('div.viz-result').addClass('h-scroll');
+		// else
+		// 	frame.find('div.viz-result').removeClass('h-scroll');
+		// if (flags & V_FLAG_VSCRL)
+		// 	frame.find('div.viz-result').addClass('v-scroll');
+		// else
+		// 	frame.find('div.viz-result').removeClass('v-scroll');
+
 			// Does Viz support Legend at all?
 		if (flags & V_FLAG_LGND) {
-			jQuery(getFrameID()+' .hslgnd').button("enable");
+			frame.find('.hslgnd').button("enable");
 				// Clear out previous Legend
 				// remove all previous locate Attributes
-			var lgndCntr = jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll');
+			var lgndCntr = frame.find('div.lgnd-container div.lgnd-scroll');
 			lgndCntr.empty();
 
 				// Create Legend sections for each Template
@@ -3354,33 +3420,32 @@ function PViewFrame(vfIndex)
 						setLegendFeatures(tIndex, fAttID);
 				}
 			});
-			jQuery(getFrameID()+' div.lgnd-container').show();
+			frame.find('div.lgnd-container').show();
 		} else {
-			jQuery(getFrameID()+' .hslgnd').button("disable");
+			frame.find('.hslgnd').button("disable");
 				// Just hide Legend
-			jQuery(getFrameID()+' div.lgnd-container').hide();
+			frame.find('div.lgnd-container').hide();
 		}
 
 			// Enable or disable corresponding Selector Filter 
 		var c = jQuery('#selector-v'+vfIndex);
 		if (flags & V_FLAG_SEL) {
-			jQuery(getFrameID()+' .xsel').button("enable");
 			c.removeAttr("disabled");
 			c.prop('checked', true);
 		} else {
-			jQuery(getFrameID()+' .xsel').button("disable");
 			c.attr("disabled", true);
 			c.prop('checked', false);
 		}
 
 			// Does Viz have an Options dialog?
 		if (flags & V_FLAG_SET) {
-			jQuery(getFrameID()+' .vopts').button("enable");
+			frame.find('.vopts').button("enable");
 		} else {
-			jQuery(getFrameID()+' .vopts').button("disable");
+			frame.find('.vopts').button("disable");
 		}
 
 		vizModel.setup();
+			// ViewFrames initially created w/o selection
 		doSelBtns(false);
 
 		if (datastream)
@@ -3404,7 +3469,9 @@ function PViewFrame(vfIndex)
 		var viewDOM = document.getElementById('dltext-viewframe-dom').innerHTML;
 		jQuery('#viz-display-frame').append('<div id="view-frame-'+vfIndex+'">'+viewDOM+'</div>');
 
-		var head = jQuery(getFrameID()+' div.view-control-bar select.view-viz-select');
+		var frame = jQuery(getFrameID());
+
+		var head = frame.find('div.view-control-bar select.view-viz-select');
 			// Set Dropdown to View names
 		prspdata.e.vf.forEach(function(theVF, i) {
 			var optionStr = '<option value="'+i+'">'+theVF.l+'</option>';
@@ -3413,8 +3480,8 @@ function PViewFrame(vfIndex)
 		head.change(selectChangeViz);
 
 			// Hook control bar Icon buttons
-		head = jQuery(getFrameID()+' div.view-control-bar button:first');
-		head.button({icons: { primary: 'ui-icon-bookmark' }, text: false })
+		frame.find('div.view-control-bar button:first')
+				.button({icons: { primary: 'ui-icon-bookmark' }, text: false })
 				.click(clickShowHideLegend).next()
 				.button({icons: { primary: 'ui-icon-info' }, text: false })
 				.click(clickOpenSelection).next()
@@ -3425,10 +3492,10 @@ function PViewFrame(vfIndex)
 				.button({icons: { primary: 'ui-icon-comment' }, text: false })
 				.click(clickAnnotation).next();
 
-		head = jQuery(getFrameID()+' div.viz-content div.lgnd-container');
-		head.click(clickInLegend);
+		frame.find('div.viz-content div.lgnd-container')
+			.click(clickInLegend);
 
-		jQuery(getFrameID()+' div.annote').hide();
+		frame.find('div.annote').hide();
 
 			// Create first VF by default
 		createViz(0);
@@ -4504,15 +4571,14 @@ var PData = (function () {
 				ord.sort(function(a,b) { return a.v.localeCompare(b.v); });
 				break;
 			case 'D':
-			case 'N':
-				ord.sort(function(a,b) { return a.v - b.v; });
-				break;
-			// case 'D':
 			// 	ord.sort(function(a,b) {
 			// 		var av = a.v.valueOf(), bv = b.v.valueOf();
 			// 		return av - bv;
 			// 	});
 			// 	break;
+			case 'N':
+				ord.sort(function(a,b) { return a.v - b.v; });
+				break;
 			}
 
 			return ord;
@@ -4627,12 +4693,12 @@ console.log("Visualization complete");
 		if (view1 != null) {
 			jQuery('#view-frame-1').remove();
 			view1 = null;
-			jQuery('#selector-v1').button("disable");
+			jQuery('#selector-v1').prop("disabled", true);
 		} else {
 			view1 = PViewFrame(1);
 			view1.initDOM();
 			view1.showStream(endStream);
-			jQuery('#selector-v1').button("enable");
+			jQuery('#selector-v1').prop("disabled", false);
 		}
 		view0.resize();
 	} // clickTog2nd()

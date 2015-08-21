@@ -15,6 +15,8 @@ html {
 	box-sizing: border-box;
 	padding: 0;
 	margin: 0;
+
+	overflow: hidden;
 }
 
 body {
@@ -36,6 +38,8 @@ body {
 	font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans-serif;
 	font-size: 14px;
 	font: white;
+
+	overflow: hidden;
 }
 
 	/* For busy cursor */
@@ -61,7 +65,11 @@ div.scroll-container {
 	overflow: auto;
 }
 
-div.v-scroll-container {
+div.h-scroll {
+	overflow-x: auto;
+}
+
+div.v-scroll {
 	overflow-y: auto;
 }
 
