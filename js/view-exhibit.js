@@ -454,6 +454,12 @@ VizMap.prototype.render = function(stream)
 	} // mCache
 } // render()
 
+
+VizMap.prototype.resize = function()
+{
+	this.lMap.invalidateSize(false);
+} // PVizModel.resize()
+
 VizMap.prototype.clearSel = function()
 {
 	if (this.recSel.length > 0) {
@@ -2309,7 +2315,7 @@ VizTextStream.prototype.setup = function()
 		if (event.target.nodeName == 'DIV') {
 			var word = jQuery(event.target);
 			var aI = word.data('ai');
-			if (aI && aI >= 0) {
+			if (typeof aI != 'undefined' && aI >= 0) {
 				var s = self.toggleSel(aI);
 				if (s)
 					word.addClass("obj-sel");
