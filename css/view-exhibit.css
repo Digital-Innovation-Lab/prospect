@@ -1,5 +1,11 @@
 /******************************************************************
  ** CSS for Prospect Front-end Visualizer
+ ** Uses Flexbox to create dynamically resized blocks. See technique at:
+ **		http://railsware.com/blog/2014/12/02/flexbox-as-a-solution-for-browser-reflow-optimization/
+ ** NOTES from above article:
+ **		jQuery .show() and .hide() cannot be used for DIVs that use Flexbox; need to define hide style
+ ** 	Browsers have inconsistent support for Flexbox (and some bugs); IE is unreliable
+ ** Also see https://github.com/philipwalton/flexbugs
  **/
 
   /* Normalize box sizes! See: http://css-tricks.com/international-box-sizing-awareness-day/
@@ -66,11 +72,11 @@ div.scroll-container {
 }
 
 div.h-scroll {
-	overflow-x: auto;
+	overflow-x: scroll;
 }
 
 div.v-scroll {
-	overflow-y: auto;
+	overflow-y: scroll;
 }
 
 	/* DOM structure of web page for visualizations:
@@ -234,7 +240,7 @@ div.filter-body svg .brush .extent {
 
 	/* Any selector filter goes into this area */
 #selector-instance {
-	min-height: 2px;
+	min-height: 0;
 	max-height: 300px;
 	overflow-y: auto;
 	font-size: 12px;
@@ -256,10 +262,17 @@ div.filter-body svg .brush .extent {
 
 	/* One or two displays go into this frame */
 #viz-display-frame {
-	flex-grow: 1;
+	flex: 1 1 auto;
+	-webkit-flex: 1 1 auto;
+	-moz-flex: 1 1 auto;
+	-ms-flex: 1 1 auto;
+/*	height: 0; */
+
+/*	flex-grow: 1;
 	-webkit-flex-grow: 1;
 	-moz-flex-grow: 1;
 	-ms-flex-grow: 1;
+*/
 
 	display: flex;
 	display: -webkit-box;
@@ -275,10 +288,18 @@ div.filter-body svg .brush .extent {
 
 	/* The first visualization display */
 #view-frame-0 {
-	flex-grow: 1;
+	min-width: 40%;		/* needed in case of "dynamic" content like Leaflet */
+
+	flex: 1 1 auto;
+	-webkit-flex: 1 1 auto;
+	-moz-flex: 1 1 auto;
+	-ms-flex: 1 1 auto;
+
+/*	flex-grow: 1;
 	-webkit-flex-grow: 1;
 	-moz-flex-grow: 1;
 	-ms-flex-grow: 1;
+*/
 
 /*	display: flex;
 	flex-direction: column; */
@@ -287,10 +308,18 @@ div.filter-body svg .brush .extent {
 
 	/* The second visualization display */
 #view-frame-1 {
-	flex-grow: 1;
+	min-width: 40%;		/* needed in case of "dynamic" content like Leaflet */
+
+	flex: 1 1 auto;
+	-webkit-flex: 1 1 auto;
+	-moz-flex: 1 1 auto;
+	-ms-flex: 1 1 auto;
+
+/*	flex-grow: 1;
 	-webkit-flex-grow: 1;
 	-moz-flex-grow: 1;
 	-ms-flex-grow: 1;
+*/
 
 /*	display: flex;
 	flex-direction: column; */
@@ -317,9 +346,11 @@ div.filter-body svg .brush .extent {
 	flex-direction: column; */
 	position: relative;
 	height: calc(100% - 28px);
+/*	height: 100%; */
 }
 
 	/* All visualization results rendered here */
+	/* Styles are added to this DIV depending on whether visualization needs fixed size or content-wrapping size */
 #viz-display-frame div.viz-content div.viz-result {
 	margin: 0px;
 	padding: 2px;
@@ -329,6 +360,35 @@ div.filter-body svg .brush .extent {
 	height: 100%; */
 /*	flex-grow: 1; */
 /*	flex: 1 1 auto; */
+/*	height: calc(100% - 28px); */
+}
+
+	/* Visualization space takes as much as is necessary to show content results */
+	/* Add to viz-result DIV */
+.viz-fit-h {
+/*	display: inline-block; */
+	height: 100%;
+/*	height: -moz-fit-content;
+	height: -moz-max-content;
+	height: -webkit-max-content;
+	height: -o-max-content;
+	height: max-content;
+*/
+}
+.viz-fit-w {
+/*	display: inline-block; */
+	width: 100%;
+/*	width: -moz-fit-content;
+	width: -moz-max-content;
+	width: -webkit-max-content;
+	width: -o-max-content;
+	width: max-content;
+*/
+}
+
+	/* Visualization space takes all available screen space */
+	/* Add to viz-result DIV */
+.viz-max-h {
 	height: calc(100% - 28px);
 }
 

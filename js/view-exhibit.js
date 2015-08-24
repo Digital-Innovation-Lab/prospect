@@ -3363,15 +3363,24 @@ function PViewFrame(vfIndex)
 		vizSelIndex = vIndex;
 		var flags = vizModel.flags();
 
-			// Add or remove scroll bars
-		// if (flags & V_FLAG_HSCRL)
-		// 	frame.find('div.viz-result').addClass('h-scroll');
-		// else
-		// 	frame.find('div.viz-result').removeClass('h-scroll');
-		// if (flags & V_FLAG_VSCRL)
-		// 	frame.find('div.viz-result').addClass('v-scroll');
-		// else
-		// 	frame.find('div.viz-result').removeClass('v-scroll');
+			// Either add scroll bars to viz-content and make viz-result fit content
+			//	or else give max-size to viz-result
+		if (flags & V_FLAG_HSCRL) {
+			frame.find('div.viz-content').addClass('h-scroll');
+			frame.find('div.viz-result').addClass('viz-fit-w');
+		} else {
+			frame.find('div.viz-content').removeClass('h-scroll');
+			frame.find('div.viz-result').removeClass('viz-fit-w');
+		}
+		if (flags & V_FLAG_VSCRL) {
+			frame.find('div.viz-content').addClass('v-scroll');
+			frame.find('div.viz-result').addClass('viz-fit-h');
+			frame.find('div.viz-result').removeClass('viz-max-h');
+		} else {
+			frame.find('div.viz-content').removeClass('v-scroll');
+			frame.find('div.viz-result').removeClass('viz-fit-h');
+			frame.find('div.viz-result').addClass('viz-max-h');
+		}
 
 			// Does Viz support Legend at all?
 		if (flags & V_FLAG_LGND) {
@@ -3427,7 +3436,7 @@ function PViewFrame(vfIndex)
 			frame.find('div.lgnd-container').hide();
 		}
 
-			// Enable or disable corresponding Selector Filter 
+			// Enable or disable corresponding Selector Filter
 		var c = jQuery('#selector-v'+vfIndex);
 		if (flags & V_FLAG_SEL) {
 			c.removeAttr("disabled");
