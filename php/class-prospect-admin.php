@@ -633,7 +633,7 @@ class ProspectAdmin {
 		else
 			header('Content-Type: text/csv; charset=utf-8');
 		header('Content-Disposition: attachment; filename="'.$filename.'";');
-		header("Content-Transfer-Encoding: binary");
+		// header("Content-Transfer-Encoding: binary");
 
 			// This opens up the output buffer as a "file"
 		$fp = fopen('php://output', 'w');
@@ -667,7 +667,7 @@ class ProspectAdmin {
 		if (!(isset($_GET['post']) || isset( $_POST['post']) || (isset($_REQUEST['action']) && 'rd_duplicate_post_as_draft' == $_REQUEST['action']))) {
 			wp_die('No post to export has been supplied!');
 		}
-	 
+
 			// Get post ID and associated Project Data
 		$postID = (isset($_GET['post']) ? $_GET['post'] : $_POST['post']);
 		$the_att = new ProspectAttribute(true, $postID, false, true, true, true, false);
@@ -1204,7 +1204,6 @@ class ProspectAdmin {
 	{
 		$fname = $_FILES['archive-import-select']['tmp_name'];
 		$res = fopen($fname, 'r');
-		// $res = fopen($fname, 'rb');
 
 			// Return if file not found or empty file
 		if ($res == false || $_FILES['archive-import-select']['size'] == 0)
@@ -1223,7 +1222,6 @@ class ProspectAdmin {
 		// $contents = @file_get_contents($fname, false, $context);
 
 		$contents = file_get_contents($fname);
-
 		if ($contents === false) {
 			trigger_error('Failed to get file contents.', E_USER_WARNING);
 		}
