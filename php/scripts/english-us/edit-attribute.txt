@@ -339,7 +339,7 @@ The Attribute internal ID is too long.
 </script>
 
 <script id="errmsg-id-bad-chars" type='text/ractive'>
-An Attribute internal ID can only consist of alphabetic characters, numbers, underscores and hyphens (it cannot contain spaces, punctuation, etc).
+An Attribute internal ID can only consist of alphabetic characters (in plain ASCII), numbers, underscores and hyphens (it cannot contain spaces, punctuation, Unicode-only characters, etc).
 </script>
 
 <script id="errmsg-no-label" type='text/ractive'>

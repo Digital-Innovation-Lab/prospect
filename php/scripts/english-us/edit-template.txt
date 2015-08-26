@@ -114,7 +114,7 @@
 
 <!-- ERRORS -->
 <script id="errmsg-no-id" type='text/ractive'>
-You must supply an internal ID for the new Template.
+You must supply an internal ID for the new Template. It must only consist of alphabetic characters (in plain ASCII), numbers, underscores and hyphens (it cannot contain spaces, punctuation, Unicode-only characters, etc).
 </script>
 
 <script id="errmsg-id-taken" type='text/ractive'>

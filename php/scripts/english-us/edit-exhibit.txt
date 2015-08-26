@@ -569,7 +569,7 @@
 
 <!-- ERRORS -->
 <script id="errmsg-id" type='text/ractive'>
-You must supply an internal ID for the Exhibit that is no more than 24 characters in length.
+You must supply an internal ID for the Exhibit that is no more than 24 characters in length and consists of alphabetic characters (in plain ASCII), numbers, underscores and hyphens (it cannot contain spaces, punctuation, Unicode-only characters, etc).
 </script>
 
 <script id="errmsg-label" type='text/ractive'>

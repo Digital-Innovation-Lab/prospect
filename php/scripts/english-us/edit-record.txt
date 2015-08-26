@@ -186,7 +186,7 @@
 
 <!-- ERRORS -->
 <script id="errmsg-id" type='text/ractive'>
-You must supply an internal ID for the Record that is no more than 32 characters in length and consists entirely of alphanumeric characters, spaces and underscores.
+You must supply an internal ID for the Record that is no more than 32 characters in length and consists entirely of alphanumeric characters (in plain ASCII), spaces and underscores  (it cannot contain spaces, punctuation, Unicode-only characters, etc).
 </script>
 
 <script id="errmsg-no-templates" type='text/ractive'>
