@@ -3158,7 +3158,6 @@ function PViewFrame(vfIndex)
 		// NOTE: 	GUI already updated
 	function doLocateSelect(tmpltIndex, lID, show)
 	{
-// console.log("Locate attribute "+lID+" for template "+tmpltIndex+", set to "+show);
 	} // doLocateSelect()
 
 
@@ -3166,7 +3165,6 @@ function PViewFrame(vfIndex)
 		// NOTE: 	Must update GUI
 	function doLocateSelectOnly(tmpltIndex, lID)
 	{
-// console.log("Locate attribute "+lID+" only for template "+tmpltIndex);
 			// Deselect everything
 		jQuery(getFrameID()+' div.lgnd-container div.lgnd-template[data-index="'+
 								tmpltIndex+'"] div.lgnd-locate input.lgnd-entry-check').prop('checked', false);
@@ -3180,7 +3178,6 @@ function PViewFrame(vfIndex)
 		// NOTE: 	GUI already updated
 	function doFeatureSelect(tmpltIndex, vIndex, show)
 	{
-// console.log("Feature attribute "+vIndex+" for template "+tmpltIndex+", set to "+show);
 	} // doFeatureSelect()
 
 
@@ -3188,7 +3185,6 @@ function PViewFrame(vfIndex)
 		// NOTE: 	Must update GUI
 	function doFeatureSelectOnly(tmpltIndex, vIndex)
 	{
-// console.log("Feature attribute "+vIndex+" only selected for template "+tmpltIndex);
 			// Deselect everything
 		jQuery(getFrameID()+' div.lgnd-container div.lgnd-template[data-index="'+
 								tmpltIndex+'"] div.lgnd-group input.lgnd-entry-check').prop('checked', false);
@@ -3607,7 +3603,6 @@ function PViewFrame(vfIndex)
 //			PData is implemented with the "Module" design pattern for hiding
 //				private variables and minimizing external interference
 // 			The s array of an IndexStream contains absolute index numbers to global data array
-// TO DO: 	Change LOAD_DATA_CHUNK to Option setting passed by prspdata
 
 
 var PData = (function () {
@@ -3615,7 +3610,7 @@ var PData = (function () {
 	// CONSTANTS
 	// =========
 
-	var LOAD_DATA_CHUNK = 1000;
+	var LOAD_DATA_CHUNK = 1000;	// default, overridden by WP-saved option
 	var dltextFrom;
 	var dltextTo;
 	var dltextApprox;
