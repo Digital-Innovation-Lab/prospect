@@ -1,12 +1,26 @@
 <?php
 
 // PURPOSE: Code that handles Dashboard backend functionality
-//				and all interface between WordPress and JS
-// TO DO:	Why doesn't UTF-8 text in JSON Archive file load/decode properly?
-//				Is this a problem with way Archive files are written? Need more use of utf8_encode()?
-//				Should data first be written to memory and then encoded? http://php.net/manual/en/function.fopen.php#104325
-//				Use special UTF-8-aware JSON encoding? http://php.net/manual/en/function.json-encode.php#100835
-//				See embedded comments (or search for UTF-8)
+//				and all interface between WordPress and JavaScript browser front-end
+// NOTES:	Prospect has to compensate for the inconsistent handling of non-ASCII characters, namely:
+//			All text encoded in JSON needs to be consistent and predictable because
+//				of literal string matches and searches (Legend values, filter settings, &c)
+//			JSON-representation (text) needs to embedded in HTML page to pass to JS and returned via POST.
+//			But different PHP and JavaScript JSON mechanisms don't always produce the same results.
+//			PHP json_encode() expects UTF-8 input but produces unicode encoded output by default (eg, "\u0039").
+//			Furthermore, when WordPress stores text into the DB, it strips backslashes from Unicode encodings!
+//			Therefore, JSON text produced by PHP & JS must retain UTF-8 encoding; it is stored in DB and
+//				archive files, and passed back/forth via HTML.
+//			Prospect currently assumes that JavaScript's JSON.stringify() leaves data in UTF-8; if not, the Dashboard
+//				editing suite must force it to be in UTF-8.
+//			PHP utf8_encode() and utf8_decode() will convert Unicode to UTF-8 and back (respectively).
+//			For more on issues of character coding, JSON, JS and PHP, see:
+//				https://www.stefan-wallin.se/utf-8-issues-in-wordpress-with-update_post_meta-and-json_encode/
+//				https://mathiasbynens.be/notes/javascript-unicode
+//				http://stackoverflow.com/questions/6771938/any-way-to-return-php-json-encode-with-encode-utf-8-and-not-unicode
+//				http://stackoverflow.com/questions/12271547/shouldnt-json-stringify-escape-unicode-characters
+//				http://stackoverflow.com/questions/4901133/json-and-escaping-characters
+//				http://www.avoid.org/replace-u-characters-in-json-string/
 
 class ProspectAdmin {
 
@@ -15,6 +29,7 @@ class ProspectAdmin {
 
 		// PURPOSE: "clean" extraneous data from string passed via internet
 		// NOTES: 	Problems saving Date values unless some code in top portion also included
+		//			Currently only used to treat Record data (Attribute values) by save_post()
 	static private function clean_string($orig_string)
 	{
 		$new_string = $orig_string;
@@ -23,6 +38,7 @@ class ProspectAdmin {
 		}
 		$new_string = str_replace(chr(127), "", $new_string);
 
+			// Remove UTF-8 prefix
 		if (0 === strpos(bin2hex($new_string), 'efbbbf')) {
 			$new_string = substr($new_string, 3);
 		}
@@ -33,7 +49,7 @@ class ProspectAdmin {
 
 		$new_string = preg_replace('/,\s*([\]}])/m', '$1', $new_string);
 
-			// This seems to be the most crucial process
+			// One necessary process -- WARNING: Can't strip backlash from Unicode encoding!!
 		$new_string = stripslashes(str_replace('\"', '"', $new_string));
 
 		return $new_string;
@@ -167,7 +183,7 @@ class ProspectAdmin {
 		echo '<input type="hidden" name="prsp_rec_id" value="'.$the_rec->id.'"/>';
 		echo '<input type="hidden" name="prsp_tmplt_id" value="'.$the_rec->tmplt_id.'"/>';
 			// NOTE: The cfs setting for new Record will be encoded as "null"
-		echo '<textarea name="prsp_rec_atts" form="post" spellcheck="false" style="display:none">'.json_encode($the_rec->att_data).'</textarea>';
+		echo '<textarea name="prsp_rec_atts" form="post" spellcheck="false" style="display:none">'.json_encode($the_rec->att_data, JSON_UNESCAPED_UNICODE).'</textarea>';
 
 		echo '<div id="ractive-output"></div>';
 
@@ -313,6 +329,7 @@ class ProspectAdmin {
 				return $post_id;
 
 				// Update each value
+				// TO DO: Remove all other post_meta (in case Template type changed)? How?
 			if (isset($_POST['prsp_rec_id'])) {
 				$rec_id = $_POST['prsp_rec_id'];
 				update_post_meta($post_id, 'record-id', $rec_id);
@@ -321,7 +338,6 @@ class ProspectAdmin {
 				$tmp_id = $_POST['prsp_tmplt_id'];
 				update_post_meta($post_id, 'tmplt-id', $tmp_id);
 			}
-				// TO DO: Remove all other post_meta (in case Template type changed)? How?
 			if (isset($_POST['prsp_rec_atts'])) {
 				$rec_atts = self::clean_string($_POST['prsp_rec_atts']);
 				$att_pairs = json_decode($rec_atts, true);
@@ -620,6 +636,8 @@ class ProspectAdmin {
 
 		// PURPOSE: Open a UTF-8 file that will be written out to browser
 		// INPUT: 	If $json, then MIME type will be text/plain, otherwise text/csv
+		// NOTE: 	All Prospect archive export files are written in UTF-8 format, even though
+		//				encoding as JSON will cause unicode encoding.
 	public function createUTFOutput($filename, $json)
 	{
 			// Tells the browser to expect a json file and bring up the save dialog in the browser
@@ -1151,26 +1169,26 @@ class ProspectAdmin {
 			$post_id = $this->create_entity('prsp-attribute', 'att-id', $data['att-id']);
 			if ($post_id) {
 				update_post_meta($post_id, 'att-privacy', $data['att-privacy']);
-				update_post_meta($post_id, 'att-def', json_encode($data['att-def']));
-				update_post_meta($post_id, 'att-range', json_encode($data['att-range']));
-				update_post_meta($post_id, 'att-legend', json_encode($data['att-legend']));
+				update_post_meta($post_id, 'att-def', json_encode($data['att-def'], JSON_UNESCAPED_UNICODE));
+				update_post_meta($post_id, 'att-range', json_encode($data['att-range'], JSON_UNESCAPED_UNICODE));
+				update_post_meta($post_id, 'att-legend', json_encode($data['att-legend'], JSON_UNESCAPED_UNICODE));
 			}
 			break;
 		case 'Template':
 			$post_id = $this->create_entity('prsp-template', 'tmplt-id', $data['tmplt-id']);
 			if ($post_id) {
-				update_post_meta($post_id, 'tmplt-def', json_encode($data['tmplt-def']));
-				update_post_meta($post_id, 'tmplt-joins', json_encode($data['tmplt-joins']));
-				update_post_meta($post_id, 'tmplt-view', json_encode($data['tmplt-view']));
+				update_post_meta($post_id, 'tmplt-def', json_encode($data['tmplt-def'], JSON_UNESCAPED_UNICODE));
+				update_post_meta($post_id, 'tmplt-joins', json_encode($data['tmplt-joins'], JSON_UNESCAPED_UNICODE));
+				update_post_meta($post_id, 'tmplt-view', json_encode($data['tmplt-view'], JSON_UNESCAPED_UNICODE));
 			}
 			break;
 		case 'Exhibit':
 			$post_id = $this->create_entity('prsp-exhibit', 'xhbt-id', $data['xhbt-id']);
 			if ($post_id) {
-				update_post_meta($post_id, 'xhbt-def', json_encode($data['xhbt-def']));
-				update_post_meta($post_id, 'xhbt-gen', json_encode($data['xhbt-gen']));
-				update_post_meta($post_id, 'xhbt-views', json_encode($data['xhbt-views']));
-				update_post_meta($post_id, 'xhbt-inspect', json_encode($data['xhbt-inspect']));
+				update_post_meta($post_id, 'xhbt-def', json_encode($data['xhbt-def'], JSON_UNESCAPED_UNICODE));
+				update_post_meta($post_id, 'xhbt-gen', json_encode($data['xhbt-gen'], JSON_UNESCAPED_UNICODE));
+				update_post_meta($post_id, 'xhbt-views', json_encode($data['xhbt-views'], JSON_UNESCAPED_UNICODE));
+				update_post_meta($post_id, 'xhbt-inspect', json_encode($data['xhbt-inspect'], JSON_UNESCAPED_UNICODE));
 			}
 			break;
 		case 'Map':
@@ -1195,11 +1213,9 @@ class ProspectAdmin {
 
 		// PURPOSE: Import the selected file
 		// ASSUMES: File info in the $_FILES['archive-import-select'] array
-		// NOTES:   Array contents: 'name', 'type' [mimetype], 'size', 'error', 'tmp_name'
+		// NOTES:   $_FILES[] contents: 'name', 'type' [mimetype], 'size', 'error', 'tmp_name'
 		//				Use 'tmp_name' for opening file
-		// TO DO: 	There does not seem to be any general solution (running on PHP PHP 5.6.99-hhvm)
-		//				that correctly imports UTF-8 encoded archive files. All attempted solutions
-		//				have been kept in place but commented out. See notes below.
+		//			Assume file in UTF-8 format; we want to keep encoding as UTF-8!
 	public function import_archive_file()
 	{
 		$fname = $_FILES['archive-import-select']['tmp_name'];
@@ -1210,31 +1226,10 @@ class ProspectAdmin {
 			return;
 		fclose($res);
 
-			// Should convert UTF-8 characters on input but does not work with
-			//	archive files that contain them
-		// $opts = array(
-		// 	'http' => array(
-		// 		'method'=>"GET",
-		// 		'header'=>"Content-Type: text/plain; charset=utf-8"
-		// 	)
-		// );
-		// $context = stream_context_create($opts); 
-		// $contents = @file_get_contents($fname, false, $context);
-
 		$contents = file_get_contents($fname);
 		if ($contents === false) {
 			trigger_error('Failed to get file contents.', E_USER_WARNING);
 		}
-
-			// This successfully converted an archive file with UTF-8 encoded characters
-			//	but not one lacking any
-		// $contents = mb_convert_encoding($contents, 'HTML-ENTITIES', 'UTF-8');
-
-			// The following techniques did not work
-		// $contents = utf8_encode($contents);
-		// $contents = mb_convert_encoding($contents, 'UTF-8',
-		// 			 mb_detect_encoding($contents, 'UTF-8, ISO-8859-1', true));
-		// $contents = iconv('windows-1250', 'utf-8', $contents);
 
 			// The following section successfully reads files without any UTF-8-encoded
 			//	characters, but fails to interpret special characters properly
@@ -1503,7 +1498,7 @@ class ProspectAdmin {
 				array_push($result, $extracted_rec);
 			}
 		}
-		die(json_encode($result));
+		die(json_encode($result, JSON_UNESCAPED_UNICODE));
 	} // prsp_get_records()
 
 

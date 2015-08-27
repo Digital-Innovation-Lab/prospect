@@ -1,9 +1,8 @@
 // Attribute Editor
 
 // ASSUMES: A view area for the browser has been marked with HTML div as "ractive-output"
-// NOTES:   
+// NOTES:   See notes in class-prospect-admin.php about JSON, Unicode and UTF-8
 // USES:    jQuery, Underscore, jQueryUI, and Ractive
-// ASSUMES: 
 
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findIndex
@@ -234,6 +233,7 @@ jQuery(document).ready(function() {
 	embedData = jQuery('textarea[name="prsp_att_lgnd"]').val();
 	if (embedData && embedData.length > 2) {
 		tempLegend = JSON.parse(embedData);
+
 		tempLegend.forEach(function(lgndEntry) {
 			var newEntry = lgndEntry;
 			switch (defAttribute.t) {
