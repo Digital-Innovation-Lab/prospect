@@ -991,30 +991,26 @@ VizTime.prototype.getLocAtts = function(tIndex)
 } // getLocAtts()
 
 	// RETURNS: Pixel width available for the various containers:
-	//              0 = total width (ViewFrame), 1 = outer svg-container, 2 = inner chart
+	//              0 = total width (ViewFrame), 1 = svg container (tl-vf)
 	// NOTES:   Must account for margins of outer container (inc. scrollbar) and margins of inner container
-	// TO DO: 	Make into getRects()?
+	// TO DO: 	Push rects instead of widths?
 VizTime.prototype.getWidths = function()
 {
-			// svgMargin is for space inside of outer container occupied by #svg-container
-	var svgMargin = { top: 6, right: 22, bottom: 6, left: 6 };
-			// chartMargin is for space inside of #svg-container occupied by timeline chart
-	var chartMargin = { top: 4, right: 9, bottom: 4, left: 4 };
+			// svgMargin is space between viz-result and tl-vf
+	var svgMargin = { top: 2, right: 2, bottom: 2, left: 2 };
+
 	var widths = [];
-	var svgWidth;
 
 	var curWidth = jQuery(this.frameID).width();
 
-		// Total width of window
+		// Total width of view frame
 	widths.push(curWidth);
 		// Width of svg-container
-	svgWidth = curWidth - (svgMargin.left + svgMargin.right);
+	var svgWidth = curWidth - (svgMargin.left + svgMargin.right);
 	widths.push(svgWidth);
-		// Width of chart itself
-	widths.push(svgWidth-(chartMargin.left + chartMargin.right));
 
 		// Automatically recompute
-	this.threshold  = widths[2] / (this.settings.xLbl*6.25);
+	this.threshold  = svgWidth / (this.settings.xLbl*6.25);
 
 	return widths;
 } // getWidths()
@@ -1225,7 +1221,7 @@ VizTime.prototype.setup = function()
 	svg.append("clipPath")
 		.attr("id", "tl-clip-"+vI)
 		.append("rect")
-		.attr("width", widths[2]);
+		.attr("width", widths[1]);
 
 	self.chart = svg.append("g")
 		.attr("class", "chart")
@@ -1257,7 +1253,7 @@ VizTime.prototype.setup = function()
 			//	g = SVG created by D3 to contain band
 			//	labels = year/month label definitions
 			//	labelSVGs = SVGs created by D3 for labels
-		var band = {	id: bi, l: 0, t:0, h:0, w: widths[2],
+		var band = {	id: bi, l: 0, t:0, h:0, w: widths[1],
 						svgID: "#tl-b-"+vI+"-"+bi,
 						tHt: 0, iHt: 0,
 						xScale: null,
@@ -1914,14 +1910,6 @@ VizTime.prototype.render = function(stream)
 				this._bottom = null;
 			}
 
-				// PURPOSE: Remove all SVGs created for BrushHandle
-			// BrushHandles.prototype.delSVGs = function(g) {
-			// 		// Remove items in reverse order
-			// 	this.right.remove();
-			// 	this.left.remove();
-			// 	this.mask.selectAll("rect").remove();
-			// }
-
 			BrushHandles.prototype.style = function(prop, val) {
 				this.left.style(prop, val);
 				this.right.style(prop, val);
@@ -2033,56 +2021,43 @@ VizTime.prototype.render = function(stream)
 VizTime.prototype.resize = function()
 {
 	var self=this;
-	var s=this.settings;
-
-		// Height of timeline chart itself will not change, but container will (enable scroll bars)
-		// Height = total viz space minus height of navbar, margins, border & scroll bar itself
-	// var newH = jQuery('#dhp-visual').height() - (dhpTimeline.controlHeight+10);
-	// jQuery('#dhp-timeline').height(newH);
 
 		// Expand width of containers for visual space
 	var widths = self.getWidths();
 
-	// 	// -6 necessary to compensate for left inset of 6 in CSS
-	// jQuery('#dhp-timeline').width(newWidths[0]-6);
-	// jQuery('#svg-container').width(newWidths[1]);
+	var tlSVG = d3.select(self.frameID+" svg.tl-vf");
+	tlSVG.attr("width", widths[1]);
 
-	var fd3 = d3.select(self.frameID+" svg.tl-vf");
+		// Clip all graphics to inner area of chart
+	tlSVG.select("#tl-clip-"+self.vFrame.getIndex()+" rect").attr("width", widths[1]);
 
-	// d3.select(self.frameID+" svg.tl-vf").attr("height", h);
+		// Now update each band
+	_.each(self.bands, function(b, bi) {
+		b.w = widths[1];
+		tlSVG.select(b.svgID).attr("width", widths[1]);
+		b.xScale.range([0, widths[1]]);
 
-	// 	// Clip all graphics to inner area of chart
-	// d3.select("#chart-area rect").attr("width", widths[2]);
+			// Need to update position of end labels (rect and text)
+		var toLabel = b.labels[1];
+		var txtLeft = toLabel.x()+toLabel.tDelta;
+		b.labelSVGs.select('#rect-'+toLabel.name).attr("x", toLabel.left() );
+		b.labelSVGs.select('#txt-'+toLabel.name).attr("x", txtLeft);
+		if (bi == 0) {
+			if (self.brush) {
+					// Update brush by reinstating its extent
+				var extent = self.brush.extent();
 
-	// 	// Now update each band
-	// _.each(self.bands, function(band, index) {
-	// 	theBand.w = newWidths[2];
-	// 	theBand.g.select(".band").attr("width", newWidths[2]);
-	// 	theBand.xScale.range([0, newWidths[2]]);
+				d3.select('.brush').call(self.brush.extent(extent));
+				self.brushHandler.redraw();
+			}
+			b.labelSVGs.select('#m-txt-'+toLabel.name).attr("x", txtLeft);
+		}
+	});
 
-	// 		// Need to update position of end labels (rect and text)
-	// 	var toLabel = theBand.labels[1];
-	// 	var txtLeft = toLabel.x()+toLabel.textDelta;
-	// 	theBand.labelSVGs.select('#rect-to-'+index).attr("x", toLabel.left() );
-	// 	theBand.labelSVGs.select('#txt-to-'+index).attr("x", txtLeft);
-	// 	if (index == 0) {
-
-	// if (self.brush) {
-	// 		// Update brush by reinstating its extent
-	// 	var extent = self.brush.extent();
-
-	// 	d3.select('.brush').call(self.brush.extent(extent));
-	// 	dhpTimeline.brushHandler.redraw();
-	// }
-
-	// 		theBand.labelSVGs.select('#m-txt-to-'+index).attr("x", txtLeft);
-	// 	}
-	// });
-
-	// 	// Now redraw everything!
-	// dhpTimeline.components.forEach(function(component) {
-	// 	component.redraw();
-	// });
+		// Now recompute everything!
+	self.cmpnts.forEach(function(c) {
+		c.redraw();
+	});
 } // resize()
 
 VizTime.prototype.teardown = function()
@@ -3373,9 +3348,11 @@ function PViewFrame(vfIndex)
 		if (flags & V_FLAG_HSCRL) {
 			frame.find('div.viz-content').addClass('h-scroll');
 			frame.find('div.viz-result').addClass('viz-fit-w');
+			frame.find('div.viz-result').removeClass('viz-max-w');
 		} else {
 			frame.find('div.viz-content').removeClass('h-scroll');
 			frame.find('div.viz-result').removeClass('viz-fit-w');
+			frame.find('div.viz-result').addClass('viz-max-w');
 		}
 		if (flags & V_FLAG_VSCRL) {
 			frame.find('div.viz-content').addClass('v-scroll');
