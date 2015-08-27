@@ -3337,7 +3337,6 @@ function PViewFrame(vfIndex)
 			// Remove current viz content
 		if (vizModel)
 			vizModel.teardown();
-
 		var frame = jQuery(getFrameID());
 
 		frame.find('div.viz-content div.viz-result').empty();
@@ -3507,7 +3506,7 @@ function PViewFrame(vfIndex)
 				.button({icons: { primary: 'ui-icon-comment' }, text: false })
 				.click(clickAnnotation).next();
 
-		frame.find('div.viz-content div.lgnd-container')
+		frame.find('div.lgnd-container')
 			.click(clickInLegend);
 
 		frame.find('div.annote').hide();
