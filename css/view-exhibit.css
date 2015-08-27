@@ -1105,3 +1105,46 @@ div.filter-vocab-bar {
 	padding: 0px;
 	border: 1px black dotted;
 }
+
+/** Transcriptions 
+ **/
+
+#xscript-tbl {
+	max-height: 300px;
+	overflow-y: scroll;
+}
+
+#xscript-tbl .row {
+	display: table-row;
+	margin: 4px;
+}
+
+	/* Create odd-even background toggle */
+#xcript-tbl .row:nth-child(odd) {
+	background: #ddd;
+}
+
+#xscript-tbl .timecode {
+	display: table-cell;
+	line-height: 1.2em;
+	padding: 4px;
+	cursor: pointer;
+}
+
+	/* playhead */
+#xscript-tbl .timecode.current {
+	background-color: #007fff;
+	color: #fff;
+}
+
+#xscript-tbl .timecode:hover {
+	background-color: #0055bb;
+	color: #fff;
+}
+
+#xscript-tbl .text {
+	display: table-cell;
+	vertical-align: top;
+	line-height: 1.2em;
+	padding: 4px;
+}

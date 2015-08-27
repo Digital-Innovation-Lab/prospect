@@ -58,6 +58,9 @@ var V_FLAG_SET   = 0x08;		// Has an Options dialog
 var V_FLAG_VSCRL = 0x10;		// Add vertical scroll bar
 var V_FLAG_HSCRL = 0x20;		// Add horizontal scroll bar
 
+	// For processing transcriptions
+var parseTC 	= /(\d\d)\:(\d\d)\:(\d\d)\.(\d\d?)/;         // an exacting regular expression for parsing time
+
 	// GLOBAL VARS
 var TODAY = new Date();
 var localD3;					// For localizing D3
@@ -712,14 +715,14 @@ VizPinboard.prototype.setup = function()
 	var defs = svg.append('defs');
 
 	defs.append("marker")
-    	.attr("id", "arrowhead")
-    	.attr("refX", 6 + 3) /*must be smarter way to calculate shift*/
-    	.attr("refY", 2)
-    	.attr("markerWidth", 6)
-    	.attr("markerHeight", 4)
-    	.attr("orient", "auto")
-    	.append("path")
-        	.attr("d", "M 0,0 V 4 L6,2 Z");
+		.attr("id", "arrowhead")
+		.attr("refX", 6 + 3) /*must be smarter way to calculate shift*/
+		.attr("refY", 2)
+		.attr("markerWidth", 6)
+		.attr("markerHeight", 4)
+		.attr("orient", "auto")
+		.append("path")
+			.attr("d", "M 0,0 V 4 L6,2 Z");
 
 		// Create definition for pin icon
 		// made by http://www.flaticon.com/authors/bogdan-rosu
@@ -1154,7 +1157,7 @@ VizTime.prototype.setup = function()
 	var widths = self.getWidths();
 
 	var svg = d3.select(this.frameID).append("svg")
-    	.attr("class", "tl-vf")
+		.attr("class", "tl-vf")
 		.attr("width", widths[1]);
 
 	function makeDefs()
@@ -3026,8 +3029,107 @@ function PViewFrame(vfIndex)
 		// PURPOSE: Open Inspector modal for current selection
 	function clickOpenSelection(event)
 	{
+		var container = jQuery('#inspect-content');
+		var tcArray;		// Timecode array
+		var rowIndex;		// row of tcArray currently playing
+		var t2URL;
+
+			// PURPOSE: Convert timecode string into # of milliseconds
+			// INPUT:   timecode must be in format [HH:MM:SS] or [HH:MM:SS.ss]
+			// ASSUMES: timecode in correct format, parseTC contains compiled RegEx
+		function tcToMilliSecs(tc)
+		{
+			var milliSecs = new Number();
+			var match = parseTC.exec(tc);
+			if (match !== null) {
+				// console.log("Parsed " + match[1] + ":" + match[2] + ":" + match[3]);
+				milliSecs = (parseInt(match[1])*3600 + parseInt(match[2])*60 + parseFloat(match[3])) * 1000;
+					// The multiplier to use for last digits depends on if it is 1 or 2 digits long
+				if (match[4].length == 1) {
+					milliSecs += parseInt(match[4])*100;
+				} else {
+					milliSecs += parseInt(match[4])*10;
+				}
+			} else {
+				reportError(false, "Error in transcript file: Cannot parse " + tc + " as timecode.");
+				throw new Error("Error in transcript file: Cannot parse " + tc + " as timecode.");
+				milliSecs = 0;
+			}
+			return milliSecs;
+		} // tcToMilliSecs()
+
+			// PURPOSE: Format the second transcript (use first one's timecodes)
+		function formatXscript2(text)
+		{
+
+		} // formatXscript2()
+
+			// PURPOSE: Format the first transcript (with its timecodes)
+		function formatXscript1(text)
+		{
+				// empty time code array -- each entry has start & end
+			tcArray = [];
+			rowIndex = -1;
+
+				// split transcript text into array by line breaks
+			var splitXcript = new String(text);
+			splitXcript = splitXcript.trim().split(/\r\n|\r|\n/g);
+			// var splitXcript = text.trim().split(/\r\n|\r|\n/g);       // More efficient but not working!
+
+			if (splitXcript) {
+				var tcIndex = 0;
+				var timeCode, lastCode=0, lastStamp=0;
+				var textBlock='';
+				var xtbl = jQuery('#xscript-tbl');
+				_.each(splitXcript, function(val) {
+						// Each entry is (1) empty/line break, (2) timestamp, or (3) text
+					val = val.trim();
+						// Skip empty entries, which were line breaks
+					if (val.length>1) {
+							// Encountered timestamp -- compile previous material, if any
+						if (val.charAt(0) === '[' && (val.charAt(1) >= '0' && val.charAt(1) <= '9'))
+						{
+							timeCode = tcToMilliSecs(val);
+							if (textBlock.length) {
+									// Append timecode entry once range is defined
+								if (lastStamp) {
+									tcArray.push({ s: lastCode, e: timeCode });
+								}
+								xtbl.append('<div class="row"><div class="timecode" data-timecode="'+
+									lastCode+'" data-tcindex="'+tcIndex++ +'">'+lastStamp+'</div><div class="text">'+textBlock+'</div></div>');
+								textBlock = '';
+							}
+							lastStamp = val;
+							lastCode = timeCode;
+
+							// Encountered textblock
+						} else {
+							textBlock += val;
+						}
+					} // if length
+				}); // _each
+					// Handle any dangling text
+				if (textBlock.length) {
+						// Append very large number to ensure can't go past last item! 9 hours * 60 minutes * 60 seconds * 1000 milliseconds
+					tcArray.push({ s: lastCode, e: 32400000 });
+					xtbl.append('<div class="row"><div class="timecode" data-timecode="'+
+						lastCode+'" data-tcindex="'+tcIndex+'">'+lastStamp+'</div><div class="text">'+textBlock+'</div></div>');
+				}
+					// Is there is a 2nd transcript? Load it
+				if (typeof t2URL != 'undefined' && t2URL != null) {
+console.log("Load transcript 2 at URL: "+t2URL);
+						// Load and parse transcript file
+					// var xhr = new XMLHttpRequest();
+					// xhr.onload = function(e) {
+					// 	formatXscript2(xhr.responseText);
+					// }
+					// xhr.open('GET', t2URL, true);
+					// xhr.send();
+				}
+			} // if (split)
+		} // formatXscript1()
+
 		var recSel=null;
-		var rec;
 
 		if (vizModel)
 			recSel = vizModel.getSel();
@@ -3035,6 +3137,7 @@ function PViewFrame(vfIndex)
 			return;
 
 		var inspector;
+		var rec;
 		var i=0;
 
 		function inspectShow()
@@ -3046,7 +3149,6 @@ function PViewFrame(vfIndex)
 				// Which template type?
 			var tI = PData.aIndex2Tmplt(recAbsI);
 				// Show all data
-			var container = jQuery('#inspect-content');
 			container.empty();
 // console.log("Show atts: "+JSON.stringify(prspdata.e.i.modal.atts[tI]));
 			prspdata.e.i.modal.atts[tI].forEach(function(attID) {
@@ -3058,6 +3160,41 @@ function PViewFrame(vfIndex)
 					container.append(html);
 				}
 			});
+				// Show audio or video widget? (Not both)
+			var av=false;
+			if (prspdata.e.i.modal.scOn) {
+
+			}
+			if (!av && prspdata.e.i.modal.ytOn) {
+
+			}
+				// Create transcription widget?
+			if (prspdata.e.i.modal.tOn) {
+				var t1AttID = prspdata.e.i.t.t1Atts[tI];
+					// Is there a 1st transcript Attribute?
+				if (t1AttID && t1AttID !== '' && t1AttID != 'disable') {
+					var t1URL = rec.a[t1AttID];
+					if (t1URL) {
+console.log("Load transcript 1 at URL: "+t1URL);
+						container.append('<div id="xscript-tbl"><div>');
+						t2URL=null;
+							// Is there a 2nd transcript Attribute?
+							// Set up for 1st to load when complete
+						var t2AttID = prspdata.e.i.t.t2Atts[tI];
+						if (t2AttID && t2AttID !== '' && t2AttID != 'disable') {
+							t2URL = rec.a[t2AttID];
+						}
+							// Load and parse transcript file
+						// var xhr = new XMLHttpRequest();
+						// xhr.onload = function(e) {
+						// 	formatXscript1(xhr.responseText);
+						// }
+						// xhr.open('GET', t1URL, true);
+						// xhr.send();
+						} // if t2AttID
+					}
+				} // if t1AttID
+			} // if tOn
 		} // inspectShow()
 
 		function inspectSlide(diff)
@@ -3088,10 +3225,28 @@ function PViewFrame(vfIndex)
 		jQuery('#btn-inspect-left').click(inspectLeft);
 		jQuery('#btn-inspect-right').click(inspectRight);
 
-			// TO DO: Determine size based on extra widgets
+			// Set default size -- increase according to widget settings
+		var w=400;
+		var h=300;
+
+		if (prspdata.e.i.modal.scOn)
+		{
+			w=500; h=400;
+		} // if SoundCloud
+
+		if (prspdata.e.i.modal.ytOn)
+		{
+			w=500; h=500;
+		} // if YouTube
+
+		if (prspdata.e.i.tOn)
+		{
+			w=650; h+=200;
+		} // if Transcriptions
+
 		inspector = jQuery("#dialog-inspector").dialog({
-			height: 300,
-			width: 400,
+			width: w,
+			height: h,
 			modal: true,
 			buttons: {
 				'See Record': function() {
