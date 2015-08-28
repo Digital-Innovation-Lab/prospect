@@ -58,13 +58,26 @@ var V_FLAG_SET   = 0x08;		// Has an Options dialog
 var V_FLAG_VSCRL = 0x10;		// Add vertical scroll bar
 var V_FLAG_HSCRL = 0x20;		// Add horizontal scroll bar
 
-	// For processing transcriptions
-var parseTC 	= /(\d\d)\:(\d\d)\:(\d\d)\.(\d\d?)/;         // an exacting regular expression for parsing time
-
 	// GLOBAL VARS
 var TODAY = new Date();
 var localD3;					// For localizing D3
-var months;
+var months;						// Array of month names (for localization)
+var parseTC = /(\d\d)\:(\d\d)\:(\d\d)\.(\d\d?)/; 	// precise regular expression for parsing timecodes
+
+var widgetData = {			// Widget state has to be global because YouTube API calls global function
+							// Therefore code cannot rely upon closure to know state of widget data
+	ytLoaded: false,			// YouTube not initially loaded
+	ytCall: null,				// function to call once YouTube loaded
+	ytCode: null, 				// YouTube code to video to play
+	timer: null,				// Timer function for polling playhead
+	sTime: null,				// start time for any extract
+	eTime: null,				// end time for any extract
+	playing: false,				// true if widget currently playing
+	widget: null,				// JS playback widget object
+	xscriptOn: false,			// Transcript showing
+	tcArray: null,				// Array of timecode records { s[tart], e[nd] } in milliseconds
+	tcIndex: -1 				// Index of playhead in tcArray
+};
 
 // ==============================================================================
 // PVizModel: An abstract class to be subclassed by specific visualizations
@@ -3030,9 +3043,9 @@ function PViewFrame(vfIndex)
 	function clickOpenSelection(event)
 	{
 		var container = jQuery('#inspect-content');
-		var tcArray;		// Timecode array
-		var rowIndex;		// row of tcArray currently playing
-		var t2URL;
+		var avAttID=null;	// ID of any A/V widget or null
+		var avType=0;		// 0=none, 1=SoundCloud, 2=YouTube
+		var t2URL;			// URL for transcript 2 or null
 
 			// PURPOSE: Convert timecode string into # of milliseconds
 			// INPUT:   timecode must be in format [HH:MM:SS] or [HH:MM:SS.ss]
@@ -3059,17 +3072,47 @@ function PViewFrame(vfIndex)
 		} // tcToMilliSecs()
 
 			// PURPOSE: Format the second transcript (use first one's timecodes)
-		function formatXscript2(text)
+		function formatXscript2(text, xtbl)
 		{
+			var splitXcript = new String(text);
+			splitXcript = splitXcript.trim().split(/\r\n|\r|\n/g);
+			// var splitXcript = text.trim().split(/\r\n|\r|\n/g);       // More efficient but not working!
 
+			var ta = [];
+
+			if (splitXcript) {
+				var tb;
+				var ti = 0;
+				_.each(splitXcript, function(val) {
+						// Skip values with line breaks...basically empty items
+					val = val.trim();
+					if (val.length>1) {
+						if (val.charAt(0) === '[') {
+							if (ti>0) {
+								ta.push(tb);
+							}
+							tb='';
+						} else {
+							tb += val;
+						}
+						ti++;
+					}
+				});
+			}
+
+				// Loop thru HTML for left-side transcript and add right-side text
+			 _.each(ta, function(val, ti) {
+				xtbl.find('div.timecode[data-tcindex="'+ti+'"]').next().after('<div class="xscript">'+val+'</div>');
+			 });
 		} // formatXscript2()
 
 			// PURPOSE: Format the first transcript (with its timecodes)
 		function formatXscript1(text)
 		{
 				// empty time code array -- each entry has start & end
-			tcArray = [];
-			rowIndex = -1;
+			widgetData.tcArray = [];
+			widgetData.tcIndex = -1;
+			var tcs = widgetData.tcArray;
 
 				// split transcript text into array by line breaks
 			var splitXcript = new String(text);
@@ -3077,9 +3120,9 @@ function PViewFrame(vfIndex)
 			// var splitXcript = text.trim().split(/\r\n|\r|\n/g);       // More efficient but not working!
 
 			if (splitXcript) {
-				var tcIndex = 0;
+				var tcI = 0;
 				var timeCode, lastCode=0, lastStamp=0;
-				var textBlock='';
+				var tb='';		// Text block being built
 				var xtbl = jQuery('#xscript-tbl');
 				_.each(splitXcript, function(val) {
 						// Each entry is (1) empty/line break, (2) timestamp, or (3) text
@@ -3090,44 +3133,124 @@ function PViewFrame(vfIndex)
 						if (val.charAt(0) === '[' && (val.charAt(1) >= '0' && val.charAt(1) <= '9'))
 						{
 							timeCode = tcToMilliSecs(val);
-							if (textBlock.length) {
+							if (tb.length) {
 									// Append timecode entry once range is defined
 								if (lastStamp) {
-									tcArray.push({ s: lastCode, e: timeCode });
+									tcs.push({ s: lastCode, e: timeCode });
 								}
 								xtbl.append('<div class="row"><div class="timecode" data-timecode="'+
-									lastCode+'" data-tcindex="'+tcIndex++ +'">'+lastStamp+'</div><div class="text">'+textBlock+'</div></div>');
-								textBlock = '';
+									lastCode+'" data-tcindex="'+tcI++ +'">'+lastStamp+'</div><div class="xscript">'+tb+'</div></div>');
+								tb = '';
 							}
 							lastStamp = val;
 							lastCode = timeCode;
 
 							// Encountered textblock
 						} else {
-							textBlock += val;
+							tb += val;
 						}
 					} // if length
 				}); // _each
 					// Handle any dangling text
-				if (textBlock.length) {
+				if (tb.length) {
 						// Append very large number to ensure can't go past last item! 9 hours * 60 minutes * 60 seconds * 1000 milliseconds
-					tcArray.push({ s: lastCode, e: 32400000 });
+					tcs.push({ s: lastCode, e: 32400000 });
 					xtbl.append('<div class="row"><div class="timecode" data-timecode="'+
-						lastCode+'" data-tcindex="'+tcIndex+'">'+lastStamp+'</div><div class="text">'+textBlock+'</div></div>');
+						lastCode+'" data-tcindex="'+tcI+'">'+lastStamp+'</div><div class="xscript">'+tb+'</div></div>');
 				}
 					// Is there is a 2nd transcript? Load it
 				if (typeof t2URL != 'undefined' && t2URL != null) {
 console.log("Load transcript 2 at URL: "+t2URL);
 						// Load and parse transcript file
-					// var xhr = new XMLHttpRequest();
-					// xhr.onload = function(e) {
-					// 	formatXscript2(xhr.responseText);
-					// }
-					// xhr.open('GET', t2URL, true);
-					// xhr.send();
+					var xhr = new XMLHttpRequest();
+					xhr.onload = function(e) {
+						formatXscript2(xhr.responseText, xtbl);
+					}
+					xhr.open('GET', t2URL, true);
+					xhr.send();
 				}
 			} // if (split)
 		} // formatXscript1()
+
+			// PURPOSE: Update the timecode playhead if changed from last update
+		function highlightXscript(ms)
+		{
+			var match;
+			var oldI = widgetData.tcIndex;
+
+			_.find(widgetData.tcArray, function(tc, tcI) {
+				match = (tc.s <= ms && ms < tc.e);
+				if (match && tcI != oldI) {
+						// Should we synchronize audio and text transcript?
+					var xt = jQuery('#xscript-tbl');
+					if (document.getElementById("transcSyncOn").checked) {
+						var tsEntry = xt.find('[data-tcindex="'+tcI+'"]');
+						var topDiff = tsEntry.offset().top - xt.offset().top;
+						var scrollPos = xt.scrollTop() + topDiff;
+						xt.animate({ scrollTop: scrollPos }, 300);
+					}
+					xt.find('[data-tcindex="'+tcIndex+'"]').removeClass('current');
+					xt.find('[data-tcindex="'+tcI+'"]').addClass('current');
+					widgetData.tcIndex = tcI;
+				}
+				return match;
+			});
+		} // highlightXscript()
+
+			// PURPOSE: Called by global function once YouTube API loaded
+		function ytActivate()
+		{
+			function ytStateChange(event)
+			{
+				var curPos;
+
+				switch (event.data) {
+				case 1: // YT.PlayerState.PLAYING
+					widgetData.playing = true;
+					if (widgetData.timer == null) {
+							// YouTube playback heartbeat
+						widgetData.timer = setInterval(function() {
+								// Need to convert to milliseconds
+							curPos = widgetData.widget.getCurrentTime() * 1000;
+								// Keep within bounds of excerpt is done automatically by cue function
+								// If there is a transcript, highlight current section
+							if (widgetData.playing) {
+								highlightXscript(curPos);
+							}
+						}, 300);    // .3 second heartbeat
+					}
+					break;
+				case 0: // YT.PlayerState.ENDED
+				case 2: // YT.PlayerState.PAUSED
+					widgetData.playing = false;
+					window.clearInterval(widgetData.timer);
+					widgetData.timer = null;
+					break;
+				case 3: // YT.PlayerState.BUFFERING
+				case 5: // YT.PlayerState.CUED
+					widgetData.playing = false;
+					break;
+				} // switch event
+			} // ytStateChange()
+
+			widgetData.widget = new YT.Player('yt-widget', {
+				videoId: widgetData.ytCode,
+				events: {
+					onError: function(event) { console.log("YouTube Error: "+event.data); },
+					onStateChange: ytStateChange,
+					onReady: function() {
+							// If this is to play an excerpt, specify time bounds now (in seconds)
+						if (widgetData.eTime) {
+							widgetData.widget.cueVideoById(
+								{   videoId: widgetData.ytCode,
+									startSeconds: (widgetData.sTime/1000),
+									endSeconds: (widgetData.eTime/1000)
+								});
+						}
+					}
+				}
+			});
+		} // ytActivate()
 
 		var recSel=null;
 
@@ -3138,7 +3261,7 @@ console.log("Load transcript 2 at URL: "+t2URL);
 
 		var inspector;
 		var rec;
-		var i=0;
+		var i=0;		// Index of item to show in Inspector from selection
 
 		function inspectShow()
 		{
@@ -3148,7 +3271,26 @@ console.log("Load transcript 2 at URL: "+t2URL);
 			jQuery('#inspect-name').text(title);
 				// Which template type?
 			var tI = PData.aIndex2Tmplt(recAbsI);
-				// Show all data
+
+				// PURPOSE: Return start and end times for extract if any
+				// ASSUMES: Any timecode given contains both start and end separated by "-"
+			function getSETimes()
+			{
+				widgetData.sTime = widgetData.eTime = null;
+				var tcAttID;
+				if (tcAttID = prspdata.e.i.t.tcAtts[tI])
+				{
+					var tcAttVal;
+					if (tcAttVal = rec.a[tcAttID] && tcAttVal != '')
+					{
+						var tcs = tcAttVal.split('-');
+						widgetData.sTime = tcToMilliSecs(tcs[0]);
+						widgetData.eTime = tcToMilliSecs(tcs[1]);
+					}
+				}
+			} // getSETimes()
+
+				// Show all Attribute content data
 			container.empty();
 // console.log("Show atts: "+JSON.stringify(prspdata.e.i.modal.atts[tI]));
 			prspdata.e.i.modal.atts[tI].forEach(function(attID) {
@@ -3160,14 +3302,92 @@ console.log("Load transcript 2 at URL: "+t2URL);
 					container.append(html);
 				}
 			});
+				// Handle Inspector widgets
+			avAttID=null; avType=0; widgetData.xscriptOn=false;
+
 				// Show audio or video widget? (Not both)
-			var av=false;
 			if (prspdata.e.i.modal.scOn) {
+				if (avAttID = prspdata.e.i.sc.atts[tI]) {
+					var scAttVal;
+					if (scAttVal = rec.a[avAttID]) {
+						var primeAudio=true;
+						getSETimes();
 
-			}
-			if (!av && prspdata.e.i.modal.ytOn) {
+						avType=1;
+						container.append('<iframe id="sc-widget" class="player" width="100%" height="166" src="http://w.soundcloud.com/player/?url='+
+							scAttVal+'"></iframe></p>');
 
-			}
+							// Must set these variables after HTML appended above
+						var playWidget = SC.Widget(document.getElementById('sc-widget'));
+						widgetData.widget = playWidget;
+							// Setup SoundCloud player after entire sound clip loaded
+						playWidget.bind(SC.Widget.Events.READY, function() {
+								// Prime the audio -- must initially play (seekTo won't work until sound loaded and playing)
+							playWidget.play();
+							playWidget.bind(SC.Widget.Events.PLAY, function() {
+								widgetData.playing = true;
+							});
+							playWidget.bind(SC.Widget.Events.PAUSE, function() {
+								widgetData.playing = false;
+							});
+							playWidget.bind(SC.Widget.Events.PLAY_PROGRESS, function(params) {
+									// Pauses audio after it primes so seekTo will work properly
+								if (primeAudio) {
+									playWidget.pause();
+									primeAudio = false;
+									widgetData.playing = false;
+								}
+									// Keep within bounds if only excerpt of longer transcript
+								if (widgetData.eTime) {
+									if (params.currentPosition < widgetData.sTime) {
+										playWidget.seekTo(widgetData.sTime);
+									} else if (params.currentPosition > widgetData.eTime) {
+										playWidget.pause();
+										widgetData.playing = false;
+									}
+								}
+								if (widgetData.playing && widgetData.xscriptOn) {
+									highlightXscript(params.currentPosition);
+								}
+							});
+								// Can't seek within the SEEK event because it causes infinite recursion
+							playWidget.bind(SC.Widget.Events.FINISH, function() {
+								widgetData.playing = false;
+							});
+						});
+					} else
+						avAttID=null;
+				} // if avAttID
+			} // if scOn
+
+			if (avAttID == null && prspdata.e.i.modal.ytOn) {
+				if (avAttID = prspdata.e.i.yt.atts[tI]) {
+					var ytAttVal;
+					if (ytAttVal = rec.a[avAttID]) {
+						getSETimes();
+
+						container.append('<div id="yt-widget" style="margin: 3px"></div>');
+
+							// YouTube API is only loaded once
+						if (!widgetData.ytLoaded) {
+							widgetData.ytLoaded = true;
+							widgetData.ytCall = ytActivate;
+							widgetData.ytCode = ytAttVal;
+
+								// Create a script DIV that will cause API to be loaded
+							var tag = document.createElement('script');
+							tag.src = "https://www.youtube.com/iframe_api";
+							var scriptTag = document.getElementsByTagName('script')[0];
+							scriptTag.parentNode.insertBefore(tag, firstScriptTag);
+								// wait for hook invocation to set playWidget and bind handlers
+						}
+
+						avType=2;
+					} else
+						avAttID=null;
+				} // if avAttID
+			} // if ytOn
+
 				// Create transcription widget?
 			if (prspdata.e.i.modal.tOn) {
 				var t1AttID = prspdata.e.i.t.t1Atts[tI];
@@ -3177,6 +3397,34 @@ console.log("Load transcript 2 at URL: "+t2URL);
 					if (t1URL) {
 console.log("Load transcript 1 at URL: "+t1URL);
 						container.append('<div id="xscript-tbl"><div>');
+						widgetData.xscriptOn=true;
+
+							// Handle clicks on timecodes
+						jQuery('#xscript-tbl').click(function(evt) {
+							if (jQuery(evt.target).hasClass('timecode') && playWidget) {
+								var seekTo = jQuery(evt.target).data('timecode');
+
+									// seekTo doesn't work unless sound is already playing
+								switch (avType) {
+								case 1:
+									if (!playingNow) {
+										playingNow = true;
+										playWidget.play();
+									}
+									playWidget.seekTo(seekToTime);
+									break;
+								case 2:
+									if (!playingNow) {
+										playingNow = true;
+										playWidget.playVideo();
+									}
+										// YouTube player takes seconds (rather than milliseconds)
+									playWidget.seekTo(seekToTime/1000);
+									break;
+								}
+							}
+						});
+
 						t2URL=null;
 							// Is there a 2nd transcript Attribute?
 							// Set up for 1st to load when complete
@@ -3185,16 +3433,21 @@ console.log("Load transcript 1 at URL: "+t1URL);
 							t2URL = rec.a[t2AttID];
 						}
 							// Load and parse transcript file
-						// var xhr = new XMLHttpRequest();
-						// xhr.onload = function(e) {
-						// 	formatXscript1(xhr.responseText);
-						// }
-						// xhr.open('GET', t1URL, true);
-						// xhr.send();
+						var xhr = new XMLHttpRequest();
+						xhr.onload = function(e) {
+							formatXscript1(xhr.responseText);
+						}
+						xhr.open('GET', t1URL, true);
+						xhr.send();
 						} // if t2AttID
 					}
 				} // if t1AttID
 			} // if tOn
+
+				// Add synchronize button if both A/V and Transcript
+			if (avType > 0 && widgetData.xscriptOn) {
+				// jQuery('#xscript-tbl').before(); // TO DO
+			}
 		} // inspectShow()
 
 		function inspectSlide(diff)
@@ -3220,7 +3473,7 @@ console.log("Load transcript 1 at URL: "+t1URL);
 			inspectSlide(1);
 		}
 
-			// Show first item
+			// Show first item & handle scroll buttons
 		inspectShow();
 		jQuery('#btn-inspect-left').click(inspectLeft);
 		jQuery('#btn-inspect-right').click(inspectRight);
@@ -3774,10 +4027,10 @@ var PData = (function () {
 	// INTERNAL VARIABLES
 	// ==================
 
-	var recs = [];				// "head" array of all Records, one entry per Template type
-									// Corresponding to prspdata.t
-									// { n = # loaded, i = initial index for these records, d = data array }
-	var recsCount=0;				// Total number of Records
+	var recs=[];				// "head" array of all Records, one entry per Template type
+								// Corresponding to prspdata.t
+								// { n = # loaded, i = initial index for these records, d = data array }
+	var recsCount=0;			// Total number of Records
 
 
 	// INTERNAL FUNCTIONS
@@ -4760,7 +5013,7 @@ jQuery(document).ready(function($) {
 
 	function doRecompute()
 	{
-console.log("Start recompute");
+// console.log("Start recompute");
 		state = PSTATE_BUILD;
 
 			// Recompute must clear current selection
@@ -4806,16 +5059,16 @@ console.log("Start recompute");
 				theF.f.isDirty(false);
 				theF.f.out = newStream;
 				endStream = newStream;
-console.log("Output stream ["+fI+"]: "+JSON.stringify(newStream));
+// console.log("Output stream ["+fI+"]: "+JSON.stringify(newStream));
 			} else
 				endStream = theF.f.out;
 		}
-console.log("Filtering complete: visualization beginning");
+// console.log("Filtering complete: visualization beginning");
 		view0.showStream(endStream);
 		if (view1)
 			view1.showStream(endStream);
 		jQuery('#btn-recompute').removeClass('pulse');
-console.log("Visualization complete");
+// console.log("Visualization complete");
 		state = PSTATE_READY;
 	} // doRecompute()
 
@@ -4843,40 +5096,6 @@ console.log("Visualization complete");
 		}
 		view0.resize();
 	} // clickTog2nd()
-
-	// function doSetLayout(lIndex)
-	// {
-	// } // doSetLayout()
-
-
-	// function clickSetLayout(event)
-	// {
-	// 		// Clear previous selection
-	// 	jQuery("#layout-choices img").removeClass("selected");
-	// 	var setLayoutDialog;
-
-	// 	setLayoutDialog = jQuery("#dialog-set-layout").dialog({
-	// 		height: 250,
-	// 		width: 300,
-	// 		modal: true,
-	// 		buttons: {
-	// 			Set: function() {
-	// 				var selected = jQuery("#layout-choices img.selected");
-	// 				if (selected.length) {
-	// 					doSetLayout(selected.data("index"));
-	// 				}
-	// 				setLayoutDialog.dialog("close");
-	// 			},
-	// 			Cancel: function() {
-	// 				setLayoutDialog.dialog("close");
-	// 			}
-	// 		},
-	// 		close: function() {
-	// 		}
-	// 	});
-
-	// 	event.preventDefault();
-	// } // clickSetLayout()
 
 
 	function clickAbout(event)
@@ -5300,3 +5519,11 @@ console.log("Visualization complete");
 		// Init hub using config settings
 	PData.init();
 });
+
+	// Interface between embedded YouTube player and code that uses it
+	// This is called once iFrame and API code is ready
+function onYouTubeIframeAPIReady()
+{
+		// Call saved function call
+	widgetData.ytCall();
+} // onYouTubeIframeAPIReady()
