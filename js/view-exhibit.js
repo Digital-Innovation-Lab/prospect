@@ -3133,6 +3133,7 @@ function PViewFrame(vfIndex)
 						if (val.charAt(0) === '[' && (val.charAt(1) >= '0' && val.charAt(1) <= '9'))
 						{
 							timeCode = tcToMilliSecs(val);
+								// TO DO: Check timeCode against sTime & eTime!!
 							if (tb.length) {
 									// Append timecode entry once range is defined
 								if (lastStamp) {
@@ -3407,27 +3408,27 @@ console.log("Load transcript 1 at URL: "+t1URL);
 									// seekTo doesn't work unless sound is already playing
 								switch (avType) {
 								case 1:
-									if (!playingNow) {
-										playingNow = true;
-										playWidget.play();
+									if (!widgetData.playing) {
+										widgetData.playing = true;
+										widgetData.widget.play();
 									}
-									playWidget.seekTo(seekToTime);
+									widgetData.widget.seekTo(seekTo);
 									break;
 								case 2:
-									if (!playingNow) {
-										playingNow = true;
-										playWidget.playVideo();
+									if (!widgetData.playing) {
+										widgetData.playing = true;
+										widgetData.widget.playVideo();
 									}
 										// YouTube player takes seconds (rather than milliseconds)
-									playWidget.seekTo(seekToTime/1000);
+									widgetData.widget.seekTo(seekTo/1000);
 									break;
 								}
 							}
 						});
 
-						t2URL=null;
 							// Is there a 2nd transcript Attribute?
 							// Set up for 1st to load when complete
+						t2URL=null;
 						var t2AttID = prspdata.e.i.t.t2Atts[tI];
 						if (t2AttID && t2AttID !== '' && t2AttID != 'disable') {
 							t2URL = rec.a[t2AttID];
@@ -3439,8 +3440,7 @@ console.log("Load transcript 1 at URL: "+t1URL);
 						}
 						xhr.open('GET', t1URL, true);
 						xhr.send();
-						} // if t2AttID
-					}
+					} // t1URL
 				} // if t1AttID
 			} // if tOn
 
