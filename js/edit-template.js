@@ -361,7 +361,7 @@ jQuery(document).ready(function() {
 			if (!isDep || attDef.def.t != 'J') {
 					// Ensure not already used
 				if (curList.findIndex(function(item) { return item.id === attDef.id; }) == -1) {
-					var choice = { l: attDef.def.l, id: attDef.id, t: attDef.def.t, view: true };
+					var choice = { l: attDef.def.l, id: attDef.id, t: attMap[attDef.def.t], view: true };
 					attChoices.push(choice);
 				}
 			}
