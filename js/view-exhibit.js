@@ -70,8 +70,9 @@ var widgetData = {			// Widget state has to be global because YouTube API calls 
 	ytCall: null,				// function to call once YouTube loaded
 	ytCode: null, 				// YouTube code to video to play
 	timer: null,				// Timer function for polling playhead
-	sTime: null,				// start time for any extract
-	eTime: null,				// end time for any extract
+	extract: null,				// String of transcript extract timecodes
+	sTime: null,				// start time for any extract in milliseconds
+	eTime: null,				// end time for any extract in milliseconds
 	playing: false,				// true if widget currently playing
 	widget: null,				// JS playback widget object
 	xscriptOn: false,			// Transcript showing
@@ -3075,8 +3076,20 @@ function PViewFrame(vfIndex)
 		function formatXscript2(text, xtbl)
 		{
 			var splitXcript = new String(text);
+			if (widgetData.extract) {
+				var tc1 = splitXcript.indexOf(widgetData.extract[0]);
+				if (tc1 == -1) {
+					throw new Error("Transcript2 excerpt error: Cannot find timestamp "+widgetData.extract[0]);
+					return;
+				}
+				var tc2 = splitXcript.indexOf(widgetData.extract[1]);
+				if (tc2 == -1) {
+					throw new Error("Transcript2 excerpt error: Cannot find timestamp "+widgetData.extract[1]);
+					return;
+				}
+				splitXcript = splitXcript.substring(tc1-1, tc2-1);
+			}
 			splitXcript = splitXcript.trim().split(/\r\n|\r|\n/g);
-			// var splitXcript = text.trim().split(/\r\n|\r|\n/g);       // More efficient but not working!
 
 			var ta = [];
 
@@ -3086,7 +3099,7 @@ function PViewFrame(vfIndex)
 				_.each(splitXcript, function(val) {
 						// Skip values with line breaks...basically empty items
 					val = val.trim();
-					if (val.length>1) {
+					if (val.length>0) {
 						if (val.charAt(0) === '[') {
 							if (ti>0) {
 								ta.push(tb);
@@ -3116,10 +3129,20 @@ function PViewFrame(vfIndex)
 
 				// split transcript text into array by line breaks
 			var splitXcript = new String(text);
+			if (widgetData.extract) {
+				var tc1 = splitXcript.indexOf(widgetData.extract[0]);
+				if (tc1 == -1) {
+					throw new Error("Transcript excerpt error: Cannot find timestamp "+widgetData.extract[0]);
+					return;
+				}
+				var tc2 = splitXcript.indexOf(widgetData.extract[1]);
+				if (tc2 == -1) {
+					throw new Error("Transcript excerpt error: Cannot find timestamp "+widgetData.extract[1]);
+					return;
+				}
+				splitXcript = splitXcript.substring(tc1-1, tc2-1);
+			}
 			splitXcript = splitXcript.trim().split(/\r\n|\r|\n/g);
-			// var splitXcript = text.trim().split(/\r\n|\r|\n/g);       // More efficient but not working!
-
-				// TO DO: Extract text between sTime & eTime!!
 
 			if (splitXcript) {
 				var tcI = 0;
@@ -3135,7 +3158,7 @@ function PViewFrame(vfIndex)
 						if (val.charAt(0) === '[' && (val.charAt(1) >= '0' && val.charAt(1) <= '9'))
 						{
 							timeCode = tcToMilliSecs(val);
-							if (tb.length) {
+							if (tb.length > 0) {
 									// Append timecode entry once range is defined
 								if (lastStamp) {
 									tcs.push({ s: lastCode, e: timeCode });
@@ -3154,7 +3177,7 @@ function PViewFrame(vfIndex)
 					} // if length
 				}); // _each
 					// Handle any dangling text
-				if (tb.length) {
+				if (tb.length > 0) {
 						// Append very large number to ensure can't go past last item! 9 hours * 60 minutes * 60 seconds * 1000 milliseconds
 					tcs.push({ s: lastCode, e: 32400000 });
 					xtbl.append('<div class="row"><div class="timecode" data-timecode="'+
@@ -3162,7 +3185,6 @@ function PViewFrame(vfIndex)
 				}
 					// Is there is a 2nd transcript? Load it
 				if (typeof t2URL != 'undefined' && t2URL != null) {
-console.log("Load transcript 2 at URL: "+t2URL);
 						// Load and parse transcript file
 					var xhr = new XMLHttpRequest();
 					xhr.onload = function(e) {
@@ -3191,7 +3213,8 @@ console.log("Load transcript 2 at URL: "+t2URL);
 						var scrollPos = xt.scrollTop() + topDiff;
 						xt.animate({ scrollTop: scrollPos }, 300);
 					}
-					xt.find('[data-tcindex="'+tcIndex+'"]').removeClass('current');
+					if (oldI != -1)
+						xt.find('[data-tcindex="'+oldI+'"]').removeClass('current');
 					xt.find('[data-tcindex="'+tcI+'"]').addClass('current');
 					widgetData.tcIndex = tcI;
 				}
@@ -3242,7 +3265,7 @@ console.log("Load transcript 2 at URL: "+t2URL);
 					onStateChange: ytStateChange,
 					onReady: function() {
 							// If this is to play an excerpt, specify time bounds now (in seconds)
-						if (widgetData.eTime) {
+						if (widgetData.extract) {
 							widgetData.widget.cueVideoById(
 								{   videoId: widgetData.ytCode,
 									startSeconds: (widgetData.sTime/1000),
@@ -3282,10 +3305,12 @@ console.log("Load transcript 2 at URL: "+t2URL);
 				var tcAttID;
 				if (tcAttID = prspdata.e.i.t.tcAtts[tI])
 				{
-					var tcAttVal;
-					if (tcAttVal = rec.a[tcAttID] && tcAttVal != '')
+					var tcAttVal = rec.a[tcAttID];
+
+					if (tcAttVal && tcAttVal != '')
 					{
 						var tcs = tcAttVal.split('-');
+						widgetData.extract = tcs;
 						widgetData.sTime = tcToMilliSecs(tcs[0]);
 						widgetData.eTime = tcToMilliSecs(tcs[1]);
 					}
@@ -3305,7 +3330,10 @@ console.log("Load transcript 2 at URL: "+t2URL);
 				}
 			});
 				// Handle Inspector widgets
-			avAttID=null; avType=0; widgetData.xscriptOn=false;
+			avAttID=null; avType=0;
+			widgetData.extract=null;
+			widgetData.xscriptOn=false;
+			widgetData.playing=false;
 
 				// Show audio or video widget? (Not both)
 			if (prspdata.e.i.modal.scOn) {
@@ -3340,7 +3368,7 @@ console.log("Load transcript 2 at URL: "+t2URL);
 									widgetData.playing = false;
 								}
 									// Keep within bounds if only excerpt of longer transcript
-								if (widgetData.eTime) {
+								if (widgetData.extract) {
 									if (params.currentPosition < widgetData.sTime) {
 										playWidget.seekTo(widgetData.sTime);
 									} else if (params.currentPosition > widgetData.eTime) {
@@ -3367,6 +3395,7 @@ console.log("Load transcript 2 at URL: "+t2URL);
 					var ytAttVal;
 					if (ytAttVal = rec.a[avAttID]) {
 						getSETimes();
+						widgetData.ytCode = ytAttVal;
 
 						container.append('<div id="yt-widget"></div>');
 
@@ -3374,7 +3403,6 @@ console.log("Load transcript 2 at URL: "+t2URL);
 						if (!widgetData.ytLoaded) {
 							widgetData.ytLoaded = true;
 							widgetData.ytCall = ytActivate;
-							widgetData.ytCode = ytAttVal;
 
 								// Create a script DIV that will cause API to be loaded
 							var tag = document.createElement('script');
@@ -3382,7 +3410,8 @@ console.log("Load transcript 2 at URL: "+t2URL);
 							var scriptTag = document.getElementsByTagName('script')[0];
 							scriptTag.parentNode.insertBefore(tag, scriptTag);
 								// wait for hook invocation to set playWidget and bind handlers
-						}
+						} else
+							ytActivate();
 
 						avType=2;
 					} else
@@ -3402,7 +3431,7 @@ console.log("Load transcript 2 at URL: "+t2URL);
 
 							// Handle clicks on timecodes
 						jQuery('#xscript-tbl').click(function(evt) {
-							if (jQuery(evt.target).hasClass('timecode') && playWidget) {
+							if (avType && jQuery(evt.target).hasClass('timecode')) {
 								var seekTo = jQuery(evt.target).data('timecode');
 
 									// seekTo doesn't work unless sound is already playing
@@ -3484,17 +3513,18 @@ console.log("Load transcript 2 at URL: "+t2URL);
 
 		if (prspdata.e.i.modal.scOn)
 		{
-			w=500; h=400;
+			w=550; h=400;
 		} // if SoundCloud
 
 		if (prspdata.e.i.modal.ytOn)
 		{
-			w=500; h=500;
+			w=450; h=500;
 		} // if YouTube
 
 		if (prspdata.e.i.tOn)
 		{
-			w=650; h+=200;
+			// w=650;
+			h+=100;
 		} // if Transcriptions
 
 		inspector = jQuery("#dialog-inspector").dialog({
@@ -3506,6 +3536,19 @@ console.log("Load transcript 2 at URL: "+t2URL);
 					window.open(prspdata.site_url+'?p='+rec.wp, '_blank');
 				},
 				Close: function() {
+						// Stop any A/V playing
+					switch(avType) {
+					case 1:
+						widgetData.widget.pause();
+						break;
+					case 2:
+							// Silence YouTube player if modal closed in another way
+						widgetData.widget.stopVideo();
+						if (widgetData.timer) {
+							window.clearInterval(widgetData.timer);
+						}
+						break;
+					}
 					jQuery('#btn-inspect-left').off("click");
 					jQuery('#btn-inspect-right').off("click");
 					inspector.dialog("close");
@@ -5461,10 +5504,6 @@ jQuery(document).ready(function($) {
 		}
 	});
 
-		// Create options on Layout modal
-	// jQuery('#layout-choices').append('<img src="'+prspdata.assets+'layout1.jpg" data-index="0"/><img src="'+
-	// 		prspdata.assets+'layout2.jpg" data-index="1"/><img src="'+prspdata.assets+'layout3.jpg" data-index="2"/>');
-
 		// Handle selection of item on Set Layout modal
 	jQuery('#layout-choices').click(function(event) {
 		if (event.target.nodeName == 'IMG') {
@@ -5499,7 +5538,7 @@ jQuery(document).ready(function($) {
 	jQuery("body").on("prospect", function(event, data) {
 		if (data.pstate = PSTATE_PROCESS) {
 			state = PSTATE_PROCESS;
-				// TO DO: Check views for ready state until they can render -- use timer
+				// TO DO: Check views for ready state until they can render -- use timer?
 			doRecompute();
 		}
 	});
