@@ -81,9 +81,10 @@
 		<div>{{#with inspectSettings}}
 			<div>
 				Widgets to Use: 
-				<input type='checkbox' checked='{{modal.scOn}}'/> SoundCloud
-				<input type='checkbox' checked='{{modal.ytOn}}'/> YouTube
-				<input type='checkbox' checked='{{modal.tOn}}'/> Transcript
+				<input type='checkbox' checked='{{modal.scOn}}'/> Enable SoundCloud
+				<input type='checkbox' checked='{{modal.ytOn}}'/> Enable YouTube
+				<input type='checkbox' checked='{{modal.tOn}}'/> Enable Transcripts
+				<input type='checkbox' checked='{{modal.t2On}}'/> Enable Dual Transcripts
 			</div>
 			<accordion>
 				<h3>Attributes to Display</h3>

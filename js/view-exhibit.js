@@ -3524,7 +3524,9 @@ function PViewFrame(vfIndex)
 		if (prspdata.e.i.tOn)
 		{
 			// w=650;
-			h+=100;
+			// h+=100;
+			if (prspdata.e.i.t2On)
+				w=700;
 		} // if Transcriptions
 
 		inspector = jQuery("#dialog-inspector").dialog({

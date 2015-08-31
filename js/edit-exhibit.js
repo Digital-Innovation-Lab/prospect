@@ -182,7 +182,7 @@ jQuery(document).ready(function() {
 	}
 		// Configurations of Inspector
 	var defInspect = { sc: { atts: [] }, yt: { atts: [] }, t: { t1Atts: [], t2Atts: [], tcAtts: [] },
-					modal: { scOn: false, ytOn: false, tOn: false, atts: [] } };
+					modal: { scOn: false, ytOn: false, tOn: false, t2On: false, atts: [] } };
 	embedData = jQuery('textarea[name="prsp_xhbt_inspect"]').val();
 	if (embedData && embedData != 'null' && embedData.length > 4) {
 		defInspect = JSON.parse(embedData);
@@ -1241,6 +1241,7 @@ jQuery(document).ready(function() {
 			saveInspect.modal.scOn = inspectSettings.modal.scOn;
 			saveInspect.modal.ytOn = inspectSettings.modal.ytOn;
 			saveInspect.modal.tOn  = inspectSettings.modal.tOn;
+			saveInspect.modal.t2On  = inspectSettings.modal.t2On;
 			var newModalCnt = [];
 			saveTIndices.forEach(function(tIndex) {
 				newModalCnt.push(packUsedAtts(inspectSettings.modal.atts[tIndex]));
