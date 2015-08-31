@@ -1106,25 +1106,32 @@ div.filter-vocab-bar {
 	border: 1px black dotted;
 }
 
-/** Transcriptions 
+/** WIDGETS
  **/
 
+#yt-widget {
+	width: 400px;
+	margin: 3px;
+}
+
 #xscript-tbl {
+	margin-top: 4px;
 	max-height: 300px;
 	overflow-y: scroll;
 }
 
-#xscript-tbl .row {
+#xscript-tbl div.row {
 	display: table-row;
-	margin: 4px;
+	margin: 3px;
+	border: blue 1px solid;
 }
 
 	/* Create odd-even background toggle */
-#xcript-tbl .row:nth-child(odd) {
+#xscript-tbl div.row:nth-child(odd) {
 	background: #ddd;
 }
 
-#xscript-tbl .timecode {
+#xscript-tbl div.timecode {
 	display: table-cell;
 	line-height: 1.2em;
 	padding: 4px;
@@ -1132,17 +1139,17 @@ div.filter-vocab-bar {
 }
 
 	/* playhead */
-#xscript-tbl .timecode.current {
+#xscript-tbl div.timecode.current {
 	background-color: #007fff;
 	color: #fff;
 }
 
-#xscript-tbl .timecode:hover {
+#xscript-tbl div.timecode:hover {
 	background-color: #0055bb;
 	color: #fff;
 }
 
-#xscript-tbl .xscript {
+#xscript-tbl div.xscript {
 	display: table-cell;
 	vertical-align: top;
 	line-height: 1.2em;

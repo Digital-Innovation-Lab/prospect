@@ -155,6 +155,10 @@ about
 now
 </script>
 
+<script id="dltext-sync-xscript" type="text">
+<input type="checkbox" id="sync-xscript" name="sync-xscript" checked> Scroll transcript to follow playback
+</script>
+
 <script id="dltext-month-names" type="text">
 Jan|Feb|Mar|Apr|May|June|July|Aug|Sep|Oct|Nov|Dec
 </script>

@@ -13,3 +13,7 @@ about
 <script id="dltext-now" type="text">
 now
 </script>
+
+<script id="dltext-sync-xscript" type="text">
+<input type="checkbox" id="sync-xscript" name="sync-xscript" checked> Scroll transcript to follow playback
+</script>

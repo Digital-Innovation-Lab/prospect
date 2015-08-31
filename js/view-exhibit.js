@@ -3119,6 +3119,8 @@ function PViewFrame(vfIndex)
 			splitXcript = splitXcript.trim().split(/\r\n|\r|\n/g);
 			// var splitXcript = text.trim().split(/\r\n|\r|\n/g);       // More efficient but not working!
 
+				// TO DO: Extract text between sTime & eTime!!
+
 			if (splitXcript) {
 				var tcI = 0;
 				var timeCode, lastCode=0, lastStamp=0;
@@ -3133,7 +3135,6 @@ function PViewFrame(vfIndex)
 						if (val.charAt(0) === '[' && (val.charAt(1) >= '0' && val.charAt(1) <= '9'))
 						{
 							timeCode = tcToMilliSecs(val);
-								// TO DO: Check timeCode against sTime & eTime!!
 							if (tb.length) {
 									// Append timecode entry once range is defined
 								if (lastStamp) {
@@ -3184,7 +3185,7 @@ console.log("Load transcript 2 at URL: "+t2URL);
 				if (match && tcI != oldI) {
 						// Should we synchronize audio and text transcript?
 					var xt = jQuery('#xscript-tbl');
-					if (document.getElementById("transcSyncOn").checked) {
+					if (document.getElementById("sync-xscript").checked) {
 						var tsEntry = xt.find('[data-tcindex="'+tcI+'"]');
 						var topDiff = tsEntry.offset().top - xt.offset().top;
 						var scrollPos = xt.scrollTop() + topDiff;
@@ -3367,7 +3368,7 @@ console.log("Load transcript 2 at URL: "+t2URL);
 					if (ytAttVal = rec.a[avAttID]) {
 						getSETimes();
 
-						container.append('<div id="yt-widget" style="margin: 3px"></div>');
+						container.append('<div id="yt-widget"></div>');
 
 							// YouTube API is only loaded once
 						if (!widgetData.ytLoaded) {
@@ -3379,7 +3380,7 @@ console.log("Load transcript 2 at URL: "+t2URL);
 							var tag = document.createElement('script');
 							tag.src = "https://www.youtube.com/iframe_api";
 							var scriptTag = document.getElementsByTagName('script')[0];
-							scriptTag.parentNode.insertBefore(tag, firstScriptTag);
+							scriptTag.parentNode.insertBefore(tag, scriptTag);
 								// wait for hook invocation to set playWidget and bind handlers
 						}
 
@@ -3396,7 +3397,6 @@ console.log("Load transcript 2 at URL: "+t2URL);
 				if (t1AttID && t1AttID !== '' && t1AttID != 'disable') {
 					var t1URL = rec.a[t1AttID];
 					if (t1URL) {
-console.log("Load transcript 1 at URL: "+t1URL);
 						container.append('<div id="xscript-tbl"><div>');
 						widgetData.xscriptOn=true;
 
@@ -3446,7 +3446,7 @@ console.log("Load transcript 1 at URL: "+t1URL);
 
 				// Add synchronize button if both A/V and Transcript
 			if (avType > 0 && widgetData.xscriptOn) {
-				// jQuery('#xscript-tbl').before(); // TO DO
+				jQuery('#xscript-tbl').before('<div>'+document.getElementById('dltext-sync-xscript').innerHTML+'</div>');
 			}
 		} // inspectShow()
 

@@ -32,6 +32,12 @@
 <script src="<?php echo(plugins_url('js/map-hub.js', dirname(__FILE__))); ?>"></script>
 <script src="<?php echo(plugins_url('js/view-exhibit.js', dirname(__FILE__))); ?>"></script>
 
+<?php
+	$the_xhbt = new ProspectExhibit(true, get_the_ID(), true);
+	if ($the_xhbt->inspect->modal->scOn)
+		echo('<script src="http://w.soundcloud.com/player/api.js"></script>');
+?>
+
 <script>
 	var prspdata = {
 		ajax_url: <?php
@@ -52,7 +58,6 @@
 	echo('"'.plugins_url('/assets/', dirname(__FILE__)).'"');
 ?>,
 		e: <?php
-	$the_xhbt = new ProspectExhibit(true, get_the_ID(), true);
 		// Put Attribute list in sorted order
 	sort($the_xhbt->gen->ts);
 	echo(' { id: "'.$the_xhbt->id.'", ');
