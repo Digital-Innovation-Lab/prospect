@@ -3,8 +3,8 @@
  * Plugin Name:       Prospect
  * Plugin URI:        
  * Description:       Digital Humanities platform for visualizing curated collections
- * Version:           0.1
- * Author:            Michael Newton, Digital Innovation Lab, UNC-CH
+ * Version:           0.5.1
+ * Author:            Michael Newton, Breon Williams, Digital Innovation Lab, UNC-CH
  * Author URI:        
  * Text Domain:       dil-prospect
  * License:           GPL-2.0+
