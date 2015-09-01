@@ -120,7 +120,10 @@ class ProspectRecord {
 						case 'P':
 							if ($att_def->d != '') {
 								$v_set = explode($att_def->d, $val);
-								$this->att_data[$att_to_load] = array_map(trim, $v_set);
+								$this->att_data[$att_to_load] = array();
+								foreach ($v_set as $value) {
+									array_push($this->att_data[$att_to_load], trim($value));
+								}
 							} else
 								$this->att_data[$att_to_load] = array(trim($val));
 							break;
