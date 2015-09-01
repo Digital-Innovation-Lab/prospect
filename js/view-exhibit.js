@@ -3319,10 +3319,8 @@ function PViewFrame(vfIndex)
 
 				// Show all Attribute content data
 			container.empty();
-// console.log("Show atts: "+JSON.stringify(prspdata.e.i.modal.atts[tI]));
 			prspdata.e.i.modal.atts[tI].forEach(function(attID) {
 				var attVal = PData.getRecAtt(recAbsI, attID, false);
-// console.log("AttID: "+attID+"; val: "+attVal);
 				if (attVal) {
 					var theAtt = PData.getAttID(attID);
 					var html = '<div><span class="att-label">'+theAtt.def.l+':</span> '+attVal+'</div>';
@@ -3385,15 +3383,14 @@ function PViewFrame(vfIndex)
 								widgetData.playing = false;
 							});
 						});
-					} else
-						avAttID=null;
+					}
 				} // if avAttID
 			} // if scOn
 
-			if (avAttID == null && prspdata.e.i.modal.ytOn) {
+			if (avType == 0 && prspdata.e.i.modal.ytOn) {
 				if (avAttID = prspdata.e.i.yt.atts[tI]) {
-					var ytAttVal;
-					if (ytAttVal = rec.a[avAttID]) {
+					var ytAttVal = rec.a[avAttID];
+					if (ytAttVal) {
 						getSETimes();
 						widgetData.ytCode = ytAttVal;
 
@@ -3414,8 +3411,7 @@ function PViewFrame(vfIndex)
 							ytActivate();
 
 						avType=2;
-					} else
-						avAttID=null;
+					}
 				} // if avAttID
 			} // if ytOn
 
@@ -3426,6 +3422,10 @@ function PViewFrame(vfIndex)
 				if (t1AttID && t1AttID !== '' && t1AttID != 'disable') {
 					var t1URL = rec.a[t1AttID];
 					if (t1URL) {
+							// Add synchronize button if both A/V and Transcript
+						if (avType > 0) {
+							container.append('<div>'+document.getElementById('dltext-sync-xscript').innerHTML+'</div>');
+						}
 						container.append('<div id="xscript-tbl"><div>');
 						widgetData.xscriptOn=true;
 
@@ -3472,11 +3472,6 @@ function PViewFrame(vfIndex)
 					} // t1URL
 				} // if t1AttID
 			} // if tOn
-
-				// Add synchronize button if both A/V and Transcript
-			if (avType > 0 && widgetData.xscriptOn) {
-				jQuery('#xscript-tbl').before('<div>'+document.getElementById('dltext-sync-xscript').innerHTML+'</div>');
-			}
 		} // inspectShow()
 
 		function inspectSlide(diff)
@@ -3518,7 +3513,8 @@ function PViewFrame(vfIndex)
 
 		if (prspdata.e.i.modal.ytOn)
 		{
-			w=450; h=500;
+			w=Math.max(w,450);
+			h=500;
 		} // if YouTube
 
 		if (prspdata.e.i.tOn)
@@ -3526,7 +3522,7 @@ function PViewFrame(vfIndex)
 			// w=650;
 			// h+=100;
 			if (prspdata.e.i.t2On)
-				w=700;
+				w=750;
 		} // if Transcriptions
 
 		inspector = jQuery("#dialog-inspector").dialog({

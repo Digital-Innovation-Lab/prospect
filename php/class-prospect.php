@@ -57,6 +57,11 @@ class Prospect {
 				wp_enqueue_script('jquery');
 				wp_enqueue_script('underscore');
 
+				wp_enqueue_style('view-record-css', plugins_url('/css/view-record.css', dirname(__FILE__)));
+
+				if ($the_template->view->sc != null && $the_template->view->sc != 'disable')
+					wp_enqueue_script('soundcloud-api', 'http://w.soundcloud.com/player/api.js');
+
 				wp_enqueue_script('view-record', plugins_url('/js/view-record.js', dirname(__FILE__)),
 								array('jquery', 'underscore'));
 
