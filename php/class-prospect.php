@@ -103,7 +103,9 @@ class Prospect {
 			$page_template = dirname(__FILE__).'/view-exhibit.php';
 			break;
 
+			// Don't current support any special views as they are meant for backend
 		case 'prsp-map':
+		case 'prsp-prspctv':
 			break;
 		} // switch
 
@@ -245,6 +247,7 @@ class Prospect {
 		); 
 		register_post_type('prsp-exhibit', $args);
 
+			// Register Map Custom Post Type
 		$labels = array(
 			'name' => _x( 'Maps', 'taxonomy general name' ),
 			'singular_name' => _x( 'Map', 'taxonomy singular name' ),
@@ -277,13 +280,45 @@ class Prospect {
 			'map_meta_cap' => true
 		);
 		register_post_type('prsp-map', $args);
+
+			// Register Perspective Custom Post Type
+		$labels = array(
+			'name' => _x( 'Perspectives', 'taxonomy general name' ),
+			'singular_name' => _x( 'Perspective', 'taxonomy singular name' ),
+			'add_new' => __('Add New', 'prsp-prspctv'),
+			'add_new_item' => __('Add New Perspective'),
+			'edit_item' => __('Edit Perspective'),
+			'new_item' => __('New Perspective'),
+			'all_items' => __('Perspectives'),
+			'view' => __('View'),
+			'view_item' => __('View Perspective'),
+			 'search_items' => __('Search Perspectives'),
+			'not_found' =>  __('No Perspectives found'),
+			'not_found_in_trash' => __('No Perspective found in Trash'), 
+			'parent_item_colon' => '',
+			'menu_name' => __('Perspectives')
+		);
+		$args = array(
+			'labels' => $labels,
+			'public' => true,
+			'show_ui' => true, 
+			'show_in_menu' => 'prsp-top-level-handle',
+			'rewrite' => array('slug' => 'prsp-prspctv', 'with_front' => FALSE),
+			'has_archive' => false,
+			'hierarchical' => false,
+			'menu_position' => null,
+			'supports' => array('title', 'thumbnail', 'revisions'),
+			'capability_type' => 'prsp_prspctv',
+			'map_meta_cap' => true
+		);
+		register_post_type('prsp-prspctv', $args);
 	} // init_prospect()
 
 
 	public function __construct()
 	{
 		$this->plugin_slug = 'prsp-slug';
-		$this->version = '0.1.0';
+		$this->version = '0.5.1';
 
 		$this->load_dependencies();
 
@@ -307,6 +342,7 @@ class Prospect {
 		require_once plugin_dir_path(__FILE__).'class-record.php';
 		require_once plugin_dir_path(__FILE__).'class-exhibit.php';
 		require_once plugin_dir_path(__FILE__).'class-map.php';
+		require_once plugin_dir_path(__FILE__).'class-perspective.php';
 
 		require_once plugin_dir_path(__FILE__).'class-prospect-loader.php';
 		$this->loader = new ProspectLoader();
@@ -328,6 +364,7 @@ class Prospect {
 		$this->loader->add_action('add_meta_boxes_prsp-record', $this->admin, 'add_prsp_record_admin_edit');
 		$this->loader->add_action('add_meta_boxes_prsp-exhibit', $this->admin, 'add_prsp_exhibit_admin_edit');
 		$this->loader->add_action('add_meta_boxes_prsp-map', $this->admin, 'add_prsp_map_admin_edit');
+		$this->loader->add_action('add_meta_boxes_prsp-prspctv', $this->admin, 'add_prsp_prspctv_admin_edit');
 			// Hook for saving Dashboard data
 		$this->loader->add_action('save_post', $this->admin, 'save_post');
 

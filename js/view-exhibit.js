@@ -35,6 +35,7 @@ if (!Array.prototype.findIndex) {
 //				t = array of Template definitions (no Joins) and Record numbers: { id, def, n }
 //				e = Exhibit definition { id, g, vf, i }
 //				m = overlay map data
+//				p = array of associated Perspectives { l, s, n }
 
 	// GLOBAL CONSTANTS
 var EVENT_INSTANT = 1;			// Single instantaneous event (not Date range)

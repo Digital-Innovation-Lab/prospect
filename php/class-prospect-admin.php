@@ -229,7 +229,7 @@ class ProspectAdmin {
 					'prsp-map', 'normal', 'high');
 	} // add_prsp_map_admin_edit()
 
-		// PURPOSE: Insert HTML for Dashboard Exhibit Editor and embed data
+		// PURPOSE: Insert HTML for Dashboard Map Editor and embed data
 	public function show_prsp_map_admin_edit()
 	{
 		$postID  = get_the_ID();
@@ -253,6 +253,31 @@ class ProspectAdmin {
 		echo 'E Bounds: <input name="prsp_map_e_bounds" type="text" value="'.$the_map->meta_data['eBounds'].'" size=10/><br/>';
 		echo 'W Bounds: <input name="prsp_map_w_bounds" type="text" value="'.$the_map->meta_data['wBounds'].'" size=10/><br/>';
 	} // show_prsp_map_admin_edit()
+
+
+	public function add_prsp_prspctv_admin_edit($post_type)
+	{
+		add_meta_box('prsp_prspctv_box', 'Edit Perspective', array($this, 'show_prsp_prspctv_admin_edit'),
+					'prsp-prspctv', 'normal', 'high');
+	} // add_prsp_prspctv_admin_edit()
+
+
+		// PURPOSE: Insert HTML for Perspective Editor and embed data
+	public function show_prsp_prspctv_admin_edit()
+	{
+		$postID  = get_the_ID();
+
+			// Use nonce for verification
+		echo wp_nonce_field('prsp_save_prspctv'.$postID, 'prsp_nonce');
+
+		$the_prspctv = new ProspectPerspective($postID, false);
+
+			// Can all be done in regular input fields
+		echo 'Label: <input name="prsp_prspctv_l" type="text" value="'.$the_prspctv->l.'" size=30/><br/>';
+		echo 'Exhibit ID: <input name="prsp_xbht_id" type="text" value="'.$the_prspctv->xhbt_id.'" size=20/><br/>';
+		echo 'Annotation: <textarea name="prsp_prspctv_note" form="post" rows="4" cols="50">'.$the_prspctv->note.'</textarea><br/>';
+		echo 'JSON data: <textarea name="prsp_prspctv_state" form="post" rows="3" cols="50" spellcheck="false">'.$the_prspctv->meta_state.'</textarea><br/>';
+	} // show_prsp_prspctv_admin_edit()
 
 
 		// PURPOSE: Save custom fields about data entity
@@ -425,6 +450,29 @@ class ProspectAdmin {
 			if (isset($_POST['prsp_map_w_bounds'])) {
 				$data = sanitize_text_field($_POST['prsp_map_w_bounds']);
 				update_post_meta($post_id, 'map_w_bounds', $data);
+			}
+			break;
+		case 'prsp-prspctv':
+				// Verify the nonce is valid
+			if (!wp_verify_nonce($nonce, 'prsp_save_prspctv'.$post_id))
+				return $post_id;
+
+				// Update each value
+			if (isset($_POST['prsp_prspctv_l'])) {
+				$data = sanitize_text_field($_POST['prsp_prspctv_l']);
+				update_post_meta($post_id, 'prspctv-l', $data);
+			}
+			if (isset($_POST['prsp_xbht_id'])) {
+				$data = sanitize_text_field($_POST['prsp_xbht_id']);
+				update_post_meta($post_id, 'xhbt-id', $data);
+			}
+			if (isset($_POST['prsp_prspctv_note'])) {
+				$data = sanitize_text_field($_POST['prsp_prspctv_note']);
+				update_post_meta($post_id, 'prspctv-note', $data);
+			}
+			if (isset($_POST['prsp_prspctv_state'])) {
+				$data = sanitize_text_field($_POST['prsp_prspctv_state']);
+				update_post_meta($post_id, 'prspctv-state', $data);
 			}
 			break;
 		} // switch post_type
