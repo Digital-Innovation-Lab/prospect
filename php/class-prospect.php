@@ -379,6 +379,9 @@ class Prospect {
 		$this->loader->add_action('admin_action_prsp_export_all', $this->admin, 'prsp_export_all');
 		$this->loader->add_action('admin_action_prsp_export_map', $this->admin, 'prsp_export_map');
 		$this->loader->add_action('admin_action_prsp_export_all_maps', $this->admin, 'prsp_export_all_maps');
+		$this->loader->add_action('admin_action_prsp_export_perspective', $this->admin, 'prsp_export_perspective');
+		$this->loader->add_action('admin_action_prsp_export_xhbt_perspectives', $this->admin, 'prsp_export_xhbt_perspectives');
+		$this->loader->add_action('admin_action_prsp_export_all_perspectives', $this->admin, 'prsp_export_all_perspectives');
 
 		$this->loader->add_action('admin_init', $this->admin, 'do_prsp_init');
 

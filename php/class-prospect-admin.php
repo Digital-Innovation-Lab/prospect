@@ -270,9 +270,10 @@ class ProspectAdmin {
 			// Use nonce for verification
 		echo wp_nonce_field('prsp_save_prspctv'.$postID, 'prsp_nonce');
 
-		$the_prspctv = new ProspectPerspective($postID, false);
+		$the_prspctv = new ProspectPerspective(true, $postID, false);
 
 			// Can all be done in regular input fields
+		echo 'Perspective ID: <input name="prsp_prspctv_id" type="text" value="'.$the_prspctv->id.'" size=20/><br/>';
 		echo 'Label: <input name="prsp_prspctv_l" type="text" value="'.$the_prspctv->l.'" size=30/><br/>';
 		echo 'Exhibit ID: <input name="prsp_xbht_id" type="text" value="'.$the_prspctv->xhbt_id.'" size=20/><br/>';
 		echo 'Annotation: <textarea name="prsp_prspctv_note" form="post" rows="4" cols="50">'.$the_prspctv->note.'</textarea><br/>';
@@ -458,6 +459,10 @@ class ProspectAdmin {
 				return $post_id;
 
 				// Update each value
+			if (isset($_POST['prsp_prspctv_id'])) {
+				$data = sanitize_text_field($_POST['prsp_prspctv_id']);
+				update_post_meta($post_id, 'prspctv-id', $data);
+			}
 			if (isset($_POST['prsp_prspctv_l'])) {
 				$data = sanitize_text_field($_POST['prsp_prspctv_l']);
 				update_post_meta($post_id, 'prspctv-l', $data);
