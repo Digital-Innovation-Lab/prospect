@@ -5,8 +5,7 @@ class ProspectExhibit {
 		// =============
 
 
-		// RETURNS: An array of all Template definitions (except $except_post_id)
-		// INPUT: 	Ignore the Template whose WP post ID is $except_post_id
+		// RETURNS: An array of all Exhibit definitions (except $except_post_id)
 	static public function get_all_exhibit_defs($unpack)
 	{
 		$all_exhibit_defs = array();

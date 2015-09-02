@@ -1111,6 +1111,114 @@ class ProspectAdmin {
 	} // prsp_export_all_maps()
 
 
+	public function write_prspctv_data($fp, $the_prspctv)
+	{
+			// Create header to indicate Exhibit record
+		fwrite($fp, '{"type": "Perspective", "prspctv-id": "'.$the_prspctv->id.'", '."\n");
+		fwrite($fp, '"prspctv-l": "'.$the_prspctv->l."\",\n");
+		fwrite($fp, '"xhbt-id": "'.$the_prspctv->xhbt_id."\",\n");
+		fwrite($fp, '"prspctv-note": "'.$the_prspctv->note."\",\n");
+		fwrite($fp, '"prspctv-state": '.$the_prspctv->meta_state."\n}");
+	} // write_prspctv_data()
+
+
+		// PURPOSE: Export this Map definition as a JSON Archive file
+	public function prsp_export_prspctv()
+	{
+			// ensure that this URL has not been faked by non-admin user
+		if (!current_user_can('edit_posts')) {
+			wp_die('Invalid request');
+		}
+
+		if (!(isset($_GET['post']) || isset( $_POST['post']) || (isset($_REQUEST['action']) && 'rd_duplicate_post_as_draft' == $_REQUEST['action']))) {
+			wp_die('No post to export has been supplied!');
+		}
+
+			// Get post ID and associated Map Data
+		$postID = (isset($_GET['post']) ? $_GET['post'] : $_POST['post']);
+		$the_prspctv = new ProspectPerspective(true, $postID, false);
+
+			// Create appropriate filename
+		$fp = $this->createUTFOutput($the_prspctv->id.".json", true);
+
+		$this->write_prspctv_data($fp, $the_prspctv);
+
+			// Close the output buffer
+		fclose($fp);
+		exit();
+	} // prsp_export_prspctv()
+
+
+	public function prsp_export_xhbt_prspctvs($xhbt)
+	{
+		$prspctvs = ProspectPerspective::get_exhibit_perspectives($xhbt);
+
+			// Create appropriate filename
+		$fp = $this->createUTFOutput($xhbt."-archive.json", true);
+
+		fwrite($fp, '{"type": "Archive", "items": ['."\n");
+
+			// Fetch and write all Perspective definitions
+		$first = true;
+		foreach ($prspctvs as $the_prspctv) {
+			if (!$first)
+				fwrite($fp, ",\n");
+			$first = false;
+			$this->write_prspctv_data($fp, $the_prspctv);
+		}
+
+		fwrite($fp, "\n]}");
+
+			// Close the output buffer
+		fclose($fp);
+		exit();
+	} // prsp_export_xhbt_prspctvs()
+
+
+		// PURPOSE: Export all Perspective definitions as a JSON Archive file
+	public function prsp_export_all_prspctvs()
+	{
+			// ensure that this URL has not been faked by non-admin user
+		if (!current_user_can('edit_posts')) {
+			wp_die('Invalid request');
+		}
+
+		$all_prspctvs = array();
+
+			// Loop through all Perspectives adding to array
+		$args = array('post_type' => 'prsp-prspctv', 'posts_per_page' => 1);
+		$loop = new WP_Query($args);
+		if ($loop->have_posts()) {
+			foreach ($loop->posts as $prspctv) {
+				$new_prspctv = new ProspectPerspective(true, $prspctv->ID, false);
+					// Ensure minimal data provided
+				if ($new_prspctv->id != null && $new_prspctv->id != '') {
+					array_push($all_prspctvs, $new_prspctv);
+				}
+			}
+		}
+
+			// Create appropriate filename
+		$fp = $this->createUTFOutput("allperspectives.json", true);
+
+			// Create archive header
+		fwrite($fp, '{"type": "Archive", "items": ['."\n");
+
+		$first = true;
+		foreach($all_prspctvs as $the_prspctv) {
+			if (!$first)
+				fwrite($fp, ",\n");
+			$first = false;
+			$this->write_prspctv_data($fp, $the_prspctv);
+		}
+		fwrite($fp, "\n]}");
+
+			// Close the output buffer
+		fclose($fp);
+		exit();
+	} // prsp_export_all_prspctvs()
+
+
 		// PURPOSE: Export all Attribute, Template and Exhibit definitions as a JSON Archive file
 	public function prsp_export_all()
 	{
@@ -1184,6 +1292,9 @@ class ProspectAdmin {
 			break;
 		case 'prsp-map':
 			$actions['Prsp_Map_Export'] = '<a href="admin.php?action=prsp_export_map&amp;post='.$post->ID.'" title="Export this Map as JSON archive file" rel="permalink">JSON Export</a>';
+			break;
+		case 'prsp-prspctv':
+			$actions['Prsp_Prspctv_Export'] = '<a href="admin.php?action=prsp_export_prspctv&amp;post='.$post->ID.'" title="Export this Perspective as JSON archive file" rel="permalink">JSON Export</a>';
 			break;
 		}
 		return $actions;
@@ -1260,6 +1371,15 @@ class ProspectAdmin {
 				update_post_meta($post_id, 'map_w_bounds', $data['map_w_bounds']);
 			}
 			break;
+		case 'Perspective':
+			$post_id = $this->create_entity('prsp-prspctv', 'prspctv-id', $data['prspctv-id']);
+			if ($post_id) {
+				update_post_meta($post_id, 'prspctv-l', $data['prspctv-l']);
+				update_post_meta($post_id, 'xhbt-id', $data['xhbt-id']);
+				update_post_meta($post_id, 'prspctv-note', $data['prspctv-note']);
+				update_post_meta($post_id, 'prspctv-state', json_encode($data['prspctv-state'], JSON_UNESCAPED_UNICODE));
+			}
+			break;
 		} // switch
 	} // parse_import_object()
 
@@ -1294,7 +1414,8 @@ class ProspectAdmin {
 			// Parse as JSON Object
 		$data = json_decode($contents, true);
 
-			// Each Object begins with "type" property with values Archive, Attribute, Template, or Exhibit
+			// Each Object begins with "type" property with values
+			//		Archive, Attribute, Template, Exhibit, Perspective or Map
 		if ($data['type'] == 'Archive') {
 			foreach ($data['items'] as $datum) {
 				$this->parse_import_object($datum);
@@ -1312,11 +1433,11 @@ class ProspectAdmin {
 			// Check to see if we've been sent here by a form operation
 		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			if (isset($_POST['export_t_atts'])) {
-				// echo 'trying export-t-atts with: '.$_POST['export-type'];
 				$this->prsp_export_template_and_atts($_POST['export-type']);
 			} else if (isset($_POST['export_t_recs'])) {
-				// echo 'trying export-t-recs with: '.$_POST['export-type'];
 				$this->prsp_export_all_template_records($_POST['export-type']);
+			} else if (isset($_POST['export_xhbt_prspctvs'])) {
+				$this->prsp_export_xhbt_prspctvs($_POST['export-type']);
 			} else if (isset($_POST['import_submit'])) {
 				$this->import_archive_file();
 			}
@@ -1377,8 +1498,15 @@ class ProspectAdmin {
 			echo '<option value="'.$tid.'">'.$tid.'</option>';
 		}
 
-			// Get last bit of static text
 		$archivepage = self::get_script_text('archive-page-3.txt');
+		echo $archivepage;
+
+		$all_exhibits = ProspectExhibit::get_all_exhibit_defs(true);
+		foreach ($all_exhibits as $xhbt) {
+			echo '<option value="'.$xhbt->id.'">'.$xhbt->gen->l.'</option>';
+		}
+
+		$archivepage = self::get_script_text('archive-page-4.txt');
 		echo $archivepage;
 	} // show_prsp_archive_page()
 
