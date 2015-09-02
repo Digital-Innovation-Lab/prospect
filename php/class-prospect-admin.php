@@ -240,18 +240,20 @@ class ProspectAdmin {
 		$the_map = new ProspectMap(true, $postID);
 
 			// Can all be done in regular input fields
-		echo 'Unique ID: <input name="prsp_map_id" type="text" value="'.$the_map->id.'" size=20/><br/>';
-		echo 'Short Name: <input name="prsp_map_sname" type="text" value="'.$the_map->meta_data['sname'].'" size=30/><br/>';
-		echo 'Map URL: <input name="prsp_map_url" type="url" value="'.$the_map->meta_data['url'].'" size=60/><br/>';
-		echo 'Inverse Y? (true or false) <input name="prsp_map_inverse_y" type="text" value="'.$the_map->meta_data['inverseY'].'" size=5 pattern="true|false"/><br/>';
-		echo 'Subdomain: <input name="prsp_map_subd" type="text" value="'.$the_map->meta_data['subd'].'" size=12/><br/>';
-		echo 'Min Zoom: <input name="prsp_map_min_zoom" type="number" value="'.$the_map->meta_data['minZoom'].'" size=2 min=1 max=20/><br/>';
-		echo 'Max Zoom: <input name="prsp_map_max_zoom" type="number" value="'.$the_map->meta_data['maxZoom'].'" size=2 min=1 max=20/><br/>';
-		echo 'Credits: <input name="prsp_map_credits" type="text" value="'.$the_map->meta_data['credits'].'" size=30/><br/>';
-		echo 'N Bounds: <input name="prsp_map_n_bounds" type="text" value="'.$the_map->meta_data['nBounds'].'" size=10/><br/>';
-		echo 'S Bounds: <input name="prsp_map_s_bounds" type="text" value="'.$the_map->meta_data['sBounds'].'" size=10/><br/>';
-		echo 'E Bounds: <input name="prsp_map_e_bounds" type="text" value="'.$the_map->meta_data['eBounds'].'" size=10/><br/>';
-		echo 'W Bounds: <input name="prsp_map_w_bounds" type="text" value="'.$the_map->meta_data['wBounds'].'" size=10/><br/>';
+		echo '<table class="form-table">';
+		echo '<tr><th style="width:20%"><label for="prsp_map_id">Unique ID: </label></th><td><input name="prsp_map_id" id="prsp_map_id" type="text" value="'.$the_map->id.'" size=20/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_map_sname">Short Name: </label></th><td><input name="prsp_map_sname" id="prsp_map_sname" type="text" value="'.$the_map->meta_data['sname'].'" size=30/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_map_url">Map URL: </label></th><td><input name="prsp_map_url" id="prsp_map_url" type="url" value="'.$the_map->meta_data['url'].'" size=60/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_map_inverse_y">Inverse Y? (true or false) </label></th><td><input name="prsp_map_inverse_y" id="prsp_map_inverse_y" type="text" value="'.$the_map->meta_data['inverseY'].'" size=5 pattern="true|false"/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_map_subd">Subdomain: </label></th><td><input name="prsp_map_subd" id="prsp_map_subd" type="text" value="'.$the_map->meta_data['subd'].'" size=12/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_map_min_zoom">Min Zoom: </label></th><td><input name="prsp_map_min_zoom" id="prsp_map_min_zoom" type="number" value="'.$the_map->meta_data['minZoom'].'" size=2 min=1 max=20/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_map_max_zoom">Max Zoom: </label></th><td><input name="prsp_map_max_zoom" id="prsp_map_max_zoom" type="number" value="'.$the_map->meta_data['maxZoom'].'" size=2 min=1 max=20/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_map_credits">Credits: </label></th><td><input name="prsp_map_credits" id="prsp_map_credits" type="text" value="'.$the_map->meta_data['credits'].'" size=30/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_map_n_bounds">N Bounds: </label></th><td><input name="prsp_map_n_bounds" id="prsp_map_n_bounds" type="text" value="'.$the_map->meta_data['nBounds'].'" size=10/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_map_s_bounds">S Bounds: </label></th><td><input name="prsp_map_s_bounds" id="prsp_map_s_bounds" type="text" value="'.$the_map->meta_data['sBounds'].'" size=10/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_map_e_bounds">E Bounds: </label></th><td><input name="prsp_map_e_bounds" id="prsp_map_e_bounds" type="text" value="'.$the_map->meta_data['eBounds'].'" size=10/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_map_w_bounds">W Bounds: </label></th><td><input name="prsp_map_w_bounds" id="prsp_map_w_bounds" type="text" value="'.$the_map->meta_data['wBounds'].'" size=10/></td></tr>';
+		echo '</table>';
 	} // show_prsp_map_admin_edit()
 
 
@@ -273,11 +275,13 @@ class ProspectAdmin {
 		$the_prspctv = new ProspectPerspective(true, $postID, false);
 
 			// Can all be done in regular input fields
-		echo 'Perspective ID: <input name="prsp_prspctv_id" type="text" value="'.$the_prspctv->id.'" size=20/><br/>';
-		echo 'Label: <input name="prsp_prspctv_l" type="text" value="'.$the_prspctv->l.'" size=30/><br/>';
-		echo 'Exhibit ID: <input name="prsp_xbht_id" type="text" value="'.$the_prspctv->xhbt_id.'" size=20/><br/>';
-		echo 'Annotation: <textarea name="prsp_prspctv_note" form="post" rows="4" cols="50">'.$the_prspctv->note.'</textarea><br/>';
-		echo 'JSON data: <textarea name="prsp_prspctv_state" form="post" rows="3" cols="50" spellcheck="false">'.$the_prspctv->meta_state.'</textarea><br/>';
+		echo '<table class="form-table">';
+		echo '<tr><th style="width:20%"><label for="prsp_prspctv_id">Perspective ID: </label></th><td><input name="prsp_prspctv_id" id="prsp_prspctv_id" type="text" value="'.$the_prspctv->id.'" size=20/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_prspctv_l">Label: </label></th><td><input name="prsp_prspctv_l" id="prsp_prspctv_l" type="text" value="'.$the_prspctv->l.'" size=30/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_xbht_id">Exhibit ID: </label></th><td><input name="prsp_xbht_id" id="prsp_xbht_id" type="text" value="'.$the_prspctv->xhbt_id.'" size=20/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_prspctv_note">Annotation: </label></th><td><textarea name="prsp_prspctv_note" id="prsp_prspctv_note" form="post" rows="4" cols="50">'.$the_prspctv->note.'</textarea></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_prspctv_state">JSON data: </label></th><td><textarea name="prsp_prspctv_state" id="prsp_prspctv_state" form="post" rows="3" cols="50" spellcheck="false">'.$the_prspctv->meta_state.'</textarea></td></tr>';
+		echo '</table>';
 	} // show_prsp_prspctv_admin_edit()
 
 

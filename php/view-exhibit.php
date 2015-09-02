@@ -122,6 +122,20 @@
 		echo(' maxZoom: '.$the_map->meta_data['maxZoom'].', ');
 		echo(' inverseY: '.$the_map->meta_data['inverseY'].' }');
 	}
+?> ],
+		p: [ <?php
+	$all_prspctvs = ProspectPerspective::get_exhibit_perspectives($the_xhbt->id);
+		// Output each entry
+	$first = true;
+	foreach($all_prspctvs as $the_prspctv) {
+		if (!$first)
+			echo(', ');
+		$first = false;
+		echo('{ id: "'.$the_prspctv->id.'", ');
+		echo(' l: "'.$the_prspctv->l.'", ');
+		echo(' n: "'.$the_prspctv->note.'", ');
+		echo(' s: '.$the_prspctv->meta_state.' }');
+	}
 ?>	] };
 
 </script>
