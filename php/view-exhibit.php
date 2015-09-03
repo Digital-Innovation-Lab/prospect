@@ -49,6 +49,12 @@
 		site_url: <?php
 	echo('"'.site_url().'"');
 ?>,
+		add_prspctv: <?php
+	if (current_user_can('create_prsp_prspctv'))
+		echo('true');
+	else
+		echo('false');
+?>,
 		chunks: <?php
 	$options = get_option('prsp_base_options');
 	$chunk = isset($options['prsp_chunks']) ? (int)$options['prsp_chunks'] : 1000;
