@@ -49,19 +49,22 @@
 		site_url: <?php
 	echo('"'.site_url().'"');
 ?>,
+		assets: <?php
+	echo('"'.plugins_url('/assets/', dirname(__FILE__)).'"');
+?>,
 		add_prspctv: <?php
 	if (current_user_can('create_prsp_prspctv'))
 		echo('true');
 	else
 		echo('false');
 ?>,
+		show_prspctv: <?php
+	echo('"'.get_query_var('prspctv').'"');
+?>,
 		chunks: <?php
 	$options = get_option('prsp_base_options');
 	$chunk = isset($options['prsp_chunks']) ? (int)$options['prsp_chunks'] : 1000;
 	echo $chunk;
-?>,
-		assets: <?php
-	echo('"'.plugins_url('/assets/', dirname(__FILE__)).'"');
 ?>,
 		e: <?php
 		// Put Attribute list in sorted order

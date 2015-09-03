@@ -88,6 +88,13 @@ class ProspectAdmin {
 	private $version;
 	private $options;
 
+		// PURPOSE: Add perspective parameter to URL query variables for use with Prospect
+	public function add_query_vars_filter($vars)
+	{
+		$vars[] = "prspctv";
+		return $vars;
+	} // add_query_vars_filter()
+
 
 		// PURPOSE: Ensure that txt and png files are able to be added to the Media Library
 	public function add_mime_types($mime_types)

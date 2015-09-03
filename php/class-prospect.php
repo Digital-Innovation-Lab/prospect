@@ -356,6 +356,8 @@ class Prospect {
 		$this->admin = new ProspectAdmin($this->get_version());
 
 		$this->loader->add_action('upload_mimes', $this->admin, 'add_mime_types');
+		$this->loader->add_filter('query_vars', $this->admin, 'add_query_vars_filter', null, null);
+
 			// Add JS to Dashboard editors
 		$this->loader->add_action('admin_enqueue_scripts', $this->admin, 'add_admin_scripts');
 			// Modify HTML for Dashboard editors
