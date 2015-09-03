@@ -5158,11 +5158,79 @@ jQuery(document).ready(function($) {
 		event.preventDefault();
 	} // clickAbout()
 
+		// RETURNS: Record for ID or else null
+	function getPerspective(id)
+	{
+			// Check Perspectives from server
+			// Check local storage
+			// TO DO
+		return null;
+	} // getPerspective()
 
-	function clickPerspectives(event)
+	function doSavePerspective(id)
+	{
+		var sPrspctv = { id: id, l: jQuery('#save-psrctv-lbl').val(), n: jQuery('#save-psrctv-note').val() };
+
+			// Compile Perspective state from Filter stack, Selector Filter & Views
+		var pState = { };
+
+			// Where to save it?
+		var dest = jQuery('input[name=save-prspctv-dest]:checked').val();
+	} // doSavePerspective()
+
+	function clickSavePerspective(event)
+	{
+		var spDialog;
+
+			// Clear any previous input values
+		jQuery('#save-psrctv-id').val('');
+		jQuery('#save-psrctv-lbl').val('');
+		jQuery('#save-psrctv-note').val('');
+
+			// If user not logged in, must save locally
+		if (!prspdata.add_prspctv) {
+			jQuery('#save-prspctv-d-2').attr('disabled', 'disabled');
+		}
+
+			// TO DO: Calculate Embed value
+
+		spDialog = jQuery("#dialog-save-prsrctv").dialog({
+			width: 340,
+			height: 400,
+			modal: true,
+			buttons: {
+				OK: function() {
+						// Make sure ID not already taken
+					var id = jQuery('#save-psrctv-id').val();
+					if (getPerspective(id)) {
+						var errDialog = jQuery("#dialog-save-prspctv-iderror").dialog({
+							width: 320,
+							height: 210,
+							modal: true,
+							buttons: {
+								OK: function() {
+									errDialog.dialog("close");
+								}
+							}
+						});
+					} else {
+						doSavePerspective(id);
+						spDialog.dialog("close");
+					}
+				},
+				Cancel: function() {
+					spDialog.dialog("close");
+				}
+			}
+		});
+		event.preventDefault();
+	} // clickSavePerspective()
+
+
+	function clickShowPerspective(event)
 	{
 		event.preventDefault();
-	} // clickPerspectives()
+	} // clickShowPerspective()
 
 
 	function clickGoHome(event)
@@ -5478,12 +5546,12 @@ jQuery(document).ready(function($) {
 			.click(clickAbout);
 	jQuery('#btn-recompute').button({icons: { primary: 'ui-icon-refresh' }, text: false })
 			.click(clickRecompute);
-	// jQuery('#btn-set-layout').button({icons: { primary: 'ui-icon-newwin' }, text: false })
-	// 		.click(clickSetLayout);
 	jQuery('#btn-set-layout').button({icons: { primary: 'ui-icon-newwin' }, text: false })
 			.click(clickTog2nd);
-	jQuery('#btn-perspectives').button({icons: { primary: 'ui-icon-note' }, text: false })
-			.click(clickPerspectives);
+	jQuery('#btn-show-prspctv').button({icons: { primary: 'ui-icon-image' }, text: false })
+			.click(clickShowPerspective);
+	jQuery('#btn-save-prspctv').button({icons: { primary: 'ui-icon-pencil' }, text: false })
+			.click(clickSavePerspective);
 
 		// Are there Home settings?
 	if (prspdata.e.g.hbtn.length > 0 && prspdata.e.g.hurl.length > 0) {

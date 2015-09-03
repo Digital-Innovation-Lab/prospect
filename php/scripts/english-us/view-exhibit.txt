@@ -3,7 +3,8 @@
 	&nbsp; &nbsp;<button id="btn-about">About Prospect</button>
 	&nbsp; &nbsp;<button id="btn-recompute">Recompute</button>
 	&nbsp; &nbsp;<button id="btn-set-layout">Show/Hide View 2</button>
-	&nbsp; &nbsp;<button id="btn-perspectives">Perspectives</button>
+	&nbsp; &nbsp;<button id="btn-show-prspctv">Show Perspective</button>
+	&nbsp; &nbsp;<button id="btn-save-prspctv">Save Perspective</button>
 	<span class="home"><span id="home-title"></span> <button id="btn-home">Home</button></span>
 </div>
 
@@ -77,6 +78,30 @@
 			Michael Newton: Software architect and developer.<br/>
 			Breon Williams: CSS contributions.</p>
 		</div>
+	</div>
+
+	<div id="dialog-save-prsrctv" title="Save Perspective">
+		<fieldset class="radiogroup"> 
+			<legend>Where to save</legend>
+			<ul class="radio">
+				<li><input type="radio" name="save-prspctv-dest" id="save-prspctv-d-1" value="local" checked/><label for="save-prspctv-d-1">Local</label></li>
+				<li><input type="radio" name="save-prspctv-dest" id="save-prspctv-d-2" value="server"/><label for="save-prspctv-d-2">Server</label></li>
+			</ul>
+		</fieldset>
+		Unique ID:<br/>
+		<input id="save-psrctv-id" type="text" size="20" placeholder="Unique ID"/><br/>
+		Label:<br/>
+		<input id="save-psrctv-lbl" type="text" size="42" placeholder="Label"/><br/>
+		<textarea id="save-psrctv-note" rows="4" cols="42" placeholder="Add an annotation (cannot use double quotes)"></textarea><br/>
+		Embed URL:<br/>
+		<input id="save-psrctv-embed" type="text" size="42" disabled/>
+	</div>
+
+	<div id="dialog-show-prsrctv" title="Show Perspective">
+	</div>
+
+	<div id="dialog-save-prspctv-iderror" title="Save Error">
+		<p>There is an error with that ID: It has already been used. Please create another (alphabetic characters, numbers, hyphens and dashes only, no spaces), or click the 'Cancel' button.</p>
 	</div>
 </div> <!-- Hidden content ->
 

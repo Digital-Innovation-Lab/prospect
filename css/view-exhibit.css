@@ -77,6 +77,39 @@ div.v-scroll {
 	overflow-y: scroll;
 }
 
+fieldset.radiogroup {
+	margin: 0; 
+	padding: 0; 
+	margin-bottom: .125em;
+	padding: .125em; 
+} 
+
+fieldset.radiogroup legend {
+	margin: 0; 
+	padding: 0; 
+	font-weight: bold; 
+	margin-left: .125em; 
+	color: black; 
+} 
+
+ul.radio  {
+	margin: 0; 
+	padding: 0; 
+	margin-left: .125em;
+	list-style: none; 
+} 
+
+ul.radio li {
+	border: 1px transparent solid; 
+}
+
+ul.radio li:hover, ul.radio li.focus  {
+	background-color: lightyellow; 
+	border: 1px gray solid; 
+	width: 10em; 
+} 
+
+
 	/* DOM structure of web page for visualizations:
 	 * #command-bar
 	 * #loading-message
