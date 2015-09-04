@@ -107,7 +107,7 @@ ul.radio li {
 }
 
 ul.radio li:hover, ul.radio li.focus {
-	background-color: lightblue;
+	background-color: #E0E0E0;
 	border: 1px gray solid;
 }
 
@@ -552,6 +552,16 @@ div.scroll-container .selected {
 	/* In dialog-show-prsrctv */
 #prspctv-list {
 	height: 220px;
+}
+
+#prspctv-list li {
+	line-height: 1.45em;
+}
+
+#prspctv-list button {
+	font-size: .7em;
+	margin: 0;
+	float: right;
 }
 
 	/* Inspector Modal

@@ -5331,8 +5331,8 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 
 							jQuery('#save-psrctv-embed').val(embed);
 							var embedDialog = jQuery("#dialog-prspctv-url").dialog({
-								width: 320,
-								height: 110,
+								width: 450,
+								height: 150,
 								modal: true,
 								buttons: {
 									OK: function() {
@@ -5355,6 +5355,9 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 	{
 		var spDialog;
 
+		var delTxt = document.getElementById('dltext-delete').innerHTML;
+		delTxt = delTxt.trim();
+
 			// Clear scroll areas and recreate
 		var pList = jQuery('#prspctv-list');
 		pList.empty();
@@ -5366,18 +5369,19 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 
 			// Populate local list
 		localPrspctvs.forEach(function(theP) {
-			pList.append('<li data-src="local" data-id="'+theP.id+'">'+theP.l+'<span class="ui-icon ui-icon-trash"></span></li>');
+			pList.append('<li data-src="local" data-id="'+theP.id+'">'+theP.l+' <button>'+delTxt+'</button></li>');
 		});
 
 		spDialog = jQuery("#dialog-show-prsrctv").dialog({
-			width: 340,
+			width: 400,
 			height: 350,
 			modal: true,
 			buttons: {
 				OK: function() {
 					var selItem = pList.find('li.selected');
 					if (selItem.length) {
-console.item('Selected: '+selItem.data('src')+'/'+selItem.data('id'));
+						var setP = selItem.data('id');
+// console.log('Selected: '+selItem.data('src')+'/'+selItem.data('id'));
 					}
 					spDialog.dialog("close");
 				}, // OK
@@ -5743,12 +5747,22 @@ console.item('Selected: '+selItem.data('src')+'/'+selItem.data('id'));
 
 		// Handle selection of item on Show Perspective list
 	jQuery('#prspctv-list').click(function(event) {
-console.log("Selected node "+event.target.nodeName);
 		if (event.target.nodeName == 'LI') {
 			jQuery("#prspctv-list li").removeClass("selected");
 			jQuery(event.target).addClass("selected");
-		} else if (event.target.nodeName == 'SPAN') {	// Trash
-
+		} else if (event.target.nodeName == 'BUTTON') {	// Trash
+			var id = jQuery(event.target).parent().data('id');
+				// Remove from Array and update local storage
+			var pI = localPrspctvs.findIndex(function(theP) {
+				return id == theP.id;
+			});
+			if (pI != -1) {
+// console.log("Delete ID '"+id+"' at "+pI);
+				localPrspctvs.splice(pI, 1);
+				localStore.setItem(prspdata.e.id, JSON.stringify(localPrspctvs));
+					// Remove from DOM
+				jQuery(event.target).parent().remove();
+			}
 		}
 	});
 

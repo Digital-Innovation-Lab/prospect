@@ -113,7 +113,7 @@
 
 	<div id="dialog-prspctv-url" title="Perspective URL">
 		<p>To show this Perspective, use the URL:</p>
-		<input id="save-psrctv-embed" type="text" size="42" disabled/>
+		<input id="save-psrctv-embed" type="text" size="50" disabled/>
 	</div>
 </div> <!-- Hidden content ->
 
@@ -190,6 +190,10 @@ about
 
 <script id="dltext-now" type="text">
 now
+</script>
+
+<script id="dltext-delete" type="text">
+Delete
 </script>
 
 <script id="dltext-sync-xscript" type="text">
