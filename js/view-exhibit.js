@@ -106,13 +106,13 @@ function PVizModel(viewFrame, vizSettings)
 	// this.clearSel()
 	// this.resize()
 	// this.optionsModal()
+	// this.getState()
+	// this.setState(pData)
 		// All subclasses must implement the following:
 	// this.flags()
 	// this.setup()
 	// this.render(stream)
 	// this.setSel(absIDs)
-	// this.getState()
-	// this.setState(pData)
 } // PVizModel
 
 	// PURPOSE: Describe Visualizations's capabilities
@@ -181,6 +181,15 @@ PVizModel.prototype.resize = function()
 PVizModel.prototype.optionsModal = function()
 {
 } // PVizModel.optionsModal()
+
+PVizModel.prototype.getState = function()
+{
+	return {};
+} // PVizModel.getState()
+
+PVizModel.prototype.setState = function(state)
+{
+} // PVizModel.setState()
 
 
 // ===================================
@@ -2572,6 +2581,16 @@ PFilterText.prototype.setup = function()
 	});
 } // setup()
 
+PFilterText.prototype.getState = function()
+{
+	// TO DO
+	return {};
+} // getState()
+
+PFilterText.prototype.setState = function(state)
+{
+	// TO DO
+} // setState()
 
 // ===================================================
 // PFilterVocab: Class to filter Vocabulary Attributes
@@ -2651,6 +2670,17 @@ PFilterVocab.prototype.setup = function()
 			self.isDirty(true);
 	});
 } // setup()
+
+PFilterVocab.prototype.getState = function()
+{
+	// TO DO
+	return {};
+} // getState()
+
+PFilterVocab.prototype.setState = function(state)
+{
+	// TO DO
+} // setState()
 
 
 // ================================================
@@ -2842,6 +2872,17 @@ PFilterNum.prototype.setup = function()
 	}
 } // setup()
 
+PFilterNum.prototype.getState = function()
+{
+	// TO DO
+	return {};
+} // getState()
+
+PFilterNum.prototype.setState = function(state)
+{
+	// TO DO
+} // setState()
+
 
 // ==============================================
 // PFilterDates: Class to filter Dates Attributes
@@ -2993,6 +3034,17 @@ PFilterDates.prototype.setup = function()
 		.append("path")
 		.attr("d", resizePath);
 } // setup()
+
+PFilterDates.prototype.getState = function()
+{
+	// TO DO
+	return {};
+} // getState()
+
+PFilterDates.prototype.setState = function(state)
+{
+	// TO DO
+} // setState()
 
 
 // ========================================================================
@@ -5044,11 +5096,15 @@ jQuery(document).ready(function($) {
 	var view0;				// Primary viewFrame
 	var view1;				// Secondary
 
-	var filters = [];		// Filter Stack: { id, f [PFilterModel], out }
-	var selFilter = null;	// Selector Filter
+	var filters=[];			// Filter Stack: { id, f [PFilterModel], out }
+	var selFilter=null;		// Selector Filter
+	var selFID;				// Attribute ID for Selector Filter
 
 	var topStream;			// Top-level IndexStream (before Filters)
 	var endStream;			// Final resulting IndexStream (after Filters)
+
+	var localStore=null;	// Local (Browser) storage
+	var localPrspctvs=[];	// locally-stored Perspectives
 
 		// FUNCTIONS
 		//==========
@@ -5162,48 +5218,97 @@ jQuery(document).ready(function($) {
 	function getPerspective(id)
 	{
 			// Check Perspectives from server
-			// Check local storage
-			// TO DO
+		var prspctv = _.find(prspdata.p, function(theP) {
+			return id == theP.id;
+		});
+		if (prspctv)
+			return prspctv;
+
+		if (localStore == null || localPrspctvs.length == 0)
+			return null;
+
+		prspctv = _.find(localPrspctvs, function(theP) {
+			return id == theP.id;
+		});
+		if (prspctv)
+			return prspctv;
+
 		return null;
 	} // getPerspective()
 
+		// PURPOSE: Save current Perspective as <id>
+		// RETURNS: "local" or "server" if save successful, else null
 	function doSavePerspective(id)
 	{
-		var sPrspctv = { id: id, l: jQuery('#save-psrctv-lbl').val(), n: jQuery('#save-psrctv-note').val() };
-
-			// Compile Perspective state from Filter stack, Selector Filter & Views
-		var pState = { };
-
 			// Where to save it?
 		var dest = jQuery('input[name=save-prspctv-dest]:checked').val();
+		if (dest == '')
+			return null;
+
+		var note = jQuery('#save-psrctv-note').val();
+		note = note.replace('"', '');
+		var label = jQuery('#save-psrctv-lbl').val();
+		label = label.replace('"', '');
+		var sPrspctv = { id: id, l: label, n: note };
+
+			// Compile Perspective state from Filter stack, Selector Filter & Views
+		var pState = { f: [], s: null, v0: view0.getState(), v1: null };
+		filters.forEach(function(theF) {
+			pState.f.push({ id: theF.id, s: theF.f.getState() });
+		});
+		if (selFilter) {
+			pState.s = { id: selFID, s: selFilter.getState() };
+		}
+		if (view1)
+			pState.v1 = view1.getState();
+		sPrspctv.s = pState;
+
+console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
+
+		if (dest == 'local') {
+			localPrspctvs.push(sPrspctv);
+			localStore.setItem(prspdata.e.id, JSON.stringify(localPrspctvs));
+		} else if (dest == 'server') {
+			// TO DO
+		}
+		return dest;
 	} // doSavePerspective()
 
 	function clickSavePerspective(event)
 	{
 		var spDialog;
+		var idExp = /\W/;
 
 			// Clear any previous input values
 		jQuery('#save-psrctv-id').val('');
 		jQuery('#save-psrctv-lbl').val('');
 		jQuery('#save-psrctv-note').val('');
 
-			// If user not logged in, must save locally
+			// Make sure Browser has local storage capability
+		if (!localStore) {
+			jQuery('#save-prspctv-d-1').attr('disabled', 'disabled');
+		}
+			// If user not logged in, disable server capability
 		if (!prspdata.add_prspctv) {
 			jQuery('#save-prspctv-d-2').attr('disabled', 'disabled');
 		}
 
-			// TO DO: Calculate Embed value
-
 		spDialog = jQuery("#dialog-save-prsrctv").dialog({
 			width: 340,
-			height: 400,
+			height: 350,
 			modal: true,
 			buttons: {
 				OK: function() {
-						// Make sure ID not already taken
 					var id = jQuery('#save-psrctv-id').val();
-					if (getPerspective(id)) {
-						var errDialog = jQuery("#dialog-save-prspctv-iderror").dialog({
+						// Make sure ID correct format
+					var idError = id.match(idExp);
+					if (id.length == 0 || idError)
+						idError = '#dialog-prspctv-id-badchars';
+						// Make sure ID not already taken
+					else if (getPerspective(id))
+						idError = '#dialog-prspctv-id-used';
+					if (idError) {
+						var errDialog = jQuery(idError).dialog({
 							width: 320,
 							height: 210,
 							modal: true,
@@ -5214,10 +5319,30 @@ jQuery(document).ready(function($) {
 							}
 						});
 					} else {
-						doSavePerspective(id);
+						var saved = doSavePerspective(id);
 						spDialog.dialog("close");
-					}
-				},
+
+						if (saved == 'server') {
+								// Calculate Embed value
+							var embed = prspdata.site_url;
+							if (embed.substr(-1,1) != '/')
+								embed += '/';
+							embed += prspdata.e.id + '/?prspctv=' + id;
+
+							jQuery('#save-psrctv-embed').val(embed);
+							var embedDialog = jQuery("#dialog-prspctv-url").dialog({
+								width: 320,
+								height: 110,
+								modal: true,
+								buttons: {
+									OK: function() {
+										embedDialog.dialog("close");
+									}
+								}
+							});
+						} // saved on server
+					} // no redundancy
+				}, // OK
 				Cancel: function() {
 					spDialog.dialog("close");
 				}
@@ -5226,10 +5351,41 @@ jQuery(document).ready(function($) {
 		event.preventDefault();
 	} // clickSavePerspective()
 
-
 	function clickShowPerspective(event)
 	{
-		event.preventDefault();
+		var spDialog;
+
+			// Clear scroll areas and recreate
+		var pList = jQuery('#prspctv-list');
+		pList.empty();
+
+			// Populate server list
+		prspdata.p.forEach(function(theP) {
+			pList.append('<li data-src="server" data-id="'+theP.id+'">'+theP.l+'</li>');
+		});
+
+			// Populate local list
+		localPrspctvs.forEach(function(theP) {
+			pList.append('<li data-src="local" data-id="'+theP.id+'">'+theP.l+'<span class="ui-icon ui-icon-trash"></span></li>');
+		});
+
+		spDialog = jQuery("#dialog-show-prsrctv").dialog({
+			width: 340,
+			height: 350,
+			modal: true,
+			buttons: {
+				OK: function() {
+					var selItem = pList.find('li.selected');
+					if (selItem.length) {
+console.item('Selected: '+selItem.data('src')+'/'+selItem.data('id'));
+					}
+					spDialog.dialog("close");
+				}, // OK
+				Cancel: function() {
+					spDialog.dialog("close");
+				}
+			}
+		});		event.preventDefault();
 	} // clickShowPerspective()
 
 
@@ -5358,6 +5514,7 @@ jQuery(document).ready(function($) {
 		if (selector) {
 			newFilter.isReq(true);
 			selFilter = newFilter;
+			selFID = fID;
 
 			var fh = _.template(document.getElementById('dltext-selector-head').innerHTML);
 			var head = jQuery('div.filter-instance[data-id="0"]');
@@ -5472,7 +5629,7 @@ jQuery(document).ready(function($) {
 
 	function clickApplySelector(event)
 	{
-		var selList = [], mustCopy=false;
+		var selList=[], mustCopy=false;
 		if (selFilter != null && endStream != null) {
 			selFilter.evalPrep();
 			var relI=0, absI, rec;
@@ -5541,6 +5698,20 @@ jQuery(document).ready(function($) {
 
 	localize();
 
+		// Is there a local storage mechanism? Get local Perspectives if so
+	try {
+		var storage = window['localStorage'], x = '__storage_test__';
+		storage.setItem(x, x);
+		storage.removeItem(x);
+		var lp = storage.getItem(prspdata.e.id);
+		localStore = storage;
+		if (lp.length > 0)
+			localPrspctvs = JSON.parse(lp);
+	} catch(e) {
+	}
+// console.log("localStorage? "+localStore != null);
+// console.log("localPrspctvs = "+JSON.stringify(localPrspctvs));
+
 		// Command Bar
 	jQuery('#btn-about').button({icons: { primary: 'ui-icon-info' }, text: false })
 			.click(clickAbout);
@@ -5562,7 +5733,6 @@ jQuery(document).ready(function($) {
 		jQuery('#btn-home').remove();
 	}
 
-
 		// Handle selection of item on New Filter modal
 	jQuery('#filter-list').click(function(event) {
 		if (event.target.nodeName == 'LI') {
@@ -5571,11 +5741,14 @@ jQuery(document).ready(function($) {
 		}
 	});
 
-		// Handle selection of item on Set Layout modal
-	jQuery('#layout-choices').click(function(event) {
-		if (event.target.nodeName == 'IMG') {
-			jQuery("#layout-choices img").removeClass("selected");
+		// Handle selection of item on Show Perspective list
+	jQuery('#prspctv-list').click(function(event) {
+console.log("Selected node "+event.target.nodeName);
+		if (event.target.nodeName == 'LI') {
+			jQuery("#prspctv-list li").removeClass("selected");
 			jQuery(event.target).addClass("selected");
+		} else if (event.target.nodeName == 'SPAN') {	// Trash
+
 		}
 	});
 

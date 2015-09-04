@@ -78,36 +78,38 @@ div.v-scroll {
 }
 
 fieldset.radiogroup {
-	margin: 0; 
-	padding: 0; 
+	margin: 0;
+	padding: 0;
 	margin-bottom: .125em;
-	padding: .125em; 
-} 
-
-fieldset.radiogroup legend {
-	margin: 0; 
-	padding: 0; 
-	font-weight: bold; 
-	margin-left: .125em; 
-	color: black; 
-} 
-
-ul.radio  {
-	margin: 0; 
-	padding: 0; 
-	margin-left: .125em;
-	list-style: none; 
-} 
-
-ul.radio li {
-	border: 1px transparent solid; 
+	padding: .125em;
 }
 
-ul.radio li:hover, ul.radio li.focus  {
-	background-color: lightyellow; 
-	border: 1px gray solid; 
-	width: 10em; 
-} 
+fieldset.radiogroup legend {
+	margin: 0;
+	padding: 0;
+	font-weight: bold;
+	margin-left: .125em;
+	color: black;
+}
+
+ul.radio  {
+	margin: 0;
+	padding: 0;
+	margin-left: .125em;
+	list-style: none;
+}
+
+ul.radio label  {
+}
+
+ul.radio li {
+	border: 1px transparent solid;
+}
+
+ul.radio li:hover, ul.radio li.focus {
+	background-color: lightblue;
+	border: 1px gray solid;
+}
 
 
 	/* DOM structure of web page for visualizations:
@@ -205,6 +207,7 @@ div.filter-head {
 	padding: 2px;
 	margin: 0;
 	vertical-align: top;
+	border-bottom: black 1px dotted;
 }
 
 	/* Area for filter GUI controls */
@@ -529,7 +532,6 @@ div.annote {
  * =============
  */
 
-
 div.ui-dialog-content p {
 	margin: 2px;
 	padding: 0;
@@ -547,17 +549,9 @@ div.scroll-container .selected {
 	color: #56A0D3;
 }
 
-#layout-choices {
-	margin-left: auto;
-	margin-right: auto;
-}
-
-#layout-choices img {
-	cursor: pointer;
-}
-
-#layout-choices .selected {
-	border: 1px red solid;
+	/* In dialog-show-prsrctv */
+#prspctv-list {
+	height: 220px;
 }
 
 	/* Inspector Modal
@@ -595,7 +589,7 @@ div.scroll-container .selected {
 }
 
 label {
-	display: inline-block;
+/*	display: inline-block; */
 	width: 5em;
 }
 
