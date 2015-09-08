@@ -115,6 +115,7 @@ ul.radio li:hover, ul.radio li.focus {
 	/* DOM structure of web page for visualizations:
 	 * #command-bar
 	 * #loading-message
+	 * #note
 	 * #filter-frame
 	 * #selector-frame
 	 * #viz-display-frame
@@ -158,6 +159,32 @@ ul.radio li:hover, ul.radio li.focus {
 	margin: 0px;
 	text-align: center;
 	font-weight: bold;
+}
+
+	/* Floating annotation */
+#annote {
+	position: absolute;
+	z-index: 1000;		/* Leaflet uses 400, so we need larger number */
+	top: 10px;
+
+	left: 90%;
+	left: calc(100% - 280px);
+	left: -webkit-calc(100% - 280px);
+	/*    left: -moz-calc(100% - 280px); */
+
+	width: 300px;
+
+	max-height: 300px;
+
+	padding: 6px;
+	background-color: rgba(255, 255, 255, .8);
+
+	color: #222;
+	font-family: "Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;
+
+	-moz-box-shadow: 0 0 5px 5px rgba(0,0,0,0.3);
+	-webkit-box-shadow: 0 0 5px 5px rgba(0,0,0,0.3);
+	box-shadow: 0 0 5px 5px rgba(0,0,0,0.3);
 }
 
 	/* DOM Structure of Filter Frames
@@ -500,31 +527,6 @@ div.lgnd-viz-empty {
 
 div.lgnd-value-title {
 	vertical-align: middle;
-}
-
-div.annote {
-	position: absolute;
-	z-index: 1000;		/* Leaflet uses 400, so we need larger number */
-	top: 10px;
-
-	left: 90%;
-	left: calc(100% - 280px);
-	left: -webkit-calc(100% - 280px);
-	/*    left: -moz-calc(100% - 280px); */
-
-	width: 270px;
-
-	max-height: 265px;
-
-	padding: 6px;
-	background-color: rgba(255, 255, 255, .8);
-
-	color: #222;
-	font-family: "Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;
-
-	-moz-box-shadow: 0 0 5px 5px rgba(0,0,0,0.3);
-	-webkit-box-shadow: 0 0 5px 5px rgba(0,0,0,0.3);
-	box-shadow: 0 0 5px 5px rgba(0,0,0,0.3);
 }
 
 

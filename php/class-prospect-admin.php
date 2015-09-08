@@ -1723,6 +1723,38 @@ class ProspectAdmin {
 	} // prsp_get_cf_vals()
 
 
+		// PURPOSE: Save Perspective data
+		// INPUT:	$_POST['id'] = ID of Perspective
+		//			$_POST['l'] = Label
+		//			$_POST['x'] = ID of Exhibit
+		//			$_POST['n'] = Note
+		//			$_POST['s'] = Perspective data to save { f: [], s, v0, v1 } }
+	public function prsp_save_prspctv()
+	{
+			// ensure that this URL has not been faked by non-admin user
+		if (!current_user_can('edit_posts')) {
+			wp_die('Invalid request');
+		}
+
+			// Create new Perspective Record
+		$post_data = array(
+			'post_type'		=> 'prsp_prspctv',
+			'post_content'	=> 'No content',
+			'post_title'	=> $_POST['l']
+		);
+		$post_id = wp_insert_post($post_data, $wp_error);
+		if ($post_id != 0) {
+			add_post_meta($post_id, 'prspctv-id', $_POST['id'], true);
+			add_post_meta($post_id, 'prspctv-l', $_POST['l'], true);
+			add_post_meta($post_id, 'xhbt-id', $_POST['x'], true);
+			add_post_meta($post_id, 'prspctv-note', $_POST['n'], true);
+			add_post_meta($post_id, 'prspctv-state', $_POST['s'], true);
+		}
+
+		die();
+	} // prsp_save_prspctv()
+
+
 	// NEW OBJECT CONSTRUCTOR
 	// ======================
 

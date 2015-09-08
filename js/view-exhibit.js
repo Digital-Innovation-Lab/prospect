@@ -3080,7 +3080,7 @@ function PViewFrame(vfIndex)
 	{
 		var selector = jQuery(getFrameID()+' div.view-control-bar select.view-viz-select option:selected');
 		var newSelIndex   = selector.val();
-		createViz(newSelIndex);
+		createViz(newSelIndex, true);
 	} // selectChangeViz()
 
 
@@ -3641,13 +3641,6 @@ function PViewFrame(vfIndex)
 		event.preventDefault();
 	} // clickVizControls()
 
-		// PURPOSE: Hide/show the annotation for this View Frame
-	function clickAnnotation(event)
-	{
-		jQuery(getFrameID()+' div.annote').toggle('slide', {direction: "right" });
-		event.preventDefault();
-	} // clickAnnotation()
-
 		// PURPOSE: Turn on or off all feature Attributes for tmpltIndex
 	function doShowHideAll(tmpltIndex, show)
 	{
@@ -3803,7 +3796,8 @@ function PViewFrame(vfIndex)
 
 		// PURPOSE: Create appropriate VizModel within frame
 		// INPUT: 	vIndex is index in Exhibit array
-	function createViz(vIndex)
+		//			if refresh, then immediately redraw
+	function createViz(vIndex, refresh)
 	{
 		var theView = PData.getVizIndex(vIndex);
 
@@ -3937,7 +3931,7 @@ function PViewFrame(vfIndex)
 			// ViewFrames initially created w/o selection
 		doSelBtns(false);
 
-		if (datastream)
+		if (datastream && refresh)
 			vizModel.render(datastream);		
 	} // createViz()
 
@@ -3952,8 +3946,13 @@ function PViewFrame(vfIndex)
 		return vfIndex;
 	};
 
+	instance.setViz = function(vI, refresh)
+	{
+		createViz(vI, refresh);
+	};
+
 		// PURPOSE: Initialize basic DOM structure for ViewFrame
-	instance.initDOM = function()
+	instance.initDOM = function(vI)
 	{
 		var viewDOM = document.getElementById('dltext-viewframe-dom').innerHTML;
 		jQuery('#viz-display-frame').append('<div id="view-frame-'+vfIndex+'">'+viewDOM+'</div>');
@@ -3977,17 +3976,14 @@ function PViewFrame(vfIndex)
 				.button({icons: { primary: 'ui-icon-cancel' }, text: false })
 				.click(clickClearSelection).next()
 				.button({icons: { primary: 'ui-icon-gear' }, text: false })
-				.click(clickVizControls).next()
-				.button({icons: { primary: 'ui-icon-comment' }, text: false })
-				.click(clickAnnotation).next();
+				.click(clickVizControls).next();
 
 		frame.find('div.lgnd-container')
 			.click(clickInLegend);
 
 		frame.find('div.annote').hide();
 
-			// Create first VF by default
-		createViz(0);
+		createViz(vI ? vI : 0, false);
 
 		state = PSTATE_REQ;
 	}; // initDOM()
@@ -5100,10 +5096,12 @@ jQuery(document).ready(function($) {
 	var selFilter=null;		// Selector Filter
 	var selFID;				// Attribute ID for Selector Filter
 
+	var annote;				// Annotation from Perspective
+
 	var topStream;			// Top-level IndexStream (before Filters)
 	var endStream;			// Final resulting IndexStream (after Filters)
 
-	var localStore=null;	// Local (Browser) storage
+	var localStore=null;	// Local (Browser) storage (if Browser capable)
 	var localPrspctvs=[];	// locally-stored Perspectives
 
 		// FUNCTIONS
@@ -5177,6 +5175,30 @@ jQuery(document).ready(function($) {
 		event.preventDefault();
 	} // clickRecompute()
 
+		// PURPOSE: Set annotation text to <t>
+	function setAnnote(t)
+	{
+		annote = t;
+
+		var n = jQuery('#annote');
+		n.text(t);
+
+		if (t.length > 0) {
+			jQuery('#btn-annote').button("enable");
+			n.show();
+		} else {
+			jQuery('#btn-annote').button("disable");
+			n.hide();
+		}
+	} // setAnnote()
+
+		// PURPOSE: Hide/show the annotation for this View Frame
+	function clickAnnotation(event)
+	{
+		jQuery('#annote').toggle('slide', { direction: "right" });
+		event.preventDefault();
+	} // clickAnnotation()
+
 
 		// PURPOSE: Add 2nd window if not already there; remove if so
 		// TO DO: 	Set state
@@ -5246,10 +5268,11 @@ jQuery(document).ready(function($) {
 			return null;
 
 		var note = jQuery('#save-psrctv-note').val();
-		note = note.replace('"', '');
+		note = note.replace(/"/, '');
+		setAnnote(note);
+
 		var label = jQuery('#save-psrctv-lbl').val();
-		label = label.replace('"', '');
-		var sPrspctv = { id: id, l: label, n: note };
+		label = label.replace(/"/, '');
 
 			// Compile Perspective state from Filter stack, Selector Filter & Views
 		var pState = { f: [], s: null, v0: view0.getState(), v1: null };
@@ -5261,7 +5284,7 @@ jQuery(document).ready(function($) {
 		}
 		if (view1)
 			pState.v1 = view1.getState();
-		sPrspctv.s = pState;
+		var sPrspctv = { id: id, l: label, n: note, s: pState };
 
 console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 
@@ -5269,7 +5292,27 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 			localPrspctvs.push(sPrspctv);
 			localStore.setItem(prspdata.e.id, JSON.stringify(localPrspctvs));
 		} else if (dest == 'server') {
-			// TO DO
+				// Send via AJAX -- if successful, add locally
+			jQuery.ajax({
+				type: 'POST',
+				url: prspdata.ajax_url,
+				data: {
+					action: 'prsp_save_prspctv',
+					id: id,
+					l: label,
+					x: prspdata.e.id,
+					n: note,
+					s: JSON.stringify(pState)
+				},
+				success: function(data, textStatus, XMLHttpRequest)
+				{
+					prspdata.p.push(sPrspctv);
+				},
+				error: function(XMLHttpRequest, textStatus, errorThrown)
+				{
+				   alert(errorThrown);
+				}
+			});
 		}
 		return dest;
 	} // doSavePerspective()
@@ -5382,6 +5425,7 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 					if (selItem.length) {
 						var setP = selItem.data('id');
 // console.log('Selected: '+selItem.data('src')+'/'+selItem.data('id'));
+						doShowPerspective(setP);
 					}
 					spDialog.dialog("close");
 				}, // OK
@@ -5483,6 +5527,7 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 		// PURPOSE: Add a new filter to the stack
 		// INPUT: 	fID = Attribute ID
 		//			selector = true if filter for the selector
+		// RETURNS: The Filter object created
 	function createFilter(fID, selector)
 	{
 		var newID;
@@ -5549,6 +5594,7 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 
 			// Allow Filter to insert required HTML
 		newFilter.setup();
+		return newFilter;
 	} // createFilter()
 
 
@@ -5663,6 +5709,72 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 		event.preventDefault();
 	} // clickApplySelector()
 
+
+		// PURPOSE: Attempt to show Perspective pID
+		// RETURN:  false if error
+	function doShowPerspective(pID)
+	{
+		function getVizIndex(vID)
+		{
+			prspdata.e.vf.findIndex(function(vf) {
+				return vID == vf.l;
+			});
+		}
+
+		var p = getPerspective(pID);
+		if (!p)
+			return false;
+
+		var vI = getVizIndex(p.s.v0.l);
+		if (view0) {
+			view0.setViz(vI, false);
+		} else {
+			view0 = PViewFrame(0);
+			view0.initDOM(vI);
+		}
+
+		if (p.s.v1) {
+			vI = getVizIndex(p.s.v1.l);
+			if (view1) {
+				view1.setViz(vI, false);
+			} else {
+				view1 = PViewFrame(1);
+				view1.initDOM(vI);
+			}
+		} else {
+			if (view1) {
+				jQuery('#view-frame-1').remove();
+				view1 = null;
+				jQuery('#selector-v1').prop("disabled", true);
+			}
+		}
+
+		setAnnote(p.n);
+
+			// Clear Filter Stack & Selector Filter
+		doDelSelFilter();
+		filters.forEach(function(theF) {
+			theF.teardown();
+		});
+		filters=[];
+		jQuery('#filter-instances').empty();
+
+		if (p.s.s) {
+			createFilter(p.s.s.id, false);
+			selFilter.setState(p.s.s.s);
+		}
+		p.s.f.forEach(function(theF) {
+			var newF = createFilter(theF.id, false);
+			newF.setState(theF.s);
+		});
+
+		if (topStream)
+			doRecompute();
+
+		return true;
+	} // doShowPerspective()
+
+
 	function localize()
 	{
 		var text;
@@ -5727,6 +5839,8 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 			.click(clickShowPerspective);
 	jQuery('#btn-save-prspctv').button({icons: { primary: 'ui-icon-pencil' }, text: false })
 			.click(clickSavePerspective);
+	jQuery('#btn-annote').button({icons: { primary: 'ui-icon-comment' }, text: false })
+			.click(clickAnnotation);
 
 		// Are there Home settings?
 	if (prspdata.e.g.hbtn.length > 0 && prspdata.e.g.hurl.length > 0) {
@@ -5788,14 +5902,13 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 
 	state = PSTATE_REQ;
 
-		// Intercept global state changes: data { pstate, component [0=global, 1=view1, 2=view2] }
-	jQuery("body").on("prospect", function(event, data) {
-		if (data.pstate = PSTATE_PROCESS) {
-			state = PSTATE_PROCESS;
-				// TO DO: Check views for ready state until they can render -- use timer?
-			doRecompute();
-		}
-	});
+		// Restore Perspective or create default?
+	if (prspdata.show_prspctv.length == 0 && !doShowPerspective(prspdata.show_prspctv)) {
+console.log("Setting default Perspective");
+		view0 = PViewFrame(0);
+		view0.initDOM();
+		setAnnote('');
+	}
 
 		// Allow ViewFrames to handle changes in size
 	jQuery(window).resize(function() {
@@ -5805,9 +5918,14 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 			view1.resize();
 	});
 
-		// Initial primary visualization frame
-	view0 = PViewFrame(0);
-	view0.initDOM();
+		// Intercept global state changes: data { pstate, component [0=global, 1=view1, 2=view2] }
+	jQuery("body").on("prospect", function(event, data) {
+		if (data.pstate == PSTATE_PROCESS) {
+			state = PSTATE_PROCESS;
+				// TO DO: Check views for ready state until they can render -- use timer?
+			doRecompute();
+		}
+	});
 
 		// Init hub using config settings
 	PData.init();
