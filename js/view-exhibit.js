@@ -42,11 +42,10 @@ var EVENT_INSTANT = 1;			// Single instantaneous event (not Date range)
 var EVENT_F_START = 2;			// Event has fuzzy start
 var EVENT_F_END = 4;			// Event has fuzzy end
 
-var PSTATE_INIT = 0;			// Internal initialization
-var PSTATE_REQ = 1;				// Waiting for requested data
-var PSTATE_PROCESS = 2;			// Processing data or handling command
-var PSTATE_BUILD = 3;			// Building visuals
-var PSTATE_READY = 4;			// Waiting for user
+var PSTATE_INIT = 0;			// Initialization
+var PSTATE_PROCESS = 1;			// Processing data or handling command
+var PSTATE_BUILD = 2;			// Building visuals
+var PSTATE_READY = 3;			// Waiting for user
 
 var D3FG_BAR_WIDTH = 25;		// D3 Graphs created for filters
 var D3FG_MARGINS  = { top: 4, right: 7, bottom: 22, left: 30 };
@@ -514,6 +513,16 @@ VizMap.prototype.setSel = function(absIArray)
 	}
 } // setSel()
 
+VizMap.prototype.getState = function()
+{
+	return { c: this.lMap.getCenter(), z: this.lMap.getZoom() };
+} // getState()
+
+
+VizMap.prototype.setState = function(state)
+{
+	this.lMap.setView(state.c, state.z);
+} // setState()
 
 // =============================================
 // VizCards: Class to visualize records as Cards
@@ -1533,15 +1542,15 @@ VizTime.prototype.setup = function()
 
 					// "this" will actually point to the brushSVG object
 					// Replaces SVG data to correspond to new brush params
-				// d3.select(this).call(self.brush.extent(extent1));
+				// self.brushg.call(self.brush.extent(extent1));
 
 				self.brush.extent(extent1);
 				self.brushHandler.redraw();
 
-					// Rescale top timeline(s) according to bottom brush
-				macro = self.bands[1];
-				macro.xScale.domain(extent1);
-				macro.redraw();
+					// Rescale bottom/zoom timeline
+				zoom = self.bands[1];
+				zoom.xScale.domain(extent1);
+				zoom.redraw();
 			});
 	} // createBrush()
 
@@ -2134,6 +2143,32 @@ VizTime.prototype.clearSel = function()
 	}
 } // clearSel()
 
+VizTime.prototype.getState = function()
+{
+		// Need to create more compact form for date
+	var e = this.brush.extent();
+	var e0 = e[0], e1 = e[1];
+	var m = e0.getUTCMonth()+1;
+	var d0 = e0.getUTCFullYear().toString()+'-'+m.toString()+'-'+e0.getDate().toString();
+	m = e1.getUTCMonth()+1;
+	var d1 = e1.getUTCFullYear().toString()+'-'+m.toString()+'-'+e1.getDate().toString();
+console.log("Saving dates: "+d0+"/"+d1);
+	return { d0: d0, d1: d1 };
+} // getState()
+
+VizTime.prototype.setState = function(state)
+{
+	var e0 = PData.parseDate(state.d0, 1, 1);
+	var e1 = PData.parseDate(state.d1, 12, 31);
+	this.brush.extent([e0, e1]);
+	// if (this.brushHandler)
+	// 	this.brushHandler.redraw();
+
+		// Rescale bottom/zoom timeline
+	var zoom = this.bands[1];
+	zoom.xScale.domain([e0, e1]);
+} // setState()
+
 
 // ==========================================================
 // VizDirectory: Class to visualize lists of Template records
@@ -2583,13 +2618,12 @@ PFilterText.prototype.setup = function()
 
 PFilterText.prototype.getState = function()
 {
-	// TO DO
-	return {};
+	return { t: this.insertPt().find('input.filter-text').val() };
 } // getState()
 
 PFilterText.prototype.setState = function(state)
 {
-	// TO DO
+	this.insertPt().find('input.filter-text').val(state.t);
 } // setState()
 
 // ===================================================
@@ -2645,17 +2679,13 @@ PFilterVocab.prototype.setup = function()
 	this.att.l.forEach(function(lEntry, lI) {
 		t += '<div class="filter-vocab-entry" data-index="'+lI+'"><div class="filter-vocab-row" data-id="'+
 				lEntry.l+'">'+'<input type="checkbox" value="min-use" checked="checked">'+
-				lEntry.l+'</div>';
-		if (lEntry.v.charAt(0) == '#') {
-			t += '<div class="filter-vocab-bar" style="background-color:'+lEntry.v+'"></div>';
-		}
+				lEntry.l+'</div><div class="filter-vocab-bar" style="background-color:'+lEntry.v+'"></div>';
 		lEntry.z.forEach(function(zEntry, zI) {
 			t += '<div class="filter-vocab-row" data-id="'+zEntry.l+'"><input type="checkbox" value="min-use" checked="checked">'+
 				zEntry.l+'</div>';
 			if (zEntry.v == null || zEntry.v == '') {
-				if (lEntry.v.charAt(0) == '#')
-					t += '<div class="filter-vocab-bar" style="background-color:'+lEntry.v+'"></div>';
-			} else if (zEntry.v.charAt(0) == '#') {
+				t += '<div class="filter-vocab-bar" style="background-color:'+lEntry.v+'"></div>';
+			} else {
 				t += '<div class="filter-vocab-bar" style="background-color:'+zEntry.v+'"></div>';
 			}
 		});
@@ -2673,13 +2703,26 @@ PFilterVocab.prototype.setup = function()
 
 PFilterVocab.prototype.getState = function()
 {
-	// TO DO
-	return {};
+	var s=[];
+	var v = this.insertPt().find('div.filter-vocab-row input:checked');
+	v.each(function() {
+		var attID = jQuery(this).parent().data('id');
+		s.push(attID);
+	});
+	s.sort();
+	return { s: s };
 } // getState()
 
 PFilterVocab.prototype.setState = function(state)
 {
-	// TO DO
+	var vr = this.insertPt().find('div.filter-vocab-row');
+	var id;
+	vr.each(function() {
+		var j = jQuery(this);
+		var id = j.data('id');
+		var c = _.indexOf(state.s, id, true);
+		j.find('input').prop("checked", c != -1);
+	});
 } // setState()
 
 
@@ -2784,7 +2827,6 @@ PFilterNum.prototype.setup = function()
 		this.max = this.rCats[this.rCats.length-1].max;
 
 		var innerH = 80 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
-		var brush;
 
 		function resizePath(d)
 		{
@@ -2803,7 +2845,7 @@ PFilterNum.prototype.setup = function()
 				// Ignore unless user event
 			if (!d3.event.sourceEvent)
 				return;
-			var extent0 = brush.extent();
+			var extent0 = self.brush.extent();
 			var extent1 = [Math.floor(extent0[0]), Math.floor(extent0[1])];
 				// if empty when rounded, use floor & ceil instead
 			if (extent1[0] >= extent1[1]) {
@@ -2813,7 +2855,7 @@ PFilterNum.prototype.setup = function()
 				// must enclose at least 1 graph!
 			extent1[1] = Math.max(extent1[1], extent1[0]+1);
 			d3.select(this).transition()
-				.call(brush.extent(extent1));
+				.call(self.brush.extent(extent1));
 
 			self.min = self.rCats[extent1[0]].min;
 			self.max = self.rCats[extent1[1]-1].max;
@@ -2855,18 +2897,18 @@ PFilterNum.prototype.setup = function()
 			.attr("height", function(d) { return innerH - yScale(100); })
 			.attr("width", D3FG_BAR_WIDTH-2);
 
-		brush = d3.svg.brush()
+		self.brush = d3.svg.brush()
 			.x(xScale)
 			.extent([0, this.rCats.length])
 			.on("brushend", brushended);
 
-		var brushg = chart.append("g")
-			.attr("class", "brush")
-			.call(brush);
-		brushg.selectAll("rect")
+		self.brushg = chart.append("g");
+		self.brushg.attr("class", "brush")
+			.call(self.brush);
+		self.brushg.selectAll("rect")
 			.attr("y", 0)
 			.attr("height", innerH);
-		brushg.selectAll(".resize")
+		self.brushg.selectAll(".resize")
 			.append("path")
 			.attr("d", resizePath);
 	}
@@ -2874,13 +2916,33 @@ PFilterNum.prototype.setup = function()
 
 PFilterNum.prototype.getState = function()
 {
-	// TO DO
-	return {};
+	if (this.rCats == null) {
+		var dom = this.insertPt();
+		var min = parseInt(dom.find('input.filter-num-min-val').val());
+		var max = parseInt(dom.find('input.filter-num-max-val').val());
+		var useMin = dom.find('input.filter-num-min-use').is(':checked');
+		var useMax = dom.find('input.filter-num-max-use').is(':checked');
+		return { rc: false, min: min, max: max, useMin: useMin, useMax: useMax };
+	} else {
+		var e = this.brush.extent();
+		return { rc: true, e0: e[0], e1: e[1] };
+	}
 } // getState()
 
 PFilterNum.prototype.setState = function(state)
 {
-	// TO DO
+	if (state.rc) {
+		this.min = this.rCats[state.e0].min;
+		this.max = this.rCats[state.e1-1].max;
+		this.brush.extent([state.e0, state.e1]);
+		this.brushg.call(this.brush);
+	} else {
+		var dom = this.insertPt();
+		dom.find('input.filter-num-min-val').val(state.min);
+		dom.find('input.filter-num-max-val').val(state.max);
+		dom.find('input.filter-num-min-use').prop('checked', state.useMin);
+		dom.find('input.filter-num-max-use').prop('checked', state.useMax);
+	}
 } // setState()
 
 
@@ -2942,12 +3004,10 @@ PFilterDates.prototype.setup = function()
 
 	this.rCats = PData.getRCats(this.att);
 		// Set defaults
-	this.useMin = this.useMax = true;
 	this.min = this.rCats[0].min;
 	this.max = this.rCats[this.rCats.length-1].max;
 
 	var innerH = 80 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
-	var brush;
 
 	function resizePath(d)
 	{
@@ -2966,7 +3026,7 @@ PFilterDates.prototype.setup = function()
 			// Ignore unless user event
 		if (!d3.event.sourceEvent)
 			return;
-		var extent0 = brush.extent();
+		var extent0 = self.brush.extent();
 		var extent1 = [Math.floor(extent0[0]), Math.floor(extent0[1])];
 			// if empty when rounded, use floor & ceil instead
 		if (extent1[0] >= extent1[1]) {
@@ -2976,7 +3036,7 @@ PFilterDates.prototype.setup = function()
 			// must enclose at least 1 graph!
 		extent1[1] = Math.max(extent1[1], extent1[0]+1);
 		d3.select(this).transition()
-			.call(brush.extent(extent1));
+			.call(self.brush.extent(extent1));
 
 		self.min = self.rCats[extent1[0]].min;
 		self.max = self.rCats[extent1[1]-1].max;
@@ -3019,31 +3079,34 @@ PFilterDates.prototype.setup = function()
 		.attr("height", function(d) { return innerH - yScale(100); })
 		.attr("width", D3FG_BAR_WIDTH-2);
 
-	brush = d3.svg.brush()
+	self.brush = d3.svg.brush()
 		.x(xScale)
 		.extent([0, this.rCats.length])
 		.on("brushend", brushended);
 
-	var brushg = chart.append("g")
-		.attr("class", "brush")
-		.call(brush);
-	brushg.selectAll("rect")
+	self.brushg = chart.append("g");
+	self.brushg.attr("class", "brush")
+		.call(self.brush);
+	self.brushg.selectAll("rect")
 		.attr("y", 0)
 		.attr("height", innerH);
-	brushg.selectAll(".resize")
+	self.brushg.selectAll(".resize")
 		.append("path")
 		.attr("d", resizePath);
 } // setup()
 
 PFilterDates.prototype.getState = function()
 {
-	// TO DO
-	return {};
+	var e = this.brush.extent();
+	return { e0: e[0], e1: e[1] };
 } // getState()
 
 PFilterDates.prototype.setState = function(state)
 {
-	// TO DO
+	this.min = this.rCats[state.e0].min;
+	this.max = this.rCats[state.e1-1].max;
+	this.brush.extent([state.e0, state.e1]);
+	this.brushg.call(this.brush);
 } // setState()
 
 
@@ -3060,7 +3123,6 @@ function PViewFrame(vfIndex)
 	// INSTANCE VARIABLES
 	//===================
 
-	var state = PSTATE_INIT;	// One of PSTATE_
 	var vizSelIndex = 0;		// index of currently selected Viz
 	var vizModel = null;		// PVizModel currently in frame
 	var legendIDs = [];			// Attribute IDs of Legend selections (one per Template)
@@ -3944,12 +4006,13 @@ function PViewFrame(vfIndex)
 	instance.getIndex = function()
 	{
 		return vfIndex;
-	};
+	}
 
 	instance.setViz = function(vI, refresh)
 	{
+			// TO DO: Check if vI viz already created
 		createViz(vI, refresh);
-	};
+	}
 
 		// PURPOSE: Initialize basic DOM structure for ViewFrame
 	instance.initDOM = function(vI)
@@ -3984,9 +4047,7 @@ function PViewFrame(vfIndex)
 		frame.find('div.annote').hide();
 
 		createViz(vI ? vI : 0, false);
-
-		state = PSTATE_REQ;
-	}; // initDOM()
+	} // initDOM()
 
 
 		// RETURNS: Array of currently selected locate Attribute IDs for tIndex
@@ -4000,7 +4061,7 @@ function PViewFrame(vfIndex)
 			attIDs.push(attID);
 		});
 		return attIDs;
-	}; // getSelLocAtts()
+	} // getSelLocAtts()
 
 
 		// RETURNS: Array of indices of currently selected feature Attribute IDs for tIndex
@@ -4022,7 +4083,7 @@ function PViewFrame(vfIndex)
 			}
 		});
 		return attIndices;
-	}; // getSelFeatAtts()
+	} // getSelFeatAtts()
 
 
 		// RETURNS: Attribute ID selected on Legend for tIndex
@@ -4031,10 +4092,17 @@ function PViewFrame(vfIndex)
 		return legendIDs[tIndex];
 	} // getSelLegend()
 
-
+		// RETURNS: The state of the current visualization
 	instance.getState = function()
 	{
-		return state;
+		return vizModel ? vizModel.getState() : null;
+	} // getState()
+
+		// PURPOSE: Set the state of the current visualization
+	instance.setState = function(state)
+	{
+		if (vizModel)
+			vizModel.setState(state);
 	} // getState()
 
 		// PURPOSE: Called by external agent when new datastream is available for viewing
@@ -4085,7 +4153,13 @@ function PViewFrame(vfIndex)
 	{
 		if (vizModel)
 			vizModel.resize();
-	} // resize
+	} // resize()
+
+	instance.title = function()
+	{
+		var v = PData.getVizIndex(vizSelIndex);
+		return v.l;
+	} // title()
 
 	return instance;
 } // PViewFrame
@@ -4121,6 +4195,7 @@ var PData = (function () {
 								// Corresponding to prspdata.t
 								// { n = # loaded, i = initial index for these records, d = data array }
 	var recsCount=0;			// Total number of Records
+	var loaded=false;			// All data loaded?
 
 
 	// INTERNAL FUNCTIONS
@@ -4178,9 +4253,12 @@ var PData = (function () {
 		}
 		if (done) {
 // console.log("Done loading: "+JSON.stringify(recs));
+			loaded=true;
 			jQuery('#btn-recompute').addClass('pulse');
-			setTimeout(function(){ jQuery('#loading-message').hide(); }, 1000);
-			jQuery("body").trigger("prospect", { pstate: PSTATE_PROCESS, component: 0 });
+			setTimeout(function() {
+				jQuery('#loading-message').hide();
+				jQuery("body").trigger("prospect", { pstate: PSTATE_PROCESS, component: 0 });
+			}, 500);
 		}
 	} // checkDataLoad()
 
@@ -5072,7 +5150,13 @@ var PData = (function () {
 		getVizIndex: function(vIndex)
 		{
 			return prspdata.e.vf[vIndex];
-		} // getVizIndex()
+		}, // getVizIndex()
+
+			// RETURNS: true after all data has been loaded
+		ready: function()
+		{
+			return loaded;
+		} // ready
 	} // return
 })(); // PData
 
@@ -5110,7 +5194,7 @@ jQuery(document).ready(function($) {
 	function doRecompute()
 	{
 // console.log("Start recompute");
-		state = PSTATE_BUILD;
+		state = PSTATE_PROCESS;
 
 			// Recompute must clear current selection
 		view0.clearSel();
@@ -5165,13 +5249,13 @@ jQuery(document).ready(function($) {
 			view1.showStream(endStream);
 		jQuery('#btn-recompute').removeClass('pulse');
 // console.log("Visualization complete");
-		state = PSTATE_READY;
 	} // doRecompute()
 
 		// TO DO: Check and set frameState; make cursor busy during compute!
 	function clickRecompute(event)
 	{
 		doRecompute();
+		state = PSTATE_READY;
 		event.preventDefault();
 	} // clickRecompute()
 
@@ -5204,6 +5288,7 @@ jQuery(document).ready(function($) {
 		// TO DO: 	Set state
 	function clickTog2nd()
 	{
+		state = PSTATE_BUILD;
 		if (view1 != null) {
 			jQuery('#view-frame-1').remove();
 			view1 = null;
@@ -5215,6 +5300,7 @@ jQuery(document).ready(function($) {
 			jQuery('#selector-v1').prop("disabled", false);
 		}
 		view0.resize();
+		state = PSTATE_READY;
 	} // clickTog2nd()
 
 
@@ -5269,21 +5355,20 @@ jQuery(document).ready(function($) {
 
 		var note = jQuery('#save-psrctv-note').val();
 		note = note.replace(/"/, '');
-		setAnnote(note);
 
-		var label = jQuery('#save-psrctv-lbl').val();
+		var label = jQuery('#save-psrctv-lbl').val().trim();
 		label = label.replace(/"/, '');
 
 			// Compile Perspective state from Filter stack, Selector Filter & Views
-		var pState = { f: [], s: null, v0: view0.getState(), v1: null };
+		var pState = { f: [], s: null, v0: { l: view0.title(), s: view0.getState() }, v1: null };
 		filters.forEach(function(theF) {
-			pState.f.push({ id: theF.id, s: theF.f.getState() });
+			pState.f.push({ id: theF.attID, r: theF.f.isReq(), s: theF.f.getState() });
 		});
 		if (selFilter) {
 			pState.s = { id: selFID, s: selFilter.getState() };
 		}
 		if (view1)
-			pState.v1 = view1.getState();
+			pState.v1 = { l: view1.title(), s: view1.getState() };
 		var sPrspctv = { id: id, l: label, n: note, s: pState };
 
 console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
@@ -5320,7 +5405,7 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 	function clickSavePerspective(event)
 	{
 		var spDialog;
-		var idExp = /\W/;
+		var idExp = /[^\w\-]/;
 
 			// Clear any previous input values
 		jQuery('#save-psrctv-id').val('');
@@ -5342,10 +5427,10 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 			modal: true,
 			buttons: {
 				OK: function() {
-					var id = jQuery('#save-psrctv-id').val();
+					var id = jQuery('#save-psrctv-id').val().trim();
 						// Make sure ID correct format
 					var idError = id.match(idExp);
-					if (id.length == 0 || idError)
+					if (id.length == 0 || id.length > 20 || idError)
 						idError = '#dialog-prspctv-id-badchars';
 						// Make sure ID not already taken
 					else if (getPerspective(id))
@@ -5424,7 +5509,6 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 					var selItem = pList.find('li.selected');
 					if (selItem.length) {
 						var setP = selItem.data('id');
-// console.log('Selected: '+selItem.data('src')+'/'+selItem.data('id'));
 						doShowPerspective(setP);
 					}
 					spDialog.dialog("close");
@@ -5573,7 +5657,7 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 					}).click(doDelSelFilter);
 
 		} else {
-			var newFRec = { id: newID, f: newFilter, out: null };
+			var newFRec = { id: newID, attID: fID, f: newFilter, out: null };
 			filters.push(newFRec);
 
 				// Now create DOM structure and handle clicks
@@ -5677,8 +5761,10 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 		event.preventDefault();
 	} // clickToggleSelector()
 
-	function clickApplySelector(event)
+	function doApplySelector()
 	{
+		state = PSTATE_PROCESS;
+
 		var selList=[], mustCopy=false;
 		if (selFilter != null && endStream != null) {
 			selFilter.evalPrep();
@@ -5694,6 +5780,7 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 		}
 // console.log("Selection: "+JSON.stringify(selList));
 
+		state = PSTATE_BUILD;
 			// Which Views to send Selection?
 		if (jQuery('#selector-v0').is(':checked')) {
 			mustCopy = view0.setSel(selList);
@@ -5705,7 +5792,12 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 				view1.setSel(selList);				
 			}
 		}
+	} // doApplySelector()
 
+	function clickApplySelector(event)
+	{
+		doApplySelector();
+		state = PSTATE_READY;
 		event.preventDefault();
 	} // clickApplySelector()
 
@@ -5714,62 +5806,75 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 		// RETURN:  false if error
 	function doShowPerspective(pID)
 	{
-		function getVizIndex(vID)
+		function vizIndex(vID)
 		{
-			prspdata.e.vf.findIndex(function(vf) {
+			return prspdata.e.vf.findIndex(function(vf) {
 				return vID == vf.l;
 			});
 		}
 
 		var p = getPerspective(pID);
+console.log("Show Perspective ["+pID+"]: "+JSON.stringify(p));
 		if (!p)
 			return false;
 
-		var vI = getVizIndex(p.s.v0.l);
+		state = PSTATE_PROCESS;
+
+			// Clear current Filter Stack & Selector Filter
+		filters.forEach(function(theF) {
+			theF.f.teardown();
+		});
+		filters=[];
+		jQuery('#filter-instances').empty();
+		p.s.f.forEach(function(fRec) {
+			var newF = createFilter(fRec.id, false);
+			newF.setState(fRec.s);
+			newF.isReq(fRec.r);
+		});
+		jQuery('#filter-instances').hide();
+
+		doDelSelFilter();
+		if (p.s.s != null) {
+			createFilter(p.s.s.id, true);
+			selFilter.setState(p.s.s.s);
+		}
+		jQuery('#selector-instance').hide();
+
+		var vI = vizIndex(p.s.v0.l);
 		if (view0) {
 			view0.setViz(vI, false);
 		} else {
 			view0 = PViewFrame(0);
 			view0.initDOM(vI);
 		}
+		view0.setState(p.s.v0.s);
 
-		if (p.s.v1) {
-			vI = getVizIndex(p.s.v1.l);
+		if (p.s.v1 != null) {
+			vI = vizIndex(p.s.v1.l);
 			if (view1) {
 				view1.setViz(vI, false);
 			} else {
 				view1 = PViewFrame(1);
 				view1.initDOM(vI);
 			}
+			view1.setState(p.s.v1.s);
 		} else {
 			if (view1) {
 				jQuery('#view-frame-1').remove();
 				view1 = null;
 				jQuery('#selector-v1').prop("disabled", true);
+				view0.resize();
 			}
 		}
 
 		setAnnote(p.n);
 
-			// Clear Filter Stack & Selector Filter
-		doDelSelFilter();
-		filters.forEach(function(theF) {
-			theF.teardown();
-		});
-		filters=[];
-		jQuery('#filter-instances').empty();
-
-		if (p.s.s) {
-			createFilter(p.s.s.id, false);
-			selFilter.setState(p.s.s.s);
-		}
-		p.s.f.forEach(function(theF) {
-			var newF = createFilter(theF.id, false);
-			newF.setState(theF.s);
-		});
-
-		if (topStream)
+			// Don't recompute if data not loaded yet
+		if (PData.ready() && topStream) {
 			doRecompute();
+			if (selFilter)
+				doApplySelector();
+		}
 
 		return true;
 	} // doShowPerspective()
@@ -5900,10 +6005,8 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 
 	prepFilterData();
 
-	state = PSTATE_REQ;
-
 		// Restore Perspective or create default?
-	if (prspdata.show_prspctv.length == 0 && !doShowPerspective(prspdata.show_prspctv)) {
+	if (prspdata.show_prspctv.length == 0 || !doShowPerspective(prspdata.show_prspctv)) {
 console.log("Setting default Perspective");
 		view0 = PViewFrame(0);
 		view0.initDOM();
@@ -5920,10 +6023,12 @@ console.log("Setting default Perspective");
 
 		// Intercept global state changes: data { pstate, component [0=global, 1=view1, 2=view2] }
 	jQuery("body").on("prospect", function(event, data) {
+			// ASSUMED: This won't be triggered until after Filters & Views set up
 		if (data.pstate == PSTATE_PROCESS) {
 			state = PSTATE_PROCESS;
-				// TO DO: Check views for ready state until they can render -- use timer?
 			doRecompute();
+			if (selFilter)
+				doApplySelector();
 		}
 	});
 

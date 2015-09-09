@@ -108,11 +108,11 @@
 	</div>
 
 	<div id="dialog-prspctv-id-used" title="Perspective ID Error">
-		<p>That Perspective ID has already been used. Please create another (alphabetic characters, numbers, and underscores only), or click the 'Cancel' button.</p>
+		<p>That Perspective ID has already been used. Please create another (alphabetic characters, numbers, hyphens and underscores only), or click the 'Cancel' button.</p>
 	</div>
 
 	<div id="dialog-prspctv-id-badchars" title="Perspective ID Error">
-		<p>That Perspective ID has illegal characters. Please create another (alphabetic characters, numbers, and underscores only, no spaces), or click the 'Cancel' button.</p>
+		<p>That Perspective ID has illegal characters or is too long. Please create another ID of no more than 20 characters (alphabetic characters, numbers, hyphens and underscores only, no spaces), or click the 'Cancel' button.</p>
 	</div>
 
 	<div id="dialog-prspctv-url" title="Perspective URL">
