@@ -2145,14 +2145,13 @@ VizTime.prototype.clearSel = function()
 
 VizTime.prototype.getState = function()
 {
-		// Need to create more compact form for date
+		// Create more compact form for date to parse later
 	var e = this.brush.extent();
 	var e0 = e[0], e1 = e[1];
 	var m = e0.getUTCMonth()+1;
 	var d0 = e0.getUTCFullYear().toString()+'-'+m.toString()+'-'+e0.getDate().toString();
 	m = e1.getUTCMonth()+1;
 	var d1 = e1.getUTCFullYear().toString()+'-'+m.toString()+'-'+e1.getDate().toString();
-console.log("Saving dates: "+d0+"/"+d1);
 	return { d0: d0, d1: d1 };
 } // getState()
 
@@ -3511,10 +3510,11 @@ function PViewFrame(vfIndex)
 
 						container.append('<div id="yt-widget"></div>');
 
-							// YouTube API is only loaded once
+							// YouTube API is only loaded once but must handle race condition:
+							//	Inspector modal can be closed before video fully loaded
+						widgetData.ytCall = ytActivate;
 						if (!widgetData.ytLoaded) {
 							widgetData.ytLoaded = true;
-							widgetData.ytCall = ytActivate;
 
 								// Create a script DIV that will cause API to be loaded
 							var tag = document.createElement('script');
@@ -3652,13 +3652,22 @@ function PViewFrame(vfIndex)
 						// Stop any A/V playing
 					switch(avType) {
 					case 1:
-						widgetData.widget.pause();
+						if (widgetData.widget != null && widgetData.playing)
+							widgetData.widget.pause();
+						widgetData.playing = false;
+						widgetData.widget = null;
 						break;
 					case 2:
+							// Prevent invoking player if code called after modal closed
+						widgetData.ytCall = null;
 							// Silence YouTube player if modal closed in another way
-						widgetData.widget.stopVideo();
-						if (widgetData.timer) {
+						if (widgetData.widget != null && widgetData.playing)
+							widgetData.widget.stopVideo();
+						widgetData.widget = null;
+						widgetData.playing = false;
+						if (widgetData.timer != null) {
 							window.clearInterval(widgetData.timer);
+							widgetData.timer = null;
 						}
 						break;
 					}
@@ -6041,5 +6050,6 @@ console.log("Setting default Perspective");
 function onYouTubeIframeAPIReady()
 {
 		// Call saved function call
-	widgetData.ytCall();
+	if (widgetData.ytCall)
+		widgetData.ytCall();
 } // onYouTubeIframeAPIReady()
