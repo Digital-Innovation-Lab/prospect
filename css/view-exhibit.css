@@ -3,7 +3,7 @@
  ** Uses Flexbox to create dynamically resized blocks. See technique at:
  **		http://railsware.com/blog/2014/12/02/flexbox-as-a-solution-for-browser-reflow-optimization/
  ** NOTES from above article:
- **		jQuery .show() and .hide() cannot be used for DIVs that use Flexbox; need to define hide style
+ **		jQuery .show() & .hide() cannot be used on DIVs that use Flexbox; need to define hide style
  ** 	Browsers have inconsistent support for Flexbox (and some bugs); IE is unreliable
  ** Also see https://github.com/philipwalton/flexbugs
  **/
@@ -114,7 +114,6 @@ ul.radio li:hover, ul.radio li.focus {
 
 	/* DOM structure of web page for visualizations:
 	 * #command-bar
-	 * #loading-message
 	 * #note
 	 * #filter-frame
 	 * #selector-frame
@@ -146,19 +145,19 @@ ul.radio li:hover, ul.radio li.focus {
 	float: right;
 }
 
-.command-bar-label {
+#pstate {
+	background-color: white;
 	color: black;
-	font-size: 10px;
+	border: 1px black solid;
+	text-align: center;
+	vertical-align: middle;
+	padding: 3px;
+	font-size: .75em;
 }
 
-	/* Section which initially has "Loading Content" message */
-#loading-message {
+#pstate.attn {
 	background-color: yellow;
-	padding: 15px;
 	color: red;
-	margin: 0px;
-	text-align: center;
-	font-weight: bold;
 }
 
 	/* Floating annotation */

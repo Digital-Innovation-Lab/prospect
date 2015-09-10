@@ -6,11 +6,8 @@
 	&nbsp;<button id="btn-show-prspctv">Show Perspective</button>
 	&nbsp;<button id="btn-save-prspctv">Save Perspective</button>
 	&nbsp;<button id="btn-annote">Perspective Notes</button>
+	&nbsp; <span id="pstate" class="attn">Initializing</span>
 	<span class="home"><span id="home-title"></span> <button id="btn-home">Home</button></span>
-</div>
-
-<div id="loading-message">
-	Please wait while data loads.
 </div>
 
 <div id="annote" style="display:none;">
@@ -205,6 +202,10 @@ Jan|Feb|Mar|Apr|May|June|July|Aug|Sep|Oct|Nov|Dec
 </script>
 
 <!-- Localization data for D3JS: see https://github.com/mbostock/d3/wiki/Localization -->
-<!-- Leave empty if no localization needed -->
+<!-- Leave empty if no localization needed (English default) -->
 <script id="dltext-d3-local" type="text">
+</script>
+
+<script id="dltext-pstates" type="text">
+Processing|Building|Ready
 </script>

@@ -1,10 +1,10 @@
 // This file contains:
+//		PState Module
 //		PVizModel abstract Class & implementations
 //		PFilterModal abstract Class & implementations
-//		PViewFrame Object
+//		PViewFrame Objects
 //		PData Module for handling data
 //		PBootstrap for launching processes and organizing screen
-
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findIndex
 if (!Array.prototype.findIndex) {
@@ -79,6 +79,39 @@ var widgetData = {			// Widget state has to be global because YouTube API calls 
 	tcArray: null,				// Array of timecode records { s[tart], e[nd] } in milliseconds
 	tcIndex: -1 				// Index of playhead in tcArray
 };
+
+// ==========================================================
+// PState
+// PURPOSE: Manages state of Prospect and displaying it
+// NOTES: 	Must be a global object because called by VizFrames and global app object
+
+var PState = (function() {
+
+	var state = PSTATE_INIT; // current state of Prospect web app
+	var pSTxts;				// array of PSTATE_ texts
+
+	return {
+		init: function()
+		{
+			var text = document.getElementById('dltext-pstates').innerHTML;
+			pSTxts = text.trim().split('|');
+		},
+
+		set: function(s)
+		{
+			if (s != state) {
+				var p = jQuery('#pstate');
+				if (state == PSTATE_READY)
+					p.addClass('attn');
+				else if (s == PSTATE_READY)
+					p.removeClass('attn');
+				p.text(pSTxts[s-1]);
+				state = s;
+			}
+		} // setState()
+	}
+})(); // PState
+
 
 // ==============================================================================
 // PVizModel: An abstract class to be subclassed by specific visualizations
@@ -2082,7 +2115,8 @@ VizTime.prototype.resize = function()
 			if (self.brush) {
 					// Update brush by reinstating its extent
 				var extent = self.brush.extent();
-				self.brushSVG.call(self.brush.extent(extent));
+				if (self.brushSVG)
+					self.brushSVG.call(self.brush.extent(extent));
 				if (self.brushHandler)
 					self.brushHandler.redraw();
 			}
@@ -3141,7 +3175,9 @@ function PViewFrame(vfIndex)
 	{
 		var selector = jQuery(getFrameID()+' div.view-control-bar select.view-viz-select option:selected');
 		var newSelIndex   = selector.val();
+		PState.set(PSTATE_BUILD);
 		createViz(newSelIndex, true);
+		PState.set(PSTATE_READY)
 	} // selectChangeViz()
 
 
@@ -3770,8 +3806,9 @@ function PViewFrame(vfIndex)
 		switch (clickClass) {
 		case 'lgnd-update':
 			if (vizModel && datastream) {
-					// TO DO: Set busy cursor
+				PState.set(PSTATE_BUILD);
 				vizModel.render(datastream);				
+				PState.set(PSTATE_READY);
 			}
 			break;
 			// Turn on or off just this one value
@@ -4053,8 +4090,6 @@ function PViewFrame(vfIndex)
 		frame.find('div.lgnd-container')
 			.click(clickInLegend);
 
-		frame.find('div.annote').hide();
-
 		createViz(vI ? vI : 0, false);
 	} // initDOM()
 
@@ -4115,8 +4150,6 @@ function PViewFrame(vfIndex)
 	} // getState()
 
 		// PURPOSE: Called by external agent when new datastream is available for viewing
-		// ASSUMED: Caller has already set busy cursor
-		// TO DO: 	Check and set frameState
 	instance.showStream = function(stream)
 	{
 		datastream = stream;
@@ -4186,7 +4219,7 @@ function PViewFrame(vfIndex)
 // 			The s array of an IndexStream contains absolute index numbers to global data array
 
 
-var PData = (function () {
+var PData = (function() {
 
 	// CONSTANTS
 	// =========
@@ -4265,7 +4298,6 @@ var PData = (function () {
 			loaded=true;
 			jQuery('#btn-recompute').addClass('pulse');
 			setTimeout(function() {
-				jQuery('#loading-message').hide();
 				jQuery("body").trigger("prospect", { pstate: PSTATE_PROCESS, component: 0 });
 			}, 500);
 		}
@@ -5187,7 +5219,6 @@ jQuery(document).ready(function($) {
 
 		// VARIABLES
 		//==========
-	var state = PSTATE_INIT; // current state of Prospect web app
 	var view0;				// Primary viewFrame
 	var view1;				// Secondary
 
@@ -5209,7 +5240,7 @@ jQuery(document).ready(function($) {
 	function doRecompute()
 	{
 // console.log("Start recompute");
-		state = PSTATE_PROCESS;
+		PState.set(PSTATE_PROCESS);
 
 			// Recompute must clear current selection
 		view0.clearSel();
@@ -5259,6 +5290,7 @@ jQuery(document).ready(function($) {
 				endStream = theF.f.out;
 		}
 // console.log("Filtering complete: visualization beginning");
+		PState.set(PSTATE_BUILD);
 		view0.showStream(endStream);
 		if (view1)
 			view1.showStream(endStream);
@@ -5270,7 +5302,7 @@ jQuery(document).ready(function($) {
 	function clickRecompute(event)
 	{
 		doRecompute();
-		state = PSTATE_READY;
+		PState.set(PSTATE_READY);
 		event.preventDefault();
 	} // clickRecompute()
 
@@ -5303,7 +5335,7 @@ jQuery(document).ready(function($) {
 		// TO DO: 	Set state
 	function clickTog2nd()
 	{
-		state = PSTATE_BUILD;
+		PState.set(PSTATE_BUILD);
 		if (view1 != null) {
 			jQuery('#view-frame-1').remove();
 			view1 = null;
@@ -5315,7 +5347,7 @@ jQuery(document).ready(function($) {
 			jQuery('#selector-v1').prop("disabled", false);
 		}
 		view0.resize();
-		state = PSTATE_READY;
+		PState.set(PSTATE_READY);
 	} // clickTog2nd()
 
 
@@ -5525,6 +5557,7 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 					if (selItem.length) {
 						var setP = selItem.data('id');
 						doShowPerspective(setP);
+						PState.set(PSTATE_READY);
 					}
 					spDialog.dialog("close");
 				}, // OK
@@ -5532,7 +5565,8 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 					spDialog.dialog("close");
 				}
 			}
-		});		event.preventDefault();
+		});
+		event.preventDefault();
 	} // clickShowPerspective()
 
 
@@ -5779,7 +5813,7 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 
 	function doApplySelector()
 	{
-		state = PSTATE_PROCESS;
+		PState.set(PSTATE_PROCESS);
 
 		var selList=[], mustCopy=false;
 		if (selFilter != null && endStream != null) {
@@ -5796,7 +5830,7 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 		}
 // console.log("Selection: "+JSON.stringify(selList));
 
-		state = PSTATE_BUILD;
+		PState.set(PSTATE_BUILD);
 			// Which Views to send Selection?
 		if (jQuery('#selector-v0').is(':checked')) {
 			mustCopy = view0.setSel(selList);
@@ -5813,7 +5847,7 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 	function clickApplySelector(event)
 	{
 		doApplySelector();
-		state = PSTATE_READY;
+		PState.set(PSTATE_READY);
 		event.preventDefault();
 	} // clickApplySelector()
 
@@ -5834,7 +5868,7 @@ console.log("Show Perspective ["+pID+"]: "+JSON.stringify(p));
 		if (!p)
 			return false;
 
-		state = PSTATE_PROCESS;
+		PState.set(PSTATE_PROCESS);
 
 			// Clear current Filter Stack & Selector Filter
 		filters.forEach(function(theF) {
@@ -5923,7 +5957,11 @@ console.log("Show Perspective ["+pID+"]: "+JSON.stringify(p));
 		// IMMEDIATE EXECUTION
 		//====================
 
+	jQuery('body').addClass('waiting');
+
+	PState.init();
 	PMapHub.init(prspdata.m);
+	localize();
 
 		// Ensure proper ending for creating URLs
 	if (prspdata.site_url.charAt(prspdata.site_url.length-1) != '/')
@@ -5931,8 +5969,6 @@ console.log("Show Perspective ["+pID+"]: "+JSON.stringify(p));
 
 	if (prspdata.e.g.l != '')
 		jQuery('#title').text(prspdata.e.g.l);
-
-	localize();
 
 		// Is there a local storage mechanism? Get local Perspectives if so
 	try {
@@ -6040,10 +6076,12 @@ console.log("Setting default Perspective");
 	jQuery("body").on("prospect", function(event, data) {
 			// ASSUMED: This won't be triggered until after Filters & Views set up
 		if (data.pstate == PSTATE_PROCESS) {
-			state = PSTATE_PROCESS;
+			PState.set(PSTATE_PROCESS);
 			doRecompute();
 			if (selFilter)
 				doApplySelector();
+			PState.set(PSTATE_READY);
+			jQuery('body').removeClass('waiting');
 		}
 	});
 
