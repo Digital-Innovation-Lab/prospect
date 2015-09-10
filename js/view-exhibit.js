@@ -4823,13 +4823,19 @@ var PData = (function () {
 		}, // objDate()
 
 			// PURPOSE: Create Date by parsing string
+			// ASSUMES: Definite date: won't have initial ~ character
 		parseDate: function(str, m, d)
 		{
 			if (str == 'open')
 				return TODAY;
 
+			var np = 1;
+			if (str.charAt(0) == '-') {
+				np = -1;
+				str = str.substring(1);
+			}
 			var cmpts = str.split('-');
-			var y = parseInt(cmpts[0]);
+			var y = parseInt(cmpts[0])*np;
 			if (cmpts.length > 1) {
 				m = parseInt(cmpts[1]);
 				if (cmpts.length == 3)
