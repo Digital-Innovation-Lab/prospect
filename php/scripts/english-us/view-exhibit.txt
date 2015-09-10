@@ -146,7 +146,7 @@
 <div class="filter-instance" data-id="<%= newID %>">
 	<div class="filter-head">
 		<%= title %> &nbsp;
-		<input type="checkbox" class="req-att" value="required" checked="checked">
+		<input type="checkbox" class="req-att" value="required" <%= check %>>
 		Require attribute value &nbsp; &nbsp;
 		<button class="btn-filter-toggle">Toggle</button>
 		<button class="btn-filter-del">Delete Filter</button>

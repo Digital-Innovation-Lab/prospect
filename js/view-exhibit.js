@@ -1542,7 +1542,7 @@ VizTime.prototype.setup = function()
 
 					// "this" will actually point to the brushSVG object
 					// Replaces SVG data to correspond to new brush params
-				// self.brushg.call(self.brush.extent(extent1));
+				// self.brushSVG.call(self.brush.extent(extent1));
 
 				self.brush.extent(extent1);
 				self.brushHandler.redraw();
@@ -2082,9 +2082,9 @@ VizTime.prototype.resize = function()
 			if (self.brush) {
 					// Update brush by reinstating its extent
 				var extent = self.brush.extent();
-
-				d3.select('.brush').call(self.brush.extent(extent));
-				self.brushHandler.redraw();
+				self.brushSVG.call(self.brush.extent(extent));
+				if (self.brushHandler)
+					self.brushHandler.redraw();
 			}
 			b.labelSVGs.select('#m-txt-'+toLabel.name).attr("x", txtLeft);
 		}
@@ -2505,14 +2505,15 @@ VizTextStream.prototype.clearSel = function()
 
 	// INPUT: 	id = unique ID for this filter (0 = selector filter)
 	//			attRec = pointer to complete Attribute or Facet Browser settings
+	//			req = initial state of required flag
 	// ASSUMES: required is true by default
-function PFilterModel(id, attRec)
+function PFilterModel(id, attRec, req)
 {
 	this.id 		= id;
 	this.att 		= attRec;
 
 	this.dirty 		= true;
-	this.req 		= true;
+	this.req 		= req;
 
 		// Sublcasses can override the following:
 	// this.title()
@@ -2540,13 +2541,12 @@ PFilterModel.prototype.isDirty = function(setDirty)
 
 	// PURPOSE: Either set or get setting if Filter value is required
 	// RETURNS: true if Attribute is required by Filter, false if records without pass through
-	// INPUT:   null if only retrieving state, else true or false
-PFilterModel.prototype.isReq = function(setReq)
+PFilterModel.prototype.isReq = function(set, state)
 {
-	if (setReq != null) {
-		if (this.req != setReq)
+	if (set) {
+		if (this.req != state)
 			this.isDirty(true);
-		this.req = setReq;
+		this.req = state;
 	}
 	return this.dirty;
 } // isReq
@@ -2571,9 +2571,9 @@ PFilterModel.prototype.teardown = function()
 // ============================================
 // PFilterText: Class to filter Text Attributes
 
-var PFilterText = function(id, attRec)
+var PFilterText = function(id, attRec, req)
 {
-	PFilterModel.call(this, id, attRec);
+	PFilterModel.call(this, id, attRec, req);
 } // PFilterText()
 
 PFilterText.prototype = Object.create(PFilterModel.prototype);
@@ -2628,9 +2628,9 @@ PFilterText.prototype.setState = function(state)
 // ===================================================
 // PFilterVocab: Class to filter Vocabulary Attributes
 
-var PFilterVocab = function(id, attRec)
+var PFilterVocab = function(id, attRec, req)
 {
-	PFilterModel.call(this, id, attRec);
+	PFilterModel.call(this, id, attRec, req);
 } // PFilterVocab()
 
 PFilterVocab.prototype = Object.create(PFilterModel.prototype);
@@ -2728,9 +2728,9 @@ PFilterVocab.prototype.setState = function(state)
 // ================================================
 // PFilterNum: Class to filter Number Attributes
 
-var PFilterNum = function(id, attRec)
+var PFilterNum = function(id, attRec, req)
 {
-	PFilterModel.call(this, id, attRec);
+	PFilterModel.call(this, id, attRec, req);
 } // PFilterNum()
 
 PFilterNum.prototype = Object.create(PFilterModel.prototype);
@@ -2948,9 +2948,9 @@ PFilterNum.prototype.setState = function(state)
 // ==============================================
 // PFilterDates: Class to filter Dates Attributes
 
-var PFilterDates = function(id, attRec)
+var PFilterDates = function(id, attRec, req)
 {
-	PFilterModel.call(this, id, attRec);
+	PFilterModel.call(this, id, attRec, req);
 } // PFilterDates()
 
 PFilterDates.prototype = Object.create(PFilterModel.prototype);
@@ -5371,7 +5371,7 @@ jQuery(document).ready(function($) {
 			// Compile Perspective state from Filter stack, Selector Filter & Views
 		var pState = { f: [], s: null, v0: { l: view0.title(), s: view0.getState() }, v1: null };
 		filters.forEach(function(theF) {
-			pState.f.push({ id: theF.attID, r: theF.f.isReq(), s: theF.f.getState() });
+			pState.f.push({ id: theF.attID, r: theF.f.isReq(false), s: theF.f.getState() });
 		});
 		if (selFilter) {
 			pState.s = { id: selFID, s: selFilter.getState() };
@@ -5568,7 +5568,7 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 				var fRec;
 				fRec = filters.find(function(fr) { return fr.id == fID; });
 				if (fRec == null)	{ alert('Bad Filter ID '+fID); return; }
-				fRec.f.isReq(req);
+				fRec.f.isReq(true, req);
 			}
 		}
 	} // clickFilterDirty()
@@ -5620,8 +5620,9 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 		// PURPOSE: Add a new filter to the stack
 		// INPUT: 	fID = Attribute ID
 		//			selector = true if filter for the selector
+		//			req = initial state of required flag
 		// RETURNS: The Filter object created
-	function createFilter(fID, selector)
+	function createFilter(fID, req, selector)
 	{
 		var newID;
 		if (selector) {
@@ -5640,21 +5641,20 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 		var theAtt = PData.getAttID(fID);
 		switch (theAtt.def.t) {
 		case 'V':
-			newFilter = new PFilterVocab(newID, theAtt);
+			newFilter = new PFilterVocab(newID, theAtt, req);
 			break;
 		case 'T':
-			newFilter = new PFilterText(newID, theAtt);
+			newFilter = new PFilterText(newID, theAtt, req);
 			break;
 		case 'N':
-			newFilter = new PFilterNum(newID, theAtt);
+			newFilter = new PFilterNum(newID, theAtt, req);
 			break;
 		case 'D':
-			newFilter = new PFilterDates(newID, theAtt);
+			newFilter = new PFilterDates(newID, theAtt, req);
 			break;
 		}
 
 		if (selector) {
-			newFilter.isReq(true);
 			selFilter = newFilter;
 			selFID = fID;
 
@@ -5671,7 +5671,8 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 
 				// Now create DOM structure and handle clicks
 			var fh = _.template(document.getElementById('dltext-filter-head').innerHTML);
-			jQuery('#filter-instances').append(fh({ newID: newID, title: newFilter.title() }));
+			jQuery('#filter-instances').append(fh({ newID: newID, title: newFilter.title(),
+													check: req ? 'checked="checked"' : '' }));
 
 			var head = jQuery('div.filter-instance[data-id="'+newID+'"]');
 			head.find('button.btn-filter-toggle').button({
@@ -5706,7 +5707,7 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 					var selected = jQuery("#filter-list li.selected");
 					if (selected.length) {
 						jQuery('#filter-instances').show(400);
-						createFilter(selected.data("id"), false);
+						createFilter(selected.data("id"), true, false);
 					}
 						// Remove click handler
 					newFilterDialog.dialog("close");
@@ -5746,7 +5747,7 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 					var selected = jQuery("#filter-list li.selected");
 					if (selected.length) {
 						jQuery('#selector-instance').show(400);
-						createFilter(selected.data("id"), true);
+						createFilter(selected.data("id"), true, true);
 					}
 						// Remove click handler
 					newFilterDialog.dialog("close");
@@ -5836,15 +5837,14 @@ console.log("Show Perspective ["+pID+"]: "+JSON.stringify(p));
 		filters=[];
 		jQuery('#filter-instances').empty();
 		p.s.f.forEach(function(fRec) {
-			var newF = createFilter(fRec.id, false);
+			var newF = createFilter(fRec.id, fRec.r, false);
 			newF.setState(fRec.s);
-			newF.isReq(fRec.r);
 		});
 		jQuery('#filter-instances').hide();
 
 		doDelSelFilter();
 		if (p.s.s != null) {
-			createFilter(p.s.s.id, true);
+			createFilter(p.s.s.id, true, true);
 			selFilter.setState(p.s.s.s);
 		}
 		jQuery('#selector-instance').hide();
