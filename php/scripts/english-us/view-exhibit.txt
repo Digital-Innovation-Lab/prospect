@@ -5,7 +5,7 @@
 	&nbsp;<button id="btn-set-layout">Show/Hide View 2</button>
 	&nbsp;<button id="btn-show-prspctv">Show Perspective</button>
 	&nbsp;<button id="btn-save-prspctv">Save Perspective</button>
-	&nbsp;<button id="btn-annote">Perspective Notes</button>
+	&nbsp;<button id="btn-annote">Show/Hide Annotation</button>
 	&nbsp; <span id="pstate" class="attn">Initializing</span>
 	<span class="home"><span id="home-title"></span> <button id="btn-home">Home</button></span>
 </div>

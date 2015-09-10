@@ -206,6 +206,7 @@ PVizModel.prototype.teardown = function()
 {
 } // PVizModel.teardown()
 
+	// NOTE: resize can get called after Viz created and setup() but before render()
 PVizModel.prototype.resize = function()
 {
 } // PVizModel.resize()
@@ -1322,6 +1323,7 @@ VizTime.prototype.setup = function()
 			//	g = SVG created by D3 to contain band
 			//	labels = year/month label definitions
 			//	labelSVGs = SVGs created by D3 for labels
+			//	redraw = function for drawing band (set up for closure in render)
 		var band = {	id: bi, l: 0, t:0, h:0, w: widths[1],
 						svgID: "#tl-b-"+vI+"-"+bi,
 						tHt: 0, iHt: 0,
@@ -1329,7 +1331,8 @@ VizTime.prototype.setup = function()
 						yScale: function(t) { return t * band.tHt; },
 						parts: [],
 						g: null,
-						labels: null, labelSVGs: null
+						labels: null, labelSVGs: null,
+						redraw: function() { }
 					};
 
 			// Bottom zoom view?
@@ -2087,6 +2090,7 @@ VizTime.prototype.render = function(stream)
 } // render()
 
 	// PURPOSE: Handle resize of drawing area
+	// NOTE: 	Do not rely upon any variables created by render()
 VizTime.prototype.resize = function()
 {
 	var self=this;
@@ -2114,9 +2118,10 @@ VizTime.prototype.resize = function()
 		if (bi == 0) {
 			if (self.brush) {
 					// Update brush by reinstating its extent
-				var extent = self.brush.extent();
-				if (self.brushSVG)
+				if (self.brushSVG) {
+					var extent = self.brush.extent();
 					self.brushSVG.call(self.brush.extent(extent));
+				}
 				if (self.brushHandler)
 					self.brushHandler.redraw();
 			}
@@ -3910,38 +3915,41 @@ function PViewFrame(vfIndex)
 		var theView = PData.getVizIndex(vIndex);
 
 			// Remove current viz content
-		if (vizModel)
+		if (vizModel) {
 			vizModel.teardown();
+			vizModel = null;
+		}
 		var frame = jQuery(getFrameID());
 
 		frame.find('div.viz-content div.viz-result').empty();
 
+		var newViz;
 		switch (theView.vf) {
 		case 'Map':
-			vizModel = new VizMap(instance, theView.c);
+			newViz = new VizMap(instance, theView.c);
 			break;
 		case 'Cards':
-			vizModel = new VizCards(instance, theView.c);
+			newViz = new VizCards(instance, theView.c);
 			break;
 		case 'Pinboard':
-			vizModel = new VizPinboard(instance, theView.c);
+			newViz = new VizPinboard(instance, theView.c);
 			break;
 		case 'Timeline':
-			vizModel = new VizTime(instance, theView.c);
+			newViz = new VizTime(instance, theView.c);
 			break;
 		case 'Tree':
 			break;
 		case 'Flow':
 			break;
 		case 'Directory':
-			vizModel = new VizDirectory(instance, theView.c);
+			newViz = new VizDirectory(instance, theView.c);
 			break;
 		case 'TextStream':
-			vizModel = new VizTextStream(instance, theView.c);
+			newViz = new VizTextStream(instance, theView.c);
 			break;
 		}
 		vizSelIndex = vIndex;
-		var flags = vizModel.flags();
+		var flags = newViz.flags();
 
 			// Either add scroll bars to viz-content and make viz-result fit content
 			//	or else give max-size to viz-result
@@ -3976,7 +3984,7 @@ function PViewFrame(vfIndex)
 			prspdata.e.g.ts.forEach(function(tID, tIndex) {
 				var tmpltDef = PData.getTmpltID(tID);
 					// Insert locate attributes into Legends
-				var locAtts = vizModel.getLocAtts(tIndex);
+				var locAtts = newViz.getLocAtts(tIndex);
 				if ((locAtts && locAtts.length > 0) || !(flags & V_FLAG_LOC)) {
 						// Create DIV structure for Template's Legend entry
 					var newTLegend = jQuery('<div class="lgnd-template" data-index="'+tIndex+
@@ -3989,7 +3997,7 @@ function PViewFrame(vfIndex)
 								attDef.def.l+'</span></div>');
 						});
 						// Create dropdown menu of visual Attributes
-					var attSelection = vizModel.getFeatureAtts(tIndex);
+					var attSelection = newViz.getFeatureAtts(tIndex);
 					var newStr = '<select class="lgnd-select">';
 					attSelection.forEach(function(attID, aIndex) {
 						var attDef = PData.getAttID(attID);
@@ -4035,12 +4043,14 @@ function PViewFrame(vfIndex)
 			frame.find('.vopts').button("disable");
 		}
 
-		vizModel.setup();
+		newViz.setup();
+
 			// ViewFrames initially created w/o selection
 		doSelBtns(false);
 
 		if (datastream && refresh)
-			vizModel.render(datastream);		
+			newViz.render(datastream);
+		vizModel = newViz;
 	} // createViz()
 
 
@@ -4056,9 +4066,12 @@ function PViewFrame(vfIndex)
 
 	instance.setViz = function(vI, refresh)
 	{
-			// TO DO: Check if vI viz already created
-		createViz(vI, refresh);
-	}
+		if (vI != vizSelIndex) {
+			var select = jQuery(getFrameID()+' div.view-control-bar select.view-viz-select');
+			select.val(vI);
+			createViz(vI, refresh);
+		}
+	} // setViz()
 
 		// PURPOSE: Initialize basic DOM structure for ViewFrame
 	instance.initDOM = function(vI)
@@ -4068,13 +4081,14 @@ function PViewFrame(vfIndex)
 
 		var frame = jQuery(getFrameID());
 
-		var head = frame.find('div.view-control-bar select.view-viz-select');
+		var select = frame.find('div.view-control-bar select.view-viz-select');
 			// Set Dropdown to View names
 		prspdata.e.vf.forEach(function(theVF, i) {
 			var optionStr = '<option value="'+i+'">'+theVF.l+'</option>';
-			head.append(optionStr);
+			select.append(optionStr);
 		});
-		head.change(selectChangeViz);
+		select.val(vI);
+		select.change(selectChangeViz);
 
 			// Hook control bar Icon buttons
 		frame.find('div.view-control-bar button:first')
@@ -4090,7 +4104,7 @@ function PViewFrame(vfIndex)
 		frame.find('div.lgnd-container')
 			.click(clickInLegend);
 
-		createViz(vI ? vI : 0, false);
+		createViz(vI, false);
 	} // initDOM()
 
 
@@ -5239,7 +5253,6 @@ jQuery(document).ready(function($) {
 
 	function doRecompute()
 	{
-// console.log("Start recompute");
 		PState.set(PSTATE_PROCESS);
 
 			// Recompute must clear current selection
@@ -5277,7 +5290,7 @@ jQuery(document).ready(function($) {
 						tRn++;
 					}
 				}
-					// push out any remaining Template recs
+					// push out remaining Template recs
 				while (tI++ < PData.getNumETmplts()) {
 					newStream.t.push( { i: (newStream.l-tRn), n: tRn } );
 					tRn = 0;
@@ -5289,13 +5302,11 @@ jQuery(document).ready(function($) {
 			} else
 				endStream = theF.f.out;
 		}
-// console.log("Filtering complete: visualization beginning");
 		PState.set(PSTATE_BUILD);
 		view0.showStream(endStream);
 		if (view1)
 			view1.showStream(endStream);
 		jQuery('#btn-recompute').removeClass('pulse');
-// console.log("Visualization complete");
 	} // doRecompute()
 
 		// TO DO: Check and set frameState; make cursor busy during compute!
@@ -5332,17 +5343,16 @@ jQuery(document).ready(function($) {
 
 
 		// PURPOSE: Add 2nd window if not already there; remove if so
-		// TO DO: 	Set state
 	function clickTog2nd()
 	{
 		PState.set(PSTATE_BUILD);
 		if (view1 != null) {
-			jQuery('#view-frame-1').remove();
 			view1 = null;
+			jQuery('#view-frame-1').remove();
 			jQuery('#selector-v1').prop("disabled", true);
 		} else {
 			view1 = PViewFrame(1);
-			view1.initDOM();
+			view1.initDOM(0);
 			view1.showStream(endStream);
 			jQuery('#selector-v1').prop("disabled", false);
 		}
@@ -5889,15 +5899,9 @@ console.log("Show Perspective ["+pID+"]: "+JSON.stringify(p));
 		}
 		jQuery('#selector-instance').hide();
 
-		var vI = vizIndex(p.s.v0.l);
-		if (view0) {
-			view0.setViz(vI, false);
-		} else {
-			view0 = PViewFrame(0);
-			view0.initDOM(vI);
-		}
-		view0.setState(p.s.v0.s);
+		var vI;
 
+			// Handle right then left sides to minimize resize issues
 		if (p.s.v1 != null) {
 			vI = vizIndex(p.s.v1.l);
 			if (view1) {
@@ -5909,12 +5913,20 @@ console.log("Show Perspective ["+pID+"]: "+JSON.stringify(p));
 			view1.setState(p.s.v1.s);
 		} else {
 			if (view1) {
-				jQuery('#view-frame-1').remove();
 				view1 = null;
+				jQuery('#view-frame-1').remove();
 				jQuery('#selector-v1').prop("disabled", true);
-				view0.resize();
 			}
 		}
+
+		vI = vizIndex(p.s.v0.l);
+		if (view0) {
+			view0.setViz(vI, false);
+		} else {
+			view0 = PViewFrame(0);
+			view0.initDOM(vI);
+		}
+		view0.setState(p.s.v0.s);
 
 		setAnnote(p.n);
 
@@ -6060,7 +6072,7 @@ console.log("Show Perspective ["+pID+"]: "+JSON.stringify(p));
 	if (prspdata.show_prspctv.length == 0 || !doShowPerspective(prspdata.show_prspctv)) {
 console.log("Setting default Perspective");
 		view0 = PViewFrame(0);
-		view0.initDOM();
+		view0.initDOM(0);
 		setAnnote('');
 	}
 
