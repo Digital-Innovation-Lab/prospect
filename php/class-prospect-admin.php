@@ -1710,8 +1710,9 @@ class ProspectAdmin {
 				$data = get_post_meta($rec->ID, $att_id, true);
 				if ($data && $data != '') {
 					if ($d_char != '') {
-						$vals = array_map(trim, explode($d_char, $data));
+						$vals = explode($d_char, $data);
 						foreach ($vals as $one_value) {
+							$trimmed = trim($one_value);
 							ProspectAttribute::sorted_insert($one_value, $result);
 						}
 					} else
