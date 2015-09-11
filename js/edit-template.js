@@ -1,11 +1,7 @@
 // Template Editor
 
 // ASSUMES: A view area for the browser has been marked with HTML div as "ractive-output"
-// NOTES:   
 // USES:    jQuery, Underscore, jQueryUI, and Ractive
-// ASSUMES: 
-
-// TO DO:	
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findIndex
 if (!Array.prototype.findIndex) {
@@ -109,7 +105,7 @@ jQuery(document).ready(function() {
 	var attMap = {};					// For translating from code to label/name
 		attMap.V = 'Vocabulary';
 		attMap.T = 'Text';
-		attMap.V = 'Number';
+		attMap.N = 'Number';
 		attMap.D = 'Dates';
 		attMap.L = 'Lat-Lon';
 		attMap.X = 'X-Y';
@@ -394,8 +390,9 @@ jQuery(document).ready(function() {
 
 		attDialog.on('dialog.ok', function() {
 			var i = attDialog.get('selIndex');
-			var useAttDef = attChoices[i];
-			var newAttRec = { id: useAttDef.id, t: useAttDef.t, j: '', view: false };
+			var attChoice = attChoices[i];
+			var attDef = _.find(defAtts, function(att) { return att.id == attChoice.id; });
+			var newAttRec = { id: attDef.id, t: attDef.def.t, j: '', view: false };
 
 			rApp.push('theTemplate.a', newAttRec);
 
