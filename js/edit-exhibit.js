@@ -148,7 +148,14 @@ jQuery(document).ready(function() {
 
 		// CONSTANTS
 		// =========
-	var vfTypes = [ 'Map', 'Cards', 'Pinboard', 'Browser', 'Timeline', 'Tree', 'Flow', 'Directory',
+	var vfTypes = [ 'Map',
+					'Cards',
+					'Pinboard',
+					// 'Browser',
+					'Timeline',
+					// 'Tree',
+					// 'Flow',
+					'Directory',
 					'TextStream' ];
 
 		// DATA LOADED FROM SERVER

@@ -3937,10 +3937,6 @@ function PViewFrame(vfIndex)
 		case 'Timeline':
 			newViz = new VizTime(instance, theView.c);
 			break;
-		case 'Tree':
-			break;
-		case 'Flow':
-			break;
 		case 'Directory':
 			newViz = new VizDirectory(instance, theView.c);
 			break;
