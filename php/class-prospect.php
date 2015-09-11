@@ -395,7 +395,9 @@ class Prospect {
 		$this->loader->add_action('wp_ajax_prsp_get_records', $this->admin, 'prsp_get_records');
 		$this->loader->add_action('wp_ajax_nopriv_prsp_get_records', $this->admin, 'prsp_get_records');
 		$this->loader->add_action('wp_ajax_prsp_get_cf_vals', $this->admin, 'prsp_get_cf_vals');
+
 		$this->loader->add_action('wp_ajax_prsp_save_prspctv', $this->admin, 'prsp_save_prspctv');
+		$this->loader->add_action('wp_ajax_nopriv_prsp_save_prspctv', $this->admin, 'prsp_save_prspctv');
 	} // define_admin_hooks()
 
 

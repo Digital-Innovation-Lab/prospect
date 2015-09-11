@@ -449,7 +449,7 @@ div.filter-body svg .brush .extent {
 	 */
 div.lgnd-container {
 	position: absolute;
-	top: 67px;
+	top: 60px;
 	left: 10px;
 	z-index: 1000;		/* Leaflet uses 400, so we need larger number */
 

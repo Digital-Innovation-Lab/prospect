@@ -5516,8 +5516,8 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 
 							jQuery('#save-psrctv-embed').val(embed);
 							var embedDialog = jQuery("#dialog-prspctv-url").dialog({
-								width: 450,
-								height: 150,
+								width: 480,
+								height: 200,
 								modal: true,
 								buttons: {
 									OK: function() {
@@ -5874,8 +5874,7 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 		}
 
 		var p = getPerspective(pID);
-console.log("Show Perspective ["+pID+"]: "+JSON.stringify(p));
-		if (!p)
+		if (p == null)
 			return false;
 
 		PState.set(PSTATE_PROCESS);

@@ -1732,18 +1732,25 @@ class ProspectAdmin {
 	public function prsp_save_prspctv()
 	{
 			// ensure that this URL has not been faked by non-admin user
-		if (!current_user_can('edit_posts')) {
-			wp_die('Invalid request');
-		}
+		// if (!current_user_can('edit_posts')) {
+		// 	wp_die('Invalid request');
+		// }
+
+		// if(!is_user_logged_in())
+		// 	die(0);
+
+		// if(!wp_verify_nonce($_POST['nonce'], 'save_prspctv'))
+		// 	die(0);
 
 			// Create new Perspective Record
 		$post_data = array(
-			'post_type'		=> 'prsp_prspctv',
+			'post_type'		=> 'prsp-prspctv',
+			'post_status'	=> 'draft',
 			'post_content'	=> 'No content',
-			'post_title'	=> $_POST['l']
+			'post_title'	=> wp_strip_all_tags($_POST['l'])
 		);
-		$post_id = wp_insert_post($post_data, $wp_error);
-		if ($post_id != 0) {
+		$post_id = wp_insert_post($post_data);
+		if (!is_wp_error($post_id)) {
 			add_post_meta($post_id, 'prspctv-id', $_POST['id'], true);
 			add_post_meta($post_id, 'prspctv-l', $_POST['l'], true);
 			add_post_meta($post_id, 'xhbt-id', $_POST['x'], true);
@@ -1751,7 +1758,7 @@ class ProspectAdmin {
 			add_post_meta($post_id, 'prspctv-state', $_POST['s'], true);
 		}
 
-		die();
+		die($post_id);
 	} // prsp_save_prspctv()
 
 
