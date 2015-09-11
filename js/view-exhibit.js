@@ -3414,6 +3414,7 @@ function PViewFrame(vfIndex)
 			} // ytStateChange()
 
 			widgetData.widget = new YT.Player('yt-widget', {
+				width: '426', height: '240',
 				videoId: widgetData.ytCode,
 				events: {
 					onError: function(event) { console.log("YouTube Error: "+event.data); },
@@ -3497,7 +3498,7 @@ function PViewFrame(vfIndex)
 						getSETimes();
 
 						avType=1;
-						container.append('<iframe id="sc-widget" class="player" width="100%" height="166" src="http://w.soundcloud.com/player/?url='+
+						container.append('<iframe id="sc-widget" class="player" width="100%" height="150" src="http://w.soundcloud.com/player/?url='+
 							scAttVal+'"></iframe></p>');
 
 							// Must set these variables after HTML appended above
@@ -3669,16 +3670,18 @@ function PViewFrame(vfIndex)
 
 		if (prspdata.e.i.modal.ytOn)
 		{
-			w=Math.max(w,450);
+			w=Math.max(w,460);
 			h=500;
 		} // if YouTube
 
 		if (prspdata.e.i.tOn)
 		{
 			// w=650;
-			// h+=100;
+			h+=100;
 			if (prspdata.e.i.t2On)
 				w=750;
+			else
+				w=Math.max(w,500);
 		} // if Transcriptions
 
 		inspector = jQuery("#dialog-inspector").dialog({

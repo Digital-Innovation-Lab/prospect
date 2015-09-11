@@ -1146,13 +1146,14 @@ div.filter-vocab-bar {
  **/
 
 #yt-widget {
-	width: 400px;
+	width: 426px;
+	height: 240px;
 	margin: 3px;
 }
 
 #xscript-tbl {
 	margin-top: 4px;
-	max-height: 300px;
+	max-height: 220px;
 	overflow-y: scroll;
 }
 
