@@ -61,9 +61,6 @@
 		show_prspctv: <?php
 	echo('"'.get_query_var('prspctv').'"');
 ?>,
-		nonce: <?php
-	echo('"'.wp_create_nonce('save_prspctv').'"');
-?>,
 		chunks: <?php
 	$options = get_option('prsp_base_options');
 	$chunk = isset($options['prsp_chunks']) ? (int)$options['prsp_chunks'] : 1000;

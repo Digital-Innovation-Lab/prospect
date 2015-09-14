@@ -1740,9 +1740,6 @@ class ProspectAdmin {
 		// if(!is_user_logged_in())
 		// 	die(0);
 
-		// if(!wp_verify_nonce($_POST['nonce'], 'save_prspctv'))
-		// 	die(0);
-
 			// Create new Perspective Record
 		$post_data = array(
 			'post_type'		=> 'prsp-prspctv',
