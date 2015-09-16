@@ -376,11 +376,11 @@
 </script>
 
 <script id="vfTimeline" type='text/ractive'>
-	Height of Bands in Zoom: <input type="number" value="{{c.bHt}}" min="2" max="99"/>
-	Width of Band Axis Labels: <input type="number" value="{{c.xLbl}}" min="2" max="99"/><br/>
-	Macro Window From Date: <input type="text" value="{{c.from}}" size="12" placeholder="YYYY-MM-DD"/>
+	Height of Events in Zoom: <input type="number" value="{{c.bHt}}" min="2" max="99"/>
+	Width of Frame Axis Labels: <input type="number" value="{{c.xLbl}}" min="2" max="99"/><br/>
+	Macro Frame From Date: <input type="text" value="{{c.from}}" size="12" placeholder="YYYY-MM-DD"/>
 	To Date: <input type="text" value="{{c.to}}" size="12" placeholder="YYYY-MM-DD"/><br/>
-	Zoom Window From Date: <input type="text" value="{{c.zFrom}}" size="12" placeholder="YYYY-MM-DD"/>
+	Zoom Frame From Date: <input type="text" value="{{c.zFrom}}" size="12" placeholder="YYYY-MM-DD"/>
 	To Date: <input type="text" value="{{c.zTo}}" size="12" placeholder="YYYY-MM-DD"/><br/>
 
 	Choose the Attribute(s) to visualize according to Template type:
@@ -535,10 +535,10 @@
 <!-- DIALOGS -->
 <!-- New View Dialog -->
 <script id="dialog-choose-vf" type='text/ractive'>
-	<dialog title="New View" width="300" height="200">
-		<label for="choose-att-label">Label for this View: </label><input type="text" id="choose-att-label" value="{{label}}" size="24" required/>
+	<dialog title="New Visualization" width="300" height="200">
+		<label for="choose-att-label">Label&nbsp;</label> <input type="text" id="choose-att-label" value="{{label}}" size="24" required/>
 		<br/>
-		<label for="choose-vf-type">Type of View </label>
+		<label for="choose-vf-type">Type&nbsp;</label>
 		<select id="choose-vf-type" value='{{vfType}}'>
 		{{#each vfTypes}}
 			<option>{{this}}</option>

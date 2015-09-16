@@ -17,7 +17,7 @@
 	<div id="filter-control-bar">
 		Filters
 		<button id="btn-new-filter">New Filter</button>
-		<button id="btn-toggle-filters">Hide/Show Filters</button>
+		<button id="btn-toggle-filters">Show/Hide Filters</button>
 	</div>
 	<div id="filter-instances">
 	</div>
@@ -27,8 +27,8 @@
 	<div id="selector-control-bar">
 		Selection
 		<button id="btn-new-selector">New Filter</button>
-		<button id="btn-toggle-selector">Hide/Show Filter</button>
-		<button id="btn-apply-selector">Apply Selector Filter</button>
+		<button id="btn-toggle-selector">Show/Hide Filter</button>
+		<button id="btn-apply-selector">Apply Selection Filter</button>
 		<input type="checkbox" id="selector-v0" checked="checked"/> Apply to View 1
 		<input type="checkbox" id="selector-v1" disabled/> Apply to View 2
 	</div>
@@ -74,10 +74,12 @@
 
 	<div id="dialog-about" title="About Prospect&#8482;">
 		<div class="scroll-container">
-			<p>Prospect&#8482; was developed in the <a href="http://digitalinnovation.unc.edu" target="_blank">Digital Innovation Lab</a> of the <a href="http://www.unc.edu" target="_blank">University of North Carolina, Chapel Hill</a>.</p>
-			<p><b>Credits:</b><br/>
+			<p>Prospect&#8482; 0.6.2.</p>
+			<p>From the <a href="http://digitalinnovation.unc.edu" target="_blank">Digital Innovation Lab</a> of the <a href="http://www.unc.edu" target="_blank">University of North Carolina, Chapel Hill</a>.</p>
+			<p style="margin:6px"><b>Credits:</b><br/>
 			Michael Newton: Software architect and developer.<br/>
 			Breon Williams: CSS contributions.</p>
+			<p><a href="http://prospect.web.unc.edu" target="_blank">See more about Prospect</a>.</p>
 		</div>
 	</div>
 
@@ -123,8 +125,8 @@
 	<div class="view-control-bar">
 		<select class="view-viz-select">
 		</select>
-		<button class="hslgnd">Hide/Show Legend</button>
-		<button class="osel">Open Selection</button>
+		<button class="hslgnd">Show/Hide Legend</button>
+		<button class="osel">Show Selection</button>
 		<button class="xsel">Clear Selection</button>
 		<button class="vopts">View Options</button>
 	</div>
@@ -144,7 +146,7 @@
 	<div class="filter-head">
 		<%= title %> &nbsp;
 		<input type="checkbox" class="req-att" value="required" <%= check %>>
-		Require attribute value &nbsp; &nbsp;
+		Require Attribute value &nbsp; &nbsp;
 		<button class="btn-filter-toggle">Toggle</button>
 		<button class="btn-filter-del">Delete Filter</button>
 	</div>
