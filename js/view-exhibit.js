@@ -62,6 +62,7 @@ var V_FLAG_HSCRL = 0x20;		// Add horizontal scroll bar
 var TODAY = new Date();
 var localD3;					// For localizing D3
 var months;						// Array of month names (for localization)
+var dltShowHideAll;				// Show/Hide All label
 var parseTC = /(\d\d)\:(\d\d)\:(\d\d)\.(\d\d?)/; 	// precise regular expression for parsing timecodes
 
 var widgetData = {			// Widget state has to be global because YouTube API calls global function
@@ -4008,9 +4009,6 @@ function PViewFrame(vfIndex)
 
 			// Does Viz support Legend at all?
 		if (flags & V_FLAG_LGND) {
-			var dltShowHideAll = document.getElementById('dltext-showhideall').innerHTML;
-			dltShowHideAll = dltShowHideAll.trim();
-
 			frame.find('.hslgnd').button("enable");
 				// Clear out previous Legend
 				// remove all previous locate Attributes
@@ -5999,6 +5997,9 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 	{
 		var text;
 
+		text = document.getElementById('dltext-showhideall').innerHTML;
+		dltShowHideAll = text.trim();
+
 		text = document.getElementById('dltext-month-names').innerHTML;
 		months = text.trim().split('|');
 
@@ -6124,7 +6125,7 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 
 		// Restore Perspective or create default?
 	if (prspdata.show_prspctv.length == 0 || !doShowPerspective(prspdata.show_prspctv)) {
-console.log("Setting default Perspective");
+// console.log("Setting default Perspective");
 		view0 = PViewFrame(0);
 		view0.initDOM(0);
 		setAnnote('');
