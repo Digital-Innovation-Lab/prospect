@@ -175,6 +175,10 @@ Text must include <input class="filter-text" type="text" size="20"/>
 	</div>
 </script>
 
+<script id="dltext-showhideall" type="text">
+Show/Hide All
+</script>
+
 <script id="dltext-from" type="text">
 From
 </script>

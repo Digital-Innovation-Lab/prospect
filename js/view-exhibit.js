@@ -549,13 +549,14 @@ VizMap.prototype.setSel = function(absIArray)
 
 VizMap.prototype.getState = function()
 {
-	return { c: this.lMap.getCenter(), z: this.lMap.getZoom() };
+	return { c: this.lMap.getCenter(), z: this.lMap.getZoom(), l: this.vFrame.getLgndSels() };
 } // getState()
 
 
 VizMap.prototype.setState = function(state)
 {
 	this.lMap.setView(state.c, state.z);
+	this.vFrame.setLgndSels(state.l);
 } // setState()
 
 // =============================================
@@ -727,6 +728,17 @@ VizCards.prototype.clearSel = function()
 		jQuery(this.frameID).find('div.card').removeClass('obj-sel');
 	}
 } // clearSel()
+
+VizCards.prototype.getState = function()
+{
+	return { l: this.vFrame.getLgndSels() };
+} // getState()
+
+
+VizCards.prototype.setState = function(state)
+{
+	this.vFrame.setLgndSels(state.l);
+} // setState()
 
 
 // ====================================================
@@ -1026,6 +1038,17 @@ VizPinboard.prototype.optionsModal = function()
 		}
 	});
 } // optionsModal()
+
+VizPinboard.prototype.getState = function()
+{
+	return { l: this.vFrame.getLgndSels() };
+} // getState()
+
+
+VizPinboard.prototype.setState = function(state)
+{
+	this.vFrame.setLgndSels(state.l);
+} // setState()
 
 
 // ===============================================
@@ -2191,7 +2214,7 @@ VizTime.prototype.getState = function()
 	var d0 = e0.getUTCFullYear().toString()+'-'+m.toString()+'-'+e0.getDate().toString();
 	m = e1.getUTCMonth()+1;
 	var d1 = e1.getUTCFullYear().toString()+'-'+m.toString()+'-'+e1.getDate().toString();
-	return { d0: d0, d1: d1 };
+	return { d0: d0, d1: d1, l: this.vFrame.getLgndSels() };
 } // getState()
 
 VizTime.prototype.setState = function(state)
@@ -2205,6 +2228,8 @@ VizTime.prototype.setState = function(state)
 		// Rescale bottom/zoom timeline
 	var zoom = this.bands[1];
 	zoom.xScale.domain([e0, e1]);
+
+	this.vFrame.setLgndSels(state.l);
 } // setState()
 
 
@@ -2537,6 +2562,16 @@ VizTextStream.prototype.clearSel = function()
 		jQuery(this.frameID).find('div.recitem').removeClass('obj-sel');
 	}
 } // clearSel()
+
+VizTextStream.prototype.getState = function()
+{
+	return { l: this.vFrame.getLgndSels() };
+} // getState()
+
+VizTextStream.prototype.setState = function(state)
+{
+	this.vFrame.setLgndSels(state.l);
+} // setState()
 
 
 // ====================================================================
@@ -3195,7 +3230,7 @@ function PViewFrame(vfIndex)
 	} // clickShowHideLegend()
 
 
-		// PURPOSE: Open Inspector modal for current selection
+		// PURPOSE: Open Selection Inspector for current selection
 	function clickOpenSelection(event)
 	{
 		var container = jQuery('#inspect-content');
@@ -3973,6 +4008,9 @@ function PViewFrame(vfIndex)
 
 			// Does Viz support Legend at all?
 		if (flags & V_FLAG_LGND) {
+			var dltShowHideAll = document.getElementById('dltext-showhideall').innerHTML;
+			dltShowHideAll = dltShowHideAll.trim();
+
 			frame.find('.hslgnd').button("enable");
 				// Clear out previous Legend
 				// remove all previous locate Attributes
@@ -4007,7 +4045,8 @@ function PViewFrame(vfIndex)
 					newSelect.change(selectTmpltAttribute);
 					jQuery(newTLegend).append(newSelect);
 						// Create Hide/Show all checkbox
-					jQuery(newTLegend).append('<div class="lgnd-entry lgnd-sh"><input type="checkbox" checked="checked" class="lgnd-entry-check"/>Hide/Show All</div><div class="lgnd-group"></div>');
+					jQuery(newTLegend).append('<div class="lgnd-entry lgnd-sh"><input type="checkbox" checked="checked" class="lgnd-entry-check"/>'+
+						dltShowHideAll+'</div><div class="lgnd-group"></div>');
 					lgndCntr.append(newTLegend);
 					if (tIndex != (prspdata.t.length-1))
 						lgndCntr.append('<hr/>');
@@ -4148,6 +4187,23 @@ function PViewFrame(vfIndex)
 	{
 		return legendIDs[tIndex];
 	} // getSelLegend()
+
+		// RETURNS: Array of Attribute IDs chosen for all Templates on Legend
+	instance.getLgndSels = function()
+	{
+		return legendIDs.slice(0);
+	} // getLgndSels()
+
+		// PURPOSE: Set the Feature Attribute selections on the Legends
+		// NOTES: 	Utility function for setting Perspective
+	instance.setLgndSels = function(attIDs)
+	{
+		attIDs.forEach(function(attID, i) {
+			var select = jQuery(getFrameID()+' div.lgnd-template[data-index="'+i+'"] select.lgnd-select');
+			select.val(attID);
+			setLegendFeatures(i, attID);
+		});
+	} // setLgndSels()
 
 		// RETURNS: The state of the current visualization
 	instance.getState = function()
