@@ -1713,10 +1713,12 @@ class ProspectAdmin {
 						$vals = explode($d_char, $data);
 						foreach ($vals as $one_value) {
 							$trimmed = trim($one_value);
-							ProspectAttribute::sorted_insert($one_value, $result);
+							ProspectAttribute::sorted_insert($trimmed, $result);
 						}
-					} else
-						ProspectAttribute::sorted_insert($data, $result);
+					} else {
+						$trimmed = trim($data);
+						ProspectAttribute::sorted_insert($data, $result);						
+					}
 				} // if data
 			}
 		}
