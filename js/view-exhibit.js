@@ -453,7 +453,8 @@ VizMap.prototype.render = function(stream)
 		locAtts.forEach(function(theLAtt) {
 			locData = rec.a[theLAtt];
 			if (locData) {
-				if (fData = rec.a[fAttID]) {
+				fData = rec.a[fAttID];
+				if (typeof fData != 'undefined') {
 					fData = PData.getAttLgndVal(fData, fAtt, featSet);
 					if (fData) {
 						s = self.isSel(aI);
@@ -659,7 +660,8 @@ VizCards.prototype.render = function(stream)
 		aI = stream.s[i];
 		rec = PData.getRecByIndex(aI);
 			// Eval Legend
-		if (datum = rec.a[fAttID]) {
+		datum = rec.a[fAttID];
+		if (typeof datum != 'undefined') {
 			c = PData.getAttLgndRecs(datum, fAtt, featSet, false);
 
 			if (c) {
@@ -940,7 +942,8 @@ VizPinboard.prototype.render = function(stream)
 
 		locData = rec.a[locAtts];
 		if (locData) {
-			if (fData = rec.a[fAttID]) {
+			fData = rec.a[fAttID];
+			if (typeof fData != 'undefined') {
 				fData = PData.getAttLgndVal(fData, fAtt, featSet);
 				if (fData) {
 // console.log("Record "+i+"["+fAttID+"]: "+rec.a[fAttID]+" = "+fData);
@@ -1687,7 +1690,8 @@ VizTime.prototype.render = function(stream)
 				aI = stream.s[i];
 
 				rec = PData.getRecByIndex(aI);
-				if (fData = rec.a[fAttID]) {
+				fData = rec.a[fAttID];
+				if (typeof fData != 'undefined') {
 					if (fData = PData.getAttLgndRecs(fData, fAtt, featSet, false)) {
 						if (dData = rec.a[dAttID]) {
 							f = dData.min.f ? EVENT_F_START : 0;
@@ -2324,7 +2328,7 @@ VizDirectory.prototype.render = function(stream)
 		t += '>';
 		fAtts.forEach(function(attID) {
 			datum = rec.a[attID];
-			if (datum) {
+			if (typeof datum != 'undefined') {
 				datum = PData.procAttTxt(attID, datum);
 				if (datum) {
 					t += '<td>'+datum+'</td>';
@@ -2500,7 +2504,7 @@ VizTextStream.prototype.render = function(stream)
 				rec = PData.getRecByIndex(oRec.i);
 					// Apply Legend
 				datum = rec.a[fAttID];
-				if (datum) {
+				if (typeof datum != 'undefined') {
 					fData = PData.getAttLgndRecs(datum, fAtt, featSet, false);
 					if (fData) {
 						t = rec.a[cAttID];
@@ -4745,9 +4749,9 @@ var PData = (function() {
 					fI = fSet[f];
 					lE = att.l[fI];
 						// either min and max can be left out (= no bound), but not both
-					if (lE.d.min) {
+					if (typeof lE.d.min != 'undefined') {
 						if (lE.d.min <= val) {
-							if (lE.d.max) {
+							if (typeof lE.d.max != 'undefined') {
 								if (val <= lE.d.max)
 									return lE;
 							} else
