@@ -1717,7 +1717,7 @@ class ProspectAdmin {
 						}
 					} else {
 						$trimmed = trim($data);
-						ProspectAttribute::sorted_insert($data, $result);						
+						ProspectAttribute::sorted_insert($trimmed, $result);
 					}
 				} // if data
 			}
