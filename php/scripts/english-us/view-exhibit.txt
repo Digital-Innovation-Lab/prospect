@@ -213,5 +213,5 @@ Jan|Feb|Mar|Apr|May|June|July|Aug|Sep|Oct|Nov|Dec
 </script>
 
 <script id="dltext-pstates" type="text">
-Processing|Building|Ready
+Loading|Processing|Building|Ready
 </script>

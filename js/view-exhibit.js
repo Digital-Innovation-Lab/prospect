@@ -43,9 +43,10 @@ var EVENT_F_START = 2;			// Event has fuzzy start
 var EVENT_F_END = 4;			// Event has fuzzy end
 
 var PSTATE_INIT = 0;			// Initialization
-var PSTATE_PROCESS = 1;			// Processing data or handling command
-var PSTATE_BUILD = 2;			// Building visuals
-var PSTATE_READY = 3;			// Waiting for user
+var PSTATE_LOAD = 1;			// Loading data
+var PSTATE_PROCESS = 2;			// Processing data or handling command
+var PSTATE_BUILD = 3;			// Building visuals
+var PSTATE_READY = 4;			// Waiting for user
 
 var D3FG_BAR_WIDTH = 25;		// D3 Graphs created for filters
 var D3FG_MARGINS  = { top: 4, right: 7, bottom: 22, left: 30 };
@@ -4368,7 +4369,7 @@ var PData = (function() {
 		if (done) {
 // console.log("Done loading: "+JSON.stringify(recs));
 			loaded=true;
-			jQuery('#btn-recompute').addClass('pulse');
+			// jQuery('#btn-recompute').addClass('pulse');
 			setTimeout(function() {
 				jQuery("body").trigger("prospect", { pstate: PSTATE_PROCESS, component: 0 });
 			}, 500);
@@ -6158,6 +6159,7 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 	});
 
 		// Init hub using config settings
+	PState.set(PSTATE_LOAD);
 	PData.init();
 });
 
