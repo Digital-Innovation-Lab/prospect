@@ -130,6 +130,21 @@ jQuery(document).ready(function() {
 	embedData = jQuery('textarea[name="prsp_tmp_view"]').val();
 	if (embedData && embedData.length > 2) {
 		viewAtts = JSON.parse(embedData);
+			// Ensure that Attributes still exist
+		function checkAtt(attID) {
+			if (attID == 'disable')
+				return 'disable';
+			var attDef = _.find(defAtts, function(att) { return att.id == attID; });
+			if (attDef)
+				return attID;
+			else
+				return 'disable';
+		} // checkAtt()
+		viewAtts.sc 	= checkAtt(viewAtts.sc);
+		viewAtts.yt 	= checkAtt(viewAtts.yt);
+		viewAtts.t.t1Att = checkAtt(viewAtts.t.t1Att);
+		viewAtts.t.t2Att = checkAtt(viewAtts.t.t2Att);
+		viewAtts.t.tcAtt = checkAtt(viewAtts.t.tcAtt);
 	} else {
 			// Create default settings in case of new Template
 		viewAtts 	= {};
@@ -145,12 +160,13 @@ jQuery(document).ready(function() {
 	if (embedData && embedData.length > 2) {
 		var joins = JSON.parse(embedData);
 	}
+	var newAtts=[];
 	for (i=0; i<defTemplate.a.length; i++) {
 		var attID = defTemplate.a[i];
 		var attObj = { id: attID };
 			// Find Attribute definition
 		var attDef = _.find(defAtts, function(att) { return att.id == attID; });
-			// Set Attribute entry data
+			// Only copy Attributes that exist now
 		if (attDef) {
 			attObj.view = viewAtts.cnt.findIndex(function(att) { return att == attDef.id; } ) != -1;
 			attObj.t = attDef.def.t;
@@ -162,15 +178,10 @@ jQuery(document).ready(function() {
 			} else {
 				attObj.j = '';
 			}
-		} else {
-			attObj.t = '';
-			attObj.j = '';
-			attObj.view = false;
+			newAtts.push(attObj);
 		}
-			// Convert to Object
-		defTemplate.a[i] = attObj;
 	} // for atts
-
+	defTemplate.a = newAtts;
 
 		// OTHER VARS
 		// ==========
