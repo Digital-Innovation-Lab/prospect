@@ -389,12 +389,20 @@ VizMap.prototype.render = function(stream)
 	var lines = this.lineLayer;
 	lines.clearLayers();
 
-	var rad=this.settings.min;
-
 	var numTmplts = PData.getNumETmplts();
 	var i=0, aI, tI=0, tRec, tLClr, rec;
-	var fAttID, fAtt, locAtts, featSet, pAttID, sAttID;
+	var fAttID, fAtt, locAtts, featSet, pAttID;
 	var locData, fData, newMarker, s;
+
+	var sAttID, sAtt, minR, maxR, dR, minS, dS;
+
+	minR = this.settings.min;
+	if (typeof(minR) == 'string')
+		parseInt(minR);
+	maxR = this.settings.max;
+	if (typeof(maxR) == 'string')
+		parseInt(maxR);
+	dR = maxR - minR;
 
 		// Clear out marker counts
 	for (i=0; i<numTmplts; i++)
@@ -441,6 +449,15 @@ VizMap.prototype.render = function(stream)
 
 			pAttID = self.settings.pAtts[tI];
 			tLClr = self.settings.lClrs[tI];
+			sAttID = self.settings.sAtts[tI];
+			if (sAttID) {
+				sAtt = PData.getAttID(sAttID);
+				if (typeof sAtt.r.min == 'number' && typeof sAtt.r.max == 'number') {
+					minS = sAtt.r.min;
+					dS = sAtt.r.max - minS;
+				} else
+					sAttID = null;
+			}
 		} // if new Template
 
 			// Get Record data and create cache entry
@@ -460,9 +477,17 @@ VizMap.prototype.render = function(stream)
 					if (fData) {
 						s = self.isSel(aI);
 						if (typeof locData[0] == 'number') {
-// TO DO: Scale circle
+							if (sAttID) {
+								sAtt = rec.a[sAttID];
+								if (typeof sAtt != 'undefined') {
+									sAtt = Math.floor(((sAtt-minS)*dR)/dS) + minR;
+								} else
+									sAtt = minR;
+							} else
+								sAtt = minR;
+
 							newMarker = L.circleMarker(locData,
-								{	_aid: aI, weight: 1, radius: rad,
+								{	_aid: aI, weight: 1, radius: sAtt,
 									fillColor: fData, color: s ? "#ff0000" : "#000",
 									opacity: 1, fillOpacity: 1
 								});
@@ -2516,7 +2541,7 @@ VizTextStream.prototype.render = function(stream)
 						{
 							if (szAttID) {
 								s = rec.a[szAttID];
-								if (s) {
+								if (typeof s != 'undefined') {
 									s = Math.floor(((s-szAtt.r.min)*dt)/da) + self.settings.min;
 								} else
 									s = self.settings.min;
