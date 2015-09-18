@@ -179,6 +179,26 @@ Text must include <input class="filter-text" type="text" size="20"/>
 Show/Hide All
 </script>
 
+<script id="dltext-ok" type="text">
+OK
+</script>
+
+<script id="dltext-cancel" type="text">
+Cancel
+</script>
+
+<script id="dltext-seerec" type="text">
+See Record
+</script>
+
+<script id="dltext-close" type="text">
+Close
+</script>
+
+<script id="dltext-add" type="text">
+Add
+</script>
+
 <script id="dltext-from" type="text">
 From
 </script>

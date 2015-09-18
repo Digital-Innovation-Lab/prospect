@@ -63,7 +63,9 @@ var V_FLAG_HSCRL = 0x20;		// Add horizontal scroll bar
 var TODAY = new Date();
 var localD3;					// For localizing D3
 var months;						// Array of month names (for localization)
-var dltShowHideAll;				// Show/Hide All label
+var dlText={};					// Dynamically-loaded text stored in Object
+								// .sha = "Show/Hide All", .ok, .cancel, .seerec, .close, .add
+
 var parseTC = /(\d\d)\:(\d\d)\:(\d\d)\.(\d\d?)/; 	// precise regular expression for parsing timecodes
 
 var widgetData = {			// Widget state has to be global because YouTube API calls global function
@@ -1059,14 +1061,20 @@ VizPinboard.prototype.optionsModal = function()
 		height: 300,
 		width: 320,
 		modal: true,
-		buttons: {
-			OK: function() {
-				d.dialog("close");
+		buttons: [
+			{
+				text: dlText.ok,
+				click: function() {
+					d.dialog("close");
+				}
 			},
-			Cancel: function() {
-				d.dialog("close");
+			{
+				text: dlText.cancel,
+				click: function() {
+					d.dialog("close");
+				}				
 			}
-		}
+		]
 	});
 } // optionsModal()
 
@@ -3755,38 +3763,44 @@ function PViewFrame(vfIndex)
 			width: w,
 			height: h,
 			modal: true,
-			buttons: {
-				'See Record': function() {
-					window.open(prspdata.site_url+'?p='+rec.wp, '_blank');
-				},
-				Close: function() {
-						// Stop any A/V playing
-					switch(avType) {
-					case 1:
-						if (widgetData.widget != null && widgetData.playing)
-							widgetData.widget.pause();
-						widgetData.playing = false;
-						widgetData.widget = null;
-						break;
-					case 2:
-							// Prevent invoking player if code called after modal closed
-						widgetData.ytCall = null;
-							// Silence YouTube player if modal closed in another way
-						if (widgetData.widget != null && widgetData.playing)
-							widgetData.widget.stopVideo();
-						widgetData.widget = null;
-						widgetData.playing = false;
-						if (widgetData.timer != null) {
-							window.clearInterval(widgetData.timer);
-							widgetData.timer = null;
-						}
-						break;
+			buttons: [
+				{
+					text: dlText.seerec,
+					click: function() {
+						window.open(prspdata.site_url+'?p='+rec.wp, '_blank');
 					}
-					jQuery('#btn-inspect-left').off("click");
-					jQuery('#btn-inspect-right').off("click");
-					inspector.dialog("close");
+				},
+				{
+					text: dlText.close,
+					click: function() {
+							// Stop any A/V playing
+						switch(avType) {
+						case 1:
+							if (widgetData.widget != null && widgetData.playing)
+								widgetData.widget.pause();
+							widgetData.playing = false;
+							widgetData.widget = null;
+							break;
+						case 2:
+								// Prevent invoking player if code called after modal closed
+							widgetData.ytCall = null;
+								// Silence YouTube player if modal closed in another way
+							if (widgetData.widget != null && widgetData.playing)
+								widgetData.widget.stopVideo();
+							widgetData.widget = null;
+							widgetData.playing = false;
+							if (widgetData.timer != null) {
+								window.clearInterval(widgetData.timer);
+								widgetData.timer = null;
+							}
+							break;
+						} // switch
+						jQuery('#btn-inspect-left').off("click");
+						jQuery('#btn-inspect-right').off("click");
+						inspector.dialog("close");
+					} // click
 				}
-			}
+			]
 		});
 
 		event.preventDefault();
@@ -4075,7 +4089,7 @@ function PViewFrame(vfIndex)
 					jQuery(newTLegend).append(newSelect);
 						// Create Hide/Show all checkbox
 					jQuery(newTLegend).append('<div class="lgnd-entry lgnd-sh"><input type="checkbox" checked="checked" class="lgnd-entry-check"/>'+
-						dltShowHideAll+'</div><div class="lgnd-group"></div>');
+						dlText.sha+'</div><div class="lgnd-group"></div>');
 					lgndCntr.append(newTLegend);
 					if (tIndex != (prspdata.t.length-1))
 						lgndCntr.append('<hr/>');
@@ -5453,11 +5467,12 @@ jQuery(document).ready(function($) {
 			height: 250,
 			width: 350,
 			modal: true,
-			buttons: {
-				OK: function() {
+			buttons: [{
+				text: dlText.ok,
+				click: function() {
 					aboutDialog.dialog("close");
 				}
-			}
+			}]
 		});
 
 		event.preventDefault();
@@ -5566,56 +5581,64 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 			width: 340,
 			height: 350,
 			modal: true,
-			buttons: {
-				OK: function() {
-					var id = jQuery('#save-psrctv-id').val().trim();
-						// Make sure ID correct format
-					var idError = id.match(idExp);
-					if (id.length == 0 || id.length > 20 || idError)
-						idError = '#dialog-prspctv-id-badchars';
-						// Make sure ID not already taken
-					else if (getPerspective(id))
-						idError = '#dialog-prspctv-id-used';
-					if (idError) {
-						var errDialog = jQuery(idError).dialog({
-							width: 320,
-							height: 210,
-							modal: true,
-							buttons: {
-								OK: function() {
-									errDialog.dialog("close");
-								}
-							}
-						});
-					} else {
-						var saved = doSavePerspective(id);
-						spDialog.dialog("close");
-
-						if (saved == 'server') {
-								// Calculate Embed value
-							var embed = prspdata.site_url;
-							if (embed.substr(-1,1) != '/')
-								embed += '/';
-							embed += prspdata.e.id + '/?prspctv=' + id;
-
-							jQuery('#save-psrctv-embed').val(embed);
-							var embedDialog = jQuery("#dialog-prspctv-url").dialog({
-								width: 480,
-								height: 200,
+			buttons: [
+				{
+					text: dlText.ok,
+					click: function() {
+						var id = jQuery('#save-psrctv-id').val().trim();
+							// Make sure ID correct format
+						var idError = id.match(idExp);
+						if (id.length == 0 || id.length > 20 || idError)
+							idError = '#dialog-prspctv-id-badchars';
+							// Make sure ID not already taken
+						else if (getPerspective(id))
+							idError = '#dialog-prspctv-id-used';
+						if (idError) {
+							var errDialog = jQuery(idError).dialog({
+								width: 320,
+								height: 210,
 								modal: true,
-								buttons: {
-									OK: function() {
-										embedDialog.dialog("close");
+								buttons: [{
+									text: dlText.ok,
+									click: function() {
+										errDialog.dialog("close");
 									}
-								}
+								}]
 							});
-						} // saved on server
-					} // no redundancy
-				}, // OK
-				Cancel: function() {
-					spDialog.dialog("close");
+						} else {
+							var saved = doSavePerspective(id);
+							spDialog.dialog("close");
+
+							if (saved == 'server') {
+									// Calculate Embed value
+								var embed = prspdata.site_url;
+								if (embed.substr(-1,1) != '/')
+									embed += '/';
+								embed += prspdata.e.id + '/?prspctv=' + id;
+
+								jQuery('#save-psrctv-embed').val(embed);
+								var embedDialog = jQuery("#dialog-prspctv-url").dialog({
+									width: 480,
+									height: 200,
+									modal: true,
+									buttons: [{
+										text: dlText.ok,
+										click: function() {
+											embedDialog.dialog("close");
+										}
+									}]
+								});
+							} // saved on server
+						} // no redundancy
+					} // OK
+				},
+				{
+					text: dlText.cancel,
+					click: function() {
+						spDialog.dialog("close");
+					}
 				}
-			}
+			]
 		});
 		event.preventDefault();
 	} // clickSavePerspective()
@@ -5645,20 +5668,26 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 			width: 400,
 			height: 350,
 			modal: true,
-			buttons: {
-				OK: function() {
-					var selItem = pList.find('li.selected');
-					if (selItem.length) {
-						var setP = selItem.data('id');
-						doShowPerspective(setP);
-						PState.set(PSTATE_READY);
+			buttons: [
+				{
+					text: dlText.ok,
+					click: function() {
+						var selItem = pList.find('li.selected');
+						if (selItem.length) {
+							var setP = selItem.data('id');
+							doShowPerspective(setP);
+							PState.set(PSTATE_READY);
+						}
+						spDialog.dialog("close");
+					} // OK
+				},
+				{
+					text: dlText.cancel,
+					click: function() {
+						spDialog.dialog("close");
 					}
-					spDialog.dialog("close");
-				}, // OK
-				Cancel: function() {
-					spDialog.dialog("close");
 				}
-			}
+			]
 		});
 		event.preventDefault();
 	} // clickShowPerspective()
@@ -5836,23 +5865,27 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 			height: 300,
 			width: 350,
 			modal: true,
-			buttons: {
-				Add: function() {
-					var selected = jQuery("#filter-list li.selected");
-					if (selected.length) {
-						jQuery('#filter-instances').show(400);
-						createFilter(selected.data("id"), true, false);
+			buttons: [
+				{
+					text: dlText.add,
+					click: function() {
+						var selected = jQuery("#filter-list li.selected");
+						if (selected.length) {
+							jQuery('#filter-instances').show(400);
+							createFilter(selected.data("id"), true, false);
+						}
+							// Remove click handler
+						newFilterDialog.dialog("close");
 					}
-						// Remove click handler
-					newFilterDialog.dialog("close");
 				},
-				Cancel: function() {
-						// Remove click handler
-					newFilterDialog.dialog("close");
+				{
+					text: dlText.cancel,
+					click: function() {
+							// Remove click handler
+						newFilterDialog.dialog("close");
+					}
 				}
-			},
-			close: function() {
-			}
+			]
 		});
 
 		event.preventDefault();
@@ -5876,23 +5909,27 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 			height: 300,
 			width: 350,
 			modal: true,
-			buttons: {
-				Add: function() {
-					var selected = jQuery("#filter-list li.selected");
-					if (selected.length) {
-						jQuery('#selector-instance').show(400);
-						createFilter(selected.data("id"), true, true);
+			buttons: [
+				{
+					text: dlText.add,
+					click: function() {
+						var selected = jQuery("#filter-list li.selected");
+						if (selected.length) {
+							jQuery('#selector-instance').show(400);
+							createFilter(selected.data("id"), true, true);
+						}
+							// Remove click handler
+						newFilterDialog.dialog("close");
 					}
-						// Remove click handler
-					newFilterDialog.dialog("close");
 				},
-				Cancel: function() {
-						// Remove click handler
-					newFilterDialog.dialog("close");
+				{
+					text: dlText.cancel,
+					click: function() {
+							// Remove click handler
+						newFilterDialog.dialog("close");
+					}
 				}
-			},
-			close: function() {
-			}
+			]
 		});
 
 		event.preventDefault();
@@ -6023,13 +6060,22 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 		return true;
 	} // doShowPerspective()
 
-
+		// PURPOSE: Load all dynamically loaded, language-independent resources
 	function localize()
 	{
 		var text;
+		function loadFrag(domID, field)
+		{
+			text = document.getElementById(domID).innerHTML;
+			dlText[field] = text.trim();
+		} // loadFrag()
 
-		text = document.getElementById('dltext-showhideall').innerHTML;
-		dltShowHideAll = text.trim();
+		loadFrag('dltext-showhideall', 'sha');
+		loadFrag('dltext-ok', 'ok');
+		loadFrag('dltext-cancel', 'cancel');
+		loadFrag('dltext-seerec', 'seerec');
+		loadFrag('dltext-close', 'close');
+		loadFrag('dltext-add', 'add');
 
 		text = document.getElementById('dltext-month-names').innerHTML;
 		months = text.trim().split('|');
