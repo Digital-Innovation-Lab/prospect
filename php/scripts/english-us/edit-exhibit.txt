@@ -569,6 +569,10 @@
 </script>
 
 <!-- ERRORS -->
+<script id="errmsg-tmplt-delid" type='text/ractive'>
+One of your Templates uses an Attribute ID that has since been deleted. Please re-edit your Templates to ensure obsolete Attributes have been removed from them. (See your browser's error console for details on IDs.)
+</script>
+
 <script id="errmsg-id" type='text/ractive'>
 You must supply an internal ID for the Exhibit that is no more than 24 characters in length and consists of alphabetic characters (in plain ASCII), numbers, underscores and hyphens (it cannot contain spaces, punctuation, Unicode-only characters, etc).
 </script>

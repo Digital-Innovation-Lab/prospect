@@ -341,7 +341,8 @@ jQuery(document).ready(function() {
 		}); // new Ractive()
 
 		modalDialog.on('dialog.ok', function() {
-			callback();
+			if (callback)
+				callback();
 			modalDialog.teardown();
 			return false;
 		});
@@ -434,31 +435,37 @@ jQuery(document).ready(function() {
 				} // saveAttRef()
 
 				var attDef = getAttribute(theAttID);
-				switch (attDef.def.t) {
-					// Do Join for dependent Template Attributes
-				case 'J':
-					var dTemplate = getDependentTemplate(theTmplt, attDef.id);
-					_.forEach(dTemplate.def.a, function(joinAttID) {
-						var joinAtt = getAttribute(joinAttID);
-							// Restrict to "Open" level of security
-						if (joinAtt.p == 'o') {
-							saveAttRef(attDef.id+'.', joinAttID, joinAtt.def.t);
-								// If Joined Attribute not in global list, add it
-							var joinedID = attDef.id+'.'+joinAttID;
-							if (_.find(defJoinedAtts, function(theAtt) { return theAtt.id === joinedID; }) == null)
-							{
-								var clonedAtt = _.clone(joinAtt);
-								clonedAtt.id = joinedID;
-								defJoinedAtts.push(clonedAtt);
+					// Ignore Attributes that have been deleted since Template edited (and give error)
+				if (attDef) {
+					switch (attDef.def.t) {
+						// Do Join for dependent Template Attributes
+					case 'J':
+						var dTemplate = getDependentTemplate(theTmplt, attDef.id);
+						_.forEach(dTemplate.def.a, function(joinAttID) {
+							var joinAtt = getAttribute(joinAttID);
+								// Restrict to "Open" level of security
+							if (joinAtt.p == 'o') {
+								saveAttRef(attDef.id+'.', joinAttID, joinAtt.def.t);
+									// If Joined Attribute not in global list, add it
+								var joinedID = attDef.id+'.'+joinAttID;
+								if (_.find(defJoinedAtts, function(theAtt) { return theAtt.id === joinedID; }) == null)
+								{
+									var clonedAtt = _.clone(joinAtt);
+									clonedAtt.id = joinedID;
+									defJoinedAtts.push(clonedAtt);
+								}
 							}
-						}
-					});
-					break;
-				default:
-						// Restrict to "Open" level of security
-					if (attDef.p == 'o')
-						saveAttRef('', theAttID, attDef.def.t);
-					break;
+						});
+						break;
+					default:
+							// Restrict to "Open" level of security
+						if (attDef.p == 'o')
+							saveAttRef('', theAttID, attDef.def.t);
+						break;
+					}
+				} else {
+					confirmModal('#errmsg-tmplt-delid', null);
+					console.log("Attribute ID "+theAttID+" is no longer used in Template "+theTmplt.id);
 				}
 			}); // forEach Template Att
 
@@ -497,7 +504,9 @@ jQuery(document).ready(function() {
 	function createPaddedAtts(fullArray, selArray)
 	{
 		var padded = [];
-		selArray.forEach(function(theAtt) {
+			// Don't include any deleted Attribute IDs
+		var validArray = _.intersection(fullArray, selArray);
+		validArray.forEach(function(theAtt) {
 			padded.push({ attID: theAtt, useAtt: true });
 		});
 		var unused = _.difference(fullArray, selArray);
@@ -507,13 +516,26 @@ jQuery(document).ready(function() {
 		return padded;
 	} // createPaddedAtts
 
+		// PURPOSE: Ensure that attID exists as a potential option
+		// NOTES: 	This is guard against case that user has deleted Attribute
+	function checkAttID(attID, possible, def)
+	{
+		if (typeof attID == 'undefined' || attID == null)
+			return def;
+		if (attID == 'disable')
+			return attID;
+		if (possible.indexOf(attID) == -1)
+			return def;
+		return attID;
+	} // checkAttID()
 
 		// Closure for temporary vars
 		// Initialize settings to correspond to iTemplates structures
 	if (true) {
-		var newSCAtts = [], newYTAtts = [], newT1Atts = [], newT2Atts = [], newTCAtts = [],
-			newModalAtts = [];
+		var newSCAtts=[], newYTAtts=[], newT1Atts=[], newT2Atts=[], newTCAtts=[],
+			newModalAtts=[];
 		_.forEach(iTemplates, function(theTmplt) {
+
 			var origTIndex = getTemplateIndex(theTmplt.tid);
 				// Is Template absent in original configuration?
 			if (origTIndex == -1) {
@@ -528,11 +550,11 @@ jQuery(document).ready(function() {
 								return { attID: theCntAtt, useAtt: true };
 							}));
 			} else {
-				newSCAtts.push(defInspect.sc.atts[origTIndex] || 'disable');
-				newYTAtts.push(defInspect.yt.atts[origTIndex] || 'disable');
-				newT1Atts.push(defInspect.t.t1Atts[origTIndex] || 'disable');
-				newT2Atts.push(defInspect.t.t2Atts[origTIndex] || 'disable');
-				newTCAtts.push(defInspect.t.tcAtts[origTIndex] || 'disable');
+				newSCAtts.push(checkAttID(defInspect.sc.atts[origTIndex], theTmplt.attsSC, 'disable'));
+				newYTAtts.push(checkAttID(defInspect.yt.atts[origTIndex], theTmplt.attsYT, 'disable'));
+				newT1Atts.push(checkAttID(defInspect.t.t1Atts[origTIndex], theTmplt.attsTrns, 'disable'));
+				newT2Atts.push(checkAttID(defInspect.t.t2Atts[origTIndex], theTmplt.attsTrns, 'disable'));
+				newTCAtts.push(checkAttID(defInspect.t.tcAtts[origTIndex], theTmplt.attsTC, 'disable'));
 					// Fill in unused Attributes with useAtt: false
 				newModalAtts.push(createPaddedAtts(theTmplt.attsCnt, defInspect.modal.atts[origTIndex]));
 			} // in original config
