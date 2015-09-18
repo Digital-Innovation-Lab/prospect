@@ -5016,7 +5016,7 @@ var PData = (function() {
 				while (curV <= att.r.max) {
 					var rCat = { l: curV.toString() };
 						// Advance to the relevant legend category
-					while (lI < att.l.length && curL.d.max && curV > curL.d.max) {
+					while (lI < att.l.length && typeof curL.d.max != 'undefined' && curV > curL.d.max) {
 						curL = att.l[++lI];
 					}
 						// Is current range category before current legend category?
