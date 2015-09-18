@@ -567,7 +567,7 @@ jQuery(document).ready(function() {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
 					} else {
-						newLL.push(createPaddedAtts(theTmplt.attLL, theVF.c.cAtts[origTIndex]));
+						newLL.push(createPaddedAtts(theTmplt.attsLL, theVF.c.cAtts[origTIndex]));
 						newPAtts.push(theVF.c.pAtts[origTIndex] || 'disable');
 						newLClrs.push(theVF.c.lClrs[origTIndex]);
 						newSAtts.push(theVF.c.sAtts[origTIndex] || 'disable');

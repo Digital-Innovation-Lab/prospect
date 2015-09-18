@@ -459,6 +459,7 @@ VizMap.prototype.render = function(stream)
 					if (fData) {
 						s = self.isSel(aI);
 						if (typeof locData[0] == 'number') {
+// TO DO: Scale circle
 							newMarker = L.circleMarker(locData,
 								{	_aid: aI, weight: 1, radius: rad,
 									fillColor: fData, color: s ? "#ff0000" : "#000",
@@ -3700,12 +3701,12 @@ function PViewFrame(vfIndex)
 		jQuery('#btn-inspect-right').click(inspectRight);
 
 			// Set default size -- increase according to widget settings
-		var w=400;
-		var h=300;
+		var w=450;
+		var h=400;
 
 		if (prspdata.e.i.modal.scOn)
 		{
-			w=550; h=400;
+			w=550;
 		} // if SoundCloud
 
 		if (prspdata.e.i.modal.ytOn)
