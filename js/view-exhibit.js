@@ -5515,8 +5515,12 @@ jQuery(document).ready(function($) {
 		var label = jQuery('#save-psrctv-lbl').val().trim();
 		label = label.replace(/"/, '');
 
+		var a0 = !jQuery('#selector-v0').prop("disabled") && jQuery('#selector-v0').is(':checked');
+		var a1 = !jQuery('#selector-v1').prop("disabled") && jQuery('#selector-v1').is(':checked');
+
 			// Compile Perspective state from Filter stack, Selector Filter & Views
-		var pState = { f: [], s: null, v0: { l: view0.title(), s: view0.getState() }, v1: null };
+		var pState = { f: [], s: null, a0: a0, a1: a1, v0: { l: view0.title(), s: view0.getState() },
+						v1: null };
 		filters.forEach(function(theF) {
 			pState.f.push({ id: theF.attID, r: theF.f.isReq(false), s: theF.f.getState() });
 		});
@@ -5527,7 +5531,7 @@ jQuery(document).ready(function($) {
 			pState.v1 = { l: view1.title(), s: view1.getState() };
 		var sPrspctv = { id: id, l: label, n: note, s: pState };
 
-console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
+// console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 
 		if (dest == 'local') {
 			localPrspctvs.push(sPrspctv);
@@ -6049,6 +6053,9 @@ console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 		view0.setState(p.s.v0.s);
 
 		setAnnote(p.n);
+
+		jQuery('#selector-v0').prop('checked', p.s.a0);
+		jQuery('#selector-v1').prop('checked', p.s.a1);
 
 			// Don't recompute if data not loaded yet
 		if (PData.ready() && topStream) {
