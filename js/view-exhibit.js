@@ -6025,7 +6025,15 @@ jQuery(document).ready(function($) {
 
 		var vI;
 
-			// Handle right then left sides to minimize resize issues
+		vI = vizIndex(p.s.v0.l);
+		if (view0) {
+			view0.setViz(vI, false);
+		} else {
+			view0 = PViewFrame(0);
+			view0.initDOM(vI);
+		}
+		view0.setState(p.s.v0.s);
+
 		if (p.s.v1 != null) {
 			vI = vizIndex(p.s.v1.l);
 			if (view1) {
@@ -6042,15 +6050,6 @@ jQuery(document).ready(function($) {
 				jQuery('#selector-v1').prop("disabled", true);
 			}
 		}
-
-		vI = vizIndex(p.s.v0.l);
-		if (view0) {
-			view0.setViz(vI, false);
-		} else {
-			view0 = PViewFrame(0);
-			view0.initDOM(vI);
-		}
-		view0.setState(p.s.v0.s);
 
 		setAnnote(p.n);
 
@@ -6209,7 +6208,6 @@ jQuery(document).ready(function($) {
 
 		// Restore Perspective or create default?
 	if (prspdata.show_prspctv.length == 0 || !doShowPerspective(prspdata.show_prspctv)) {
-// console.log("Setting default Perspective");
 		view0 = PViewFrame(0);
 		view0.initDOM(0);
 		setAnnote('');
