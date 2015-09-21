@@ -1314,7 +1314,7 @@ class ProspectAdmin {
 
 		// PURPOSE: Ensure data entity exists; create if non-existing
 		// RETURNS: 0 if already exists; post ID number if new
-	public function create_entity($type, $id_field, $id)
+	public function create_entity($type, $id_field, $id, $title)
 	{
 			// Create query to get all Records of this Template type
 		$args = array('post_type' => $type, 'meta_key' => $id_field, 'meta_value' => $id, 'posts_per_page' => 1);
@@ -1324,8 +1324,8 @@ class ProspectAdmin {
 
 		$post_id = wp_insert_post(
 			array(
-				'post_name'   => $id,
-				'post_title'  => $id,
+				'post_name'   => $title,
+				'post_title'  => $title,
 				'post_status' => 'publish',
 				'post_type'   => $type
 			)
@@ -1341,7 +1341,7 @@ class ProspectAdmin {
 	{
 		switch ($data['type']) {
 		case 'Attribute':
-			$post_id = $this->create_entity('prsp-attribute', 'att-id', $data['att-id']);
+			$post_id = $this->create_entity('prsp-attribute', 'att-id', $data['att-id'], $data['att-def']['l']);
 			if ($post_id) {
 				update_post_meta($post_id, 'att-privacy', $data['att-privacy']);
 				update_post_meta($post_id, 'att-def', json_encode($data['att-def'], JSON_UNESCAPED_UNICODE));
@@ -1350,7 +1350,7 @@ class ProspectAdmin {
 			}
 			break;
 		case 'Template':
-			$post_id = $this->create_entity('prsp-template', 'tmplt-id', $data['tmplt-id']);
+			$post_id = $this->create_entity('prsp-template', 'tmplt-id', $data['tmplt-id'], $data['tmplt-def']['l']);
 			if ($post_id) {
 				update_post_meta($post_id, 'tmplt-def', json_encode($data['tmplt-def'], JSON_UNESCAPED_UNICODE));
 				update_post_meta($post_id, 'tmplt-joins', json_encode($data['tmplt-joins'], JSON_UNESCAPED_UNICODE));
@@ -1358,16 +1358,15 @@ class ProspectAdmin {
 			}
 			break;
 		case 'Exhibit':
-			$post_id = $this->create_entity('prsp-exhibit', 'xhbt-id', $data['xhbt-id']);
+			$post_id = $this->create_entity('prsp-exhibit', 'xhbt-id', $data['xhbt-id'], $data['xhbt-gen']['l']);
 			if ($post_id) {
-				update_post_meta($post_id, 'xhbt-def', json_encode($data['xhbt-def'], JSON_UNESCAPED_UNICODE));
 				update_post_meta($post_id, 'xhbt-gen', json_encode($data['xhbt-gen'], JSON_UNESCAPED_UNICODE));
 				update_post_meta($post_id, 'xhbt-views', json_encode($data['xhbt-views'], JSON_UNESCAPED_UNICODE));
 				update_post_meta($post_id, 'xhbt-inspect', json_encode($data['xhbt-inspect'], JSON_UNESCAPED_UNICODE));
 			}
 			break;
 		case 'Map':
-			$post_id = $this->create_entity('prsp-map', 'map-id', $data['map-id']);
+			$post_id = $this->create_entity('prsp-map', 'map-id', $data['map-id'], $data['map_sname']);
 			if ($post_id) {
 				update_post_meta($post_id, 'map_sname', $data['map_sname']);
 				update_post_meta($post_id, 'map_url', $data['map_url']);
@@ -1383,7 +1382,7 @@ class ProspectAdmin {
 			}
 			break;
 		case 'Perspective':
-			$post_id = $this->create_entity('prsp-prspctv', 'prspctv-id', $data['prspctv-id']);
+			$post_id = $this->create_entity('prsp-prspctv', 'prspctv-id', $data['prspctv-id'], $data['prspctv-l']);
 			if ($post_id) {
 				update_post_meta($post_id, 'prspctv-l', $data['prspctv-l']);
 				update_post_meta($post_id, 'xhbt-id', $data['xhbt-id']);
