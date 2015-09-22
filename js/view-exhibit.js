@@ -3233,7 +3233,7 @@ PFilterDates.prototype.getState = function()
 
 PFilterDates.prototype.setState = function(state)
 {
-	jQuery('input[name=dctrl-'+this.id+']:checked').val(state.c);
+	jQuery('input[name="dctrl-'+this.id+'"]').val([state.c]);
 	this.min = this.rCats[state.e0].min;
 	this.max = this.rCats[state.e1-1].max;
 	this.brush.extent([state.e0, state.e1]);
