@@ -1685,6 +1685,7 @@ VizTime.prototype.render = function(stream)
 		var numTmplts = PData.getNumETmplts();
 		var tI=0, tRec, aI;
 		var featSet, dAttID, dAtt, fData, dData;
+		var fAtt, fAttID;
 
 			// Process the Date data by each Template type
 		while (tI<numTmplts) {
@@ -1717,6 +1718,7 @@ VizTime.prototype.render = function(stream)
 
 			var y, m, d;
 			var s, e, f, l;
+			var rec;
 
 				// Event records { s[tart], e[nd], ai, f[lags], c[olor data], l[abel], t[rack] }
 			var te=[];
