@@ -3990,6 +3990,9 @@ function PViewFrame(vfIndex)
 				});
 			}
 		});
+			// Turn on Show/Hide All by default
+		jQuery(getFrameID()+' div.lgnd-container div.lgnd-template[data-index="'+
+						lIndex+'"] div.lgnd-sh input').prop('checked', true);
 	} // setLegendFeatures()
 
 
@@ -6003,7 +6006,7 @@ jQuery(document).ready(function($) {
 		if (p == null)
 			return false;
 
-console.log("Show perspective: "+JSON.stringify(p));
+// console.log("Show perspective: "+JSON.stringify(p));
 		PState.set(PSTATE_PROCESS);
 
 			// Clear current Filter Stack & Selector Filter
