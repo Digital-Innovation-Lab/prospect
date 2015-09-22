@@ -1389,7 +1389,7 @@ VizTime.prototype.setup = function()
 		var band = {	id: bi, l: 0, t:0, h:0, w: widths[1],
 						svgID: "#tl-b-"+vI+"-"+bi,
 						tHt: 0, iHt: 0,
-						xScale: null,
+						xScale: d3.time.scale(),
 						yScale: function(t) { return t * band.tHt; },
 						parts: [],
 						g: null,
@@ -1408,7 +1408,6 @@ VizTime.prototype.setup = function()
 			band.iHt = 2;
 		}
 
-		band.xScale = d3.time.scale();
 		if (bi == 1)
 		{
 			var zMin=self.minDate, zMax=self.maxDate;
@@ -2170,7 +2169,8 @@ VizTime.prototype.resize = function()
 	tlSVG.select("#tl-clip-"+self.vFrame.getIndex()+" rect").attr("width", widths[1]);
 
 		// Now update each band
-	_.each(self.bands, function(b, bi) {
+	for (var bi=0; bi<2; bi++) {
+		b = self.bands[bi];
 		b.w = widths[1];
 		tlSVG.select(b.svgID).attr("width", widths[1]);
 		b.xScale.range([0, widths[1]]);
@@ -2192,7 +2192,7 @@ VizTime.prototype.resize = function()
 			}
 			b.labelSVGs.select('#m-txt-'+toLabel.name).attr("x", txtLeft);
 		}
-	});
+	}
 
 		// Now recompute everything!
 	self.cmpnts.forEach(function(c) {
@@ -2263,13 +2263,12 @@ VizTime.prototype.setState = function(state)
 {
 	var e0 = PData.parseDate(state.d0, 1, 1);
 	var e1 = PData.parseDate(state.d1, 12, 31);
-	this.brush.extent([e0, e1]);
-	// if (this.brushHandler)
-	// 	this.brushHandler.redraw();
 
 		// Rescale bottom/zoom timeline
 	var zoom = this.bands[1];
 	zoom.xScale.domain([e0, e1]);
+
+	this.brush.extent([e0, e1]);
 
 	this.vFrame.setLgndSels(state.l);
 } // setState()
@@ -6004,6 +6003,7 @@ jQuery(document).ready(function($) {
 		if (p == null)
 			return false;
 
+console.log("Show perspective: "+JSON.stringify(p));
 		PState.set(PSTATE_PROCESS);
 
 			// Clear current Filter Stack & Selector Filter
@@ -6040,16 +6040,19 @@ jQuery(document).ready(function($) {
 			vI = vizIndex(p.s.v1.l);
 			if (view1) {
 				view1.setViz(vI, false);
+				view1.setState(p.s.v1.s);
 			} else {
 				view1 = PViewFrame(1);
 				view1.initDOM(vI);
+				view1.setState(p.s.v1.s);
+				view0.resize();
 			}
-			view1.setState(p.s.v1.s);
 		} else {
 			if (view1) {
 				view1 = null;
 				jQuery('#view-frame-1').remove();
 				jQuery('#selector-v1').prop("disabled", true);
+				view0.resize();
 			}
 		}
 
