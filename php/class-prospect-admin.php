@@ -1324,7 +1324,7 @@ class ProspectAdmin {
 
 		$post_id = wp_insert_post(
 			array(
-				'post_name'   => $title,
+				'post_name'   => $id,
 				'post_title'  => $title,
 				'post_status' => 'publish',
 				'post_type'   => $type

@@ -65,6 +65,7 @@ var localD3;					// For localizing D3
 var months;						// Array of month names (for localization)
 var dlText={};					// Dynamically-loaded text stored in Object
 								// .sha = "Show/Hide All", .ok, .cancel, .seerec, .close, .add
+var siteURL;
 
 var parseTC = /(\d\d)\:(\d\d)\:(\d\d)\.(\d\d?)/; 	// precise regular expression for parsing timecodes
 
@@ -4053,6 +4054,8 @@ function PViewFrame(vfIndex)
 			frame.find('div.viz-result').addClass('viz-max-h');
 		}
 
+		legendIDs = [];
+
 			// Does Viz support Legend at all?
 		if (flags & V_FLAG_LGND) {
 			frame.find('.hslgnd').button("enable");
@@ -5616,10 +5619,7 @@ jQuery(document).ready(function($) {
 
 							if (saved == 'server') {
 									// Calculate Embed value
-								var embed = prspdata.site_url;
-								if (embed.substr(-1,1) != '/')
-									embed += '/';
-								embed += prspdata.e.id + '/?prspctv=' + id;
+								var embed = siteURL + '/?prspctv=' + id;
 
 								jQuery('#save-psrctv-embed').val(embed);
 								var embedDialog = jQuery("#dialog-prspctv-url").dialog({
@@ -6121,6 +6121,11 @@ console.log("Show perspective: "+JSON.stringify(p));
 		// Ensure proper ending for creating URLs
 	if (prspdata.site_url.charAt(prspdata.site_url.length-1) != '/')
 		prspdata.site_url += '/';
+
+		// Remove any Perspective query string
+	siteURL = window.location.pathname;
+	siteURL = siteURL.replace(/\&*prspctv=[\w\-]+/, '');
+	siteURL = window.location.protocol + "//" + window.location.host + "/" + siteURL;
 
 	if (prspdata.e.g.l != '')
 		jQuery('#title').text(prspdata.e.g.l);
