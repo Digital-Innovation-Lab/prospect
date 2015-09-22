@@ -166,6 +166,13 @@ Text must include <input class="filter-text" type="text" size="20"/>
 	Max <input type="number" class="filter-num-max-val" min="<%= min %>" max="<%= max %>" value="<%= max %>">
 </script>
 
+<script id="dltext-filter-date-ctrl" type='text'>
+	<div class="cntrl-blck">
+		<input type="radio" name="dctrl-<%= id %>" value="o" checked> Overlap<br>
+		<input type="radio" name="dctrl-<%= id %>" value="c"> Contain
+	<div>
+</script>
+
 <script id="dltext-selector-head" type='text'>
 	<div class="filter-head">
 		<%= title %> &nbsp;

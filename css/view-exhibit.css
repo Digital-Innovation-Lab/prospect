@@ -604,22 +604,22 @@ label {
 }
 
 @-webkit-keyframes pulse {
-	0% { border-color: red; transform: scale(1.1);}
+	0% { border-color: red; transform: scale(1.3);}
 	50% { border-color: yellow; transform: scale(0.8);}
 	100% { border-color: red; transform: scale(1.0);}
 }
 @-moz-keyframes pulse {
-	0% { border-color: red; transform: scale(1.1); }
+	0% { border-color: red; transform: scale(1.3); }
 	50% { border-color: yellow; transform: scale(0.8); }
 	100% { border-color: red; transform: scale(1.0); }
 }
 @-ms-keyframes pulse {
-	0% { border-color: red; transform: scale(1.1); }
+	0% { border-color: red; transform: scale(1.3); }
 	50% { border-color: yellow; transform: scale(0.8); }
 	100% { border-color: red; transform: scale(1.0); }
 }
 @keyframes pulse {
-	0% { border-color: red; transform: scale(1.1); }
+	0% { border-color: red; transform: scale(1.3); }
 	50% { border-color: yellow; transform: scale(0.8); }
 	100% { border-color: red; transform: scale(1.0); }
 }
@@ -1100,6 +1100,16 @@ div.filter-num-slider.ui-slider .ui-slider-handle {
 }
 
 div.filter-num-slider.ui-slider .ui-slider-range {
+}
+
+div.filter-body div.cntrl-blck {
+	display: inline-block;
+	padding-right: 4px;
+	vertical-align: top;
+}
+
+div.filter-body svg {
+	display: inline;
 }
 
 	/* Outer container for Vocabulary filters */

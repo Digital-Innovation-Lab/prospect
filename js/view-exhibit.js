@@ -2894,7 +2894,7 @@ PFilterNum.prototype.setup = function()
 	this.rCats = PData.getRCats(this.att);
 		// Lack of range bounds? Create generic HTML input boxes, can't create range sliders
 	if (this.rCats == null) {
-		var fh = _.template(document.getElementById('dltext-filter-number').innerHTML);
+		var fh = _.template(document.getElementById('dltext-filter-num-boxes').innerHTML);
 		var min = (typeof this.att.r.min == 'undefined') ? 0 : this.att.r.min;
 		var max = (typeof this.att.r.max == 'undefined') ? min+100 : this.att.r.max;
 		insert.append(fh({ min: min, max: max }));
@@ -3075,6 +3075,7 @@ PFilterDates.prototype.constructor = PFilterDates;
 
 PFilterDates.prototype.evalPrep = function()
 {
+	this.c = jQuery('input[name=dctrl-'+this.id+']:checked').val();
 } // evalPrep()
 
 	// ASSUMES: Brush code in setup sets min & max
@@ -3107,9 +3108,15 @@ PFilterDates.prototype.eval = function(rec)
 			e = TODAY;
 		else
 			e = makeDate(d.max.y, 12, 31, d.max);
-		if (e < this.min || s >= this.max)
-			return false;
-		return true;
+
+			// Overlap?
+		if (this.c == 'o') {
+			if (e < this.min || s >= this.max)
+				return false;
+			return true;
+		} else {
+			return (this.min <= s) && (e <= this.max);
+		}
 	}
 } // eval()
 
@@ -3169,6 +3176,13 @@ PFilterDates.prototype.setup = function()
 	var yAxis = d3.svg.axis().scale(yScale).orient("left").ticks(4);
 
 	var insert = this.insertPt();
+
+	var fh = _.template(document.getElementById('dltext-filter-date-ctrl').innerHTML);
+	insert.append(fh({ id: this.id }));
+	insert.find("input[name=dctrl-"+self.id+"]").change(function() {
+		self.isDirty(true);
+	});
+
 	var chart = d3.select(insert.get(0)).append("svg")
 		.attr("width", innerW+D3FG_MARGINS.left+D3FG_MARGINS.right)
 		.attr("height", innerH+D3FG_MARGINS.top+D3FG_MARGINS.bottom)
@@ -3213,11 +3227,13 @@ PFilterDates.prototype.setup = function()
 PFilterDates.prototype.getState = function()
 {
 	var e = this.brush.extent();
-	return { e0: e[0], e1: e[1] };
+	var c = jQuery('input[name=dctrl-'+this.id+']:checked').val();
+	return { e0: e[0], e1: e[1], c: c };
 } // getState()
 
 PFilterDates.prototype.setState = function(state)
 {
+	jQuery('input[name=dctrl-'+this.id+']:checked').val(state.c);
 	this.min = this.rCats[state.e0].min;
 	this.max = this.rCats[state.e1-1].max;
 	this.brush.extent([state.e0, state.e1]);
