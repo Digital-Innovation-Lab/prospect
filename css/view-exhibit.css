@@ -549,16 +549,24 @@ div.scroll-container .selected {
 	color: #56A0D3;
 }
 
-	/* In dialog-show-prsrctv */
-#prspctv-list {
-	height: 220px;
+	/* In Dialogs for showing and managing Perspectives */
+#prspctv-slist {
+	height: 100%;
 }
 
-#prspctv-list li {
+#prspctv-slist li {
+	line-height: 1.15em;
+}
+
+#prspctv-mlist {
+	height: 100%;
+}
+
+#prspctv-mlist li {
 	line-height: 1.45em;
 }
 
-#prspctv-list button {
+#prspctv-mlist button {
 	font-size: .7em;
 	margin: 0;
 	float: right;

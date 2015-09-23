@@ -5667,15 +5667,172 @@ jQuery(document).ready(function($) {
 		event.preventDefault();
 	} // clickSavePerspective()
 
+	function managePerspectives()
+	{
+		var mpDialog;
+		var xData=[];
+		var xDataDirty=false;
+
+		function createList()
+		{
+				// Clear scroll areas and recreate
+			var pList = jQuery('#prspctv-mlist');
+			pList.empty();
+
+				// Populate local list
+			localPrspctvs.forEach(function(theP) {
+				pList.append('<li data-type="l" data-id="'+theP.id+'"><span class="label">'+theP.l+'</span> <button class="del">'+dlText.del+
+					'</button> <button class="edit">'+dlText.edit+'</button></li>');
+			});
+
+				// Get other Perspectives of other Exhibits (on this domain)
+			for (var i=0; i<localStore.length; i++) {
+				var xKey = localStore.key(i);
+				if (xKey != prspdata.e.id) {
+					var xItem = localStore.getItem(xKey);
+					xData.push({ id: xKey, ps: JSON.parse(xItem) });
+				}
+			}
+
+			xData.forEach(function(xEl, xI) {
+				xEl.ps.forEach(function(pEl) {
+					pList.append('<li data-type="x" data-xid="'+xEl.id+'" data-xindex="'+xI+'" data-id="'+
+						pEl.id+'"><i class="label">'+pEl.l+'</i> <button class="del">'+dlText.del+
+						'</button> <button class="edit">'+dlText.edit+'</button></li>');
+				});
+			});
+		} // createList()
+
+		function loadFile()
+		{
+
+		} // loadFile()
+
+		createList();
+
+			// Handle selection of item on Manage Perspective list
+		jQuery('#prspctv-mlist').click(function(event) {
+			if (event.target.nodeName == 'BUTTON') {	// Edit or Delete?
+				var del = jQuery(event.target).hasClass('del');
+				var parent = jQuery(event.target).parent();
+				var t = parent.data('type');
+				var id = parent.data('id');
+				var pI;
+// console.log("Del? "+del+"; type = "+t+"; id = "+id);
+				if (del) {
+					switch (t) {
+					case 'l':
+						pI = localPrspctvs.findIndex(function(theP) {
+							return id == theP.id;
+						});
+						if (pI != -1) {
+// console.log("Delete ID '"+id+"' at "+pI);
+							localPrspctvs.splice(pI, 1);
+							if (localPrspctvs.length == 0)
+								localStore.removeItem(prspdata.e.id);
+							else
+								localStore.setItem(prspdata.e.id, JSON.stringify(localPrspctvs));
+						}
+						break;
+					case 'x':
+						var xI = parent.data('xindex');
+						var xEntry = xData[xI];
+						pI = xEntry.ps.findIndex(function(theP) {
+							return id == theP.id;
+						});
+						if (pI != -1) {
+							xEntry.splice(pI, 1);
+							xDataDirty = true;
+						}
+						break;
+					} // switch type
+					parent.remove();
+				} else {
+					var pRec;
+
+					switch (t) {
+					case 'l':
+						pRec = _.find(localPrspctvs, function(theP) {
+							return id == theP.id;
+						});
+						break;
+					case 'x':
+						var xI = parent.data('xindex');
+						var xEntry = xData[xI];
+						pRec = _.find(xEntry.ps, function(theP) {
+							return id == theP.id;
+						});
+						break;
+					} // switch
+					jQuery('#edit-psrctv-lbl').val(pRec.l);
+					jQuery('#edit-psrctv-note').val(pRec.n);
+
+					var epDialog = jQuery("#dialog-edit-prsrctv").dialog({
+						width: 340,
+						height: 270,
+						modal: true,
+						buttons: [
+							{
+								text: dlText.ok,
+								click: function() {
+									pRec.l = jQuery('#edit-psrctv-lbl').val();
+									pRec.n = jQuery('#edit-psrctv-note').val();
+									parent.find('.label').text(pRec.l);
+									if (t == 'x')
+										xDataDirty = true;
+									else
+										localStore.setItem(prspdata.e.id, JSON.stringify(localPrspctvs));
+									epDialog.dialog("close");
+								}
+							}, // OK
+							{
+								text: dlText.cancel,
+								click: function() {
+									epDialog.dialog("close");
+								}
+							}]});
+				} // else edit
+			} // if BUTTON
+		});
+
+		mpDialog = jQuery("#dialog-manage-prsrctv").dialog({
+			width: 450,
+			height: 350,
+			modal: true,
+			buttons: [{
+					text: dlText.ok,
+					click: function() {
+						if (xDataDirty) {
+							xData.forEach(function(xEntry) {
+								if (xEntry.ps.length > 0)
+									localStore.setItem(xEntry.id, JSON.stringify(xEntry.ps));
+								else
+									localStore.removeItem(xEntry.id);
+							});
+						}
+						jQuery('#prspctv-mlist').off("click");
+						mpDialog.dialog("close");
+					} // OK
+				},
+				{
+					text: dlText.load,
+					click: function() {
+
+					}
+				},
+				{
+					text: dlText.save,
+					click: function() {
+
+					}
+				}]
+		});
+	} // managePerspectives()
+
 	function clickShowPerspective(event)
 	{
-		var spDialog;
-
-		var delTxt = document.getElementById('dltext-delete').innerHTML;
-		delTxt = delTxt.trim();
-
 			// Clear scroll areas and recreate
-		var pList = jQuery('#prspctv-list');
+		var pList = jQuery('#prspctv-slist');
 		pList.empty();
 
 			// Populate server list
@@ -5685,15 +5842,10 @@ jQuery(document).ready(function($) {
 
 			// Populate local list
 		localPrspctvs.forEach(function(theP) {
-			pList.append('<li data-src="local" data-id="'+theP.id+'">'+theP.l+' <button>'+delTxt+'</button></li>');
+			pList.append('<li data-src="local" data-id="'+theP.id+'">'+theP.l+'</li>');
 		});
 
-		spDialog = jQuery("#dialog-show-prsrctv").dialog({
-			width: 400,
-			height: 350,
-			modal: true,
-			buttons: [
-				{
+		var bs = [{
 					text: dlText.ok,
 					click: function() {
 						var selItem = pList.find('li.selected');
@@ -5710,12 +5862,22 @@ jQuery(document).ready(function($) {
 					click: function() {
 						spDialog.dialog("close");
 					}
-				}
-			]
+				}];
+		if (localStore)
+			bs.push({text: dlText.manage,
+					click: function() {
+						spDialog.dialog("close");
+						managePerspectives();
+					}});
+
+		var spDialog = jQuery("#dialog-show-prsrctv").dialog({
+			width: 350,
+			height: 350,
+			modal: true,
+			buttons: bs
 		});
 		event.preventDefault();
 	} // clickShowPerspective()
-
 
 	function clickGoHome(event)
 	{
@@ -6106,6 +6268,11 @@ jQuery(document).ready(function($) {
 		loadFrag('dltext-seerec', 'seerec');
 		loadFrag('dltext-close', 'close');
 		loadFrag('dltext-add', 'add');
+		loadFrag('dltext-manage', 'manage');
+		loadFrag('dltext-delete', 'del');
+		loadFrag('dltext-edit', 'edit');
+		loadFrag('dltext-load', 'load');
+		loadFrag('dltext-save', 'save');
 
 		text = document.getElementById('dltext-month-names').innerHTML;
 		months = text.trim().split('|');
@@ -6195,23 +6362,10 @@ jQuery(document).ready(function($) {
 	});
 
 		// Handle selection of item on Show Perspective list
-	jQuery('#prspctv-list').click(function(event) {
+	jQuery('#prspctv-slist').click(function(event) {
 		if (event.target.nodeName == 'LI') {
 			jQuery("#prspctv-list li").removeClass("selected");
 			jQuery(event.target).addClass("selected");
-		} else if (event.target.nodeName == 'BUTTON') {	// Trash
-			var id = jQuery(event.target).parent().data('id');
-				// Remove from Array and update local storage
-			var pI = localPrspctvs.findIndex(function(theP) {
-				return id == theP.id;
-			});
-			if (pI != -1) {
-// console.log("Delete ID '"+id+"' at "+pI);
-				localPrspctvs.splice(pI, 1);
-				localStore.setItem(prspdata.e.id, JSON.stringify(localPrspctvs));
-					// Remove from DOM
-				jQuery(event.target).parent().remove();
-			}
 		}
 	});
 

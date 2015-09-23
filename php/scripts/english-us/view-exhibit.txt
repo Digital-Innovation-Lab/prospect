@@ -95,13 +95,26 @@
 		<input id="save-psrctv-id" type="text" size="20" placeholder="Unique ID"/><br/>
 		Label:<br/>
 		<input id="save-psrctv-lbl" type="text" size="42" placeholder="Label"/><br/>
-		<textarea id="save-psrctv-note" rows="4" cols="42" placeholder="Add an annotation (cannot use double quotes)" style="margin-top: 4px"></textarea><br/>
+		<textarea id="save-psrctv-note" rows="4" cols="42" placeholder="Add an annotation (cannot use double quotes)" style="margin-top: 4px"></textarea>
+	</div>
+
+	<div id="dialog-edit-prsrctv" title="Edit Perspective">
+		Label:<br/>
+		<input id="edit-psrctv-lbl" type="text" size="42" placeholder="Label"/><br/>
+		<textarea id="edit-psrctv-note" rows="4" cols="42" placeholder="Annotation (cannot use double quotes)" style="margin-top: 4px"></textarea>
 	</div>
 
 	<div id="dialog-show-prsrctv" title="Show Perspective">
 		Perspectives:<br/>
 		<div class="scroll-container">
-			<ul id="prspctv-list">
+			<ul id="prspctv-slist">
+			</ul>
+		</div>
+	</div>
+
+	<div id="dialog-manage-prsrctv" title="Manage Perspectives">
+		<div class="scroll-container">
+			<ul id="prspctv-mlist">
 			</ul>
 		</div>
 	</div>
@@ -224,6 +237,22 @@ now
 
 <script id="dltext-delete" type="text">
 Delete
+</script>
+
+<script id="dltext-manage" type="text">
+Manage
+</script>
+
+<script id="dltext-load" type="text">
+Load
+</script>
+
+<script id="dltext-save" type="text">
+Save
+</script>
+
+<script id="dltext-edit" type="text">
+Edit
 </script>
 
 <script id="dltext-sync-xscript" type="text">
