@@ -994,15 +994,14 @@ jQuery(document).ready(function() {
 		return false;
 	});
 
-
-	rApp.on('useTerms', function() {
+	rApp.on('addTerms', function() {
 			// Has custom field been specified?
 		var theAttID = rApp.get('attID');
 		if (theAttID.length == 0) {
 			displayError('#errmsg-no-custom-field');
 			return false;
 		}
-		confirmModal('#msg-confirm-replace-vocab', function()
+		confirmModal('#msg-confirm-add-vocab', function()
 		{
 			var delim = rApp.get('theAttribute.d');
 
@@ -1016,15 +1015,29 @@ jQuery(document).ready(function() {
 				},
 				success: function(data, textStatus, XMLHttpRequest)
 				{
-					var newLegend = [];
 					var cfTerms = JSON.parse(data);
+					var legend = rApp.get('theLegend');
 
-// console.log("CFTerms: "+JSON.stringify(cfTerms));
 					cfTerms.forEach(function(name) {
-						var newTerm = { l: name, v: '#888888', z: [] };
-						newLegend.push(newTerm);
+						var found=false;
+						for (var i=0; i<legend.length; i++) {
+							var lItem = legend[i];
+							if (lItem.l == name)
+								found=true;
+							else {
+								for (var j=0; j<lItem.z.length; j++)
+									if (lItem.z[j].l == name) {
+										found=true;
+										break;
+									}
+							}
+							if (found)
+								break;
+						}
+						if (!found)
+							legend.push({ l: name, v: '#888888', z: [] });
 					});
-					rApp.set('theLegend', newLegend);
+					rApp.set('theLegend', legend);
 				},
 				error: function(XMLHttpRequest, textStatus, errorThrown)
 				{

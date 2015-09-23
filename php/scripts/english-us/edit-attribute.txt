@@ -70,7 +70,7 @@
 <!-- Partial: Legend for Vocabulary -->
 <script id="legendVocab" type='text/ractive'>
 	<h3>Configure Vocabulary Legend</h3>
-	<label for="vocab-rep-terms">Replace with terms used in custom field </label> <button id="vocab-rep-terms" on-click="useTerms">Replace Terms</button>
+	<button id="vocab-add-terms" on-click="addTerms">Add Terms</button>
 	<button on-click="resetLegend">Reset Visuals</button>
 	<br/>
 	<input type="text" id="vocab-new-term" value='{{newVocab}}' placeholder="New Vocab Term" size="24"/> <label for="vocab-new-term"> New Term</label>
@@ -412,6 +412,6 @@ One of the Date Legend entries has a start date that is greater than the end dat
 Are you sure you wish to delete this Legend entry?
 </script>
 
-<script id="msg-confirm-replace-vocab" type='text/ractive'>
-Are you sure you that the current Legend configuration should be replaced with the Terms currently used by Records in the custom field, and with the delimiter, you have specified?
+<script id="msg-confirm-add-vocab" type='text/ractive'>
+Vocabulary terms will be added to the current list based on those used by current Records. Are you sure that you provided the correct internal ID and delimiter settings? To ensure unused items are removed from your Vocabulary, delete all current terms.
 </script>
