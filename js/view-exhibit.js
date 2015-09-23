@@ -65,7 +65,7 @@ var localD3;					// For localizing D3
 var months;						// Array of month names (for localization)
 var dlText={};					// Dynamically-loaded text stored in Object
 								// .sha = "Show/Hide All", .ok, .cancel, .seerec, .close, .add
-var siteURL;
+var xhbtURL;
 
 var parseTC = /(\d\d)\:(\d\d)\:(\d\d)\.(\d\d?)/; 	// precise regular expression for parsing timecodes
 
@@ -5638,7 +5638,7 @@ jQuery(document).ready(function($) {
 
 							if (saved == 'server') {
 									// Calculate Embed value
-								var embed = siteURL + '/?prspctv=' + id;
+								var embed = xhbtURL + '/?prspctv=' + id;
 
 								jQuery('#save-psrctv-embed').val(embed);
 								var embedDialog = jQuery("#dialog-prspctv-url").dialog({
@@ -6142,9 +6142,9 @@ jQuery(document).ready(function($) {
 		prspdata.site_url += '/';
 
 		// Remove any Perspective query string
-	siteURL = window.location.pathname;
-	siteURL = siteURL.replace(/\&*prspctv=[\w\-]+/, '');
-	siteURL = window.location.protocol + "//" + window.location.host + "/" + siteURL;
+	xhbtURL = window.location.pathname;
+	xhbtURL = xhbtURL.replace(/\&*prspctv=[\w\-]+/, '');
+	xhbtURL = window.location.protocol + "//" + window.location.host + "/" + xhbtURL;
 
 	if (prspdata.e.g.l != '')
 		jQuery('#title').text(prspdata.e.g.l);
