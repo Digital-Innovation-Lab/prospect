@@ -243,14 +243,6 @@ Delete
 Manage
 </script>
 
-<script id="dltext-load" type="text">
-Load
-</script>
-
-<script id="dltext-save" type="text">
-Save
-</script>
-
 <script id="dltext-edit" type="text">
 Edit
 </script>

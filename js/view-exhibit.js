@@ -5703,11 +5703,6 @@ jQuery(document).ready(function($) {
 			});
 		} // createList()
 
-		function loadFile()
-		{
-
-		} // loadFile()
-
 		createList();
 
 			// Handle selection of item on Manage Perspective list
@@ -5741,7 +5736,7 @@ jQuery(document).ready(function($) {
 							return id == theP.id;
 						});
 						if (pI != -1) {
-							xEntry.splice(pI, 1);
+							xEntry.ps.splice(pI, 1);
 							xDataDirty = true;
 						}
 						break;
@@ -5813,18 +5808,6 @@ jQuery(document).ready(function($) {
 						jQuery('#prspctv-mlist').off("click");
 						mpDialog.dialog("close");
 					} // OK
-				},
-				{
-					text: dlText.load,
-					click: function() {
-
-					}
-				},
-				{
-					text: dlText.save,
-					click: function() {
-
-					}
 				}]
 		});
 	} // managePerspectives()
@@ -6271,8 +6254,6 @@ jQuery(document).ready(function($) {
 		loadFrag('dltext-manage', 'manage');
 		loadFrag('dltext-delete', 'del');
 		loadFrag('dltext-edit', 'edit');
-		loadFrag('dltext-load', 'load');
-		loadFrag('dltext-save', 'save');
 
 		text = document.getElementById('dltext-month-names').innerHTML;
 		months = text.trim().split('|');
