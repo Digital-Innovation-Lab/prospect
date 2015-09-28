@@ -23,20 +23,23 @@ Notes on System Requirements:
 
 ## License
 
-Single Post Meta Manager is licensed under the [GPL v2](LICENSE.txt) or later.
+>By downloading, installing or using a copy of the code and documentation (“Software”), you (“End User”) agree to the following terms of this Agreement:
 
-> This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License, version 2, as
-published by the Free Software Foundation.
+>The Software was developed for research and educational purposes and is copyrighted by The University of North Carolina at Chapel Hill (“UNC”).  The Software is offered under the software; you can redistribute it and/or modify it under the terms of the GNU General Public License, version 2.
 
-> This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+>End User agrees that any publication of results obtained with the Software will acknowledge its use by the statement, “POWERED BY PROSPECT.”
 
-> You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+>END USER acknowledges and agrees that UNC will not be responsible for updating the Software.  
+
+>THE SOFTWARE IS PROVIDED 'AS-IS.’  UNC MAKES NO WARRANTY, EXPRESS OR IMPLIED, TO THE END USER OR TO ANY OTHER PERSON OR ENTITY.  SPECIFICALLY, UNC MAKES NO WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE OF THE SOFTWARE.  UNC MAKES NO WARRANTY THAT ALL ERRORS HAVE BEEN OR CAN BE ELIMINATED FROM THE SOFTWARE.  UNC MAKES NO WARRANTIES WITH RESPECT TO THE COMPATIBILITY OF THE SOFTWARE WITH ANY THIRD PARTY CONTENT, INCLUDING ANY THIRD PARTY COMPUTER SOFTWARE AND/OR HARDWARE, AND UNC ASSUMES NO RESPONSIBILITY FOR DAMAGE CAUSED BY OR INCURRED AS A RESULT OF THE USE OF ANY SUCH THIRD PARTY CONTENT WITH THE SOFTWARE.
+
+> UNC SHALL NOT BE RESPONSIBLE FOR LOSSES, DAMAGES, COSTS OR EXPENSES OF ANY KIND RESULTING FROM THE USE OF THE SOFTWARE.  UNC WILL NOT BE LIABLE FOR SPECIAL, INCIDENTAL, CONSEQUENTIAL, INDIRECT OR OTHER SIMILAR DAMAGES, EVEN IF THE COPYRIGHT OWNERS OR ITS EMPLOYEES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+> If any provision of this Agreement is held unlawful, void, or for any reason unenforceable under any circumstance, it shall not affect the validity or enforceability of all other provisions of this Agreement.
+
+> All actions or proceedings related to this Agreement shall be litigated in state courts of competent jurisdiction located within the State of North Carolina.  End User (i) consents and submits to the jurisdiction of any North Carolina state court with competent jurisdiction, and (ii) shall not bring any action or claim in any other jurisdiction.
+
+> The distribution of modified versions of the software under the PROSPECT trademark is prohibited, except to the extent used in the required statement, “Based on PROSPECT technology,” which must be prominently displayed to users or recipients of any modified or derivative versions of the software.
 
 ## ChangeLog
 
