@@ -16,16 +16,16 @@ Prospect is a flexible and powerful plugin that allows administrators to create 
 Humanities projects whose data can be visualized, accessed and analyzed in flexible ways.
 
 Notes on System Requirements:
-	* Requires PHP 5.4 or later.
-	* WordPress 4.2 or higher recommended to ensure UTF-8 handled properly.
-	* MySQL 5.5.14 or higher recommended to ensure UTF-8 handled properly.
-	* HTML output uses FlexBox, so up to date browser required.
+* Requires PHP 5.4 or later.
+* WordPress 4.2 or higher recommended to ensure UTF-8 handled properly.
+* MySQL 5.5.14 or higher recommended to ensure UTF-8 handled properly.
+* HTML output uses FlexBox, so up to date browser required.
 
 ## License
 
 >By downloading, installing or using a copy of the code and documentation (“Software”), you (“End User”) agree to the following terms of this Agreement:
 
->The Software was developed for research and educational purposes and is copyrighted by The University of North Carolina at Chapel Hill (“UNC”).  The Software is offered under the software; you can redistribute it and/or modify it under the terms of the GNU General Public License, version 2.
+>The Software was developed for research and educational purposes and is copyrighted by The University of North Carolina at Chapel Hill (“UNC”).  You can redistribute the software and/or modify it under the terms of the GNU General Public License, version 2.
 
 >End User agrees that any publication of results obtained with the Software will acknowledge its use by the statement, “POWERED BY PROSPECT.”
 
