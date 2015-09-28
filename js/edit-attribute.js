@@ -121,24 +121,6 @@ jQuery(document).ready(function() {
 	});
 
 
-		// CONSTANTS
-		// =========
-	var dataTypes = [	{ code: 'V', label: 'Vocabulary' },
-						{ code: 'T', label: 'Text' },
-						{ code: 'N', label: 'Number' },
-						{ code: 'D', label: 'Dates' },
-						{ code: 'L', label: 'Lat-Lon' },
-						{ code: 'X', label: 'X-Y' },
-						{ code: 'I', label: 'Image' },
-						{ code: 'l', label: 'Link To' },
-						{ code: 'S', label: 'SoundCloud' },
-						{ code: 'Y', label: 'YouTube' },
-						{ code: 'x', label: 'Transcript' },
-						{ code: 't', label: 'Timecode' },
-						{ code: 'P', label: 'Pointer' },
-						{ code: 'J', label: 'Join' }
-					];
-
 		// DATA LOADED FROM SERVER
 		// =======================
 	var customFields = prspdata.cfs;			// Custom fields used in Records
@@ -162,6 +144,17 @@ jQuery(document).ready(function() {
 	var savedRanges = [ ];				// saved Range settings
 	var savedLegends = [ ];				// saved Legend configurations
 
+
+	var embedData;
+
+	var dataTypes=[];					// { code, label }
+	embedData = document.getElementById('dltext-attributes').innerHTML;
+	embedData = embedData.trim().split('|');
+	embedData.forEach(function(dType) {
+		var p = dType.split(',');
+		dataTypes.push({code: p[0], label: p[1]});
+	});
+
 		// Compact representations saved for Attributes are unpacked for use on GUI (unsaved unpacked fields marked with '*')
 		// Generic Legend definition: l = label (String), d = data (Type-specific), v = visual code
 		//		val* = value (String representation)
@@ -171,13 +164,9 @@ jQuery(document).ready(function() {
 		// Data for ranges and legends are stored as strings because must allow for empty values
 		//		This is packed and unpacked on load and save
 
-		// CODE
-		// ====
 	attID = jQuery('input[name="prsp_att_id"]').val();
 	privacy = jQuery('textarea[name="prsp_att_privacy"]').val();
 	if (privacy == '') privacy = 'o';
-
-	var embedData;
 
 		// Unpack and prepare the Attribute definition
 	embedData = jQuery('textarea[name="prsp_att_def"]').val();

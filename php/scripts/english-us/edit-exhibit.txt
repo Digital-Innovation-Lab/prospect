@@ -49,27 +49,25 @@
 			{{#each viewSettings:vIndex}}
 				<div>
 					<button decorator="togDiv"></button>
-					<i>{{vf}}</i>: <input type="text" value="{{l}}" size="32" required/>
+					<i>{{vfLookup[this.vf]}}</i>: <input type="text" value="{{l}}" size="32" required/>
 					<button decorator="iconButton:ui-icon-trash" on-click="delVF:{{vIndex}}">Delete</button>
 				</div>
 				<div id="vf-div-{{vIndex}}">
-					{{#if vf === 'Map'}}
+					{{#if vf === 'M'}}
 						{{>vfMap}}
-					{{elseif vf === 'Cards'}}
+					{{elseif vf === 'C'}}
 						{{>vfCards}}
-					{{elseif vf === 'Pinboard'}}
+					{{elseif vf === 'P'}}
 						{{>vfPinboard}}
-					{{elseif vf === 'Browser'}}
-						{{>vfBrowser}}
-					{{elseif vf === 'Timeline'}}
+					{{elseif vf === 'T'}}
 						{{>vfTimeline}}
-					{{elseif vf === 'Tree'}}
+					{{elseif vf === 'G'}}
 						{{>vfTree}}
-					{{elseif vf === 'Flow'}}
+					{{elseif vf === 'F'}}
 						{{>vfFlow}}
-					{{elseif vf === 'Directory'}}
+					{{elseif vf === 'D'}}
 						{{>vfDirectory}}
-					{{elseif vf === 'TextStream'}}
+					{{elseif vf === 't'}}
 						{{>vfTextStream}}
 					{{/if}}
 				</div>
@@ -541,7 +539,7 @@
 		<label for="choose-vf-type">Type&nbsp;</label>
 		<select id="choose-vf-type" value='{{vfType}}'>
 		{{#each vfTypes}}
-			<option>{{this}}</option>
+			<option value="{{this.c}}">{{this.l}}</option>
 		{{/each}}
 		</select>
 	</dialog>
@@ -567,6 +565,12 @@
 		{{message}}
 	</dialog>
 </script>
+
+<!-- DYNAMIC TEXT -->
+<script id="dltext-visualizations" type='text/ractive'>
+D,Directory|t,TextStream|M,Map|C,Cards|T,Timeline|P,Pinboard
+</script>
+
 
 <!-- ERRORS -->
 <script id="errmsg-tmplt-delid" type='text/ractive'>

@@ -325,6 +325,13 @@
 	</dialog>
 </script>
 
+
+<!-- DYNAMIC TEXT -->
+<script id="dltext-attributes" type='text/ractive'>
+V,Vocabulary|T,Text|N,Number|D,Dates|L,Lat-Lon|X,X-Y|I,Image|l,Link To|S,SoundCloud|Y,YouTube|x,Transcript|t,Timecode|P,Pointer|J,Join
+</script>
+
+
 <!-- ERRORS -->
 <script id="errmsg-no-term-name" type='text/ractive'>
 You must supply a name for the new Term.

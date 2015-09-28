@@ -148,15 +148,6 @@ jQuery(document).ready(function() {
 
 		// CONSTANTS
 		// =========
-	var vfTypes = [ 'Map',
-					'Cards',
-					'Pinboard',
-					// 'Browser',
-					'Timeline',
-					// 'Tree',
-					// 'Flow',
-					'Directory',
-					'TextStream' ];
 
 		// DATA LOADED FROM SERVER
 		// =======================
@@ -194,6 +185,19 @@ jQuery(document).ready(function() {
 	if (embedData && embedData != 'null' && embedData.length > 4) {
 		defInspect = JSON.parse(embedData);
 	}
+
+		// Configuration of text for visualization types: c[ode], l[abel]
+	var vfTypes=[];
+	embed = document.getElementById('dltext-visualizations').innerHTML;
+	embed = embed.trim().split('|');
+	embed.forEach(function(vType) {
+		var p = vType.split(',');
+		vfTypes.push({c: p[0], l: p[1]});
+	});
+	var vfLookup={};
+	vfTypes.forEach(function(vType) {
+		vfLookup[vType.c] = vType.l;
+	});
 
 		// RUN-TIME VARS
 		// =============
@@ -573,7 +577,7 @@ jQuery(document).ready(function() {
 		for (var i=0; i<defViews.length; i++) {
 			var theVF = defViews[i];
 			switch (theVF.vf) {
-			case 'Map':
+			case 'M':
 				var newLL=[], newLgnds=[], newPAtts=[], newSAtts=[], newLClrs=[];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
@@ -602,7 +606,7 @@ jQuery(document).ready(function() {
 				theVF.c.sAtts = newSAtts;
 				theVF.c.lgnds = newLgnds;
 				break;
-			case 'Cards':
+			case 'C':
 				var newLgnds=[], newIAtts=[], newCnt=[];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
@@ -625,7 +629,7 @@ jQuery(document).ready(function() {
 				theVF.c.iAtts = newIAtts;
 				theVF.c.lgnds = newLgnds;
 				break;
-			case 'Pinboard':
+			case 'P':
 				var newXY=[], newLgnds=[], newPAtts=[], newSAtts=[], newLClrs=[];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
@@ -652,11 +656,10 @@ jQuery(document).ready(function() {
 				theVF.c.sAtts = newSAtts;
 				theVF.c.lgnds = newLgnds;
 				break;
-			case 'Browser':
-			case 'Flow':
+			case 'F':
 				// Just a list -- nothing to do
 				break;
-			case 'Timeline':
+			case 'T':
 				var newD=[], newLgnds=[];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
@@ -674,7 +677,7 @@ jQuery(document).ready(function() {
 				theVF.c.dAtts = newD;
 				theVF.c.lgnds = newLgnds;
 				break;
-			case 'Tree':
+			case 'G':
 				var newP=[], newLgnds=[], newLClrs=[];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
@@ -695,7 +698,7 @@ jQuery(document).ready(function() {
 				theVF.c.lClrs = newLClrs;
 				theVF.c.lgnds = newLgnds;
 				break;
-			case 'Directory':
+			case 'D':
 				var newCnt = [];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
@@ -710,7 +713,7 @@ jQuery(document).ready(function() {
 				});
 				theVF.c.cnt = newCnt;
 				break;
-			case 'TextStream':
+			case 't':
 				var newCnt = [], newOrder=[], newLgnds = [], newSize=[];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
@@ -750,6 +753,7 @@ jQuery(document).ready(function() {
 			iTemplates: iTemplates,
 			inspectSettings: defInspect,
 			viewSettings: defViews,
+			vfLookup: vfLookup,
 			errorMsg: errorString,
 			baseMaps: PMapHub.getBaseLayers(),
 			layerMaps: PMapHub.getOverlays()
@@ -763,7 +767,7 @@ jQuery(document).ready(function() {
 		// Create a blank new View/Filter
 	rApp.on('addView', function() {
 		var label = '';
-		var vfType = vfTypes[0];
+		var vfType = vfTypes[0].c;
 		var newDialog = new Ractive({
 			el: '#insert-dialog',
 			template: '#dialog-choose-vf',
@@ -784,7 +788,7 @@ jQuery(document).ready(function() {
 			newVFEntry.c = { };
 				// Provide defaults according to vf type
 			switch(newVFEntry.vf) {
-			case 'Map':
+			case 'M':
 				newVFEntry.c.clat = '';
 				newVFEntry.c.clon = '';
 				newVFEntry.c.zoom = 10;
@@ -818,7 +822,7 @@ jQuery(document).ready(function() {
 				newVFEntry.c.base= '.blank';
 				newVFEntry.c.lyrs= [];
 				break;
-			case 'Cards':
+			case 'C':
 				newVFEntry.c.lOn  = true;
 				newVFEntry.c.w    = 'm';
 				newVFEntry.c.h    = 'm';
@@ -839,7 +843,7 @@ jQuery(document).ready(function() {
 					});
 				});
 				break;
-			case 'Pinboard':
+			case 'P':
 				newVFEntry.c.iw   = 500;
 				newVFEntry.c.ih   = 500;
 				newVFEntry.c.dw   = 500;
@@ -872,10 +876,7 @@ jQuery(document).ready(function() {
 				});
 				newVFEntry.c.lyrs= [];
 				break;
-			case 'Browser':
-				newVFEntry.c.fct = [];
-				break;
-			case 'Timeline':
+			case 'T':
 				newVFEntry.c.bHt  = 12;
 				newVFEntry.c.xLbl   = 37;
 					// Macro window from Date (only if override)
@@ -897,7 +898,7 @@ jQuery(document).ready(function() {
 					});
 				});
 				break;
-			case 'Tree':
+			case 'G':
 				newVFEntry.c.form = 'f';
 				newVFEntry.c.w    = 1000;
 				newVFEntry.c.h    = 1000;
@@ -920,12 +921,12 @@ jQuery(document).ready(function() {
 					});
 				});
 				break;
-			case 'Flow':
+			case 'F':
 				newVFEntry.c.w    = 1000;
 				newVFEntry.c.h    = 500;
 				newVFEntry.c.fct = [];
 				break;
-			case 'Directory':
+			case 'D':
 					// Attribute Content to display
 				newVFEntry.c.cnt  = _.map(iTemplates, function(theTemplate) {
 					return _.map(theTemplate.attsCnt, function(theCntAtt) {
@@ -933,7 +934,7 @@ jQuery(document).ready(function() {
 					});
 				});
 				break;
-			case 'TextStream':
+			case 't':
 				newVFEntry.c.min = 8;
 				newVFEntry.c.max = 50;
 				newVFEntry.c.cnt  = _.map(iTemplates, function(theTemplate) {
@@ -1137,7 +1138,7 @@ jQuery(document).ready(function() {
 				saveView.vf = viewSettings.vf;
 				saveView.c = {};
 				switch (saveView.vf) {
-				case 'Map':
+				case 'M':
 					saveView.c.clat = viewSettings.c.clat;
 					saveView.c.clon = viewSettings.c.clon;
 					saveView.c.zoom = viewSettings.c.zoom;
@@ -1160,7 +1161,7 @@ jQuery(document).ready(function() {
 					saveView.c.base = viewSettings.c.base;
 					saveView.c.lyrs = viewSettings.c.lyrs;
 					break;
-				case 'Pinboard':
+				case 'P':
 					saveView.c.iw   = viewSettings.c.iw;
 					saveView.c.ih   = viewSettings.c.ih;
 					saveView.c.dw   = viewSettings.c.dw;
@@ -1182,7 +1183,7 @@ jQuery(document).ready(function() {
 						// Don't need to modify svg layer settings
 					saveView.c.lyrs = viewSettings.c.lyrs;
 					break;
-				case 'Cards':
+				case 'C':
 					saveView.c.lOn  = viewSettings.c.lOn;
 					saveView.c.w    = viewSettings.c.w;
 					saveView.c.h    = viewSettings.c.h;
@@ -1195,14 +1196,12 @@ jQuery(document).ready(function() {
 					saveView.c.cnt = newCnt;
 					saveView.c.iAtts = packUsedAttIDs(viewSettings.c.iAtts);
 					break;
-				case 'Flow':
+				case 'F':
 					saveView.c.w = viewSettings.c.w;
 					saveView.c.h = viewSettings.c.h;
-				case 'Browser':
-						// Doesn't require changing
 					saveView.c.fct = viewSettings.c.fct;
 					break;
-				case 'Timeline':
+				case 'T':
 					saveView.c.bHt  = viewSettings.c.bHt;
 					saveView.c.xLbl = viewSettings.c.xLbl;
 					saveView.c.from = viewSettings.c.from;
@@ -1216,7 +1215,7 @@ jQuery(document).ready(function() {
 					saveView.c.dAtts = packUsedAttIDs(viewSettings.c.dAtts);
 					saveView.c.lgnds = newLgnds;
 					break;
-				case 'Tree':
+				case 'G':
 					saveView.c.form  = viewSettings.c.form;
 					saveView.c.w     = viewSettings.c.w;
 					saveView.c.h     = viewSettings.c.h;
@@ -1233,14 +1232,14 @@ jQuery(document).ready(function() {
 					saveView.c.lClrs = newLClrs;
 					saveView.c.lgnds = newLgnds;
 					break;
-				case 'Directory':
+				case 'D':
 					var newCnt = [];
 					saveTIndices.forEach(function(tIndex) {
 						newCnt.push(packUsedAtts(viewSettings.c.cnt[tIndex]));
 					});
 					saveView.c.cnt = newCnt;
 					break;
-				case 'TextStream':
+				case 't':
 					saveView.c.min = viewSettings.c.min;
 					saveView.c.max = viewSettings.c.max;
 					var newLgnds=[];

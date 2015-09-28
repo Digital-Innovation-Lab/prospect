@@ -4030,22 +4030,22 @@ function PViewFrame(vfIndex)
 
 		var newViz;
 		switch (theView.vf) {
-		case 'Map':
+		case 'M':
 			newViz = new VizMap(instance, theView.c);
 			break;
-		case 'Cards':
+		case 'C':
 			newViz = new VizCards(instance, theView.c);
 			break;
-		case 'Pinboard':
+		case 'P':
 			newViz = new VizPinboard(instance, theView.c);
 			break;
-		case 'Timeline':
+		case 'T':
 			newViz = new VizTime(instance, theView.c);
 			break;
-		case 'Directory':
+		case 'D':
 			newViz = new VizDirectory(instance, theView.c);
 			break;
-		case 'TextStream':
+		case 't':
 			newViz = new VizTextStream(instance, theView.c);
 			break;
 		}
