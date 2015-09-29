@@ -69,6 +69,8 @@
 						{{>vfDirectory}}
 					{{elseif vf === 't'}}
 						{{>vfTextStream}}
+					{{elseif vf === 'S'}}
+						{{>vfSChart}}
 					{{/if}}
 				</div>
 				{{#if vIndex != (viewSettings.length-1) }}<hr/>{{/if}}
@@ -363,6 +365,24 @@
 	{{/each}}
 </script>
 
+<script id="vfSChart" type='text/ractive'>
+	<input type='checkbox' checked='{{c.tlit}}'/> Retain all unique Text Record values? &nbsp;&nbsp;
+	Pixel width of chart bars and labels: <input type="number" value="{{c.bw}}" min="1" max="200"/>
+	<br/>
+	Sort and order Records by 
+	<select value='{{c.oAtt}}'>
+	{{#each facets}}
+		<option value="{{this.id}}">{{this.id}}</option>
+	{{/each}}
+	</select>
+	Group Records in each stack by
+	<select value='{{c.sAtt}}'>
+	{{#each facets}}
+		<option value="{{this.id}}">{{this.id}}</option>
+	{{/each}}
+	</select>
+</script>
+
 <script id="vfBrowser" type='text/ractive'>
 	Attributes to Display: <button on-click="addFacet:{{vIndex}}">Add Attribute</button><br/>
 	{{#each c.fct:cIndex}}
@@ -568,7 +588,7 @@
 
 <!-- DYNAMIC TEXT -->
 <script id="dltext-visualizations" type='text/ractive'>
-D,Directory|t,TextStream|M,Map|C,Cards|T,Timeline|P,Pinboard
+D,Directory|t,TextStream|M,Map|C,Cards|T,Timeline|P,Pinboard|S,Stacked Chart
 </script>
 
 

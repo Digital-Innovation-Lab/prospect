@@ -186,7 +186,7 @@ jQuery(document).ready(function() {
 		defInspect = JSON.parse(embedData);
 	}
 
-		// Configuration of text for visualization types: c[ode], l[abel]
+		// Read text labels for visualization types: c[ode], l[abel]
 	var vfTypes=[];
 	embed = document.getElementById('dltext-visualizations').innerHTML;
 	embed = embed.trim().split('|');
@@ -577,7 +577,7 @@ jQuery(document).ready(function() {
 		for (var i=0; i<defViews.length; i++) {
 			var theVF = defViews[i];
 			switch (theVF.vf) {
-			case 'M':
+			case 'M': 	// Map
 				var newLL=[], newLgnds=[], newPAtts=[], newSAtts=[], newLClrs=[];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
@@ -594,9 +594,9 @@ jQuery(document).ready(function() {
 							}));
 					} else {
 						newLL.push(createPaddedAtts(theTmplt.attsLL, theVF.c.cAtts[origTIndex]));
-						newPAtts.push(theVF.c.pAtts[origTIndex] || 'disable');
+						newPAtts.push(checkAttID(theVF.c.pAtts[origTIndex], theTmplt.attsDPtr, 'disable'));
 						newLClrs.push(theVF.c.lClrs[origTIndex]);
-						newSAtts.push(theVF.c.sAtts[origTIndex] || 'disable');
+						newSAtts.push(checkAttID(theVF.c.sAtts[origTIndex], theTmplt.attsDNum, 'disable'));
 						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
 					}
 				});
@@ -606,7 +606,7 @@ jQuery(document).ready(function() {
 				theVF.c.sAtts = newSAtts;
 				theVF.c.lgnds = newLgnds;
 				break;
-			case 'C':
+			case 'C': 	// Cards
 				var newLgnds=[], newIAtts=[], newCnt=[];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
@@ -622,14 +622,14 @@ jQuery(document).ready(function() {
 					} else {
 						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
 						newCnt.push(createPaddedAtts(theTmplt.attsFct, theVF.c.cnt[origTIndex]));
-						newIAtts.push(theVF.c.iAtts[origTIndex] || 'disable');
+						newIAtts.push(checkAttID(theVF.c.iAtts[origTIndex], theTmplt.attsImg, 'disable'));
 					}
 				});
 				theVF.c.cnt = newCnt;
 				theVF.c.iAtts = newIAtts;
 				theVF.c.lgnds = newLgnds;
 				break;
-			case 'P':
+			case 'P': 	// Pinboard
 				var newXY=[], newLgnds=[], newPAtts=[], newSAtts=[], newLClrs=[];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
@@ -643,10 +643,10 @@ jQuery(document).ready(function() {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
 					} else {
-						newXY.push(theVF.c.cAtts[origTIndex] || '');
-						newPAtts.push(theVF.c.pAtts[origTIndex] || 'disable');
+						newXY.push(checkAttID(theVF.c.cAtts[origTIndex], theTmplt.attsXY, ''));
+						newPAtts.push(checkAttID(theVF.c.pAtts[origTIndex], theTmplt.attsDPtr, 'disable'));
 						newLClrs.push(theVF.c.lClrs[origTIndex]);
-						newSAtts.push(theVF.c.sAtts[origTIndex] || 'disable');
+						newSAtts.push(checkAttID(theVF.c.sAtts[origTIndex], theTmplt.attsDNum, 'disable'));
 						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
 					}
 				});
@@ -656,10 +656,10 @@ jQuery(document).ready(function() {
 				theVF.c.sAtts = newSAtts;
 				theVF.c.lgnds = newLgnds;
 				break;
-			case 'F':
-				// Just a list -- nothing to do
+			case 'F': 	// Flow
+				// TO DO -- check Atts
 				break;
-			case 'T':
+			case 'T': 	// Timeline
 				var newD=[], newLgnds=[];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
@@ -670,14 +670,14 @@ jQuery(document).ready(function() {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
 					} else {
-						newD.push(theVF.c.dAtts[origTIndex] || '');
+						newD.push(checkAttID(theVF.c.dAtts[origTIndex], theTmplt.attsDates, ''));
 						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
 					}
 				});
 				theVF.c.dAtts = newD;
 				theVF.c.lgnds = newLgnds;
 				break;
-			case 'G':
+			case 'G': 	// Tree
 				var newP=[], newLgnds=[], newLClrs=[];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
@@ -689,7 +689,7 @@ jQuery(document).ready(function() {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
 					} else {
-						newP.push(theVF.c.pAtts[origTIndex] || '');
+						newP.push(checkAttID(theVF.c.pAtts[origTIndex], theTmplt.attsPtr, ''));
 						newLClrs.push(theVF.c.lClrs[origTIndex]);
 						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
 					}
@@ -698,7 +698,7 @@ jQuery(document).ready(function() {
 				theVF.c.lClrs = newLClrs;
 				theVF.c.lgnds = newLgnds;
 				break;
-			case 'D':
+			case 'D': 	// Directory
 				var newCnt = [];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
@@ -713,8 +713,8 @@ jQuery(document).ready(function() {
 				});
 				theVF.c.cnt = newCnt;
 				break;
-			case 't':
-				var newCnt = [], newOrder=[], newLgnds = [], newSize=[];
+			case 't': 	// TextStream
+				var newCnt=[], newOrder=[], newLgnds=[], newSize=[];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
@@ -726,16 +726,20 @@ jQuery(document).ready(function() {
 							}));
 						newSize.push(theTmplt.attsDNum[0] || 'disable');
 					} else {
-						newCnt.push(theVF.c.cnt[origTIndex] || '');
-						newOrder.push(theVF.c.order[origTIndex] || '');
+						newCnt.push(checkAttID(theVF.c.cnt[origTIndex], theTmplt.attsCnt, ''));
+						newOrder.push(checkAttID(theVF.c.order[origTIndex], theTmplt.attsFct, ''));
 						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
-						newSize.push(theVF.c.sAtts[origTIndex] || 'disable');
+						newSize.push(checkAttID(theVF.c.sAtts[origTIndex], theTmplt.attsDNum, 'disable'));
 					}
 				});
 				theVF.c.cnt = newCnt;
 				theVF.c.order = newOrder;
 				theVF.c.lgnds = newLgnds;
 				theVF.c.sAtts = newSize;
+				break;
+			case 'S':
+				theVF.c.oAtt = checkAttID(theVF.c.oAtt, defJoinedFacets, '');
+				theVF.c.oAtt = checkAttID(theVF.c.sAtt, defJoinedFacets, '');
 				break;
 			} // switch viewtype
 		} // for views
@@ -754,6 +758,7 @@ jQuery(document).ready(function() {
 			inspectSettings: defInspect,
 			viewSettings: defViews,
 			vfLookup: vfLookup,
+			facets: defJoinedFacets,
 			errorMsg: errorString,
 			baseMaps: PMapHub.getBaseLayers(),
 			layerMaps: PMapHub.getOverlays()
@@ -788,7 +793,7 @@ jQuery(document).ready(function() {
 			newVFEntry.c = { };
 				// Provide defaults according to vf type
 			switch(newVFEntry.vf) {
-			case 'M':
+			case 'M': 	// Map
 				newVFEntry.c.clat = '';
 				newVFEntry.c.clon = '';
 				newVFEntry.c.zoom = 10;
@@ -822,7 +827,7 @@ jQuery(document).ready(function() {
 				newVFEntry.c.base= '.blank';
 				newVFEntry.c.lyrs= [];
 				break;
-			case 'C':
+			case 'C': 	// Cards
 				newVFEntry.c.lOn  = true;
 				newVFEntry.c.w    = 'm';
 				newVFEntry.c.h    = 'm';
@@ -843,7 +848,7 @@ jQuery(document).ready(function() {
 					});
 				});
 				break;
-			case 'P':
+			case 'P': 	// Pinboard
 				newVFEntry.c.iw   = 500;
 				newVFEntry.c.ih   = 500;
 				newVFEntry.c.dw   = 500;
@@ -876,7 +881,7 @@ jQuery(document).ready(function() {
 				});
 				newVFEntry.c.lyrs= [];
 				break;
-			case 'T':
+			case 'T': 	// Timeline
 				newVFEntry.c.bHt  = 12;
 				newVFEntry.c.xLbl   = 37;
 					// Macro window from Date (only if override)
@@ -898,7 +903,7 @@ jQuery(document).ready(function() {
 					});
 				});
 				break;
-			case 'G':
+			case 'G': 	// Tree
 				newVFEntry.c.form = 'f';
 				newVFEntry.c.w    = 1000;
 				newVFEntry.c.h    = 1000;
@@ -921,12 +926,12 @@ jQuery(document).ready(function() {
 					});
 				});
 				break;
-			case 'F':
+			case 'F': 	// Flow
 				newVFEntry.c.w    = 1000;
 				newVFEntry.c.h    = 500;
 				newVFEntry.c.fct = [];
 				break;
-			case 'D':
+			case 'D': 	// Directory
 					// Attribute Content to display
 				newVFEntry.c.cnt  = _.map(iTemplates, function(theTemplate) {
 					return _.map(theTemplate.attsCnt, function(theCntAtt) {
@@ -934,7 +939,7 @@ jQuery(document).ready(function() {
 					});
 				});
 				break;
-			case 't':
+			case 't': 	// TextStream
 				newVFEntry.c.min = 8;
 				newVFEntry.c.max = 50;
 				newVFEntry.c.cnt  = _.map(iTemplates, function(theTemplate) {
@@ -952,6 +957,12 @@ jQuery(document).ready(function() {
 						return { attID: theLgndAtt, useAtt: true };
 					});
 				});
+				break;
+			case 'S': 	// Stacked Chart
+				newVFEntry.c.tlit = true;
+				newVFEntry.c.bw = 20;
+				newVFEntry.c.oAtt = defJoinedFacets[0].id || '';
+				newVFEntry.c.sAtt = defJoinedFacets[0].id || '';
 				break;
 			} // switch
 			rApp.push('viewSettings', newVFEntry);
@@ -1138,7 +1149,7 @@ jQuery(document).ready(function() {
 				saveView.vf = viewSettings.vf;
 				saveView.c = {};
 				switch (saveView.vf) {
-				case 'M':
+				case 'M': 	// Map
 					saveView.c.clat = viewSettings.c.clat;
 					saveView.c.clon = viewSettings.c.clon;
 					saveView.c.zoom = viewSettings.c.zoom;
@@ -1161,7 +1172,7 @@ jQuery(document).ready(function() {
 					saveView.c.base = viewSettings.c.base;
 					saveView.c.lyrs = viewSettings.c.lyrs;
 					break;
-				case 'P':
+				case 'P': 	// Pinboard
 					saveView.c.iw   = viewSettings.c.iw;
 					saveView.c.ih   = viewSettings.c.ih;
 					saveView.c.dw   = viewSettings.c.dw;
@@ -1183,7 +1194,7 @@ jQuery(document).ready(function() {
 						// Don't need to modify svg layer settings
 					saveView.c.lyrs = viewSettings.c.lyrs;
 					break;
-				case 'C':
+				case 'C': 	// Cards
 					saveView.c.lOn  = viewSettings.c.lOn;
 					saveView.c.w    = viewSettings.c.w;
 					saveView.c.h    = viewSettings.c.h;
@@ -1196,12 +1207,12 @@ jQuery(document).ready(function() {
 					saveView.c.cnt = newCnt;
 					saveView.c.iAtts = packUsedAttIDs(viewSettings.c.iAtts);
 					break;
-				case 'F':
+				case 'F': 	// Flow
 					saveView.c.w = viewSettings.c.w;
 					saveView.c.h = viewSettings.c.h;
 					saveView.c.fct = viewSettings.c.fct;
 					break;
-				case 'T':
+				case 'T': 	// Timeline
 					saveView.c.bHt  = viewSettings.c.bHt;
 					saveView.c.xLbl = viewSettings.c.xLbl;
 					saveView.c.from = viewSettings.c.from;
@@ -1215,7 +1226,7 @@ jQuery(document).ready(function() {
 					saveView.c.dAtts = packUsedAttIDs(viewSettings.c.dAtts);
 					saveView.c.lgnds = newLgnds;
 					break;
-				case 'G':
+				case 'G': 	// Tree
 					saveView.c.form  = viewSettings.c.form;
 					saveView.c.w     = viewSettings.c.w;
 					saveView.c.h     = viewSettings.c.h;
@@ -1232,14 +1243,14 @@ jQuery(document).ready(function() {
 					saveView.c.lClrs = newLClrs;
 					saveView.c.lgnds = newLgnds;
 					break;
-				case 'D':
+				case 'D': 	// Directory
 					var newCnt = [];
 					saveTIndices.forEach(function(tIndex) {
 						newCnt.push(packUsedAtts(viewSettings.c.cnt[tIndex]));
 					});
 					saveView.c.cnt = newCnt;
 					break;
-				case 't':
+				case 't': 	// TextStream
 					saveView.c.min = viewSettings.c.min;
 					saveView.c.max = viewSettings.c.max;
 					var newLgnds=[];
@@ -1250,6 +1261,12 @@ jQuery(document).ready(function() {
 					saveView.c.order = packUsedAttIDs(viewSettings.c.order);
 					saveView.c.lgnds = newLgnds;
 					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts);
+					break;
+				case 'S': 	// Stacked Chart
+					saveView.c.tlit = viewSettings.c.tlit;
+					saveView.c.bw   = viewSettings.c.bw;
+					saveView.c.oAtt = viewSettings.c.oAtt;
+					saveView.c.sAtt = viewSettings.c.sAtt;
 					break;
 				} // switch
 				saveViews.push(saveView);
