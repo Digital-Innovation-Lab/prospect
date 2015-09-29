@@ -510,8 +510,9 @@ jQuery(document).ready(function() {
 		var padded = [];
 			// Don't include any deleted Attribute IDs
 		var validArray = _.intersection(fullArray, selArray);
-		validArray.forEach(function(theAtt) {
-			padded.push({ attID: theAtt, useAtt: true });
+		selArray.forEach(function(theAtt) {
+			if (validArray.findIndex(function(a) { return a == theAtt; }) != -1)
+				padded.push({ attID: theAtt, useAtt: true });
 		});
 		var unused = _.difference(fullArray, selArray);
 		unused.forEach(function(theAtt) {
