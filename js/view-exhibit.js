@@ -270,7 +270,7 @@ VizMap.prototype.setup = function()
 	var centerLon = parseFloat(this.settings.clon);
 	var zoom;
 	if (typeof(this.settings.zoom) == 'string')
-		parseInt(this.settings.zoom);
+		zoom = parseInt(this.settings.zoom);
 	else
 		zoom = this.settings.zoom;
 
@@ -401,10 +401,10 @@ VizMap.prototype.render = function(stream)
 
 	minR = this.settings.min;
 	if (typeof(minR) == 'string')
-		parseInt(minR);
+		minR = parseInt(minR);
 	maxR = this.settings.max;
 	if (typeof(maxR) == 'string')
-		parseInt(maxR);
+		maxR = parseInt(maxR);
 	dR = maxR - minR;
 
 		// Clear out marker counts
@@ -5831,13 +5831,13 @@ jQuery(document).ready(function($) {
 		var bs = [{
 					text: dlText.ok,
 					click: function() {
+						spDialog.dialog("close");
 						var selItem = pList.find('li.selected');
 						if (selItem.length) {
 							var setP = selItem.data('id');
 							doShowPerspective(setP);
 							PState.set(PSTATE_READY);
 						}
-						spDialog.dialog("close");
 					} // OK
 				},
 				{
