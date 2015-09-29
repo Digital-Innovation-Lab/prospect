@@ -526,7 +526,7 @@ VizMap.prototype.render = function(stream)
 			if (i === n) return 0;
 			return a.charAt(i) > b.charAt(i) ? -1 : 1;
 		}
-		mCache.sort(function(a,b) { return strcmp(a.id, b.id); });
+		mCache.sort(function(a,b) { return strcmp(b.id, a.id); });
 		var links=[];
 		mCache.forEach(function(node) {
 			if (node.p) {
@@ -4023,7 +4023,7 @@ function PViewFrame(vfIndex)
 		// PURPOSE: Turn on or off all feature Attributes for tmpltIndex
 	function doShowHideAll(tmpltIndex, show)
 	{
-		jQuery(getFrameID()+' div.lgnd-container div.lgnd-template[data-index="'+
+		jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
 								tmpltIndex+'"] div.lgnd-group input.lgnd-entry-check').prop('checked', show);
 	} // doShowHideAll()
 
@@ -4040,10 +4040,10 @@ function PViewFrame(vfIndex)
 	function doLocateSelectOnly(tmpltIndex, lID)
 	{
 			// Deselect everything
-		jQuery(getFrameID()+' div.lgnd-container div.lgnd-template[data-index="'+
+		jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
 								tmpltIndex+'"] div.lgnd-locate input.lgnd-entry-check').prop('checked', false);
 			// Just reselect this one
-		jQuery(getFrameID()+' div.lgnd-container div.lgnd-template[data-index="'+
+		jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
 								tmpltIndex+'"] div.lgnd-locate[data-id="'+lID+'"] input.lgnd-entry-check').prop('checked', true);
 	} // doLocateSelect()
 
@@ -4060,10 +4060,10 @@ function PViewFrame(vfIndex)
 	function doFeatureSelectOnly(tmpltIndex, vIndex)
 	{
 			// Deselect everything
-		jQuery(getFrameID()+' div.lgnd-container div.lgnd-template[data-index="'+
+		jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
 								tmpltIndex+'"] div.lgnd-group input.lgnd-entry-check').prop('checked', false);
 			// Just select this one
-		jQuery(getFrameID()+' div.lgnd-container div.lgnd-template[data-index="'+
+		jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
 								tmpltIndex+'"] div.lgnd-group div.lgnd-value[data-index="'+vIndex+
 								'"] input.lgnd-entry-check').prop('checked', true);
 	} // doFeatureSelectOnly()
@@ -4172,7 +4172,7 @@ function PViewFrame(vfIndex)
 			}
 		});
 			// Turn on Show/Hide All by default
-		jQuery(getFrameID()+' div.lgnd-container div.lgnd-template[data-index="'+
+		jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
 						lIndex+'"] div.lgnd-sh input').prop('checked', true);
 	} // setLegendFeatures()
 
@@ -4396,7 +4396,7 @@ function PViewFrame(vfIndex)
 	instance.getSelLocAtts = function(tIndex)
 	{
 		var attIDs = [];
-		var boxes = jQuery(getFrameID()+' div.lgnd-container div.lgnd-template[data-index="'+
+		var boxes = jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
 							tIndex+'"] div.lgnd-locate input:checked');
 		boxes.each(function() {
 			var attID = jQuery(this).parent().data('id');
@@ -4411,7 +4411,7 @@ function PViewFrame(vfIndex)
 	instance.getSelFeatAtts = function(tIndex)
 	{
 		var attIndices = [], attIndex, i;
-		var boxes = jQuery(getFrameID()+' div.lgnd-container div.lgnd-template[data-index="'+
+		var boxes = jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
 							tIndex+'"] div.lgnd-group div.lgnd-value input:checked');
 		boxes.each(function() {
 			attIndex = jQuery(this).parent().data('index');
@@ -4445,7 +4445,7 @@ function PViewFrame(vfIndex)
 	instance.setLgndSels = function(attIDs)
 	{
 		attIDs.forEach(function(attID, i) {
-			var select = jQuery(getFrameID()+' div.lgnd-template[data-index="'+i+'"] select.lgnd-select');
+			var select = jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+i+'"] select.lgnd-select');
 			select.val(attID);
 			setLegendFeatures(i, attID);
 		});
