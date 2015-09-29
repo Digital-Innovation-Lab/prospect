@@ -27,7 +27,7 @@
 
 <script src="<?php echo(plugins_url('lib/leaflet/leaflet.js', dirname(__FILE__))); ?>"></script>
 
-<script src="<?php echo(plugins_url('lib/d3.js', dirname(__FILE__))); ?>"></script>
+<script src="<?php echo(plugins_url('lib/d3.min.js', dirname(__FILE__))); ?>"></script>
 
 <script src="<?php echo(plugins_url('js/map-hub.js', dirname(__FILE__))); ?>"></script>
 <script src="<?php echo(plugins_url('js/view-exhibit.js', dirname(__FILE__))); ?>"></script>
