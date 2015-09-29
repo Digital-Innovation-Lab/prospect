@@ -3,7 +3,7 @@
 * Contributors: Michael Newton, Breon Williams
 * Tags: posts
 * Requires at least: 3.9.0
-* Tested up to: 4.0
+* Tested up to: 4.3.1
 * Stable tag: 0.6.6
 * License: GPLv2 or later
 * License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -19,7 +19,7 @@ Notes on System Requirements:
 * Requires PHP 5.4 or later.
 * WordPress 4.2 or higher recommended to ensure UTF-8 handled properly.
 * MySQL 5.5.14 or higher recommended to ensure UTF-8 handled properly.
-* HTML output uses FlexBox, so up to date browser required.
+* HTML output uses FlexBox CSS styles, so up-to-date browser required.
 
 ## License
 
