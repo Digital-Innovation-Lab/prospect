@@ -55,9 +55,10 @@ var D3FG_MARGINS  = { top: 4, right: 7, bottom: 22, left: 30 };
 var V_FLAG_LGND  = 0x01;		// Uses Legend
 var V_FLAG_SEL   = 0x02;		// Can select individual Records
 var V_FLAG_LOC   = 0x04;		// Requires Location Attributes
-var V_FLAG_SET   = 0x08;		// Has an Options dialog
-var V_FLAG_VSCRL = 0x10;		// Add vertical scroll bar
-var V_FLAG_HSCRL = 0x20;		// Add horizontal scroll bar
+var V_FLAG_SLGND = 0x08;		// Single Legend (not Template-specific) with single Attribute
+var V_FLAG_SET   = 0x10;		// Has an Options dialog
+var V_FLAG_VSCRL = 0x20;		// Add vertical scroll bar
+var V_FLAG_HSCRL = 0x40;		// Add horizontal scroll bar
 
 	// GLOBAL VARS
 var TODAY = new Date();
@@ -520,7 +521,12 @@ VizMap.prototype.render = function(stream)
 
 		// Use cache to create connections
 	if (mCache) {
-		mCache.sort(function(a,b) { return a.id.localeCompare(b.id); });
+		function strcmp(a, b) {
+			for (var i=0,n=Math.max(a.length, b.length); i<n && a.charAt(i) === b.charAt(i); ++i);
+			if (i === n) return 0;
+			return a.charAt(i) > b.charAt(i) ? -1 : 1;
+		}
+		mCache.sort(function(a,b) { return strcmp(a.id, b.id); });
 		var links=[];
 		mCache.forEach(function(node) {
 			if (node.p) {
@@ -1931,7 +1937,7 @@ VizTime.prototype.render = function(stream)
 		var allEs;
 
 			// Remove all events in this band
-		allEs = d3.select(band.svgID).selectAll(".event").remove();
+		d3.select(band.svgID).selectAll(".event").remove();
 
 			// Create svg's for all of the time events in the band with appropriate height and class
 			//  -- will finish specifying data for each below
@@ -2432,7 +2438,7 @@ VizTextStream.prototype.constructor = VizTextStream;
 VizTextStream.prototype.flags = function()
 {
 	return V_FLAG_LGND | V_FLAG_SEL | V_FLAG_LOC | V_FLAG_VSCRL;
-} // usesLegend()
+} // flags()
 
 	// PURPOSE: Return IDs of locate Attributes
 VizTextStream.prototype.getLocAtts = function(tIndex)
@@ -2611,6 +2617,165 @@ VizTextStream.prototype.getState = function()
 } // getState()
 
 VizTextStream.prototype.setState = function(state)
+{
+	this.vFrame.setLgndSels(state.l);
+} // setState()
+
+
+// ================================================================================
+// VizStackChart: Class to visualize 2 dimensions of record data as a stacked chart
+
+var VizStackChart = function(viewFrame, vSettings)
+{
+	PVizModel.call(this, viewFrame, vSettings);
+} // VizStackChart
+
+VizStackChart.prototype = Object.create(PVizModel.prototype);
+
+VizStackChart.prototype.constructor = VizStackChart;
+
+VizStackChart.prototype.flags = function()
+{
+	return V_FLAG_LGND | V_FLAG_SLGND | V_FLAG_VSCRL | V_FLAG_HSCRL;
+} // flags()
+
+VizStackChart.prototype.getFeatureAtts = function(tIndex)
+{
+	return this.settings.sAtt;
+} // getFeatureAtts()
+
+VizStackChart.prototype.setup2 = function()
+{
+
+} // setup2()
+
+VizStackChart.prototype.setup = function()
+{
+	var oAtt = PData.getAttID(this.settings.oAtt);
+		// TO DO: Handle dynamic text
+	// if (oAtt.def.t != 'T' || !this.settings.tlit) {
+		this.rCats = PData.getRCats(oAtt, true);
+	// } else {
+	// }
+console.log("rCats: "+JSON.stringify(this.rCats));
+
+	// var innerH = 80 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
+	var innerH = 200;
+	var innerW = this.rCats.length*(this.settings.bw+10);
+	var xScale = d3.scale.linear().domain([0, this.rCats.length])
+		.rangeRound([0, innerW]);
+	var yScale = d3.scale.linear().domain([0,100]).range([innerH, 0]);
+
+	var rScale = d3.scale.ordinal().rangeRoundBands([0, innerW]);
+	rScale.domain(this.rCats.map(function(rc) { return rc.l; }));
+	var xAxis = d3.svg.axis().scale(rScale).orient("bottom");
+	var yAxis = d3.svg.axis().scale(yScale).orient("left").ticks(4);
+
+	var chart = d3.select(this.frameID).append("svg")
+		.attr("width", innerW+D3FG_MARGINS.left+D3FG_MARGINS.right)
+		.attr("height", innerH+D3FG_MARGINS.top+D3FG_MARGINS.bottom)
+		.append("g")
+		.attr("transform", "translate("+D3FG_MARGINS.left+","+D3FG_MARGINS.top+")");
+	this.chart = chart;
+
+	chart.append("g")
+		.attr("class", "x axis")
+		.attr("transform", "translate(0,"+innerH+")")
+		.call(xAxis);
+
+	chart.append("g")
+		.attr("class", "y axis")
+		.call(yAxis);
+} // setup()
+
+	// PURPOSE: Draw the Records in the given datastream
+	// NOTES: 	absolute index of Record is saved in <id> field of map marker
+VizStackChart.prototype.render = function(stream)
+{
+	var self = this;
+
+	var numTmplts = PData.getNumETmplts();
+	var tI=0, tRec;
+	var aI, rec, datum, t, h, fData;
+
+	var featSet = self.vFrame.getSelFeatAtts(0);
+
+	var oAttID = this.settings.oAtt;
+	var oAtt = PData.getAttID(oAttID);
+	var sAttID = this.settings.sAtt;
+	var sAtt = PData.getAttID(sAttID);
+
+	d3.select(this.chart).selectAll(".block").remove();
+
+		// Pass 1 -- sort all Records into range categories on X-Axis by oAtt
+		//	add absolute indices to rCats.i arrays
+	tRec = stream.t[0];
+	while (i<stream.l) {
+			// Advance until we get to next used Template rec that has both necessary Attributes
+		while (tRec.n == 0 || (tRec.i+tRec.n) == i || !PData.attInTmplt(oAtt, tI) || !PData.attInTmplt(sAtt, tI)) {
+				// Have we run out of Templates?
+			if (++tI == numTmplts)
+				return;
+			tRec = stream.t[tI];
+		}
+
+			// Get Record data
+		aI = stream.s[i];
+// console.log("Next record: "+i+" (absI) "+aI);
+		rec = PData.getRecByIndex(aI);
+			// Get value for ordering in categories on X Axis
+		datum = rec.a[oAttID];
+		if (typeof datum != 'undefined') {
+			fData = PData.getAttLgndRecs(datum, fAtt, featSet, true);
+			if (fData) {
+				t = rec.a[cAttID];
+			} // if fData
+		}
+		i++;
+	} // while
+
+	var blocks=[];		// { r[CatIndex on X],  }
+
+		// Pass 2 -- create Blocks by sorting all Records within a single Range Category by sAtt
+	for (tI=0; tI<this.rCats.length; t++) {
+
+	}
+
+	var bw = this.settings.bw;
+
+	this.chart.selectAll(".block")
+			.data(blocks)
+			.enter().append("rect")
+			.attr("class", "block")
+			.attr("x", function(d, i) { return xScale(i); })
+			.attr("y", function(d) { return yScale(100); })
+			.attr("fill", function(d) { return d.c; })
+			.attr("height", function(d) { return innerH - yScale(100); })
+			.attr("width", bw);
+} // render()
+
+VizStackChart.prototype.teardown = function()
+{
+}
+
+VizStackChart.prototype.setSel = function(absIArray)
+{
+} // setSel()
+
+VizStackChart.prototype.clearSel = function()
+{
+	if (this.recSel.length > 0) {
+		this.recSel = [];
+
+	}
+} // clearSel()
+
+VizStackChart.prototype.getState = function()
+{
+	return { l: this.vFrame.getLgndSels() };
+} // getState()
+
+VizStackChart.prototype.setState = function(state)
 {
 	this.vFrame.setLgndSels(state.l);
 } // setState()
@@ -2891,7 +3056,7 @@ PFilterNum.prototype.setup = function()
 	var self = this;
 	var insert = this.insertPt();
 
-	this.rCats = PData.getRCats(this.att);
+	this.rCats = PData.getRCats(this.att, false);
 		// Lack of range bounds? Create generic HTML input boxes, can't create range sliders
 	if (this.rCats == null) {
 		var fh = _.template(document.getElementById('dltext-filter-num-boxes').innerHTML);
@@ -3124,7 +3289,7 @@ PFilterDates.prototype.setup = function()
 {
 	var self = this;
 
-	this.rCats = PData.getRCats(this.att);
+	this.rCats = PData.getRCats(this.att, false);
 		// Set defaults
 	this.min = this.rCats[0].min;
 	this.max = this.rCats[this.rCats.length-1].max;
@@ -3981,7 +4146,7 @@ function PViewFrame(vfIndex)
 	{
 		var element;
 
-		var group = jQuery(getFrameID()+' div.lgnd-container div.lgnd-template[data-index="'+
+		var group = jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
 						lIndex+'"] div.lgnd-group');
 			// Clear any previous entries
 		group.empty();
@@ -4048,6 +4213,9 @@ function PViewFrame(vfIndex)
 		case 't':
 			newViz = new VizTextStream(instance, theView.c);
 			break;
+		case 'S':
+			newViz = new VizStackChart(instance, theView.c);
+			break;
 		}
 		vizSelIndex = vIndex;
 		var flags = newViz.flags();
@@ -4073,7 +4241,7 @@ function PViewFrame(vfIndex)
 			frame.find('div.viz-result').addClass('viz-max-h');
 		}
 
-		legendIDs = [];
+		legendIDs=[];
 
 			// Does Viz support Legend at all?
 		if (flags & V_FLAG_LGND) {
@@ -4083,46 +4251,58 @@ function PViewFrame(vfIndex)
 			var lgndCntr = frame.find('div.lgnd-container div.lgnd-scroll');
 			lgndCntr.empty();
 
-				// Create Legend sections for each Template
-			prspdata.e.g.ts.forEach(function(tID, tIndex) {
-				var tmpltDef = PData.getTmpltID(tID);
-					// Insert locate attributes into Legends
-				var locAtts = newViz.getLocAtts(tIndex);
-				if ((locAtts && locAtts.length > 0) || !(flags & V_FLAG_LOC)) {
-						// Create DIV structure for Template's Legend entry
-					var newTLegend = jQuery('<div class="lgnd-template" data-index="'+tIndex+
-									'"><div class="lgnd-title">'+tmpltDef.l+'</div></div>');
-					if (locAtts)
-						locAtts.forEach(function(attID, aIndex) {
+				// Is it just a single Legend for all Records?
+			if (flags & V_FLAG_SLGND) {
+				var fAttID = newViz.getFeatureAtts();
+				var fAtt = PData.getAttID(fAttID);
+				lgndCntr.append('<div class="lgnd-template" data-index="0"><div class="lgnd-title">'+fAtt.def.l+
+					'</div><div class="lgnd-entry lgnd-sh"><input type="checkbox" checked="checked" class="lgnd-entry-check"/>'+
+					dlText.sha+'</div><div class="lgnd-group"></div></div>');
+					// Only a single Attribute available
+				legendIDs.push(fAttID);
+				setLegendFeatures(0, fAttID);
+			} else {
+					// Create Legend sections for each Template
+				prspdata.e.g.ts.forEach(function(tID, tIndex) {
+					var tmpltDef = PData.getTmpltID(tID);
+						// Insert locate attributes into Legends
+					var locAtts = newViz.getLocAtts(tIndex);
+					if ((locAtts && locAtts.length > 0) || !(flags & V_FLAG_LOC)) {
+							// Create DIV structure for Template's Legend entry
+						var newTLegend = jQuery('<div class="lgnd-template" data-index="'+tIndex+
+										'"><div class="lgnd-title">'+tmpltDef.l+'</div></div>');
+						if (locAtts)
+							locAtts.forEach(function(attID, aIndex) {
+								var attDef = PData.getAttID(attID);
+								newTLegend.append('<div class="lgnd-entry lgnd-locate" data-id="'+attID+
+									'"><input type="checkbox" checked="checked" class="lgnd-entry-check"/><span class="lgnd-value-title">'+
+									attDef.def.l+'</span></div>');
+							});
+							// Create dropdown menu of visual Attributes
+						var attSelection = newViz.getFeatureAtts(tIndex);
+						var newStr = '<select class="lgnd-select">';
+						attSelection.forEach(function(attID, aIndex) {
 							var attDef = PData.getAttID(attID);
-							newTLegend.append('<div class="lgnd-entry lgnd-locate" data-id="'+attID+
-								'"><input type="checkbox" checked="checked" class="lgnd-entry-check"/><span class="lgnd-value-title">'+
-								attDef.def.l+'</span></div>');
+							newStr += '<option value="'+attID+'">'+attDef.def.l+'</option>';
 						});
-						// Create dropdown menu of visual Attributes
-					var attSelection = newViz.getFeatureAtts(tIndex);
-					var newStr = '<select class="lgnd-select">';
-					attSelection.forEach(function(attID, aIndex) {
-						var attDef = PData.getAttID(attID);
-						newStr += '<option value="'+attID+'">'+attDef.def.l+'</option>';
-					});
-					newStr += '</select>';
-					var newSelect = jQuery(newStr);
-					newSelect.change(selectTmpltAttribute);
-					jQuery(newTLegend).append(newSelect);
-						// Create Hide/Show all checkbox
-					jQuery(newTLegend).append('<div class="lgnd-entry lgnd-sh"><input type="checkbox" checked="checked" class="lgnd-entry-check"/>'+
-						dlText.sha+'</div><div class="lgnd-group"></div>');
-					lgndCntr.append(newTLegend);
-					if (tIndex != (prspdata.t.length-1))
-						lgndCntr.append('<hr/>');
-						// Default feature selection is first Attribute
-					var fAttID = attSelection.length > 0 ? attSelection[0] : null;
-					legendIDs.push(fAttID);
-					if (fAttID) 
-						setLegendFeatures(tIndex, fAttID);
-				}
-			});
+						newStr += '</select>';
+						var newSelect = jQuery(newStr);
+						newSelect.change(selectTmpltAttribute);
+						jQuery(newTLegend).append(newSelect);
+							// Create Hide/Show all checkbox
+						jQuery(newTLegend).append('<div class="lgnd-entry lgnd-sh"><input type="checkbox" checked="checked" class="lgnd-entry-check"/>'+
+							dlText.sha+'</div><div class="lgnd-group"></div>');
+						lgndCntr.append(newTLegend);
+						if (tIndex != (prspdata.t.length-1))
+							lgndCntr.append('<hr/>');
+							// Default feature selection is first Attribute
+						var fAttID = attSelection.length > 0 ? attSelection[0] : null;
+						legendIDs.push(fAttID);
+						if (fAttID) 
+							setLegendFeatures(tIndex, fAttID);
+					}
+				});
+			}
 			frame.find('div.lgnd-container').show();
 		} else {
 			frame.find('.hslgnd').button("disable");
@@ -4499,6 +4679,18 @@ var PData = (function() {
 			}
 		}, // aIndex2Tmplt()
 
+			// RETURNS: True if attID is in template tIndex
+			// NOTE: 	Since list of Attributes in Template definition not in Join form, assume
+			//				that appearance of prefix is sufficient
+		attInTmplt: function(attID, tIndex)
+		{
+			var tEntry = prspdata.t[tIndex];
+			var p = attID.split('.');
+			p = p[0];
+			var fnd = tEntry.def.a.findIndex(function(att) { return att.id == p; });
+			return (fnd != -1);
+		}, // attInTmplt()
+
 
 			// RETURNS: The index of first entry in <datastream> which belongs to Template <tIndex>
 			//			-1 if the Template has no entries
@@ -4634,6 +4826,11 @@ var PData = (function() {
 			// RETURNS: Absolute index for Record whose ID is recID
 		getAbsIByID: function(recID)
 		{
+			function strcmp(a, b) {
+				for (var i=0,n=Math.max(a.length, b.length); i<n && a.charAt(i) === b.charAt(i); ++i);
+				if (i === n) return 0;
+				return a.charAt(i) > b.charAt(i) ? -1 : 1;
+			}
 			for (var i=0; i<recs.length; i++) {
 				var tData = recs[i];
 				if (tData.n > 0) {
@@ -4646,7 +4843,7 @@ var PData = (function() {
 					while (lo <= hi) {
 						pos = (lo + hi) >> 1;
 						rec = tData.d[pos];
-						cmp = rec.id.localeCompare(recID);
+						cmp = strcmp(recID, rec.id);
 
 						if (cmp < 0) {
 							lo = pos + 1;
@@ -4665,6 +4862,11 @@ var PData = (function() {
 			// RETURNS: Record data for recID
 		getRecByID: function(recID)
 		{
+			function strcmp(a, b) {
+				for (var i=0,n=Math.max(a.length, b.length); i<n && a.charAt(i) === b.charAt(i); ++i);
+				if (i === n) return 0;
+				return a.charAt(i) > b.charAt(i) ? -1 : 1;
+			}
 			for (var i=0; i<recs.length; i++) {
 				var tData = recs[i];
 				if (tData.n > 0) {
@@ -4677,7 +4879,7 @@ var PData = (function() {
 					while (lo <= hi) {
 						pos = (lo + hi) >> 1;
 						rec = tData.d[pos];
-						cmp = rec.id.localeCompare(recID);
+						cmp = strcmp(recID, rec.id);
 
 						if (cmp < 0) {
 							lo = pos + 1;
@@ -4698,13 +4900,18 @@ var PData = (function() {
 			// TO DO: 	Use Intl.Collator for string compare??
 		getAttID: function(attID)
 		{
+			function strcmp(a, b) {
+				for (var i=0,n=Math.max(a.length, b.length); i<n && a.charAt(i) === b.charAt(i); ++i);
+				if (i === n) return 0;
+				return a.charAt(i) > b.charAt(i) ? -1 : 1;
+			}
 			var lo = 0;
 			var hi = prspdata.a.length-1;
 			var pos, cmp;
 
 			while (lo <= hi) {
 				pos = (lo + hi) >> 1;
-				cmp = prspdata.a[pos].id.localeCompare(attID);
+				cmp = strcmp(attID, prspdata.a[pos].id);
 
 				if (cmp < 0) {
 					lo = pos + 1;
@@ -4936,13 +5143,18 @@ var PData = (function() {
 			// ASSUMES: <att> is a complete record for a Vocabulary Attribute
 		getVLgndVal: function(att, val)
 		{
+			function strcmp(a, b) {
+				for (var i=0,n=Math.max(a.length, b.length); i<n && a.charAt(i) === b.charAt(i); ++i);
+				if (i === n) return 0;
+				return a.charAt(i) > b.charAt(i) ? -1 : 1;
+			}
 			var lo = 0;
 			var hi = att.x.length-1;
 			var pos, cmp;
 
 			while (lo <= hi) {
 				pos = (lo + hi) >> 1;
-				cmp = att.x[pos].l.localeCompare(val);
+				cmp = strcmp(val, att.x[pos].l);
 
 				if (cmp < 0) {
 					lo = pos + 1;
@@ -5015,52 +5227,79 @@ var PData = (function() {
 
 			// PURPOSE: Return array of range categories for facet att
 			// INPUT: 	Complete Attribute definition <att>
-			// RETURNS: range category array = { l[abel], c[olor], min, max },
+			//			If addItems, create empty members array in range category entries
+			// RETURNS: full range category array = { l[abel], c[olor], min, max, x, i[tems] },
+			//					(min and max are not inserted in case of Text and Vocabulary types)
+			//					(x is the text to match, only in case of Text type)
 			//				or null if range categories not possible (lack of bounds or not defined)
-			// ASSUMES: Only called for Number and Dates types
+			// ASSUMES: Only called for Text, Vocabulary, Number and Dates types
 			//			Date range has minimum year
 			//			JS Data creation deals with “spillover” values
 			// NOTES: 	To qualify for a Legend category, a range category only needs to start within it
 			//			A range category with no Legend match is assigned color black
 			//			max value is exclusive (must be less than, not equal!)
 			// TO DO: 	Handle case that scale of max-min and g would be too large ??
-		getRCats: function(att)
+		getRCats: function(att, addItems)
 		{
 			var rcs = [];
 			switch (att.def.t) {
+			case 'T':
+				att.l.forEach(function(t) {
+					if (addItems)
+						rcs.push({ l: t.l, x: t.d, c: t.v, i: [] });
+					else
+						rcs.push({ l: t.l, x: t.d, c: t.v });
+				});
+				return rcs;
+			case 'V':
+				att.l.forEach(function(i) {
+					if (addItems)
+						rcs.push({ l: i.l, c: i.v, i: [] });
+					else
+						rcs.push({ l: i.l, c: i.v });
+					i.z.forEach(function(i2) {
+						if (addItems)
+							rcs.push({ l: i2.l, c: i2.v, i: [] });
+						else
+							rcs.push({ l: i2.l, c: i2.v });
+					});
+				});
+				return rcs;
 			case 'N':
 					// Can't create range category unless both bounds provided
 				if (typeof att.r.min == 'undefined' || typeof att.r.max == 'undefined')
 					return null;
 				var inc = Math.pow(10, att.r.g);
-				var curV = att.r.min, lI=0, curL;
+				var curV = att.r.min, lI=0, curL, min, rgb;
 				if (att.l.length > 0)
 					curL = att.l[0];
 				while (curV <= att.r.max) {
-					var rCat = { l: curV.toString() };
 						// Advance to the relevant legend category
 					while (lI < att.l.length && typeof curL.d.max != 'undefined' && curV > curL.d.max) {
 						curL = att.l[++lI];
 					}
 						// Is current range category before current legend category?
 					if (att.l.length == 0 || curV < curL.d.min) {
-						rCat.c = '#000000';
+						rgb = '#000000';
 
 						// Does it occur beyond last category?
 					} else if (lI == att.l.length) {
-						rCat.c = '#000000';
+						rgb = '#000000';
 
 						// Does it start within current category (inc one w/o max bound)
 					} else if (typeof curL.d.max == 'undefined' || curV <= curL.d.max) {
-						rCat.c = curL.v;
+						rgb = curL.v;
 
 					} else {
-						rCat.c = '#000000';
+						rgb = '#000000';
 					}
-					rCat.min = curV;
+					min = curV;
 					curV += inc;
 					rCat.max = curV;
-					rcs.push(rCat);
+					if (addItems)
+						rcs.push({ l: curV.toString(), c: rgb, min: min, max: curV, i: [] });
+					else
+						rcs.push({ l: curV.toString(), c: rgb, min: min, max: curV });
 				}
 				return rcs;
 			case 'D':
@@ -5099,7 +5338,10 @@ var PData = (function() {
 					lMaxDate = makeMaxDate(curL.d.max);
 				}
 				while (curDate <= maxDate) {
-					var rCat = { };
+					var rCat={};
+					if (addItems)
+						rCat.i = [];
+
 					switch (inc) {
 					case 'd':
 						rCat.l = curY.toString()+"-"+curM.toString()+"-"+curD.toString();
@@ -5166,30 +5408,38 @@ var PData = (function() {
 			} // switch
 		}, // getRCats()
 
-			// PURPOSE: Return count of records with values in range categories defined in getRCats
+
+			// PURPOSE: Gather records with values in range categories defined in getRCats
 			// INPUT: 	att = Complete Attribute definition
 			//			rCats = array generated by getRCats
 			//			stream = datastream
-			// RETURNS: Array of counts corresponding to array returned by getRCats
-			// NOTES: 	In case of Vocabulary, returns sorted list of { l[abel], c[ount] }
-		getRCnts: function(att, rCats, stream)
+			// NOTES: 	Puts aIDs from stream into i arrays of rCats
+		getRCRecs: function(att, rCats, stream)
 		{
-				// TO DO
 			switch (att.def.t) {
+			case 'T':
+
+				break;
+			case 'V':
+				break;
 			case 'N':
 				break;
 			case 'D':
 				break;
-			case 'V':
-				break;
 			}
-		}, // getRCnts()
+		}, // getRCRecs()
+
 
 			// PURPOSE: Create index for all records in stream, ordered by the value of an Attribute
 			// RETURNS: Array containing objects: { i [absolute index of record], v [value] }
 			// NOTES: 	Only uses first value in the case of multiple (Vocabulary, Dates, etc)
 		// orderBy: function(att, stream)
 		// {
+			// function strcmp(a, b) {
+			// 	for (var i=0,n=Math.max(a.length, b.length); i<n && a.charAt(i) === b.charAt(i); ++i);
+			// 	if (i === n) return 0;
+			// 	return a.charAt(i) > b.charAt(i) ? -1 : 1;
+			// }
 		// 	function vIden(v)
 		// 	{
 		// 		return v;
@@ -5242,7 +5492,7 @@ var PData = (function() {
 		// 	switch (att.def.t) {
 		// 	case 'T':
 		// 	case 'V':
-		// 		ord.sort(function(a,b) { return a.v.localeCompare(b.v); });
+		// 		ord.sort(function(a,b) { return strcmp(b.v, a.v); });
 		// 		break;
 		// 	case 'D':
 		// 	case 'N':
@@ -5265,6 +5515,11 @@ var PData = (function() {
 			// NOTES: 	Only uses first value in the case of multiple (V, D, etc)
 		orderTBy: function(att, stream, tI)
 		{
+			function strcmp(a, b) {
+				for (var i=0,n=Math.max(a.length, b.length); i<n && a.charAt(i) === b.charAt(i); ++i);
+				if (i === n) return 0;
+				return a.charAt(i) > b.charAt(i) ? -1 : 1;
+			}
 			function vIden(v)
 			{
 				return v;
@@ -5312,7 +5567,7 @@ var PData = (function() {
 			switch (att.def.t) {
 			case 'T':
 			case 'V':
-				ord.sort(function(a,b) { return a.v.localeCompare(b.v); });
+				ord.sort(function(a,b) { return strcmp(a.v, b.v); });
 				break;
 			case 'D':
 			// 	ord.sort(function(a,b) {
