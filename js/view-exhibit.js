@@ -5897,7 +5897,7 @@ jQuery(document).ready(function($) {
 								jQuery('#save-psrctv-embed').val(embed);
 								var embedDialog = jQuery("#dialog-prspctv-url").dialog({
 									width: 480,
-									height: 200,
+									height: 230,
 									modal: true,
 									buttons: [{
 										text: dlText.ok,
@@ -6539,15 +6539,16 @@ jQuery(document).ready(function($) {
 	PMapHub.init(prspdata.m);
 	localize();
 
-		// Ensure proper ending for creating URLs
-	if (prspdata.site_url.charAt(prspdata.site_url.length-1) != '/')
-		prspdata.site_url += '/';
-
-		// Remove any Perspective query string and trailing /
+		// Remove any Perspective query string and prefix and trailing /
 	xhbtURL = window.location.pathname;
 	xhbtURL = xhbtURL.replace(/\&*prspctv=[\w\-]+/, '');
 	xhbtURL = xhbtURL.replace(/\/$/, '');
+	xhbtURL = xhbtURL.replace(/^\//, '');
 	xhbtURL = window.location.protocol + "//" + window.location.host + "/" + xhbtURL;
+
+		// Ensure proper ending for creating URLs
+	if (prspdata.site_url.charAt(prspdata.site_url.length-1) != '/')
+		prspdata.site_url += '/';
 
 	if (prspdata.e.g.l != '')
 		jQuery('#title').text(prspdata.e.g.l);

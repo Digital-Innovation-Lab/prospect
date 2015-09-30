@@ -128,7 +128,7 @@
 	</div>
 
 	<div id="dialog-prspctv-url" title="Perspective URL">
-		<p>To show this Perspective, use the URL:</p>
+		<p>To show this Perspective after it has been Published on the server, use the following URL:</p>
 		<textarea id="save-psrctv-embed" cols="60" rows="3" readonly="readonly"></textarea>
 	</div>
 </div> <!-- Hidden content ->
