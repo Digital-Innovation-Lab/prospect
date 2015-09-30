@@ -60,6 +60,10 @@ var V_FLAG_SET   = 0x10;		// Has an Options dialog
 var V_FLAG_VSCRL = 0x20;		// Add vertical scroll bar
 var V_FLAG_HSCRL = 0x40;		// Add horizontal scroll bar
 
+var parseTC = /(\d\d)\:(\d\d)\:(\d\d)\.(\d\d?)/; 	// precise regular expression for parsing timecodes
+
+var mnthDays = [ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ];
+
 	// GLOBAL VARS
 var TODAY = new Date();
 var localD3;					// For localizing D3
@@ -67,8 +71,6 @@ var months;						// Array of month names (for localization)
 var dlText={};					// Dynamically-loaded text stored in Object
 								// .sha = "Show/Hide All", .ok, .cancel, .seerec, .close, .add
 var xhbtURL;
-
-var parseTC = /(\d\d)\:(\d\d)\:(\d\d)\.(\d\d?)/; 	// precise regular expression for parsing timecodes
 
 var widgetData = {			// Widget state has to be global because YouTube API calls global function
 							// Therefore code cannot rely upon closure to know state of widget data
@@ -521,12 +523,7 @@ VizMap.prototype.render = function(stream)
 
 		// Use cache to create connections
 	if (mCache) {
-		function strcmp(a, b) {
-			for (var i=0,n=Math.max(a.length, b.length); i<n && a.charAt(i) === b.charAt(i); ++i);
-			if (i === n) return 0;
-			return a.charAt(i) > b.charAt(i) ? -1 : 1;
-		}
-		mCache.sort(function(a,b) { return strcmp(b.id, a.id); });
+		mCache.sort(function(a,b) { return PData.strcmp(b.id, a.id); });
 		var links=[];
 		mCache.forEach(function(node) {
 			if (node.p) {
@@ -1234,7 +1231,7 @@ VizTime.prototype.setup = function()
 								if (typeof dAtt.r.max.d != 'undefined')
 									maxD = dAtt.r.max.d;
 								else
-									maxD = 12;
+									maxD = mnthDays[maxM-1];
 							} else {
 								maxM = 12; maxD = 31;
 							}
@@ -1246,7 +1243,7 @@ VizTime.prototype.setup = function()
 							if (typeof dAtt.r.max.d != 'undefined')
 								maxD = dAtt.r.max.d;
 							else
-								maxD = 12;
+								maxD = mnthDays[maxM-1];
 						} else {
 							maxM = 12; maxD = 31;
 						}
@@ -1257,7 +1254,7 @@ VizTime.prototype.setup = function()
 								if (typeof dAtt.r.max.d != 'undefined')
 									maxD = dAtt.r.max.d;
 								else
-									maxD = 31;
+									maxD = mnthDays[maxM-1];
 							} else if (dAtt.r.max.m == maxM) {
 								if (typeof dAtt.r.max.d != 'undefined') {
 									if (dAtt.r.max.d > maxD)
@@ -1764,7 +1761,7 @@ VizTime.prototype.render = function(stream)
 									} else {
 										m = dData.max.m;
 										if (typeof dData.max.d == 'undefined')
-											d = 31;
+											d = mnthDays[m-1];
 										else
 											d = dData.max.d;
 									}
@@ -1820,7 +1817,7 @@ VizTime.prototype.render = function(stream)
 					} else {
 						m = l.max.m;
 						if (typeof l.max.d == 'undefined')
-							d = 31;
+							d = mnthDays[m-1];
 						else
 							d = l.max.d;
 					}
@@ -2697,12 +2694,12 @@ VizStackChart.prototype.render = function(stream)
 	var oAttID = this.settings.oAtt;
 	var sAttID = this.settings.sAtt;
 
-	var featSet = self.vFrame.getSelFeatAtts(0);
-
 	d3.select(this.chart).selectAll(".block").remove();
 
 		// Pass 1 -- sort all Records into range categories on X-Axis by oAtt
-	PData.fillRCats(this.rCats, oAttID, sAttID, featSet, stream);
+	PData.fillRCats(this.rCats, oAttID, sAttID, stream, false);		// TO DO -- unique text?
+
+	var featSet = self.vFrame.getSelFeatAtts(0);
 
 	var blocks=[];		// { r[CatIndex on X],  }
 
@@ -4614,6 +4611,13 @@ var PData = (function() {
 			checkDataLoad();
 		}, // init()
 
+			// PURPOSE: Optimized and reliable string compare
+		strcmp: function(a, b) {
+			for (var i=0,n=Math.max(a.length, b.length); i<n && a.charAt(i) === b.charAt(i); ++i);
+			if (i === n) return 0;
+			return a.charAt(i) > b.charAt(i) ? -1 : 1;
+		}, // strcmp()
+
 			// PURPOSE: Create a new IndexStream: { s = index array, t = array of template params, l = total length }
 			// INPUT: 	if full, fill with entries for all Records
 			// NOTE: 	JS Arrays are quirky; s is always full size, so l is used to maintain length
@@ -4796,11 +4800,6 @@ var PData = (function() {
 			// RETURNS: Absolute index for Record whose ID is recID
 		getAbsIByID: function(recID)
 		{
-			function strcmp(a, b) {
-				for (var i=0,n=Math.max(a.length, b.length); i<n && a.charAt(i) === b.charAt(i); ++i);
-				if (i === n) return 0;
-				return a.charAt(i) > b.charAt(i) ? -1 : 1;
-			}
 			for (var i=0; i<recs.length; i++) {
 				var tData = recs[i];
 				if (tData.n > 0) {
@@ -4813,7 +4812,7 @@ var PData = (function() {
 					while (lo <= hi) {
 						pos = (lo + hi) >> 1;
 						rec = tData.d[pos];
-						cmp = strcmp(recID, rec.id);
+						cmp = PData.strcmp(recID, rec.id);
 
 						if (cmp < 0) {
 							lo = pos + 1;
@@ -4832,11 +4831,6 @@ var PData = (function() {
 			// RETURNS: Record data for recID
 		getRecByID: function(recID)
 		{
-			function strcmp(a, b) {
-				for (var i=0,n=Math.max(a.length, b.length); i<n && a.charAt(i) === b.charAt(i); ++i);
-				if (i === n) return 0;
-				return a.charAt(i) > b.charAt(i) ? -1 : 1;
-			}
 			for (var i=0; i<recs.length; i++) {
 				var tData = recs[i];
 				if (tData.n > 0) {
@@ -4849,7 +4843,7 @@ var PData = (function() {
 					while (lo <= hi) {
 						pos = (lo + hi) >> 1;
 						rec = tData.d[pos];
-						cmp = strcmp(recID, rec.id);
+						cmp = PData.strcmp(recID, rec.id);
 
 						if (cmp < 0) {
 							lo = pos + 1;
@@ -4870,18 +4864,13 @@ var PData = (function() {
 			// TO DO: 	Use Intl.Collator for string compare??
 		getAttID: function(attID)
 		{
-			function strcmp(a, b) {
-				for (var i=0,n=Math.max(a.length, b.length); i<n && a.charAt(i) === b.charAt(i); ++i);
-				if (i === n) return 0;
-				return a.charAt(i) > b.charAt(i) ? -1 : 1;
-			}
 			var lo = 0;
 			var hi = prspdata.a.length-1;
 			var pos, cmp;
 
 			while (lo <= hi) {
 				pos = (lo + hi) >> 1;
-				cmp = strcmp(attID, prspdata.a[pos].id);
+				cmp = PData.strcmp(attID, prspdata.a[pos].id);
 
 				if (cmp < 0) {
 					lo = pos + 1;
@@ -5113,18 +5102,13 @@ var PData = (function() {
 			// ASSUMES: <att> is a complete record for a Vocabulary Attribute
 		getVLgndVal: function(att, val)
 		{
-			function strcmp(a, b) {
-				for (var i=0,n=Math.max(a.length, b.length); i<n && a.charAt(i) === b.charAt(i); ++i);
-				if (i === n) return 0;
-				return a.charAt(i) > b.charAt(i) ? -1 : 1;
-			}
 			var lo = 0;
 			var hi = att.x.length-1;
 			var pos, cmp;
 
 			while (lo <= hi) {
 				pos = (lo + hi) >> 1;
-				cmp = strcmp(val, att.x[pos].l);
+				cmp = PData.strcmp(val, att.x[pos].l);
 
 				if (cmp < 0) {
 					lo = pos + 1;
@@ -5199,8 +5183,8 @@ var PData = (function() {
 			// INPUT: 	Complete Attribute definition <att>
 			//			If addItems, create empty members array in range category entries
 			// RETURNS: full range category array = { l[abel], c[olor], min, max, x, i[tems] },
-			//					(min and max are not inserted in case of Text and Vocabulary types)
-			//					(x is the text to match, only in case of Text type)
+			//					(min and max only used for Number and Dates types)
+			//					(x is the text to match, only for Text pattern type)
 			//				or null if range categories not possible (lack of bounds or not defined)
 			// ASSUMES: Only called for Text, Vocabulary, Number and Dates types
 			//			Date range has minimum year
@@ -5383,19 +5367,20 @@ var PData = (function() {
 			// INPUT: 	rCats = array generated by getRCats (or empty array if unique Text values)
 			//			oAttID = ID of Attribute used for ordering (used to make rCats)
 			//			sAttID = ID of secondary, required Attribute used later (or null)
-			//			featSet = set of allowable Legend features (or null)
 			//			stream = datastream
+			//			uT = if true, collect all unique text strings (add to rCats)
 			// NOTES: 	Puts aIDs from stream into i arrays of rCats
-		fillRCats: function(rCats, oAttID, sAttID, featSet, stream)
+		fillRCats: function(rCats, oAttID, sAttID, stream, uT)
 		{
 			var numTmplts = PData.getNumETmplts();
 			var tI=0, tRec;
-			var i, aI, rec, datum, fData;
+			var rI=0, aI, rec, datum, fData;
+			var rcI, rcRec;
 
 			var oAtt = PData.getAttID(oAttID);
 
 			tRec = stream.t[0];
-			while (i<stream.l) {
+			while (rI<stream.l) {
 					// Advance until we get to next used Template rec that has both necessary Attributes
 				while (tRec.n == 0 || (tRec.i+tRec.n) == i || !PData.attInTmplt(oAtt, tI) || (sAttID && !PData.attInTmplt(sAtt, tI))) {
 						// Have we run out of Templates?
@@ -5405,26 +5390,66 @@ var PData = (function() {
 				}
 
 					// Get Record data
-				aI = stream.s[i];
+				aI = stream.s[rI];
 // console.log("Next record: "+i+" (absI) "+aI);
 				rec = PData.getRecByIndex(aI);
-					// Get value for ordering in categories on X Axis
 				datum = rec.a[oAttID];
 				if (typeof datum != 'undefined') {
 					switch (oAtt.def.t) {
 					case 'T':
-					case 'V':
-					case 'N':
-					case 'D':
+						if (uT) {
+							for (rcI=0; rcI<rCats.length; rcI++) {
+								rcRec = rCats[rcI];
+								if (datum == rcRec.l) {
+									rcRec.i.push(aI);
+									break;
+								}
+							}
+							if (rcI == rCats.length) {
+								rCats.push({ l: datum, i: [ aI ] });
+							}
+						} else {
+							for (rcI=0; rcI<rCats.length; rcI++) {
+								rcRec = rCats[rcI];
+								if (datum.indexOf(rcRec.x) != -1) {
+									rcRec.i.push(aI);
+									break;
+								}
+							}
+						}
 						break;
-					}
-					fData = PData.getAttLgndRecs(datum, fAtt, featSet, true);
-					if (fData) {
+					case 'V':
+						datum.forEach(function(d) {
+							for (rcI=0; rcI<rCats.length; rcI++) {
+								rcRec = rCats[rcI];
+								if (d == rcRec.l) {
+									rcRec.i.push(aI);
+									break;
+								}
+							}
+						});
+						break;
+					case 'N':
+						for (rcI=0; rcI<rCats.length; rcI++) {
+							rcRec = rCats[rcI];
+							if (rcRec.min <= datum && datum <= rcRec.max) {
+								rcRec.i.push(aI);
+								break;
+							}
+						}
+						break;
+					case 'D':
 
-					} // if fData
-				}
-				i++;
+						break;
+					} // switch type
+				} // if datum
+				rI++;
 			} // while
+
+				// if collected unique texts, sort them
+			if (uT) {
+				rCats.sort(function(a,b) { return PData.strcmp(b.l, a.l); });
+			}
 		}, // fillRCats()
 
 
@@ -5433,11 +5458,6 @@ var PData = (function() {
 			// NOTES: 	Only uses first value in the case of multiple (Vocabulary, Dates, etc)
 		// orderBy: function(att, stream)
 		// {
-			// function strcmp(a, b) {
-			// 	for (var i=0,n=Math.max(a.length, b.length); i<n && a.charAt(i) === b.charAt(i); ++i);
-			// 	if (i === n) return 0;
-			// 	return a.charAt(i) > b.charAt(i) ? -1 : 1;
-			// }
 		// 	function vIden(v)
 		// 	{
 		// 		return v;
@@ -5490,7 +5510,7 @@ var PData = (function() {
 		// 	switch (att.def.t) {
 		// 	case 'T':
 		// 	case 'V':
-		// 		ord.sort(function(a,b) { return strcmp(b.v, a.v); });
+		// 		ord.sort(function(a,b) { return PData.strcmp(b.v, a.v); });
 		// 		break;
 		// 	case 'D':
 		// 	case 'N':
@@ -5513,11 +5533,6 @@ var PData = (function() {
 			// NOTES: 	Only uses first value in the case of multiple (V, D, etc)
 		orderTBy: function(att, stream, tI)
 		{
-			function strcmp(a, b) {
-				for (var i=0,n=Math.max(a.length, b.length); i<n && a.charAt(i) === b.charAt(i); ++i);
-				if (i === n) return 0;
-				return a.charAt(i) > b.charAt(i) ? -1 : 1;
-			}
 			function vIden(v)
 			{
 				return v;
@@ -5565,7 +5580,7 @@ var PData = (function() {
 			switch (att.def.t) {
 			case 'T':
 			case 'V':
-				ord.sort(function(a,b) { return strcmp(a.v, b.v); });
+				ord.sort(function(a,b) { return PData.strcmp(a.v, b.v); });
 				break;
 			case 'D':
 			// 	ord.sort(function(a,b) {
