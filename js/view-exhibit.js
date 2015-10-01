@@ -2664,7 +2664,7 @@ VizStackChart.prototype.getFeatureAtts = function(tIndex)
 	// PURPOSE: Set up SVG and D3 once cats has been created
 VizStackChart.prototype.setup2 = function()
 {
-	var innerH = 500;
+	var innerH = this.settings.h;
 	var innerW = this.cats.length*(this.settings.bw+10);	// 10 pix padding between bars/labels
 	this.xScale = d3.scale.linear().domain([0, this.cats.length])
 		.rangeRound([0, innerW]);
@@ -2789,10 +2789,6 @@ VizStackChart.prototype.render = function(stream)
 			.attr("width", bw)
 			.on("click", clickEvent);
 } // render()
-
-VizStackChart.prototype.teardown = function()
-{
-}
 
 VizStackChart.prototype.setSel = function(absIArray)
 {	// Does nothing
