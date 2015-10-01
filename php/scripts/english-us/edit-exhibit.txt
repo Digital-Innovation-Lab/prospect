@@ -367,15 +367,17 @@
 
 <script id="vfSChart" type='text/ractive'>
 	<input type='checkbox' checked='{{c.tlit}}'/> Retain all unique Text Record values? &nbsp;&nbsp;
+	<input type='checkbox' checked='{{c.gr}}'/> Break Number and Date ranges into graduated scale?
+	<br/>
 	Pixel width of chart bars and labels: <input type="number" value="{{c.bw}}" min="1" max="200"/>
 	<br/>
-	Sort and order Records by 
+	Sort and order Records along x axis by 
 	<select value='{{c.oAtt}}'>
 	{{#each facets}}
 		<option value="{{this.id}}">{{this.id}}</option>
 	{{/each}}
 	</select>
-	Group Records in each stack by
+	Group Records in each vertical stack by
 	<select value='{{c.sAtt}}'>
 	{{#each facets}}
 		<option value="{{this.id}}">{{this.id}}</option>

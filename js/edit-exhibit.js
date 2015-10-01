@@ -354,10 +354,6 @@ jQuery(document).ready(function() {
 	} // confirmModal()
 
 
-		// Set lodash templates to work like Mustache and Ractive
-	// _.templateSettings.interpolate = /{{([\s\S]+?)}}/g;
-
-
 		// Compile array of all (open) Attributes -- start by copying non-Join Attributes
 		// Join Attributes will be handled from independent Template definitions below
 	_.forEach(defAtts, function(theAttDef) {
@@ -739,7 +735,7 @@ jQuery(document).ready(function() {
 				break;
 			case 'S':
 				theVF.c.oAtt = checkAttID(theVF.c.oAtt, defJoinedFacets, '');
-				theVF.c.oAtt = checkAttID(theVF.c.sAtt, defJoinedFacets, '');
+				theVF.c.sAtt = checkAttID(theVF.c.sAtt, defJoinedFacets, '');
 				break;
 			} // switch viewtype
 		} // for views
@@ -961,6 +957,7 @@ jQuery(document).ready(function() {
 			case 'S': 	// Stacked Chart
 				newVFEntry.c.tlit = true;
 				newVFEntry.c.bw = 20;
+				newVFEntry.c.gr = true;
 				newVFEntry.c.oAtt = defJoinedFacets[0].id || '';
 				newVFEntry.c.sAtt = defJoinedFacets[0].id || '';
 				break;
@@ -1265,6 +1262,7 @@ jQuery(document).ready(function() {
 				case 'S': 	// Stacked Chart
 					saveView.c.tlit = viewSettings.c.tlit;
 					saveView.c.bw   = viewSettings.c.bw;
+					saveView.c.gr   = viewSettings.c.gr;
 					saveView.c.oAtt = viewSettings.c.oAtt;
 					saveView.c.sAtt = viewSettings.c.sAtt;
 					break;
