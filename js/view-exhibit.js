@@ -2627,6 +2627,8 @@ VizTextStream.prototype.setState = function(state)
 var VizStackChart = function(viewFrame, vSettings)
 {
 	PVizModel.call(this, viewFrame, vSettings);
+
+	this.bSel=[];
 } // VizStackChart
 
 VizStackChart.prototype = Object.create(PVizModel.prototype);
@@ -2646,14 +2648,13 @@ VizStackChart.prototype.getFeatureAtts = function(tIndex)
 	// PURPOSE: Set up SVG and D3 once cats has been created
 VizStackChart.prototype.setup2 = function()
 {
-	var innerH = 400;
-	var innerW = this.cats.length*(this.settings.bw+10);	// 10 pix padding between bars
-	this.xScale = d3.scale.linear().domain([0, this.cats.length-1])
-		.rangeRound([0, innerW-1]);
-	// this.yScale = d3.scale.linear().domain([0,100]).range([innerH, 0]);
+	var innerH = 500;
+	var innerW = this.cats.length*(this.settings.bw+10);	// 10 pix padding between bars/labels
+	this.xScale = d3.scale.linear().domain([0, this.cats.length])
+		.rangeRound([0, innerW]);
 	this.yScale = d3.scale.linear().range([0, innerH-1]);
 
-	this.rScale = d3.scale.ordinal().rangeRoundBands([0, innerW-1]);
+	this.rScale = d3.scale.ordinal().rangeRoundBands([0, innerW]);
 	this.rScale.domain(this.cats.map(function(rc) { return rc.l; }));
 	this.xAxis = d3.svg.axis().scale(this.rScale).orient("top");
 	this.yAxis = d3.svg.axis().scale(this.yScale).orient("left").ticks(10);
@@ -2697,12 +2698,21 @@ VizStackChart.prototype.render = function(stream)
 {
 	var self = this;
 
-	function clickEvent(d, i)
+	function clickEvent(d, bI)
 	{
-// console.log("Clicked!");
-		// var s = self.toggleSel(d.ai);
-		// d3.select(this).classed('obj-sel', s);
-		d3.select(this).classed('obj-sel', true);
+		var sz = self.bSel.length;
+		var i = _.sortedIndex(this.bSel, bI);
+		if (self.bSel[i] == bI) {
+			d3.select(this).classed('obj-sel', false);
+			self.bSel.splice(i, 1);
+			if (sz > 0 && self.bSel.length == 0)
+				self.vFrame.selBtns(false);
+		} else {
+			d3.select(this).classed('obj-sel', true);
+			self.bSel.splice(i, 0, bI);
+			if (sz == 0 && this.bSel.length > 0)
+				this.vFrame.selBtns(true);
+		}
 	} // clickEvent()
 
 	var oAttID = this.settings.oAtt;
@@ -2714,19 +2724,16 @@ VizStackChart.prototype.render = function(stream)
 	if (this.cats == null) {
 		this.cats = [];
 		PData.fillCats(this.cats, oAttID, sAttID, stream, true);
+		this.setup2();
+
 	} else
 		PData.fillCats(this.cats, oAttID, sAttID, stream, false);
-
-// console.log("X-Cats filled: "+JSON.stringify(this.cats));
-
-		// TO DO: Reset max width of xScale if filled with text
 
 	this.blocks=[];		// { x[rCat index], c[olor], y, h, a[Indices] }
 	var sAtt = PData.getAttID(sAttID);
 	var maxY=0, rec;
 	var fSet = self.vFrame.getSelFeatAtts(0);
 	var yCats = PData.getLCats(sAtt, fSet);
-// console.log("Y-Cats created: "+JSON.stringify(yCats));
 
 		// Pass 2 -- create Blocks by processing Records within a single Range Category by sAtt
 	for (var rI=0; rI<this.cats.length; rI++) {
@@ -2735,7 +2742,6 @@ VizStackChart.prototype.render = function(stream)
 				yCats[yi].i = [];
 		}
 		PData.sortCats(self.cats[rI].i, sAtt, yCats);
-// console.log("yCats for "+rI+": "+JSON.stringify(yCats));
 
 			// Create Blocks entries from yCats
 		var y=0;
@@ -2745,7 +2751,6 @@ VizStackChart.prototype.render = function(stream)
 				y += yCat.i.length;
 			}
 		});
-// console.log("y = "+y);
 		maxY = Math.max(maxY, y);
 	}
 
@@ -2754,7 +2759,6 @@ VizStackChart.prototype.render = function(stream)
 	this.svg.select(".y.axis").call(self.yAxis);
 
 	var bw = this.settings.bw;
-	// var bwh = bw/2;		// Subtract from x?
 
 	this.svg.selectAll(".block")
 			.data(self.blocks)
@@ -2773,16 +2777,30 @@ VizStackChart.prototype.teardown = function()
 }
 
 VizStackChart.prototype.setSel = function(absIArray)
-{
+{	// Does nothing
 } // setSel()
 
 VizStackChart.prototype.clearSel = function()
 {
-	if (this.recSel.length > 0) {
-		this.recSel = [];
-
+	if (this.bSel.length > 0) {
+		this.bSel = [];
+		this.svg.selectAll(".block")
+			.classed('obj-sel', false);
 	}
 } // clearSel()
+
+	// RETURNS: Array of absolute IDs of selected records
+VizStackChart.prototype.getSel = function()
+{
+	var sel=[];
+
+	this.bSel.forEach(function(bI) {
+		sel = _.union(sel, this.blocks[bI].a);
+	});
+console.log("Selection set: "+JSON.stringify(sel));
+
+	return sel;
+} // isSel()
 
 VizStackChart.prototype.getState = function()
 {
@@ -3071,6 +3089,7 @@ PFilterNum.prototype.setup = function()
 	var insert = this.insertPt();
 
 	this.rCats = PData.getRCats(this.att, false);
+
 		// Lack of range bounds? Create generic HTML input boxes, can't create range sliders
 	if (this.rCats == null) {
 		var fh = _.template(document.getElementById('dltext-filter-num-boxes').innerHTML);
@@ -5399,11 +5418,11 @@ var PData = (function() {
 					}
 					min = curV;
 					curV += inc;
-					rCat.max = curV;
+					max = curV;
 					if (addItems)
-						rcs.push({ l: curV.toString(), c: rgb, min: min, max: curV, i: [] });
+						rcs.push({ l: min.toString(), c: rgb, min: min, max: curV, i: [] });
 					else
-						rcs.push({ l: curV.toString(), c: rgb, min: min, max: curV });
+						rcs.push({ l: min.toString(), c: rgb, min: min, max: curV });
 				}
 				return rcs;
 			case 'D':
