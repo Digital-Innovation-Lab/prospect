@@ -1093,6 +1093,14 @@ div.viz-textstream div.recitem.obj-sel {
 	border: red solid 1px;
 }
 
+	/* Stacked Chart styles */
+
+div.viz-result svg .block.obj-sel
+{
+	stroke: red;
+	stroke-width: 1;
+}
+
 /* Specific Filter styles
  * ======================
  */

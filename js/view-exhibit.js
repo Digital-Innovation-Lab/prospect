@@ -48,8 +48,10 @@ var PSTATE_PROCESS = 2;			// Processing data or handling command
 var PSTATE_BUILD = 3;			// Building visuals
 var PSTATE_READY = 4;			// Waiting for user
 
-var D3FG_BAR_WIDTH = 25;		// D3 Graphs created for filters
-var D3FG_MARGINS  = { top: 4, right: 7, bottom: 22, left: 30 };
+var D3FG_BAR_WIDTH 	= 25;		// D3 Graphs created for filters
+var D3FG_MARGINS	= { top: 4, right: 7, bottom: 22, left: 30 };
+
+var D3SC_MARGINS	= { top: 30, right: 5, bottom: 5, left: 40 };	// Stacked Chart margins
 
 	// Flags for properties of Visualizations
 var V_FLAG_LGND  = 0x01;		// Uses Legend
@@ -2641,48 +2643,52 @@ VizStackChart.prototype.getFeatureAtts = function(tIndex)
 	return this.settings.sAtt;
 } // getFeatureAtts()
 
+	// PURPOSE: Set up SVG and D3 once cats has been created
 VizStackChart.prototype.setup2 = function()
 {
+	var innerH = 400;
+	var innerW = this.cats.length*(this.settings.bw+10);	// 10 pix padding between bars
+	this.xScale = d3.scale.linear().domain([0, this.cats.length-1])
+		.rangeRound([0, innerW-1]);
+	// this.yScale = d3.scale.linear().domain([0,100]).range([innerH, 0]);
+	this.yScale = d3.scale.linear().range([0, innerH-1]);
 
+	this.rScale = d3.scale.ordinal().rangeRoundBands([0, innerW-1]);
+	this.rScale.domain(this.cats.map(function(rc) { return rc.l; }));
+	this.xAxis = d3.svg.axis().scale(this.rScale).orient("top");
+	this.yAxis = d3.svg.axis().scale(this.yScale).orient("left").ticks(10);
+
+	this.svg = d3.select(this.frameID).append("svg")
+		.attr("width", innerW+D3SC_MARGINS.left+D3SC_MARGINS.right)
+		.attr("height", innerH+D3SC_MARGINS.top+D3SC_MARGINS.bottom);
+
+	var chart = this.svg.append("g")
+		.attr("class", "chart")
+		.attr("transform", "translate("+D3SC_MARGINS.left+","+D3SC_MARGINS.top+")");
+
+	this.svg.append("g")
+		.attr("class", "x axis")
+		.attr("transform", "translate("+D3SC_MARGINS.left+","+D3SC_MARGINS.top+")")
+		.call(this.xAxis);
+	this.svg.append("g")
+		.attr("class", "y axis")
+		.attr("transform", "translate("+D3SC_MARGINS.left+","+D3SC_MARGINS.top+")");
+		// .call(this.yAxis);
 } // setup2()
 
 VizStackChart.prototype.setup = function()
 {
-	var oAtt = PData.getAttID(this.settings.oAtt);
-		// TO DO: Handle dynamic text
-	// if (oAtt.def.t != 'T' || !this.settings.tlit) {
-		this.rCats = PData.getRCats(oAtt, true);
-	// } else {
-	// }
-console.log("rCats: "+JSON.stringify(this.rCats));
+	var oAttID = this.settings.oAtt;
+	var oAtt = PData.getAttID(oAttID);
 
-	// var innerH = 80 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
-	var innerH = 200;
-	var innerW = this.rCats.length*(this.settings.bw+10);
-	var xScale = d3.scale.linear().domain([0, this.rCats.length])
-		.rangeRound([0, innerW]);
-	var yScale = d3.scale.linear().domain([0,100]).range([innerH, 0]);
-
-	var rScale = d3.scale.ordinal().rangeRoundBands([0, innerW]);
-	rScale.domain(this.rCats.map(function(rc) { return rc.l; }));
-	var xAxis = d3.svg.axis().scale(rScale).orient("bottom");
-	var yAxis = d3.svg.axis().scale(yScale).orient("left").ticks(4);
-
-	var chart = d3.select(this.frameID).append("svg")
-		.attr("width", innerW+D3FG_MARGINS.left+D3FG_MARGINS.right)
-		.attr("height", innerH+D3FG_MARGINS.top+D3FG_MARGINS.bottom)
-		.append("g")
-		.attr("transform", "translate("+D3FG_MARGINS.left+","+D3FG_MARGINS.top+")");
-	this.chart = chart;
-
-	chart.append("g")
-		.attr("class", "x axis")
-		.attr("transform", "translate(0,"+innerH+")")
-		.call(xAxis);
-
-	chart.append("g")
-		.attr("class", "y axis")
-		.call(yAxis);
+	if (oAtt.def.t != 'T' || !this.settings.tlit) {
+		if (this.settings.gr)
+			this.cats = PData.getRCats(oAtt, true);
+		else
+			this.cats = PData.getLCats(oAtt, null);
+		this.setup2();
+	} else
+		this.cats = null;
 } // setup()
 
 	// PURPOSE: Draw the Records in the given datastream
@@ -2691,34 +2697,75 @@ VizStackChart.prototype.render = function(stream)
 {
 	var self = this;
 
+	function clickEvent(d, i)
+	{
+// console.log("Clicked!");
+		// var s = self.toggleSel(d.ai);
+		// d3.select(this).classed('obj-sel', s);
+		d3.select(this).classed('obj-sel', true);
+	} // clickEvent()
+
 	var oAttID = this.settings.oAtt;
 	var sAttID = this.settings.sAtt;
 
-	d3.select(this.chart).selectAll(".block").remove();
+	this.svg.selectAll(".block").remove();
 
-		// Pass 1 -- sort all Records into range categories on X-Axis by oAtt
-	PData.fillRCats(this.rCats, oAttID, sAttID, stream, false);		// TO DO -- unique text?
+		// Pass 1 -- sort all Records into categories on X-Axis by oAtt
+	if (this.cats == null) {
+		this.cats = [];
+		PData.fillCats(this.cats, oAttID, sAttID, stream, true);
+	} else
+		PData.fillCats(this.cats, oAttID, sAttID, stream, false);
 
-	var featSet = self.vFrame.getSelFeatAtts(0);
+// console.log("X-Cats filled: "+JSON.stringify(this.cats));
 
-	var blocks=[];		// { r[CatIndex on X],  }
+		// TO DO: Reset max width of xScale if filled with text
 
-		// Pass 2 -- create Blocks by sorting all Records within a single Range Category by sAtt
-	for (var i=0; i<this.rCats.length; i++) {
+	this.blocks=[];		// { x[rCat index], c[olor], y, h, a[Indices] }
+	var sAtt = PData.getAttID(sAttID);
+	var maxY=0, rec;
+	var fSet = self.vFrame.getSelFeatAtts(0);
+	var yCats = PData.getLCats(sAtt, fSet);
+// console.log("Y-Cats created: "+JSON.stringify(yCats));
 
+		// Pass 2 -- create Blocks by processing Records within a single Range Category by sAtt
+	for (var rI=0; rI<this.cats.length; rI++) {
+		if (rI > 0) { // clear previous entries
+			for (var yi=0; yi<yCats.length; yi++)
+				yCats[yi].i = [];
+		}
+		PData.sortCats(self.cats[rI].i, sAtt, yCats);
+// console.log("yCats for "+rI+": "+JSON.stringify(yCats));
+
+			// Create Blocks entries from yCats
+		var y=0;
+		yCats.forEach(function(yCat) {
+			if (yCat.i.length > 0) {
+				self.blocks.push({ x: rI, c: yCat.c, y: y, h: yCat.i.length, a: yCat.i });
+				y += yCat.i.length;
+			}
+		});
+// console.log("y = "+y);
+		maxY = Math.max(maxY, y);
 	}
 
-	var bw = this.settings.bw;
+		// Now that we have max Y value, reset yScale domain max
+	this.yScale.domain([0,maxY]);
+	this.svg.select(".y.axis").call(self.yAxis);
 
-	this.chart.selectAll(".block")
-			.data(blocks)
+	var bw = this.settings.bw;
+	// var bwh = bw/2;		// Subtract from x?
+
+	this.svg.selectAll(".block")
+			.data(self.blocks)
 			.enter().append("rect")
 			.attr("class", "block")
-			.attr("x", function(d, i) { return xScale(i); })
-			.attr("y", function(d) { return yScale(100); })
+			.attr("x", function(d) { return D3SC_MARGINS.left+5+self.xScale(d.x); })
+			.attr("y", function(d) { return self.yScale(d.y) + D3SC_MARGINS.top; })
 			.attr("fill", function(d) { return d.c; })
-			.attr("height", function(d) { return innerH - yScale(100); })
-			.attr("width", bw);
+			.attr("height", function(d) { return Math.max(1,self.yScale(d.h)-1); })
+			.attr("width", bw)
+			.on("click", clickEvent);
 } // render()
 
 VizStackChart.prototype.teardown = function()
@@ -4374,7 +4421,8 @@ function PViewFrame(vfIndex)
 
 
 		// RETURNS: Array of indices of currently selected feature Attribute IDs for tIndex
-		// NOTE: 	Indices are in dot notation for 2ndary-level (x.y)
+		// NOTES: 	Indices are in dot notation for 2ndary-level (x.y)
+		//			Array must be in numeric order
 	instance.getSelFeatAtts = function(tIndex)
 	{
 		var attIndices = [], attIndex, i;
@@ -4661,8 +4709,7 @@ var PData = (function() {
 			var tEntry = prspdata.t[tIndex];
 			var p = attID.split('.');
 			p = p[0];
-			var fnd = tEntry.def.a.findIndex(function(att) { return att.id == p; });
-			return (fnd != -1);
+			return (tEntry.def.a.findIndex(function(att) { return att == p; }) != -1);
 		}, // attInTmplt()
 
 
@@ -5145,12 +5192,17 @@ var PData = (function() {
 		}, // date3Nums
 
 			// PURPOSE: Create a Date from minimal specification in Object fields
-		objDate: function(field, m, d) {
-			if (typeof field.m != 'undefined') {
+		objDate: function(field, m) {
+			var d;
+
+			if (typeof field.m != 'undefined' && field.m != null) {
 				m = field.m;
-				if (typeof field.d != 'undefined') {
+				if (typeof field.d != 'undefined' && field.d != null)
 					d = field.d;
-				}
+				else
+					d = mnthDays[m-1];
+			} else {
+				d = mnthDays[m-1];
 			}
 			return PData.date3Nums(field.y, m, d);
 		}, // objDate()
@@ -5177,6 +5229,104 @@ var PData = (function() {
 
 			return PData.date3Nums(y, m, d);
 		}, // parseDate()
+
+			// PURPOSE: Create Dates (single date or range) from Record value
+			// RETURNS: [date, date] (if a single day, second date is empty)
+		makeDates: function(data)
+		{
+			var s, e;
+			var y, m, d, single=false;
+
+			y = data.min.y;
+			if (typeof data.min.m == 'undefined') {
+				m = 1; d = 1;
+			} else {
+				m = data.min.m;
+				if (typeof data.min.d == 'undefined')
+					d = 1;
+				else {
+					d = data.min.d;
+					single=true;
+				}
+			}
+			s = PData.date3Nums(y,m,d);
+			if (typeof data.max != 'undefined') {
+				if (data.max == 'open')
+					e = TODAY;
+				else {
+					y = data.max.y;
+					if (typeof data.max.m == 'undefined') {
+						m = 12; d = 31;
+					} else {
+						m = data.max.m;
+						if (typeof data.max.d == 'undefined')
+							d = mnthDays[m-1];
+						else
+							d = data.max.d;
+					}
+					e = PData.date3Nums(y,m,d);
+				} // number
+			} else {
+				if (single)
+					return [s, null];
+				else {
+					if (typeof data.min.m == 'undefined') {
+						m = 12; d = 31;
+					} else {
+						d = mnthDays[m-1];
+					}
+					e = PData.date3Nums(y,m,d);
+				}
+			}
+			return [s, e];
+		}, // makeDates
+
+
+			// PURPOSE: Return array of categories for facet att based on Legend definitions
+			// INPUT: 	att = complete Attribute definition
+			//			fSet = allowable Legend indices (returned by getSelFeatAtts) or null
+			// RETURNS: category array in same format as getRCats (always has i[])
+		getLCats: function(att, fSet)
+		{
+			var rcs = [];
+			switch (att.def.t) {
+			case 'T':
+				att.l.forEach(function(t) {
+					if (fSet == null || PData.getAttLgndRecs(t.d, att, fSet, false))
+						rcs.push({ l: t.l, x: t.d, c: t.v, i: [] });
+				});
+				return rcs;
+			case 'V':
+				att.l.forEach(function(v) {
+					if (fSet == null || PData.getAttLgndRecs([v.l], att, fSet, false))
+						rcs.push({ l: v.l, c: v.v, i: [] });
+					v.z.forEach(function(v2) {
+						if (fSet == null || PData.getAttLgndRecs([v2.l], att, fSet, false))
+							rcs.push({ l: v2.l, c: v2.v, i: [] });
+					});
+				});
+				return rcs;
+			case 'N':
+				att.l.forEach(function(n) {
+					if (fSet == null || PData.getAttLgndRecs(n.d.min, att, fSet, false))
+						rcs.push({ l: n.l, c: n.v, min: n.d.min, max: n.d.max, i: [] })
+				});
+				return rcs;
+			case 'D':
+				var dmin, dmax;
+				att.l.forEach(function(d) {
+					dmin = PData.objDate(d.min, 1);
+					if (fSet == null || PData.getAttLgndRecs(dmin, att, fSet, false)) {
+						if (d.max.y == null)
+							dmax = TODAY;
+						else
+							dmax = PData.objDate(d.max, 12);
+						rcs.push({ l: d.l, c: d.v, min: dmin, max: dmax });
+					}
+				});
+				return rcs;
+			} // switch
+		}, // getLCats()
 
 
 			// PURPOSE: Return array of range categories for facet att
@@ -5268,10 +5418,21 @@ var PData = (function() {
 				} // makeDate()
 				function makeMaxDate(field)
 				{
+					var y,m,d;
 					if (typeof field.y == 'undefined') {
 						return TODAY;
 					} else {
-						return makeDate(field.y, 12, 31, field);
+						y = field.y;
+						if (typeof field.m == 'undefined') {
+							m = 12; d = 31;
+						} else {
+							m = field.m;
+							if (typeof field.d == 'undefined')
+								d = mnthDays[m-1];
+							else
+								d = field.d;
+						}
+						return PData.date3Nums(y,m,d);
 					}
 				} // makeMaxDate()
 
@@ -5363,56 +5524,57 @@ var PData = (function() {
 		}, // getRCats()
 
 
-			// PURPOSE: Sort all Records in stream into range categories according to order Attribute
-			// INPUT: 	rCats = array generated by getRCats (or empty array if unique Text values)
+			// PURPOSE: Sort all Records in stream into categories according to order Attribute
+			// INPUT: 	cats = array generated by getLCats/getRCats (or empty array if unique Text values)
 			//			oAttID = ID of Attribute used for ordering (used to make rCats)
 			//			sAttID = ID of secondary, required Attribute used later (or null)
 			//			stream = datastream
 			//			uT = if true, collect all unique text strings (add to rCats)
 			// NOTES: 	Puts aIDs from stream into i arrays of rCats
-		fillRCats: function(rCats, oAttID, sAttID, stream, uT)
+		fillCats: function(cats, oAttID, sAttID, stream, uT)
 		{
 			var numTmplts = PData.getNumETmplts();
 			var tI=0, tRec;
 			var rI=0, aI, rec, datum, fData;
-			var rcI, rcRec;
+			var cI, cRec;
 
 			var oAtt = PData.getAttID(oAttID);
 
 			tRec = stream.t[0];
 			while (rI<stream.l) {
 					// Advance until we get to next used Template rec that has both necessary Attributes
-				while (tRec.n == 0 || (tRec.i+tRec.n) == i || !PData.attInTmplt(oAtt, tI) || (sAttID && !PData.attInTmplt(sAtt, tI))) {
+				while (tRec.n == 0 || (tRec.i+tRec.n) == rI || !PData.attInTmplt(oAttID, tI) || (sAttID && !PData.attInTmplt(sAttID, tI))) {
 						// Have we run out of Templates?
 					if (++tI == numTmplts)
 						return;
 					tRec = stream.t[tI];
+					rI = tRec.i;
 				}
 
 					// Get Record data
 				aI = stream.s[rI];
-// console.log("Next record: "+i+" (absI) "+aI);
 				rec = PData.getRecByIndex(aI);
 				datum = rec.a[oAttID];
+// console.log("Next record: "+rI+" (absI) "+aI+" Datum: "+JSON.stringify(datum));
 				if (typeof datum != 'undefined') {
 					switch (oAtt.def.t) {
 					case 'T':
 						if (uT) {
-							for (rcI=0; rcI<rCats.length; rcI++) {
-								rcRec = rCats[rcI];
-								if (datum == rcRec.l) {
-									rcRec.i.push(aI);
+							for (cI=0; cI<cats.length; cI++) {
+								cRec = cats[cI];
+								if (datum == cRec.l) {
+									cRec.i.push(aI);
 									break;
 								}
 							}
-							if (rcI == rCats.length) {
-								rCats.push({ l: datum, i: [ aI ] });
+							if (cI == cats.length) {
+								cats.push({ l: datum, i: [ aI ] });
 							}
 						} else {
-							for (rcI=0; rcI<rCats.length; rcI++) {
-								rcRec = rCats[rcI];
-								if (datum.indexOf(rcRec.x) != -1) {
-									rcRec.i.push(aI);
+							for (cI=0; cI<cats.length; cI++) {
+								cRec = cats[cI];
+								if (datum.indexOf(cRec.x) != -1) {
+									cRec.i.push(aI);
 									break;
 								}
 							}
@@ -5420,26 +5582,40 @@ var PData = (function() {
 						break;
 					case 'V':
 						datum.forEach(function(d) {
-							for (rcI=0; rcI<rCats.length; rcI++) {
-								rcRec = rCats[rcI];
-								if (d == rcRec.l) {
-									rcRec.i.push(aI);
+							for (cI=0; cI<cats.length; cI++) {
+								cRec = cats[cI];
+								if (d == cRec.l) {
+									cRec.i.push(aI);
 									break;
 								}
 							}
 						});
 						break;
 					case 'N':
-						for (rcI=0; rcI<rCats.length; rcI++) {
-							rcRec = rCats[rcI];
-							if (rcRec.min <= datum && datum <= rcRec.max) {
-								rcRec.i.push(aI);
+						for (cI=0; cI<cats.length; cI++) {
+							cRec = cats[cI];
+								// Did we pass eligible category?
+							if (datum < cRec.min)
+								break;
+							if (cRec.min <= datum && datum <= cRec.max) {
+								cRec.i.push(aI);
 								break;
 							}
 						}
 						break;
 					case 'D':
-
+							// Only need to look at start date!
+						var sd = PData.objDate(datum.min, 1);
+						for (cI=0; cI<cats.length; cI++) {
+							cRec = cats[cI];
+								// Did we pass eligible category?
+							if (sd < cRec.min)
+								break;
+							if (cRec.min <= sd && sd <= cRec.max) {
+								cRec.i.push(aI);
+								break;
+							}
+						}
 						break;
 					} // switch type
 				} // if datum
@@ -5448,9 +5624,74 @@ var PData = (function() {
 
 				// if collected unique texts, sort them
 			if (uT) {
-				rCats.sort(function(a,b) { return PData.strcmp(b.l, a.l); });
+				cats.sort(function(a,b) { return PData.strcmp(b.l, a.l); });
 			}
 		}, // fillRCats()
+
+			// PURPOSE: Created new sorted category array in sCats based on sAtt value
+			// INPUT: 	cat = array of aIs of Records
+			//			sAtt = definition of Attribute used for sorting
+			//			sCats = category array created by getLCats for storing new aIs
+		sortCats: function(cat, sAtt, sCats)
+		{
+			var id=sAtt.id;
+			var rec, sI, sRec;
+
+			cat.forEach(function(aI) {
+				rec = PData.getRecByIndex(aI);
+				datum = rec.a[id];
+				if (typeof datum != 'undefined') {
+					switch (sAtt.def.t) {
+					case 'T':
+						for (sI=0; sI<sCats.length; sI++) {
+							sRec = sCats[sI];
+							if (datum.indexOf(sRec.x) != -1) {
+								sRec.i.push(aI);
+								break;
+							}
+						}
+						break;
+					case 'V':
+						datum.forEach(function(d) {
+							for (sI=0; sI<sCats.length; sI++) {
+								sRec = sCats[sI];
+								if (d == sRec.l) {
+									sRec.i.push(aI);
+									break;
+								}
+							}
+						});
+						break;
+					case 'N':
+						for (sI=0; sI<sCats.length; sI++) {
+							sRec = sCats[sI];
+								// Did we pass eligible category?
+							if (datum < sRec.min)
+								break;
+							if (sRec.min <= datum && datum <= sRec.max) {
+								sRec.i.push(aI);
+								break;
+							}
+						}
+						break;
+					case 'D':
+							// Only need to look at start date!
+						var sd = PData.objDate(datum.min, 1);
+						for (sI=0; sI<sCats.length; sI++) {
+							sRec = sCats[sI];
+								// Did we pass eligible category?
+							if (sd < sRec.min)
+								break;
+							if (sRec.min <= sd && sd <= sRec.max) {
+								sRec.i.push(aI);
+								break;
+							}
+						}
+						break;
+					} // switch type
+				}
+			});
+		}, // sortCats()
 
 
 			// PURPOSE: Create index for all records in stream, ordered by the value of an Attribute
