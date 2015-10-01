@@ -955,7 +955,7 @@ jQuery(document).ready(function() {
 				});
 				break;
 			case 'S': 	// Stacked Chart
-				newVFEntry.c.tlit = true;
+				newVFEntry.c.tlit = false;
 				newVFEntry.c.bw = 20;
 				newVFEntry.c.gr = true;
 				newVFEntry.c.oAtt = defJoinedFacets[0].id || '';
