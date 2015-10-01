@@ -390,6 +390,8 @@ VizMap.prototype.render = function(stream)
 		}
 	} // markerClick()
 
+	if (this.recSel.length > 1)
+		this.recSel=[];
 
 		// Remove previous Markers
 	mLayer.clearLayers();
@@ -656,6 +658,9 @@ VizCards.prototype.render = function(stream)
 	var thisFrame = jQuery(this.frameID);
 	thisFrame.empty();
 
+	if (this.recSel.length > 1)
+		this.recSel=[];
+
 	var insert;
 
 	var div = 'w'+this.settings.w+' h'+this.settings.h;
@@ -906,6 +911,9 @@ VizPinboard.prototype.render = function(stream)
 
 		// Remove all previous icons
 	this.gRecs.selectAll('svg.recobj').remove();
+
+	if (this.recSel.length > 1)
+		this.recSel=[];
 
 	var idx, idy, iw, ih;
 	var numTmplts = PData.getNumETmplts();
@@ -1679,6 +1687,9 @@ VizTime.prototype.render = function(stream)
 	var self = this;
 	var vI = self.vFrame.getIndex();
 
+	if (this.recSel.length > 1)
+		this.recSel=[];
+
 	self.events=[];		// All event data
 	self.lgBds=[];		// Date Legend Backgrounds: { s[tart], e[nd], t[top track #], h[eight], d[ata in Legend rec] }
 
@@ -2332,6 +2343,9 @@ VizDirectory.prototype.render = function(stream)
 	var thisFrame = jQuery(this.frameID);
 	thisFrame.empty();
 
+	if (this.recSel.length > 1)
+		this.recSel=[];
+
 	tRec = stream.t[0];
 	while (i<stream.l) {
 			// Advance until we get to current Template rec
@@ -2487,8 +2501,10 @@ VizTextStream.prototype.render = function(stream)
 	var szAtt, szAttID, da, dt, bC;
 
 	var vizDiv = jQuery(this.frameID);
-
 	vizDiv.empty();
+
+	if (this.recSel.length > 1)
+		this.recSel=[];
 
 	dt = this.settings.max - this.settings.min;
 
@@ -2701,7 +2717,7 @@ VizStackChart.prototype.render = function(stream)
 	function clickEvent(d, bI)
 	{
 		var sz = self.bSel.length;
-		var i = _.sortedIndex(this.bSel, bI);
+		var i = _.sortedIndex(self.bSel, bI);
 		if (self.bSel[i] == bI) {
 			d3.select(this).classed('obj-sel', false);
 			self.bSel.splice(i, 1);
@@ -2710,10 +2726,12 @@ VizStackChart.prototype.render = function(stream)
 		} else {
 			d3.select(this).classed('obj-sel', true);
 			self.bSel.splice(i, 0, bI);
-			if (sz == 0 && this.bSel.length > 0)
-				this.vFrame.selBtns(true);
+			if (sz == 0 && self.bSel.length > 0)
+				self.vFrame.selBtns(true);
 		}
 	} // clickEvent()
+
+	this.bSel=[];		// Reset selection
 
 	var oAttID = this.settings.oAtt;
 	var sAttID = this.settings.sAtt;
@@ -2792,14 +2810,14 @@ VizStackChart.prototype.clearSel = function()
 	// RETURNS: Array of absolute IDs of selected records
 VizStackChart.prototype.getSel = function()
 {
-	var sel=[];
+	var self=this;
+	var u=[];
 
 	this.bSel.forEach(function(bI) {
-		sel = _.union(sel, this.blocks[bI].a);
+		u = _.union(u, self.blocks[bI].a);
 	});
-console.log("Selection set: "+JSON.stringify(sel));
 
-	return sel;
+	return u;
 } // isSel()
 
 VizStackChart.prototype.getState = function()
@@ -4112,7 +4130,8 @@ function PViewFrame(vfIndex)
 		case 'lgnd-update':
 			if (vizModel && datastream) {
 				PState.set(PSTATE_BUILD);
-				vizModel.render(datastream);				
+				doSelBtns(false);
+				vizModel.render(datastream);
 				PState.set(PSTATE_READY);
 			}
 			break;
