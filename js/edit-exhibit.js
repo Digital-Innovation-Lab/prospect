@@ -227,9 +227,9 @@ jQuery(document).ready(function() {
 		//		attsFct: array of Atts that can be Facets (discrete values, can be sorted in order)
 		//	}
 	var iTemplates = [ ];
-		// Array of all (open) Attributes after Joins done
+		// Array of all (open) Attribute definitions after Joins done
 	var defJoinedAtts = [ ];
-		// Array of all (open) Facet Attributes after Joins done
+		// Array of all (open) Facet Attribute definitions after Joins done
 	var defJoinedFacets = [ ];
 
 		// CODE
@@ -488,6 +488,7 @@ jQuery(document).ready(function() {
 		// Compile Joined Facets from Joined Attributes
 	_.forEach(defJoinedAtts, function(theJAtt) {
 		switch (theJAtt.def.t) {
+		case 'T':
 		case 'V':
 		case 'N':
 		case 'D':
@@ -495,6 +496,8 @@ jQuery(document).ready(function() {
 			break;
 		}
 	});
+
+	var facetAttIDs = defJoinedFacets.map(function(f) { return f.id; });
 
 		// PURPOSE: Created expanded array with useAtt: false if selArray not in fullArray
 		// INPUT:   fullArray = complete list of potential Attributes
@@ -734,8 +737,8 @@ jQuery(document).ready(function() {
 				theVF.c.sAtts = newSize;
 				break;
 			case 'S':
-				theVF.c.oAtt = checkAttID(theVF.c.oAtt, defJoinedFacets, '');
-				theVF.c.sAtt = checkAttID(theVF.c.sAtt, defJoinedFacets, '');
+				theVF.c.oAtt = checkAttID(theVF.c.oAtt, facetAttIDs, '');
+				theVF.c.sAtt = checkAttID(theVF.c.sAtt, facetAttIDs, '');
 				break;
 			} // switch viewtype
 		} // for views
@@ -958,6 +961,7 @@ jQuery(document).ready(function() {
 				newVFEntry.c.tlit = false;
 				newVFEntry.c.bw = 20;
 				newVFEntry.c.gr = true;
+				newVFEntry.c.h = 500;
 				newVFEntry.c.oAtt = defJoinedFacets[0].id || '';
 				newVFEntry.c.sAtt = defJoinedFacets[0].id || '';
 				break;
@@ -1263,6 +1267,7 @@ jQuery(document).ready(function() {
 					saveView.c.tlit = viewSettings.c.tlit;
 					saveView.c.bw   = viewSettings.c.bw;
 					saveView.c.gr   = viewSettings.c.gr;
+					saveView.c.h    = viewSettings.c.h;
 					saveView.c.oAtt = viewSettings.c.oAtt;
 					saveView.c.sAtt = viewSettings.c.sAtt;
 					break;
