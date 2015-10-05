@@ -505,9 +505,27 @@ VizMap.prototype.render = function(stream)
 								cEntry.c.push(locData);
 						} else {
 							if (locData.length == 2) {
-								// TO DO: draw line
+								newMarker = L.polyline(locData,
+									{	_aid: aI, weight: 1,
+										fillColor: fData, color: s ? "#ff0000" : "#000",
+										opacity: 1, fillOpacity: 1
+									});
 							} else {
-								// TO DO: draw polygon
+								newMarker = L.polygon(locData,
+									{	_aid: aI, weight: 1,
+										fillColor: fData, color: s ? "#ff0000" : "#000",
+										opacity: 1, fillOpacity: 1
+									});
+							}
+							if (cEntry) {
+								var c=[0, 0];
+								locData.forEach(function(l) {
+									c[0] += l[0];
+									c[1] += l[1];
+								});
+								c[0] = c[0] / locData.length;
+								c[1] = c[1] / locData.length;
+								cEntry.c.push(c);
 							}
 						}
 						newMarker.on('click', markerClick);
@@ -2889,33 +2907,38 @@ VizNetWheel.prototype.render = function(stream)
 
 	var head = { children: [] };
 
-	var tRec, tI=0;
-	var i=0, rec, aI, clan=[];
+	function createNodes()
+	{
+		var tRec, tI=0;
+		var i=0, rec, aI, clan=[];
 
-	tRec = stream.t[0];
-	tLoop: while (i<stream.l) {
-			// Advance until we get to current Template rec
-		while (tRec.n == 0 || (tRec.i+tRec.n) == i) {
-			if (clan.length > 0) {
-				head.children.push({ ti: tI, children: clan});
+		tRec = stream.t[0];
+		tLoop: while (i<stream.l) {
+				// Advance until we get to current Template rec
+			while (tRec.n == 0 || (tRec.i+tRec.n) == i) {
+				if (clan.length > 0) {
+					head.children.push({ ti: tI, children: clan});
+				}
+				clan=[];
+					// Have we run out of Templates?
+				if (++tI == PData.getNumETmplts()) {
+					break tLoop;
+				}
+				tRec = stream.t[tI];
 			}
-			clan=[];
-				// Have we run out of Templates?
-			if (++tI == PData.getNumETmplts()) {
-				break tLoop;
-			}
-			tRec = stream.t[tI];
+
+				// Get Record data
+			aI = stream.s[i];
+			rec = PData.getRecByIndex(aI);
+			clan.push({ r: rec, ai: aI, children: [] });
+			i++;
+		} // while
+		if (clan.length > 0) {
+			head.children.push({ ti: tI, children: clan});
 		}
+	} // createNodes()
+	createNodes();
 
-			// Get Record data
-		aI = stream.s[i];
-		rec = PData.getRecByIndex(aI);
-		clan.push({ r: rec, ai: aI, children: [] });
-		i++;
-	} // while
-	if (clan.length > 0) {
-		head.children.push({ ti: tI, children: clan});
-	}
 // console.log("Recs: "+JSON.stringify(head));
 
 	var cluster = d3.layout.cluster()
@@ -2934,8 +2957,6 @@ VizNetWheel.prototype.render = function(stream)
 		.text(function(d) { return d.r.l; })
 		.on("click", clickEvent);
 
-		// Compile links between nodes
-
 	var bundle = d3.layout.bundle();
 
 	var line = d3.svg.line.radial()
@@ -2944,6 +2965,12 @@ VizNetWheel.prototype.render = function(stream)
 		.radius(function(d) { return d.y; })
 		.angle(function(d) { return d.x / 180 * Math.PI; });
 
+		// Compile links between nodes
+	var links = [];
+	head.children(function(theT) {
+		var pAtts = self.settings.pAtts[theT.ti];
+
+	});
 } // render()
 
 VizNetWheel.prototype.setSel = function(absIArray)
