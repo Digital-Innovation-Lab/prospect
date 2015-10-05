@@ -61,16 +61,18 @@
 						{{>vfPinboard}}
 					{{elseif vf === 'T'}}
 						{{>vfTimeline}}
-					{{elseif vf === 'G'}}
-						{{>vfTree}}
-					{{elseif vf === 'F'}}
-						{{>vfFlow}}
 					{{elseif vf === 'D'}}
 						{{>vfDirectory}}
 					{{elseif vf === 't'}}
 						{{>vfTextStream}}
 					{{elseif vf === 'S'}}
 						{{>vfSChart}}
+					{{elseif vf === 'N'}}
+						{{>vfNetwork}}
+					{{elseif vf === 'G'}}
+						{{>vfTree}}
+					{{elseif vf === 'F'}}
+						{{>vfFlow}}
 					{{/if}}
 				</div>
 				{{#if vIndex != (viewSettings.length-1) }}<hr/>{{/if}}
@@ -431,63 +433,6 @@
 	</tabs>
 </script>
 
-<script id="vfTree" type='text/ractive'>
-	Display Width: <input type="number" value="{{c.w}}" min="2" max="9999"/>
-	Height: <input type="number" value="{{c.h}}" min="2" max="9999"/>
-	Tree type: <select value="{{c.form}}">
-			<option value="f">Flat</option>
-			<option value="r">Radial</option>
-			<option value="s">Segment</option>
-		</select>
-	<br/>
-	Head node(s): <input type="text" value="{{c.head}}" size="32" required/>
-	Node Radius: <input type="number" value="{{c.r}}" min="1" max="99"/>
-	<br/>
-	Font Size: <input type="number" value="{{c.f}}" min="1" max="99"/>
-	Padding: <input type="number" value="{{c.pad}}" min="1" max="999"/>
-	<br/>
-
-	Choose the Attribute(s) to visualize according to Template type:
-	<tabs>
-		<ul>
-		{{#each iTemplates:tIndex}}
-			<li><a href="#tmpt-vf-tab-{{vIndex}}-{{tIndex}}">{{tid}}</a></li>
-		{{/each}}
-		</ul>
-		{{#each iTemplates:tIndex}}
-		<div id="tmpt-vf-tab-{{vIndex}}-{{tIndex}}">
-			<b>Pointer Attribute to descendants: </b>
-			<select value='{{c.pAtts[tIndex]}}'>
-			{{#each attsPtr}}
-				<option>{{this}}</option>
-			{{/each}}
-			</select>
-			Link Line Color: <input type="text" value="{{c.lClrs[tIndex]}}" size="10"/>
-			<br/>
-			<b>Provide Legends: </b>
-			{{#each c.lgnds[tIndex]}}
-				<span class="attribute-controls">
-					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
-				</span>
-			{{/each}}
-		</div>
-		{{/each}}
-	</tabs>
-</script>
-
-<script id="vfFlow" type='text/ractive'>
-	Display Width: <input type="number" value="{{c.w}}" min="2" max="9999"/>
-	Height: <input type="number" value="{{c.h}}" min="2" max="9999"/>
-	<br/>
-	Attributes to Display: <button on-click="addFacet:{{vIndex}}">Add Attribute</button><br/>
-	{{#each c.fct:cIndex}}
-		Attribute ID: "{{fid}}" Label: <input type="text" size="24" value="{{lbl}}" required/> 
-		<button decorator="iconButton:ui-icon-arrowthickstop-1-n" on-click="topFacet:{{vIndex}},{{cIndex}}">Move to Top</button>
-		<button decorator="iconButton:ui-icon-trash" on-click="delFacet:{{vIndex}},{{cIndex}}">Delete</button>
-		<br/>
-	{{/each}}
-</script>
-
 <script id="vfDirectory" type='text/ractive'>
 	Choose the Attribute(s) to display according to Template type:
 	<tabs>
@@ -553,6 +498,92 @@
 	</tabs>
 </script>
 
+<script id="vfNetwork" type='text/ractive'>
+	Maximum Label Pixel Width: <input type="number" value="{{c.lw}}" min="2" max="9999"/><br/>
+	Network links based on Attribute/color pairs for each Template type
+	<tabs>
+		<ul>
+		{{#each iTemplates:tIndex}}
+			<li><a href="#tmpt-vf-tab-{{vIndex}}-{{tIndex}}">{{tid}}</a></li>
+		{{/each}}
+		</ul>
+		{{#each iTemplates:tIndex}}
+		<div id="tmpt-vf-tab-{{vIndex}}-{{tIndex}}">
+			<button on-click="addPtrPair:{{vIndex}},{{tIndex}}">Add Attribute/Color Pair</button><br/>
+
+			{{#each c.pAtts[tIndex]:pIndex}}
+				<b>Use Pointer Attribute: </b>
+				<select value='{{pid}}'>
+				{{#each attsPtr}}
+					<option>{{this}}</option>
+				{{/each}}
+				</select>
+				Use color: <input type="text" value="{{clr}}" size="10"/>
+				<button decorator="iconButton:ui-icon-trash" on-click="delPtrPair:{{vIndex}},{{tIndex}},{{pIndex}}">Delete</button>
+				<br/>
+			{{/each}}
+		</div>
+		{{/each}}
+	</tabs>
+</script>
+
+<script id="vfTree" type='text/ractive'>
+	Display Width: <input type="number" value="{{c.w}}" min="2" max="9999"/>
+	Height: <input type="number" value="{{c.h}}" min="2" max="9999"/>
+	Tree type: <select value="{{c.form}}">
+			<option value="f">Flat</option>
+			<option value="r">Radial</option>
+			<option value="s">Segment</option>
+		</select>
+	<br/>
+	Head node(s): <input type="text" value="{{c.head}}" size="32" required/>
+	Node Radius: <input type="number" value="{{c.r}}" min="1" max="99"/>
+	<br/>
+	Font Size: <input type="number" value="{{c.f}}" min="1" max="99"/>
+	Padding: <input type="number" value="{{c.pad}}" min="1" max="999"/>
+	<br/>
+
+	Choose the Attribute(s) to visualize according to Template type:
+	<tabs>
+		<ul>
+		{{#each iTemplates:tIndex}}
+			<li><a href="#tmpt-vf-tab-{{vIndex}}-{{tIndex}}">{{tid}}</a></li>
+		{{/each}}
+		</ul>
+		{{#each iTemplates:tIndex}}
+		<div id="tmpt-vf-tab-{{vIndex}}-{{tIndex}}">
+			<b>Pointer Attribute to descendants: </b>
+			<select value='{{c.pAtts[tIndex]}}'>
+			{{#each attsPtr}}
+				<option>{{this}}</option>
+			{{/each}}
+			</select>
+			Link Line Color: <input type="text" value="{{c.lClrs[tIndex]}}" size="10"/>
+			<br/>
+			<b>Provide Legends: </b>
+			{{#each c.lgnds[tIndex]}}
+				<span class="attribute-controls">
+					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+				</span>
+			{{/each}}
+		</div>
+		{{/each}}
+	</tabs>
+</script>
+
+<script id="vfFlow" type='text/ractive'>
+	Display Width: <input type="number" value="{{c.w}}" min="2" max="9999"/>
+	Height: <input type="number" value="{{c.h}}" min="2" max="9999"/>
+	<br/>
+	Attributes to Display: <button on-click="addFacet:{{vIndex}}">Add Attribute</button><br/>
+	{{#each c.fct:cIndex}}
+		Attribute ID: "{{fid}}" Label: <input type="text" size="24" value="{{lbl}}" required/> 
+		<button decorator="iconButton:ui-icon-arrowthickstop-1-n" on-click="topFacet:{{vIndex}},{{cIndex}}">Move to Top</button>
+		<button decorator="iconButton:ui-icon-trash" on-click="delFacet:{{vIndex}},{{cIndex}}">Delete</button>
+		<br/>
+	{{/each}}
+</script>
+
 <!-- DIALOGS -->
 <!-- New View Dialog -->
 <script id="dialog-choose-vf" type='text/ractive'>
@@ -591,7 +622,7 @@
 
 <!-- DYNAMIC TEXT -->
 <script id="dltext-visualizations" type='text/ractive'>
-D,Directory|t,TextStream|M,Map|C,Cards|T,Timeline|P,Pinboard|S,Stacked Chart
+D,Directory|t,TextStream|M,Map|C,Cards|T,Timeline|P,Pinboard|S,Stacked Chart|N,Network Wheel
 </script>
 
 

@@ -451,6 +451,7 @@ div.lgnd-container {
 	position: absolute;
 	top: 60px;
 	left: 10px;
+
 	z-index: 1000;		/* Leaflet uses 400, so we need larger number */
 
 	width: 270px;
