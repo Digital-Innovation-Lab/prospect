@@ -1876,7 +1876,7 @@ VizTime.prototype.render = function(stream)
 		} // checkSel()
 
 			// NOTE: Only zoom band responds to click
-		function clickEvent(d, i)
+		function clickEvent(d)
 		{
 			var s = self.toggleSel(d.ai);
 			d3.select(this).classed('obj-sel', s);
@@ -2824,6 +2824,154 @@ VizStackChart.prototype.getState = function()
 VizStackChart.prototype.setState = function(state)
 {
 	this.vFrame.setLgndSels(state.l);
+} // setState()
+
+
+// ===============================================================================
+// VizNetWheel: Class to visualize connections between Records as Network on Wheel
+
+var VizNetWheel = function(viewFrame, vSettings)
+{
+	PVizModel.call(this, viewFrame, vSettings);
+
+	this.bSel=[];
+} // VizNetWheel
+
+VizNetWheel.prototype = Object.create(PVizModel.prototype);
+
+VizNetWheel.prototype.constructor = VizNetWheel;
+
+VizNetWheel.prototype.flags = function()
+{
+	return V_FLAG_SEL | V_FLAG_VSCRL | V_FLAG_HSCRL;
+} // flags()
+
+VizNetWheel.prototype.setup = function()
+{
+	this.svg = d3.select(this.frameID).append("svg");
+	this.center = this.svg.append("g");
+} // setup()
+
+	// PURPOSE: Draw the Records in the given datastream
+VizNetWheel.prototype.render = function(stream)
+{
+	var self = this;
+
+	function clickEvent(d)
+	{
+		var s = self.toggleSel(d.ai);
+		d3.select(this).classed('obj-sel', s);
+	} // clickEvent()
+
+		// remove any existing nodes and links
+	this.svg.selectAll(".node").remove();
+	this.svg.selectAll(".link").remove();
+
+		// Compute inner radius based on circumference needed to show all labels
+	var rad = Math.max((stream.l*14 + 20)/(Math.PI*2), 30);
+	var lw = this.settings.lw;
+	if (typeof lw == 'string')
+		lw = parseInt(lw);
+
+	var diam = (lw+4)*2 + rad*2;
+
+		// Set sizes and centers
+	this.svg.attr("width", diam)
+		.attr("height", diam);
+
+	this.center.attr("transform", "translate(" + (rad+lw+2) + "," + (rad+lw+2) + ")");
+
+	if (this.recSel.length > 1)
+		this.recSel=[];
+
+		// Create nested array of nodes for each Template { ti, children }
+		// or Record { r[ecord], ai, children }
+
+	var head = { children: [] };
+
+	var tRec, tI=0;
+	var i=0, rec, aI, clan=[];
+
+	tRec = stream.t[0];
+	tLoop: while (i<stream.l) {
+			// Advance until we get to current Template rec
+		while (tRec.n == 0 || (tRec.i+tRec.n) == i) {
+			if (clan.length > 0) {
+				head.children.push({ ti: tI, children: clan});
+			}
+			clan=[];
+				// Have we run out of Templates?
+			if (++tI == PData.getNumETmplts()) {
+				break tLoop;
+			}
+			tRec = stream.t[tI];
+		}
+
+			// Get Record data
+		aI = stream.s[i];
+		rec = PData.getRecByIndex(aI);
+		clan.push({ r: rec, ai: aI, children: [] });
+		i++;
+	} // while
+	if (clan.length > 0) {
+		head.children.push({ ti: tI, children: clan});
+	}
+// console.log("Recs: "+JSON.stringify(head));
+
+	var cluster = d3.layout.cluster()
+		.size([360, rad])
+		.sort(null);
+
+	var nodes = cluster.nodes(head);
+
+    var node = this.center.append("g").selectAll(".node")
+		.data(nodes.filter(function(n) { return !n.children; }))    // Only showing leaf nodes
+		.enter().append("text")
+		.attr("class", "node")
+		.attr("dy", ".31em")
+		.attr("transform", function(d) { return "rotate(" + (d.x - 90) + ")translate(" + (d.y + 8) + ",0)" + (d.x < 180 ? "" : "rotate(180)"); })
+		.style("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
+		.text(function(d) { return d.r.l; })
+		.on("click", clickEvent);
+
+		// Compile links between nodes
+
+	var bundle = d3.layout.bundle();
+
+	var line = d3.svg.line.radial()
+		.interpolate("bundle")
+		.tension(.85)
+		.radius(function(d) { return d.y; })
+		.angle(function(d) { return d.x / 180 * Math.PI; });
+
+} // render()
+
+VizNetWheel.prototype.setSel = function(absIArray)
+{
+	var self=this;
+
+	self.recSel = absIArray;
+	d3.select(this.svg).selectAll(".node")
+			.attr("class", function(d) { self.isSel(d.ai) ? 'node obj-sel' : 'node' });
+} // setSel()
+
+VizNetWheel.prototype.clearSel = function()
+{
+	if (this.recSel.length > 0) {
+		this.recSel = [];
+			// Only zoom band events are selected
+		d3.select(this.svg).selectAll(".node")
+				.attr("class", 'node');
+	}
+} // clearSel()
+
+VizNetWheel.prototype.getState = function()
+{
+	return { };		// TO DO
+} // getState()
+
+VizNetWheel.prototype.setState = function(state)
+{	// TO DO
 } // setState()
 
 
@@ -4263,6 +4411,9 @@ function PViewFrame(vfIndex)
 			break;
 		case 'S':
 			newViz = new VizStackChart(instance, theView.c);
+			break;
+		case 'N':
+			newViz = new VizNetWheel(instance, theView.c);
 			break;
 		}
 		vizSelIndex = vIndex;

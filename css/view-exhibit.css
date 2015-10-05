@@ -1102,6 +1102,29 @@ div.viz-result svg .block.obj-sel
 	stroke-width: 1;
 }
 
+
+	/* Network Wheel styles */
+
+div.viz-result svg .node
+{
+	font: 300 11px "Helvetica Neue", Helvetica, Arial, sans-serif;
+	fill: white;
+}
+
+div.viz-result svg .node.obj-sel {
+	stroke: red;
+	stroke-width: 1px;
+}
+
+div.viz-result svg .link
+{
+	stroke: steelblue;
+	stroke-opacity: .4;
+	fill: none;
+	pointer-events: none;
+}
+
+
 /* Specific Filter styles
  * ======================
  */
