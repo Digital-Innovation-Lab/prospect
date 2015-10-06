@@ -1107,8 +1107,6 @@ div.viz-result svg .block.obj-sel
 
 div.viz-result svg .node
 {
-	font: 300 11px "Helvetica Neue", Helvetica, Arial, sans-serif;
-	fill: white;
 }
 
 div.viz-result svg .node circle.obj-sel {
@@ -1116,9 +1114,14 @@ div.viz-result svg .node circle.obj-sel {
 	stroke-width: 1px;
 }
 
+div.viz-result svg .node text {
+	font: 300 11px "Helvetica Neue", Helvetica, Arial, sans-serif;
+	stroke-width: 1px;
+}
+
 div.viz-result svg .link
 {
-	stroke-opacity: .4;
+	stroke-opacity: 1;
 	fill: none;
 	pointer-events: none;
 }

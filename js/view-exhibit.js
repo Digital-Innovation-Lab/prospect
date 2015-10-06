@@ -2874,6 +2874,8 @@ VizNetWheel.prototype.setup = function()
 VizNetWheel.prototype.render = function(stream)
 {
 	var self = this;
+	var links=[], link;
+	var nodes, node;
 
 	function clickDot(d)
 	{
@@ -2881,9 +2883,33 @@ VizNetWheel.prototype.render = function(stream)
 		d3.select(this).classed('obj-sel', s);
 	} // clickDot()
 
-	function clickName(d)
+		// INPUT: 	nL = node entry bound to label
+	function clickName(nL)
 	{
+		var lSelf=this;
 
+			// First clear out all variables
+		node.each(function(n) { n.targ = false; });
+
+			// Go through links, setting colors and flags
+		link.each(function(l) {
+			if (l.source === nL) {
+				l.target.targ = true;
+					// Search for corresponding entry in original array
+				for (var lI=0; lI<links.length; lI++) {
+					var lk = links[lI];
+					if (lk.source === nL && lk.target === l.target) {
+						d3.select(this).attr("stroke", lk.c);
+					}
+				}
+			} else {
+				d3.select(this).attr("stroke", "white");
+			}
+		});
+
+		node.select("text").attr("fill", function(n) { return n.targ ? "red" : "white"; });
+
+		d3.select(lSelf).attr("fill", "black");
 	} // clickName()
 
 		// remove any existing nodes and links
@@ -2944,15 +2970,13 @@ VizNetWheel.prototype.render = function(stream)
 	} // createNodes()
 	createNodes();
 
-// console.log("Recs: "+JSON.stringify(head));
-
 	var cluster = d3.layout.cluster()
 		.size([360, rad])
 		.sort(null);
 
-	var nodes = cluster.nodes(head);
+	nodes = cluster.nodes(head);
 
-    var node = this.center.append("g").selectAll(".node")
+	node = this.center.append("g").selectAll(".node")
 		.data(nodes.filter(function(n) { return !n.children; }))    // Only showing leaf nodes
 		.enter()
 		.append("g")
@@ -2969,6 +2993,7 @@ VizNetWheel.prototype.render = function(stream)
 			.attr("dx", function(d) { return d.x < 180 ? "10" : "-10"; })
 			.attr("transform", function(d) { return d.x < 180 ? "" : "rotate(180)"; })
 			.style("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
+			.attr("fill", "white")
 			.text(function(d) { return d.r.l; })
 			.on("click", clickName);
 
@@ -2982,14 +3007,12 @@ VizNetWheel.prototype.render = function(stream)
 
 		// Compile links between nodes
 		//  { source, target, c[olor] }
-	var links=[];
 	head.children.forEach(function(theT) {
 		var pAtts = self.settings.pAtts[theT.ti];
 		var q;
 		theT.children.forEach(function(d) {
 			pAtts.forEach(function(p) {
 				q = d.r.a[p.pid];
-console.log("Value for Template "+theT.ti+" pid "+p.pid+" on Rec "+d.ai+": "+JSON.stringify(q));
 				if (typeof q != 'undefined') {
 						// Array of Rec IDs -- must find each one in head.children.children!
 					q.forEach(function(rID) {
@@ -2997,7 +3020,7 @@ console.log("Value for Template "+theT.ti+" pid "+p.pid+" on Rec "+d.ai+": "+JSO
 						tLoop: for (var tI=0; tI<head.children.length; tI++) {
 							var tRecs = head.children[tI];
 								// TO DO: binary search!
-							for (var rI=0; rI<tRecs.length; rI++) {
+							for (var rI=0; rI<tRecs.children.length; rI++) {
 								r2 = tRecs.children[rI];
 								if (r2.r.id == rID) {
 									found=true;
@@ -3005,20 +3028,23 @@ console.log("Value for Template "+theT.ti+" pid "+p.pid+" on Rec "+d.ai+": "+JSO
 								}
 							}
 						}
-						if (found)
-							links.push({source: d, target: r2, c: p.clr});
+						if (found) {
+							// links.push({ source: d, target: r2 });
+							links.push({ source: d, target: r2, c: p.clr});
+						}
 					}); // for Pointer values
 				}
 			}); // for Pointer entries
 		}); // for Records in Template
 	}); // for Templates
 
-    var link = this.center.append("g").selectAll(".link")
+	link = this.center.append("g").selectAll(".link")
 		.data(bundle(links))
 		.enter().append("path")
+    	.each(function(d) { d.source = d[0], d.target = d[d.length - 1]; })
 		.attr("class", "link")
-		.attr("stroke", function(d) { return d.c; })
-		.attr("d", line);
+		.attr("d", line)
+		.attr("stroke", "white");
 } // render()
 
 VizNetWheel.prototype.setSel = function(absIArray)
