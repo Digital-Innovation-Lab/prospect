@@ -1105,6 +1105,14 @@ div.viz-result svg .block.obj-sel
 
 	/* Network Wheel styles */
 
+div.viz-result .iconbar
+{
+	padding: 4px;
+/*	display: inline-block; */
+	font-size: 9px;
+	vertical-align: top;
+}
+
 div.viz-result svg .node
 {
 }

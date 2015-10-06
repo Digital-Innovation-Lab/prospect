@@ -2866,6 +2866,52 @@ VizNetWheel.prototype.flags = function()
 
 VizNetWheel.prototype.setup = function()
 {
+	var self=this;
+
+	this.spin = 0;
+
+	function rotate()
+	{
+		if (self.spin > 360)
+			self.spin -= 360;
+		else if (this.spin < 0)
+			self.spin += 360;
+console.log("New spin: "+self.spin);
+		self.center
+			.attr("transform", "translate(" + 0 + "," + 0 +
+					")rotate(" + self.spin + ")")
+		.selectAll("g.node text")
+			.attr("dx", function(d) { return (d.x + self.spin) % 360 < 180 ? 8 : -8; })
+			.attr("text-anchor", function(d) { return (d.x + self.spin) % 360 < 180 ? "start" : "end"; })
+			.attr("transform", function(d) { return (d.x + self.spin) % 360 < 180 ? null : "rotate(180)"; });
+	} // rotate()
+
+	var vI = this.vFrame.getIndex();
+
+	jQuery(this.frameID).append('<div class="ui-widget-header ui-corner-all iconbar">'+
+		'<button id="nw-prev-'+vI+'">Reverse</button> <button id="nw-for-'+vI+'">Forward</button> '+
+		'<span id="nw-size-'+vI+'">'+
+		'<input type="radio" id="nw-size-1-'+vI+'" name="nw-size-'+vI+'" checked="checked"><label for="nw-size-1-'+vI+'">Single</label>'+
+		'<input type="radio" id="nw-size-90-'+vI+'" name="nw-size-'+vI+'"><label for="nw-size-90-'+vI+'">90&deg;</label>'+
+		'</span></div>');
+	jQuery('#nw-prev-'+vI).button({ text: false, icons: { primary: " ui-icon-arrowreturnthick-1-s" }})
+		.click(function() {
+			if (jQuery('#nw-size-'+vI+' :radio:checked').attr('id') == 'nw-size-1-'+vI)
+				self.spin += 1;
+			else
+				self.spin += 90;
+			rotate();
+		});
+	jQuery('#nw-for-' +vI).button({ text: false, icons: { primary: " ui-icon-arrowreturnthick-1-n" }})
+		.click(function() {
+			if (jQuery('#nw-size-'+vI+' :radio:checked').attr('id') == 'nw-size-1-'+vI)
+				self.spin -= 1;
+			else
+				self.spin -= 90;
+			rotate();
+		});
+	jQuery('#nw-size-'+vI).buttonset();
+
 	this.svg = d3.select(this.frameID).append("svg");
 	this.center = this.svg.append("g");
 } // setup()
@@ -3028,10 +3074,8 @@ VizNetWheel.prototype.render = function(stream)
 								}
 							}
 						}
-						if (found) {
-							// links.push({ source: d, target: r2 });
+						if (found)
 							links.push({ source: d, target: r2, c: p.clr});
-						}
 					}); // for Pointer values
 				}
 			}); // for Pointer entries
