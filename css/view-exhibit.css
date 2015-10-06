@@ -1111,7 +1111,7 @@ div.viz-result svg .node
 	fill: white;
 }
 
-div.viz-result svg .node.obj-sel {
+div.viz-result svg .node circle.obj-sel {
 	stroke: red;
 	stroke-width: 1px;
 }

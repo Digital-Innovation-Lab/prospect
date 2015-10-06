@@ -2875,11 +2875,16 @@ VizNetWheel.prototype.render = function(stream)
 {
 	var self = this;
 
-	function clickEvent(d)
+	function clickDot(d)
 	{
 		var s = self.toggleSel(d.ai);
 		d3.select(this).classed('obj-sel', s);
-	} // clickEvent()
+	} // clickDot()
+
+	function clickName(d)
+	{
+
+	} // clickName()
 
 		// remove any existing nodes and links
 	this.svg.selectAll(".node").remove();
@@ -2891,13 +2896,13 @@ VizNetWheel.prototype.render = function(stream)
 	if (typeof lw == 'string')
 		lw = parseInt(lw);
 
-	var diam = (lw+4)*2 + rad*2;
+	var diam = (lw+12)*2 + rad*2;	// Accommodate dot and spacing
 
 		// Set sizes and centers
 	this.svg.attr("width", diam)
 		.attr("height", diam);
 
-	this.center.attr("transform", "translate(" + (rad+lw+2) + "," + (rad+lw+2) + ")");
+	this.center.attr("transform", "translate(" + (rad+lw+12) + "," + (rad+lw+12) + ")");
 
 	if (this.recSel.length > 1)
 		this.recSel=[];
@@ -2949,13 +2954,23 @@ VizNetWheel.prototype.render = function(stream)
 
     var node = this.center.append("g").selectAll(".node")
 		.data(nodes.filter(function(n) { return !n.children; }))    // Only showing leaf nodes
-		.enter().append("text")
+		.enter()
+		.append("g")
 		.attr("class", "node")
-		.attr("dy", ".31em")
-		.attr("transform", function(d) { return "rotate(" + (d.x - 90) + ")translate(" + (d.y + 8) + ",0)" + (d.x < 180 ? "" : "rotate(180)"); })
-		.style("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
-		.text(function(d) { return d.r.l; })
-		.on("click", clickEvent);
+		.attr("transform", function(d) { return "rotate(" + (d.x - 90) + ")translate(" + (d.y + 8) + ",0)"; });
+
+	node.append("circle")
+			.attr("r", "4")
+			.style("fill", '#5599EE')		// TO DO: Get Legend value
+			.on("click", clickDot);
+
+	node.append("text")
+			.attr("dy", ".31em")
+			.attr("dx", function(d) { return d.x < 180 ? "10" : "-10"; })
+			.attr("transform", function(d) { return d.x < 180 ? "" : "rotate(180)"; })
+			.style("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
+			.text(function(d) { return d.r.l; })
+			.on("click", clickName);
 
 	var bundle = d3.layout.bundle();
 
@@ -2966,11 +2981,44 @@ VizNetWheel.prototype.render = function(stream)
 		.angle(function(d) { return d.x / 180 * Math.PI; });
 
 		// Compile links between nodes
-	var links = [];
-	head.children(function(theT) {
+		//  { source, target, c[olor] }
+	var links=[];
+	head.children.forEach(function(theT) {
 		var pAtts = self.settings.pAtts[theT.ti];
+		var q;
+		theT.children.forEach(function(d) {
+			pAtts.forEach(function(p) {
+				q = d.r.a[p.pid];
+console.log("Value for Template "+theT.ti+" pid "+p.pid+" on Rec "+d.ai+": "+JSON.stringify(q));
+				if (typeof q != 'undefined') {
+						// Array of Rec IDs -- must find each one in head.children.children!
+					q.forEach(function(rID) {
+						var found=false, r2;
+						tLoop: for (var tI=0; tI<head.children.length; tI++) {
+							var tRecs = head.children[tI];
+								// TO DO: binary search!
+							for (var rI=0; rI<tRecs.length; rI++) {
+								r2 = tRecs.children[rI];
+								if (r2.r.id == rID) {
+									found=true;
+									break tLoop;
+								}
+							}
+						}
+						if (found)
+							links.push({source: d, target: r2, c: p.clr});
+					}); // for Pointer values
+				}
+			}); // for Pointer entries
+		}); // for Records in Template
+	}); // for Templates
 
-	});
+    var link = this.center.append("g").selectAll(".link")
+		.data(bundle(links))
+		.enter().append("path")
+		.attr("class", "link")
+		.attr("stroke", function(d) { return d.c; })
+		.attr("d", line);
 } // render()
 
 VizNetWheel.prototype.setSel = function(absIArray)
@@ -2978,8 +3026,8 @@ VizNetWheel.prototype.setSel = function(absIArray)
 	var self=this;
 
 	self.recSel = absIArray;
-	d3.select(this.svg).selectAll(".node")
-			.attr("class", function(d) { self.isSel(d.ai) ? 'node obj-sel' : 'node' });
+	this.svg.selectAll(".node circle")
+			.attr("class", function(d) { self.isSel(d.ai) ? 'obj-sel' : '' });
 } // setSel()
 
 VizNetWheel.prototype.clearSel = function()
@@ -2987,8 +3035,8 @@ VizNetWheel.prototype.clearSel = function()
 	if (this.recSel.length > 0) {
 		this.recSel = [];
 			// Only zoom band events are selected
-		d3.select(this.svg).selectAll(".node")
-				.attr("class", 'node');
+		this.svg.selectAll(".node circle")
+				.attr("class", '');
 	}
 } // clearSel()
 
