@@ -46,7 +46,7 @@ var PSTATE_INIT = 0;			// Initialization
 var PSTATE_LOAD = 1;			// Loading data
 var PSTATE_PROCESS = 2;			// Processing data or handling command
 var PSTATE_BUILD = 3;			// Building visuals
-var PSTATE_UPDATE = 4;			// Updating visuals
+var PSTATE_UPDATE = 4;			// Updating visuals (selection, etc)
 var PSTATE_READY = 5;			// Waiting for user
 
 var D3FG_BAR_WIDTH 	= 25;		// D3 Graphs created for filters
@@ -2862,8 +2862,15 @@ VizNetWheel.prototype.constructor = VizNetWheel;
 
 VizNetWheel.prototype.flags = function()
 {
-	return V_FLAG_SEL | V_FLAG_VSCRL | V_FLAG_HSCRL;
+	return V_FLAG_LGND | V_FLAG_SEL | V_FLAG_VSCRL | V_FLAG_HSCRL;
 } // flags()
+
+VizNetWheel.prototype.getFeatureAtts = function(tIndex)
+{
+	if (tIndex != null)
+		return this.settings.lgnds[tIndex];
+	return this.settings.lgnds;
+} // getFeatureAtts()
 
 VizNetWheel.prototype.setup = function()
 {
@@ -2998,27 +3005,44 @@ VizNetWheel.prototype.render = function(stream)
 	function createNodes()
 	{
 		var tRec, tI=0;
-		var i=0, rec, aI, clan=[];
+		var i=0, rec, datum, aI, clan=[];
+		var featSet=null, fAtt, fAttID;
 
 		tRec = stream.t[0];
+		fAttID = self.vFrame.getSelLegend(0);
+		fAtt = PData.getAttID(fAttID);
+		featSet = self.vFrame.getSelFeatAtts(0);
+
 		tLoop: while (i<stream.l) {
 				// Advance until we get to current Template rec
-			while (tRec.n == 0 || (tRec.i+tRec.n) == i) {
+			while (tRec.n == 0 || (tRec.i+tRec.n) == i || featSet.length == 0) {
 				if (clan.length > 0) {
 					head.children.push({ ti: tI, children: clan});
+					clan=[];
 				}
-				clan=[];
 					// Have we run out of Templates?
 				if (++tI == PData.getNumETmplts()) {
 					break tLoop;
 				}
+
+				clan=[];
 				tRec = stream.t[tI];
+					// Which Attribute chosen for Legend?
+				fAttID = self.vFrame.getSelLegend(tI);
+				fAtt = PData.getAttID(fAttID);
+				featSet = self.vFrame.getSelFeatAtts(tI);
 			}
 
 				// Get Record data
 			aI = stream.s[i];
 			rec = PData.getRecByIndex(aI);
-			clan.push({ r: rec, ai: aI, children: [] });
+			datum = rec.a[fAttID];
+			if (typeof datum != 'undefined') {
+				fData = PData.getAttLgndRecs(datum, fAtt, featSet, false);
+				if (fData)
+					clan.push({ r: rec, ai: aI, c: fData.v, children: [] });
+			}
+
 			i++;
 		} // while
 		if (clan.length > 0) {
@@ -3042,7 +3066,7 @@ VizNetWheel.prototype.render = function(stream)
 
 	node.append("circle")
 			.attr("r", "5")
-			.style("fill", '#5599EE')		// TO DO: Get Legend value
+			.style("fill", function(n) { return n.c; })
 			.on("click", clickDot);
 
 	node.append("text")
