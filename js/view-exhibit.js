@@ -2877,22 +2877,23 @@ VizNetWheel.prototype.setup = function()
 			self.spin -= 360;
 		else if (self.spin < 0)
 			self.spin += 360;
-console.log("Spin: "+self.spin);
+
 		self.center
 			.attr("transform", "translate(" + self.cr + "," + self.cr + ")rotate(" + self.spin + ")");
-		// .selectAll("g.node text")
-		// 	.attr("dx", function(d) { return (d.x + self.spin) % 360 < 180 ? "10" : "-10"; })
-		// 	.attr("transform", function(d) { (d.x + self.spin) % 360 < 180 ? "" : "rotate(180)"; })
-		// 	.style("text-anchor", function(d) { return (d.x + self.spin) % 360 < 180 ? "start" : "end"; });
 
-			// .attr("dx", function(d) { return d.x < 180 ? "10" : "-10"; })
-			// .attr("transform", function(d) { return d.x < 180 ? "" : "rotate(180)"; })
-			// .style("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
+				// Failed experiments
+			// .selectAll("g.node")
+			// .attr("transform", function(d) { return "rotate(" + (((d.x-90) + self.spin) % 360) + ")translate(" + (d.y + 8) + ",0)"; })
+
+			// .selectAll("text")
+			// 	.attr("dx", function(d) { return ((d.x + self.spin) % 360) < 180 ? "10" : "-10"; })
+			// 	.attr("transform", function(d) { ((d.x + self.spin) % 360) < 180 ? "" : "rotate(180)"; })
+			// 	.style("text-anchor", function(d) { return ((d.x + self.spin) % 360) < 180 ? "start" : "end"; });
 	} // rotate()
 
 	var vi = this.vFrame.getIndex();
 	var fh = _.template(document.getElementById('dltext-v-nwheel').innerHTML);
-	jQuery(this.frameID).append(fh({ vi: vi }));
+	jQuery('#view-frame-'+vi+' div.view-control-bar').append(fh({ vi: vi }));
 
 	jQuery('#nw-prev-'+vi).button({ text: false, icons: { primary: " ui-icon-arrowreturnthick-1-s" }})
 		.click(function() {
@@ -3040,7 +3041,7 @@ VizNetWheel.prototype.render = function(stream)
 		.attr("transform", function(d) { return "rotate(" + (d.x - 90) + ")translate(" + (d.y + 8) + ",0)"; });
 
 	node.append("circle")
-			.attr("r", "4")
+			.attr("r", "5")
 			.style("fill", '#5599EE')		// TO DO: Get Legend value
 			.on("click", clickDot);
 
@@ -3100,6 +3101,12 @@ VizNetWheel.prototype.render = function(stream)
 		.attr("d", line)
 		.attr("stroke", "white");
 } // render()
+
+VizNetWheel.prototype.teardown = function()
+{
+	var vi = this.vFrame.getIndex();
+	jQuery('#view-frame-'+vi+' div.view-control-bar div.iconbar').remove();
+} // teardown()
 
 VizNetWheel.prototype.setSel = function(absIArray)
 {
