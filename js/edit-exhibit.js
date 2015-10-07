@@ -719,21 +719,26 @@ jQuery(document).ready(function() {
 				theVF.c.sAtt = checkAttID(theVF.c.sAtt, facetAttIDs, '');
 				break;
 			case 'N': 	// Network Wheel
-				var newPAtts=[];
+				var newPAtts=[], newLgnds=[];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
 					if (origTIndex == -1) {
 						newPAtts.push([]);
+						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
+								return { attID: theLgndAtt, useAtt: true };
+							}));
 					} else {
 						var newP=[];
 						theVF.c.pAtts[origTIndex].forEach(function(p) {
 							newP.push({ pid: checkAttID(p.pid, theTmplt.attsPtr, ''), clr: p.clr });
 						});
 						newPAtts.push(newP);
+						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
 					}
 				});
 				theVF.c.pAtts = newPAtts;
+				theVF.c.lgnds = newLgnds;
 				break;
 
 			case 'G': 	// Tree -- view not implemented
@@ -959,6 +964,12 @@ jQuery(document).ready(function() {
 				break;
 			case 'N': 	// Network Wheel
 				newVFEntry.c.lw = 120;
+					// Potential Legends
+				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
+					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
+						return { attID: theLgndAtt, useAtt: true };
+					});
+				});
 				newVFEntry.c.pAtts = _.map(iTemplates, function(theTemplate) {
 					return [];
 				});
@@ -1291,11 +1302,13 @@ jQuery(document).ready(function() {
 					break;
 				case 'N': 	// Network Wheel
 					saveView.c.lw = viewSettings.c.lw;
-					var newPAtts=[];
+					var newPAtts=[], newLgnds=[];
 					saveTIndices.forEach(function(tIndex) {
+						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
 						newPAtts.push(viewSettings.c.pAtts[tIndex]);
 					});
 					saveView.c.pAtts = newPAtts;
+					saveView.c.lgnds = newLgnds;
 					break;
 
 				case 'G': 	// Tree -- not yet implemented

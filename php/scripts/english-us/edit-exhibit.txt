@@ -388,16 +388,6 @@
 	</select>
 </script>
 
-<script id="vfBrowser" type='text/ractive'>
-	Attributes to Display: <button on-click="addFacet:{{vIndex}}">Add Attribute</button><br/>
-	{{#each c.fct:cIndex}}
-		Attribute ID: "{{fid}}" Label: <input type="text" size="24" value="{{lbl}}"/> 
-		<button decorator="iconButton:ui-icon-arrowthickstop-1-n" on-click="topFacet:{{vIndex}},{{cIndex}}">Move to Top</button>
-		<button decorator="iconButton:ui-icon-trash" on-click="delFacet:{{vIndex}},{{cIndex}}">Delete</button>
-		<br/>
-	{{/each}}
-</script>
-
 <script id="vfTimeline" type='text/ractive'>
 	Height of Events in Zoom: <input type="number" value="{{c.bHt}}" min="2" max="99"/>
 	Width of Frame Axis Labels: <input type="number" value="{{c.xLbl}}" min="2" max="99"/><br/>
@@ -510,7 +500,6 @@
 		{{#each iTemplates:tIndex}}
 		<div id="tmpt-vf-tab-{{vIndex}}-{{tIndex}}">
 			<button on-click="addPtrPair:{{vIndex}},{{tIndex}}">Add Attribute/Color Pair</button><br/>
-
 			{{#each c.pAtts[tIndex]:pIndex}}
 				<b>Use Pointer Attribute: </b>
 				<select value='{{pid}}'>
@@ -521,6 +510,12 @@
 				Use color: <input type="text" value="{{clr}}" size="10"/>
 				<button decorator="iconButton:ui-icon-trash" on-click="delPtrPair:{{vIndex}},{{tIndex}},{{pIndex}}">Delete</button>
 				<br/>
+			{{/each}}
+			<b>Provide Legends:</b> 
+			{{#each c.lgnds[tIndex]}}
+				<span class="attribute-controls">
+					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+				</span>
 			{{/each}}
 		</div>
 		{{/each}}
@@ -578,6 +573,16 @@
 	Attributes to Display: <button on-click="addFacet:{{vIndex}}">Add Attribute</button><br/>
 	{{#each c.fct:cIndex}}
 		Attribute ID: "{{fid}}" Label: <input type="text" size="24" value="{{lbl}}" required/> 
+		<button decorator="iconButton:ui-icon-arrowthickstop-1-n" on-click="topFacet:{{vIndex}},{{cIndex}}">Move to Top</button>
+		<button decorator="iconButton:ui-icon-trash" on-click="delFacet:{{vIndex}},{{cIndex}}">Delete</button>
+		<br/>
+	{{/each}}
+</script>
+
+<script id="vfBrowser" type='text/ractive'>
+	Attributes to Display: <button on-click="addFacet:{{vIndex}}">Add Attribute</button><br/>
+	{{#each c.fct:cIndex}}
+		Attribute ID: "{{fid}}" Label: <input type="text" size="24" value="{{lbl}}"/> 
 		<button decorator="iconButton:ui-icon-arrowthickstop-1-n" on-click="topFacet:{{vIndex}},{{cIndex}}">Move to Top</button>
 		<button decorator="iconButton:ui-icon-trash" on-click="delFacet:{{vIndex}},{{cIndex}}">Delete</button>
 		<br/>
