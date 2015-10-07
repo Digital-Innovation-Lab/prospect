@@ -3153,11 +3153,12 @@ VizNetWheel.prototype.clearSel = function()
 
 VizNetWheel.prototype.getState = function()
 {
-	return { };		// TO DO
+	return { l: this.vFrame.getLgndSels() };
 } // getState()
 
 VizNetWheel.prototype.setState = function(state)
-{	// TO DO
+{
+	this.vFrame.setLgndSels(state.l);
 } // setState()
 
 

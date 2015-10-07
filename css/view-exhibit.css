@@ -340,7 +340,7 @@ div.filter-body svg .brush .extent {
 
 	/* The first visualization display */
 #view-frame-0 {
-	min-width: 40%;		/* needed in case of "dynamic" content like Leaflet */
+	min-width: 45%;		/* needed in case of "dynamic" content like Leaflet */
 
 	flex: 1 1 auto;
 	-webkit-flex: 1 1 auto;
@@ -352,7 +352,7 @@ div.filter-body svg .brush .extent {
 
 	/* The second visualization display */
 #view-frame-1 {
-	min-width: 40%;		/* needed in case of "dynamic" content like Leaflet */
+	min-width: 45%;		/* needed in case of "dynamic" content like Leaflet */
 
 	flex: 1 1 auto;
 	-webkit-flex: 1 1 auto;
@@ -363,7 +363,7 @@ div.filter-body svg .brush .extent {
 	margin-left: 2.5px;
 }
 
-#viz-display-frame div.view-control-bar {
+div.view-control-bar {
 	height: 28px;
 	width: 100%;
 	padding: 10px 20px 30px;
@@ -373,11 +373,11 @@ div.filter-body svg .brush .extent {
 	background: #eee;
 }
 
-#viz-display-frame div.view-control-bar .ui-icon {
+div.view-control-bar .ui-icon {
 	cursor: pointer;
 }
 
-#viz-display-frame div.viz-content {
+div.viz-content {
 	position: absolute;
 	height: 100%;
 	width: 100%;
@@ -385,14 +385,14 @@ div.filter-body svg .brush .extent {
 
 	/* All visualization results rendered here */
 	/* Styles are added to this DIV depending on whether visualization needs fixed size or content-wrapping size */
-#viz-display-frame div.viz-content div.viz-result {
+div.viz-result {
 	margin: 0px;
 	padding: 0;
 }
 
 	/* Visualization space takes as much as is necessary to show content results */
 	/* Add to viz-result DIV */
-.viz-fit-h {
+div.viz-result.viz-fit-h {
 	/*	height: -moz-fit-content;
 		height: -webkit-fit-content;
 		height: fit-content;
@@ -405,7 +405,7 @@ div.filter-body svg .brush .extent {
 		height: max-content;
 	*/
 }
-.viz-fit-w {
+div.viz-result.viz-fit-w {
 	/*	width: -moz-fit-content;
 		width: -webkit-fit-content;
 		width: fit-content;
@@ -421,10 +421,10 @@ div.filter-body svg .brush .extent {
 
 	/* Visualization space takes all available screen space */
 	/* Add to viz-result DIV */
-.viz-max-h {
+div.viz-result.viz-max-h {
 	height: 100%;
 }
-.viz-max-w {
+div.viz-result.viz-max-w {
 	width: 100%;
 }
 
@@ -470,7 +470,7 @@ div.lgnd-container {
 }
 
 	/* Button to force Re-render */
-div.lgnd-update {
+button.lgnd-update {
 	height: 18px;
 	margin-bottom: 3px;
 	font-size: 10px;
@@ -671,7 +671,8 @@ div.template-label {
 }
 
 	/* Map Styles */
-div.leaflet-bar a, div.leaflet-bar a:hover {
+div.leaflet-bar a,
+div.leaflet-bar a:hover {
 	width: 36px;
 	height: 36px;
 	line-height: 36px;
@@ -773,6 +774,10 @@ div.card > div.card-title {
 	background-color: #F0F8FF;
 	border: 1px black solid;
 	padding-left: 2px;
+}
+
+div.card.obj-sel > div.card-title {
+	background-color: yellow;
 }
 
 div.card > div.card-body {
@@ -926,6 +931,7 @@ table.viz-directory tr.obj-sel td {
 
 	/* For all svg graphs in visualization Views */
 div.viz-result svg {
+/*	margin: 2px auto; */
 	margin: 2px;
 	padding: 0px;
 }
@@ -943,11 +949,11 @@ div.viz-result svg .axis line {
 }
 
 	/* Pinboard styles */
-div.viz-result svg .recobj
+svg .recobj
 {
 }
 
-div.viz-result svg .recobj.obj-sel
+svg .recobj.obj-sel
 {
 	stroke: red;
 	stroke-width: 1;
@@ -970,7 +976,7 @@ div.viz-result svg .recobj.obj-sel
 	 *				tl-event
 	 **/
 
-div.viz-result svg.tl-vf {
+svg.tl-vf {
 	border-style: solid;
 	border-width: 1px;
 	border-color: black;
@@ -978,43 +984,43 @@ div.viz-result svg.tl-vf {
 }
 
 	/* Inner space containing chart */
-div.viz-result svg.tl-vf .chart {
+svg.tl-vf .chart {
 	fill: #EEEEEE;
 }
 
 	/* axis labels */
-div.viz-result svg.tl-vf .axis {
+svg.tl-vf .axis {
 	fill: #808080;
 	font-family: sans-serif;
 	font-size: 10px;
 }
 
 	/* axis tick marks */
-div.viz-result svg.tl-vf .axis line {
+svg.tl-vf .axis line {
 	stroke-width : 1;
 	stroke: gray;
 	shape-rendering: crispEdges;
 }
 
 	/* axis line */
-div.viz-result svg.tl-vf .axis path {
+svg.tl-vf .axis path {
 	stroke-width : 1;
 	stroke: gray;
 	shape-rendering: crispEdges;
 }
 
 	/* band background */
-div.viz-result svg.tl-vf .band {
+svg.tl-vf .band {
 	fill: #FAFAFA;
 }
 
 	/* Legend "Epoch" Background Label */
-div.viz-result svg.tl-vf .lgBdLbl {
+svg.tl-vf .lgBdLbl {
 	font: sans-serif;
 	font-weight: bold;
 }
 
-div.viz-result svg.tl-vf .event.range {
+svg.tl-vf .event.range {
 	fill: #AAFFFF;
 	cursor : default;
 	pointer-events: true;
@@ -1023,7 +1029,7 @@ div.viz-result svg.tl-vf .event.range {
 	stroke-opacity: 0.8;
 }
 
-div.viz-result svg.tl-vf .event.instant {
+svg.tl-vf .event.instant {
 	cursor : default;
 	pointer-events: true;
 	stroke-width: 1;
@@ -1031,13 +1037,13 @@ div.viz-result svg.tl-vf .event.instant {
 	stroke-opacity: 0.8;
 }
 
-div.viz-result svg.tl-vf .event.obj-sel
+svg.tl-vf .event.obj-sel
 {
 	stroke: red;
 	stroke-width: 2px;
 }
 
-div.viz-result svg.tl-vf .instantLbl {
+svg.tl-vf .instantLbl {
 	font: 10px sans-serif;
 	font-weight: 300;
 	fill: #FFFFFF;	/* Pixels must be on/white to create XOR effect */
@@ -1046,7 +1052,7 @@ div.viz-result svg.tl-vf .instantLbl {
 	shape-rendering: crispEdges;
 }
 
-div.viz-result svg.tl-vf .rangeLbl {
+svg.tl-vf .rangeLbl {
 	font: 10px sans-serif;
 	font-weight: 300;
 	stroke: none;
@@ -1054,23 +1060,23 @@ div.viz-result svg.tl-vf .rangeLbl {
 	shape-rendering: crispEdges;
 }
 
-div.viz-result svg.tl-vf .bLbl {
+svg.tl-vf .bLbl {
 	fill: #99CCCC;
 }
 
-div.viz-result svg.tl-vf .bMinMaxLbl {
+svg.tl-vf .bMinMaxLbl {
 	fill: #000066;
 	font: 10px sans-serif;
 	font-weight: bold;
 }
 
-div.viz-result svg.tl-vf .brush .extent {
+svg.tl-vf .brush .extent {
 	stroke: midnightblue;
 	fill: red;
 	fill-opacity: .2;
 }
 
-div.viz-result svg.tl-vf .brush .dragger {
+svg.tl-vf .brush .dragger {
 	fill: #99CCCC;
 	stroke: black;
 	stroke-width: 1;
@@ -1096,7 +1102,7 @@ div.viz-textstream div.recitem.obj-sel {
 
 	/* Stacked Chart styles */
 
-div.viz-result svg .block.obj-sel
+svg .block.obj-sel
 {
 	stroke: red;
 	stroke-width: 1;
@@ -1116,28 +1122,28 @@ div.view-control-bar div.iconbar
 	float: right;
 }
 
-div.viz-result svg .node
+svg .node
 {
 }
 
-div.viz-result svg .node circle.obj-sel {
+svg .node circle.obj-sel {
 	stroke: red;
 	stroke-width: 1px;
 }
 
-div.viz-result svg .node text {
+svg .node text {
 	font: 300 11px "Helvetica Neue", Helvetica, Arial, sans-serif;
 	stroke-width: 1px;
 }
 
-div.viz-result svg .link
+svg .link
 {
 	stroke-opacity: .7;
 	fill: none;
 	pointer-events: none;
 }
 
-div.viz-result svg .link.thick
+svg .link.thick
 {
 	stroke-opacity: 1;
 	stroke-width: 2px;
