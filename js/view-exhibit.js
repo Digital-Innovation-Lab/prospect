@@ -46,7 +46,8 @@ var PSTATE_INIT = 0;			// Initialization
 var PSTATE_LOAD = 1;			// Loading data
 var PSTATE_PROCESS = 2;			// Processing data or handling command
 var PSTATE_BUILD = 3;			// Building visuals
-var PSTATE_READY = 4;			// Waiting for user
+var PSTATE_UPDATE = 4;			// Updating visuals
+var PSTATE_READY = 5;			// Waiting for user
 
 var D3FG_BAR_WIDTH 	= 25;		// D3 Graphs created for filters
 var D3FG_MARGINS	= { top: 4, right: 7, bottom: 22, left: 30 };
@@ -2874,43 +2875,42 @@ VizNetWheel.prototype.setup = function()
 	{
 		if (self.spin > 360)
 			self.spin -= 360;
-		else if (this.spin < 0)
+		else if (self.spin < 0)
 			self.spin += 360;
-console.log("New spin: "+self.spin);
+console.log("Spin: "+self.spin);
 		self.center
-			.attr("transform", "translate(" + 0 + "," + 0 +
-					")rotate(" + self.spin + ")")
-		.selectAll("g.node text")
-			.attr("dx", function(d) { return (d.x + self.spin) % 360 < 180 ? 8 : -8; })
-			.attr("text-anchor", function(d) { return (d.x + self.spin) % 360 < 180 ? "start" : "end"; })
-			.attr("transform", function(d) { return (d.x + self.spin) % 360 < 180 ? null : "rotate(180)"; });
+			.attr("transform", "translate(" + self.cr + "," + self.cr + ")rotate(" + self.spin + ")");
+		// .selectAll("g.node text")
+		// 	.attr("dx", function(d) { return (d.x + self.spin) % 360 < 180 ? "10" : "-10"; })
+		// 	.attr("transform", function(d) { (d.x + self.spin) % 360 < 180 ? "" : "rotate(180)"; })
+		// 	.style("text-anchor", function(d) { return (d.x + self.spin) % 360 < 180 ? "start" : "end"; });
+
+			// .attr("dx", function(d) { return d.x < 180 ? "10" : "-10"; })
+			// .attr("transform", function(d) { return d.x < 180 ? "" : "rotate(180)"; })
+			// .style("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
 	} // rotate()
 
-	var vI = this.vFrame.getIndex();
+	var vi = this.vFrame.getIndex();
+	var fh = _.template(document.getElementById('dltext-v-nwheel').innerHTML);
+	jQuery(this.frameID).append(fh({ vi: vi }));
 
-	jQuery(this.frameID).append('<div class="ui-widget-header ui-corner-all iconbar">'+
-		'<button id="nw-prev-'+vI+'">Reverse</button> <button id="nw-for-'+vI+'">Forward</button> '+
-		'<span id="nw-size-'+vI+'">'+
-		'<input type="radio" id="nw-size-1-'+vI+'" name="nw-size-'+vI+'" checked="checked"><label for="nw-size-1-'+vI+'">Single</label>'+
-		'<input type="radio" id="nw-size-90-'+vI+'" name="nw-size-'+vI+'"><label for="nw-size-90-'+vI+'">90&deg;</label>'+
-		'</span></div>');
-	jQuery('#nw-prev-'+vI).button({ text: false, icons: { primary: " ui-icon-arrowreturnthick-1-s" }})
+	jQuery('#nw-prev-'+vi).button({ text: false, icons: { primary: " ui-icon-arrowreturnthick-1-s" }})
 		.click(function() {
-			if (jQuery('#nw-size-'+vI+' :radio:checked').attr('id') == 'nw-size-1-'+vI)
-				self.spin += 1;
+			if (jQuery('#nw-size-'+vi+' :radio:checked').attr('id') == 'nw-size-1-'+vi)
+				self.spin += self.inc;
 			else
 				self.spin += 90;
 			rotate();
 		});
-	jQuery('#nw-for-' +vI).button({ text: false, icons: { primary: " ui-icon-arrowreturnthick-1-n" }})
+	jQuery('#nw-for-' +vi).button({ text: false, icons: { primary: " ui-icon-arrowreturnthick-1-n" }})
 		.click(function() {
-			if (jQuery('#nw-size-'+vI+' :radio:checked').attr('id') == 'nw-size-1-'+vI)
-				self.spin -= 1;
+			if (jQuery('#nw-size-'+vi+' :radio:checked').attr('id') == 'nw-size-1-'+vi)
+				self.spin -= self.inc;
 			else
 				self.spin -= 90;
 			rotate();
 		});
-	jQuery('#nw-size-'+vI).buttonset();
+	jQuery('#nw-size-'+vi).buttonset();
 
 	this.svg = d3.select(this.frameID).append("svg");
 	this.center = this.svg.append("g");
@@ -2934,6 +2934,8 @@ VizNetWheel.prototype.render = function(stream)
 	{
 		var lSelf=this;
 
+		PState.set(PSTATE_UPDATE);
+
 			// First clear out all variables
 		node.each(function(n) { n.targ = false; });
 
@@ -2945,22 +2947,28 @@ VizNetWheel.prototype.render = function(stream)
 				for (var lI=0; lI<links.length; lI++) {
 					var lk = links[lI];
 					if (lk.source === nL && lk.target === l.target) {
-						d3.select(this).attr("stroke", lk.c);
+						d3.select(this).attr("stroke", lk.c)
+							.classed("thick", true);
 					}
 				}
 			} else {
-				d3.select(this).attr("stroke", "white");
+				d3.select(this).attr("stroke", "white")
+							.classed("thick", false);
 			}
 		});
 
 		node.select("text").attr("fill", function(n) { return n.targ ? "red" : "white"; });
 
 		d3.select(lSelf).attr("fill", "black");
+
+		PState.set(PSTATE_READY);
 	} // clickName()
 
 		// remove any existing nodes and links
 	this.svg.selectAll(".node").remove();
 	this.svg.selectAll(".link").remove();
+
+	this.inc = 360/(stream.l+stream.t.length);
 
 		// Compute inner radius based on circumference needed to show all labels
 	var rad = Math.max((stream.l*14 + 20)/(Math.PI*2), 30);
@@ -2968,13 +2976,15 @@ VizNetWheel.prototype.render = function(stream)
 	if (typeof lw == 'string')
 		lw = parseInt(lw);
 
-	var diam = (lw+12)*2 + rad*2;	// Accommodate dot and spacing
+	this.cr = lw+12+rad;	// Radius to center
+
+	var diam = this.cr*2;	// Accommodate dot and spacing
 
 		// Set sizes and centers
 	this.svg.attr("width", diam)
 		.attr("height", diam);
 
-	this.center.attr("transform", "translate(" + (rad+lw+12) + "," + (rad+lw+12) + ")");
+	this.center.attr("transform", "translate(" + this.cr + "," + this.cr + ")");
 
 	if (this.recSel.length > 1)
 		this.recSel=[];

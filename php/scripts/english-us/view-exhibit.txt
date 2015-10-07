@@ -154,6 +154,16 @@
 	</div>
 </script>
 
+<script id="dltext-v-nwheel" type='text'>
+	<div class="ui-widget-header ui-corner-all iconbar">
+		<button id="nw-prev-<%= vi %>">Reverse</button> <button id="nw-for-<%= vi %>">Forward</button>&nbsp;
+		<span id="nw-size-<%= vi %>">
+			<input type="radio" id="nw-size-1-<%= vi %>" name="nw-size-<%= vi %>" checked="checked"><label for="nw-size-1-<%= vi %>">Single</label>
+			<input type="radio" id="nw-size-90-<%= vi %>" name="nw-size-<%= vi %>"><label for="nw-size-90-<%= vi %>">90&deg;</label>
+		</span>
+	</div>
+</script>
+
 <script id="dltext-filter-head" type='text'>
 <div class="filter-instance" data-id="<%= newID %>">
 	<div class="filter-head">
@@ -261,5 +271,5 @@ Jan|Feb|Mar|Apr|May|June|July|Aug|Sep|Oct|Nov|Dec
 </script>
 
 <script id="dltext-pstates" type="text">
-Loading|Processing|Building|Ready
+Loading|Processing|Building|Updating|Ready
 </script>

@@ -1129,9 +1129,15 @@ div.viz-result svg .node text {
 
 div.viz-result svg .link
 {
-	stroke-opacity: 1;
+	stroke-opacity: .7;
 	fill: none;
 	pointer-events: none;
+}
+
+div.viz-result svg .link.thick
+{
+	stroke-opacity: 1;
+	stroke-width: 2px;
 }
 
 
