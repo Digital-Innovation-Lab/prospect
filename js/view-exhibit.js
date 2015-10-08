@@ -393,7 +393,7 @@ VizMap.prototype.render = function(stream)
 		}
 	} // markerClick()
 
-	if (this.recSel.length > 1)
+	if (this.recSel.length > 0)
 		this.recSel=[];
 
 		// Remove previous Markers
@@ -684,7 +684,7 @@ VizCards.prototype.render = function(stream)
 	var thisFrame = jQuery(this.frameID);
 	thisFrame.empty();
 
-	if (this.recSel.length > 1)
+	if (this.recSel.length > 0)
 		this.recSel=[];
 
 	var insert;
@@ -932,7 +932,7 @@ VizPinboard.prototype.render = function(stream)
 		// Remove all previous icons
 	this.gRecs.selectAll('svg.recobj').remove();
 
-	if (this.recSel.length > 1)
+	if (this.recSel.length > 0)
 		this.recSel=[];
 
 	var idx, idy, iw, ih;
@@ -1707,7 +1707,7 @@ VizTime.prototype.render = function(stream)
 	var self = this;
 	var vI = self.vFrame.getIndex();
 
-	if (this.recSel.length > 1)
+	if (this.recSel.length > 0)
 		this.recSel=[];
 
 	self.events=[];		// All event data
@@ -2351,7 +2351,7 @@ VizDirectory.prototype.render = function(stream)
 	var thisFrame = jQuery(this.frameID);
 	thisFrame.empty();
 
-	if (this.recSel.length > 1)
+	if (this.recSel.length > 0)
 		this.recSel=[];
 
 	tRec = stream.t[0];
@@ -2508,7 +2508,7 @@ VizTextStream.prototype.render = function(stream)
 	var vizDiv = jQuery(this.frameID);
 	vizDiv.empty();
 
-	if (this.recSel.length > 1)
+	if (this.recSel.length > 0)
 		this.recSel=[];
 
 	dt = this.settings.max - this.settings.min;
@@ -2993,7 +2993,7 @@ VizNetWheel.prototype.render = function(stream)
 
 	this.center.attr("transform", "translate(" + this.cr + "," + this.cr + ")");
 
-	if (this.recSel.length > 1)
+	if (this.recSel.length > 0)
 		this.recSel=[];
 
 		// Create nested array of nodes for each Template { ti, children }
