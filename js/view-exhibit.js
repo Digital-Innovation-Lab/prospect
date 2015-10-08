@@ -4401,6 +4401,24 @@ function PViewFrame(vfIndex)
 		event.preventDefault();
 	} // clickVizControls()
 
+		// PURPOSE: Hide/show viz-specific controls on right side
+	function clickVizNotes(event)
+	{
+		var d = jQuery("#dialog-vnotes").dialog({
+			width: 300,
+			height: 300,
+			modal: true,
+			buttons: [
+				{
+					text: dlText.ok,
+					click: function() {
+						d.dialog("close");
+					}
+				}]
+		});
+		event.preventDefault();
+	} // clickVizNotes()
+
 		// PURPOSE: Turn on or off all feature Attributes for tmpltIndex
 	function doShowHideAll(tmpltIndex, show)
 	{
@@ -4712,6 +4730,15 @@ function PViewFrame(vfIndex)
 			frame.find('.vopts').button("disable");
 		}
 
+			// Does Viz have annotation?
+		if (typeof theView.n == 'string' && theView.n != '')
+		{
+			frame.find('.vnote').button("enable");
+			jQuery('#vnotes-txt').empty().append('<p>'+theView.n+'</p>');
+		} else {
+			frame.find('.vnote').button("disable");
+		}
+
 		newViz.setup();
 
 			// ViewFrames initially created w/o selection
@@ -4768,7 +4795,9 @@ function PViewFrame(vfIndex)
 				.button({icons: { primary: 'ui-icon-cancel' }, text: false })
 				.click(clickClearSelection).next()
 				.button({icons: { primary: 'ui-icon-gear' }, text: false })
-				.click(clickVizControls).next();
+				.click(clickVizControls).next()
+				.button({icons: { primary: 'ui-icon-help' }, text: false })
+				.click(clickVizNotes).next();
 
 		frame.find('div.lgnd-container')
 			.click(clickInLegend);

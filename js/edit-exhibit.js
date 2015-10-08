@@ -633,6 +633,9 @@ jQuery(document).ready(function() {
 	if (true) {
 		for (var i=0; i<defViews.length; i++) {
 			var theVF = defViews[i];
+				// Create blank comment if doesn't already exist
+			if (typeof theVF.n == 'undefined')
+				theVF.n = '';
 			switch (theVF.vf) {
 			case 'M': 	// Map
 				var newLL=[], newLgnds=[], newPAtts=[], newSAtts=[], newLClrs=[];
@@ -870,6 +873,7 @@ jQuery(document).ready(function() {
 			var newVFEntry = { };
 			newVFEntry.l = newDialog.get('label');
 			newVFEntry.vf = newDialog.get('vfType');
+			newVFEntry.n = '';
 			newVFEntry.c = { };
 				// Provide defaults according to vf type
 			switch(newVFEntry.vf) {
@@ -1268,7 +1272,8 @@ jQuery(document).ready(function() {
 			for (var i=0; i<vCount; i++) {
 				var saveView = {}, viewSettings = rApp.get('viewSettings['+i+']');
 				saveView.l  = viewSettings.l;
-				saveView.vf = viewSettings.vf;
+				saveView.vf = viewSettings.vf; 
+				saveView.n = viewSettings.n.replace(/"/, '');
 				saveView.c = {};
 				switch (saveView.vf) {
 				case 'M': 	// Map

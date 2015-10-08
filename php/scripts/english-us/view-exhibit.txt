@@ -83,6 +83,11 @@
 		</div>
 	</div>
 
+	<div id="dialog-vnotes" title="Notes on Visualization">
+		<div id="vnotes-txt" class="scroll-container">
+		</div>
+	</div>
+
 	<div id="dialog-save-prsrctv" title="Save Perspective">
 		<fieldset class="radiogroup"> 
 			<legend>Where to save</legend>
@@ -142,6 +147,7 @@
 		<button class="osel">Show Selection</button>
 		<button class="xsel">Clear Selection</button>
 		<button class="vopts">View Options</button>
+		<button class="vnote">Visualization Notes</button>
 	</div>
 	<div class="lgnd-container">
 		<button class="lgnd-update">Update</button>
