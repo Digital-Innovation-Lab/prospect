@@ -6,6 +6,11 @@
 	</div>
 </script>
 
+<!-- Ractive Template for Iris Color Picker -->
+<script id="iris-r-template" type='text/ractive'>
+	<input class="jq-iris-template" type="text" size="11" value="{{color}}"/>
+</script>
+
 <!-- Ractive Template for jQueryUI Accordion Component -->
 <script id="accordion-r-template" type='text/ractive'>
 	<div class="jq-accordion-template">
@@ -229,6 +234,7 @@
 			{{/each}}
 			</select>
 			Link Line Color: <input type="text" value="{{c.lClrs[tIndex]}}" size="10"/>
+			<span title="Click to select color" class="viz-icon" style="background-color:{{c.lClrs[tIndex]}}" on-click="setLColor:{{vIndex}},{{tIndex}}"></span>
 			<br/>
 			<b>Provide Legends:</b> 
 			{{#each c.lgnds[tIndex]}}
@@ -346,6 +352,7 @@
 			{{/each}}
 			</select>
 			Link Line Color: <input type="text" value="{{c.lClrs[tIndex]}}" size="10"/>
+			<span title="Click to select color" class="viz-icon" style="background-color:{{c.lClrs[tIndex]}}" on-click="setLColor:{{vIndex}},{{tIndex}}"></span>
 			<br/>
 			<b>Provide Legends: </b>
 			{{#each c.lgnds[tIndex]}}
@@ -508,6 +515,7 @@
 				{{/each}}
 				</select>
 				Use color: <input type="text" value="{{clr}}" size="10"/>
+				<span title="Click to select visual representation" class="viz-icon" style="background-color:{{clr}}" on-click="setNetLColor:{{vIndex}},{{tIndex}},{{pIndex}}"></span>
 				<button decorator="iconButton:ui-icon-trash" on-click="delPtrPair:{{vIndex}},{{tIndex}},{{pIndex}}">Delete</button>
 				<br/>
 			{{/each}}
@@ -622,6 +630,13 @@
 <script id="dialog-confirm" type='text/ractive'>
 	<dialog title="Confirm" width="300" height="200">
 		{{message}}
+	</dialog>
+</script>
+
+<!-- Color Choice Dialog -->
+<script id="dialog-choose-color" type='text/ractive'>
+	<dialog title="Choose Color" width="250" height="330">
+		<iris color="{{color}}"></iris>
 	</dialog>
 </script>
 

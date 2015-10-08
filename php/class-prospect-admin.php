@@ -650,6 +650,7 @@ class ProspectAdmin {
 				wp_enqueue_script('jquery-ui-dialog');
 				wp_enqueue_script('jquery-ui-accordion');
 				wp_enqueue_script('jquery-ui-tabs');
+				wp_enqueue_script('iris');
 
 					// Prospect-specific
 				wp_enqueue_script('ractive', plugins_url('/lib/ractive.min.js', dirname(__FILE__)));
@@ -1734,12 +1735,9 @@ class ProspectAdmin {
 	public function prsp_save_prspctv()
 	{
 			// ensure that this URL has not been faked by non-admin user
-		// if (!current_user_can('edit_posts')) {
-		// 	wp_die('Invalid request');
-		// }
-
-		// if(!is_user_logged_in())
-		// 	die(0);
+		if (!current_user_can('edit_posts')) {
+			wp_die('Invalid request');
+		}
 
 			// Create new Perspective Record
 		$post_data = array(

@@ -112,6 +112,34 @@ jQuery(document).ready(function() {
 		} // onteardown
 	});
 
+	var RJIrisColor = Ractive.extend({
+		template: '#iris-r-template',
+		data: function() {
+			return {
+				color: ''				// the selected color
+			}
+		}, // data
+		onrender: function() {
+			var self = this;
+			var thisComponent = this.find('.jq-iris-template');
+
+			jQuery(thisComponent).iris({
+				width: 200,
+				hide: false,
+				palettes: true,
+				change: function(event, ui) {
+					self.set('color', ui.color.toString());
+				}
+			});
+		}, // onrender()
+
+			// Intercept teardown to create jQueryUI component
+		onteardown: function () {
+			var thisComponent = this.find('.jq-iris-template');
+			jQuery(thisComponent).iris('destroy');
+		} // onteardown()
+	});
+
 		// Create Ractive component to wrap jQueryUI Accordion
 	var RJAccordionComponent = Ractive.extend({
 		template: '#accordion-r-template',
@@ -286,6 +314,34 @@ jQuery(document).ready(function() {
 	{
 		return defGen.ts.findIndex(function(theAttID) { return theAttID == tmpltID; });
 	} // getTemplateIndex()
+
+		// PURPOSE: Allow user to choose a color
+		// INPUT: 	initColor is the initial color
+		// RETURNS: New color (as hex string) or null if cancal
+	function chooseColor(keypath)
+	{
+		var c = rApp.get(keypath);
+
+		var colorPicker = new Ractive({
+			el: '#insert-dialog',
+			template: '#dialog-choose-color',
+			data: {
+				color: c
+			},
+			components: {
+				dialog: RJDialogComponent,
+				iris: RJIrisColor
+			}
+		}); // new Ractive()
+		colorPicker.on('dialog.ok', function() {
+			var finalColor = colorPicker.get('color');
+			colorPicker.teardown();
+			rApp.set(keypath, finalColor);
+		});
+		colorPicker.on('dialog.cancel', function() {
+			colorPicker.teardown();
+		});
+	} // chooseColor()
 
 		// PURPOSE: Check basic data provided by the user for Template definition
 		// RETURNS: false if definition has errors, otherwise array:
@@ -1023,6 +1079,13 @@ jQuery(document).ready(function() {
 		return false;
 	});
 
+		// NOTES: 	For Maps and Pinboards
+	rApp.on('setLColor', function(event, vIndex, tIndex) {
+		var keypath='viewSettings['+vIndex+'].c.lClrs['+tIndex+']';
+		chooseColor(keypath);
+		return false;
+	});
+
 	rApp.on('addSVGLayer', function(event, vIndex) {
 		rApp.push('viewSettings['+vIndex+'].c.lyrs', { url: '', o: 1 });
 		return false;
@@ -1086,6 +1149,13 @@ jQuery(document).ready(function() {
 
 	rApp.on('delPtrPair', function(event, vIndex, tIndex, pIndex) {
 		rApp.splice('viewSettings['+vIndex+'].c.pAtts['+tIndex+']', pIndex, 1);
+		return false;
+	});
+
+
+	rApp.on('setNetLColor', function(event, vIndex, tIndex, pIndex) {
+		var keypath = 'viewSettings['+vIndex+'].c.pAtts['+tIndex+']['+pIndex+'].clr';
+		chooseColor(keypath);
 		return false;
 	});
 
