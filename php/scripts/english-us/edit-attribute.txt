@@ -26,7 +26,7 @@
 <script id='legendDataEntry' type='text/ractive'>
 	<div class="legend-data-entry">
 		<span class="legend-label">{{l}}</span> <span class="legend-val">{{val}}</span>
-		<span title="Click to select visual representation" class="viz-icon" style="background-color:{{v}}"  on-click="doLegendViz:{{index}}"></span>
+		<span title="Click to select color" class="viz-icon" style="background-color:{{v}}"  on-click="doLegendViz:{{index}}"></span>
 		{{>legendBtns}}
 	</div>
 </script>
@@ -82,7 +82,7 @@
 			{{#each theLegend:index1}}
 				<li class="legend-data-entry" id="vocab_{{index1}}">
 					<span class="legend-label">{{l}}</span>
-					<span title="Click to select visual representation" class="viz-icon" style="background-color:{{v}}" on-click="doLegendViz:{{index1}}"></span>
+					<span title="Click to select color" class="viz-icon" style="background-color:{{v}}" on-click="doLegendViz:{{index1}}"></span>
 					<div class="ui-widget-header ui-corner-all legend-btn-set">
 						<button decorator="iconButton:ui-icon-transfer-e-w" on-click="doVocabMove:{{index1}}">Move Entries</button>
 						<button decorator="iconButton:ui-icon-arrowthick-1-n" on-click="doLegendUp:{{index1}}">Move Up</button>
@@ -97,9 +97,9 @@
 							<li class="legend-data-entry" id="vocab_{{index1}}_{{index2}}">
 								{{l}}
 								{{#if v.length > 1}}
-								<span title="Click to select visual representation" class="viz-icon" style="background-color:{{v}}" on-click="doLegendViz:{{index1}},{{index2}}"></span>
+								<span title="Click to select color" class="viz-icon" style="background-color:{{v}}" on-click="doLegendViz:{{index1}},{{index2}}"></span>
 								{{else}}
-								<span title="Click to select visual representation" class="viz-icon" on-click="doLegendViz:{{index1}},{{index2}}"></span>
+								<span title="Click to select color" class="viz-icon" on-click="doLegendViz:{{index1}},{{index2}}"></span>
 								{{/if}}
 								<div class="ui-widget-header ui-corner-all legend-btn-set">
 									<button decorator="iconButton:ui-icon-transfer-e-w" on-click="doVocabMove:{{index1}},{{index2}}">Move Entry</button>
