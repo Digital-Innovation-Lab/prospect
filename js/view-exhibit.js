@@ -154,7 +154,7 @@ function PVizModel(viewFrame, vizSettings)
 		// All subclasses must implement the following:
 	// this.flags()
 	// this.setup()
-	// this.render(stream)
+	// this.render(stream)		// Clears any previous selection
 	// this.setSel(absIDs)
 } // PVizModel
 
@@ -331,7 +331,6 @@ VizMap.prototype.setup = function()
 	jQuery('#map-reset-'+vi).button({ text: false, icons: { primary: "ui-icon-arrowrefresh-1-w" }})
 		.click(resetMap);
 
-
 	// var markers;
 	// if (this.settings.clster) {
 	// 	markers = new L.MarkerClusterGroup();
@@ -406,7 +405,7 @@ VizMap.prototype.render = function(stream)
 	var numTmplts = PData.getNumETmplts();
 	var i=0, aI, tI=0, tRec, tLClr, rec;
 	var fAttID, fAtt, locAtts, featSet, pAttID;
-	var locData, fData, newMarker, s;
+	var locData, fData, newMarker;
 
 	var sAttID, sAtt, minR, maxR, dR, minS, dS;
 
@@ -489,7 +488,6 @@ VizMap.prototype.render = function(stream)
 				if (typeof fData != 'undefined') {
 					fData = PData.getAttLgndVal(fData, fAtt, featSet);
 					if (fData) {
-						s = self.isSel(aI);
 						if (typeof locData[0] == 'number') {
 							if (sAttID) {
 								sAtt = rec.a[sAttID];
@@ -502,7 +500,7 @@ VizMap.prototype.render = function(stream)
 
 							newMarker = L.circleMarker(locData,
 								{	_aid: aI, weight: 1, radius: sAtt,
-									fillColor: fData, color: s ? "#ff0000" : "#000",
+									fillColor: fData, color: "#000",
 									opacity: 1, fillOpacity: 1
 								});
 							if (cEntry)
@@ -511,13 +509,13 @@ VizMap.prototype.render = function(stream)
 							if (locData.length == 2) {
 								newMarker = L.polyline(locData,
 									{	_aid: aI, weight: 1,
-										fillColor: fData, color: s ? "#ff0000" : "#000",
+										fillColor: fData, color: "#000",
 										opacity: 1, fillOpacity: 1
 									});
 							} else {
 								newMarker = L.polygon(locData,
 									{	_aid: aI, weight: 1,
-										fillColor: fData, color: s ? "#ff0000" : "#000",
+										fillColor: fData, color: "#000",
 										opacity: 1, fillOpacity: 1
 									});
 							}
@@ -680,7 +678,7 @@ VizCards.prototype.render = function(stream)
 	var numTmplts = PData.getNumETmplts();
 	var i=0, aI, tI=-1, tID, tRec, tDef;
 	var newT=true, fAttID, fAtt, iAttID;
-	var featSet, rec, c, s;
+	var featSet, rec, c;
 	var hasC, cnt, datum, t, tDiv, tC;
 
 	var thisFrame = jQuery(this.frameID);
@@ -733,7 +731,6 @@ VizCards.prototype.render = function(stream)
 			c = PData.getAttLgndRecs(datum, fAtt, featSet, false);
 
 			if (c) {
-				s = self.isSel(aI) ? ' obj-sel' : '';
 				tDiv = self.settings.lOn ? '<div class="card-title">'+rec.l+'</div>' : '';
 					// Get and add textual content
 				hasC = false; t = '';
@@ -756,7 +753,7 @@ VizCards.prototype.render = function(stream)
 				} else {
 					t = '<div class="card-body"><div class="card-cnt"'+tC+'>'+t+'</div>';
 				}
-				insert.append('<div class="card '+div+s+'" style="background-color:'+c.v+'" data-ai="'+aI+'">'+tDiv+t+'</div>');
+				insert.append('<div class="card '+div+'" style="background-color:'+c.v+'" data-ai="'+aI+'">'+tDiv+t+'</div>');
 			} // if Legend selected
 		} // if Legend datum
 		if (++i == (tRec.i + tRec.n)) {
@@ -932,11 +929,6 @@ VizPinboard.prototype.render = function(stream)
 		d3.select(this).classed('obj-sel', s);
 	} // clickPin()
 
-	function checkSel(d)
-	{
-		return self.isSel(d.ai) ? 'recobj obj-sel' : 'recobj';
-	} // checkSel()
-
 		// Remove all previous icons
 	this.gRecs.selectAll('svg.recobj').remove();
 
@@ -1047,7 +1039,7 @@ VizPinboard.prototype.render = function(stream)
 	this.gRecs.selectAll('svg.recobj')
 		.data(nodes)
 		.enter()
-		.append('svg').attr('class', checkSel)
+		.append('svg').attr('class', 'recobj')
 		.attr('x', function(d) { return self.xScale(d.x); })
 		.attr('y', function(d) { return self.yScale(d.y); })
 		.attr('width', function(d) { return self.xScale(d.w); })
@@ -1889,19 +1881,11 @@ VizTime.prototype.render = function(stream)
 	{
 		function eventClass(d)
 		{
-				// Only highlight for zoom band
-			if (bi == 1 && self.isSel(d.ai)) {
-				if (d.f & EVENT_INSTANT)
-					return "event instant obj-sel";
-				else
-					return "event range obj-sel";
-			} else {
-				if (d.f & EVENT_INSTANT)
-					return "event instant";
-				else
-					return "event range";
-			}
-		} // checkSel()
+			if (d.f & EVENT_INSTANT)
+				return "event instant";
+			else
+				return "event range";
+		} // eventClass()
 
 			// NOTE: Only zoom band responds to click
 		function clickEvent(d)
@@ -2245,10 +2229,6 @@ VizTime.prototype.resize = function()
 	});
 } // resize()
 
-VizTime.prototype.teardown = function()
-{
-} // teardown()
-
 VizTime.prototype.setSel = function(absIArray)
 {
 	var self=this;
@@ -2406,10 +2386,7 @@ VizDirectory.prototype.render = function(stream)
 		aI = stream.s[i];
 // console.log("Next record: "+i+" (absI) "+aI);
 		rec = PData.getRecByIndex(aI);
-		t = '<tr data-id="'+rec.id+'" data-ai='+aI;
-		if (self.isSel(aI))
-			t += ' class="obj-sel" ';
-		t += '>';
+		t = '<tr data-id="'+rec.id+'" data-ai='+aI+'>';
 		fAtts.forEach(function(attID) {
 			datum = rec.a[attID];
 			if (typeof datum != 'undefined') {
@@ -2523,7 +2500,7 @@ VizTextStream.prototype.render = function(stream)
 
 	var numTmplts = PData.getNumETmplts();
 	var tI=0, tID, tRec, tDef;
-	var insert, rec, datum, t, s, h;
+	var insert, rec, datum, t, s;
 
 	var order, oAtt, cAttID, cAtt, featSet, fAttID, fAtt, fData;
 	var szAtt, szAttID, da, dt, bC;
@@ -2606,9 +2583,8 @@ VizTextStream.prototype.render = function(stream)
 									s = self.settings.min;
 							} else
 								s = self.settings.min;
-							h = self.isSel(oRec.i) ? ' obj-sel' : '';
 							bC = fData.b ? ';background-color:black' : '';
-							insert.append('<div class="recitem'+h+'" data-ai='+oRec.i+' style="color:'+fData.v+bC+';font-size:'+s+'px">'+t+'</div>');
+							insert.append('<div class="recitem" data-ai='+oRec.i+' style="color:'+fData.v+bC+';font-size:'+s+'px">'+t+'</div>');
 						} // t
 					} // if fData
 				}
@@ -6280,11 +6256,6 @@ jQuery(document).ready(function($) {
 	{
 		PState.set(PSTATE_PROCESS);
 
-			// Recompute must clear current selection
-		view0.clearSel();
-		if (view1)
-			view1.clearSel();
-
 		if (topStream == null)
 			topStream = PData.newIndexStream(true);
 		endStream = topStream;
@@ -6334,7 +6305,6 @@ jQuery(document).ready(function($) {
 		jQuery('#btn-recompute').removeClass('pulse');
 	} // doRecompute()
 
-		// TO DO: Check and set frameState; make cursor busy during compute!
 	function clickRecompute(event)
 	{
 		doRecompute();
