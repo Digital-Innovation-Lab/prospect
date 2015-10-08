@@ -2959,24 +2959,24 @@ VizNetWheel.prototype.render = function(stream)
 			// Go through links, setting colors and flags
 		link.each(function(l) {
 				// Is this the source of a link?
-			if (l.source === nL) {
-				l.target.linked = true;
+			if (l.s === nL) {
+				l.t.linked = true;
 					// Search for corresponding entry in original array
 				for (var lI=0; lI<links.length; lI++) {
 					var lk = links[lI];
-					if (lk.source === nL && lk.target === l.target) {
+					if (lk.source === nL && lk.target === l.t) {
 						d3.select(this).attr("stroke", lk.c)
 							.classed("thick", true);
 						break;
 					}
 				}
 				// target of a link?
-			} else if (l.target === nL) {
-				l.source.linked = true;
+			} else if (l.t === nL) {
+				l.s.linked = true;
 					// Search for corresponding entry in original array
 				for (var lI=0; lI<links.length; lI++) {
 					var lk = links[lI];
-					if (lk.target === nL && lk.source === l.source) {
+					if (lk.target === nL && lk.source === l.s) {
 						d3.select(this).attr("stroke", lk.c)
 							.classed("thick", true);
 						break;
@@ -3143,7 +3143,7 @@ VizNetWheel.prototype.render = function(stream)
 	link = this.center.append("g").selectAll(".link")
 		.data(bundle(links))
 		.enter().append("path")
-    	.each(function(d) { d.source = d[0], d.target = d[d.length - 1]; })
+    	.each(function(d) { d.s = d[0], d.t = d[d.length - 1]; })
 		.attr("class", "link")
 		.attr("d", line)
 		.attr("stroke", "white");
