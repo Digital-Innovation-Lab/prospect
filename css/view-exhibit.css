@@ -377,6 +377,16 @@ div.view-control-bar .ui-icon {
 	cursor: pointer;
 }
 
+div.view-control-bar div.iconbar
+{
+	padding: 2px;
+	margin: 2px;
+	margin-top: -4px;
+/*	display: inline-block; */
+	font-size: 9px;
+	float: right;
+}
+
 div.viz-content {
 	position: absolute;
 	height: 100%;
@@ -1111,16 +1121,6 @@ svg .block.obj-sel
 
 	/* Network Wheel styles */
 
-/* div.viz-result .iconbar */
-div.view-control-bar div.iconbar
-{
-	padding: 2px;
-	margin: 2px;
-	margin-top: -4px;
-/*	display: inline-block; */
-	font-size: 9px;
-	float: right;
-}
 
 svg .node
 {

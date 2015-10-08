@@ -2945,18 +2945,32 @@ VizNetWheel.prototype.render = function(stream)
 		PState.set(PSTATE_UPDATE);
 
 			// First clear out all variables
-		node.each(function(n) { n.targ = false; });
+		node.each(function(n) { n.linked = false; });
 
 			// Go through links, setting colors and flags
 		link.each(function(l) {
+				// Is this the source of a link?
 			if (l.source === nL) {
-				l.target.targ = true;
+				l.target.linked = true;
 					// Search for corresponding entry in original array
 				for (var lI=0; lI<links.length; lI++) {
 					var lk = links[lI];
 					if (lk.source === nL && lk.target === l.target) {
 						d3.select(this).attr("stroke", lk.c)
 							.classed("thick", true);
+						break;
+					}
+				}
+				// target of a link?
+			} else if (l.target === nL) {
+				l.source.linked = true;
+					// Search for corresponding entry in original array
+				for (var lI=0; lI<links.length; lI++) {
+					var lk = links[lI];
+					if (lk.target === nL && lk.source === l.source) {
+						d3.select(this).attr("stroke", lk.c)
+							.classed("thick", true);
+						break;
 					}
 				}
 			} else {
@@ -2965,9 +2979,9 @@ VizNetWheel.prototype.render = function(stream)
 			}
 		});
 
-		node.select("text").attr("fill", function(n) { return n.targ ? "red" : "white"; });
+		node.select("text").attr("fill", function(n) { return n.linked ? "black" : "white"; });
 
-		d3.select(lSelf).attr("fill", "black");
+		d3.select(lSelf).attr("fill", "red");
 
 		PState.set(PSTATE_READY);
 	} // clickName()
