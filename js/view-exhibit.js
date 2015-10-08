@@ -280,10 +280,18 @@ VizMap.prototype.setup = function()
 	else
 		zoom = this.settings.zoom;
 
-	// function resetMap()
-	// {
-	// 	self.lMap.setView([centerLat, centerLon], zoom);
-	// } // resetMap()
+	function zoomMap()
+	{
+		self.lMap.zoomIn();
+	} // zoomMap()
+	function unzoomMap()
+	{
+		self.lMap.zoomOut();
+	} // unzoomMap()
+	function resetMap()
+	{
+		self.lMap.setView([centerLat, centerLon], zoom);
+	} // resetMap()
 
 	var vIndex = this.vFrame.getIndex();
 
@@ -312,22 +320,17 @@ VizMap.prototype.setup = function()
 		self.mapLayers.push(newLayer);
 	});
 
-	var zoomControl = L.control.zoom({position: 'topright'});
-	zoomControl.addTo(this.lMap);
+	var vi = this.vFrame.getIndex();
+	var fh = _.template(document.getElementById('dltext-v-map').innerHTML);
+	jQuery('#view-frame-'+vi+' div.view-control-bar').append(fh({ vi: vi }));
 
-		// Reset button
-	// var resetControl = L.control({position: 'topright'});
-	// resetControl.onAdd = function (map) {
-	// 	this._div = L.DomUtil.create('div', 'reset-control leaflet-bar');
-	// 	this.update();
-	// 	return this._div;
-	// };
-	// resetControl.update = function (props) {
-	// 	this._div.innerHTML = '<span class="ui-icon ui-icon-arrowrefresh-1-e"></span>';
-	// 	this._div.innerHTML = '<a class="reset-map" ><i class="fi-refresh"></i></a>';
-	// };
-	// resetControl.addTo(this.lMap);
-	// jQuery('div.reset-control').click(resetMap);
+	jQuery('#map-zoom-'+vi).button({ text: false, icons: { primary: "ui-icon-plus" }})
+		.click(zoomMap);
+	jQuery('#map-unzoom-'+vi).button({ text: false, icons: { primary: "ui-icon-minus" }})
+		.click(unzoomMap);
+	jQuery('#map-reset-'+vi).button({ text: false, icons: { primary: "ui-icon-arrowrefresh-1-w" }})
+		.click(resetMap);
+
 
 	// var markers;
 	// if (this.settings.clster) {
@@ -571,6 +574,12 @@ VizMap.prototype.render = function(stream)
 		});
 	} // mCache
 } // render()
+
+VizMap.prototype.teardown = function()
+{
+	var vi = this.vFrame.getIndex();
+	jQuery('#view-frame-'+vi+' div.view-control-bar div.iconbar').remove();
+} // teardown()
 
 
 VizMap.prototype.resize = function()

@@ -154,6 +154,14 @@
 	</div>
 </script>
 
+<script id="dltext-v-map" type='text'>
+	<div class="ui-widget-header ui-corner-all iconbar">
+		<button id="map-zoom-<%= vi %>">Zoom</button>
+		<button id="map-unzoom-<%= vi %>">Unzoom</button>
+		<button id="map-reset-<%= vi %>">Reset</button>
+	</div>
+</script>
+
 <script id="dltext-v-nwheel" type='text'>
 	<div class="ui-widget-header ui-corner-all iconbar">
 		<button id="nw-prev-<%= vi %>">Reverse</button> <button id="nw-for-<%= vi %>">Forward</button>&nbsp;
