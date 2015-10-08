@@ -3161,7 +3161,7 @@ VizNetWheel.prototype.setSel = function(absIArray)
 
 	self.recSel = absIArray;
 	this.svg.selectAll(".node circle")
-			.attr("class", function(d) { self.isSel(d.ai) ? 'obj-sel' : '' });
+			.attr("class", function(d) { return self.isSel(d.ai) ? 'obj-sel' : '' });
 } // setSel()
 
 VizNetWheel.prototype.clearSel = function()
@@ -5056,7 +5056,7 @@ var PData = (function() {
 
 			// PURPOSE: Optimized and reliable string compare
 		strcmp: function(a, b) {
-			for (var i=0,n=Math.max(a.length, b.length); i<n && a.charAt(i) === b.charAt(i); ++i);
+			for (var i=0,n=Math.max(a.length, b.length); i<n && a.charAt(i) === b.charAt(i); ++i) {};
 			if (i === n) return 0;
 			return a.charAt(i) > b.charAt(i) ? -1 : 1;
 		}, // strcmp()
