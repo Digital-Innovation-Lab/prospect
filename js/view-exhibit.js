@@ -94,7 +94,7 @@ var widgetData = {			// Widget state has to be global because YouTube API calls 
 // ==========================================================
 // PState
 // PURPOSE: Manages state of Prospect and displaying it
-// NOTES: 	Must be a global object because called by VizFrames and global app object
+// NOTES: 	Must be a global object because called by VizModels, VizFrames and global app object
 
 var PState = (function() {
 
@@ -3523,7 +3523,13 @@ PFilterNum.prototype.setup = function()
 			self.isDirty(true);
 		} // brushended()
 
-		var innerW = this.rCats.length*D3FG_BAR_WIDTH;
+		var colW=0;
+		this.rCats.forEach(function(c) {
+			colW=Math.max(colW, c.l.length);
+		});
+		colW=Math.max(D3FG_BAR_WIDTH, colW*8);
+
+		var innerW = this.rCats.length*colW;
 		var xScale = d3.scale.linear().domain([0, this.rCats.length])
 			.rangeRound([0, innerW]);
 		var yScale = d3.scale.linear().domain([0,100]).range([innerH, 0]);
@@ -3552,11 +3558,11 @@ PFilterNum.prototype.setup = function()
 			.data(this.rCats)
 			.enter().append("rect")
 			.attr("class", "bar")
-			.attr("x", function(d, i) { return xScale(i); })
+			.attr("x", function(d, i) { return xScale(i)+2; })
 			.attr("y", function(d) { return yScale(100); })
 			.attr("fill", function(d) { return d.c; })
 			.attr("height", function(d) { return innerH - yScale(100); })
-			.attr("width", D3FG_BAR_WIDTH-2);
+			.attr("width", colW-4);
 
 		self.brush = d3.svg.brush()
 			.x(xScale)
@@ -3711,7 +3717,14 @@ PFilterDates.prototype.setup = function()
 		self.isDirty(true);
 	} // brushended()
 
-	var innerW = this.rCats.length*D3FG_BAR_WIDTH;
+
+	var colW=0;
+	this.rCats.forEach(function(c) {
+		colW=Math.max(colW, c.l.length);
+	});
+	colW=Math.max(D3FG_BAR_WIDTH, colW*8);
+
+	var innerW = this.rCats.length*colW;
 	var xScale = d3.scale.linear().domain([0, this.rCats.length])
 		.rangeRound([0, innerW]);
 	var yScale = d3.scale.linear().domain([0,100]).range([innerH, 0]);
@@ -3748,11 +3761,11 @@ PFilterDates.prototype.setup = function()
 		.data(this.rCats)
 		.enter().append("rect")
 		.attr("class", "bar")
-		.attr("x", function(d, i) { return xScale(i); })
+		.attr("x", function(d, i) { return xScale(i)+2; })
 		.attr("y", function(d) { return yScale(100); })
 		.attr("fill", function(d) { return d.c; })
 		.attr("height", function(d) { return innerH - yScale(100); })
-		.attr("width", D3FG_BAR_WIDTH-2);
+		.attr("width", colW-4);
 
 	self.brush = d3.svg.brush()
 		.x(xScale)
