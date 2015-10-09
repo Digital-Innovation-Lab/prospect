@@ -440,7 +440,8 @@ div.viz-result.viz-max-w {
 
 	/* Legends are semi-opaque overlays on content in top-left corner (z = 1000)
 	 * lgnd-container (outer)
-	 *		lgnd-update
+	 *		lgnd-handle (draggable)
+	 *			lgnd-update
 	 *		lgnd-scroll (scrolling area)
 	 * 		lgnd-template (DIV per template): data-index = index of Template
 	 *			lgnd-title
@@ -468,7 +469,7 @@ div.lgnd-container {
 
 	max-height: 265px;
 
-	padding: 6px;
+	padding: 4px;
 	background-color: rgba(255, 255, 255, .8);
 
 	color: #222;
@@ -479,11 +480,27 @@ div.lgnd-container {
 	box-shadow: 0 0 5px 5px rgba(0,0,0,0.3);
 }
 
+div.lgnd-handle {
+	height: 22px;
+	background-color: #A8A8A8;
+	border: 1px black dotted;
+	cursor: move;
+
+	margin-bottom: 3px;
+
+	-moz-box-shadow: 0 0 2px 2px rgba(0,0,0,0.3);
+	-webkit-box-shadow: 0 0 2px 2px rgba(0,0,0,0.3);
+	box-shadow: 0 0 2px 2px rgba(0,0,0,0.3);
+}
+
 	/* Button to force Re-render */
 button.lgnd-update {
 	height: 18px;
-	margin-bottom: 3px;
-	font-size: 10px;
+	margin: 2px;
+	padding: 1px;
+	background-color: white;
+
+	font-size: 8px;
 	font-weight: bold;
 	color: green;
 }
@@ -681,14 +698,6 @@ div.template-label {
 }
 
 	/* Map Styles */
-div.leaflet-bar a,
-div.leaflet-bar a:hover {
-	width: 36px;
-	height: 36px;
-	line-height: 36px;
-	font-size: 22px;
-}
-
 div.leaflet-control-layers.leaflet-control-layers-expanded {
 	width: 150px;
 }
@@ -1120,8 +1129,6 @@ svg .block.obj-sel
 
 
 	/* Network Wheel styles */
-
-
 svg .node
 {
 }

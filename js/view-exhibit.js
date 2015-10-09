@@ -4777,6 +4777,9 @@ function PViewFrame(vfIndex)
 
 		var frame = jQuery(getFrameID());
 
+			// Activate drag handle on Legend
+		frame.find('div.lgnd-container').draggable({ handle: frame.find('div.lgnd-handle'), containment: "parent" });
+
 		var select = frame.find('div.view-control-bar select.view-viz-select');
 			// Set Dropdown to View names
 		prspdata.e.vf.forEach(function(theVF, i) {
