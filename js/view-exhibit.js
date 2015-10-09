@@ -2668,8 +2668,15 @@ VizStackChart.prototype.getFeatureAtts = function(tIndex)
 	// PURPOSE: Set up SVG and D3 once cats has been created
 VizStackChart.prototype.setup2 = function()
 {
+	var colW=0;
+	this.cats.forEach(function(c) {
+		colW=Math.max(colW, c.l.length);
+	});
+	colW=Math.max(D3FG_BAR_WIDTH, (colW*8)+4);
+	this.colW = colW;
+
+	var innerW = this.cats.length*colW;
 	var innerH = this.settings.h;
-	var innerW = this.cats.length*(this.settings.bw+10);	// 10 pix padding between bars/labels
 	this.xScale = d3.scale.linear().domain([0, this.cats.length])
 		.rangeRound([0, innerW]);
 	this.yScale = d3.scale.linear().range([0, innerH-1]);
@@ -2777,10 +2784,10 @@ VizStackChart.prototype.render = function(stream)
 	}
 
 		// Now that we have max Y value, reset yScale domain max
-	this.yScale.domain([0,maxY]);
-	this.svg.select(".y.axis").call(self.yAxis);
+	self.yScale.domain([0,maxY]);
+	self.svg.select(".y.axis").call(self.yAxis);
 
-	var bw = this.settings.bw;
+	var bw = self.colW-7;
 
 	this.svg.selectAll(".block")
 			.data(self.blocks)
