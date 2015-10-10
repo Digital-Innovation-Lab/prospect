@@ -380,8 +380,7 @@
 	<input type='checkbox' checked='{{c.tlit}}'/> Retain all unique Text Record values? &nbsp;&nbsp;
 	<input type='checkbox' checked='{{c.gr}}'/> Break Number and Date ranges into graduated scale?
 	<br/>
-	Pixel height of visualization: <input type="number" value="{{c.h}}" min="1" max="1000"/> &nbsp;
-	Pixel width of chart bars and labels: <input type="number" value="{{c.bw}}" min="1" max="200"/>
+	Pixel height of visualization: <input type="number" value="{{c.h}}" min="1" max="1000"/>
 	<br/>
 	Sort and order Records along x axis by 
 	<select value='{{c.oAtt}}'>

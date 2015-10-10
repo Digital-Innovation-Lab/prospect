@@ -1016,7 +1016,6 @@ jQuery(document).ready(function() {
 				break;
 			case 'S': 	// Stacked Chart
 				newVFEntry.c.tlit = false;
-				newVFEntry.c.bw = 20;
 				newVFEntry.c.gr = true;
 				newVFEntry.c.h = 500;
 				newVFEntry.c.oAtt = defJoinedFacets[0].id || '';
@@ -1369,7 +1368,6 @@ jQuery(document).ready(function() {
 					break;
 				case 'S': 	// Stacked Chart
 					saveView.c.tlit = viewSettings.c.tlit;
-					saveView.c.bw   = viewSettings.c.bw;
 					saveView.c.gr   = viewSettings.c.gr;
 					saveView.c.h    = viewSettings.c.h;
 					saveView.c.oAtt = viewSettings.c.oAtt;
