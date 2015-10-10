@@ -3173,15 +3173,13 @@ VizNetWheel.prototype.setState = function(state)
 
 	// INPUT: 	id = unique ID for this filter (0 = selector filter)
 	//			attRec = pointer to complete Attribute or Facet Browser settings
-	//			req = initial state of required flag
 	// ASSUMES: required is true by default
-function PFilterModel(id, attRec, req)
+function PFilterModel(id, attRec)
 {
 	this.id 		= id;
 	this.att 		= attRec;
 
 	this.dirty 		= true;
-	this.req 		= req;
 
 		// Sublcasses can override the following:
 	// this.title()
@@ -3209,15 +3207,15 @@ PFilterModel.prototype.isDirty = function(setDirty)
 
 	// PURPOSE: Either set or get setting if Filter value is required
 	// RETURNS: true if Attribute is required by Filter, false if records without pass through
-PFilterModel.prototype.isReq = function(set, state)
-{
-	if (set) {
-		if (this.req != state)
-			this.isDirty(true);
-		this.req = state;
-	}
-	return this.dirty;
-} // isReq
+// PFilterModel.prototype.isReq = function(set, state)
+// {
+// 	if (set) {
+// 		if (this.req != state)
+// 			this.isDirty(true);
+// 		this.req = state;
+// 	}
+// 	return this.dirty;
+// } // isReq
 
 	// PURPOSE: Return title for filter component
 	// NOTES: 	Handles default case of Attribute label
@@ -3239,9 +3237,9 @@ PFilterModel.prototype.teardown = function()
 // ============================================
 // PFilterText: Class to filter Text Attributes
 
-var PFilterText = function(id, attRec, req)
+var PFilterText = function(id, attRec)
 {
-	PFilterModel.call(this, id, attRec, req);
+	PFilterModel.call(this, id, attRec);
 } // PFilterText()
 
 PFilterText.prototype = Object.create(PFilterModel.prototype);
@@ -3250,23 +3248,20 @@ PFilterText.prototype.constructor = PFilterText;
 
 PFilterText.prototype.evalPrep = function()
 {
-	this.findStr = this.insertPt().find('input.filter-text').val();
+	this.fStr = this.insertPt().find('input.filter-text').val();
 } // evalPrep()
 
 PFilterText.prototype.eval = function(rec)
 {
-	var str = this.findStr;
+	var s = this.fStr;
 
-	if (str == null || str == '')
+	if (s == null || s == '')
 		return true;
 
-	var txt = rec.a[this.att.id];
-	if (typeof txt == 'undefined') {
-		if (this.req)
-			return false;
-		return true;
-	}
-	return txt.indexOf(str) != -1;
+	var t = rec.a[this.att.id];
+	if (typeof t == 'undefined')
+		return false;
+	return t.indexOf(s) != -1;
 } // eval()
 
 PFilterText.prototype.setup = function()
@@ -3296,9 +3291,9 @@ PFilterText.prototype.setState = function(state)
 // ===================================================
 // PFilterVocab: Class to filter Vocabulary Attributes
 
-var PFilterVocab = function(id, attRec, req)
+var PFilterVocab = function(id, attRec)
 {
-	PFilterModel.call(this, id, attRec, req);
+	PFilterModel.call(this, id, attRec);
 } // PFilterVocab()
 
 PFilterVocab.prototype = Object.create(PFilterModel.prototype);
@@ -3323,11 +3318,8 @@ PFilterVocab.prototype.eval = function(rec)
 	if (this.sel.length == 0)
 		return false;
 	var v = rec.a[this.att.id];
-	if (typeof v == 'undefined') {
-		if (this.req)
-			return false;
-		return true;
-	}
+	if (typeof v == 'undefined')
+		return false;
 		// Try all possible Attribute values
 	var s, vi;
 	for (var i=0; i<v.length; i++) {
@@ -3396,9 +3388,9 @@ PFilterVocab.prototype.setState = function(state)
 // ================================================
 // PFilterNum: Class to filter Number Attributes
 
-var PFilterNum = function(id, attRec, req)
+var PFilterNum = function(id, attRec)
 {
-	PFilterModel.call(this, id, attRec, req);
+	PFilterModel.call(this, id, attRec);
 } // PFilterNum()
 
 PFilterNum.prototype = Object.create(PFilterModel.prototype);
@@ -3420,11 +3412,8 @@ PFilterNum.prototype.evalPrep = function()
 PFilterNum.prototype.eval = function(rec)
 {
 	var num = rec.a[this.att.id];
-	if (typeof num == 'undefined') {
-		if (this.req)
-			return false;
-		return true;
-	}
+	if (typeof num == 'undefined')
+		return false;
 
 	if (this.useMin && num < this.min)
 		return false;
@@ -3651,11 +3640,9 @@ PFilterDates.prototype.eval = function(rec)
 	} // makeDate()
 
 	var d = rec.a[this.att.id];
-	if (typeof d == 'undefined') {
-		if (this.req)
-			return false;
-		return true;
-	}
+	if (typeof d == 'undefined')
+		return false;
+
 		// Is it a single event?
 	if (typeof d.max == 'undefined') {
 		var c = makeDate(d.min.y, 1, 1, d.min);
@@ -6292,6 +6279,7 @@ jQuery(document).ready(function($) {
 	var filters=[];			// Filter Stack: { id, f [PFilterModel], out }
 	var selFilter=null;		// Selector Filter
 	var selFID;				// Attribute ID for Selector Filter
+	var apTmStr;			// Apply to <template label> for Filters
 
 	var annote;				// Annotation from Perspective
 
@@ -6306,6 +6294,8 @@ jQuery(document).ready(function($) {
 
 	function doRecompute()
 	{
+		var fDiv;
+
 		PState.set(PSTATE_PROCESS);
 
 		if (topStream == null)
@@ -6316,27 +6306,35 @@ jQuery(document).ready(function($) {
 		var started=false, fI, theF;
 		for (fI=0; fI<filters.length; fI++) {
 			theF = filters[fI];
+			fDiv = jQuery('div.filter-instance[data-id="'+theF.id+'"]');
 				// If we've started, evaluate and propagate
 			if (started || theF.f.isDirty(null)) {
 				started = true;
 				theF.f.evalPrep();
 				var newStream = PData.newIndexStream(false);
 				var relI=0, absI, rec;
-				var tI=0, tRec=endStream.t[0], tRn=0;
+				var tI=0, tRec=endStream.t[0], tRn=0, e;
+				e=fDiv.find('.apply-tmplt-0').is(':checked');
 					// Must keep absolute indices and template params updated!
 				while (relI < endStream.l) {
-						// Advance until we get to current Template rec
-					while (tRec.n == 0 || (tRec.i+tRec.n) == relI) {
-						newStream.t.push({ i: (newStream.l-tRn), n: tRn });
-						tRn = 0;
+ 						// Advance until we get to current Template rec
+ 					while (tRec.n == 0 || (tRec.i+tRec.n) == relI) {
+ 						newStream.t.push({ i: (newStream.l-tRn), n: tRn });
+ 						tRn = 0;
 						tRec = endStream.t[++tI];
-					}
-					absI = endStream.s[relI++];
-					rec = PData.getRecByIndex(absI);
-					if (theF.f.eval(rec)) {
+						e=fDiv.find('.apply-tmplt-'+tI).is(':checked');
+ 					}
+	 				absI = endStream.s[relI++];
+ 					if (e) {
+	 					rec = PData.getRecByIndex(absI);
+						if (theF.f.eval(rec)) {
+							newStream.s[newStream.l++] = absI;
+							tRn++;
+						}
+ 					} else {
 						newStream.s[newStream.l++] = absI;
 						tRn++;
-					}
+ 					}
 				}
 					// push out remaining Template recs
 				while (tI++ < PData.getNumETmplts()) {
@@ -6471,7 +6469,11 @@ jQuery(document).ready(function($) {
 		var pState = { f: [], s: null, a0: a0, a1: a1, v0: { l: view0.title(), s: view0.getState() },
 						v1: null };
 		filters.forEach(function(theF) {
-			pState.f.push({ id: theF.attID, r: theF.f.isReq(false), s: theF.f.getState() });
+			var a=[];
+			var fDiv = jQuery('div.filter-instance[data-id="'+theF.id+'"]');
+			for (var ti=0; ti<PData.getNumETmplts(); ti++)
+				a.push(fDiv.find('.apply-tmplt-'+ti).is(':checked'));
+			pState.f.push({ id: theF.attID, a: a, s: theF.f.getState() });
 		});
 		if (selFilter) {
 			pState.s = { id: selFID, s: selFilter.getState() };
@@ -6480,7 +6482,7 @@ jQuery(document).ready(function($) {
 			pState.v1 = { l: view1.title(), s: view1.getState() };
 		var sPrspctv = { id: id, l: label, n: note, s: pState };
 
-// console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
+console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 
 		if (dest == 'local') {
 			localPrspctvs.push(sPrspctv);
@@ -6817,20 +6819,21 @@ jQuery(document).ready(function($) {
 		event.preventDefault();
 	} // clickFilterToggle()
 
-	function clickFilterDirty(event)
+	function clickFilterApply(event)
 	{
 		var head = jQuery(this).closest('div.filter-instance');
 		if (head) {
 			var fID = head.data('id');
-			var req = head.find('input.req-att').is(':checked');
+			// var req = head.find('input.req-att').is(':checked');
 			if (fID && fID != '') {
 				var fRec;
 				fRec = filters.find(function(fr) { return fr.id == fID; });
 				if (fRec == null)	{ alert('Bad Filter ID '+fID); return; }
-				fRec.f.isReq(true, req);
+				fRec.f.isDirty(true);
+				// fRec.f.isReq(true, req);
 			}
 		}
-	} // clickFilterDirty()
+	} // clickFilterApply()
 
 	function clickFilterDel(event)
 	{
@@ -6879,11 +6882,12 @@ jQuery(document).ready(function($) {
 		// PURPOSE: Add a new filter to the stack
 		// INPUT: 	fID = Attribute ID
 		//			selector = true if filter for the selector
-		//			req = initial state of required flag
+		//			apply = initial state of apply array (boolean for each Template)
 		// RETURNS: The Filter object created
-	function createFilter(fID, req, selector)
+	function createFilter(fID, apply, selector)
 	{
 		var newID;
+
 		if (selector) {
 				// Remove any pre-existing selector filter
 			doDelSelFilter();
@@ -6900,16 +6904,16 @@ jQuery(document).ready(function($) {
 		var theAtt = PData.getAttID(fID);
 		switch (theAtt.def.t) {
 		case 'V':
-			newFilter = new PFilterVocab(newID, theAtt, req);
+			newFilter = new PFilterVocab(newID, theAtt);
 			break;
 		case 'T':
-			newFilter = new PFilterText(newID, theAtt, req);
+			newFilter = new PFilterText(newID, theAtt);
 			break;
 		case 'N':
-			newFilter = new PFilterNum(newID, theAtt, req);
+			newFilter = new PFilterNum(newID, theAtt);
 			break;
 		case 'D':
-			newFilter = new PFilterDates(newID, theAtt, req);
+			newFilter = new PFilterDates(newID, theAtt);
 			break;
 		}
 
@@ -6930,17 +6934,23 @@ jQuery(document).ready(function($) {
 
 				// Now create DOM structure and handle clicks
 			var fh = _.template(document.getElementById('dltext-filter-head').innerHTML);
-			jQuery('#filter-instances').append(fh({ newID: newID, title: newFilter.title(),
-													check: req ? 'checked="checked"' : '' }));
+			jQuery('#filter-instances').append(fh({ newID: newID, title: newFilter.title(), apply: apTmStr }));
 
 			var head = jQuery('div.filter-instance[data-id="'+newID+'"]');
+
+				// Check each checkbox acoording to default settings
+			for (var i=0; i<PData.getNumETmplts(); i++) {
+				var applier = head.find('.apply-tmplt-'+i);
+				applier.prop('checked', apply[i]);
+				applier.click(clickFilterApply);
+			}
+
 			head.find('button.btn-filter-toggle').button({
 						text: false, icons: { primary: 'ui-icon-carat-2-n-s' }
 					}).click(clickFilterToggle);
 			head.find('button.btn-filter-del').button({
 						text: false, icons: { primary: 'ui-icon-trash' }
 					}).click(clickFilterDel);
-			head.find('input.req-att').click(clickFilterDirty);
 
 			jQuery('#btn-recompute').addClass('pulse');
 		}
@@ -6953,6 +6963,8 @@ jQuery(document).ready(function($) {
 
 	function clickNewFilter(event)
 	{
+		var applyDef = PData.getNumETmplts() == 1 ? [true] : [false, false, false, false];
+
 			// Clear previous selection
 		jQuery("#filter-list li").removeClass("selected");
 		var newFilterDialog;
@@ -6968,7 +6980,7 @@ jQuery(document).ready(function($) {
 						var selected = jQuery("#filter-list li.selected");
 						if (selected.length) {
 							jQuery('#filter-instances').show(400);
-							createFilter(selected.data("id"), true, false);
+							createFilter(selected.data("id"), applyDef, false);
 						}
 							// Remove click handler
 						newFilterDialog.dialog("close");
@@ -7012,7 +7024,7 @@ jQuery(document).ready(function($) {
 						var selected = jQuery("#filter-list li.selected");
 						if (selected.length) {
 							jQuery('#selector-instance').show(400);
-							createFilter(selected.data("id"), true, true);
+							createFilter(selected.data("id"), null, true);
 						}
 							// Remove click handler
 						newFilterDialog.dialog("close");
@@ -7104,14 +7116,14 @@ jQuery(document).ready(function($) {
 		filters=[];
 		jQuery('#filter-instances').empty();
 		p.s.f.forEach(function(fRec) {
-			var newF = createFilter(fRec.id, fRec.r, false);
+			var newF = createFilter(fRec.id, fRec.a, false);
 			newF.setState(fRec.s);
 		});
 		jQuery('#filter-instances').hide();
 
 		doDelSelFilter();
 		if (p.s.s != null) {
-			createFilter(p.s.s.id, true, true);
+			createFilter(p.s.s.id, null, true);
 			selFilter.setState(p.s.s.s);
 		}
 		jQuery('#selector-instance').hide();
@@ -7162,9 +7174,17 @@ jQuery(document).ready(function($) {
 		return true;
 	} // doShowPerspective()
 
-		// PURPOSE: Load all dynamically loaded, language-independent resources
-	function localize()
-	{
+
+		// IMMEDIATE EXECUTION
+		//====================
+
+	jQuery('body').addClass('waiting');
+
+	PState.init();
+	PMapHub.init(prspdata.m);
+
+		// PURPOSE: Load all dynamic, language-independent resources
+	(function () {
 		var text;
 		function loadFrag(domID, field)
 		{
@@ -7200,17 +7220,7 @@ jQuery(document).ready(function($) {
 				]);
 			}
 		}
-	} // localize()
-
-
-		// IMMEDIATE EXECUTION
-		//====================
-
-	jQuery('body').addClass('waiting');
-
-	PState.init();
-	PMapHub.init(prspdata.m);
-	localize();
+	}());
 
 		// Remove any Perspective query string and prefix and trailing /
 	xhbtURL = window.location.pathname;
@@ -7218,6 +7228,16 @@ jQuery(document).ready(function($) {
 	xhbtURL = xhbtURL.replace(/\/$/, '');
 	xhbtURL = xhbtURL.replace(/^\//, '');
 	xhbtURL = window.location.protocol + "//" + window.location.host + "/" + xhbtURL;
+
+		// Create string for apply Filters to Templates
+	(function () {
+		var at = _.template(document.getElementById('dltext-filter-template').innerHTML);
+		var ts = [];
+		prspdata.t.forEach(function(tmplt, ti) {
+			ts.push(at({ ti: ti, tl: tmplt.def.l }));
+		});
+		apTmStr = ts.join('&nbsp;');
+	}());
 
 		// Ensure proper ending for creating URLs
 	if (prspdata.site_url.charAt(prspdata.site_url.length-1) != '/')

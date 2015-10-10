@@ -183,15 +183,17 @@
 <script id="dltext-filter-head" type='text'>
 <div class="filter-instance" data-id="<%= newID %>">
 	<div class="filter-head">
-		<%= title %> &nbsp;
-		<input type="checkbox" class="req-att" value="required" <%= check %>>
-		Require Attribute value &nbsp; &nbsp;
+		<%= title %> &nbsp; <%= apply %></span>
 		<button class="btn-filter-toggle">Toggle</button>
 		<button class="btn-filter-del">Delete Filter</button>
 	</div>
 	<div class="filter-body">
 	</div>
 </div>
+</script>
+
+<script id="dltext-filter-template" type='text'>
+	<input type="checkbox" class="apply-tmplt-<%= ti %>"> Apply to <%= tl %>
 </script>
 
 <script id="dltext-filter-text" type='text'>
