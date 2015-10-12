@@ -3205,18 +3205,6 @@ PFilterModel.prototype.isDirty = function(setDirty)
 	return this.dirty;
 } // isDirty
 
-	// PURPOSE: Either set or get setting if Filter value is required
-	// RETURNS: true if Attribute is required by Filter, false if records without pass through
-// PFilterModel.prototype.isReq = function(set, state)
-// {
-// 	if (set) {
-// 		if (this.req != state)
-// 			this.isDirty(true);
-// 		this.req = state;
-// 	}
-// 	return this.dirty;
-// } // isReq
-
 	// PURPOSE: Return title for filter component
 	// NOTES: 	Handles default case of Attribute label
 PFilterModel.prototype.title = function()
@@ -6482,7 +6470,7 @@ jQuery(document).ready(function($) {
 			pState.v1 = { l: view1.title(), s: view1.getState() };
 		var sPrspctv = { id: id, l: label, n: note, s: pState };
 
-console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
+// console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 
 		if (dest == 'local') {
 			localPrspctvs.push(sPrspctv);

@@ -67,8 +67,7 @@
 	echo $chunk;
 ?>,
 		e: <?php
-		// Put Attribute list in sorted order
-	sort($the_xhbt->gen->ts);
+	// sort($the_xhbt->gen->ts);		// Assume that Templates already sorted in ID order
 	echo(' { id: "'.$the_xhbt->id.'", ');
 	echo(' g: '.json_encode($the_xhbt->gen, JSON_UNESCAPED_UNICODE).', ');
 	echo(' vf: '.$the_xhbt->meta_views.', ');
@@ -77,6 +76,7 @@
 		// Also need to output Template data based on Exhibit data
 	echo(' t: [ ');
 	$first = true;
+	$all_ts = array();
 	$att_defs = array();
 	foreach($the_xhbt->gen->ts as $template_id) {
 		if (!$first)
@@ -87,11 +87,12 @@
 		echo(' def: '.$the_template->meta_def.', ');
 		echo(' n: '.$the_template->get_num_records().' }');
 		$att_defs = array_merge($att_defs, $the_template->get_all_attributes(false));
+		array_push($all_ts, $the_template);
 	}
 ?> ],
 		a: [ <?php
 
-		// Get all definitions of all current Attributes
+		// Sort definitions of all current Attributes
 	$att_defs = ProspectAttribute::unique_sorted_att_array($att_defs);
 		// Output each entry
 	$first = true;
@@ -104,7 +105,13 @@
 			echo('{ id: "'.$the_attribute->id.'", ');
 			echo(' def: '.json_encode($the_attribute->def, JSON_UNESCAPED_UNICODE).', ');
 			echo(' r: '.$the_attribute->meta_range.', ');
-			echo(' l: '.json_encode($the_attribute->legend, JSON_UNESCAPED_UNICODE));
+			echo(' l: '.json_encode($the_attribute->legend, JSON_UNESCAPED_UNICODE).', ');
+				// In which Templates does this Attribute appear?
+			$appear_in_t = array();
+			foreach($all_ts as $the_template) {
+				array_push($appear_in_t, in_array($the_attribute->id, $the_template->all_att_ids));
+			}
+			echo(' t: '.json_encode($appear_in_t));
 			if ($the_attribute->x != null)
 				echo(', x: '.json_encode($the_attribute->x, JSON_UNESCAPED_UNICODE).' }');
 			else

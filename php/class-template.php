@@ -75,6 +75,8 @@ class ProspectTemplate {
 	public $meta_view;
 	public $view;
 
+	public $all_att_ids;	// created by get_all_attributes()
+
 		// PURPOSE: Create Template object and load its definition given its ID
 		// INPUT:	if is_postid, then the_id is the WordPress post ID (not Template ID)
 		//			the_id is either (1) WordPress post ID, or
@@ -192,7 +194,7 @@ class ProspectTemplate {
 
 		$all_atts = array();
 
-		foreach($this->def->a as $att_id) {
+		foreach ($this->def->a as $att_id) {
 			$the_att = new ProspectAttribute(false, $att_id, true, false, true, true, true);
 			if ($the_att->def->t == 'J') {
 					// Find entry in Join table and get dependent Template
@@ -215,6 +217,13 @@ class ProspectTemplate {
 		if ($sort) {
 			usort($all_atts, array('ProspectTemplate', 'cmp_ids'));
 		}
+
+			// Store the IDs in Template array
+		$this->all_att_ids = array();
+		foreach ($all_atts as $the_att) {
+			array_push($this->all_att_ids, $the_att->id);
+		}
+
 		return $all_atts;
 	} // get_all_attributes()
 } // class ProspectTemplate
