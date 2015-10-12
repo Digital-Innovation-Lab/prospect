@@ -6926,9 +6926,10 @@ jQuery(document).ready(function($) {
 
 			var head = jQuery('div.filter-instance[data-id="'+newID+'"]');
 
-				// Check each checkbox acoording to default settings
+				// Check each checkbox acoording to default settings, disable acc to Template appearance
 			for (var i=0; i<PData.getNumETmplts(); i++) {
 				var applier = head.find('.apply-tmplt-'+i);
+				applier.prop('disabled', !theAtt.t[i]);
 				applier.prop('checked', apply[i]);
 				applier.click(clickFilterApply);
 			}
