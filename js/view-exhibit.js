@@ -7059,7 +7059,7 @@ jQuery(document).ready(function($) {
 // console.log("Selection: "+JSON.stringify(selList));
 
 		PState.set(PSTATE_BUILD);
-			// Which Views to send Selection?
+			// Which Views to send Selection? Assumed won't be checked if disabled
 		if (jQuery('#selector-v0').is(':checked')) {
 			mustCopy = view0.setSel(selList);
 		}
