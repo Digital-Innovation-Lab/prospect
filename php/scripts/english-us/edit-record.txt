@@ -108,7 +108,7 @@
 </script>
 
 <script id="att-type-Image" type='text/ractive'>
-	URL for image: <input type="url" value="{{value}}" pattern="^$|^https?://.+(\.jpg|\.JPG|\.jpeg|\.JPEG|\.png|\.PNG)$"/>
+	URL for image: <input type="url" value="{{value}}" pattern="^$|^https?://.+(\.jpg|\.JPG|\.jpeg|\.JPEG|\.png|\.PNG|\.gif|\.GIF)$"/>
 </script>
 
 <script id="att-type-Link-To" type='text/ractive'>
