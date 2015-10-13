@@ -376,6 +376,7 @@ VizMap.prototype.render = function(stream)
 			var tI = PData.aIndex2Tmplt(aid);
 				// If so, go through all markers looking for fellows of same _aid and setStyle accordingly
 			if (self.tLCnt[tI] > 1) {
+				PState.set(PSTATE_UPDATE);
 				mLayer.eachLayer(function(marker) {
 					if (marker.options._aid == aid) {
 						if (added)
@@ -384,6 +385,7 @@ VizMap.prototype.render = function(stream)
 							marker.setStyle({ color: "#000" });
 					}
 				});
+				PState.set(PSTATE_READY);
 			} else {
 				if (added)
 					this.setStyle({ color: "#ff0000" });
@@ -555,7 +557,7 @@ VizMap.prototype.render = function(stream)
 				node.p.forEach(function(aPtr) {
 					i = _.sortedIndex(mCache, { id: aPtr }, 'id');
 					var cnnctd = mCache[i];
-					if (cnnctd.id == aPtr) {
+					if (cnnctd && cnnctd.id == aPtr) {
 						node.c.forEach(function(from) {
 							cnnctd.c.forEach(function(to) {
 								if (from[0] != to[0] || from[1] != to[1])
@@ -4382,9 +4384,11 @@ function PViewFrame(vfIndex)
 
 	function clickClearSelection(event)
 	{
+		PState.set(PSTATE_UPDATE);
 		if (vizModel)
 			vizModel.clearSel();
 		doSelBtns(false);
+		PState.set(PSTATE_READY);
 		event.preventDefault();
 	} // clickClearSelection()
 
@@ -6812,13 +6816,11 @@ jQuery(document).ready(function($) {
 		var head = jQuery(this).closest('div.filter-instance');
 		if (head) {
 			var fID = head.data('id');
-			// var req = head.find('input.req-att').is(':checked');
 			if (fID && fID != '') {
 				var fRec;
 				fRec = filters.find(function(fr) { return fr.id == fID; });
 				if (fRec == null)	{ alert('Bad Filter ID '+fID); return; }
 				fRec.f.isDirty(true);
-				// fRec.f.isReq(true, req);
 			}
 		}
 	} // clickFilterApply()
@@ -7058,7 +7060,8 @@ jQuery(document).ready(function($) {
 		}
 // console.log("Selection: "+JSON.stringify(selList));
 
-		PState.set(PSTATE_BUILD);
+		PState.set(PSTATE_UPDATE);
+
 			// Which Views to send Selection? Assumed won't be checked if disabled
 		if (jQuery('#selector-v0').is(':checked')) {
 			mustCopy = view0.setSel(selList);
@@ -7119,6 +7122,7 @@ jQuery(document).ready(function($) {
 
 		var vI;
 
+		PState.set(PSTATE_BUILD);
 		vI = vizIndex(p.s.v0.l);
 		if (view0) {
 			view0.setViz(vI, false);
