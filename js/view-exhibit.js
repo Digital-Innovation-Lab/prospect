@@ -556,14 +556,16 @@ VizMap.prototype.render = function(stream)
 					// Iterate the node's Pointers
 				node.p.forEach(function(aPtr) {
 					i = _.sortedIndex(mCache, { id: aPtr }, 'id');
-					var cnnctd = mCache[i];
-					if (cnnctd && cnnctd.id == aPtr) {
-						node.c.forEach(function(from) {
-							cnnctd.c.forEach(function(to) {
-								if (from[0] != to[0] || from[1] != to[1])
-									links.push({p: [from, to], c: node.l });
+					if (i < mCache.length) {
+						var cnnctd = mCache[i];
+						if (cnnctd.id == aPtr) {
+							node.c.forEach(function(from) {
+								cnnctd.c.forEach(function(to) {
+									if (from[0] != to[0] || from[1] != to[1])
+										links.push({p: [from, to], c: node.l });
+								})
 							})
-						})
+						}
 					}
 				});
 			}
