@@ -21,7 +21,7 @@ class ProspectPerspective {
 						'post_status' => 'publish',
 						'meta_key' => 'xhbt-id',
 						'meta_value' => $xhbt_id,
-						'posts_per_page' => 1);
+						'posts_per_page' => -1);
 		$loop = new WP_Query($args);
 		if ($loop->have_posts()) {
 			foreach ($loop->posts as $prspctv) {
