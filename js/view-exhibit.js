@@ -1360,18 +1360,18 @@ VizTime.prototype.setup = function()
 			name = cVal.substr(1);
 				// Create three variants of each color
 			gradDef = defs.append('linearGradient').attr('id', name+'-fs');
-			gradDef.append('stop').attr('offset', '0%').attr('stop-color', 'white');
+			gradDef.append('stop').attr('offset', '0%').attr('stop-color', '#C0C0C0');
 			gradDef.append('stop').attr('offset', '5%').attr('stop-color', cVal);
 			gradDef.append('stop').attr('offset', '100%').attr('stop-color', cVal);
 			gradDef = defs.append('linearGradient').attr('id', name+'-fe');
 			gradDef.append('stop').attr('offset', '0%').attr('stop-color', cVal);
 			gradDef.append('stop').attr('offset', '95%').attr('stop-color', cVal);
-			gradDef.append('stop').attr('offset', '100%').attr('stop-color', 'white');
+			gradDef.append('stop').attr('offset', '100%').attr('stop-color', '#C0C0C0');
 			gradDef = defs.append('linearGradient').attr('id', name+'-fb');
-			gradDef.append('stop').attr('offset', '0%').attr('stop-color', 'white');
+			gradDef.append('stop').attr('offset', '0%').attr('stop-color', '#C0C0C0');
 			gradDef.append('stop').attr('offset', '5%').attr('stop-color', cVal);
 			gradDef.append('stop').attr('offset', '95%').attr('stop-color', cVal);
-			gradDef.append('stop').attr('offset', '100%').attr('stop-color', 'white');
+			gradDef.append('stop').attr('offset', '100%').attr('stop-color', '#C0C0C0');
 		});
 
 			// The XOR filter ensures that text contrasts with any background
@@ -4794,7 +4794,7 @@ function PViewFrame(vfIndex)
 		frame.find('div.view-control-bar button:first')
 				.button({icons: { primary: 'ui-icon-bookmark' }, text: false })
 				.click(clickShowHideLegend).next()
-				.button({icons: { primary: 'ui-icon-info' }, text: false })
+				.button({icons: { primary: 'ui-icon-search' }, text: false })
 				.click(clickOpenSelection).next()
 				.button({icons: { primary: 'ui-icon-cancel' }, text: false })
 				.click(clickClearSelection).next()
@@ -7295,13 +7295,13 @@ jQuery(document).ready(function($) {
 	});
 
 		// Filter Control Bar
-	jQuery('#btn-new-filter').button({icons: { primary: 'ui-icon-search' }, text: false })
+	jQuery('#btn-new-filter').button({icons: { primary: 'ui-icon-plus' }, text: false })
 			.click(clickNewFilter);
 	jQuery('#btn-toggle-filters').button({icons: { primary: 'ui-icon-arrow-2-n-s' }, text: false })
 			.click(clickToggleFilters);
 
 		// Selector Control Bar
-	jQuery('#btn-new-selector').button({icons: { primary: 'ui-icon-search' }, text: false })
+	jQuery('#btn-new-selector').button({icons: { primary: 'ui-icon-plus' }, text: false })
 			.click(clickNewSelector);
 	jQuery('#btn-toggle-selector').button({icons: { primary: 'ui-icon-arrow-2-n-s' }, text: false })
 			.click(clickToggleSelector);
