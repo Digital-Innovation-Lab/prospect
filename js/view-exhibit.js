@@ -1643,53 +1643,6 @@ VizTime.prototype.setup = function()
 
 	createLabels(0);
 	createLabels(1);
-
-	function createBrush()
-	{
-		var band = self.bands[0];	// Place brush in top macro band
-
-			// Create logical controller
-		self.brush = d3.svg.brush()
-			.x(band.xScale.range([0, band.w]))
-				// Start with default zoom position
-			.extent([self.zMinDate, self.zMaxDate])
-				// Code to bind when brush moves
-			.on('brush', function() {
-				var extent0 = self.brush.extent(); // "original" default value
-				var extent1;                  		// new recomputed value
-
-				  // if dragging, preserve the width of the extent, rounding by days
-				if (d3.event.mode === "move") {
-					var d0 = d3.time.day.round(extent0[0]),
-						d1 = d3.time.day.offset(d0, Math.round((extent0[1] - extent0[0]) / 864e5));
-					extent1 = [d0, d1];
-
-					// otherwise, if new position, round both dates
-				} else {
-					extent1 = extent0.map(d3.time.day.round);
-
-						// if empty when rounded, create minimal sized lens -- at least 1 day long
-					if (extent1[0] >= extent1[1]) {
-						extent1[0] = d3.time.day.floor(extent0[0]);
-						extent1[1] = d3.time.day.ceil(d3.time.day.offset(extent1[0], Math.round(self.instGap / 864e5)));
-					}
-				}
-
-					// "this" will actually point to the brushSVG object
-					// Replaces SVG data to correspond to new brush params
-				// self.brushSVG.call(self.brush.extent(extent1));
-
-				self.brush.extent(extent1);
-				self.brushHandler.redraw();
-
-					// Rescale bottom/zoom timeline
-				zoom = self.bands[1];
-				zoom.xScale.domain(extent1);
-				zoom.redraw();
-			});
-	} // createBrush()
-
-	createBrush();
 } // setup()
 
 	// PURPOSE: Draw the Records in the given datastream
@@ -1720,8 +1673,7 @@ VizTime.prototype.render = function(stream)
 	var numTracks=0;
 
 		// Process each Template's data
-	function procTmplts()
-	{
+	(function () {
 		var numTmplts = PData.getNumETmplts();
 		var tI=0, tRec, aI;
 		var featSet, dAttID, dAtt, fData, dData;
@@ -1870,9 +1822,7 @@ VizTime.prototype.render = function(stream)
 
 			tI++;
 		} // while 
-	} // procTmplts()
-
-	procTmplts();
+	}());
 
 // console.log("Events: "+JSON.stringify(self.events));
 // console.log("Legend Backgrounds: "+JSON.stringify(self.lgBds));
@@ -2061,8 +2011,7 @@ VizTime.prototype.render = function(stream)
 
 		// NOTES: 	Brush SVGs must be "on top" of everything else and hence must be created last
 		//			Code must destroy any previous SVG which would now be below stack
-	function updateBrush()
-	{
+	(function () {
 			// Object for creating brush handles, variant of: http://bl.ocks.org/jisaacks/5678983
 			// NOTE: Assumes that self.brush has already been created
 		var BrushHandler = (function() {
@@ -2103,7 +2052,6 @@ VizTime.prototype.render = function(stream)
 				var lTime, rTime, lp, rp, xRange, theExtent;
 
 				theExtent = self.brush.extent();
-
 				xRange = this._x.range();
 				lTime = theExtent[0];
 				rTime = theExtent[1];
@@ -2130,22 +2078,60 @@ VizTime.prototype.render = function(stream)
 
 		var band = self.bands[0];	// Place brush in top macro band
 
-			// SVG area where brush will be created
+			// SVG area where brush is created -- delete old one?
 		if (self.brushSVG != null)
 			self.brushSVG.remove();
+
+			// Create logical controller
+		self.brush = d3.svg.brush()
+			.x(band.xScale.range([0, band.w]))
+				// Start with default zoom position
+			.extent([self.zMinDate, self.zMaxDate])
+				// Code to bind when brush moves
+			.on('brush', function() {
+				var extent0 = self.brush.extent(); // "original" default value
+				var extent1;                  		// new recomputed value
+
+				  // if dragging, preserve the width of the extent, rounding by days
+				if (d3.event.mode === "move") {
+					var d0 = d3.time.day.round(extent0[0]),
+						d1 = d3.time.day.offset(d0, Math.round((extent0[1] - extent0[0]) / 864e5));
+					extent1 = [d0, d1];
+
+					// otherwise, if new position, round both dates
+				} else {
+					extent1 = extent0.map(d3.time.day.round);
+
+						// if empty when rounded, create minimal sized lens -- at least 1 day long
+					if (extent1[0] >= extent1[1]) {
+						extent1[0] = d3.time.day.floor(extent0[0]);
+						extent1[1] = d3.time.day.ceil(d3.time.day.offset(extent1[0], Math.round(self.instGap / 864e5)));
+					}
+				}
+
+					// "this" will actually point to the brushSVG object
+					// Replaces SVG data to correspond to new brush params
+				// self.brushSVG.call(self.brush.extent(extent1));
+
+				self.brush.extent(extent1);
+				self.brushHandler.redraw();
+
+					// Rescale bottom/zoom timeline
+				zoom = self.bands[1];
+				zoom.xScale.domain(extent1);
+				zoom.redraw();
+			});
+
 		self.brushSVG = band.g.append("svg");
 
 		self.brushHandler =
 			new BrushHandler(self.brushSVG, band.h-1)
 				.x(band.xScale)
 				.redraw();
-	} // updateBrush()
-
-	updateBrush();
+	}());
 
 		// PURPOSE: Update the clipping rectangle
-	function updateSizes()
-	{
+	(function () {
 		var zoom = self.bands[1];
 		var h = zoom.t + zoom.h + 45;
 
@@ -2154,9 +2140,7 @@ VizTime.prototype.render = function(stream)
 
 			// update clipping rectangle
 		d3.select('#tl-clip-'+vI+' rect').attr("height", h);
-	} // updateClip()
-
-	updateSizes();
+	}());
 
 	function updateXAxis(bi)
 	{
@@ -2288,6 +2272,7 @@ VizTime.prototype.getState = function()
 	return { d0: d0, d1: d1, l: this.vFrame.getLgndSels() };
 } // getState()
 
+	// ASSUMES: This is called after setup but before render, so we only need to reset zMinDate
 VizTime.prototype.setState = function(state)
 {
 	var e0 = PData.parseDate(state.d0, 1, 1);
@@ -2297,7 +2282,8 @@ VizTime.prototype.setState = function(state)
 	var zoom = this.bands[1];
 	zoom.xScale.domain([e0, e1]);
 
-	this.brush.extent([e0, e1]);
+	this.zMinDate = e0;
+	this.zMaxDate = e1;
 
 	this.vFrame.setLgndSels(state.l);
 } // setState()
@@ -6432,6 +6418,7 @@ jQuery(document).ready(function($) {
 		if (view1 != null) {
 			view1 = null;
 			jQuery('#view-frame-1').remove();
+			jQuery('#selector-v1').prop("checked", false);
 			jQuery('#selector-v1').prop("disabled", true);
 		} else {
 			view1 = PViewFrame(1);
@@ -7180,16 +7167,17 @@ jQuery(document).ready(function($) {
 				view1 = PViewFrame(1);
 				view1.initDOM(vI);
 				view1.setState(p.s.v1.s);
-				view0.resize();
+				// view0.resize();
 			}
 		} else {
 			if (view1) {
 				view1 = null;
 				jQuery('#view-frame-1').remove();
 				jQuery('#selector-v1').prop("disabled", true);
-				view0.resize();
+				// view0.resize();
 			}
 		}
+		view0.resize();
 
 		setAnnote(p.n);
 
