@@ -196,6 +196,10 @@
 	<input type="checkbox" class="apply-tmplt-<%= ti %>"> Apply to <%= tl %>
 </script>
 
+<script id="dltext-filter-remove" type='text'>
+All Records from selected Templates will be removed/hidden.
+</script>
+
 <script id="dltext-filter-text" type='text'>
 Text must include <input class="filter-text" type="text" size="20"/>
 </script>
@@ -221,6 +225,10 @@ Text must include <input class="filter-text" type="text" size="20"/>
 	</div>
 	<div class="filter-body">
 	</div>
+</script>
+
+<script id="dltext-removehideall" type="text">
+Remove/Hide All
 </script>
 
 <script id="dltext-showhideall" type="text">

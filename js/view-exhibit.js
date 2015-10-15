@@ -3226,6 +3226,51 @@ PFilterModel.prototype.teardown = function()
 {
 } // teardown()
 
+
+// ==============================================================================
+// PFilterRemove: Filter class that removes all Records of selected Template type
+
+var PFilterRemove = function(id)
+{
+	PFilterModel.call(this, id, null);
+} // PFilterRemove()
+
+PFilterRemove.prototype = Object.create(PFilterModel.prototype);
+
+PFilterRemove.prototype.constructor = PFilterRemove;
+
+PFilterModel.prototype.title = function()
+{
+	return dlText.rha;
+} // title()
+
+PFilterRemove.prototype.evalPrep = function()
+{
+} // evalPrep()
+
+PFilterRemove.prototype.eval = function(rec)
+{
+	return false;
+} // eval()
+
+PFilterRemove.prototype.setup = function()
+{
+	var self = this;
+	var inserted = this.insertPt();
+	var htmlText = document.getElementById('dltext-filter-remove').innerHTML;
+
+	inserted.append(htmlText);
+} // setup()
+
+PFilterRemove.prototype.getState = function()
+{
+	return { };
+} // getState()
+
+PFilterRemove.prototype.setState = function(state)
+{
+} // setState()
+
 // ============================================
 // PFilterText: Class to filter Text Attributes
 
@@ -3260,7 +3305,6 @@ PFilterText.prototype.setup = function()
 {
 	var self = this;
 	var inserted = this.insertPt();
-	// var htmlText = jQuery('#dltext-filter-text').html().trim();
 	var htmlText = document.getElementById('dltext-filter-text').innerHTML;
 
 	inserted.append(htmlText);
@@ -6791,22 +6835,6 @@ jQuery(document).ready(function($) {
 		event.preventDefault();
 	} // clickGoHome()
 
-
-		// PURPOSE: Gather data about Filterable Attributes
-	function prepFilterData()
-	{
-		prspdata.a.forEach(function(theAttribute) {
-			switch (theAttribute.def.t) {
-			case 'V':
-			case 'T':
-			case 'N':
-			case 'D':
-				jQuery('#filter-list').append('<li data-id="'+theAttribute.id+'">'+theAttribute.def.l+'</li>');
-				break;
-			}
-		});
-	} // prepFilterData()
-
 	function clickFilterToggle(event)
 	{
 		jQuery(this).parent().next().slideToggle(400);
@@ -6893,20 +6921,26 @@ jQuery(document).ready(function($) {
 		}
 
 		var newFilter;
-		var theAtt = PData.getAttID(fID);
-		switch (theAtt.def.t) {
-		case 'V':
-			newFilter = new PFilterVocab(newID, theAtt);
-			break;
-		case 'T':
-			newFilter = new PFilterText(newID, theAtt);
-			break;
-		case 'N':
-			newFilter = new PFilterNum(newID, theAtt);
-			break;
-		case 'D':
-			newFilter = new PFilterDates(newID, theAtt);
-			break;
+		var theAtt;
+		if (fID == '_remove') {
+			newFilter = new PFilterRemove(newID);
+			theAtt = { t: [true, true, true, true ] };	// Create pseudo-Attribute entry
+		} else {
+			theAtt = PData.getAttID(fID);
+			switch (theAtt.def.t) {
+			case 'V':
+				newFilter = new PFilterVocab(newID, theAtt);
+				break;
+			case 'T':
+				newFilter = new PFilterText(newID, theAtt);
+				break;
+			case 'N':
+				newFilter = new PFilterNum(newID, theAtt);
+				break;
+			case 'D':
+				newFilter = new PFilterDates(newID, theAtt);
+				break;
+			}
 		}
 
 		if (selector) {
@@ -6960,6 +6994,7 @@ jQuery(document).ready(function($) {
 
 			// Clear previous selection
 		jQuery("#filter-list li").removeClass("selected");
+		jQuery("#filter-list li.remove").show();
 		var newFilterDialog;
 
 		newFilterDialog = jQuery("#dialog-new-filter").dialog({
@@ -7004,6 +7039,8 @@ jQuery(document).ready(function($) {
 	{
 			// Clear previous selection
 		jQuery("#filter-list li").removeClass("selected");
+		jQuery("#filter-list li.remove").hide();
+
 		var newFilterDialog;
 
 		newFilterDialog = jQuery("#dialog-new-filter").dialog({
@@ -7187,6 +7224,7 @@ jQuery(document).ready(function($) {
 			dlText[field] = text.trim();
 		} // loadFrag()
 
+		loadFrag('dltext-removehideall', 'rha');
 		loadFrag('dltext-showhideall', 'sha');
 		loadFrag('dltext-ok', 'ok');
 		loadFrag('dltext-cancel', 'cancel');
@@ -7280,7 +7318,11 @@ jQuery(document).ready(function($) {
 
 		// Handle selection of item on New Filter modal
 	jQuery('#filter-list').click(function(event) {
-		if (event.target.nodeName == 'LI') {
+			// Special case for "Hide/Remove All" pseudo-Filter
+		if (event.target.nodeName == 'I') {
+			jQuery("#filter-list li").removeClass("selected");
+			jQuery(event.target).parent().addClass("selected");
+		} else if (event.target.nodeName == 'LI') {
 			jQuery("#filter-list li").removeClass("selected");
 			jQuery(event.target).addClass("selected");
 		}
@@ -7312,7 +7354,19 @@ jQuery(document).ready(function($) {
 	jQuery('#btn-inspect-left').button({ icons: { primary: 'ui-icon-arrowthick-1-w' }, text: false });
 	jQuery('#btn-inspect-right').button({ icons: { primary: 'ui-icon-arrowthick-1-e' }, text: false });
 
-	prepFilterData();
+	(function () {
+		jQuery('#filter-list').append('<li class="remove" data-id="_remove"><i>'+dlText.rha+'</i></li>');
+		prspdata.a.forEach(function(theAtt) {
+			switch (theAtt.def.t) {
+			case 'V':
+			case 'T':
+			case 'N':
+			case 'D':
+				jQuery('#filter-list').append('<li data-id="'+theAtt.id+'">'+theAtt.def.l+'</li>');
+				break;
+			}
+		});
+	}());
 
 		// Restore Perspective or create default?
 	if (prspdata.show_prspctv.length == 0 || !doShowPerspective(prspdata.show_prspctv)) {
