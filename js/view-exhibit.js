@@ -3239,7 +3239,7 @@ PFilterRemove.prototype = Object.create(PFilterModel.prototype);
 
 PFilterRemove.prototype.constructor = PFilterRemove;
 
-PFilterModel.prototype.title = function()
+PFilterRemove.prototype.title = function()
 {
 	return dlText.rha;
 } // title()
