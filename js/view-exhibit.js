@@ -2109,6 +2109,9 @@ VizTime.prototype.render = function(stream)
 					}
 				}
 
+				self.zMinDate = extent1[0];
+				self.zMaxDate = extent1[1];
+
 					// "this" will actually point to the brushSVG object
 					// Replaces SVG data to correspond to new brush params
 				// self.brushSVG.call(self.brush.extent(extent1));
@@ -7182,17 +7185,16 @@ jQuery(document).ready(function($) {
 				view1 = PViewFrame(1);
 				view1.initDOM(vI);
 				view1.setState(p.s.v1.s);
-				// view0.resize();
+				view0.resize();
 			}
 		} else {
 			if (view1) {
 				view1 = null;
 				jQuery('#view-frame-1').remove();
 				jQuery('#selector-v1').prop("disabled", true);
-				// view0.resize();
+				view0.resize();
 			}
 		}
-		view0.resize();
 
 		setAnnote(p.n);
 
