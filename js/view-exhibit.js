@@ -7170,6 +7170,7 @@ jQuery(document).ready(function($) {
 		vI = vizIndex(p.s.v0.l);
 		if (view0) {
 			view0.setViz(vI, false);
+			view0.selBtns(false);
 		} else {
 			view0 = PViewFrame(0);
 			view0.initDOM(vI);
@@ -7179,6 +7180,7 @@ jQuery(document).ready(function($) {
 		if (p.s.v1 != null) {
 			vI = vizIndex(p.s.v1.l);
 			if (view1) {
+				view1.selBtns(false);
 				view1.setViz(vI, false);
 				view1.setState(p.s.v1.s);
 			} else {
