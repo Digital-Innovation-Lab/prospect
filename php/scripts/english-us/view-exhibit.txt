@@ -17,7 +17,7 @@
 	<div id="filter-control-bar">
 		Filters
 		<button id="btn-new-filter">New Filter</button>
-		<button id="btn-toggle-filters">Show/Hide Filters</button>
+		<button id="btn-toggle-filters" disabled="disabled">Show/Hide Filters</button>
 	</div>
 	<div id="filter-instances">
 	</div>
@@ -27,10 +27,10 @@
 	<div id="selector-control-bar">
 		Selection
 		<button id="btn-new-selector">New Filter</button>
-		<button id="btn-toggle-selector">Show/Hide Filter</button>
-		<button id="btn-apply-selector">Apply Selection Filter</button>
+		<button id="btn-toggle-selector" disabled="disabled">Show/Hide Filter</button>
+		<button id="btn-apply-selector" disabled="disabled">Apply Selection Filter</button>
 		<input type="checkbox" id="selector-v0" checked="checked"/> Apply to View 1
-		<input type="checkbox" id="selector-v1" disabled/> Apply to View 2
+		<input type="checkbox" id="selector-v1" disabled="disabled"/> Apply to View 2
 	</div>
 	<div id="selector-instance">
 		<div class="filter-instance" data-id="0">

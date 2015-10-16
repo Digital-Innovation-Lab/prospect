@@ -6874,6 +6874,11 @@ jQuery(document).ready(function($) {
 
 			// Remove this DOM element
 		head.remove();
+
+		if (filters.length == 0) {
+			jQuery('#btn-toggle-filters').button("disable");
+		}
+
 		event.preventDefault();
 	} // clickFilterDel()
 
@@ -6883,6 +6888,8 @@ jQuery(document).ready(function($) {
 			selFilter.teardown();
 			jQuery('div.filter-instance[data-id="0"]').empty();
 			selFilter = null;
+			jQuery('#btn-toggle-selector').button("disable");
+			jQuery('#btn-apply-selector').button("disable");
 		}
 	} // doDelSelFilter()
 
@@ -6996,6 +7003,7 @@ jQuery(document).ready(function($) {
 						if (selected.length) {
 							jQuery('#filter-instances').show(400);
 							createFilter(selected.data("id"), applyDef, false);
+							jQuery('#btn-toggle-filters').button("enable");
 						}
 							// Remove click handler
 						newFilterDialog.dialog("close");
@@ -7042,6 +7050,8 @@ jQuery(document).ready(function($) {
 						if (selected.length) {
 							jQuery('#selector-instance').show(400);
 							createFilter(selected.data("id"), null, true);
+							jQuery('#btn-toggle-selector').button("enable");
+							jQuery('#btn-apply-selector').button("enable");
 						}
 							// Remove click handler
 						newFilterDialog.dialog("close");
@@ -7133,16 +7143,21 @@ jQuery(document).ready(function($) {
 		});
 		filters=[];
 		jQuery('#filter-instances').empty();
+
 		p.s.f.forEach(function(fRec) {
 			var newF = createFilter(fRec.id, fRec.a, false);
 			newF.setState(fRec.s);
 		});
 		jQuery('#filter-instances').hide();
+		jQuery('#btn-toggle-filters').button(p.s.f.length == 0 ? "disable" : "enable");
+
 
 		doDelSelFilter();
 		if (p.s.s != null) {
 			createFilter(p.s.s.id, null, true);
 			selFilter.setState(p.s.s.s);
+			jQuery('#btn-toggle-selector').button("enable");
+			jQuery('#btn-apply-selector').button("enable");
 		}
 		jQuery('#selector-instance').hide();
 
