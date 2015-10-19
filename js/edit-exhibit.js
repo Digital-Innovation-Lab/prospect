@@ -410,17 +410,11 @@ jQuery(document).ready(function() {
 	} // confirmModal()
 
 
-		// Compile array of all (open) Attributes -- start by copying non-Join Attributes
-		// Join Attributes will be handled from independent Template definitions below
-	_.forEach(defAtts, function(theAttDef) {
-		if (theAttDef.p == 'o' && theAttDef.def.t != 'J')
-			defJoinedAtts.push(_.clone(theAttDef, true));
-	});
-
 		// Compile array about independent Template types from input configuration data
 		//	into format usable by edit GUI
 		//  'disable' applies to features that can be turned on or off
 		//	'' (empty) means no suitable choice exists for required setting
+		// Also compile list of all Attributes (Joined and unjoined)
 	_.forEach(defTemplates, function(theTmplt) {
 		if (!theTmplt.def.d) {
 			var attsTxt=[], attsDates=[], attsDNum=['disable'], attsLL=[],
@@ -515,8 +509,12 @@ jQuery(document).ready(function() {
 						break;
 					default:
 							// Restrict to "Open" level of security
-						if (attDef.p == 'o')
+						if (attDef.p == 'o') {
+								// Does it need to be added to global list?
+							if (_.find(defJoinedAtts, function(theAtt) { return theAtt.id === theAttID; }) == null)
+								defJoinedAtts.push(_.clone(attDef, true));
 							saveAttRef('', theAttID, attDef.def.t);
+						}
 						break;
 					}
 				} else {
@@ -553,6 +551,7 @@ jQuery(document).ready(function() {
 		}
 	});
 
+		// Create list of Attribute IDs of all Joined facets for drop-down menu
 	var facetAttIDs = defJoinedFacets.map(function(f) { return f.id; });
 
 		// PURPOSE: Created expanded array with useAtt: false if selArray not in fullArray
