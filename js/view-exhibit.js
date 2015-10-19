@@ -4150,7 +4150,11 @@ function PViewFrame(vfIndex)
 				var attVal = PData.getRecAtt(recAbsI, attID, false);
 				if (attVal) {
 					var theAtt = PData.getAttID(attID);
-					var html = '<div><span class="att-label">'+theAtt.def.l+':</span> '+attVal+'</div>';
+					var html;
+					if (theAtt.def.l.charAt(0) == '_')
+						html = '<div>'+attVal+'</div>';
+					else
+						html = '<div><span class="att-label">'+theAtt.def.l+':</span> '+attVal+'</div>';
 					container.append(html);
 				}
 			});

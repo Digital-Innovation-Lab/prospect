@@ -542,8 +542,12 @@ jQuery(document).ready(function($) {
 		function appendAttData(id, att, l)
 		{
 			var datum = procAttTxt(id, att);
-			if (datum)
-				newText += '<div><b>'+l+'</b>: '+datum+'</div>';
+			if (datum) {
+				if (l.charAt(0) == '_')
+					newText += '<div>'+datum+'</div>';
+				else
+					newText += '<div><b>'+l+'</b>: '+datum+'</div>';				
+			}
 		} // appendAttData
 
 		var att = getAttID(attID);
