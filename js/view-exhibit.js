@@ -6443,7 +6443,7 @@ jQuery(document).ready(function($) {
 		var aboutDialog;
 
 		aboutDialog = jQuery("#dialog-about").dialog({
-			height: 250,
+			height: 390,
 			width: 350,
 			modal: true,
 			buttons: [{
@@ -7360,6 +7360,8 @@ jQuery(document).ready(function($) {
 			.click(clickToggleSelector);
 	jQuery('#btn-apply-selector').button({icons: { primary: 'ui-icon-arrowreturn-1-e' }, text: false })
 			.click(clickApplySelector);
+
+	jQuery('#dialog-about .logo').attr("src", prspdata.assets+"prospectlogo.jpg");
 
 		// Inspector Modal
 	jQuery('#btn-inspect-left').button({ icons: { primary: 'ui-icon-arrowthick-1-w' }, text: false });
