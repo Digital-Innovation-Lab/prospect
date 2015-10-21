@@ -51,10 +51,7 @@
 		</div>
 	</div>
 
-	<div id="dialog-set-layout" title="Screen Layout">
-		<p class="validateTips">Choose screen layout</p>
-		<div id="layout-choices">
-		</div>
+	<div id="dialog-sortby" title="Sort By">
 	</div>
 
 	<div id="dialog-inspector" title="Selection Inspector">

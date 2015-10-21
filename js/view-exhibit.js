@@ -59,7 +59,7 @@ var V_FLAG_LGND  = 0x01;		// Uses Legend
 var V_FLAG_SEL   = 0x02;		// Can select individual Records
 var V_FLAG_LOC   = 0x04;		// Requires Location Attributes
 var V_FLAG_SLGND = 0x08;		// Single Legend (not Template-specific) with single Attribute
-var V_FLAG_SET   = 0x10;		// Has an Options dialog
+var V_FLAG_OPT   = 0x10;		// Has an Options dialog
 var V_FLAG_VSCRL = 0x20;		// Add vertical scroll bar
 var V_FLAG_HSCRL = 0x40;		// Add horizontal scroll bar
 
@@ -642,7 +642,7 @@ VizCards.prototype.constructor = VizCards;
 
 VizCards.prototype.flags = function()
 {
-	return V_FLAG_LGND | V_FLAG_SEL | V_FLAG_VSCRL;
+	return V_FLAG_LGND | V_FLAG_SEL | V_FLAG_VSCRL | V_FLAG_OPT;
 } // flags()
 
 VizCards.prototype.getFeatureAtts = function(tIndex)
@@ -671,6 +671,13 @@ VizCards.prototype.setup = function()
 			}
 		}
 	});
+
+		// Get default sort Atts
+	self.sAtts=[];
+	for (var tI=0; tI<PData.getNumETmplts(); tI++) {
+		var attID = jQuery('#dialog-sortby select[data-ti="'+tI+'"]:first').val();
+		self.sAtts.push(attID);
+	}
 } // setup()
 
 
@@ -678,6 +685,9 @@ VizCards.prototype.setup = function()
 VizCards.prototype.render = function(stream)
 {
 	var self = this;
+
+		// Save reference to stream for rerender after sort
+	this.stream = stream;
 
 	var numTmplts = PData.getNumETmplts();
 	var i=0, aI, tI=-1, tID, tRec, tDef;
@@ -749,7 +759,7 @@ VizCards.prototype.render = function(stream)
 					});
 				}
 					// Any image?
-				if (datum = rec.a[iAttID]) {
+				if (iAttID && (datum = rec.a[iAttID])) {
 					if (hasC)
 						t = '<div class="card-body"><img src="'+datum+'"/><div class="card-cnt"'+tC+'>'+t+'</div></div>';
 					else
@@ -770,6 +780,108 @@ VizCards.prototype.teardown = function()
 {
 	jQuery(this.frameID).off("click.vf");
 }
+
+	// PURPOSE: Rerender Cards of Template <tI> after new Sort order given
+	// NOTES: 	Must clear previous Template cards and show any selected cards
+	// ASSUMES: Can use sAtts[tI]
+VizCards.prototype.rerender = function(tI)
+{
+	var self=this;
+
+	var insert = jQuery(this.frameID + ' div.cards[data-ti="'+tI+'"]');
+	insert.empty();
+
+	var featSet, fAttID, fAtt, iAttID, cnt, oAttID, oAtt;
+	var order, rec, datum, c;
+	var sel, hasC, t, tDiv, tC;
+
+	var div = 'w'+this.settings.w+' h'+this.settings.h;
+
+	featSet = self.vFrame.getSelFeatAtts(tI);
+		// Skip Templates if no feature Atts
+	if (featSet.length == 0)
+		return;
+
+		// Which Attribute chosen for Legend?
+	fAttID = self.vFrame.getSelLegend(tI);
+	fAtt = PData.getAttID(fAttID);
+	iAttID = self.settings.iAtts[tI];
+	cnt = self.settings.cnt[tI];
+
+	oAttID = self.sAtts[tI];
+	oAtt = PData.getAttID(oAttID);
+	order = PData.orderTBy(oAtt, self.stream, tI);
+
+	order.forEach(function(oRec) {
+		rec = PData.getRecByIndex(oRec.i);
+			// Apply Legend
+		datum = rec.a[fAttID];
+		if (typeof datum != 'undefined') {
+			c = PData.getAttLgndRecs(datum, fAtt, featSet, false);
+			if (c) {
+				tDiv = self.settings.lOn ? '<div class="card-title">'+rec.l+'</div>' : '';
+					// Get and add textual content
+				hasC = false; t = '';
+				if (cnt && cnt.length > 0) {
+					tC = c.b ? ' style="color:black"' : '';
+					cnt.forEach(function(theAttID) {
+						if (datum = rec.a[theAttID])
+							if (datum = PData.procAttTxt(theAttID, datum)) {
+								hasC = true;
+								t += datum+'<br/>';
+							}
+					});
+				}
+					// Any image?
+				if (iAttID && (datum = rec.a[iAttID])) {
+					if (hasC)
+						t = '<div class="card-body"><img src="'+datum+'"/><div class="card-cnt"'+tC+'>'+t+'</div></div>';
+					else
+						t = '<div class="card-body"><img class="full" src="'+datum+'"/></div>';
+				} else {
+					t = '<div class="card-body"><div class="card-cnt"'+tC+'>'+t+'</div>';
+				}
+				insert.append('<div class="card '+div+(self.isSel(oRec.i) ? ' obj-sel' : '')+'" style="background-color:'+c.v+'" data-ai="'+oRec.i+'">'+tDiv+t+'</div>');
+			} // if Feature-Lgnd match
+		} // if feature data
+	}); // for order
+} // rerender()
+
+VizCards.prototype.optionsModal = function()
+{
+	var self=this;
+
+	for (var tI=0; tI<PData.getNumETmplts(); tI++)
+		jQuery('#dialog-sortby select[data-ti="'+tI+'"]').val(self.sAtts[tI]);
+	var d = jQuery("#dialog-sortby").dialog({
+		height: 220,
+		width: 400,
+		modal: true,
+		buttons: [
+			{
+				text: dlText.ok,
+				click: function() {
+					d.dialog("close");
+					PState.set(PSTATE_BUILD);
+					for (var tI=0; tI<PData.getNumETmplts(); tI++) {
+						var sAttID = jQuery('#dialog-sortby select[data-ti="'+tI+'"]').val();
+						if (sAttID != self.sAtts[tI]) {
+							self.sAtts[tI] = sAttID;
+							self.rerender(tI);
+						}
+					}
+					PState.set(PSTATE_READY);
+				}
+			},
+			{
+				text: dlText.cancel,
+				click: function() {
+					d.dialog("close");
+				}				
+			}
+		]
+	});
+} // optionsModal()
 
 VizCards.prototype.setSel = function(absIArray)
 {
@@ -4761,7 +4873,7 @@ function PViewFrame(vfIndex)
 		}
 
 			// Does Viz have an Options dialog?
-		if (flags & V_FLAG_SET) {
+		if (flags & V_FLAG_OPT) {
 			frame.find('.vopts').button("enable");
 		} else {
 			frame.find('.vopts').button("disable");
@@ -5148,14 +5260,10 @@ var PData = (function() {
 		}, // aIndex2Tmplt()
 
 			// RETURNS: True if attID is in template tIndex
-			// NOTE: 	Since list of Attributes in Template definition not in Join form, assume
-			//				that appearance of prefix is sufficient
 		attInTmplt: function(attID, tIndex)
 		{
 			var tEntry = prspdata.t[tIndex];
-			var p = attID.split('.');
-			p = p[0];
-			return (tEntry.def.a.findIndex(function(att) { return att == p; }) != -1);
+			return (tEntry.def.a.findIndex(function(a) { return a == attID; }) != -1);
 		}, // attInTmplt()
 
 
@@ -6267,7 +6375,7 @@ var PData = (function() {
 			switch (att.def.t) {
 			case 'T':
 			case 'V':
-				ord.sort(function(a,b) { return PData.strcmp(a.v, b.v); });
+				ord.sort(function(a,b) { return PData.strcmp(b.v, a.v); });
 				break;
 			case 'D':
 			// 	ord.sort(function(a,b) {
@@ -7292,6 +7400,26 @@ jQuery(document).ready(function($) {
 		apTmStr = ts.join('&nbsp;');
 	}());
 
+		// Insert relevant Attribute IDs into Sort by Dialog
+	(function () {
+		var att;
+		prspdata.t.forEach(function(tmplt, ti) {
+			var opts='';
+			tmplt.def.a.forEach(function(attID) {
+				att = PData.getAttID(attID);
+				switch (att.def.t) {
+				case 'T':
+				case 'V':
+				case 'N':
+				case 'D':
+					opts += '<option value="'+attID+'">'+att.def.l+'</option>';
+					break;
+				}
+			});
+			jQuery('#dialog-sortby').append('<b>'+tmplt.def.l+'</b>: <select data-ti='+ti+'>'+opts+'</select><br/>');
+		});
+	}());
+
 		// Ensure proper ending for creating URLs
 	if (prspdata.site_url.charAt(prspdata.site_url.length-1) != '/')
 		prspdata.site_url += '/';
@@ -7376,6 +7504,7 @@ jQuery(document).ready(function($) {
 	jQuery('#btn-inspect-left').button({ icons: { primary: 'ui-icon-arrowthick-1-w' }, text: false });
 	jQuery('#btn-inspect-right').button({ icons: { primary: 'ui-icon-arrowthick-1-e' }, text: false });
 
+		// Create New Filter list
 	(function () {
 		jQuery('#filter-list').append('<li class="remove" data-id="_remove"><i>'+dlText.rha+'</i></li>');
 		prspdata.a.forEach(function(theAtt) {
