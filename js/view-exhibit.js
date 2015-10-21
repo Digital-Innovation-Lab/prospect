@@ -2418,12 +2418,12 @@ VizDirectory.prototype.constructor = VizDirectory;
 
 VizDirectory.prototype.flags = function()
 {
-	return V_FLAG_SEL | V_FLAG_VSCRL;
+	return V_FLAG_SEL | V_FLAG_VSCRL | V_FLAG_OPT;
 } // flags()
 
 VizDirectory.prototype.setup = function()
 {
-	var self = this;
+	var self=this;
 
 	jQuery(this.frameID).on("click.vf", function(event) {
 		if (event.target.nodeName == 'TD') {
@@ -2436,10 +2436,15 @@ VizDirectory.prototype.setup = function()
 				else
 					row.removeClass("obj-sel");
 			}
-		} else if (event.target.nodeName == 'TH') {
-			// TO DO: Sort by this column
 		}
 	});
+
+		// Get default sort Atts
+	self.sAtts=[];
+	for (var tI=0; tI<PData.getNumETmplts(); tI++) {
+		var attID = jQuery('#dialog-sortby select[data-ti="'+tI+'"]:first').val();
+		self.sAtts.push(attID);
+	}
 } // setup()
 
 
@@ -2459,6 +2464,9 @@ VizDirectory.prototype.render = function(stream)
 	if (this.recSel.length > 0)
 		this.recSel=[];
 
+		// Save it in case of later rerender
+	this.stream = stream;
+
 	tRec = stream.t[0];
 	while (i<stream.l) {
 			// Advance until we get to current Template rec
@@ -2475,8 +2483,8 @@ VizDirectory.prototype.render = function(stream)
 			tID = PData.getETmpltIndex(tI);
 			tDef = PData.getTmpltID(tID);
 			thisFrame.append('<div class="template-label">'+tDef.l+'</div>'+
-				'<table cellspacing="0" class="viz-directory" data-id='+tID+'></table>');
-			insert = thisFrame.find('table[data-id="'+tID+'"]');
+				'<table cellspacing="0" class="viz-directory" data-ti='+tI+'></table>');
+			insert = thisFrame.find('table[data-ti="'+tI+'"]');
 			fAtts = self.settings.cnt[tI];
 			t = '<thead><tr>';
 			fAtts.forEach(function(theAtt) {
@@ -2511,10 +2519,84 @@ VizDirectory.prototype.render = function(stream)
 	} // while 
 } // render()
 
+VizDirectory.prototype.rerender = function(tI)
+{
+	var self = this;
+
+	var fAtts, oAttID, oAtt, order;
+	var datum, rec, t;
+
+	var thisFrame = jQuery(this.frameID+ ' table.viz-directory[data-ti="'+tI+'"] tbody');
+	thisFrame.empty();
+
+	tRec = this.stream.t[tI];
+
+	fAtts = self.settings.cnt[tI];
+
+	oAttID = self.sAtts[tI];
+	oAtt = PData.getAttID(oAttID);
+	order = PData.orderTBy(oAtt, self.stream, tI);
+
+	order.forEach(function(oRec) {
+		rec = PData.getRecByIndex(oRec.i);
+		t = '<tr '+(self.isSel(oRec.i) ? 'class="obj-sel" ' : '')+'data-id="'+rec.id+'" data-ai='+oRec.i+'>';
+		fAtts.forEach(function(attID) {
+			datum = rec.a[attID];
+			if (typeof datum != 'undefined') {
+				datum = PData.procAttTxt(attID, datum);
+				if (datum) {
+					t += '<td>'+datum+'</td>';
+				} else {
+					t += '<td></td>';
+				}
+			} else {
+				t += '<td></td>';
+			}
+		});
+		thisFrame.append(t+'</tr>');
+	});
+} // rerender()
+
 VizDirectory.prototype.teardown = function()
 {
 	jQuery(this.frameID).off("click.vf");
 }
+
+VizDirectory.prototype.optionsModal = function()
+{
+	var self=this;
+
+	for (var tI=0; tI<PData.getNumETmplts(); tI++)
+		jQuery('#dialog-sortby select[data-ti="'+tI+'"]').val(self.sAtts[tI]);
+	var d = jQuery("#dialog-sortby").dialog({
+		height: 220,
+		width: 400,
+		modal: true,
+		buttons: [
+			{
+				text: dlText.ok,
+				click: function() {
+					d.dialog("close");
+					PState.set(PSTATE_BUILD);
+					for (var tI=0; tI<PData.getNumETmplts(); tI++) {
+						var sAttID = jQuery('#dialog-sortby select[data-ti="'+tI+'"]').val();
+						if (sAttID != self.sAtts[tI]) {
+							self.sAtts[tI] = sAttID;
+							self.rerender(tI);
+						}
+					}
+					PState.set(PSTATE_READY);
+				}
+			},
+			{
+				text: dlText.cancel,
+				click: function() {
+					d.dialog("close");
+				}				
+			}
+		]
+	});
+} // optionsModal()
 
 VizDirectory.prototype.setSel = function(absIArray)
 {
