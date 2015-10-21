@@ -690,8 +690,9 @@ VizCards.prototype.render = function(stream)
 	this.stream = stream;
 
 	var numTmplts = PData.getNumETmplts();
-	var i=0, aI, tI=-1, tID, tRec, tDef;
-	var newT=true, fAttID, fAtt, iAttID;
+	var tI, tID, tRec, tDef;
+	var fAttID, fAtt, iAttID;
+	var oAttID, oAtt, order;
 	var featSet, rec, c;
 	var hasC, cnt, datum, t, tDiv, tC;
 
@@ -705,74 +706,76 @@ VizCards.prototype.render = function(stream)
 
 	var div = 'w'+this.settings.w+' h'+this.settings.h;
 
-	while (i<stream.l) {
-			// Starting with new Template?
-		if (newT) {
-			do {
-				if (++tI == numTmplts)
-					return;
-				tRec = stream.t[tI];
-			} while (tRec.n == 0 || (tRec.i+tRec.n) == i);
-
-			tID = PData.getETmpltIndex(tI);
-			tDef = PData.getTmpltID(tID);
-
-			featSet = self.vFrame.getSelFeatAtts(tI);
-				// Skip Templates if no feature Atts
-			if (featSet.length == 0) {
-				newT = true;
-				continue;
-			} // if no featAtts
-
-			thisFrame.append('<div class="template-label">'+tDef.l+'</div><div class="cards" data-ti="'+tI+'"></div>');
-			insert = jQuery('div.cards[data-ti="'+tI+'"]');
-
-				// Get Feature Attribute ID and def for this Template
-			fAttID = self.vFrame.getSelLegend(tI);
-			fAtt = PData.getAttID(fAttID);
-
-			iAttID = self.settings.iAtts[tI];
-			cnt = self.settings.cnt[tI];
-			newT = false;
-		} // if new Template
-
-			// Get Record data and create cache entry
-		aI = stream.s[i];
-		rec = PData.getRecByIndex(aI);
-			// Eval Legend
-		datum = rec.a[fAttID];
-		if (typeof datum != 'undefined') {
-			c = PData.getAttLgndRecs(datum, fAtt, featSet, false);
-
-			if (c) {
-				tDiv = self.settings.lOn ? '<div class="card-title">'+rec.l+'</div>' : '';
-					// Get and add textual content
-				hasC = false; t = '';
-				if (cnt && cnt.length > 0) {
-					tC = c.b ? ' style="color:black"' : '';
-					cnt.forEach(function(theAttID) {
-						if (datum = rec.a[theAttID])
-							if (datum = PData.procAttTxt(theAttID, datum)) {
-								hasC = true;
-								t += datum+'<br/>';
-							}
-					});
-				}
-					// Any image?
-				if (iAttID && (datum = rec.a[iAttID])) {
-					if (hasC)
-						t = '<div class="card-body"><img src="'+datum+'"/><div class="card-cnt"'+tC+'>'+t+'</div></div>';
-					else
-						t = '<div class="card-body"><img class="full" src="'+datum+'"/></div>';
-				} else {
-					t = '<div class="card-body"><div class="card-cnt"'+tC+'>'+t+'</div>';
-				}
-				insert.append('<div class="card '+div+'" style="background-color:'+c.v+'" data-ai="'+aI+'">'+tDiv+t+'</div>');
-			} // if Legend selected
-		} // if Legend datum
-		if (++i == (tRec.i + tRec.n)) {
-			newT = true;
+	tRec = stream.t[0]; tI=0;
+	while (tI<numTmplts) {
+			// Advance until we get to current Template rec
+		while (tRec.n == 0) {
+				// Have we run out of Templates?
+			if (++tI == numTmplts)
+				return;
+			tRec = stream.t[tI];
 		}
+
+		tID = PData.getETmpltIndex(tI);
+		tDef = PData.getTmpltID(tID);
+
+		featSet = self.vFrame.getSelFeatAtts(tI);
+			// Skip Templates if no feature Atts
+		if (featSet.length == 0) {
+			tRec = stream.t[++tI];
+			continue;
+		} // if no featAtts
+
+		thisFrame.append('<div class="template-label">'+tDef.l+'</div><div class="cards" data-ti="'+tI+'"></div>');
+		insert = jQuery('div.cards[data-ti="'+tI+'"]');
+
+			// Get Feature Attribute ID and def for this Template
+		fAttID = self.vFrame.getSelLegend(tI);
+		fAtt = PData.getAttID(fAttID);
+
+		iAttID = self.settings.iAtts[tI];
+		cnt = self.settings.cnt[tI];
+
+		oAttID = self.sAtts[tI];
+		oAtt = PData.getAttID(oAttID);
+		order = PData.orderTBy(oAtt, stream, tI);
+
+		order.forEach(function(oRec) {
+			rec = PData.getRecByIndex(oRec.i);
+
+				// Eval Legend
+			datum = rec.a[fAttID];
+			if (typeof datum != 'undefined') {
+				c = PData.getAttLgndRecs(datum, fAtt, featSet, false);
+
+				if (c) {
+					tDiv = self.settings.lOn ? '<div class="card-title">'+rec.l+'</div>' : '';
+						// Get and add textual content
+					hasC = false; t = '';
+					if (cnt && cnt.length > 0) {
+						tC = c.b ? ' style="color:black"' : '';
+						cnt.forEach(function(theAttID) {
+							if (datum = rec.a[theAttID])
+								if (datum = PData.procAttTxt(theAttID, datum)) {
+									hasC = true;
+									t += datum+'<br/>';
+								}
+						});
+					}
+						// Any image?
+					if (iAttID && (datum = rec.a[iAttID])) {
+						if (hasC)
+							t = '<div class="card-body"><img src="'+datum+'"/><div class="card-cnt"'+tC+'>'+t+'</div></div>';
+						else
+							t = '<div class="card-body"><img class="full" src="'+datum+'"/></div>';
+					} else {
+						t = '<div class="card-body"><div class="card-cnt"'+tC+'>'+t+'</div>';
+					}
+					insert.append('<div class="card '+div+'" style="background-color:'+c.v+'" data-ai="'+oRec.i+'">'+tDiv+t+'</div>');
+				} // if Value-Legend match
+			} // if Legend datum
+		}); // for order
+		tRec = stream.t[++tI];
 	} // while
 } // render()
 
@@ -915,13 +918,14 @@ VizCards.prototype.clearSel = function()
 
 VizCards.prototype.getState = function()
 {
-	return { l: this.vFrame.getLgndSels() };
+	return { l: this.vFrame.getLgndSels(), s: this.sAtts };
 } // getState()
 
 
 VizCards.prototype.setState = function(state)
 {
 	this.vFrame.setLgndSels(state.l);
+	this.sAtts = state.s;
 } // setState()
 
 
@@ -2455,8 +2459,9 @@ VizDirectory.prototype.render = function(stream)
 	var self = this;
 
 	var numTmplts = PData.getNumETmplts();
-	var i=0, aI, tI=0, tID, tRec, tDef;
-	var insert=null, fAtts, datum, rec, t;
+	var tI=0, tID, tRec, tDef;
+	var insert, fAtts, datum, rec, t;
+	var oAttID, oAtt, order;
 
 	var thisFrame = jQuery(this.frameID);
 	thisFrame.empty();
@@ -2468,54 +2473,52 @@ VizDirectory.prototype.render = function(stream)
 	this.stream = stream;
 
 	tRec = stream.t[0];
-	while (i<stream.l) {
+	while (tI<numTmplts) {
 			// Advance until we get to current Template rec
-		while (tRec.n == 0 || (tRec.i+tRec.n) == i) {
+		while (tRec.n == 0) {
 				// Have we run out of Templates?
 			if (++tI == numTmplts)
 				return;
 			tRec = stream.t[tI];
-			insert = null;
 		}
-			// Starting with new Template? Create new table
-		if (insert == null) {
-// console.log("Starting new Template: "+tI);
-			tID = PData.getETmpltIndex(tI);
-			tDef = PData.getTmpltID(tID);
-			thisFrame.append('<div class="template-label">'+tDef.l+'</div>'+
-				'<table cellspacing="0" class="viz-directory" data-ti='+tI+'></table>');
-			insert = thisFrame.find('table[data-ti="'+tI+'"]');
-			fAtts = self.settings.cnt[tI];
-			t = '<thead><tr>';
-			fAtts.forEach(function(theAtt) {
-				var att = PData.getAttID(theAtt);
-				t += '<th>'+att.def.l+'</th>';
-			})
-			insert.append(t+'<tr></thead><tbody></tbody>');
-			insert = insert.find('tbody');
-		} // if new Template
+			// Starting with new Template: Create new table
+		tID = PData.getETmpltIndex(tI);
+		tDef = PData.getTmpltID(tID);
+		thisFrame.append('<div class="template-label">'+tDef.l+'</div>'+
+			'<table cellspacing="0" class="viz-directory" data-ti='+tI+'></table>');
+		insert = thisFrame.find('table[data-ti="'+tI+'"]');
+		fAtts = self.settings.cnt[tI];
+		t = '<thead><tr>';
+		fAtts.forEach(function(theAtt) {
+			var att = PData.getAttID(theAtt);
+			t += '<th>'+att.def.l+'</th>';
+		})
+		insert.append(t+'<tr></thead><tbody></tbody>');
+		insert = insert.find('tbody');
 
-			// Get Record data
-		aI = stream.s[i];
-// console.log("Next record: "+i+" (absI) "+aI);
-		rec = PData.getRecByIndex(aI);
-		t = '<tr data-id="'+rec.id+'" data-ai='+aI+'>';
-		fAtts.forEach(function(attID) {
-			datum = rec.a[attID];
-			if (typeof datum != 'undefined') {
-				datum = PData.procAttTxt(attID, datum);
-				if (datum) {
-					t += '<td>'+datum+'</td>';
+		oAttID = self.sAtts[tI];
+		oAtt = PData.getAttID(oAttID);
+		order = PData.orderTBy(oAtt, self.stream, tI);
+		order.forEach(function(oRec) {
+			rec = PData.getRecByIndex(oRec.i);
+			t = '<tr data-id="'+rec.id+'" data-ai='+oRec.i+'>';
+			fAtts.forEach(function(attID) {
+				datum = rec.a[attID];
+				if (typeof datum != 'undefined') {
+					datum = PData.procAttTxt(attID, datum);
+					if (datum) {
+						t += '<td>'+datum+'</td>';
+					} else {
+						t += '<td></td>';
+					}
 				} else {
 					t += '<td></td>';
 				}
-			} else {
-				t += '<td></td>';
-			}
+			});
+			insert.append(t+'</tr>');
 		});
-		insert.append(t+'</tr>');
-			// Increment stream index
-		i++;
+
+		tRec = stream.t[++tI];
 	} // while 
 } // render()
 
@@ -2626,6 +2629,17 @@ VizDirectory.prototype.clearSel = function()
 		jQuery(this.frameID).find('tr').removeClass('obj-sel');
 	}
 } // clearSel()
+
+VizDirectory.prototype.getState = function()
+{
+	return { s: this.sAtts };
+} // getState()
+
+
+VizDirectory.prototype.setState = function(state)
+{
+	this.sAtts = state.s;
+} // setState()
 
 
 // ======================================================================
