@@ -4973,6 +4973,12 @@ function PViewFrame(vfIndex)
 		return v.l;
 	} // title()
 
+	instance.flushLgnd = function()
+	{
+		var frame = jQuery(getFrameID());
+		frame.find('div.lgnd-container').css('left', '10px');
+	} // flushLgnd()
+
 	return instance;
 } // PViewFrame
 
@@ -6420,20 +6426,21 @@ jQuery(document).ready(function($) {
 		// PURPOSE: Add 2nd window if not already there; remove if so
 	function clickTog2nd()
 	{
-		PState.set(PSTATE_BUILD);
 		if (view1 != null) {
 			view1 = null;
 			jQuery('#view-frame-1').remove();
 			jQuery('#selector-v1').prop("checked", false);
 			jQuery('#selector-v1').prop("disabled", true);
 		} else {
+			view0.flushLgnd();
+			PState.set(PSTATE_BUILD);
 			view1 = PViewFrame(1);
 			view1.initDOM(0);
 			view1.showStream(endStream);
 			jQuery('#selector-v1').prop("disabled", false);
+			PState.set(PSTATE_READY);
 		}
 		view0.resize();
-		PState.set(PSTATE_READY);
 	} // clickTog2nd()
 
 
@@ -7189,6 +7196,7 @@ jQuery(document).ready(function($) {
 				view1.setViz(vI, false);
 				view1.setState(p.s.v1.s);
 			} else {
+				view0.flushLgnd();
 				view1 = PViewFrame(1);
 				view1.initDOM(vI);
 				view1.setState(p.s.v1.s);
