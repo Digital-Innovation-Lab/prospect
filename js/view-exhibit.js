@@ -2756,7 +2756,6 @@ VizStackChart.prototype.render = function(stream)
 	var maxY=0, rec;
 	var fSet = self.vFrame.getSelFeatAtts(0);
 	var yCats = PData.getLCats(sAtt, fSet);
-
 		// Pass 2 -- create Blocks by processing Records within a single Range Category by sAtt
 	for (var rI=0; rI<this.cats.length; rI++) {
 		if (rI > 0) { // clear previous entries
@@ -4604,7 +4603,7 @@ function PViewFrame(vfIndex)
 					} else {
 						element += '<div class="lgnd-viz lgnd-viz-empty"></div>';
 					}
-					element += ' <span class="lgnd-value-title"> > '+zEntry.l+'</span></div>';
+					element += ' <span class="lgnd-value-title">&raquo; '+zEntry.l+'</span></div>';
 					group.append(element);
 				});
 			}
@@ -6442,6 +6441,7 @@ jQuery(document).ready(function($) {
 	{
 		var aboutDialog;
 
+		jQuery("#dialog-about img").removeClass("zoomin");
 		aboutDialog = jQuery("#dialog-about").dialog({
 			height: 390,
 			width: 350,
@@ -6453,6 +6453,7 @@ jQuery(document).ready(function($) {
 				}
 			}]
 		});
+		jQuery("#dialog-about img").addClass("zoomin");
 
 		event.preventDefault();
 	} // clickAbout()

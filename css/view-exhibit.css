@@ -1228,6 +1228,37 @@ div.filter-vocab-bar {
 	border: 1px black dotted;
 }
 
+/** ABOUT dialog
+ **/
+
+#dialog-about img {
+	/* Webkit for Chrome and Safari */
+	-webkit-transform: scale(.2, .2);
+ 
+	/* Webkit for Mozila Firefox */
+	-moz-transform: scale(.2, .2);
+
+	/* Webkit for IE( Version: 11, 10 ) */
+	-ms-transform: scale(.20, .20);
+}
+
+#dialog-about img.zoomin {
+	/* Webkit for Chrome and Safari */
+	-webkit-transform: scale(1.0, 1.0);
+	-webkit-transition-duration: 800ms;
+	-webkit-transition-timing-function: ease-out;
+ 
+	/* Webkit for Mozila Firefox */
+	-moz-transform: scale(1.0, 1.0);
+	-moz-transition-duration: 800ms;
+	-moz-transition-timing-function: ease-out;
+
+	/* Webkit for IE( Version: 11, 10 ) */
+	-ms-transform: scale(1.0, 1.0);
+	-ms-transition-duration: 800ms;
+	-ms-transition-timing-function: ease-out;
+}
+
 /** WIDGETS
  **/
 
