@@ -30,7 +30,7 @@
 <script src="<?php echo(plugins_url('lib/d3.min.js', dirname(__FILE__))); ?>"></script>
 
 <script src="<?php echo(plugins_url('js/map-hub.js', dirname(__FILE__))); ?>"></script>
-<script src="<?php echo(plugins_url('js/view-exhibit.min.js', dirname(__FILE__))); ?>"></script>
+<script src="<?php echo(plugins_url('js/view-exhibit.js', dirname(__FILE__))); ?>"></script>
 
 <?php
 	$the_xhbt = new ProspectExhibit(true, get_the_ID(), true);
@@ -83,11 +83,14 @@
 			echo(', ');
 		$first = false;
 		$the_template = new ProspectTemplate(false, $template_id, true, true, false);
-		echo('{ id: "'.$the_template->id.'", ');
-		echo(' def: '.$the_template->meta_def.', ');
-		echo(' n: '.$the_template->get_num_records().' }');
+			// Get Joined form of Template Attributes
 		$att_defs = array_merge($att_defs, $the_template->get_all_attributes(false));
 		array_push($all_ts, $the_template);
+			// Replace Template's Unjoined Attribute list with Joined
+		$the_template->def->a = $the_template->all_att_ids;
+		echo('{ id: "'.$the_template->id.'", ');
+		echo(' def: '.json_encode($the_template->def, JSON_UNESCAPED_UNICODE).', ');
+		echo(' n: '.$the_template->get_num_records().' }');
 	}
 ?> ],
 		a: [ <?php

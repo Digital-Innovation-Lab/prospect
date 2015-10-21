@@ -75,7 +75,7 @@ class ProspectTemplate {
 	public $meta_view;
 	public $view;
 
-	public $all_att_ids;	// created by get_all_attributes()
+	public $all_att_ids;	// created by get_all_attributes() -- Joined version of Attributes
 
 		// PURPOSE: Create Template object and load its definition given its ID
 		// INPUT:	if is_postid, then the_id is the WordPress post ID (not Template ID)
