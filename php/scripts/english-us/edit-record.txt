@@ -90,7 +90,7 @@
 </script>
 
 <script id="att-type-Dates" type='text/ractive'>
-	From <input type="text" size="6" value="{{value.min.y}}" placeholder="YYYY" required pattern="(^$|open|~?-?\d+)"/>
+	From <input type="text" size="6" value="{{value.min.y}}" placeholder="YYYY" pattern="(^$|open|~?-?\d+)"/>
 		<input type="text" size="2" value="{{value.min.m}}" placeholder="MM" pattern="\d{0,2}"/>
 		<input type="text" size="2" value="{{value.min.d}}" placeholder="DD" pattern="\d{0,2}"/>
 	To <input type="text" size="6" value="{{value.max.y}}" placeholder="YYYY" pattern="(^$|open|~?-?\d+)"/>
