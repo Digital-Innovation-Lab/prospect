@@ -437,21 +437,17 @@ jQuery(document).ready(function() {
 		return false;
 	});
 
-		// Pop up modal with all IDs of some Template type, and then choose Record ID
-	rApp.on('addPointerID', function(event, index) {
-		var tmpltList = [];
-			// Only Independent Templates!
-		_.forEach(defTemplates, function(theTemplate) {
-			if (!theTemplate.def.d)
-				tmpltList.push(theTemplate.id);
-		});
-
-		var tmpltDialog = new Ractive({
+		// PURPOSE: Create dialog to choose Rec ID from Template type
+		// INPUT: 	tmpltID of Template type whose Records are eligible
+		//			rIndex is index of Record whose value will be modified
+	function getRecID(tmpltID, rIndex)
+	{
+		var recDialog = new Ractive({
 			el: '#insert-dialog',
 			template: '#dialog-choose-list',
 			data: {
-				list: tmpltList,
-				loading: false,
+				list: [],
+				loading: true,
 				selIndex: 0
 			},
 			components: {
@@ -459,20 +455,66 @@ jQuery(document).ready(function() {
 			}
 		}); // new Ractive()
 
-		tmpltDialog.on('doSelect', function(event, index) {
-			tmpltDialog.set('selIndex', index);
+		recDialog.on('doSelect', function(event, index) {
+			recDialog.set('selIndex', index);
 			return false;
 		});
-		tmpltDialog.on('dialog.ok', function() {
-			var tIndex = tmpltDialog.get('selIndex');
-			tmpltDialog.teardown();
+		recDialog.on('dialog.ok', function() {
+			if (!recDialog.get('loading')) {
+				var selIndex = recDialog.get('selIndex');
+				var selID = recDialog.get('list['+selIndex+']');
+				var theRec = rApp.get('defRecord['+rIndex+']');
+				var newVal;
+					// Only Add if pre-existing value and delimiter allows multiple values
+				if (theRec.value.length > 0 && theRec.def.d.length > 0)
+					newVal = theRec.value + theRec.def.d + selID;
+				else
+					newVal = selID;
+				rApp.set('defRecord['+rIndex+'].value', newVal);
+			}
+			recDialog.teardown();
+			return false;
+		});
+		recDialog.on('dialog.cancel', recDialog.teardown);
 
-			recDialog = new Ractive({
+			// AJAX call to get list of Record IDs
+		jQuery.ajax({
+			type: 'POST',
+			url: prspdata.ajax_url,
+			data: {
+				action: 'prsp_get_rec_ids',
+				tmplt_id: tmpltID
+			},
+			success: function(data, textStatus, XMLHttpRequest)
+			{
+				recDialog.set('list', JSON.parse(data));
+				recDialog.set('loading', false);
+			},
+			error: function(XMLHttpRequest, textStatus, errorThrown)
+			{
+			   alert(errorThrown);
+			}
+		}); // ajax
+	} // getRecID()
+
+		// Pop up modal with all IDs of some Template type, and then choose Record ID
+	rApp.on('addPointerID', function(event, rIndex) {
+		var tmpltList = [];
+			// Only Independent Templates!
+		_.forEach(defTemplates, function(theTemplate) {
+			if (!theTemplate.def.d)
+				tmpltList.push(theTemplate.id);
+		});
+
+		if (tmpltList.length == 1)
+			getRecID(tmpltList[0], rIndex);
+		else {
+			var tmpltDialog = new Ractive({
 				el: '#insert-dialog',
 				template: '#dialog-choose-list',
 				data: {
-					list: [],
-					loading: true,
+					list: tmpltList,
+					loading: false,
 					selIndex: 0
 				},
 				components: {
@@ -480,50 +522,20 @@ jQuery(document).ready(function() {
 				}
 			}); // new Ractive()
 
-			recDialog.on('doSelect', function(event, index) {
-				recDialog.set('selIndex', index);
+			tmpltDialog.on('doSelect', function(event, index) {
+				tmpltDialog.set('selIndex', index);
 				return false;
 			});
-			recDialog.on('dialog.ok', function() {
-				if (!recDialog.get('loading')) {
-					var selIndex = recDialog.get('selIndex');
-					var selID = recDialog.get('list['+selIndex+']');
-					var theRec = rApp.get('defRecord['+index+']');
-					var newVal;
-						// Only Add if pre-existing value and delimiter allows multiple values
-					if (theRec.value.length > 0 && theRec.def.d.length > 0)
-						newVal = theRec.value + theRec.def.d + selID;
-					else
-						newVal = selID;
-					rApp.set('defRecord['+index+'].value', newVal);
-				}
-				recDialog.teardown();
+			tmpltDialog.on('dialog.ok', function() {
+				var tIndex = tmpltDialog.get('selIndex');
+				tmpltDialog.teardown();
+
+				getRecID(tmpltList[tIndex], rIndex);
+
 				return false;
 			});
-			recDialog.on('dialog.cancel', recDialog.teardown);
-
-				// AJAX call to get list of Record IDs
-			jQuery.ajax({
-				type: 'POST',
-				url: prspdata.ajax_url,
-				data: {
-					action: 'prsp_get_rec_ids',
-					tmplt_id: tmpltList[tIndex]
-				},
-				success: function(data, textStatus, XMLHttpRequest)
-				{
-					recDialog.set('list', JSON.parse(data));
-					recDialog.set('loading', false);
-				},
-				error: function(XMLHttpRequest, textStatus, errorThrown)
-				{
-				   alert(errorThrown);
-				}
-			}); // ajax
-
-			return false;
-		});
-		tmpltDialog.on('dialog.cancel', tmpltDialog.teardown);
+			tmpltDialog.on('dialog.cancel', tmpltDialog.teardown);
+		}
 
 		return false;
 	});
@@ -556,6 +568,7 @@ jQuery(document).ready(function() {
 				if (!modalDialog.get('loading')) {
 					var selIndex = modalDialog.get('selIndex');
 					var newID = modalDialog.get('list['+selIndex+']');
+						// Only allow single ID for Join fields!
 					rApp.set('defRecord['+index+'].value', newID);
 				}
 				modalDialog.teardown();
