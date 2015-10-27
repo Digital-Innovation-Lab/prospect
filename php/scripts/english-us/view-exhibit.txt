@@ -281,6 +281,27 @@ Manage
 Edit
 </script>
 
+<script id="dltext-hint-marker" type="text">
+Marker size corresponds to
+</script>
+
+<script id="dltext-hint-text" type="text">
+Text size corresponds to
+</script>
+
+<script id="dltext-xaxis" type="text">
+X-Axis
+</script>
+
+<script id="dltext-yaxis" type="text">
+Y-Axis
+</script>
+
+<script id="dltext-orderedby" type="text">
+records ordered by
+</script>
+
+
 <script id="dltext-sync-xscript" type="text">
 <input type="checkbox" id="sync-xscript" name="sync-xscript" checked> Scroll transcript to follow playback
 </script>

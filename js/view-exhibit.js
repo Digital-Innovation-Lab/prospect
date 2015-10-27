@@ -151,6 +151,7 @@ function PVizModel(viewFrame, vizSettings)
 	// this.optionsModal()
 	// this.getState()
 	// this.setState(pData)
+	// this.hint()
 		// All subclasses must implement the following:
 	// this.flags()
 	// this.setup()
@@ -234,6 +235,11 @@ PVizModel.prototype.getState = function()
 PVizModel.prototype.setState = function(state)
 {
 } // PVizModel.setState()
+
+PVizModel.prototype.hint = function()
+{
+	return null;
+} // PVizModel.hint()
 
 
 // ===================================
@@ -627,6 +633,29 @@ VizMap.prototype.setState = function(state)
 	this.lMap.setView(state.c, state.z);
 	this.vFrame.setLgndSels(state.l);
 } // setState()
+
+VizMap.prototype.hint = function()
+{
+	var h='';
+	var numT = PData.getNumETmplts();
+
+	for (var tI=0; tI<numT; tI++) {
+		var sAttID = this.settings.sAtts[tI];
+		if (sAttID) {
+			if (h.length == 0) {
+				h = dlText.markersize;
+			} else {
+				h += ',';
+			}
+			var sAtt = PData.getAttID(sAttID);
+			var tID = PData.getETmpltIndex(tI);
+			var tDef = PData.getTmpltID(tID);
+			h += ' '+sAtt.def.l+' ('+tDef.l+')';
+		}
+	}
+	return (h.length > 0) ? h : null;
+} // hint()
+
 
 // =============================================
 // VizCards: Class to visualize records as Cards
@@ -1237,11 +1266,32 @@ VizPinboard.prototype.getState = function()
 	return { l: this.vFrame.getLgndSels() };
 } // getState()
 
-
 VizPinboard.prototype.setState = function(state)
 {
 	this.vFrame.setLgndSels(state.l);
 } // setState()
+
+VizPinboard.prototype.hint = function()
+{
+	var h='';
+	var numT = PData.getNumETmplts();
+
+	for (var tI=0; tI<numT; tI++) {
+		var sAttID = this.settings.sAtts[tI];
+		if (sAttID) {
+			if (h.length == 0) {
+				h = dlText.markersize;
+			} else {
+				h += ',';
+			}
+			var sAtt = PData.getAttID(sAttID);
+			var tID = PData.getETmpltIndex(tI);
+			var tDef = PData.getTmpltID(tID);
+			h += ' '+sAtt.def.l+' ('+tDef.l+')';
+		}
+	}
+	return (h.length > 0) ? h : null;
+} // hint()
 
 
 // ===============================================
@@ -2841,6 +2891,33 @@ VizTextStream.prototype.setState = function(state)
 	this.vFrame.setLgndSels(state.l);
 } // setState()
 
+VizTextStream.prototype.hint = function()
+{
+	var h='';
+	var attID, attDef, tID, tDef, sAtt;
+
+	var numT = PData.getNumETmplts();
+
+	for (var tI=0; tI<numT; tI++) {
+		attID = this.settings.order[tI];
+		if (attID) {
+			attDef = PData.getAttID(attID);
+			tID = PData.getETmpltIndex(tI);
+			tDef = PData.getTmpltID(tID);
+			if (h.length > 0)
+				h += '; ';
+			h += tDef.l+': '+dlText.orderedby+' '+attDef.def.l;
+
+			attID = this.settings.sAtts[tI];
+			if (attID) {
+				attDef = PData.getAttID(attID);
+				h += ', '+dlText.textsize+' '+attDef.def.l;
+			}
+		} // if attID
+	} // for templates
+	return h;
+} // hint()
+
 
 // ================================================================================
 // VizStackChart: Class to visualize 2 dimensions of record data as a stacked chart
@@ -3036,6 +3113,16 @@ VizStackChart.prototype.setState = function(state)
 {
 	this.vFrame.setLgndSels(state.l);
 } // setState()
+
+VizStackChart.prototype.hint = function()
+{
+	var h=dlText.xaxis+': ';
+	var att = PData.getAttID(this.settings.oAtt);
+	h += att.def.l+', '+dlText.yaxis+': ';
+	att = PData.getAttID(this.settings.sAtt);
+	h += att.def.l;
+	return h;
+} // hint()
 
 
 // ===============================================================================
@@ -4646,7 +4733,7 @@ function PViewFrame(vfIndex)
 		event.preventDefault();
 	} // clickVizControls()
 
-		// PURPOSE: Hide/show viz-specific controls on right side
+		// PURPOSE: Hide/show visualization-specific hint notes
 	function clickVizNotes(event)
 	{
 		var d = jQuery("#dialog-vnotes").dialog({
@@ -4976,10 +5063,17 @@ function PViewFrame(vfIndex)
 		}
 
 			// Does Viz have annotation?
-		if (typeof theView.n == 'string' && theView.n != '')
+		var hint = newViz.hint();
+		if (hint || typeof theView.n == 'string' && theView.n != '')
 		{
 			frame.find('.vnote').button("enable");
-			jQuery('#vnotes-txt').empty().append('<p>'+theView.n+'</p>');
+			if (hint) {
+				if (typeof theView.n == 'string' && theView.n != '')
+					hint += '.<br/>'+theView.n;
+			} else {
+				hint = theView.n;
+			}
+			jQuery('#vnotes-txt').empty().append(hint);
 		} else {
 			frame.find('.vnote').button("disable");
 		}
@@ -7458,6 +7552,11 @@ jQuery(document).ready(function($) {
 		loadFrag('dltext-manage', 'manage');
 		loadFrag('dltext-delete', 'del');
 		loadFrag('dltext-edit', 'edit');
+		loadFrag('dltext-hint-marker', 'markersize');
+		loadFrag('dltext-hint-text', 'textsize');
+		loadFrag('dltext-xaxis', 'xaxis');
+		loadFrag('dltext-yaxis', 'yaxis');
+		loadFrag('dltext-orderedby', 'orderedby');
 
 		text = document.getElementById('dltext-month-names').innerHTML;
 		months = text.trim().split('|');
