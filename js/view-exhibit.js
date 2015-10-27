@@ -972,7 +972,7 @@ VizPinboard.prototype.constructor = VizPinboard;
 
 VizPinboard.prototype.flags = function()
 {
-	return V_FLAG_LGND | V_FLAG_SEL | V_FLAG_LOC;
+	return V_FLAG_LGND | V_FLAG_SEL | V_FLAG_LOC | V_FLAG_HSCRL | V_FLAG_VSCRL;
 } // flags()
 
 	// PURPOSE: Return IDs of locate Attributes 
