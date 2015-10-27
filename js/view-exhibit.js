@@ -563,10 +563,10 @@ VizMap.prototype.render = function(stream)
 				node.p.forEach(function(aPtr) {
 					i = _.sortedIndex(mCache, { id: aPtr }, 'id');
 					if (i < mCache.length) {
-						var cnnctd = mCache[i];
-						if (cnnctd.id == aPtr) {
+						var cnct = mCache[i];
+						if (cnct.id == aPtr) {
 							node.c.forEach(function(from) {
-								cnnctd.c.forEach(function(to) {
+								cnct.c.forEach(function(to) {
 									if (from[0] != to[0] || from[1] != to[1])
 										links.push({p: [from, to], c: node.l });
 								})
@@ -1020,19 +1020,6 @@ VizPinboard.prototype.setup = function()
 		.append("path")
 			.attr("d", "M 0,0 V 4 L6,2 Z");
 
-		// Create definition for pin icon
-		// made by http://www.flaticon.com/authors/bogdan-rosu
-	var pinDef = defs.append('g')
-		.attr('id', 'pin');
-	pinDef.append('path')
-		.attr('d', "M36.439,12.646c0-6.919-5.608-12.527-12.528-12.527S11.384,5.727,11.384,12.646c0,9.913,12.527,24.582,12.527,24.582 S36.439,22.508,36.439,12.646z M17.733,11.898c0-3.413,2.767-6.179,6.179-6.179s6.179,2.766,6.179,6.179 c0,3.413-2.767,6.179-6.179,6.179S17.733,15.311,17.733,11.898z");
-	pinDef.append('circle')
-		.attr('cx', '23.911')
-		.attr('cy', '11.898')
-		.attr('r', '3.038')
-	pinDef.append('path')
-		.attr('d', "M30.994,32.87c-1.021,1.476-1.979,2.761-2.777,3.793c7.916,0.476,13.104,2.185,15.034,3.456 c-2.261,1.491-8.979,3.587-19.338,3.587c-10.358,0-17.077-2.097-19.338-3.587c1.93-1.271,7.114-2.979,15.022-3.455 c-0.8-1.032-1.759-2.316-2.781-3.792C7.075,33.831,0,36.713,0,40.118c0,4.19,10.707,7.588,23.913,7.588 c13.207,0,23.912-3.396,23.912-7.588C47.827,36.711,40.744,33.828,30.994,32.87z");
-
 	this.chart = svg.append("g")
 		.attr("transform", "translate(30,30)");
 
@@ -1078,17 +1065,19 @@ VizPinboard.prototype.render = function(stream)
 		d3.select(this).classed('obj-sel', s);
 	} // clickPin()
 
-		// Remove all previous icons
-	this.gRecs.selectAll('svg.recobj').remove();
+		// Remove all previous icons and links
+	this.gRecs.selectAll('.recobj').remove();
+	this.gRecs.selectAll('.recline').remove();
 
 	if (this.recSel.length > 0)
 		this.recSel=[];
 
-	var idx, idy, iw, ih;
 	var numTmplts = PData.getNumETmplts();
-	var i, aI, tI=0, tRec, rec;
+	var i, aI, tI=0, tRec, tLClr, rec;
 	var fAttID, fAtt, locAtts, featSet, pAttID;
 	var locData, fData;
+
+	var sAttID, sAtt, minR, maxR, dR, minS, dS;
 
 		// If Pointers used, need to cach marker data need to construct links
 		//		{ id, c(oordinates)[], p(ointers)[] }
@@ -1099,20 +1088,15 @@ VizPinboard.prototype.render = function(stream)
 			break;
 		}
 
-	// switch (this.settings.size) {
-	// case 's':
-	// 	idx = -6; idy = -10; iw = 12; ih = 12;
-	// 	break;
-	// case 'm':
-	// 	idx = -12; idy = -20; iw = 24; ih = 24;
-	// 	break;
-	// case 'l':
-	// 	idx = -16; idy = -30; iw = 32; ih = 32;
-	// 	break;
-	// }
+	minR = this.settings.min;
+	if (typeof(minR) == 'string')
+		minR = parseInt(minR);
+	maxR = this.settings.max;
+	if (typeof(maxR) == 'string')
+		maxR = parseInt(maxR);
+	dR = maxR - minR;
 
-		// TO DO
-	idx = -12; idy = -20; iw = 24; ih = 24;
+	var nodes=[];
 
 	i=0; tI=-1;
 	doStream:
@@ -1143,40 +1127,49 @@ VizPinboard.prototype.render = function(stream)
 			fAttID = self.vFrame.getSelLegend(tI);
 			fAtt = PData.getAttID(fAttID);
 			pAttID = self.settings.pAtts[tI];
+			tLClr = self.settings.lClrs[tI];
+			sAttID = self.settings.sAtts[tI];
+			if (sAttID) {
+				sAtt = PData.getAttID(sAttID);
+				if (typeof sAtt.r.min == 'number' && typeof sAtt.r.max == 'number') {
+					minS = sAtt.r.min;
+					dS = sAtt.r.max - minS;
+				} else
+					sAttID = null;
+			}
 		} // if new Template
+
 			// Get Record data
 		aI = stream.s[i];
 		rec = PData.getRecByIndex(aI);
 		var cEntry;
 		if (mCache) {
-			cEntry={ id: rec.id, c: null, p: rec.a[pAttID] };
+			cEntry={ id: rec.id, c: null, p: rec.a[pAttID], l: tLClr };
 		}
 
 		locData = rec.a[locAtts];
-		if (locData) {
+		if (typeof locData != 'undefined') {
 			fData = rec.a[fAttID];
 			if (typeof fData != 'undefined') {
 				fData = PData.getAttLgndVal(fData, fAtt, featSet);
 				if (fData) {
 // console.log("Record "+i+"["+fAttID+"]: "+rec.a[fAttID]+" = "+fData);
-					if (typeof locData[0] == 'number') {
-						nodes.push({ ai: aI, id: rec.id, v: fData,
-									 x: locData[0]+idx, y: locData[1]+idy, w: iw, h: ih
-								});
-						if (cEntry)
-							cEntry.c = locData;
-					} else {
-							// TO DO: Create separate arrays to store lines & polygons?
-						if (locData.length == 2) {
-							// draw line
-						} else {
-							// draw polygon
-						}
-					} // Not a single coord
+					if (sAttID) {
+						sAtt = rec.a[sAttID];
+						if (typeof sAtt != 'undefined') {
+							sAtt = Math.floor(((sAtt-minS)*dR)/dS) + minR;
+						} else
+							sAtt = minR;
+					} else
+						sAtt = minR;
+
+					nodes.push({ ai: aI, v: fData, x: locData[0], y: locData[1], r: sAtt });
+					if (cEntry)
+						cEntry.c = locData;
 				} // if fData
 			} // if fData
 		} // if locData
-		if (cEntry && cEntry.c.length > 0)
+		if (cEntry && cEntry.c)
 			mCache.push(cEntry);
 			// Increment stream index -- check if going into new Template
 		if (++i == (tRec.i + tRec.n)) {
@@ -1185,20 +1178,44 @@ VizPinboard.prototype.render = function(stream)
 	} // while
 
 		// Apply D3 to nodes
-	this.gRecs.selectAll('svg.recobj')
+	this.gRecs.selectAll('.recobj')
 		.data(nodes)
 		.enter()
-		.append('svg').attr('class', 'recobj')
-		.attr('x', function(d) { return self.xScale(d.x); })
-		.attr('y', function(d) { return self.yScale(d.y); })
-		.attr('width', function(d) { return self.xScale(d.w); })
-		.attr('height', function(d) { return self.yScale(d.h); })
-		.attr('viewBox', '0 0 48 48')
-		.attr('data-ai', function(d) { return d.ai; })
-		.on('click', clickPin)
-		.append('use')
-		.attr('xlink:href', '#pin')
-		.attr('fill', function(d) { return d.v; });
+		.append('circle').attr('class', 'recobj')
+		.attr('cx', function(d) { return self.xScale(d.x); })
+		.attr('cy', function(d) { return self.yScale(d.y); })
+		.attr('r', function(d) { return self.yScale(d.r); })
+		.style('fill', function(d) { return d.v; })
+		.on('click', clickPin);
+
+		// Use cache to create connections
+	if (mCache) {
+		mCache.sort(function(a,b) { return PData.strcmp(b.id, a.id); });
+		var links=[];
+		mCache.forEach(function(node) {
+			if (node.p) {
+					// Iterate the node's Pointers
+				node.p.forEach(function(aPtr) {
+					i = _.sortedIndex(mCache, { id: aPtr }, 'id');
+					if (i < mCache.length) {
+						var cnct = mCache[i];
+						if (cnct.id == aPtr)
+							links.push({ f: node.c, t: cnct.c, c: node.l });
+					}
+				});
+			}
+		});
+
+		this.gRecs.selectAll('.recline')
+			.data(links)
+			.enter()
+			.append('line').attr('class', 'recline')
+			.attr('x1', function(d) { return self.xScale(d.f[0]); })
+			.attr('y1', function(d) { return self.yScale(d.f[1]); })
+			.attr('x2', function(d) { return self.xScale(d.t[0]); })
+			.attr('y2', function(d) { return self.yScale(d.t[1]); })
+			.attr('stroke', function(d) { return d.c; });
+	} // mCache
 } // render()
 
 VizPinboard.prototype.clearSel = function()
@@ -5070,6 +5087,8 @@ function PViewFrame(vfIndex)
 			if (hint) {
 				if (typeof theView.n == 'string' && theView.n != '')
 					hint += '.<br/>'+theView.n;
+				else
+					hint += '.';
 			} else {
 				hint = theView.n;
 			}

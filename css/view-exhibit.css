@@ -979,6 +979,13 @@ svg .recobj.obj-sel
 	fill: none;
 }
 
+svg .recline
+{
+	stroke-opacity: 1;
+	stroke-width: 2px;
+	pointer-events: none;
+}
+
 	/* Timeline styles
 	 * DOM structure
 	 * 	tl-vf	(Outermost SVG)
