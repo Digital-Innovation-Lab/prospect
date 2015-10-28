@@ -966,7 +966,7 @@ VizPinboard.prototype.constructor = VizPinboard;
 
 VizPinboard.prototype.flags = function()
 {
-	return V_FLAG_LGND | V_FLAG_SEL | V_FLAG_LOC | V_FLAG_HSCRL | V_FLAG_VSCRL;
+	return V_FLAG_LGND | V_FLAG_SEL | V_FLAG_LOC | V_FLAG_HSCRL | V_FLAG_VSCRL | V_FLAG_OPT;
 } // flags()
 
 	// PURPOSE: Return IDs of locate Attributes 
@@ -988,23 +988,19 @@ VizPinboard.prototype.setup = function()
 {
 	var s = this.settings;
 	var self=this;
-
-	function slide()
-	{
-		var p = jQuery(this).parent().data('i');
-// console.log("Slide "+p+" to: "+this.value);
-		if (p == -1) {
-			// self.baseMap.setOpacity(this.value);
-		}
-	} // slide()
+	var fI = this.vFrame.getIndex();
 
 		// Set up options dialog
 	var layerPt = jQuery('#dialog-opacities div.layer-list');
 	layerPt.empty();
 
-	var newBit = jQuery('<div data-i="-1"><input type="checkbox" checked="checked"> Base Image <input type=range class="op-slider" min=0 max=100 value=90 step=5></div>');
-	newBit.find('.op-slider').on('change', slide);
+	var newBit = jQuery('<div class="op-layer" data-i="-1">Base Image <input type=range class="op-slider" min=0 max=100 value=100 step=5></div>');
 	layerPt.append(newBit);
+
+	this.settings.lyrs.forEach(function(layer, lIndex) {
+		newBit = jQuery('<div class="op-layer" data-i="'+lIndex+'">Overlay '+(lIndex+1)+' <input type=range class="op-slider" min=0 max=100 value='+(layer.o*100)+' step=5></div>');
+		layerPt.append(newBit);
+	});
 
 		// Maintain number of Loc Atts per Template type
 	var numT = PData.getNumETmplts();
@@ -1020,17 +1016,17 @@ VizPinboard.prototype.setup = function()
 		.attr("width", s.dw+30+3)
 		.attr("height", s.dh+30+2);
 
-	var defs = svg.append('defs');
+	// var defs = svg.append('defs');
 
-	defs.append("marker")
-		.attr("id", "arrowhead")
-		.attr("refX", 6 + 3) /*must be smarter way to calculate shift*/
-		.attr("refY", 2)
-		.attr("markerWidth", 6)
-		.attr("markerHeight", 4)
-		.attr("orient", "auto")
-		.append("path")
-			.attr("d", "M 0,0 V 4 L6,2 Z");
+	// defs.append("marker")
+	// 	.attr("id", "arrowhead")
+	// 	.attr("refX", 6 + 3) /*must be smarter way to calculate shift*/
+	// 	.attr("refY", 2)
+	// 	.attr("markerWidth", 6)
+	// 	.attr("markerHeight", 4)
+	// 	.attr("orient", "auto")
+	// 	.append("path")
+	// 		.attr("d", "M 0,0 V 4 L6,2 Z");
 
 	this.chart = svg.append("g")
 		.attr("transform", "translate(30,30)");
@@ -1044,19 +1040,35 @@ VizPinboard.prototype.setup = function()
 		.call(this.yAxis);
 
 	this.chart.append("image")
+		.attr('id', 'base-'+fI)
 		.attr("xlink:href", s.img)
 		.attr("x", 0)
 		.attr("y", 0)
 		.attr("height", s.dh)
 		.attr("width", s.dw);
 
-		// Dragging background
-	this.chart.on("click", function()
-	{
-		// d3.event.preventDefault();
+		// Create slots for SVG layers
+	this.settings.lyrs.forEach(function(layer, lIndex) {
+		self.chart.append("svg")
+			.attr('id', 'ol-'+fI+'-'+lIndex)
+			.attr("opacity", layer.o);
 	});
 
-		// TO DO -- add SVG layers
+		// Now try to load SVG files into slots
+	this.settings.lyrs.forEach(function(layer, lIndex) {
+		d3.xml(layer.url, function(error, docFrag) {
+			if (!error) {
+				var svgNode = docFrag.getElementsByTagName("svg")[0];
+				d3.select('#ol-'+fI+'-'+lIndex).node().appendChild(svgNode);
+			}
+		});
+	});
+
+		// Dragging background
+	// this.chart.on("click", function()
+	// {
+	// 	// d3.event.preventDefault();
+	// });
 
 		// Create icon palette
 	this.gRecs = this.chart.append('g')
@@ -1071,7 +1083,6 @@ VizPinboard.prototype.render = function(stream)
 
 	function clickPin(d, i)
 	{
-		// console.log("Clicked "+i+": "+JSON.stringify(d));
 			// Toggle class
 		var s = self.toggleSel(d.ai);
 		d3.select(this).classed('obj-sel', s);
@@ -1251,6 +1262,7 @@ VizPinboard.prototype.setSel = function(absIArray)
 VizPinboard.prototype.doOptions = function()
 {
 	var self=this;
+	var fI=this.vFrame.getIndex();
 
 	var d = jQuery("#dialog-opacities").dialog({
 		height: 300,
@@ -1261,6 +1273,14 @@ VizPinboard.prototype.doOptions = function()
 				text: dlText.ok,
 				click: function() {
 					d.dialog("close");
+					var o, numO;
+					o = jQuery('.op-layer[data-i="-1"] .op-slider').val();
+					d3.select('#base-'+fI).attr('opacity', o/100);
+					numO = self.settings.lyrs.length;
+					for (var oI=0; oI<numO; oI++) {
+						o = jQuery('.op-layer[data-i="'+oI+'"] .op-slider').val();
+						d3.select('#ol-'+fI+'-'+oI).attr('opacity', o/100);
+					}
 				}
 			},
 			{

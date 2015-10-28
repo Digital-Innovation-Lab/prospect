@@ -600,6 +600,14 @@ div.scroll-container .selected {
 	float: right;
 }
 
+div.op-layer {
+	vertical-align: middle;
+}
+
+div.op-layer input {
+	vertical-align: middle;
+}
+
 	/* Inspector Modal
 	 * ===============
 	 */
