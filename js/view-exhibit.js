@@ -257,7 +257,7 @@ VizMap.prototype.constructor = VizMap;
 
 VizMap.prototype.flags = function()
 {
-	return V_FLAG_LGND | V_FLAG_SEL | V_FLAG_LOC;
+	return V_FLAG_LGND | V_FLAG_SEL | V_FLAG_LOC | V_FLAG_OPT;
 } // flags()
 
 	// PURPOSE: Return IDs of locate Attributes 
@@ -300,42 +300,47 @@ VizMap.prototype.setup = function()
 		self.lMap.setView([centerLat, centerLon], zoom);
 	} // resetMap()
 
-	var vIndex = this.vFrame.getIndex();
+	var vI = this.vFrame.getIndex();
 
 		// Leaflet requires a DIV ID to startup: create and insert one
-	jQuery(this.frameID).append('<div id="l-map-'+vIndex+'" class="max-size"></div>');
+	jQuery(this.frameID).append('<div id="l-map-'+vI+'" class="max-size"></div>');
 
-	this.lMap = L.map("l-map-"+vIndex, { zoomControl: false }).setView([centerLat, centerLon], zoom);
-
-		// Layer controls
-	var layerControl = L.control.layers();
-	layerControl.addTo(this.lMap);
+	this.lMap = L.map("l-map-"+vI, { zoomControl: false }).setView([centerLat, centerLon], zoom);
 
 		// Create basemap
-	this.baseMap = PMapHub.createMapLayer(this.settings.base, 1, this.lMap, layerControl);
+	this.baseMap = PMapHub.createMapLayer(this.settings.base, 1, this.lMap, null);
 
 		// Create overlay layers
 	var opacity;
 	this.mapLayers = [];
 
+		// Set up options dialog
+	var layerPt = jQuery('#dialog-opacities div.layer-list');
+	layerPt.empty();
+
+	var newBit = jQuery('<div class="op-layer" data-i="-1">Base Map <input type=range class="op-slider" min=0 max=100 value=100 step=5></div>');
+	layerPt.append(newBit);
+
 		// Compile map layer data into mapLayers array and create with Leaflet
-	_.each(this.settings.lyrs, function(layerToUse) {
-		opacity = layerToUse.o || 1;
+	_.each(this.settings.lyrs, function(layer, lIndex) {
+		opacity = layer.o || 1;
 
 		var newLayer;
-		newLayer = PMapHub.createMapLayer(layerToUse.lid, opacity, self.lMap, layerControl);
+		newLayer = PMapHub.createMapLayer(layer.lid, opacity, self.lMap, null);
 		self.mapLayers.push(newLayer);
+
+		newBit = jQuery('<div class="op-layer" data-i="'+lIndex+'">'+newLayer.options.layerName+' <input type=range class="op-slider" min=0 max=100 value='+(layer.o*100)+' step=5></div>');
+		layerPt.append(newBit);
 	});
 
-	var vi = this.vFrame.getIndex();
 	var fh = _.template(document.getElementById('dltext-v-map').innerHTML);
-	jQuery('#view-frame-'+vi+' div.view-control-bar').append(fh({ vi: vi }));
+	jQuery('#view-frame-'+vI+' div.view-control-bar').append(fh({ vi: vI }));
 
-	jQuery('#map-zoom-'+vi).button({ text: false, icons: { primary: "ui-icon-plus" }})
+	jQuery('#map-zoom-'+vI).button({ text: false, icons: { primary: "ui-icon-plus" }})
 		.click(zoomMap);
-	jQuery('#map-unzoom-'+vi).button({ text: false, icons: { primary: "ui-icon-minus" }})
+	jQuery('#map-unzoom-'+vI).button({ text: false, icons: { primary: "ui-icon-minus" }})
 		.click(unzoomMap);
-	jQuery('#map-reset-'+vi).button({ text: false, icons: { primary: "ui-icon-arrowrefresh-1-w" }})
+	jQuery('#map-reset-'+vI).button({ text: false, icons: { primary: "ui-icon-arrowrefresh-1-w" }})
 		.click(resetMap);
 
 	var markers = L.featureGroup();            
@@ -651,6 +656,40 @@ VizMap.prototype.hint = function()
 	}
 	return (h.length > 0) ? h : null;
 } // hint()
+
+VizMap.prototype.doOptions = function()
+{
+	var self=this;
+	var fI=this.vFrame.getIndex();
+
+	var d = jQuery("#dialog-opacities").dialog({
+		height: 300,
+		width: 500,
+		modal: true,
+		buttons: [
+			{
+				text: dlText.ok,
+				click: function() {
+					d.dialog("close");
+					var o, numO;
+					o = jQuery('.op-layer[data-i="-1"] .op-slider').val();
+					self.baseMap.setOpacity(o/100);
+					numO = self.settings.lyrs.length;
+					for (var oI=0; oI<numO; oI++) {
+						o = jQuery('.op-layer[data-i="'+oI+'"] .op-slider').val();
+						self.mapLayers[oI].setOpacity(o/100);
+					}
+				}
+			},
+			{
+				text: dlText.cancel,
+				click: function() {
+					d.dialog("close");
+				}				
+			}
+		]
+	});
+} // doOptions()
 
 
 // =============================================
