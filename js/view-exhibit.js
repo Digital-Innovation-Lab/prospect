@@ -1223,7 +1223,7 @@ VizPinboard.prototype.clearSel = function()
 	if (this.recSel.length > 0) {
 		this.recSel = [];
 
-		this.gRecs.selectAll('svg.recobj').classed('obj-sel', false);
+		this.gRecs.selectAll('.recobj').classed('obj-sel', false);
 	}
 } // clearSel()
 
@@ -1232,7 +1232,7 @@ VizPinboard.prototype.setSel = function(absIArray)
 	var self = this;
 
 	this.recSel = absIArray;
-	this.gRecs.selectAll('svg.recobj').classed('obj-sel', function(d) {
+	this.gRecs.selectAll('.recobj').classed('obj-sel', function(d) {
 		return self.isSel(d.ai);
 	});
 } // setSel()
@@ -7602,7 +7602,7 @@ jQuery(document).ready(function($) {
 	xhbtURL = xhbtURL.replace(/\&*prspctv=[\w\-]+/, '');
 	xhbtURL = xhbtURL.replace(/\/$/, '');
 	xhbtURL = xhbtURL.replace(/^\//, '');
-	xhbtURL = window.location.protocol + "//" + window.location.host + "/" + xhbtURL;
+	xhbtURL = "http://" + window.location.host + "/" + xhbtURL;
 
 		// Create string for apply Filters to Templates
 	(function () {
