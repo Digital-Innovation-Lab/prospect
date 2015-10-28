@@ -369,7 +369,7 @@
 	Overlay SVG Layers: <button on-click="addSVGLayer:{{vIndex}}">Add SVG Layer</button><br/>
 	{{#each c.lyrs:lIndex}}
 		<div class="map-layer-div">
-			SVG Layer {{lIndex}} URL: <input type="text" value="{{url}}" size="32" pattern="^https?://.+" required/>
+			SVG Layer {{lIndex}} URL: <input type="text" value="{{url}}" size="40" pattern="^https?://.+" required/>
 			Opacity: <input type="range" min="0" max="1" value="{{o}}" step="0.1"/>
 			<button decorator="iconButton:ui-icon-trash" on-click="delSVGLayer:{{vIndex}},{{lIndex}}">Delete</button>
 		</div>
