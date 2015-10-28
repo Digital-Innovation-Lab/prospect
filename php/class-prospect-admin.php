@@ -101,6 +101,7 @@ class ProspectAdmin {
 	{
 		$mime_types['txt'] = 'text/plain';
 		$mime_types['csv'] = 'text/csv';
+		$mime_types['svg'] = 'image/svg+xml';
 
 		return $mime_types;
 	} // add_mime_types()
