@@ -1054,7 +1054,7 @@ class ProspectAdmin {
 		fwrite($fp, '{"type": "Map", "map-id": "'.$the_map->id.'", '."\n");
 		fwrite($fp, '"map_sname": "'.$the_map->meta_data['sname']."\",\n");
 		fwrite($fp, '"map_url": "'.$the_map->meta_data['url']."\",\n");
-		fwrite($fp, '"map_inverse_y": '.$the_map->meta_data['inverseY'].",\n");
+		fwrite($fp, '"map_inverse_y": "'.$the_map->meta_data['inverseY']."\",\n");
 		fwrite($fp, '"map_subdomains": "'.$the_map->meta_data['subd']."\",\n");
 		fwrite($fp, '"map_min_zoom": '.$the_map->meta_data['minZoom'].",\n");
 		fwrite($fp, '"map_max_zoom": '.$the_map->meta_data['maxZoom'].",\n");
