@@ -337,12 +337,7 @@ VizMap.prototype.setup = function()
 	jQuery('#map-reset-'+vi).button({ text: false, icons: { primary: "ui-icon-arrowrefresh-1-w" }})
 		.click(resetMap);
 
-	// var markers;
-	// if (this.settings.clster) {
-	// 	markers = new L.MarkerClusterGroup();
-	// } else {
 	var markers = L.featureGroup();            
-	// }
 	this.markerLayer = markers;
 
 		// Create options properties if they don't already exist
@@ -544,7 +539,7 @@ VizMap.prototype.render = function(stream)
 				}
 			}
 		}); // for locAtts
-// console.log("cEntry: "+JSON.stringify(cEntry));
+
 		if (cEntry && cEntry.c.length > 0)
 			mCache.push(cEntry);
 			// Increment stream index -- check if going into new Template
@@ -1153,7 +1148,6 @@ VizPinboard.prototype.render = function(stream)
 			if (typeof fData != 'undefined') {
 				fData = PData.getAttLgndVal(fData, fAtt, featSet);
 				if (fData) {
-// console.log("Record "+i+"["+fAttID+"]: "+rec.a[fAttID]+" = "+fData);
 					if (sAttID) {
 						sAtt = rec.a[sAttID];
 						if (typeof sAtt != 'undefined') {
@@ -1493,12 +1487,9 @@ VizTime.prototype.setup = function()
 			self.maxDate = PData.parseDate(s.to, 12, 31);
 		else
 			self.maxDate = PData.date3Nums(maxY, maxM, maxD);
-// console.log("Min: "+minY+"-"+minM+"-"+minD);
-// console.log("Max: "+maxY+"-"+maxM+"-"+maxD);
 
 			// Size of instananeous event: 1.5% of total time period space
 		self.instGap = (self.maxDate - self.minDate) * .015;
-// console.log("InstGap = "+JSON.stringify(self.instGap));
 	} // minMaxDates
 
 	minMaxDates();
@@ -2007,9 +1998,6 @@ VizTime.prototype.render = function(stream)
 		} // while 
 	}());
 
-// console.log("Events: "+JSON.stringify(self.events));
-// console.log("Legend Backgrounds: "+JSON.stringify(self.lgBds));
-
 	var widths = self.getWidths();
 
 		// PURPOSE: Update macro & zoom band info based on track data
@@ -2241,13 +2229,6 @@ VizTime.prototype.render = function(stream)
 				lp = this._x(lTime);
 				rp = this._x(rTime);
 
-					// Side handles -- but they are not "hot" themselves, so may be misleading
-				// var midH = this._height / 2;
-				// this.left.attr("points", "" + lp+","+(midH-5) + " " + lp+","+(midH+5) + " " + (lp-5)+","+(midH+5) + " " +
-				//                 (lp-9)+","+midH + " " + (lp-5)+","+(midH-5) + " " + lp+","+(midH-5));
-				// this.right.attr("points", "" + rp+","+(midH-5) + " " + (rp+5)+","+(midH-5) + " " + (rp+9)+","+midH + " " +
-				//                 (rp+5)+","+(midH+5) + " " + rp+","+(midH+5) + " " + rp+","+(midH-5));
-
 					// Bottom handles
 				this.left.attr("points", "" + lp+","+this._height + " " + (lp+5)+","+(this._height+5) + " " + (lp+5)+","+(this._height+9) + " " +
 								(lp-5)+","+(this._height+9) + " " + (lp-5)+","+(this._height+5) + " " + lp+","+this._height);
@@ -2294,10 +2275,6 @@ VizTime.prototype.render = function(stream)
 
 				self.zMinDate = extent1[0];
 				self.zMaxDate = extent1[1];
-
-					// "this" will actually point to the brushSVG object
-					// Replaces SVG data to correspond to new brush params
-				// self.brushSVG.call(self.brush.extent(extent1));
 
 				self.brush.extent(extent1);
 				self.brushHandler.redraw();
@@ -2829,7 +2806,6 @@ VizTextStream.prototype.render = function(stream)
 		if (cAttID) {
 			oAtt = PData.getAttID(self.settings.order[tI]);
 			order = PData.orderTBy(oAtt, stream, tI);
-// console.log("Order for Template "+tI+": "+JSON.stringify(order));
 
 			order.forEach(function(oRec) {
 				rec = PData.getRecByIndex(oRec.i);
@@ -5391,9 +5367,7 @@ var PData = (function() {
 			}
 		}
 		if (done) {
-// console.log("Done loading: "+JSON.stringify(recs));
 			loaded=true;
-			// jQuery('#btn-recompute').addClass('pulse');
 			setTimeout(function() {
 				jQuery("body").trigger("prospect", { pstate: PSTATE_PROCESS, component: 0 });
 			}, 500);
@@ -6318,7 +6292,6 @@ var PData = (function() {
 				aI = stream.s[rI];
 				rec = PData.getRecByIndex(aI);
 				datum = rec.a[oAttID];
-// console.log("Next record: "+rI+" (absI) "+aI+" Datum: "+JSON.stringify(datum));
 				if (typeof datum != 'undefined') {
 					switch (oAtt.def.t) {
 					case 'T':
@@ -6455,82 +6428,6 @@ var PData = (function() {
 				}
 			});
 		}, // sortCats()
-
-
-			// PURPOSE: Create index for all records in stream, ordered by the value of an Attribute
-			// RETURNS: Array containing objects: { i [absolute index of record], v [value] }
-			// NOTES: 	Only uses first value in the case of multiple (Vocabulary, Dates, etc)
-		// orderBy: function(att, stream)
-		// {
-		// 	function vIden(v)
-		// 	{
-		// 		return v;
-		// 	}
-		// 	function vVocab(v)
-		// 	{
-		// 		return v[0];
-		// 	}
-		// 	function vDate(v)
-		// 	{
-		// 		var m = 1, d = 1;
-		// 		if (typeof v.min.m != 'undefined') {
-		// 			m = v.m;
-		// 			if (typeof v.min.d != 'undefined')
-		// 				d = v.d;
-		// 		}
-		// 		return PData.date3Nums(v.min.y, m, d);
-		// 	}
-
-		// 	var eval, maxV;
-		// 	switch (att.def.t) {
-		// 	case 'T': 	eval = vIden;	maxV = '~'; break;
-		// 	case 'V': 	eval = vVocab;	maxV = '~'; break;
-		// 	case 'N': 	eval = vIden;	maxV = att.r.max; break;
-		// 	case 'D': 	eval = vDate;	maxV = TODAY; break;
-		// 	}
-
-		// 	var ord = [];
-		// 	var relI=0, absI, rec, v;
-		// 	var tI=0, tRec=stream.t[0], td=recs[0].d;
-		// 		// Must keep absolute indices and template params updated
-		// 	while (relI < stream.l) {
-		// 			// Advance until we get to current Template rec
-		// 		while (tRec.n == 0 || (tRec.i+tRec.n) == relI) {
-		// 			tRec = stream.t[++tI];
-		// 			td = recs[tI].d;
-		// 		}
-		// 		absI = stream.s[relI++];
-		// 		// rec = tRec.d[absI-tRec.i];
-		// 		rec = td[absI-tRec.i];
-		// 		v = rec[att.id];
-		// 			// If there is no value, we need to use max value
-		// 		if (typeof v == 'undefined')
-		// 			ord.push({ i: absI, v: maxV });
-		// 		else
-		// 			ord.push({ i: absI, v: eval(v) });
-		// 	}
-
-		// 		// Sort array
-		// 	switch (att.def.t) {
-		// 	case 'T':
-		// 	case 'V':
-		// 		ord.sort(function(a,b) { return PData.strcmp(b.v, a.v); });
-		// 		break;
-		// 	case 'D':
-		// 	case 'N':
-		// 		ord.sort(function(a,b) { return a.v - b.v; });
-		// 		break;
-		// 	// case 'D':
-		// 	// 	ord.sort(function(a,b) {
-		// 	// 		var av = a.v.valueOf(), bv = b.v.valueOf();
-		// 	// 		return av - bv;
-		// 	// 	});
-		// 	// 	break;
-		// 	}
-
-		// 	return ord;
-		// }, // orderBy()
-
 
 			// PURPOSE: Create index for records of particular Template in stream, ordered by the value of an Attribute
 			// RETURNS: Array containing objects: { i [absolute index of record], v [value] }
@@ -6697,7 +6594,6 @@ jQuery(document).ready(function($) {
 				theF.f.isDirty(false);
 				theF.f.out = newStream;
 				endStream = newStream;
-// console.log("Output stream ["+fI+"]: "+JSON.stringify(newStream));
 			} else
 				endStream = theF.f.out;
 		}
@@ -6838,8 +6734,6 @@ jQuery(document).ready(function($) {
 		if (view1)
 			pState.v1 = { l: view1.title(), s: view1.getState() };
 		var sPrspctv = { id: id, l: label, n: note, s: pState };
-
-// console.log("Perspective Save Data: "+JSON.stringify(sPrspctv));
 
 		if (dest == 'local') {
 			localPrspctvs.push(sPrspctv);
@@ -6999,7 +6893,6 @@ jQuery(document).ready(function($) {
 				var t = parent.data('type');
 				var id = parent.data('id');
 				var pI;
-// console.log("Del? "+del+"; type = "+t+"; id = "+id);
 				if (del) {
 					switch (t) {
 					case 'l':
@@ -7007,7 +6900,6 @@ jQuery(document).ready(function($) {
 							return id == theP.id;
 						});
 						if (pI != -1) {
-// console.log("Delete ID '"+id+"' at "+pI);
 							localPrspctvs.splice(pI, 1);
 							if (localPrspctvs.length == 0)
 								localStore.removeItem(prspdata.e.id);
@@ -7426,7 +7318,6 @@ jQuery(document).ready(function($) {
 			}
 			selFilter.isDirty(false);
 		}
-// console.log("Selection: "+JSON.stringify(selList));
 
 		PState.set(PSTATE_UPDATE);
 
@@ -7466,7 +7357,6 @@ jQuery(document).ready(function($) {
 		if (p == null)
 			return false;
 
-// console.log("Show perspective: "+JSON.stringify(p));
 		PState.set(PSTATE_PROCESS);
 
 			// Clear current Filter Stack & Selector Filter
@@ -7652,8 +7542,6 @@ jQuery(document).ready(function($) {
 			localPrspctvs = JSON.parse(lp);
 	} catch(e) {
 	}
-// console.log("localStorage? "+localStore != null);
-// console.log("localPrspctvs = "+JSON.stringify(localPrspctvs));
 
 		// Command Bar
 	jQuery('#btn-about').button({icons: { primary: 'ui-icon-info' }, text: false })
