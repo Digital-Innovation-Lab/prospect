@@ -148,7 +148,7 @@ function PVizModel(viewFrame, vizSettings)
 	// this.toggleSel(absI)
 	// this.clearSel()
 	// this.resize()
-	// this.optionsModal()
+	// this.doOptions()
 	// this.getState()
 	// this.setState(pData)
 	// this.hint()
@@ -223,9 +223,10 @@ PVizModel.prototype.resize = function()
 {
 } // PVizModel.resize()
 
-PVizModel.prototype.optionsModal = function()
+	// PURPOSE: Invoke options modal
+PVizModel.prototype.doOptions = function()
 {
-} // PVizModel.optionsModal()
+} // PVizModel.doOptions()
 
 PVizModel.prototype.getState = function()
 {
@@ -696,14 +697,16 @@ VizCards.prototype.setup = function()
 		}
 	});
 
-		// Get default sort Atts
+		// Get default sort Atts -- first item choices
 	self.sAtts=[];
 	for (var tI=0; tI<PData.getNumETmplts(); tI++) {
-		var attID = jQuery('#dialog-sortby select[data-ti="'+tI+'"]:first').val();
+		var attID = jQuery('#dialog-sortby select[data-ti="'+tI+'"] :first').val();
 		self.sAtts.push(attID);
 	}
+		// Set menus to these selections
+	for (var tI=0; tI<PData.getNumETmplts(); tI++)
+		jQuery('#dialog-sortby select[data-ti="'+tI+'"]').val(this.sAtts[tI]);
 } // setup()
-
 
 	// PURPOSE: Draw the Records in the given stream
 VizCards.prototype.render = function(stream)
@@ -874,12 +877,9 @@ VizCards.prototype.rerender = function(tI)
 	}); // for order
 } // rerender()
 
-VizCards.prototype.optionsModal = function()
+VizCards.prototype.doOptions = function()
 {
 	var self=this;
-
-	for (var tI=0; tI<PData.getNumETmplts(); tI++)
-		jQuery('#dialog-sortby select[data-ti="'+tI+'"]').val(self.sAtts[tI]);
 	var d = jQuery("#dialog-sortby").dialog({
 		height: 220,
 		width: 400,
@@ -908,7 +908,7 @@ VizCards.prototype.optionsModal = function()
 			}
 		]
 	});
-} // optionsModal()
+} // doOptions()
 
 VizCards.prototype.setSel = function(absIArray)
 {
@@ -944,7 +944,6 @@ VizCards.prototype.getState = function()
 {
 	return { l: this.vFrame.getLgndSels(), s: this.sAtts };
 } // getState()
-
 
 VizCards.prototype.setState = function(state)
 {
@@ -988,6 +987,24 @@ VizPinboard.prototype.getFeatureAtts = function(tIndex)
 VizPinboard.prototype.setup = function()
 {
 	var s = this.settings;
+	var self=this;
+
+	function slide()
+	{
+		var p = jQuery(this).parent().data('i');
+// console.log("Slide "+p+" to: "+this.value);
+		if (p == -1) {
+			// self.baseMap.setOpacity(this.value);
+		}
+	} // slide()
+
+		// Set up options dialog
+	var layerPt = jQuery('#dialog-opacities div.layer-list');
+	layerPt.empty();
+
+	var newBit = jQuery('<div data-i="-1"><input type="checkbox" checked="checked"> Base Image <input type=range class="op-slider" min=0 max=100 value=90 step=5></div>');
+	newBit.find('.op-slider').on('change', slide);
+	layerPt.append(newBit);
 
 		// Maintain number of Loc Atts per Template type
 	var numT = PData.getNumETmplts();
@@ -1231,27 +1248,11 @@ VizPinboard.prototype.setSel = function(absIArray)
 	});
 } // setSel()
 
-VizPinboard.prototype.optionsModal = function()
+VizPinboard.prototype.doOptions = function()
 {
 	var self=this;
 
-	function slide()
-	{
-		var p = jQuery(this).parent().data('i');
-// console.log("Slide "+p+" to: "+this.value);
-		if (p == -1) {
-			// self.baseMap.setOpacity(this.value);
-		}
-	} // slide()
-
-	var layerPt = jQuery('#dialog-opacities div.layer-list');
-	layerPt.empty();
-
-	var newBit = jQuery('<div data-i="-1"><input type="checkbox" checked="checked"> Base Image <input type=range class="op-slider" min=0 max=100 value=90 step=5></div>');
-	newBit.find('.op-slider').on('change', slide);
-	layerPt.append(newBit);
-
-	var d = jQuery("#dialog-map-opacities").dialog({
+	var d = jQuery("#dialog-opacities").dialog({
 		height: 300,
 		width: 320,
 		modal: true,
@@ -1270,7 +1271,7 @@ VizPinboard.prototype.optionsModal = function()
 			}
 		]
 	});
-} // optionsModal()
+} // doOptions()
 
 VizPinboard.prototype.getState = function()
 {
@@ -2487,14 +2488,17 @@ VizDirectory.prototype.setup = function()
 		}
 	});
 
-		// Get default sort Atts
+		// Get default sort Atts -- first item choices
 	self.sAtts=[];
 	for (var tI=0; tI<PData.getNumETmplts(); tI++) {
-		var attID = jQuery('#dialog-sortby select[data-ti="'+tI+'"]:first').val();
+		var attID = jQuery('#dialog-sortby select[data-ti="'+tI+'"] :first').val();
 		self.sAtts.push(attID);
 	}
-} // setup()
 
+		// Set menu selections to these
+	for (var tI=0; tI<PData.getNumETmplts(); tI++)
+		jQuery('#dialog-sortby select[data-ti="'+tI+'"]').val(self.sAtts[tI]);
+} // setup()
 
 	// PURPOSE: Draw the Records in the given datastream
 	// NOTES: 	absolute index of Record is saved in <id> field of map marker
@@ -2609,12 +2613,9 @@ VizDirectory.prototype.teardown = function()
 	jQuery(this.frameID).off("click.vf");
 }
 
-VizDirectory.prototype.optionsModal = function()
+VizDirectory.prototype.doOptions = function()
 {
 	var self=this;
-
-	for (var tI=0; tI<PData.getNumETmplts(); tI++)
-		jQuery('#dialog-sortby select[data-ti="'+tI+'"]').val(self.sAtts[tI]);
 	var d = jQuery("#dialog-sortby").dialog({
 		height: 220,
 		width: 400,
@@ -2643,7 +2644,7 @@ VizDirectory.prototype.optionsModal = function()
 			}
 		]
 	});
-} // optionsModal()
+} // doOptions()
 
 VizDirectory.prototype.setSel = function(absIArray)
 {
@@ -4722,7 +4723,7 @@ function PViewFrame(vfIndex)
 	function clickVizControls(event)
 	{
 		if (vizModel)
-			vizModel.optionsModal();
+			vizModel.doOptions();
 		event.preventDefault();
 	} // clickVizControls()
 
@@ -6446,9 +6447,9 @@ var PData = (function() {
 			{
 				var m = 1, d = 1;
 				if (typeof v.min.m != 'undefined') {
-					m = v.m;
+					m = v.min.m;
 					if (typeof v.min.d != 'undefined')
-						d = v.d;
+						d = v.min.d;
 				}
 				return PData.date3Nums(v.min.y, m, d);
 			}
