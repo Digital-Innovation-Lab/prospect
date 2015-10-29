@@ -1786,7 +1786,7 @@ class ProspectAdmin {
 			foreach ($query->posts as $rec) {
 				$data = get_post_meta($rec->ID, $att_id, true);
 				if ($data && $data != '') {
-					if ($d_char != '') {
+					if ($d_char && $d_char != '' && $d_char != ' ') {
 						$vals = explode($d_char, $data);
 						foreach ($vals as $one_value) {
 							$trimmed = trim($one_value);
