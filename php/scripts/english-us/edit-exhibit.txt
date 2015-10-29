@@ -588,16 +588,6 @@
 	{{/each}}
 </script>
 
-<script id="vfBrowser" type='text/ractive'>
-	Attributes to Display: <button on-click="addFacet:{{vIndex}}">Add Attribute</button><br/>
-	{{#each c.fct:cIndex}}
-		Attribute ID: "{{fid}}" Label: <input type="text" size="24" value="{{lbl}}"/> 
-		<button decorator="iconButton:ui-icon-arrowthickstop-1-n" on-click="topFacet:{{vIndex}},{{cIndex}}">Move to Top</button>
-		<button decorator="iconButton:ui-icon-trash" on-click="delFacet:{{vIndex}},{{cIndex}}">Delete</button>
-		<br/>
-	{{/each}}
-</script>
-
 <!-- DIALOGS -->
 <!-- New View Dialog -->
 <script id="dialog-choose-vf" type='text/ractive'>
