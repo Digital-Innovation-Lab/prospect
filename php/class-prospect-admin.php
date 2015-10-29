@@ -1485,6 +1485,38 @@ class ProspectAdmin {
 			'prsp-settings-page',
 			'prsp_settings'
 		);
+
+		add_settings_field(
+			'prsp_cb_color',
+			'Command Bar Background Color',
+			array($this, 'prsp_cb_color_callback'),
+			'prsp-settings-page',
+			'prsp_settings'
+		);
+
+		add_settings_field(
+			'prsp_fs_color',
+			'Filter Stack Background Color',
+			array($this, 'prsp_fs_color_callback'),
+			'prsp-settings-page',
+			'prsp_settings'
+		);
+
+		add_settings_field(
+			'prsp_sf_color',
+			'Selection Filter Background Color',
+			array($this, 'prsp_sf_color_callback'),
+			'prsp-settings-page',
+			'prsp_settings'
+		);
+
+		add_settings_field(
+			'prsp_vf_color',
+			'View Frame Background Color',
+			array($this, 'prsp_vf_color_callback'),
+			'prsp-settings-page',
+			'prsp_settings'
+		);
 	} // do_prsp_init()
 
 
@@ -1533,6 +1565,14 @@ class ProspectAdmin {
 			$new_input['prsp_chunks'] = sanitize_text_field($input['prsp_chunks']);
 		if (isset($input['prsp_lang']))
 			$new_input['prsp_lang'] = sanitize_text_field($input['prsp_lang']);
+		if (isset($input['prsp_cb_color']))
+			$new_input['prsp_cb_color'] = sanitize_text_field($input['prsp_cb_color']);
+		if (isset($input['prsp_fs_color']))
+			$new_input['prsp_fs_color'] = sanitize_text_field($input['prsp_fs_color']);
+		if (isset($input['prsp_sf_color']))
+			$new_input['prsp_sf_color'] = sanitize_text_field($input['prsp_sf_color']);
+		if (isset($input['prsp_vf_color']))
+			$new_input['prsp_vf_color'] = sanitize_text_field($input['prsp_vf_color']);
 
 		return $new_input;
 	} // sanitize_options()
@@ -1582,6 +1622,42 @@ class ProspectAdmin {
  
 		echo($html);
 	} // prsp_lang_callback()
+
+		// PURPOSE: Get the Command Bar color option and print its value
+	public function prsp_cb_color_callback()
+	{
+		printf(
+			'<input type="text" size="12" id="prsp_cb_color" name="prsp_base_options[prsp_cb_color]" value="%s" />',
+			isset($this->options['prsp_cb_color']) ? esc_attr($this->options['prsp_cb_color']) : ''
+		);
+	} // prsp_cb_color_callback()
+
+		// PURPOSE: Get the Filter Stack color option and print its value
+	public function prsp_fs_color_callback()
+	{
+		printf(
+			'<input type="text" size="12" id="prsp_fs_color" name="prsp_base_options[prsp_fs_color]" value="%s" />',
+			isset($this->options['prsp_fs_color']) ? esc_attr($this->options['prsp_fs_color']) : ''
+		);
+	} // prsp_fs_color_callback()
+
+		// PURPOSE: Get the Selection Filter color option and print its value
+	public function prsp_sf_color_callback()
+	{
+		printf(
+			'<input type="text" size="12" id="prsp_sf_color" name="prsp_base_options[prsp_sf_color]" value="%s" />',
+			isset($this->options['prsp_sf_color']) ? esc_attr($this->options['prsp_sf_color']) : ''
+		);
+	} // prsp_sf_color_callback()
+
+		// PURPOSE: Get the View Frame color option and print its value
+	public function prsp_vf_color_callback()
+	{
+		printf(
+			'<input type="text" size="12" id="prsp_vf_color" name="prsp_base_options[prsp_vf_color]" value="%s" />',
+			isset($this->options['prsp_vf_color']) ? esc_attr($this->options['prsp_vf_color']) : ''
+		);
+	} // prsp_vf_color_callback()
 
 
 		// PURPOSE: Code to create Settings page

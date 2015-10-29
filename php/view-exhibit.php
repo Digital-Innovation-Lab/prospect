@@ -66,6 +66,16 @@
 	$chunk = isset($options['prsp_chunks']) ? (int)$options['prsp_chunks'] : 1000;
 	echo $chunk;
 ?>,
+		bClrs: { <?php
+	$color = isset($options['prsp_cb_color']) ? '"'.$options['prsp_cb_color'].'"' : 'null';
+	echo ('cb: '.$color.',');
+	$color = isset($options['prsp_fs_color']) ? '"'.$options['prsp_fs_color'].'"' : 'null';
+	echo ('fs: '.$color.',');
+	$color = isset($options['prsp_sf_color']) ? '"'.$options['prsp_sf_color'].'"' : 'null';
+	echo ('sf: '.$color.',');
+	$color = isset($options['prsp_vf_color']) ? '"'.$options['prsp_vf_color'].'"' : 'null';
+	echo ('vf: '.$color.' }');
+?>,
 		e: <?php
 	// sort($the_xhbt->gen->ts);		// Assume that Templates already sorted in ID order
 	echo(' { id: "'.$the_xhbt->id.'", ');

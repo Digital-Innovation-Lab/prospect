@@ -5171,6 +5171,11 @@ function PViewFrame(vfIndex)
 
 		var frame = jQuery(getFrameID());
 
+			// Localize color scheme?
+		var clr = prspdata.bClrs.vf;
+		if (clr && clr.length > 0)
+			frame.find('div.view-control-bar').css('background-color', clr);
+
 			// Activate drag handle on Legend
 		frame.find('div.lgnd-container').draggable({ handle: frame.find('div.lgnd-handle'), containment: "parent" });
 
@@ -7498,6 +7503,18 @@ jQuery(document).ready(function($) {
 		//====================
 
 	jQuery('body').addClass('waiting');
+
+		// Localize color scheme?
+	function localizeColor(c, div)
+	{
+		var clr = prspdata.bClrs[c];
+		if (clr && clr.length > 0) {
+			jQuery(div).css('background-color', clr);
+		}
+	} // localizeColor()
+	localizeColor('cb', '#command-bar');
+	localizeColor('fs', '#filter-frame');
+	localizeColor('sf', '#selector-frame');
 
 	PState.init();
 	PMapHub.init(prspdata.m);
