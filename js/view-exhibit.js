@@ -1114,8 +1114,6 @@ VizPinboard.prototype.setup = function()
 		.attr('id', 'recs');
 } // setup
 
-	// PURPOSE: Draw the Records in the given stream
-	// NOTES: 	Creates nodes 
 VizPinboard.prototype.render = function(stream)
 {
 	var self = this;
@@ -2559,8 +2557,6 @@ VizDirectory.prototype.setup = function()
 		jQuery('#dialog-sortby select[data-ti="'+tI+'"]').val(self.sAtts[tI]);
 } // setup()
 
-	// PURPOSE: Draw the Records in the given datastream
-	// NOTES: 	absolute index of Record is saved in <id> field of map marker
 VizDirectory.prototype.render = function(stream)
 {
 	var self = this;
@@ -2797,8 +2793,6 @@ VizTextStream.prototype.setup = function()
 	});
 } // setup()
 
-	// PURPOSE: Draw the Records in the given datastream
-	// NOTES: 	absolute index of Record is saved in <id> field of map marker
 VizTextStream.prototype.render = function(stream)
 {
 	var self = this;
@@ -3050,8 +3044,6 @@ VizStackChart.prototype.setup = function()
 		this.cats = null;
 } // setup()
 
-	// PURPOSE: Draw the Records in the given datastream
-	// NOTES: 	absolute index of Record is saved in <id> field of map marker
 VizStackChart.prototype.render = function(stream)
 {
 	var self = this;
@@ -3506,6 +3498,103 @@ VizNetWheel.prototype.setState = function(state)
 {
 	this.vFrame.setLgndSels(state.l);
 } // setState()
+
+
+// ================================================================================
+// VizStackChart: Class to visualize 2 dimensions of record data as a stacked chart
+
+var VizFlow = function(viewFrame, vSettings)
+{
+	PVizModel.call(this, viewFrame, vSettings);
+
+	this.fSel=[];
+} // VizFlow
+
+VizFlow.prototype = Object.create(PVizModel.prototype);
+
+VizFlow.prototype.constructor = VizFlow;
+
+VizFlow.prototype.flags = function()
+{
+	return V_FLAG_VSCRL | V_FLAG_HSCRL;
+} // flags()
+
+VizFlow.prototype.setup = function()
+{
+		// Height: Attribute Title + Attribute value titles + flow space
+	var h = 40 + ((this.settings.fcts.length-1) * 160);
+	this.svg = d3.select(this.frameID).append("svg")
+				.attr("width", this.settings.w)
+				.attr("height", h);
+
+		// Go through Attributes, creating category buckets
+	this.cats=[];
+	this.settings.fcts.forEach(function(attID) {
+		var att = PData.getAttID(attID);
+		if (att.def.t != 'T' || !this.settings.tlit) {
+			if (this.settings.gr)
+				this.cats.push(PData.getRCats(att, true));
+			else
+				this.cats.push(PData.getLCats(att, null));
+		}
+	});
+console.log("Cats setup: "+JSON.stringify(this.cats));
+} // setup()
+
+VizFlow.prototype.render = function(stream)
+{
+	var self = this;
+
+	function clickEvent(d, bI)
+	{
+		var sz = self.fSel.length;
+		var i = _.sortedIndex(self.fSel, bI);
+		if (self.fSel[i] == bI) {
+			d3.select(this).classed('obj-sel', false);
+			self.fSel.splice(i, 1);
+			if (sz > 0 && self.fSel.length == 0)
+				self.vFrame.selBtns(false);
+		} else {
+			d3.select(this).classed('obj-sel', true);
+			self.fSel.splice(i, 0, bI);
+			if (sz == 0 && self.fSel.length > 0)
+				self.vFrame.selBtns(true);
+		}
+	} // clickEvent()
+
+	this.fSel=[];		// Reset selection
+
+	this.svg.selectAll(".block").remove();
+	this.svg.selectAll(".flow").remove();
+
+} // render()
+
+VizFlow.prototype.setSel = function(absIArray)
+{	// Does nothing
+} // setSel()
+
+VizFlow.prototype.clearSel = function()
+{
+	if (this.fSel.length > 0) {
+		this.fSel = [];
+		this.svg.selectAll(".flow")
+			.classed('obj-sel', false);
+	}
+} // clearSel()
+
+	// RETURNS: Array of absolute IDs of selected records
+VizFlow.prototype.getSel = function()
+{
+	var self=this;
+	var u=[];
+
+	this.fSel.forEach(function(fI) {
+		// u = _.union(u, self.blocks[bI].a);
+	});
+
+	return u;
+} // isSel()
+
 
 
 // ====================================================================
@@ -5003,6 +5092,9 @@ function PViewFrame(vfIndex)
 			break;
 		case 'N':
 			newViz = new VizNetWheel(instance, theView.c);
+			break;
+		case 'F':
+			newViz = new VizFlow(instance, theView.c);
 			break;
 		}
 		vizSelIndex = vIndex;
