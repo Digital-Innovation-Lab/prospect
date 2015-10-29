@@ -798,6 +798,15 @@ jQuery(document).ready(function() {
 				theVF.c.pAtts = newPAtts;
 				theVF.c.lgnds = newLgnds;
 				break;
+			case 'F': 	// Flow
+				var newFcts=[];
+				theVF.c.fcts.forEach(function(f) {
+					var tF = checkAttID(f, facetAttIDs, '');
+					if (tF != '')
+						newFcts.push(tF);
+				});
+				theVF.c.fcts = newFcts;
+				break;
 
 			case 'G': 	// Tree -- view not implemented
 				var newP=[], newLgnds=[], newLClrs=[];
@@ -819,9 +828,6 @@ jQuery(document).ready(function() {
 				theVF.c.pAtts = newP;
 				theVF.c.lClrs = newLClrs;
 				theVF.c.lgnds = newLgnds;
-				break;
-			case 'F': 	// Flow -- view not implemented
-				// TO DO -- check Atts
 				break;
 			} // switch viewtype
 		} // for views
@@ -1032,12 +1038,13 @@ jQuery(document).ready(function() {
 					return [];
 				});
 				break;
-
-			case 'F': 	// Flow -- view not implemented
+			case 'F': 	// Flow
 				newVFEntry.c.w    = 1000;
-				newVFEntry.c.h    = 500;
-				newVFEntry.c.fct = [];
+				newVFEntry.c.tlit = false;
+				newVFEntry.c.gr   = true;
+				newVFEntry.c.fcts = [];
 				break;
+
 			case 'G': 	// Tree -- view not implemented
 				newVFEntry.c.form = 'f';
 				newVFEntry.c.w    = 1000;
@@ -1099,14 +1106,12 @@ jQuery(document).ready(function() {
 	});
 
 	rApp.on('addFacet', function(event, vIndex) {
-			// Get Facet and label for it
-		var label = '';
+			// Allow choosing Attribute
 		var fid = defJoinedFacets.length > 0 ? defJoinedFacets[0].id : '';
 		var newDialog = new Ractive({
 			el: '#insert-dialog',
 			template: '#dialog-choose-fct',
 			data: {
-				label: label,
 				fid: fid,
 				facets: defJoinedFacets
 			},
@@ -1116,10 +1121,8 @@ jQuery(document).ready(function() {
 		}); // new Ractive()
 
 		newDialog.on('dialog.ok', function() {
-			var newFacet = { };
-			newFacet.lbl = newDialog.get('label');
-			newFacet.fid = newDialog.get('fid');
-			rApp.push('viewSettings['+vIndex+'].c.fct', newFacet);
+			var fid = newDialog.get('fid');
+			rApp.push('viewSettings['+vIndex+'].c.fcts', fid);
 			newDialog.teardown();
 			return false;
 		});
@@ -1129,15 +1132,15 @@ jQuery(document).ready(function() {
 
 	rApp.on('topFacet', function(event, vIndex, fIndex) {
 		if (fIndex) {
-			rApp.splice('viewSettings['+vIndex+'].c.fct', fIndex, 1).then(function(spliced) {
-					rApp.splice('viewSettings['+vIndex+'].c.fct', 0, 0, spliced[0]);
+			rApp.splice('viewSettings['+vIndex+'].c.fcts', fIndex, 1).then(function(spliced) {
+					rApp.splice('viewSettings['+vIndex+'].c.fcts', 0, 0, spliced[0]);
 				});
 		}
 		return false;
 	});
 
 	rApp.on('delFacet', function(event, vIndex, fIndex) {
-		rApp.splice('viewSettings['+vIndex+'].c.fct', fIndex, 1);
+		rApp.splice('viewSettings['+vIndex+'].c.fcts', fIndex, 1);
 		return false;
 	});
 
@@ -1382,6 +1385,12 @@ jQuery(document).ready(function() {
 					saveView.c.pAtts = newPAtts;
 					saveView.c.lgnds = newLgnds;
 					break;
+				case 'F': 
+					saveView.c.w = viewSettings.c.w;
+					saveView.c.tlit = viewSettings.c.tlit;
+					saveView.c.gr   = viewSettings.c.gr;
+					saveView.c.fcts = viewSettings.c.fcts;
+					break;
 
 				case 'G': 	// Tree -- not yet implemented
 					saveView.c.form  = viewSettings.c.form;
@@ -1399,11 +1408,6 @@ jQuery(document).ready(function() {
 					saveView.c.pAtts = packUsedAttIDs(viewSettings.c.pAtts);
 					saveView.c.lClrs = newLClrs;
 					saveView.c.lgnds = newLgnds;
-					break;
-				case 'F': 	// Flow -- not yet implemented
-					saveView.c.w = viewSettings.c.w;
-					saveView.c.h = viewSettings.c.h;
-					saveView.c.fct = viewSettings.c.fct;
 					break;
 				} // switch
 				saveViews.push(saveView);

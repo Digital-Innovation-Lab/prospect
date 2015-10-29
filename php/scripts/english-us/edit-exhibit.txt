@@ -577,11 +577,13 @@
 
 <script id="vfFlow" type='text/ractive'>
 	Display Width: <input type="number" value="{{c.w}}" min="2" max="9999"/>
-	Height: <input type="number" value="{{c.h}}" min="2" max="9999"/>
 	<br/>
-	Attributes to Display: <button on-click="addFacet:{{vIndex}}">Add Attribute</button><br/>
-	{{#each c.fct:cIndex}}
-		Attribute ID: "{{fid}}" Label: <input type="text" size="24" value="{{lbl}}" required/> 
+	<input type='checkbox' checked='{{c.tlit}}'/> Retain all unique Text Record values? &nbsp;&nbsp;
+	<input type='checkbox' checked='{{c.gr}}'/> Break Number and Date ranges into graduated scale?
+	<br/>
+	Attributes (Facets) to Display: <button on-click="addFacet:{{vIndex}}">Add Attribute</button><br/>
+	{{#each c.fcts:cIndex}}
+		Attribute ID: "{{this}}"
 		<button decorator="iconButton:ui-icon-arrowthickstop-1-n" on-click="topFacet:{{vIndex}},{{cIndex}}">Move to Top</button>
 		<button decorator="iconButton:ui-icon-trash" on-click="delFacet:{{vIndex}},{{cIndex}}">Delete</button>
 		<br/>
@@ -605,9 +607,7 @@
 
 <!-- Choose Facet Dialog -->
 <script id="dialog-choose-fct" type='text/ractive'>
-	<dialog title="Add Attribute" width="400" height="200">
-		<label for="choose-facet-label">Label for this Attribute: </label><input type="text" id="choose-facet-label" value="{{label}}" size="24" required/>
-		<br/>
+	<dialog title="Add Attribute Facet" width="400" height="160">
 		<label for="choose-facet-att">Attribute </label>
 		<select id="choose-facet-att" value='{{fid}}'>
 		{{#each facets}}
@@ -633,7 +633,7 @@
 
 <!-- DYNAMIC TEXT -->
 <script id="dltext-visualizations" type='text/ractive'>
-D,Directory|t,TextStream|M,Map|C,Cards|T,Timeline|P,Pinboard|S,Stacked Chart|N,Network Wheel
+D,Directory|t,TextStream|M,Map|C,Cards|T,Timeline|P,Pinboard|S,Stacked Chart|N,Network Wheel|F,Facet Flow
 </script>
 
 
