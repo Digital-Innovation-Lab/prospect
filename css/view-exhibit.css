@@ -1142,7 +1142,6 @@ svg .block.obj-sel
 	stroke-width: 1;
 }
 
-
 	/* Network Wheel styles */
 svg .node
 {
@@ -1171,6 +1170,38 @@ svg .link.thick
 	stroke-width: 2px;
 }
 
+	/* Facet Flow styles */
+svg .bar
+{
+
+}
+
+svg .bar.obj-sel
+{
+	stroke: red;
+	stroke-width: 1px;
+}
+
+svg .flow
+{
+
+}
+
+svg .flow.obj-sel
+{
+	stroke: red;
+	stroke-width: 1px;
+}
+
+svg .att-title
+{
+
+}
+
+svg .att-val
+{
+
+}
 
 /* Specific Filter styles
  * ======================

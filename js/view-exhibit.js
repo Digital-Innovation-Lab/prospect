@@ -3507,6 +3507,7 @@ var VizFlow = function(viewFrame, vSettings)
 {
 	PVizModel.call(this, viewFrame, vSettings);
 
+	this.bSel=[];
 	this.fSel=[];
 } // VizFlow
 
@@ -3521,52 +3522,107 @@ VizFlow.prototype.flags = function()
 
 VizFlow.prototype.setup = function()
 {
-		// Height: Attribute Title + Attribute value titles + flow space
-	var h = 40 + ((this.settings.fcts.length-1) * 160);
-	this.svg = d3.select(this.frameID).append("svg")
-				.attr("width", this.settings.w)
-				.attr("height", h);
+	var self=this;
 
-		// Go through Attributes, creating category buckets
-	this.cats=[];
-	this.settings.fcts.forEach(function(attID) {
-		var att = PData.getAttID(attID);
-		if (att.def.t != 'T' || !this.settings.tlit) {
-			if (this.settings.gr)
-				this.cats.push(PData.getRCats(att, true));
-			else
-				this.cats.push(PData.getLCats(att, null));
-		}
-	});
-console.log("Cats setup: "+JSON.stringify(this.cats));
+		// Compute the height of each inter-Attribute space
+	self.bH = Math.max(120, Math.ceil(this.settings.w/4));
+
+		// Height: Attribute Title + Attribute value titles + flow space
+	var h = 40 + ((this.settings.fcts.length-1) * self.bH);
+	this.svg = d3.select(this.frameID).append("svg")
+				.attr("width", this.settings.w+10)
+				.attr("height", h);
 } // setup()
 
 VizFlow.prototype.render = function(stream)
 {
-	var self = this;
+	var self=this;
 
-	function clickEvent(d, bI)
+	function clickBar(d, bI)
 	{
-		var sz = self.fSel.length;
-		var i = _.sortedIndex(self.fSel, bI);
-		if (self.fSel[i] == bI) {
+		var sz = self.bSel.length;
+		var i = _.sortedIndex(self.bSel, bI);
+		if (self.bSel[i] == bI) {
 			d3.select(this).classed('obj-sel', false);
-			self.fSel.splice(i, 1);
-			if (sz > 0 && self.fSel.length == 0)
+			self.bSel.splice(i, 1);
+			if (sz > 0 && self.bSel.length == 0)
 				self.vFrame.selBtns(false);
 		} else {
 			d3.select(this).classed('obj-sel', true);
-			self.fSel.splice(i, 0, bI);
-			if (sz == 0 && self.fSel.length > 0)
+			self.bSel.splice(i, 0, bI);
+			if (sz == 0 && self.bSel.length > 0)
 				self.vFrame.selBtns(true);
 		}
 	} // clickEvent()
 
 	this.fSel=[];		// Reset selection
 
-	this.svg.selectAll(".block").remove();
+		// Remove everything on svg
+	this.svg.selectAll(".bar").remove();
 	this.svg.selectAll(".flow").remove();
 
+		// Create category buckets for each Attribute
+	var w=this.settings.w;
+	self.bars=[];
+	self.atts=[];
+	self.settings.fcts.forEach(function(attID, aI) {
+		var tCat;
+		var att = PData.getAttID(attID);
+		if (att.def.t != 'T' || !self.settings.tlit) {
+			if (self.settings.gr)
+				tCat = PData.getRCats(att, true);
+			else
+				tCat = PData.getLCats(att, null);
+			PData.fillCats(tCat, attID, null, stream, false);
+		} else {
+			tCat=[];
+			PData.fillCats(tCat, attID, null, stream, true);
+		}
+			// Compile used categories { l[abel], i: array for each used item, t[otal] }
+		var used=[];
+		var total=0;
+		tCat.forEach(function(c) {
+			if (c.i.length > 0) {
+				used.push(c);
+				total += c.i.length;
+			}
+		});
+			// Create bars for category values
+		var x=0;
+		var y = 31+aI*self.bH;
+		used.forEach(function(c) {
+			self.bars.push({ x: (x*w)/total, w: (c.i.length*w)/total, y: y, c: c });
+			x += c.i.length;
+		});
+		self.atts.push({ l: att.def.l, c: used, t: total });
+	});
+// console.log("Atts: "+JSON.stringify(self.atts));
+// console.log("Bars"+JSON.stringify(self.bars));
+
+		// Show bars
+	var bar = this.svg.append("g").selectAll(".bar")
+		.data(self.bars)
+		.enter().append("rect")
+		.attr("class", "bar")
+		.attr("x", function(d) { return 5+d.x; })
+		.attr("y", function(d) { return d.y; })
+		.attr("fill", function(d) { return d.c.c; })
+		.attr("height", "8")
+		.attr("width", function(d) { return d.w; })
+		.on("click", clickBar);
+
+		// Compute intersections and create flows
+	self.ints=[];		// { aI, bI, c[olor] }
+	self.atts.forEach(function(att, aI) {
+		if (aI != self.atts.length-1) {
+			var att2 = self.atts[aI+1];
+
+		}
+	});
+
+		// Create titles for Attributes and values
+	self.atts.forEach(function(att, aI) {
+	});
 } // render()
 
 VizFlow.prototype.setSel = function(absIArray)
@@ -3575,8 +3631,8 @@ VizFlow.prototype.setSel = function(absIArray)
 
 VizFlow.prototype.clearSel = function()
 {
-	if (this.fSel.length > 0) {
-		this.fSel = [];
+	if (this.bSel.length > 0) {
+		this.bSel = [];
 		this.svg.selectAll(".flow")
 			.classed('obj-sel', false);
 	}
@@ -3588,7 +3644,7 @@ VizFlow.prototype.getSel = function()
 	var self=this;
 	var u=[];
 
-	this.fSel.forEach(function(fI) {
+	this.bSel.forEach(function(fI) {
 		// u = _.union(u, self.blocks[bI].a);
 	});
 
@@ -5557,7 +5613,31 @@ var PData = (function() {
 			checkDataLoad();
 		}, // init()
 
+			// RETURNS: Array of intersection between a and b
+			// INPUT: 	a and b are both sorted arrays
+		intersect: function(a, b)
+		{
+			var r=[];
+			var sA = a.length, sB = b.length;
+			var aE, bE;
+			var aI=0, bI=0;
+
+			while (aI < sA && bI < sB) {
+				aE = a[aI]; bE = b[bI];
+				if (aE > bE)
+					bI++;
+				else if (bE > aE)
+					aI++;
+				else {
+					r.push(aE);
+					aI++; bI++;
+				}
+			}
+			return r;
+		}, // intersect()
+
 			// PURPOSE: Optimized and reliable string compare
+			// TO DO: 	Handle non-ASCII UTF-8 characters
 		strcmp: function(a, b) {
 			for (var i=0,n=Math.max(a.length, b.length); i<n && a.charAt(i) === b.charAt(i); ++i) {};
 			if (i === n) return 0;
@@ -6420,7 +6500,7 @@ var PData = (function() {
 
 			// PURPOSE: Sort all Records in stream into categories according to order Attribute
 			// INPUT: 	cats = array generated by getLCats/getRCats (or empty array if unique Text values)
-			//			oAttID = ID of Attribute used for ordering (used to make rCats)
+			//			oAttID = ID of Attribute used for ordering (used to make cats)
 			//			sAttID = ID of secondary, required Attribute used later (or null)
 			//			stream = datastream
 			//			uT = if true, collect all unique text strings (add to rCats)
