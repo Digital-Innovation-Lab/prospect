@@ -3653,7 +3653,7 @@ VizFlow.prototype.render = function(stream)
 				att2.c.forEach(function(c2, c2I) {
 					var i = PData.intersect(c1.i, c2.i);
 					if (i.length > 0) {
-						self.ints.push({ a1: aI, i: i, c: c1.c,
+						self.ints.push({ i: i, c: c1.c, l: c1.l+" > "+c2.l,
 							x1: 5+(((l1+lB1)*w)/att.t), x2: 5+(((l2+f[c2I])*w)/att2.t),
 							w1: (i.length*w)/att.t, w2: (i.length*w)/att2.t,
 							y1: att.y+10, y2: att2.y-1 });
@@ -3683,6 +3683,10 @@ VizFlow.prototype.render = function(stream)
 		})
 		.on("mouseout",function() {
 			d3.select(this).classed("active", false);
+		})
+		.append("title")
+		.text(function(d) {
+			return d.l;
 		});
 
 		// Create titles for Attributes and values
@@ -4120,7 +4124,7 @@ PFilterNum.prototype.setup = function()
 		this.rCats.forEach(function(c) {
 			colW=Math.max(colW, c.l.length);
 		});
-		colW=Math.max(D3FG_BAR_WIDTH, colW*8);
+		colW=Math.max(D3FG_BAR_WIDTH, colW*7);	// 7 px/letter estimate
 
 		var innerW = this.rCats.length*colW;
 		var xScale = d3.scale.linear().domain([0, this.rCats.length])
@@ -4313,7 +4317,7 @@ PFilterDates.prototype.setup = function()
 	this.rCats.forEach(function(c) {
 		colW=Math.max(colW, c.l.length);
 	});
-	colW=Math.max(D3FG_BAR_WIDTH, colW*8);
+	colW=Math.max(D3FG_BAR_WIDTH, colW*7);		// estimated 7 px/letter
 
 	var innerW = this.rCats.length*colW;
 	var xScale = d3.scale.linear().domain([0, this.rCats.length])
@@ -5693,7 +5697,7 @@ var PData = (function() {
 			checkDataLoad();
 		}, // init()
 
-			// RETURNS: Array of intersection between a and b
+			// RETURNS: intersection between a and b (as array)
 			// INPUT: 	a and b are both sorted arrays
 		intersect: function(a, b)
 		{
@@ -5715,6 +5719,13 @@ var PData = (function() {
 			}
 			return r;
 		}, // intersect()
+
+			// RETURNS: union of a and b (as array)
+			// INPUT: 	a and b are both sorted arrays
+		union: function(a, b)
+		{
+
+		},
 
 			// PURPOSE: Optimized and reliable string compare
 			// TO DO: 	Handle non-ASCII UTF-8 characters
@@ -6454,10 +6465,15 @@ var PData = (function() {
 					min = curV;
 					curV += inc;
 					max = curV;
+					var l=min.toString();
+					if (inc > 1) {
+						var n=max-1;
+						l += "-"+n.toString();
+					}
 					if (addItems)
-						rcs.push({ l: min.toString(), c: rgb, min: min, max: curV, i: [] });
+						rcs.push({ l: l, c: rgb, min: min, max: curV, i: [] });
 					else
-						rcs.push({ l: min.toString(), c: rgb, min: min, max: curV });
+						rcs.push({ l: l, c: rgb, min: min, max: curV });
 				}
 				return rcs;
 			case 'D':
