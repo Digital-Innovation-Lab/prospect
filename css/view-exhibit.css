@@ -1136,6 +1136,11 @@ div.viz-textstream div.recitem.obj-sel {
 
 	/* Stacked Chart styles */
 
+svg .block
+{
+	cursor: pointer;
+}
+
 svg .block.obj-sel
 {
 	stroke: red;
@@ -1145,6 +1150,7 @@ svg .block.obj-sel
 	/* Network Wheel styles */
 svg .node
 {
+	cursor: pointer;
 }
 
 svg .node circle.obj-sel {
@@ -1173,6 +1179,7 @@ svg .link.thick
 	/* Facet Flow styles */
 svg .bar
 {
+	cursor: pointer;
 	stroke: black;
 	stroke-width: 1px;
 }
@@ -1185,8 +1192,17 @@ svg .bar.obj-sel
 
 svg .flow
 {
+	cursor: pointer;
+	fill-opacity: 0.6;
+	stroke-opacity: 0.6;
 	stroke: black;
 	stroke-width: 1px;
+}
+
+svg .flow.active
+{
+	fill-opacity: 1;
+	stroke-opacity: 1;
 }
 
 svg .flow.obj-sel

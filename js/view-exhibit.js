@@ -3553,9 +3553,27 @@ VizFlow.prototype.render = function(stream)
 			if (sz == 0 && self.bSel.length > 0)
 				self.vFrame.selBtns(true);
 		}
-	} // clickEvent()
+	} // clickBar()
 
-	this.fSel=[];		// Reset selection
+	function clickFlow(d, fI)
+	{
+		var sz = self.fSel.length;
+		var i = _.sortedIndex(self.fSel, fI);
+		if (self.fSel[i] == fI) {
+			d3.select(this).classed('obj-sel', false);
+			self.fSel.splice(i, 1);
+			if (sz > 0 && self.fSel.length == 0)
+				self.vFrame.selBtns(false);
+		} else {
+			d3.select(this).classed('obj-sel', true);
+			self.fSel.splice(i, 0, fI);
+			if (sz == 0 && self.fSel.length > 0)
+				self.vFrame.selBtns(true);
+		}
+	} // clickFlow()
+
+	this.bSel=[];		// Reset selection
+	this.fSel=[];
 
 		// Remove everything on svg
 	this.svg.selectAll(".bar").remove();
@@ -3609,7 +3627,11 @@ VizFlow.prototype.render = function(stream)
 		.attr("fill", function(d) { return d.c.c; })
 		.attr("height", "8")
 		.attr("width", function(d) { return d.w; })
-		.on("click", clickBar);
+		.on("click", clickBar)
+		.append("title")
+		.text(function(d) {
+			return d.c.l;
+		});
 
 		// Compute intersections and create flows
 	self.ints=[];		// { a1 [index of Attribute 1], i[ndices], c1 [index of Att1 category], c2 [index of Att2 category] }
@@ -3626,7 +3648,7 @@ VizFlow.prototype.render = function(stream)
 				att2.c.forEach(function(c2, c2I) {
 					var i = PData.intersect(c1.i, c2.i);
 					if (i.length > 0) {
-						self.ints.push({ a1: aI, i: i, c1: c1I, c2: c2I, c: c1.c,
+						self.ints.push({ a1: aI, i: i, c: c1.c,
 							x1: 5+(((l1+lB1)*w)/att.t), x2: 5+(((l2+f[c2I])*w)/att2.t),
 							w1: (i.length*w)/att.t, w2: (i.length*w)/att2.t,
 							y1: att.y+10, y2: att2.y-1 });
@@ -3647,7 +3669,16 @@ VizFlow.prototype.render = function(stream)
 		.attr("class", "flow")
 		.attr("d", function(d) { return "M "+d.x1+" "+d.y1+" "+" L "+(d.x1+d.w1)+" "+d.y1+" L "+(d.x2+d.w2)+
 									" "+d.y2+" L "+d.x2+" "+d.y2+" L "+d.x1+" "+d.y1; })
-		.attr("fill", function(d) { return d.c; });
+		.attr("fill", function(d) { return d.c; })
+		.on("click", clickFlow)
+		.on("mouseover",function() {
+			d3.select(this).classed("active", true);
+				// Put at end of render list to ensure it is on top of others
+			this.parentElement.appendChild(this);
+		})
+		.on("mouseout",function() {
+			d3.select(this).classed("active", false);
+		})
 
 		// Create titles for Attributes and values
 	self.atts.forEach(function(att, aI) {
@@ -3665,6 +3696,11 @@ VizFlow.prototype.clearSel = function()
 		this.svg.selectAll(".bar")
 			.classed('obj-sel', false);
 	}
+	if (this.fSel.length > 0) {
+		this.fSel = [];
+		this.svg.selectAll(".flow")
+			.classed('obj-sel', false);
+	}
 } // clearSel()
 
 	// RETURNS: Array of absolute IDs of selected records
@@ -3673,13 +3709,15 @@ VizFlow.prototype.getSel = function()
 	var self=this;
 	var u=[];
 
-	this.bSel.forEach(function(fI) {
-		// u = _.union(u, self.blocks[bI].a);
+	this.bSel.forEach(function(bI) {
+		u = _.union(u, self.bars[bI].c.i);
+	});
+	this.fSel.forEach(function(fI) {
+		u = _.union(u, self.ints[fI].i);
 	});
 
 	return u;
-} // isSel()
-
+} // getSel()
 
 
 // ====================================================================
