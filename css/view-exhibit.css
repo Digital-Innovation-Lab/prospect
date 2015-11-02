@@ -1213,12 +1213,12 @@ svg .flow.obj-sel
 
 svg .att-title
 {
-
-}
-
-svg .att-val
-{
-
+	font: 14px sans-serif;
+	font-weight: bold;
+	fill: black;
+	stroke-width: 0;
+	stroke: none;
+	shape-rendering: crispEdges;
 }
 
 /* Specific Filter styles

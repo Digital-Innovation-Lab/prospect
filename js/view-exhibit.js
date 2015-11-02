@@ -3532,6 +3532,9 @@ VizFlow.prototype.setup = function()
 	this.svg = d3.select(this.frameID).append("svg")
 				.attr("width", this.settings.w+10)
 				.attr("height", h);
+	this.barG = this.svg.append("g");
+	this.flowG = this.svg.append("g");
+	this.titleG = this.svg.append("g");
 } // setup()
 
 VizFlow.prototype.render = function(stream)
@@ -3576,8 +3579,9 @@ VizFlow.prototype.render = function(stream)
 	this.fSel=[];
 
 		// Remove everything on svg
-	this.svg.selectAll(".bar").remove();
-	this.svg.selectAll(".flow").remove();
+	this.barG.selectAll(".bar").remove();
+	this.flowG.selectAll(".flow").remove();
+	this.titleG.selectAll(".att-title").remove();
 
 		// Create category buckets for each Attribute
 	var w=this.settings.w;
@@ -3618,7 +3622,8 @@ VizFlow.prototype.render = function(stream)
 // console.log("Bars"+JSON.stringify(self.bars));
 
 		// Show bars
-	var bar = this.svg.append("g").selectAll(".bar")
+	// var bar = this.barG.append("g").selectAll(".bar")
+	var bar = this.barG.selectAll(".bar")
 		.data(self.bars)
 		.enter().append("rect")
 		.attr("class", "bar")
@@ -3663,7 +3668,7 @@ VizFlow.prototype.render = function(stream)
 	});
 // console.log("Intersections: "+JSON.stringify(self.ints));
 
-	var flow = this.svg.append("g").selectAll(".flow")
+	var flow = this.flowG.selectAll(".flow")
 		.data(self.ints)
 		.enter().append("path")
 		.attr("class", "flow")
@@ -3678,11 +3683,19 @@ VizFlow.prototype.render = function(stream)
 		})
 		.on("mouseout",function() {
 			d3.select(this).classed("active", false);
-		})
+		});
 
 		// Create titles for Attributes and values
-	self.atts.forEach(function(att, aI) {
-	});
+	var title = this.titleG.selectAll(".att-title")
+		.data(self.atts)
+		.enter()
+		.append("text")
+		.attr("class", "att-title")
+		.attr("x", "5")
+		.attr("y", function(d) { return d.y-8; })
+		.text(function (d) {
+			return d.l;
+		});
 } // render()
 
 VizFlow.prototype.setSel = function(absIArray)
