@@ -3525,7 +3525,7 @@ VizFlow.prototype.setup = function()
 	var self=this;
 
 		// Compute the height of each inter-Attribute space
-	self.bH = Math.max(120, Math.ceil(this.settings.w/4));
+	self.bH = Math.max(120, Math.ceil(this.settings.w/3));
 
 		// Height: Attribute Title + Attribute value titles + flow space
 	var h = 40 + ((this.settings.fcts.length-1) * self.bH);
@@ -3578,7 +3578,7 @@ VizFlow.prototype.render = function(stream)
 			tCat=[];
 			PData.fillCats(tCat, attID, null, stream, true);
 		}
-			// Compile used categories { l[abel], i: array for each used item, t[otal] }
+			// Compile used categories
 		var used=[];
 		var total=0;
 		tCat.forEach(function(c) {
@@ -3591,10 +3591,10 @@ VizFlow.prototype.render = function(stream)
 		var x=0;
 		var y = 31+aI*self.bH;
 		used.forEach(function(c) {
-			self.bars.push({ x: (x*w)/total, w: (c.i.length*w)/total, y: y, c: c });
+			self.bars.push({ x: 5+((x*w)/total), w: (c.i.length*w)/total, y: y, c: c });
 			x += c.i.length;
 		});
-		self.atts.push({ l: att.def.l, c: used, t: total });
+		self.atts.push({ l: att.def.l, c: used, t: total, y: y });
 	});
 // console.log("Atts: "+JSON.stringify(self.atts));
 // console.log("Bars"+JSON.stringify(self.bars));
@@ -3604,7 +3604,7 @@ VizFlow.prototype.render = function(stream)
 		.data(self.bars)
 		.enter().append("rect")
 		.attr("class", "bar")
-		.attr("x", function(d) { return 5+d.x; })
+		.attr("x", function(d) { return d.x; })
 		.attr("y", function(d) { return d.y; })
 		.attr("fill", function(d) { return d.c.c; })
 		.attr("height", "8")
@@ -3612,13 +3612,42 @@ VizFlow.prototype.render = function(stream)
 		.on("click", clickBar);
 
 		// Compute intersections and create flows
-	self.ints=[];		// { aI, bI, c[olor] }
+	self.ints=[];		// { a1 [index of Attribute 1], i[ndices], c1 [index of Att1 category], c2 [index of Att2 category] }
 	self.atts.forEach(function(att, aI) {
 		if (aI != self.atts.length-1) {
 			var att2 = self.atts[aI+1];
-
+			var f = new Array(att2.c.length);	// maintain # used in c2's categories
+			for (var j=0; j<att2.c.length; j++)
+				f[j]=0;
+			var l1=0, lB1;						// "Left" starting positions on each bar
+			att.c.forEach(function(c1, c1I) {
+				var l2=0;
+				lB1=0;
+				att2.c.forEach(function(c2, c2I) {
+					var i = PData.intersect(c1.i, c2.i);
+					if (i.length > 0) {
+						self.ints.push({ a1: aI, i: i, c1: c1I, c2: c2I, c: c1.c,
+							x1: 5+(((l1+lB1)*w)/att.t), x2: 5+(((l2+f[c2I])*w)/att2.t),
+							w1: (i.length*w)/att.t, w2: (i.length*w)/att2.t,
+							y1: att.y+10, y2: att2.y-1 });
+						lB1 += i.length;
+						f[c2I] += i.length;
+					}
+					l2 += c2.i.length;
+				});
+				l1 += c1.i.length;
+			});
 		}
 	});
+// console.log("Intersections: "+JSON.stringify(self.ints));
+
+	var flow = this.svg.append("g").selectAll(".flow")
+		.data(self.ints)
+		.enter().append("path")
+		.attr("class", "flow")
+		.attr("d", function(d) { return "M "+d.x1+" "+d.y1+" "+" L "+(d.x1+d.w1)+" "+d.y1+" L "+(d.x2+d.w2)+
+									" "+d.y2+" L "+d.x2+" "+d.y2+" L "+d.x1+" "+d.y1; })
+		.attr("fill", function(d) { return d.c; });
 
 		// Create titles for Attributes and values
 	self.atts.forEach(function(att, aI) {
@@ -3633,7 +3662,7 @@ VizFlow.prototype.clearSel = function()
 {
 	if (this.bSel.length > 0) {
 		this.bSel = [];
-		this.svg.selectAll(".flow")
+		this.svg.selectAll(".bar")
 			.classed('obj-sel', false);
 	}
 } // clearSel()

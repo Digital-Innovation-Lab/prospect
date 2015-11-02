@@ -1173,7 +1173,8 @@ svg .link.thick
 	/* Facet Flow styles */
 svg .bar
 {
-
+	stroke: black;
+	stroke-width: 1px;
 }
 
 svg .bar.obj-sel
@@ -1184,7 +1185,8 @@ svg .bar.obj-sel
 
 svg .flow
 {
-
+	stroke: black;
+	stroke-width: 1px;
 }
 
 svg .flow.obj-sel
