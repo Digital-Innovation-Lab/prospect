@@ -6559,7 +6559,8 @@ var PData = (function() {
 					curV += inc;
 					max = curV;
 					var l=min.toString();
-					if (inc > 1) {
+						// Show min and max if not individual digits and too long
+					if (inc > 1 && l.length < 4) {
 						var n=max-1;
 						l += "-"+n.toString();
 					}
