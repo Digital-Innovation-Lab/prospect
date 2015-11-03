@@ -2735,7 +2735,6 @@ VizDirectory.prototype.getState = function()
 	return { s: this.sAtts };
 } // getState()
 
-
 VizDirectory.prototype.setState = function(state)
 {
 	this.sAtts = state.s;
@@ -3143,7 +3142,7 @@ VizStackChart.prototype.getSel = function()
 	var u=[];
 
 	this.bSel.forEach(function(bI) {
-		u = _.union(u, self.blocks[bI].a);
+		u = PData.union(u, self.blocks[bI].a);
 	});
 
 	return u;
@@ -3727,12 +3726,11 @@ VizFlow.prototype.getSel = function()
 	var u=[];
 
 	this.bSel.forEach(function(bI) {
-		u = _.union(u, self.bars[bI].c.i);
+		u = PData.union(u, self.bars[bI].c.i);
 	});
 	this.fSel.forEach(function(fI) {
-		u = _.union(u, self.ints[fI].i);
+		u = PData.union(u, self.ints[fI].i);
 	});
-
 	return u;
 } // getSel()
 
@@ -5724,8 +5722,31 @@ var PData = (function() {
 			// INPUT: 	a and b are both sorted arrays
 		union: function(a, b)
 		{
+			var u=[];
+			var aI=0, bI=0;
+			var aV, bV;
 
-		},
+			while (aI<a.length && bI<b.length) {
+				aV=a[aI]; bV=b[bI];
+				if (aV < bV) {
+					u.push(aV);
+					aI++;
+				} else if (aV == bV) {
+					u.push(aV);
+					aI++; bI++;
+				} else {
+					u.push(bV);
+					bI++;
+				}
+			}
+
+				// Unused values (must be either aI or bI, not both!)
+			for (; aI<a.length; aI++)
+				u.push(a[aI]);
+			for (; bI<b.length; bI++)
+				u.push(b[bI]);
+			return u;
+		}, // union()
 
 			// PURPOSE: Optimized and reliable string compare
 			// TO DO: 	Handle non-ASCII UTF-8 characters
