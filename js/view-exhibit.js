@@ -3639,31 +3639,103 @@ VizFlow.prototype.render = function(stream)
 
 		// Compute intersections and create flows
 	self.ints=[];		// { a1 [index of Attribute 1], i[ndices], c1 [index of Att1 category], c2 [index of Att2 category] }
+
+		// NOTE: The following algorithm only works if every Attribute has only a single value
+		//			Prospect enables multiple values, however, for Fixed Vocabulary
+	// self.atts.forEach(function(att, aI) {
+	// 	if (aI != self.atts.length-1) {
+	// 		var att2 = self.atts[aI+1];
+	// 		var f = new Array(att2.c.length);	// maintain # used in c2's categories
+	// 		for (var j=0; j<att2.c.length; j++)
+	// 			f[j]=0;
+	// 		var l1=0, lB1;						// "Left" starting positions on each bar
+	// 		att.c.forEach(function(c1, c1I) {
+	// 			var l2=0;
+	// 			lB1=0;
+	// 			att2.c.forEach(function(c2, c2I) {
+	// 				var i = PData.intersect(c1.i, c2.i);
+	// 				if (i.length > 0) {
+	// 					self.ints.push({ i: i, c: c1.c, l: c1.l+" > "+c2.l,
+	// 						x1: 5+(((l1+lB1)*w)/att.t), x2: 5+(((l2+f[c2I])*w)/att2.t),
+	// 						w1: (i.length*w)/att.t, w2: (i.length*w)/att2.t,
+	// 						y1: att.y+10, y2: att2.y-1 });
+	// 					lB1 += i.length;
+	// 					f[c2I] += i.length;
+	// 				}
+	// 				l2 += c2.i.length;
+	// 			});
+	// 			l1 += c1.i.length;
+	// 		});
+	// 	}
+	// });
+
+		// NOTE: The following algorithm handles the case of multiple Attribute values
+		//			It attempts to float flows on bars according to leftover space and order
 	self.atts.forEach(function(att, aI) {
 		if (aI != self.atts.length-1) {
 			var att2 = self.atts[aI+1];
-			var f = new Array(att2.c.length);	// maintain # used in c2's categories
-			for (var j=0; j<att2.c.length; j++)
-				f[j]=0;
-			var l1=0, lB1;						// "Left" starting positions on each bar
+
+				// Create 2-dim array (att1 x att2) to hold intersections
+			var i2 = new Array(att.c.length);
+			for (var x=0; x<att2.c.length; x++) {
+				i2[x] = new Array(att2.c.length);
+			}
+				// First pass: Collect all intersections between a1 and a2
 			att.c.forEach(function(c1, c1I) {
-				var l2=0;
-				lB1=0;
 				att2.c.forEach(function(c2, c2I) {
-					var i = PData.intersect(c1.i, c2.i);
-					if (i.length > 0) {
-						self.ints.push({ i: i, c: c1.c, l: c1.l+" > "+c2.l,
-							x1: 5+(((l1+lB1)*w)/att.t), x2: 5+(((l2+f[c2I])*w)/att2.t),
-							w1: (i.length*w)/att.t, w2: (i.length*w)/att2.t,
-							y1: att.y+10, y2: att2.y-1 });
-						lB1 += i.length;
-						f[c2I] += i.length;
-					}
-					l2 += c2.i.length;
+					i2[c1I][c2I] = PData.intersect(c1.i, c2.i);
 				});
-				l1 += c1.i.length;
 			});
-		}
+				// Second pass: Total number of intersection sets on bottom row
+			var bS = new Array(att2.c.length);
+			for (var y=0; y<att2.c.length; y++) {
+				var t=0;
+				for (var x=0; x<att.c.length; x++)
+					if (i2[x][y].length > 0)
+						t++;
+				bS[y]=t-1;
+			}
+
+				// Create counter for bottom row
+			var bC = new Array(att2.c.length);
+			for (var y=0; y<att2.c.length; y++)
+				bC[y]=0;
+
+				// Third pass: Allocate variable spaced positions
+			var l1=0;
+			att.c.forEach(function(c1, c1I) {
+				var c1Ints = 0;				// how many non-empty sets for c1?
+				for (var y=0; y<att2.c.length; y++)
+					if (i2[c1I][y].length > 0)
+						c1Ints++;
+				c1Ints -= 1;
+				var c1W = (c1.i.length*w)/att.t;	// # pixels in c1 bar
+
+				var bI=0;
+				var l2=0;
+				att2.c.forEach(function(c2, c2I) {
+					var i = i2[c1I][c2I];
+					if (i.length > 0) {
+						var w0=i.length*w;
+						var w1=w0/att.t;
+						var w2=w0/att2.t;
+						var c2W = (c2.i.length*w)/att2.t;
+						// var c2G = c2W/bS[c2I];	// c2 bar pixel gap size
+						var s1 = c1Ints ? ((c1W-w1)*bI)/c1Ints : 0;
+						var s2 = bS[c2I] ? ((c2W-w2)*bC[c2I])/bS[c2I] : 0;
+						self.ints.push({ i: i, c: c1.c, l: c1.l+" > "+c2.l,
+							x1: 5+((l1*w)/att.t) + s1,
+							x2: 5+((l2*w)/att2.t)+ s2,
+							w1: w1, w2: w2, y1: att.y+10, y2: att2.y-1
+						});
+						bI++;
+						bC[c2I]++;
+					}
+					l2+= c2.i.length;
+				});
+				l1+= c1.i.length;
+			});
+		} // if aI not last
 	});
 // console.log("Intersections: "+JSON.stringify(self.ints));
 
