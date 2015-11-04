@@ -988,6 +988,10 @@ VizCards.prototype.setState = function(state)
 {
 	this.vFrame.setLgndSels(state.l);
 	this.sAtts = state.s;
+		// Set menu selections to these
+	this.sAtts.forEach(function(att, tI) {
+		jQuery('#dialog-sortby select[data-ti="'+tI+'"]').val(att);
+	});
 } // setState()
 
 
@@ -2738,6 +2742,10 @@ VizDirectory.prototype.getState = function()
 VizDirectory.prototype.setState = function(state)
 {
 	this.sAtts = state.s;
+		// Set menu selections to these
+	this.sAtts.forEach(function(att, tI) {
+		jQuery('#dialog-sortby select[data-ti="'+tI+'"]').val(att);
+	});
 } // setState()
 
 
