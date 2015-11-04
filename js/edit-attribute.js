@@ -695,6 +695,8 @@ jQuery(document).ready(function() {
 							// do we need to give new default visual config?
 						if (child.v === '')
 							child.v = '#888888';
+							// We need to add empty children array to it!
+						child.z = [];
 						rApp.splice('theLegend', 0, 0, child);
 					} else {
 							// Get index of new parent
@@ -706,11 +708,13 @@ jQuery(document).ready(function() {
 					}
 				});
 				modalDialog.teardown();
+				return false;
 			});
 			modalDialog.on('dialog.cancel', modalDialog.teardown);
 
-			// It is a top-level parent
+			// It is a top-level term
 		} else {
+
 				// Does it have children?
 			var children = rApp.get('theLegend['+index1+'].z');
 				// No children
@@ -732,6 +736,8 @@ jQuery(document).ready(function() {
 						// Extract it first
 					rApp.splice('theLegend', index1, 1).then(function(spliced) {
 						var newChild = spliced[0];
+							// Remove its children array
+						delete newChild.z;
 
 							// Clear visual data?
 						if (modalDialog.get('keep') === 'no')
@@ -781,6 +787,8 @@ jQuery(document).ready(function() {
 						rApp.pop('theLegend['+index1+'].z', 0, 1).then(function(popped) {
 								// Add to top?
 							if (modalDialog.get('up') === 'yes') {
+									// Add empty children array
+								popped.z = [];
 								rApp.push('theLegend', popped).then(function() { doNextChild(); });
 							} else {
 								rApp.push('theLegend['+newIndex+'].z', popped).then(function() {
