@@ -40,7 +40,7 @@ function prospect_register_post_types()
 		'hierarchical' => false,
 		'menu_position' => null,
 		'supports' => array('title', 'thumbnail', 'revisions'),
-		'capability_type' => 'prsp_attribute',
+		'capability_type' => array('prsp_attribute','prsp_attributes'),
 		'map_meta_cap' => true
 	); 
 	register_post_type('prsp-attribute', $args);
@@ -70,7 +70,7 @@ function prospect_register_post_types()
 		'hierarchical' => false,
 		'menu_position' => null,
 		'supports' => array('title', 'thumbnail', 'revisions'),
-		'capability_type' => 'prsp_template',
+		'capability_type' => array('prsp_template','prsp_templates'),
 		'map_meta_cap' => true
 	); 
 	register_post_type('prsp-template', $args);
@@ -102,7 +102,7 @@ function prospect_register_post_types()
 		'hierarchical' => false,
 		'menu_position' => null,
 		'supports' => array('title', 'editor', 'thumbnail', 'revisions'),
-		'capability_type' => 'prsp_record',
+		'capability_type' => array('prsp_record','prsp_records'),
 		'map_meta_cap' => true
 	); 
 	register_post_type('prsp-record', $args);
@@ -134,7 +134,7 @@ function prospect_register_post_types()
 		'hierarchical' => false,
 		'menu_position' => null,
 		'supports' => array('title', 'thumbnail', 'revisions'),
-		'capability_type' => 'prsp_exhibit',
+		'capability_type' => array('prsp_exhibit','prsp_exhibits'),
 		'map_meta_cap' => true
 	); 
 	register_post_type('prsp-exhibit', $args);
@@ -168,7 +168,7 @@ function prospect_register_post_types()
 		'hierarchical' => false,
 		'menu_position' => null,
 		'supports' => array('title', 'comments', 'revisions'),
-		'capability_type' => 'prsp_map',
+		'capability_type' => array('prsp_map','prsp_maps'),
 		'map_meta_cap' => true
 	);
 	register_post_type('prsp-map', $args);
@@ -200,7 +200,7 @@ function prospect_register_post_types()
 		'hierarchical' => false,
 		'menu_position' => null,
 		'supports' => array('title', 'thumbnail', 'revisions'),
-		'capability_type' => 'prsp_prspctv',
+		'capability_type' => array('prsp_prspctv','prsp_prspctvs'),
 		'map_meta_cap' => true
 	);
 	register_post_type('prsp-prspctv', $args);
@@ -240,17 +240,17 @@ function prospect_activate()
 	$role->add_cap('read_prsp_exhibits');
 	$role->add_cap('read_prsp_map');						// Maps
 	$role->add_cap('read_prsp_prspctv');					// Perspectives
-	$role->add_cap('read_private_prsp_prspctv');
+	$role->add_cap('read_private_prsp_prspctvs');
 	$role->add_cap('edit_prsp_prspctv');
-	$role->add_cap('edit_prsp_prspctv');
-	$role->add_cap('edit_others_prsp_prspctv');
-	$role->add_cap('edit_published_prsp_prspctv');
-	$role->add_cap('publish_prsp_prspctv');
-	$role->add_cap('delete_prsp_prspctv');
-	$role->add_cap('delete_others_prsp_prspctv');
-	$role->add_cap('delete_private_prsp_prspctv');
-	$role->add_cap('delete_published_prsp_prspctv');
-	$role->add_cap('create_prsp_prspctv');
+	$role->add_cap('edit_prsp_prspctvs');
+	$role->add_cap('edit_others_prsp_prspctvs');
+	$role->add_cap('edit_published_prsp_prspctvs');
+	$role->add_cap('publish_prsp_prspctvs');
+	$role->add_cap('delete_prsp_prspctvs');
+	$role->add_cap('delete_others_prsp_prspctvs');
+	$role->add_cap('delete_private_prsp_prspctvs');
+	$role->add_cap('delete_published_prsp_prspctvs');
+	$role->add_cap('create_prsp_prspctvs');
 
 	$role = get_role('administrator');
 	$role->add_cap('read_prsp_attribute');					// Attributes
@@ -315,17 +315,17 @@ function prospect_activate()
 	$role->add_cap('delete_published_prsp_maps');
 	$role->add_cap('create_prsp_maps');
 	$role->add_cap('read_prsp_prspctv');					// Perspectives
-	$role->add_cap('read_private_prsp_prspctv');
+	$role->add_cap('read_private_prsp_prspctvs');
 	$role->add_cap('edit_prsp_prspctv');
-	$role->add_cap('edit_prsp_prspctv');
-	$role->add_cap('edit_others_prsp_prspctv');
-	$role->add_cap('edit_published_prsp_prspctv');
-	$role->add_cap('publish_prsp_prspctv');
-	$role->add_cap('delete_prsp_prspctv');
-	$role->add_cap('delete_others_prsp_prspctv');
-	$role->add_cap('delete_private_prsp_prspctv');
-	$role->add_cap('delete_published_prsp_prspctv');
-	$role->add_cap('create_prsp_prspctv');
+	$role->add_cap('edit_prsp_prspctvs');
+	$role->add_cap('edit_others_prsp_prspctvs');
+	$role->add_cap('edit_published_prsp_prspctvs');
+	$role->add_cap('publish_prsp_prspctvs');
+	$role->add_cap('delete_prsp_prspctvs');
+	$role->add_cap('delete_others_prsp_prspctvs');
+	$role->add_cap('delete_private_prsp_prspctvs');
+	$role->add_cap('delete_published_prsp_prspctvs');
+	$role->add_cap('create_prsp_prspctvs');
 } // prospect_activate()
 
 function prospect_deactivate()
@@ -359,17 +359,17 @@ function prospect_deactivate()
 	$role->remove_cap('read_prsp_exhibits');
 	$role->remove_cap('read_prsp_map');						// Maps
 	$role->remove_cap('read_prsp_prspctv');					// Perspectives
-	$role->remove_cap('read_private_prsp_prspctv');
+	$role->remove_cap('read_private_prsp_prspctvs');
 	$role->remove_cap('edit_prsp_prspctv');
-	$role->remove_cap('edit_prsp_prspctv');
-	$role->remove_cap('edit_others_prsp_prspctv');
-	$role->remove_cap('edit_published_prsp_prspctv');
-	$role->remove_cap('publish_prsp_prspctv');
-	$role->remove_cap('delete_prsp_prspctv');
-	$role->remove_cap('delete_others_prsp_prspctv');
-	$role->remove_cap('delete_private_prsp_prspctv');
-	$role->remove_cap('delete_published_prsp_prspctv');
-	$role->remove_cap('create_prsp_prspctv');
+	$role->remove_cap('edit_prsp_prspctvs');
+	$role->remove_cap('edit_others_prsp_prspctvs');
+	$role->remove_cap('edit_published_prsp_prspctvs');
+	$role->remove_cap('publish_prsp_prspctvs');
+	$role->remove_cap('delete_prsp_prspctvs');
+	$role->remove_cap('delete_others_prsp_prspctvs');
+	$role->remove_cap('delete_private_prsp_prspctvs');
+	$role->remove_cap('delete_published_prsp_prspctvs');
+	$role->remove_cap('create_prsp_prspctvs');
 
 	$role = get_role('administrator');
 	$role->remove_cap('read_prsp_attribute');				// Attributes
@@ -432,19 +432,19 @@ function prospect_deactivate()
 	$role->remove_cap('delete_others_prsp_maps');
 	$role->remove_cap('delete_private_prsp_maps');
 	$role->remove_cap('delete_published_prsp_maps');
-	$role->remove_cap('create_prsp_rmaps');
+	$role->remove_cap('create_prsp_maps');
 	$role->remove_cap('read_prsp_prspctv');					// Perspectives
-	$role->remove_cap('read_private_prsp_prspctv');
+	$role->remove_cap('read_private_prsp_prspctvs');
 	$role->remove_cap('edit_prsp_prspctv');
-	$role->remove_cap('edit_prsp_prspctv');
-	$role->remove_cap('edit_others_prsp_prspctv');
-	$role->remove_cap('edit_published_prsp_prspctv');
-	$role->remove_cap('publish_prsp_prspctv');
-	$role->remove_cap('delete_prsp_prspctv');
-	$role->remove_cap('delete_others_prsp_prspctv');
-	$role->remove_cap('delete_private_prsp_prspctv');
-	$role->remove_cap('delete_published_prsp_prspctv');
-	$role->remove_cap('create_prsp_prspctv');
+	$role->remove_cap('edit_prsp_prspctvs');
+	$role->remove_cap('edit_others_prsp_prspctvs');
+	$role->remove_cap('edit_published_prsp_prspctvs');
+	$role->remove_cap('publish_prsp_prspctvs');
+	$role->remove_cap('delete_prsp_prspctvs');
+	$role->remove_cap('delete_others_prsp_prspctvs');
+	$role->remove_cap('delete_private_prsp_prspctvs');
+	$role->remove_cap('delete_published_prsp_prspctvs');
+	$role->remove_cap('create_prsp_prspctvs');
 } // prospect_deactivate()
 
 
