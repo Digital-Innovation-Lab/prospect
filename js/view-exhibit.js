@@ -8028,7 +8028,7 @@ jQuery(document).ready(function($) {
 		// Handle selection of item on Show Perspective list
 	jQuery('#prspctv-slist').click(function(event) {
 		if (event.target.nodeName == 'LI') {
-			jQuery("#prspctv-list li").removeClass("selected");
+			jQuery("#prspctv-slist li").removeClass("selected");
 			jQuery(event.target).addClass("selected");
 		}
 	});
