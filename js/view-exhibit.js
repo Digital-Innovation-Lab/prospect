@@ -6550,18 +6550,18 @@ var PData = (function() {
 					}
 						// Is current range category before current legend category?
 					if (att.l.length == 0 || curV < curL.d.min) {
-						rgb = '#000000';
+						rgb = '#777777';
 
 						// Does it occur beyond last category?
 					} else if (lI == att.l.length) {
-						rgb = '#000000';
+						rgb = '#777777';
 
 						// Does it start within current category (inc one w/o max bound)
 					} else if (typeof curL.d.max == 'undefined' || curV <= curL.d.max) {
 						rgb = curL.v;
 
 					} else {
-						rgb = '#000000';
+						rgb = '#777777';
 					}
 					min = curV;
 					curV += inc;
@@ -6652,18 +6652,18 @@ var PData = (function() {
 					}
 						// Is current range category before current legend category?
 					if (att.l.length == 0 || curDate < lMinDate) {
-						rCat.c = '#000000';
+						rCat.c = '#777777';
 
 						// Does it occur beyond last category?
 					} else if (lI == att.l.length) {
-						rCat.c = '#000000';
+						rCat.c = '#777777';
 
 						// Does it start within current category (inc one w/o max bound)
 					} else if (curDate <= lMaxDate) {
 						rCat.c = curL.v;
 
 					} else {
-						rCat.c = '#000000';
+						rCat.c = '#777777';
 					}
 					rCat.min = curDate;
 					switch (inc) {
