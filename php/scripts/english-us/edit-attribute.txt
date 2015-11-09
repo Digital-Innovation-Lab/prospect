@@ -365,7 +365,7 @@ You have not specified a custom field.
 The delimiter can only be 1 character, if specified at all.
 </script>
 
-<script id="errmsg-att-id-taken" type='text/ractive'>
+<script id="errmsg-id-taken" type='text/ractive'>
 Another Attribute with that ID already exists. Please choose another.
 </script>
 
