@@ -3557,12 +3557,12 @@ VizFlow.prototype.render = function(stream)
 		if (self.bSel[i] == bI) {
 			d3.select(this).classed('obj-sel', false);
 			self.bSel.splice(i, 1);
-			if (sz > 0 && self.bSel.length == 0)
+			if (sz > 0 && self.bSel.length == 0 && self.fSel.length == 0)
 				self.vFrame.selBtns(false);
 		} else {
 			d3.select(this).classed('obj-sel', true);
 			self.bSel.splice(i, 0, bI);
-			if (sz == 0 && self.bSel.length > 0)
+			if (sz == 0 && self.fSel.length == 0 && self.bSel.length > 0)
 				self.vFrame.selBtns(true);
 		}
 	} // clickBar()
@@ -3574,12 +3574,12 @@ VizFlow.prototype.render = function(stream)
 		if (self.fSel[i] == fI) {
 			d3.select(this).classed('obj-sel', false);
 			self.fSel.splice(i, 1);
-			if (sz > 0 && self.fSel.length == 0)
+			if (sz > 0 && self.fSel.length == 0 && self.bSel.length == 0)
 				self.vFrame.selBtns(false);
 		} else {
 			d3.select(this).classed('obj-sel', true);
 			self.fSel.splice(i, 0, fI);
-			if (sz == 0 && self.fSel.length > 0)
+			if (sz == 0 && self.bSel.length == 0 && self.fSel.length > 0)
 				self.vFrame.selBtns(true);
 		}
 	} // clickFlow()
@@ -3627,11 +3627,8 @@ VizFlow.prototype.render = function(stream)
 		});
 		self.atts.push({ l: att.def.l, c: used, t: total, y: y });
 	});
-// console.log("Atts: "+JSON.stringify(self.atts));
-// console.log("Bars"+JSON.stringify(self.bars));
 
 		// Show bars
-	// var bar = this.barG.append("g").selectAll(".bar")
 	var bar = this.barG.selectAll(".bar")
 		.data(self.bars)
 		.enter().append("rect")
@@ -3747,7 +3744,6 @@ VizFlow.prototype.render = function(stream)
 			});
 		} // if aI not last
 	});
-// console.log("Intersections: "+JSON.stringify(self.ints));
 
 	var flow = this.flowG.selectAll(".flow")
 		.data(self.ints)
