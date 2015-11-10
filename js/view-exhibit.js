@@ -723,7 +723,7 @@ VizCards.prototype.setup = function()
 	var self = this;
 
 	jQuery(this.frameID).on("click.vf", function(event) {
-		if (event.target.nodeName == 'DIV') {
+		if (event.target.nodeName == 'DIV' || event.target.nodeName == 'IMG') {
 			var card = jQuery(event.target).closest('div.card');
 			if (card.size() == 1) {
 				var absI = card.data('ai');
