@@ -67,6 +67,8 @@ var parseTC = /(\d\d)\:(\d\d)\:(\d\d)\.(\d\d?)/; 	// precise regular expression 
 
 var mnthDays = [ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ];
 
+var MS_IN_DAY = 86399990; 		// milliseconds in a day: 1000*60*60*24 - 10
+
 	// GLOBAL VARS
 var TODAY = new Date();
 var localD3;					// For localizing D3
@@ -1542,13 +1544,13 @@ VizTime.prototype.setup = function()
 
 			// Override default min & max bounds?
 		if (s.from.length > 0)
-			self.minDate = PData.parseDate(s.from, 1, 1);
+			self.minDate = PData.parseDate(s.from, false);
 		else
-			self.minDate = PData.date3Nums(minY, minM, minD);
+			self.minDate = PData.date3Nums(minY, minM, minD, false);
 		if (s.to.length > 0)
-			self.maxDate = PData.parseDate(s.to, 12, 31);
+			self.maxDate = PData.parseDate(s.to, true);
 		else
-			self.maxDate = PData.date3Nums(maxY, maxM, maxD);
+			self.maxDate = PData.date3Nums(maxY, maxM, maxD, true);
 
 			// Size of instananeous event: 1.5% of total time period space
 		self.instGap = (self.maxDate - self.minDate) * .015;
@@ -1686,9 +1688,9 @@ VizTime.prototype.setup = function()
 		{
 			var zMin=self.minDate, zMax=self.maxDate;
 			if (self.settings.zFrom.length > 0)
-				zMin = PData.parseDate(self.settings.zFrom, 1, 1);
+				zMin = PData.parseDate(self.settings.zFrom, false);
 			if (self.settings.zTo.length > 0)
-				zMax = PData.parseDate(self.settings.zTo, 12, 31);
+				zMax = PData.parseDate(self.settings.zTo, true);
 			band.xScale.domain([zMin, zMax]);
 			self.zMinDate = zMin;
 			self.zMaxDate = zMax;
@@ -1970,7 +1972,7 @@ VizTime.prototype.render = function(stream)
 								else
 									d = dData.min.d;
 							}
-							s = PData.date3Nums(y,m,d);
+							s = PData.date3Nums(y,m,d,false);
 							if (typeof dData.max == 'undefined') {
 								f |= EVENT_INSTANT;
 								e = s.getTime() + self.instGap;
@@ -1990,7 +1992,7 @@ VizTime.prototype.render = function(stream)
 										else
 											d = dData.max.d;
 									}
-									e = PData.date3Nums(y,m,d);
+									e = PData.date3Nums(y,m,d,true);
 								} // number
 							}
 							te.push({ s: s, e: e, ai: aI, f: f, c: fData, l: rec.l, t: 0 });
@@ -2032,7 +2034,7 @@ VizTime.prototype.render = function(stream)
 					else
 						d = l.min.d;
 				}
-				s = PData.date3Nums(y,m,d);
+				s = PData.date3Nums(y,m,d,false);
 				if (typeof l.max.y == 'undefined') {
 					e = TODAY;
 				} else {
@@ -2046,7 +2048,7 @@ VizTime.prototype.render = function(stream)
 						else
 							d = l.max.d;
 					}
-					e = PData.date3Nums(y,m,d);
+					e = PData.date3Nums(y,m,d,true);
 				}
 				self.lgBds.push({s: s, e: e, t: numTracks, h: tracks.length+1, d: lEntry });
 			});
@@ -2500,8 +2502,8 @@ VizTime.prototype.getState = function()
 	// ASSUMES: This is called after setup but before render, so we only need to reset zMinDate
 VizTime.prototype.setState = function(state)
 {
-	var e0 = PData.parseDate(state.d0, 1, 1);
-	var e1 = PData.parseDate(state.d1, 12, 31);
+	var e0 = PData.parseDate(state.d0, false);
+	var e1 = PData.parseDate(state.d1, true);
 
 		// Rescale bottom/zoom timeline
 	var zoom = this.bands[1];
@@ -4308,14 +4310,14 @@ PFilterDates.prototype.evalPrep = function()
 	// ASSUMES: Brush code in setup sets min & max
 PFilterDates.prototype.eval = function(rec)
 {
-	function makeDate(y, m, d, field) {
+	function makeDate(y, m, d, field, end) {
 		if (typeof field.m != 'undefined') {
 			m = field.m;
 			if (typeof field.d != 'undefined') {
 				d = field.d;
 			}
 		}
-		return PData.date3Nums(y, m, d);
+		return PData.date3Nums(y, m, d, end);
 	} // makeDate()
 
 	var d = rec.a[this.att.id];
@@ -4324,15 +4326,15 @@ PFilterDates.prototype.eval = function(rec)
 
 		// Is it a single event?
 	if (typeof d.max == 'undefined') {
-		var c = makeDate(d.min.y, 1, 1, d.min);
+		var c = makeDate(d.min.y, 1, 1, d.min, false);
 		return (this.min <= c) && (c < this.max);
 	} else {
-		var s = makeDate(d.min.y, 1, 1, d.min);
+		var s = makeDate(d.min.y, 1, 1, d.min, false);
 		var e;
 		if (d.max == 'open')
 			e = TODAY;
 		else
-			e = makeDate(d.max.y, 12, 31, d.max);
+			e = makeDate(d.max.y, 12, 31, d.max, true);
 
 			// Overlap?
 		if (this.c == 'o') {
@@ -4536,7 +4538,6 @@ function PViewFrame(vfIndex)
 			var milliSecs = new Number();
 			var match = parseTC.exec(tc);
 			if (match !== null) {
-				// console.log("Parsed " + match[1] + ":" + match[2] + ":" + match[3]);
 				milliSecs = (parseInt(match[1])*3600 + parseInt(match[2])*60 + parseFloat(match[3])) * 1000;
 					// The multiplier to use for last digits depends on if it is 1 or 2 digits long
 				if (match[4].length == 1) {
@@ -5687,7 +5688,6 @@ var PData = (function() {
 	var recsCount=0;			// Total number of Records
 	var loaded=false;			// All data loaded?
 
-
 	// INTERNAL FUNCTIONS
 	// ==================
 
@@ -6340,8 +6340,9 @@ var PData = (function() {
 
 			// PURPOSE: Create a single Date from three numbers
 			// INPUT:   year, month (1-12), day (1) must be definite numbers
+			//			if end, make the Date the end of the day (not beginning)
 			// NOTE:    JavaScript Date month is 0-based (not 1-based: 0=January)
-		date3Nums: function(year, month, day)
+		date3Nums: function(year, month, day, end)
 		{
 			var date;
 
@@ -6354,11 +6355,13 @@ var PData = (function() {
 				date = new Date(year, month-1, day);
 				date.setUTCFullYear(("0000" + year).slice(-4));
 			}
+			if (end)
+				date.setTime(date.getTime() + MS_IN_DAY);
 			return date;
 		}, // date3Nums
 
 			// PURPOSE: Create a Date from minimal specification in Object fields
-		objDate: function(field, m) {
+		objDate: function(field, m, end) {
 			var d;
 
 			if (typeof field.m != 'undefined' && field.m != null) {
@@ -6370,13 +6373,16 @@ var PData = (function() {
 			} else {
 				d = mnthDays[m-1];
 			}
-			return PData.date3Nums(field.y, m, d);
+			return PData.date3Nums(field.y, m, d, end);
 		}, // objDate()
 
 			// PURPOSE: Create Date by parsing string
+			// INPUT: 	end = true if last part of range
 			// ASSUMES: Definite date: won't have initial ~ character
-		parseDate: function(str, m, d)
+		parseDate: function(str, end)
 		{
+			var m, d;
+
 			if (str == 'open')
 				return TODAY;
 
@@ -6389,11 +6395,24 @@ var PData = (function() {
 			var y = parseInt(cmpts[0])*np;
 			if (cmpts.length > 1) {
 				m = parseInt(cmpts[1]);
-				if (cmpts.length == 3)
+				if (cmpts.length == 3) {
 					d = parseInt(cmpts[2]);
+				} else {
+					if (end)
+						d = mnthDays[m-1];
+					else
+						d = 1;
+				}
+			} else {
+				if (end) {
+					m=12; d=31;
+				} else {
+					m=1; d=1;
+				}
 			}
 
-			return PData.date3Nums(y, m, d);
+				// add end of day?
+			return PData.date3Nums(y, m, d, end);
 		}, // parseDate()
 
 			// PURPOSE: Create Dates (single date or range) from Record value
@@ -6415,7 +6434,7 @@ var PData = (function() {
 					single=true;
 				}
 			}
-			s = PData.date3Nums(y,m,d);
+			s = PData.date3Nums(y,m,d,false);
 			if (typeof data.max != 'undefined') {
 				if (data.max == 'open')
 					e = TODAY;
@@ -6430,7 +6449,7 @@ var PData = (function() {
 						else
 							d = data.max.d;
 					}
-					e = PData.date3Nums(y,m,d);
+					e = PData.date3Nums(y,m,d,true);
 				} // number
 			} else {
 				if (single)
@@ -6439,9 +6458,10 @@ var PData = (function() {
 					if (typeof data.min.m == 'undefined') {
 						m = 12; d = 31;
 					} else {
+						m = data.min.m;
 						d = mnthDays[m-1];
 					}
-					e = PData.date3Nums(y,m,d);
+					e = PData.date3Nums(y,m,d,true);
 				}
 			}
 			return [s, e];
@@ -6481,12 +6501,12 @@ var PData = (function() {
 			case 'D':
 				var dmin, dmax;
 				att.l.forEach(function(d) {
-					dmin = PData.objDate(d.min, 1);
+					dmin = PData.objDate(d.min, 1, false);
 					if (fSet == null || PData.getAttLgndRecs(dmin, att, fSet, false)) {
 						if (d.max.y == null)
 							dmax = TODAY;
 						else
-							dmax = PData.objDate(d.max, 12);
+							dmax = PData.objDate(d.max, 12, true);
 						rcs.push({ l: d.l, c: d.v, min: dmin, max: dmax });
 					}
 				});
@@ -6586,7 +6606,7 @@ var PData = (function() {
 							d = field.d;
 						}
 					}
-					return PData.date3Nums(y, m, d);
+					return PData.date3Nums(y,m,d,false);
 				} // makeDate()
 				function makeMaxDate(field)
 				{
@@ -6604,7 +6624,7 @@ var PData = (function() {
 							else
 								d = field.d;
 						}
-						return PData.date3Nums(y,m,d);
+						return PData.date3Nums(y,m,d,true);
 					}
 				} // makeMaxDate()
 
@@ -6617,7 +6637,7 @@ var PData = (function() {
 						curD = att.r.min.d;
 					}
 				}
-				var curDate = PData.date3Nums(curY, curM, curD);
+				var curDate = PData.date3Nums(curY, curM, curD, false);
 				var lI=0, curL, lMinDate, lMaxDate;
 				if (att.l.length > 0) {
 					curL = att.l[0];
@@ -6668,28 +6688,28 @@ var PData = (function() {
 					rCat.min = curDate;
 					switch (inc) {
 					case 'd':
-						rCat.max = PData.date3Nums(curY, curM, curD+1);
+						rCat.max = PData.date3Nums(curY, curM, curD+1, true);
 						curD++;
 						break;
 					case 'm':
-						rCat.max = PData.date3Nums(curY, curM+1, curD);
+						rCat.max = PData.date3Nums(curY, curM+1, curD, true);
 						curM++;
 						break;
 					case 'y':
-						rCat.max = PData.date3Nums(curY+1, curM, curD);
+						rCat.max = PData.date3Nums(curY+1, curM, curD, true);
 						curY++;
 						break;
 					case 't':
-						rCat.max = PData.date3Nums(curY+10, curM, curD);
+						rCat.max = PData.date3Nums(curY+10, curM, curD, true);
 						curY += 10;
 						break;
 					case 'c':
-						rCat.max = PData.date3Nums(curY+100, curM, curD);
+						rCat.max = PData.date3Nums(curY+100, curM, curD, true);
 						curY += 100;
 						break;
 					}
 					rcs.push(rCat);
-					curDate = PData.date3Nums(curY, curM, curD);
+					curDate = PData.date3Nums(curY, curM, curD, false);
 				}
 				return rcs;
 			} // switch
@@ -6776,7 +6796,7 @@ var PData = (function() {
 						break;
 					case 'D':
 							// Only need to look at start date!
-						var sd = PData.objDate(datum.min, 1);
+						var sd = PData.objDate(datum.min, 1, false);
 						for (cI=0; cI<cats.length; cI++) {
 							cRec = cats[cI];
 								// Did we pass eligible category?
@@ -6847,7 +6867,7 @@ var PData = (function() {
 						break;
 					case 'D':
 							// Only need to look at start date!
-						var sd = PData.objDate(datum.min, 1);
+						var sd = PData.objDate(datum.min, 1, false);
 						for (sI=0; sI<sCats.length; sI++) {
 							sRec = sCats[sI];
 								// Did we pass eligible category?
@@ -6885,7 +6905,7 @@ var PData = (function() {
 					if (typeof v.min.d != 'undefined')
 						d = v.min.d;
 				}
-				return PData.date3Nums(v.min.y, m, d);
+				return PData.date3Nums(v.min.y, m, d, false);
 			}
 
 			var eval, maxV;
@@ -6966,7 +6986,7 @@ jQuery(document).ready(function($) {
 	var selFID;				// Attribute ID for Selector Filter
 	var apTmStr;			// Apply to <template label> for Filters
 
-	var annote;				// Annotation from Perspective
+	var annote;				// Annotation from current Perspective
 
 	var topStream;			// Top-level IndexStream (before Filters)
 	var endStream;			// Final resulting IndexStream (after Filters)
