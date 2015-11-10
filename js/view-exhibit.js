@@ -262,11 +262,13 @@ VizMap.prototype.flags = function()
 	return V_FLAG_LGND | V_FLAG_SEL | V_FLAG_LOC | V_FLAG_OPT;
 } // flags()
 
-	// PURPOSE: Return IDs of locate Attributes 
+	// PURPOSE: Return IDs of locate Attributes as array
 VizMap.prototype.getLocAtts = function(tIndex)
 {
-	if (tIndex != null)
-		return this.settings.cAtts[tIndex];
+	if (tIndex != null) {
+		var atts = this.settings.cAtts[tIndex];
+		return atts == null ? null : atts;
+	}
 	return this.settings.cAtts;
 } // getLocAtts()
 
@@ -1014,11 +1016,13 @@ VizPinboard.prototype.flags = function()
 	return V_FLAG_LGND | V_FLAG_SEL | V_FLAG_LOC | V_FLAG_HSCRL | V_FLAG_VSCRL | V_FLAG_OPT;
 } // flags()
 
-	// PURPOSE: Return IDs of locate Attributes 
+	// PURPOSE: Return IDs of locate Attributes as array
 VizPinboard.prototype.getLocAtts = function(tIndex)
 {
-	if (tIndex != null)
-		return [this.settings.cAtts[tIndex]];
+	if (tIndex != null) {
+		var atts = this.settings.cAtts[tIndex];
+		return atts == null ? null : [atts];
+	}
 	return [this.settings.cAtts];
 } // getLocAtts()
 
@@ -1396,8 +1400,10 @@ VizTime.prototype.getFeatureAtts = function(tIndex)
 	// PURPOSE: Return IDs of locate Attributes 
 VizTime.prototype.getLocAtts = function(tIndex)
 {
-	if (tIndex != null)
-		return [this.settings.dAtts[tIndex]];
+	if (tIndex != null) {
+		var atts = this.settings.dAtts[tIndex];
+		return atts == null ? null : [atts];
+	}
 	return [this.settings.dAtts];
 } // getLocAtts()
 
@@ -2771,8 +2777,10 @@ VizTextStream.prototype.flags = function()
 	// PURPOSE: Return IDs of locate Attributes
 VizTextStream.prototype.getLocAtts = function(tIndex)
 {
-	if (tIndex != null)
-		return [this.settings.order[tIndex]];
+	if (tIndex != null) {
+		var atts = this.settings.order[tIndex];
+		return atts == null ? null : [atts];
+	}
 	return _.map(this.settings.order, function(attID) { return [attID]; });
 } // getLocAtts()
 
