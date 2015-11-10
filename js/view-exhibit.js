@@ -3687,7 +3687,7 @@ VizFlow.prototype.render = function(stream)
 
 				// Create 2-dim array (att1 x att2) to hold intersections
 			var i2 = new Array(att.c.length);
-			for (var x=0; x<att2.c.length; x++) {
+			for (var x=0; x<att.c.length; x++) {
 				i2[x] = new Array(att2.c.length);
 			}
 				// First pass: Collect all intersections between a1 and a2
