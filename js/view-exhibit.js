@@ -3644,7 +3644,7 @@ VizFlow.prototype.render = function(stream)
 		.on("click", clickBar)
 		.append("title")
 		.text(function(d) {
-			return d.c.l;
+			return d.c.l + " ("+d.c.i.length+")";
 		});
 
 		// Compute intersections and create flows
@@ -3767,7 +3767,7 @@ VizFlow.prototype.render = function(stream)
 		})
 		.append("title")
 		.text(function(d) {
-			return d.l;
+			return d.l + " ("+d.i.length+")";
 		});
 
 		// Create titles for Attributes and values
