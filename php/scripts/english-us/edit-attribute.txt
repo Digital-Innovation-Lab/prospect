@@ -53,7 +53,7 @@
 	Latest Date:
 		<label for="date-r-max-y">Year </label><input type="text" id="date-r-max-y" value='{{theRange.max.y}}' placeholder="YYYY" size="6" pattern="(open|~?-?\d+)">
 		<label for="date-r-max-m">Month </label><input type="text" id="date-r-max-m" value='{{theRange.max.m}}' placeholder="MM" size="2" pattern="\d{0,2}">
-		<label for="date-r-max-d">Day </label><input type="text" id="date-r-max-d" value='{{theRange.max.d}}' placeholder="DD" size="s" pattern="\d{0,2}">
+		<label for="date-r-max-d">Day </label><input type="text" id="date-r-max-d" value='{{theRange.max.d}}' placeholder="DD" size="2" pattern="\d{0,2}">
 		<br/>
 	<label for="date-g">Group Dates together by</label>
 	<select id="date-g" value='{{theRange.g}}'>
