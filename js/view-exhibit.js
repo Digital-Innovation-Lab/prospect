@@ -2196,7 +2196,6 @@ VizTime.prototype.render = function(stream)
 				.attr("class", "rangeLbl")
 				.attr("x", 4)
 				.attr("y", fPos)
-				// .style('filter', "url(#xortext)")
 				.attr("fill", function(d) {
 					return d.c.b ? "#000000" : "#FFFFFF";
 				})
@@ -2220,13 +2219,13 @@ VizTime.prototype.render = function(stream)
 			// Labels on zoom band only
 		if (bi == 1) {
 				// Create label
-				// XOR filter not quite working...
 			instants.append("text")
 				.attr("class", "instantLbl")
 				.attr("x", instLX)
 				.attr("y", fPos)
 				.style("font-size", fHt)
-				.style('filter', "url(#xortext)")
+					// XOR filter not quite working...
+				// .style('filter', "url(#xortext)")
 				.text(function (d) {
 					return d.l;
 				});

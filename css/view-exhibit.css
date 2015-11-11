@@ -1080,7 +1080,7 @@ svg.tl-vf .event.obj-sel
 svg.tl-vf .instantLbl {
 	font: 10px sans-serif;
 	font-weight: 300;
-	fill: #FFFFFF;	/* Pixels must be on/white to create XOR effect */
+	fill: #000000;	/* Pixels must be on/white (#FFFFFF) to create XOR effect */
 	stroke-width: 0;
 	stroke: none;
 	shape-rendering: crispEdges;
