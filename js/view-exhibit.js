@@ -3296,8 +3296,9 @@ VizNetWheel.prototype.render = function(stream)
 				for (var lI=0; lI<links.length; lI++) {
 					var lk = links[lI];
 					if (lk.source === nL && lk.target === l.t) {
-						d3.select(this).attr("stroke", lk.c)
-							.classed("thick", true);
+						d3.select(this).attr("stroke", lk.c).classed("thick", true);
+							// Put at end of render list to ensure it is on top of others
+						this.parentElement.appendChild(this);
 						break;
 					}
 				}
@@ -3308,14 +3309,14 @@ VizNetWheel.prototype.render = function(stream)
 				for (var lI=0; lI<links.length; lI++) {
 					var lk = links[lI];
 					if (lk.target === nL && lk.source === l.s) {
-						d3.select(this).attr("stroke", lk.c)
-							.classed("thick", true);
+						d3.select(this).attr("stroke", lk.c).classed("thick", true);
+							// Put at end of render list to ensure it is on top of others
+						this.parentElement.appendChild(this);
 						break;
 					}
 				}
 			} else {
-				d3.select(this).attr("stroke", "white")
-							.classed("thick", false);
+				d3.select(this).attr("stroke", "white").classed("thick", false);
 			}
 		});
 
