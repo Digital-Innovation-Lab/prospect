@@ -172,17 +172,34 @@
 						</ul>
 						{{#each iTemplates:tIndex}}
 						<div id="trans-tab-{{tIndex}}">
-							<label for="transc-1ry">Primary Transcript: </label><select id="transc-1ry" value='{{t.t1Atts[tIndex]}}'>
+							Primary Transcript: <select value='{{t.t1Atts[tIndex]}}'>
 							{{#each attsTrns}}
 								<option>{{this}}</option>
 							{{/each}}
 							</select>
-							<label for="transc-2ry"> Secondary Transcript: </label><select id="transc-2ry" value='{{t.t2Atts[tIndex]}}'>
+							Secondary Transcript: <select value='{{t.t2Atts[tIndex]}}'>
 							{{#each attsTrns}}
 								<option>{{this}}</option>
 							{{/each}}
 							</select>
-							<label for="transc-tc"> Extract Timecode: </label><select id="transc-tc" value='{{t.tcAtts[tIndex]}}'>
+						</div>
+						{{/each}}
+					</tabs>
+				</div>
+
+
+				<h3>Timecodes (for Playback widget segments)</h3>
+				<div>
+					Choose the Timecode Attribute (if any) for Playback widgets according to Template type:
+					<tabs>
+						<ul>
+						{{#each iTemplates:tIndex}}
+							<li><a href="#timecode-tab-{{tIndex}}">{{tid}}</a></li>
+						{{/each}}
+						</ul>
+						{{#each iTemplates:tIndex}}
+						<div id="timecode-tab-{{tIndex}}">
+							Extract Timecode: <select id="tc-widget" value='{{t.tcAtts[tIndex]}}'>
 							{{#each attsTC}}
 								<option>{{this}}</option>
 							{{/each}}
@@ -191,6 +208,7 @@
 						{{/each}}
 					</tabs>
 				</div>
+
 			</accordion>
 		{{/with}}</div>
 	</accordion>
