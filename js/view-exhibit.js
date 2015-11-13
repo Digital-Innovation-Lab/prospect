@@ -4832,7 +4832,7 @@ function PViewFrame(vfIndex)
 						getSETimes();
 
 						avType=1;
-						container.append('<iframe id="sc-widget" class="player" width="100%" height="150" src="http://w.soundcloud.com/player/?url='+
+						container.append('<iframe id="sc-widget" class="player" width="95%" height="150" src="http://w.soundcloud.com/player/?url='+
 							scAttVal+'"></iframe></p>');
 
 							// Must set these variables after HTML appended above
@@ -5004,18 +5004,17 @@ function PViewFrame(vfIndex)
 
 		if (prspdata.e.i.modal.ytOn)
 		{
-			w=Math.max(w,460);
+			w=Math.max(w,475);
 			h=500;
 		} // if YouTube
 
 		if (prspdata.e.i.tOn)
 		{
-			// w=650;
 			h+=100;
 			if (prspdata.e.i.t2On)
 				w=750;
 			else
-				w=Math.max(w,500);
+				w=Math.max(w,550);
 		} // if Transcriptions
 
 		inspector = jQuery("#dialog-inspector").dialog({
