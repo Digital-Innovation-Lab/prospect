@@ -4534,6 +4534,10 @@ function PViewFrame(vfIndex)
 		var avType=0;		// 0=none, 1=SoundCloud, 2=YouTube
 		var t2URL;			// URL for transcript 2 or null
 
+		function tTrim(str)
+		{
+			return str.replace(/^[ \f\t\v​]+|[ \f\t\v​]+$/g, '');
+		}
 			// PURPOSE: Convert timecode string into # of milliseconds
 			// INPUT:   timecode must be in format [HH:MM:SS] or [HH:MM:SS.ss]
 			// ASSUMES: timecode in correct format, parseTC contains compiled RegEx
@@ -4574,7 +4578,7 @@ function PViewFrame(vfIndex)
 				}
 				splitXcript = splitXcript.substring(tc1-1, tc2-1);
 			}
-			splitXcript = splitXcript.trim().split(/\r\n|\r|\n/g);
+			splitXcript = tTrim(splitXcript).split(/\r\n|\r|\n/g);
 
 			var ta = [];
 
@@ -4583,7 +4587,7 @@ function PViewFrame(vfIndex)
 				var ti = 0;
 				_.each(splitXcript, function(val) {
 						// Skip values with line breaks...basically empty items
-					val = val.trim();
+					val = tTrim(val);
 					if (val.length>0) {
 						if (val.charAt(0) === '[') {
 							if (ti>0) {
@@ -4591,6 +4595,8 @@ function PViewFrame(vfIndex)
 							}
 							tb='';
 						} else {
+							if (tb.length > 0)
+								tb += '<br/>';
 							tb += val;
 						}
 						ti++;
@@ -4627,16 +4633,16 @@ function PViewFrame(vfIndex)
 				}
 				splitXcript = splitXcript.substring(tc1-1, tc2-1);
 			}
-			splitXcript = splitXcript.trim().split(/\r\n|\r|\n/g);
+			splitXcript = tTrim(splitXcript).split(/\r\n|\r|\n/g);
 
 			if (splitXcript) {
+				var xtbl = jQuery('#xscript-tbl');
 				var tcI = 0;
 				var timeCode, lastCode=0, lastStamp=0;
 				var tb='';		// Text block being built
-				var xtbl = jQuery('#xscript-tbl');
 				_.each(splitXcript, function(val) {
 						// Each entry is (1) empty/line break, (2) timestamp, or (3) text
-					val = val.trim();
+					val = tTrim(val);
 						// Skip empty entries, which were line breaks
 					if (val.length>1) {
 							// Encountered timestamp -- compile previous material, if any
@@ -4657,6 +4663,8 @@ function PViewFrame(vfIndex)
 
 							// Encountered textblock
 						} else {
+							if (tb.length > 0)
+								tb += '<br/>';
 							tb += val;
 						}
 					} // if length
@@ -4917,6 +4925,7 @@ function PViewFrame(vfIndex)
 						if (avType > 0) {
 							container.append('<div>'+document.getElementById('dltext-sync-xscript').innerHTML+'</div>');
 						}
+						container.find('#xscript-tbl').remove();
 						container.append('<div id="xscript-tbl"><div>');
 						widgetData.xscriptOn=true;
 
@@ -5008,12 +5017,13 @@ function PViewFrame(vfIndex)
 			h=500;
 		} // if YouTube
 
-		if (prspdata.e.i.tOn)
+		if (prspdata.e.i.modal.tOn)
 		{
 			h+=100;
-			if (prspdata.e.i.t2On)
-				w=750;
-			else
+			if (prspdata.e.i.modal.t2On) {
+				var ww = Math.floor(jQuery(document).width()*.80);
+				w = Math.max(750, ww);
+			} else
 				w=Math.max(w,550);
 		} // if Transcriptions
 
