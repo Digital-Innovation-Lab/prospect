@@ -5021,8 +5021,8 @@ function PViewFrame(vfIndex)
 		{
 			h+=100;
 			if (prspdata.e.i.modal.t2On) {
-				var ww = Math.floor(jQuery(document).width()*.80);
-				w = Math.max(750, ww);
+				w = Math.max(750, Math.floor(jQuery(document).width()*.80));
+				w = Math.min(900, w);
 			} else
 				w=Math.max(w,550);
 		} // if Transcriptions
