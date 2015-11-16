@@ -1354,6 +1354,7 @@ div.filter-vocab-bar {
 	line-height: 1.2em;
 	padding: 2px;
 	cursor: pointer;
+	width: 82px;
 }
 
 	/* playhead */
@@ -1372,4 +1373,5 @@ div.filter-vocab-bar {
 	vertical-align: top;
 	line-height: 1.2em;
 	padding: 2px;
+	min-width: 40%;
 }
