@@ -55,6 +55,7 @@
 				<div>
 					<button decorator="togDiv"></button>
 					<i>{{vfLookup[this.vf]}}</i>: <input type="text" value="{{l}}" size="32" required/>
+					<button decorator="iconButton:ui-icon-arrowthickstop-1-n" on-click="topVF:{{vIndex}}">Move to Top</button>
 					<button decorator="iconButton:ui-icon-trash" on-click="delVF:{{vIndex}}">Delete</button>
 					<br/>
 					View Hint: <input type="text" value="{{n}}" size="72"/>

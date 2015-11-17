@@ -431,6 +431,26 @@ jQuery(document).ready(function() {
 			compileAttOptions(true);
 	});
 
+		// Move an Attribute "down" in Template definition
+	rApp.on('moveDown', function(event, index) {
+		var r = rApp.get('theTemplate.a');
+		if (index != r.length-1) {
+			rApp.splice('theTemplate.a', index, 1).then(function(spliced) {
+				rApp.splice('theTemplate.a', index+1, 0, spliced[0]);
+			});
+		}
+		return false;
+	});
+
+		// Move an Attribute "up" in Template definition
+	rApp.on('moveUp', function(event, index) {
+		if (index) {
+			rApp.splice('theTemplate.a', index, 1).then(function(spliced) {
+				rApp.splice('theTemplate.a', index-1, 0, spliced[0]);
+			});
+		}
+		return false;
+	});
 
 	rApp.on('selJoin', function(event, index) {
 			// No Joins for dependent Templates

@@ -1165,16 +1165,14 @@ jQuery(document).ready(function() {
 	});
 
 		// Move View/Filter to top
-	// rApp.on('topVF', function(event, vIndex) {
-	// 	if (vIndex) {
-	// 		rApp.splice('viewSettings', vIndex, 1).then(function(spliced) {
-	// 				rApp.splice('viewSettings', 0, 0, spliced[0]);
-	// 			});
-	// 	}
-	// 	return false;
-	// });
-	// Deleted line from script file
-					// <button decorator="iconButton:ui-icon-arrowthickstop-1-n" on-click="topVF:{{vIndex}}">Move to Top</button>
+	rApp.on('topVF', function(event, vIndex) {
+		if (vIndex) {
+			rApp.splice('viewSettings', vIndex, 1).then(function(spliced) {
+					rApp.splice('viewSettings', 0, 0, spliced[0]);
+				});
+		}
+		return false;
+	});
 
 		// Delete a View/Filter
 	rApp.on('delVF', function(event, vIndex) {
