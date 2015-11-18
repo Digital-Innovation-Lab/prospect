@@ -233,6 +233,8 @@ jQuery(document).ready(function() {
 	var errTimer;
 	var errorString = '';				// error readout
 
+	var vizInc=0;						// Counter used to give every exhibit a unique ID
+
 		// Configuration data for all possible independent Templates
 		//	The array Atts include fully unpacked join Atts in dot notation
 		//	{	tid: this Template ID,
@@ -519,7 +521,7 @@ jQuery(document).ready(function() {
 					}
 				} else {
 					confirmModal('#errmsg-tmplt-delid', null);
-					console.log("Attribute ID "+theAttID+" is no longer used in Template "+theTmplt.id);
+					console.log("Attribute ID "+theAttID+" cannot be found and will no longer be available in Template "+theTmplt.id);
 				}
 			}); // forEach Template Att
 
@@ -632,6 +634,8 @@ jQuery(document).ready(function() {
 	if (true) {
 		for (var i=0; i<defViews.length; i++) {
 			var theVF = defViews[i];
+				// Assign each one a temporary unique ID (only used by Editor)
+			theVF.incID = vizInc++;
 				// Create blank comment if doesn't already exist
 			if (typeof theVF.n == 'undefined')
 				theVF.n = '';
@@ -876,10 +880,12 @@ jQuery(document).ready(function() {
 
 		newDialog.on('dialog.ok', function() {
 			var newVFEntry = { };
+			newVFEntry.incID = vizInc++;
 			newVFEntry.l = newDialog.get('label');
 			newVFEntry.vf = newDialog.get('vfType');
 			newVFEntry.n = '';
 			newVFEntry.c = { };
+
 				// Provide defaults according to vf type
 			switch(newVFEntry.vf) {
 			case 'M': 	// Map

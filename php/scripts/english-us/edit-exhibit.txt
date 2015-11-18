@@ -229,11 +229,11 @@
 	<tabs>
 		<ul>
 		{{#each iTemplates:tIndex}}
-			<li><a href="#tmpt-vf-tab-{{vIndex}}-{{tIndex}}">{{tid}}</a></li>
+			<li><a href="#tmpt-vf-tab-{{incID}}-{{tIndex}}">{{tid}}</a></li>
 		{{/each}}
 		</ul>
 		{{#each iTemplates:tIndex}}
-		<div id="tmpt-vf-tab-{{vIndex}}-{{tIndex}}">
+		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
 			<b>Locate Object by:</b>
 			{{#each c.cAtts[tIndex]:aIndex}}
 				<span class="attribute-controls">
@@ -304,11 +304,11 @@
 	<tabs>
 		<ul>
 		{{#each iTemplates:tIndex}}
-			<li><a href="#tmpt-vf-tab-{{vIndex}}-{{tIndex}}">{{tid}}</a></li>
+			<li><a href="#tmpt-vf-tab-{{incID}}-{{tIndex}}">{{tid}}</a></li>
 		{{/each}}
 		</ul>
 		{{#each iTemplates:tIndex}}
-		<div id="tmpt-vf-tab-{{vIndex}}-{{tIndex}}">
+		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
 			<b>Image: </b>
 			<select value='{{c.iAtts[tIndex]}}'>
 			{{#each attsImg}}
@@ -349,11 +349,11 @@
 	<tabs>
 		<ul>
 		{{#each iTemplates:tIndex}}
-			<li><a href="#tmpt-vf-tab-{{vIndex}}-{{tIndex}}">{{tid}}</a></li>
+			<li><a href="#tmpt-vf-tab-{{incID}}-{{tIndex}}">{{tid}}</a></li>
 		{{/each}}
 		</ul>
 		{{#each iTemplates:tIndex}}
-		<div id="tmpt-vf-tab-{{vIndex}}-{{tIndex}}">
+		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
 			<b>X,Y Attribute to use: </b>
 			<select value='{{c.cAtts[tIndex]}}'>
 			{{#each attsXY}}
@@ -427,11 +427,11 @@
 	<tabs>
 		<ul>
 		{{#each iTemplates:tIndex}}
-			<li><a href="#tmpt-vf-tab-{{vIndex}}-{{tIndex}}">{{tid}}</a></li>
+			<li><a href="#tmpt-vf-tab-{{incID}}-{{tIndex}}">{{tid}}</a></li>
 		{{/each}}
 		</ul>
 		{{#each iTemplates:tIndex}}
-		<div id="tmpt-vf-tab-{{vIndex}}-{{tIndex}}">
+		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
 			<b>Dates Attribute to use: </b>
 			<select value='{{c.dAtts[tIndex]}}'>
 			{{#each attsDates}}
@@ -455,11 +455,11 @@
 	<tabs>
 		<ul>
 		{{#each iTemplates:tIndex}}
-			<li><a href="#tmpt-vf-tab-{{vIndex}}-{{tIndex}}">{{tid}}</a></li>
+			<li><a href="#tmpt-vf-tab-{{incID}}-{{tIndex}}">{{tid}}</a></li>
 		{{/each}}
 		</ul>
 		{{#each iTemplates:tIndex}}
-		<div id="tmpt-vf-tab-{{vIndex}}-{{tIndex}}">
+		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
 			<b>Show content: </b>
 			{{#each c.cnt[tIndex]:cIndex}}
 				<span class="attribute-controls">
@@ -481,11 +481,11 @@
 	<tabs>
 		<ul>
 		{{#each iTemplates:tIndex}}
-			<li><a href="#tmpt-vf-tab-{{vIndex}}-{{tIndex}}">{{tid}}</a></li>
+			<li><a href="#tmpt-vf-tab-{{incID}}-{{tIndex}}">{{tid}}</a></li>
 		{{/each}}
 		</ul>
 		{{#each iTemplates:tIndex}}
-		<div id="tmpt-vf-tab-{{vIndex}}-{{tIndex}}">
+		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
 			<b>Record visible content: </b>
 			<select value='{{c.cnt[tIndex]}}'>
 			{{#each attsFct}}
@@ -521,11 +521,11 @@
 	<tabs>
 		<ul>
 		{{#each iTemplates:tIndex}}
-			<li><a href="#tmpt-vf-tab-{{vIndex}}-{{tIndex}}">{{tid}}</a></li>
+			<li><a href="#tmpt-vf-tab-{{incID}}-{{tIndex}}">{{tid}}</a></li>
 		{{/each}}
 		</ul>
 		{{#each iTemplates:tIndex}}
-		<div id="tmpt-vf-tab-{{vIndex}}-{{tIndex}}">
+		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
 			<button on-click="addPtrPair:{{vIndex}},{{tIndex}}">Add Attribute/Color Pair</button><br/>
 			{{#each c.pAtts[tIndex]:pIndex}}
 				<b>Use Pointer Attribute: </b>
@@ -570,11 +570,11 @@
 	<tabs>
 		<ul>
 		{{#each iTemplates:tIndex}}
-			<li><a href="#tmpt-vf-tab-{{vIndex}}-{{tIndex}}">{{tid}}</a></li>
+			<li><a href="#tmpt-vf-tab-{{incID}}-{{tIndex}}">{{tid}}</a></li>
 		{{/each}}
 		</ul>
 		{{#each iTemplates:tIndex}}
-		<div id="tmpt-vf-tab-{{vIndex}}-{{tIndex}}">
+		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
 			<b>Pointer Attribute to descendants: </b>
 			<select value='{{c.pAtts[tIndex]}}'>
 			{{#each attsPtr}}
