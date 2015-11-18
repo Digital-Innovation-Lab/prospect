@@ -1321,8 +1321,13 @@ class ProspectAdmin {
 			// Create query to get all Records of this Template type
 		$args = array('post_type' => $type, 'meta_key' => $id_field, 'meta_value' => $id, 'posts_per_page' => 1);
 		$query = new WP_Query($args);
-		if ($query->have_posts())
-			return 0;
+		if ($query->have_posts()) {
+			$post_id = $query->posts[0]->ID;
+				// Read the ID again to test for case-sensitive match
+			$post_meta_id = get_post_meta($post_id, $id_field, true);
+			if ($post_meta_id == $id)
+				return 0;
+		}
 
 		$post_id = wp_insert_post(
 			array(
