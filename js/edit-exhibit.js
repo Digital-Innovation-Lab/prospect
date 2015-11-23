@@ -6,8 +6,6 @@
 // ASSUMES: All data not to be edited by user passed in prspdata
 //			All data to be edited by user passed in hidden fields
 
-// TO DO:	Check if Template & Attribute definitions changed since previous configuration??
-
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findIndex
 if (!Array.prototype.findIndex) {
@@ -811,6 +809,16 @@ jQuery(document).ready(function() {
 				});
 				theVF.c.fcts = newFcts;
 				break;
+			case 'm': 	// MultiBlockMap
+				theVF.c.p = checkAttID(theVF.c.p, facetAttIDs, '');
+				var newFcts=[];
+				theVF.c.fcts.forEach(function(f) {
+					var tF = checkAttID(f, facetAttIDs, '');
+					if (tF != '')
+						newFcts.push(tF);
+				});
+				theVF.c.fcts = newFcts;
+				break;
 
 			case 'G': 	// Tree -- view not implemented
 				var newP=[], newLgnds=[], newLClrs=[];
@@ -1048,6 +1056,12 @@ jQuery(document).ready(function() {
 				newVFEntry.c.w    = 1000;
 				newVFEntry.c.tlit = false;
 				newVFEntry.c.gr   = true;
+				newVFEntry.c.fcts = [];
+				break;
+			case 'm': 	// MultiBlockMap
+				newVFEntry.c.w    = 600;
+				newVFEntry.c.h    = 400;
+				newVFEntry.c.p    = '';
 				newVFEntry.c.fcts = [];
 				break;
 
@@ -1389,10 +1403,18 @@ jQuery(document).ready(function() {
 					saveView.c.pAtts = newPAtts;
 					saveView.c.lgnds = newLgnds;
 					break;
-				case 'F': 
+				case 'F': 	// Facet Flow
 					saveView.c.w = viewSettings.c.w;
 					saveView.c.tlit = viewSettings.c.tlit;
 					saveView.c.gr   = viewSettings.c.gr;
+					saveView.c.fcts = viewSettings.c.fcts;
+					break;
+				case 'm': 	// MultiBlockMap
+					saveView.c.w = viewSettings.c.w;
+					saveView.c.h = viewSettings.c.h;
+					saveView.c.tlit = viewSettings.c.tlit;
+					saveView.c.gr   = viewSettings.c.gr;
+					saveView.c.p   = viewSettings.c.p;
 					saveView.c.fcts = viewSettings.c.fcts;
 					break;
 

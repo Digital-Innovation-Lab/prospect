@@ -81,6 +81,8 @@
 						{{>vfTree}}
 					{{elseif vf === 'F'}}
 						{{>vfFlow}}
+					{{elseif vf === 'm'}}
+						{{>vfMBlockMap}}
 					{{/if}}
 				</div>
 				{{#if vIndex != (viewSettings.length-1) }}<hr/>{{/if}}
@@ -550,6 +552,44 @@
 	</tabs>
 </script>
 
+<script id="vfFlow" type='text/ractive'>
+	Display Width: <input type="number" value="{{c.w}}" min="2" max="9999"/>
+	<br/>
+	<input type='checkbox' checked='{{c.tlit}}'/> Retain all unique Text Record values? &nbsp;&nbsp;
+	<input type='checkbox' checked='{{c.gr}}'/> Break Number and Date ranges into graduated scale?
+	<br/>
+	Attributes (Facets) to Display: <button on-click="addFacet:{{vIndex}}">Add Attribute</button><br/>
+	{{#each c.fcts:cIndex}}
+		Attribute ID: "{{this}}"
+		<button decorator="iconButton:ui-icon-arrowthickstop-1-n" on-click="topFacet:{{vIndex}},{{cIndex}}">Move to Top</button>
+		<button decorator="iconButton:ui-icon-trash" on-click="delFacet:{{vIndex}},{{cIndex}}">Delete</button>
+		<br/>
+	{{/each}}
+</script>
+
+<script id="vfMBlockMap" type='text/ractive'>
+	Display Width: <input type="number" value="{{c.w}}" min="2" max="9999"/>
+	Height: <input type="number" value="{{c.h}}" min="2" max="9999"/>
+	<br/>
+	<input type='checkbox' checked='{{c.tlit}}'/> Retain all unique Text Record values? &nbsp;&nbsp;
+	<input type='checkbox' checked='{{c.gr}}'/> Break Number and Date ranges into graduated scale?
+	<br/>
+	Primary Grouping Attribute <select value='{{c.p}}'>
+	{{#each facets}}
+		<option value="{{this.id}}">{{id}} ({{this.def.l}})</option>
+	{{/each}}
+	</select>
+	<br/>
+	Attributes (Facets) to Display: <button on-click="addFacet:{{vIndex}}">Add Secondary Attribute</button><br/>
+	{{#each c.fcts:cIndex}}
+		Attribute ID: "{{this}}"
+		<button decorator="iconButton:ui-icon-arrowthickstop-1-n" on-click="topFacet:{{vIndex}},{{cIndex}}">Move to Top</button>
+		<button decorator="iconButton:ui-icon-trash" on-click="delFacet:{{vIndex}},{{cIndex}}">Delete</button>
+		<br/>
+	{{/each}}
+</script>
+
+<!-- Unfinished placeholder -->
 <script id="vfTree" type='text/ractive'>
 	Display Width: <input type="number" value="{{c.w}}" min="2" max="9999"/>
 	Height: <input type="number" value="{{c.h}}" min="2" max="9999"/>
@@ -594,20 +634,6 @@
 	</tabs>
 </script>
 
-<script id="vfFlow" type='text/ractive'>
-	Display Width: <input type="number" value="{{c.w}}" min="2" max="9999"/>
-	<br/>
-	<input type='checkbox' checked='{{c.tlit}}'/> Retain all unique Text Record values? &nbsp;&nbsp;
-	<input type='checkbox' checked='{{c.gr}}'/> Break Number and Date ranges into graduated scale?
-	<br/>
-	Attributes (Facets) to Display: <button on-click="addFacet:{{vIndex}}">Add Attribute</button><br/>
-	{{#each c.fcts:cIndex}}
-		Attribute ID: "{{this}}"
-		<button decorator="iconButton:ui-icon-arrowthickstop-1-n" on-click="topFacet:{{vIndex}},{{cIndex}}">Move to Top</button>
-		<button decorator="iconButton:ui-icon-trash" on-click="delFacet:{{vIndex}},{{cIndex}}">Delete</button>
-		<br/>
-	{{/each}}
-</script>
 
 <!-- DIALOGS -->
 <!-- New View Dialog -->
@@ -652,7 +678,7 @@
 
 <!-- DYNAMIC TEXT -->
 <script id="dltext-visualizations" type='text/ractive'>
-D,Directory|t,TextStream|M,Map|C,Cards|T,Timeline|P,Pinboard|S,Stacked Chart|N,Network Wheel|F,Facet Flow
+D,Directory|t,TextStream|M,Map|C,Cards|T,Timeline|P,Pinboard|S,Stacked Chart|N,Network Wheel|F,Facet Flow|m,MultiBlock Map
 </script>
 
 
