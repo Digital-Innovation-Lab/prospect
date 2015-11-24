@@ -3897,11 +3897,11 @@ VizMBMap.prototype.render = function(stream)
 	this.barsG.selectAll(".att-title").remove();
 	this.infoG.selectAll("text").remove();
 
-		// Initialize Attribute/facet data and corresponding bars
+		// Initialize 2ndary Attribute Facet data and corresponding bars
 	this.facets=[];
 	this.bars=[];
 	this.settings.fcts.forEach(function(attID, aI) {
-		var tCat=null;
+		var tCat;
 		var att = PData.getAttID(attID);
 		var y=aI * 30;
 		if (att.def.t != 'T' || !self.settings.tlit) {
@@ -3915,13 +3915,24 @@ VizMBMap.prototype.render = function(stream)
 			PData.fillCats(tCat, attID, null, stream, true);
 		}
 
-			// Compile used category values
-		var chunk = tCat.length ? self.settings.w / tCat.length : 1;
-		tCat.forEach(function(c, cI) {
-			self.bars.push({ x: cI*chunk, w: chunk, y: y+18, c: c.c, l: c.l });
+			// Compile used categories
+		var used=[];
+		var total=0;
+		tCat.forEach(function(c) {
+			if (c.i.length > 0) {
+				used.push(c);
+				total += c.i.length;
+			}
 		});
+			// Create bars for category values
+		var x=0;
+		used.forEach(function(c) {
+			self.bars.push({ x: 5+((x*w)/total), w: (c.i.length*w)/total, y: y+18, c: c });
+			x += c.i.length;
+		});
+
 			// Save data about facets
-		self.facets.push({ i: aI, l: att.def.l, y: y+14, c: tCat });
+		self.facets.push({ i: aI, l: att.def.l, y: y+14, c: used });
 	});
 
 		// Show Attribute facet labels
@@ -3943,16 +3954,71 @@ VizMBMap.prototype.render = function(stream)
 		.attr("class", "bar")
 		.attr("x", function(d) { return d.x; })
 		.attr("y", function(d) { return d.y; })
-		.attr("fill", function(d) { return d.c; })
+		.attr("fill", function(d) { return d.c.c; })
 		.attr("height", "8")
 		.attr("width", function(d) { return d.w; })
-		// .on("click", clickBar)
+		.on("click", clickBar)
 		.append("title")
 		.text(function(d) {
-			return d.l;
+			return d.c.l;
 		});
 
-		// Compute 
+		// Create Category array from primary dimension Facet
+	var pAttID = this.settings.p;
+	var pAtt = PData.getAttID(pAttID);
+	var pCat;
+	if (pAtt.def.t != 'T' || !self.settings.tlit) {
+		if (self.settings.gr)
+			pCat = PData.getRCats(pAtt, true);
+		else
+			pCat = PData.getLCats(pAtt, null);
+		PData.fillCats(pCat, pAttID, null, stream, false);
+	} else {
+		pCat=[];
+		PData.fillCats(pCat, pAttID, null, stream, true);
+	}
+
+		// Create BlockMap Tree from primary and 2ndary Attributes
+		// Each entry has elements i[absolute indices], z[children]
+	var bmTree = { z: [] };
+	pCat.forEach(function(p1Cat) {
+		var z2 = [];
+		self.facets[0].c.forEach(function(d2Cat) {
+			var i2=[];
+			i2 = PData.intersect(p1Cat.i, d2Cat.i);
+			if (i2.length > 0)
+				z2.push({ i: i2, l: d2Cat.l, c: d2Cat.c });
+		});
+		bmTree.z.push({ i: p1Cat.i, l: p1Cat.l, z: z2 });
+	});
+console.log("bmTree: "+JSON.stringify(bmTree));
+
+	var treemap = d3.layout.treemap()
+		.padding(4)
+		.size([w, this.settings.h])
+		.round(true)
+		.children(function(d, depth) {
+			if (depth == 2)
+				return null;
+			return d.z;
+		})
+		.value(function(d) {
+			return d.i.length;
+		});
+
+	var cell = this.svg.data([bmTree])
+		.selectAll("g")
+		.data(treemap.nodes)
+		.enter().append("g")
+		.attr("class", "cell")
+		.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+
+	cell.append("rect")
+		.attr("width", function(d) { return d.dx; })
+		.attr("height", function(d) { return d.dy; })
+		.attr("rx", "3")
+		.attr("ry", "3")
+		.style("fill", function(d) { return d.depth == 2 ? d.c : null; });
 } // render()
 
 VizMBMap.prototype.setSel = function(absIArray)
@@ -6688,7 +6754,7 @@ var PData = (function() {
 							dmax = TODAY;
 						else
 							dmax = PData.objDate(d.max, 12, true);
-						rcs.push({ l: d.l, c: d.v, min: dmin, max: dmax });
+						rcs.push({ l: d.l, c: d.v, min: dmin, max: dmax, i:[] });
 					}
 				});
 				return rcs;
