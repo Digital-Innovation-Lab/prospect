@@ -3518,7 +3518,7 @@ VizNetWheel.prototype.setState = function(state)
 
 
 // ================================================================================
-// VizStackChart: Class to visualize 2 dimensions of record data as a stacked chart
+// VizFlow: Class to visualize multiple Facet values of record data as parallel sets
 
 var VizFlow = function(viewFrame, vSettings)
 {
@@ -3819,6 +3819,160 @@ VizFlow.prototype.getSel = function()
 	});
 	return u;
 } // getSel()
+
+
+// ===============================================================================================
+// VizMBMap: Class to create TreeMap for primary facet dimension of data; bar graphs for secondary
+
+var VizMBMap = function(viewFrame, vSettings)
+{
+	PVizModel.call(this, viewFrame, vSettings);
+} // VizMBMap
+
+VizMBMap.prototype = Object.create(PVizModel.prototype);
+
+VizMBMap.prototype.constructor = VizMBMap;
+
+VizMBMap.prototype.flags = function()
+{
+	return V_FLAG_VSCRL | V_FLAG_HSCRL;
+} // flags()
+
+VizMBMap.prototype.setup = function()
+{
+	var self=this;
+
+		// Height: Margins (10) + select space (30) + Attribute bars (title + graphic)
+	var h = this.settings.h + 40 + (this.settings.fcts.length * 30);
+	this.svg = d3.select(this.frameID).append("svg")
+				.attr("width", this.settings.w+10)
+				.attr("height", h);
+
+		// Area for information about selected item
+	this.infoG = this.svg.append("g");
+	this.infoG.attr("transform", "translate(5," + (3+this.settings.h) + ")");
+
+		// Area for attributes
+	this.barsG = this.svg.append("g");
+	this.barsG.attr("transform", "translate(5," + (40+this.settings.h) + ")");
+} // setup()
+
+VizMBMap.prototype.render = function(stream)
+{
+	var self=this;
+
+	function clickBar(d, bI)
+	{
+		if (self.brSel == bI) {
+			d3.select(this).classed('obj-sel', false);
+			self.vFrame.selBtns(false);
+			self.brSel = null;
+		} else {
+			d3.select(this).classed('obj-sel', true);
+			self.vFrame.selBtns(true);
+			self.brSel = bI;
+		}
+	} // clickBar()
+
+	function clickBlock(d, bI)
+	{
+		if (self.bkSel == bI) {
+			d3.select(this).classed('obj-sel', false);
+			self.vFrame.selBtns(false);
+			self.bkSel = null;
+		} else {
+			d3.select(this).classed('obj-sel', true);
+			self.vFrame.selBtns(true);
+			self.bkSel = bI;
+		}
+	} // clickBlock()
+
+	this.bkSel=null;		// Empty Block selection
+	this.brSel=null;		// Empty Bar selection
+
+	var w=this.settings.w;
+
+		// Remove everything on svg
+	this.barsG.selectAll(".bar").remove();
+	this.barsG.selectAll(".att-title").remove();
+	this.infoG.selectAll("text").remove();
+
+		// Initialize Attribute/facet data and corresponding bars
+	this.facets=[];
+	this.bars=[];
+	this.settings.fcts.forEach(function(attID, aI) {
+		var tCat=null;
+		var att = PData.getAttID(attID);
+		var y=aI * 30;
+		if (att.def.t != 'T' || !self.settings.tlit) {
+			if (self.settings.gr)
+				tCat = PData.getRCats(att, true);
+			else
+				tCat = PData.getLCats(att, null);
+			PData.fillCats(tCat, attID, null, stream, false);
+		} else {
+			tCat=[];
+			PData.fillCats(tCat, attID, null, stream, true);
+		}
+
+			// Compile used category values
+		var chunk = tCat.length ? self.settings.w / tCat.length : 1;
+		tCat.forEach(function(c, cI) {
+			self.bars.push({ x: cI*chunk, w: chunk, y: y+18, c: c.c, l: c.l });
+		});
+			// Save data about facets
+		self.facets.push({ i: aI, l: att.def.l, y: y+14, c: tCat });
+	});
+
+		// Show Attribute facet labels
+	var facet = this.barsG.selectAll(".att-title")
+		.data(self.facets)
+		.enter()
+		.append("text")
+		.attr("class", "att-title")
+		.attr("x", "5")
+		.attr("y", function(d) { return d.y; })
+		.text(function (d) {
+			return d.l;
+		});
+
+		// Show facet bars
+	var bar = this.barsG.selectAll(".bar")
+		.data(self.bars)
+		.enter().append("rect")
+		.attr("class", "bar")
+		.attr("x", function(d) { return d.x; })
+		.attr("y", function(d) { return d.y; })
+		.attr("fill", function(d) { return d.c; })
+		.attr("height", "8")
+		.attr("width", function(d) { return d.w; })
+		// .on("click", clickBar)
+		.append("title")
+		.text(function(d) {
+			return d.l;
+		});
+
+		// Compute 
+} // render()
+
+VizMBMap.prototype.setSel = function(absIArray)
+{	// Does nothing
+} // setSel()
+
+VizMBMap.prototype.clearSel = function()
+{
+} // clearSel()
+
+	// RETURNS: Array of absolute IDs of selected records
+VizMBMap.prototype.getSel = function()
+{
+} // getSel()
+
+VizMBMap.prototype.hint = function()
+{
+	var att = PData.getAttID(this.settings.p);
+	return dlText.grpblks+' '+att.def.l;
+} // hint()
 
 
 // ====================================================================
@@ -4818,10 +4972,16 @@ function PViewFrame(vfIndex)
 				if (attVal) {
 					var theAtt = PData.getAttID(attID);
 					var html;
+						// Special case - Labels that begin with underscore are "invisible"
 					if (theAtt.def.l.charAt(0) == '_')
 						html = '<div>'+attVal+'</div>';
-					else
-						html = '<div><span class="att-label">'+theAtt.def.l+':</span> '+attVal+'</div>';
+					else {
+						html = '<div><span class="att-label">'+theAtt.def.l+':</span> ';
+							// Begin images on next line
+						if (theAtt.def.t == 'I')
+							html += '<br/>';
+						html += attVal+'</div>';						
+					}
 					container.append(html);
 				}
 			});
@@ -5235,13 +5395,13 @@ function PViewFrame(vfIndex)
 
 
 		// PURPOSE: Handle selecting a feature Attribute for a Template from menu
-	function selectTmpltAttribute(event)
+	function selectTmpltAtt(event)
 	{
 			// Determine Template to which this refers
 		var tmpltIndex = jQuery(event.target).closest('div.lgnd-template').data('index');
 		var attID = jQuery(event.target).val();
 		setLegendFeatures(tmpltIndex, attID);
-	} // selectTmpltAttribute()
+	} // selectTmpltAtt()
 
 
 		// PURPOSE: Set feature attributes in Legend
@@ -5328,6 +5488,9 @@ function PViewFrame(vfIndex)
 		case 'F':
 			newViz = new VizFlow(instance, theView.c);
 			break;
+		case 'm':
+			newViz = new VizMBMap(instance, theView.c);
+			break;
 		}
 		vizSelIndex = vIndex;
 		var flags = newViz.flags();
@@ -5375,43 +5538,48 @@ function PViewFrame(vfIndex)
 				setLegendFeatures(0, fAttID);
 			} else {
 					// Create Legend sections for each Template
+				var prev=false;
 				prspdata.e.g.ts.forEach(function(tID, tIndex) {
 					var tmpltDef = PData.getTmpltID(tID);
 						// Insert locate attributes into Legends
 					var locAtts = newViz.getLocAtts(tIndex);
 					if ((locAtts && locAtts.length > 0) || !(flags & V_FLAG_LOC)) {
-							// Create DIV structure for Template's Legend entry
-						var newTLegend = jQuery('<div class="lgnd-template" data-index="'+tIndex+
-										'"><div class="lgnd-title">'+tmpltDef.l+'</div></div>');
-						if (locAtts)
-							locAtts.forEach(function(attID, aIndex) {
+							// Create dropdown menu of visual feature Attributes
+						var fAtts = newViz.getFeatureAtts(tIndex);
+							// Don't show this Template at all if no feature Atts!
+						if (fAtts.length > 0) {
+							if (prev)
+								lgndCntr.append('<hr/>');
+
+								// Create DIV structure for Template's Legend entry
+							var newTLegend = jQuery('<div class="lgnd-template" data-index="'+tIndex+
+											'"><div class="lgnd-title">'+tmpltDef.l+'</div></div>');
+							if (locAtts)
+								locAtts.forEach(function(attID, aIndex) {
+									var attDef = PData.getAttID(attID);
+									newTLegend.append('<div class="lgnd-entry lgnd-locate" data-id="'+attID+
+										'"><input type="checkbox" checked="checked" class="lgnd-entry-check"/><span class="lgnd-value-title">'+
+										attDef.def.l+'</span></div>');
+								});
+							var newStr = '<select class="lgnd-select">';
+							fAtts.forEach(function(attID, aIndex) {
 								var attDef = PData.getAttID(attID);
-								newTLegend.append('<div class="lgnd-entry lgnd-locate" data-id="'+attID+
-									'"><input type="checkbox" checked="checked" class="lgnd-entry-check"/><span class="lgnd-value-title">'+
-									attDef.def.l+'</span></div>');
+								newStr += '<option value="'+attID+'">'+attDef.def.l+'</option>';
 							});
-							// Create dropdown menu of visual Attributes
-						var attSelection = newViz.getFeatureAtts(tIndex);
-						var newStr = '<select class="lgnd-select">';
-						attSelection.forEach(function(attID, aIndex) {
-							var attDef = PData.getAttID(attID);
-							newStr += '<option value="'+attID+'">'+attDef.def.l+'</option>';
-						});
-						newStr += '</select>';
-						var newSelect = jQuery(newStr);
-						newSelect.change(selectTmpltAttribute);
-						jQuery(newTLegend).append(newSelect);
-							// Create Hide/Show all checkbox
-						jQuery(newTLegend).append('<div class="lgnd-entry lgnd-sh"><input type="checkbox" checked="checked" class="lgnd-entry-check"/>'+
-							dlText.sha+'</div><div class="lgnd-group"></div>');
-						lgndCntr.append(newTLegend);
-						if (tIndex != (prspdata.t.length-1))
-							lgndCntr.append('<hr/>');
-							// Default feature selection is first Attribute
-						var fAttID = attSelection.length > 0 ? attSelection[0] : null;
-						legendIDs.push(fAttID);
-						if (fAttID) 
+							newStr += '</select>';
+							var newSelect = jQuery(newStr);
+							newSelect.change(selectTmpltAtt);
+							jQuery(newTLegend).append(newSelect);
+								// Create Hide/Show all checkbox
+							jQuery(newTLegend).append('<div class="lgnd-entry lgnd-sh"><input type="checkbox" checked="checked" class="lgnd-entry-check"/>'+
+								dlText.sha+'</div><div class="lgnd-group"></div>');
+							lgndCntr.append(newTLegend);
+								// Default feature selection is first Attribute
+							var fAttID = fAtts[0];
+							legendIDs.push(fAttID);
 							setLegendFeatures(tIndex, fAttID);
+							prev=true;
+						}
 					}
 				});
 			}
@@ -7946,6 +8114,8 @@ jQuery(document).ready(function($) {
 		loadFrag('dltext-xaxis', 'xaxis');
 		loadFrag('dltext-yaxis', 'yaxis');
 		loadFrag('dltext-orderedby', 'orderedby');
+		loadFrag('dltext-grpblks', 'grpblks');
+
 
 		text = document.getElementById('dltext-month-names').innerHTML;
 		months = text.trim().split('|');
