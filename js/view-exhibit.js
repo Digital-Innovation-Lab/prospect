@@ -3316,11 +3316,11 @@ VizNetWheel.prototype.render = function(stream)
 					}
 				}
 			} else {
-				d3.select(this).attr("stroke", "white").classed("thick", false);
+				d3.select(this).attr("stroke", "black").classed("thick", false);
 			}
 		});
 
-		node.select("text").attr("fill", function(n) { return n.linked ? "black" : "white"; });
+		node.select("text").attr("fill", function(n) { return n.linked ? "white" : "black"; });
 
 		d3.select(lSelf).attr("fill", "red");
 
@@ -3429,7 +3429,7 @@ VizNetWheel.prototype.render = function(stream)
 			.attr("dx", function(d) { return d.x < 180 ? "10" : "-10"; })
 			.attr("transform", function(d) { return d.x < 180 ? "" : "rotate(180)"; })
 			.style("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
-			.attr("fill", "white")
+			.attr("fill", "black")
 			.text(function(d) { return d.r.l; })
 			.on("click", clickName);
 
@@ -3478,7 +3478,7 @@ VizNetWheel.prototype.render = function(stream)
     	.each(function(d) { d.s = d[0], d.t = d[d.length - 1]; })
 		.attr("class", "link")
 		.attr("d", line)
-		.attr("stroke", "white");
+		.attr("stroke", "black");
 } // render()
 
 VizNetWheel.prototype.teardown = function()
