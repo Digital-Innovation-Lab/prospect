@@ -3842,6 +3842,11 @@ VizMBMap.prototype.setup = function()
 {
 	var self=this;
 
+	function clickReset()
+	{
+console.log("RESET");
+	} // clickReset
+
 		// Height: Margins (10) + select space (30) + Attribute bars (title + graphic)
 	var h = this.settings.h + 40 + (this.settings.fcts.length * 30);
 	this.svg = d3.select(this.frameID).append("svg")
@@ -3855,32 +3860,44 @@ VizMBMap.prototype.setup = function()
 		// Area for attributes
 	this.barsG = this.svg.append("g");
 	this.barsG.attr("transform", "translate(5," + (40+this.settings.h) + ")");
+
+		// RESET button
+	this.infoG.append("rect")
+		.attr("class", "mbm-reset")
+		.attr("x", "0")
+		.attr("y", "8")
+		.attr("width", "60")
+		.attr("height", "20")
+		.attr("rx", "4")
+		.attr("ry", "4")
+		.on("click", clickReset);
+	this.infoG.append("text")
+		.attr("class", "mbm-reset-text")
+		.attr("x", "30")
+		.attr("y", "23")
+		.text("RESET")
+		.on("click", clickReset);
 } // setup()
 
 VizMBMap.prototype.render = function(stream)
 {
 	var self=this;
 
-	function clickBar(d, bI)
+	function clickAtt(d, bI)
 	{
-		if (self.brSel == bI) {
-			d3.select(this).classed('obj-sel', false);
-			self.vFrame.selBtns(false);
-			self.brSel = null;
-		} else {
-			d3.select(this).classed('obj-sel', true);
-			self.vFrame.selBtns(true);
-			self.brSel = bI;
-		}
-	} // clickBar()
+// console.log("Clicked Attribute: "+d.l+" ("+bI+")");
+	} // clickAtt()
 
 	function clickBlock(d, bI)
 	{
+			// Is it block or subblock?
+// console.log("Depth: "+d.depth);
 		if (self.bkSel == bI) {
 			d3.select(this).classed('obj-sel', false);
 			self.vFrame.selBtns(false);
 			self.bkSel = null;
 		} else {
+				// TO DO: Deselect all others, show selection title
 			d3.select(this).classed('obj-sel', true);
 			self.vFrame.selBtns(true);
 			self.bkSel = bI;
@@ -3888,14 +3905,16 @@ VizMBMap.prototype.render = function(stream)
 	} // clickBlock()
 
 	this.bkSel=null;		// Empty Block selection
-	this.brSel=null;		// Empty Bar selection
+	this.sbkSel=null;		// Empty Sub-Block selection
+	this.attSel=0;			// First Attribute is default selection
 
 	var w=this.settings.w;
 
 		// Remove everything on svg
 	this.barsG.selectAll(".bar").remove();
 	this.barsG.selectAll(".att-title").remove();
-	this.infoG.selectAll("text").remove();
+	this.infoG.select(".mbm-select").remove();
+	this.svg.selectAll(".mbm-cell").remove();
 
 		// Initialize 2ndary Attribute Facet data and corresponding bars
 	this.facets=[];
@@ -3927,7 +3946,7 @@ VizMBMap.prototype.render = function(stream)
 			// Create bars for category values
 		var x=0;
 		used.forEach(function(c) {
-			self.bars.push({ x: 5+((x*w)/total), w: (c.i.length*w)/total, y: y+18, c: c });
+			self.bars.push({ x: ((x*w)/total), w: (c.i.length*w)/total, y: y+18, c: c });
 			x += c.i.length;
 		});
 
@@ -3936,16 +3955,15 @@ VizMBMap.prototype.render = function(stream)
 	});
 
 		// Show Attribute facet labels
-	var facet = this.barsG.selectAll(".att-title")
+	var facet = this.barsG.selectAll(".mbm-att-title")
 		.data(self.facets)
 		.enter()
 		.append("text")
-		.attr("class", "att-title")
-		.attr("x", "5")
+		.attr("class", "mbm-att-title")
+		.attr("x", "0")
 		.attr("y", function(d) { return d.y; })
-		.text(function (d) {
-			return d.l;
-		});
+		.text(function (d) { return d.l; })
+		.on("click", clickAtt);
 
 		// Show facet bars
 	var bar = this.barsG.selectAll(".bar")
@@ -3957,11 +3975,8 @@ VizMBMap.prototype.render = function(stream)
 		.attr("fill", function(d) { return d.c.c; })
 		.attr("height", "8")
 		.attr("width", function(d) { return d.w; })
-		.on("click", clickBar)
 		.append("title")
-		.text(function(d) {
-			return d.c.l;
-		});
+		.text(function(d) { return d.c.l; });
 
 		// Create Category array from primary dimension Facet
 	var pAttID = this.settings.p;
@@ -3987,30 +4002,28 @@ VizMBMap.prototype.render = function(stream)
 			var i2=[];
 			i2 = PData.intersect(p1Cat.i, d2Cat.i);
 			if (i2.length > 0)
-				z2.push({ i: i2, l: d2Cat.l, c: d2Cat.c });
+				z2.push({ i: i2, l: p1Cat.l+' + '+d2Cat.l+' ('+i2.length+')', c: d2Cat.c });
 		});
 		bmTree.z.push({ i: p1Cat.i, l: p1Cat.l, z: z2 });
 	});
-console.log("bmTree: "+JSON.stringify(bmTree));
 
 	var treemap = d3.layout.treemap()
-		.padding(4)
+		.padding([12, 3, 3, 3])
 		.size([w, this.settings.h])
 		.round(true)
 		.children(function(d, depth) {
-			if (depth == 2)
-				return null;
-			return d.z;
+			return (depth == 2) ? null : d.z;
 		})
 		.value(function(d) {
 			return d.i.length;
 		});
 
-	var cell = this.svg.data([bmTree])
-		.selectAll("g")
-		.data(treemap.nodes)
+	var nodes = treemap.nodes(bmTree);
+
+	var cell = this.svg.selectAll(".mbm-cell")
+		.data(nodes)
 		.enter().append("g")
-		.attr("class", "cell")
+		.attr("class", "mbm-cell")
 		.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
 
 	cell.append("rect")
@@ -4018,7 +4031,18 @@ console.log("bmTree: "+JSON.stringify(bmTree));
 		.attr("height", function(d) { return d.dy; })
 		.attr("rx", "3")
 		.attr("ry", "3")
-		.style("fill", function(d) { return d.depth == 2 ? d.c : null; });
+		.style("fill", function(d) { return d.depth == 2 ? d.c : '#888888'; })
+		.on("click", clickBlock)
+		.append("title")
+		.text(function(d) { return d.l; });
+
+	cell.filter(function(d) { return d.depth == 1; })
+		.append("text")
+		.attr("class", "mbm-title")
+		.attr("x", "3")
+		.attr("y", "9")
+		.text(function (d) { return d.l; })
+		.on("click", clickBlock);
 } // render()
 
 VizMBMap.prototype.setSel = function(absIArray)

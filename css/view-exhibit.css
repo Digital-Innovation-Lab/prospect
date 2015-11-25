@@ -1221,6 +1221,71 @@ svg .att-title
 	shape-rendering: crispEdges;
 }
 
+	/* MultiBlock Map styles */
+svg .mbm-cell {
+	cursor: pointer;
+	stroke: black;
+	stroke-width: 1px;
+}
+
+svg .mbm-cell.obj-sel {
+	stroke: red;
+}
+
+svg .mbm-title {
+	cursor: pointer;
+	font: 8px sans-serif;
+	font-weight: normal;
+	fill: black;
+	stroke-width: 0;
+	stroke: none;
+	shape-rendering: crispEdges;
+}
+
+svg .mbm-title.obj-sel {
+	cursor: pointer;
+	fill: red;
+}
+
+svg .mbm-att-title
+{
+	cursor: pointer;
+	font: 14px sans-serif;
+	font-weight: bold;
+	fill: black;
+	stroke-width: 0;
+	stroke: none;
+	shape-rendering: crispEdges;
+}
+
+svg .mbm-att-title.obj-sel
+{
+	fill: red;
+}
+
+svg .mbm-reset
+{
+	cursor: pointer;
+	fill: #FF3333;
+}
+
+svg .mbm-reset:hover
+{
+	fill: red;
+}
+
+svg .mbm-reset-text
+{
+	cursor: pointer;
+	font: 10px sans-serif;
+	font-weight: bold;
+	fill: black;
+	stroke-width: 0;
+	stroke: none;
+	text-anchor: middle;
+	shape-rendering: crispEdges;
+}
+
 /* Specific Filter styles
  * ======================
  */
