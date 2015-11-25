@@ -1236,7 +1236,7 @@ svg .mbm-title {
 	cursor: pointer;
 	font: 8px sans-serif;
 	font-weight: normal;
-	fill: white;
+	fill: black;
 	stroke-width: 0;
 	stroke: none;
 	shape-rendering: crispEdges;
@@ -1244,7 +1244,7 @@ svg .mbm-title {
 
 svg .mbm-title.obj-sel {
 	cursor: pointer;
-	fill: black;
+	fill: white;
 }
 
 svg .mbm-att-title

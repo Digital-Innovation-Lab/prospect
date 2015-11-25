@@ -3844,7 +3844,7 @@ VizMBMap.prototype.setup = function()
 
 	function clickReset()
 	{
-console.log("RESET");
+		this.infoG.select(".mbm-select").remove();
 	} // clickReset
 
 		// Height: Margins (10) + select space (30) + Attribute bars (title + graphic)
@@ -3858,8 +3858,8 @@ console.log("RESET");
 	this.infoG.attr("transform", "translate(5," + (3+this.settings.h) + ")");
 
 		// Area for attributes
-	this.barsG = this.svg.append("g");
-	this.barsG.attr("transform", "translate(5," + (40+this.settings.h) + ")");
+	this.attsG = this.svg.append("g");
+	this.attsG.attr("transform", "translate(5," + (40+this.settings.h) + ")");
 
 		// RESET button
 	this.infoG.append("rect")
@@ -3886,6 +3886,12 @@ VizMBMap.prototype.render = function(stream)
 	function clickAtt(d, bI)
 	{
 // console.log("Clicked Attribute: "+d.l+" ("+bI+")");
+		if (self.attSel != bI) {
+			self.attsG.selectAll(".mbm-att-title").classed('obj-sel', false);
+			d3.select(this).classed('obj-sel', true);
+				// TO DO
+			self.attSel = bI;
+		}
 	} // clickAtt()
 
 	function clickBlock(d, bI)
@@ -3911,8 +3917,8 @@ VizMBMap.prototype.render = function(stream)
 	var w=this.settings.w;
 
 		// Remove everything on svg
-	this.barsG.selectAll(".bar").remove();
-	this.barsG.selectAll(".att-title").remove();
+	this.attsG.selectAll(".bar").remove();
+	this.attsG.selectAll(".mbm-att-title").remove();
 	this.infoG.select(".mbm-select").remove();
 	this.svg.selectAll(".mbm-cell").remove();
 
@@ -3946,7 +3952,7 @@ VizMBMap.prototype.render = function(stream)
 			// Create bars for category values
 		var x=0;
 		used.forEach(function(c) {
-			self.bars.push({ x: ((x*w)/total), w: (c.i.length*w)/total, y: y+18, c: c });
+			self.bars.push({ x0: ((x*w)/total), w0: (c.i.length*w)/total, y: y+18, c: c });
 			x += c.i.length;
 		});
 
@@ -3955,26 +3961,26 @@ VizMBMap.prototype.render = function(stream)
 	});
 
 		// Show Attribute facet labels
-	var facet = this.barsG.selectAll(".mbm-att-title")
+	var facet = this.attsG.selectAll(".mbm-att-title")
 		.data(self.facets)
 		.enter()
 		.append("text")
-		.attr("class", "mbm-att-title")
+		.attr("class", function(d,i) { return i == 0 ? "mbm-att-title obj-sel" : "mbm-att-title" })
 		.attr("x", "0")
 		.attr("y", function(d) { return d.y; })
 		.text(function (d) { return d.l; })
 		.on("click", clickAtt);
 
 		// Show facet bars
-	var bar = this.barsG.selectAll(".bar")
+	var bar = this.attsG.selectAll(".bar")
 		.data(self.bars)
 		.enter().append("rect")
 		.attr("class", "bar")
-		.attr("x", function(d) { return d.x; })
+		.attr("x", function(d) { return d.x0; })
 		.attr("y", function(d) { return d.y; })
 		.attr("fill", function(d) { return d.c.c; })
 		.attr("height", "8")
-		.attr("width", function(d) { return d.w; })
+		.attr("width", function(d) { return d.w0; })
 		.append("title")
 		.text(function(d) { return d.c.l; });
 
