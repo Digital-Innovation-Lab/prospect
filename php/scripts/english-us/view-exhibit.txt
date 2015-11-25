@@ -305,6 +305,10 @@ records ordered by
 Records grouped in blocks by
 </script>
 
+<script id="dltext-reset" type="text">
+RESET
+</script>
+
 
 <script id="dltext-sync-xscript" type="text">
 <input type="checkbox" id="sync-xscript" name="sync-xscript" checked> Scroll transcript to follow playback

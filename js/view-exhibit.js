@@ -3844,7 +3844,7 @@ VizMBMap.prototype.setup = function()
 
 	function clickReset()
 	{
-		this.infoG.select(".mbm-select").remove();
+		self.infoG.select(".mbm-select").remove();
 	} // clickReset
 
 		// Height: Margins (10) + select space (30) + Attribute bars (title + graphic)
@@ -3875,7 +3875,7 @@ VizMBMap.prototype.setup = function()
 		.attr("class", "mbm-reset-text")
 		.attr("x", "30")
 		.attr("y", "23")
-		.text("RESET")
+		.text(dlText.reset)
 		.on("click", clickReset);
 } // setup()
 
@@ -8211,7 +8211,7 @@ jQuery(document).ready(function($) {
 		loadFrag('dltext-yaxis', 'yaxis');
 		loadFrag('dltext-orderedby', 'orderedby');
 		loadFrag('dltext-grpblks', 'grpblks');
-
+		loadFrag('dltext-reset', 'reset');
 
 		text = document.getElementById('dltext-month-names').innerHTML;
 		months = text.trim().split('|');
