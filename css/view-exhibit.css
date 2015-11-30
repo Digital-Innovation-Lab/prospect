@@ -1244,7 +1244,7 @@ svg .mbm-title {
 
 svg .mbm-title.obj-sel {
 	cursor: pointer;
-	fill: white;
+	fill: red;
 }
 
 svg .mbm-att-title
@@ -1260,7 +1260,7 @@ svg .mbm-att-title
 
 svg .mbm-att-title.obj-sel
 {
-	fill: white;
+	fill: red;
 }
 
 svg .mbm-reset
