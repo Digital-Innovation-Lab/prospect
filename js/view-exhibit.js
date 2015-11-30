@@ -3845,6 +3845,11 @@ VizMBMap.prototype.setup = function()
 	function clickReset()
 	{
 		self.infoG.select(".mbm-select").remove();
+		self.resetAttBars();
+		self.bkSel=null;
+		self.sbkSel=null;
+		self.svg.selectAll(".mbm-cell")
+			.classed('obj-sel', false);
 	} // clickReset
 
 		// Height: Margins (10) + select space (30) + Attribute bars (title + graphic)
@@ -3879,39 +3884,183 @@ VizMBMap.prototype.setup = function()
 		.on("click", clickReset);
 } // setup()
 
+	// PURPOSE: Return Attribute bars to default distribution
+VizMBMap.prototype.resetAttBars = function()
+{
+	this.attsG.selectAll(".bar")
+		.attr("x", function(d) { return d.x0; })
+		.attr("width", function(d) { return d.w0; });
+} // resetAttBars()
+
+	// PURPOSE: Create or update MultiMlockMap tree
+VizMBMap.prototype.renderTree = function(aI)
+{
+	var self=this;
+
+console.log("Rendering: "+aI);
+		// PURPOSE: Recalculate width of bars according to bkSel
+	function recalcBars()
+	{
+		var bI=0;
+		var w=self.settings.w;
+
+		PState.set(PSTATE_UPDATE);
+
+		self.facets.forEach(function(thisF, fI) {
+			var newIs=[];
+			var total=0;
+				// First pass: calculate intersections
+			thisF.c.forEach(function(thisC) {
+				var newI = PData.intersect(self.bkSel.i, thisC.i);
+				newIs.push(newI);
+				total += newI.length;
+			});
+				// Second pass: compute x, width
+			var x=0;
+			var theBar;
+			newIs.forEach(function(newI) {
+				theBar = self.bars[bI++];
+				theBar.x = total ? (x*w)/total : 0;
+				theBar.w = total ? (newI.length*w)/total : 0;
+				x += newI.length;
+			});
+		});
+
+		self.attsG.selectAll(".bar")
+			.attr("x", function(d) { return d.x; })
+			.attr("width", function(d) { return d.w; });
+		PState.set(PSTATE_UPDATE);
+	} // recalcBars()
+
+	function clickTitle(d)
+	{
+		if (self.bkSel === d) {
+				// Deselect this item (same as "RESET")
+			d3.select(this).classed('obj-sel', false);
+			self.vFrame.selBtns(false);
+			self.bkSel = null;
+			self.sbkSel = null;
+			self.infoG.select(".mbm-select").remove();
+			self.resetAttBars();
+		} else {
+				// Deselect others
+			self.svg.selectAll('.mbm-cell').classed('obj-sel', false);
+			self.svg.selectAll('.mbm-title').classed('obj-sel', false);
+
+			self.bkSel = d;
+			d3.select(this).classed('obj-sel', true);
+			self.infoG.select(".mbm-select").remove();
+			self.infoG.append("text")
+				.attr("class", "mbm-select")
+				.attr("x", "70")
+				.attr("y", "23")
+				.text(d.l);
+			recalcBars();
+			self.vFrame.selBtns(true);
+		}
+	} // clickTitle()
+
+	function clickBlock(d)
+	{
+		if (d.depth == 2) {
+				// Child sublock
+			if (self.sbkSel === d) {
+					// Deselect this item (same as "RESET")
+				d3.select(this).classed('obj-sel', false);
+				self.vFrame.selBtns(false);
+				self.bkSel = null;
+				self.sbkSel = null;
+				self.infoG.select(".mbm-select").remove();
+				self.resetAttBars();
+			} else {
+					// Deselect others
+				self.svg.selectAll('.mbm-cell').classed('obj-sel', false);
+				self.svg.selectAll('.mbm-title').classed('obj-sel', false);
+
+				self.sbkSel = d;
+				d3.select(this).classed('obj-sel', true);
+				self.infoG.select(".mbm-select").remove();
+				self.infoG.append("text")
+					.attr("class", "mbm-select")
+					.attr("x", "70")
+					.attr("y", "23")
+					.text(d.l);
+
+				self.bkSel = d.p;
+				recalcBars();
+				self.vFrame.selBtns(true);
+			}
+
+			// Parent block
+		} else
+			clickTitle(d);
+	} // clickBlock()
+
+	this.svg.selectAll(".mbm-cell").remove();
+
+		// Create new Treemap from selection
+	var nodes = this.treemap.nodes(this.trees[aI]);
+
+	var cell = this.svg.selectAll(".mbm-cell")
+		.data(nodes, function(d) { return d.id; });
+
+		// New blocks
+	var add = cell.enter()
+		.append("g")
+		.attr("class", "mbm-cell")
+		.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+
+	add.append("rect")
+		.attr("width", function(d) { return d.dx; })
+		// .attr("width", "0")
+		.attr("height", function(d) { return d.dy; })
+		.attr("rx", "3")
+		.attr("ry", "3")
+		.style("fill", function(d) { return d.depth == 2 ? d.c : '#888888'; })
+		.on("click", clickBlock)
+		.append("title")
+		.text(function(d) { return d.l; });
+
+	add.filter(function(d) { return d.depth == 1; })
+		.append("text")
+		.attr("class", "mbm-title")
+		.attr("x", "3")
+		.attr("y", "11")
+		.text(function (d) { return d.l; })
+		.on("click", clickTitle);
+
+		// Changing blocks
+	// cell.transition().duration(500)
+	// 	.attr("width", function(d) { return d.dx; });
+
+		// Removing blocks
+	// cell.exit()
+		// .transition().duration(500)
+		// .attr("width", "0")
+		// .remove();
+} // renderTree()
+
 VizMBMap.prototype.render = function(stream)
 {
 	var self=this;
 
 	function clickAtt(d, bI)
 	{
-// console.log("Clicked Attribute: "+d.l+" ("+bI+")");
 		if (self.attSel != bI) {
+			PState.set(PSTATE_UPDATE);
 			self.attsG.selectAll(".mbm-att-title").classed('obj-sel', false);
+
+			self.resetAttBars();
+			self.renderTree(bI);
+
 			d3.select(this).classed('obj-sel', true);
-				// TO DO
 			self.attSel = bI;
+			PState.set(PSTATE_READY);
 		}
 	} // clickAtt()
 
-	function clickBlock(d, bI)
-	{
-			// Is it block or subblock?
-// console.log("Depth: "+d.depth);
-		if (self.bkSel == bI) {
-			d3.select(this).classed('obj-sel', false);
-			self.vFrame.selBtns(false);
-			self.bkSel = null;
-		} else {
-				// TO DO: Deselect all others, show selection title
-			d3.select(this).classed('obj-sel', true);
-			self.vFrame.selBtns(true);
-			self.bkSel = bI;
-		}
-	} // clickBlock()
-
-	this.bkSel=null;		// Empty Block selection
-	this.sbkSel=null;		// Empty Sub-Block selection
+	this.bkSel=null;		// Empty Block selection -- obj pointer or null
+	this.sbkSel=null;		// Empty Sub-Block selection -- obj pointer or null
 	this.attSel=0;			// First Attribute is default selection
 
 	var w=this.settings.w;
@@ -3920,7 +4069,6 @@ VizMBMap.prototype.render = function(stream)
 	this.attsG.selectAll(".bar").remove();
 	this.attsG.selectAll(".mbm-att-title").remove();
 	this.infoG.select(".mbm-select").remove();
-	this.svg.selectAll(".mbm-cell").remove();
 
 		// Initialize 2ndary Attribute Facet data and corresponding bars
 	this.facets=[];
@@ -3952,7 +4100,7 @@ VizMBMap.prototype.render = function(stream)
 			// Create bars for category values
 		var x=0;
 		used.forEach(function(c) {
-			self.bars.push({ x0: ((x*w)/total), w0: (c.i.length*w)/total, y: y+18, c: c });
+			self.bars.push({ x0: ((x*w)/total), w0: (c.i.length*w)/total, x:0, w:0, y: y+18, c: c });
 			x += c.i.length;
 		});
 
@@ -3999,22 +4147,29 @@ VizMBMap.prototype.render = function(stream)
 		PData.fillCats(pCat, pAttID, null, stream, true);
 	}
 
+	var vI = this.vFrame.getIndex();
+
 		// Create BlockMap Tree from primary and 2ndary Attributes
 		// Each entry has elements i[absolute indices], z[children]
-	var bmTree = { z: [] };
-	pCat.forEach(function(p1Cat) {
-		var z2 = [];
-		self.facets[0].c.forEach(function(d2Cat) {
-			var i2=[];
-			i2 = PData.intersect(p1Cat.i, d2Cat.i);
-			if (i2.length > 0)
-				z2.push({ i: i2, l: p1Cat.l+' + '+d2Cat.l+' ('+i2.length+')', c: d2Cat.c });
+	self.trees = [];
+	self.facets.forEach(function(thisF, fI) {
+		var thisTree = { z: [], id: vI+'.'+fI };
+		pCat.forEach(function(p1Cat, pI) {
+			var z2 = [];
+			var pNode = { i: p1Cat.i, l: p1Cat.l, z: z2, id: vI+'.'+fI+'.'+pI };
+			thisF.c.forEach(function(d2Cat, aI) {
+				var i2=[];
+				i2 = PData.intersect(p1Cat.i, d2Cat.i);
+				if (i2.length > 0)
+					z2.push({ i: i2, p: pNode, c: d2Cat.c, l: p1Cat.l+' + '+d2Cat.l+' ('+i2.length+')', id: vI+'.'+fI+'.'+pI+'.'+aI });
+			});
+			thisTree.z.push(pNode);
 		});
-		bmTree.z.push({ i: p1Cat.i, l: p1Cat.l, z: z2 });
+		self.trees.push(thisTree);
 	});
 
-	var treemap = d3.layout.treemap()
-		.padding([12, 3, 3, 3])
+	self.treemap = d3.layout.treemap()
+		.padding([14, 3, 3, 3])
 		.size([w, this.settings.h])
 		.round(true)
 		.children(function(d, depth) {
@@ -4024,31 +4179,33 @@ VizMBMap.prototype.render = function(stream)
 			return d.i.length;
 		});
 
-	var nodes = treemap.nodes(bmTree);
+	self.renderTree(0);
 
-	var cell = this.svg.selectAll(".mbm-cell")
-		.data(nodes)
-		.enter().append("g")
-		.attr("class", "mbm-cell")
-		.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+	// var nodes = self.treemap.nodes(self.trees[0]);
 
-	cell.append("rect")
-		.attr("width", function(d) { return d.dx; })
-		.attr("height", function(d) { return d.dy; })
-		.attr("rx", "3")
-		.attr("ry", "3")
-		.style("fill", function(d) { return d.depth == 2 ? d.c : '#888888'; })
-		.on("click", clickBlock)
-		.append("title")
-		.text(function(d) { return d.l; });
+	// var cell = this.svg.selectAll(".mbm-cell")
+	// 	.data(nodes)
+	// 	.enter().append("g")
+	// 	.attr("class", "mbm-cell")
+	// 	.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
 
-	cell.filter(function(d) { return d.depth == 1; })
-		.append("text")
-		.attr("class", "mbm-title")
-		.attr("x", "3")
-		.attr("y", "9")
-		.text(function (d) { return d.l; })
-		.on("click", clickBlock);
+	// cell.append("rect")
+	// 	.attr("width", function(d) { return d.dx; })
+	// 	.attr("height", function(d) { return d.dy; })
+	// 	.attr("rx", "3")
+	// 	.attr("ry", "3")
+	// 	.style("fill", function(d) { return d.depth == 2 ? d.c : '#888888'; })
+	// 	.on("click", clickBlock)
+	// 	.append("title")
+	// 	.text(function(d) { return d.l; });
+
+	// cell.filter(function(d) { return d.depth == 1; })
+	// 	.append("text")
+	// 	.attr("class", "mbm-title")
+	// 	.attr("x", "3")
+	// 	.attr("y", "11")
+	// 	.text(function (d) { return d.l; })
+	// 	.on("click", clickTitle);
 } // render()
 
 VizMBMap.prototype.setSel = function(absIArray)
