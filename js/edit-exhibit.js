@@ -1252,6 +1252,30 @@ jQuery(document).ready(function() {
 		return false;
 	});
 
+		// Move a Legend ID "left" in visualization's Template - Legend array
+	rApp.on('moveLgndLeft', function(event, a, b, c) {
+		if (c) {
+			var keypath = 'viewSettings['+a+'].c.lgnds['+b+']';
+			rApp.splice(keypath, c, 1).then(function(spliced) {
+				rApp.splice(keypath, c-1, 0, spliced[0]);
+			});
+		}
+		return false;
+	});
+
+		// Move a Legend ID "left" in visualization's Template - Legend array
+	rApp.on('moveLgndRight', function(event, a, b, c) {
+		var keypath = 'viewSettings['+a+'].c.lgnds['+b+']';
+		var atts = rApp.get(keypath);
+		if (c < (atts.length-1)) {
+			rApp.splice(keypath, c, 1).then(function(spliced) {
+				rApp.splice(keypath, c+1, 0, spliced[0]);
+			});
+		}
+		return false;
+	});
+
+
 		// NOTE: Have to copy settings into fresh objects to prevent corrupting original
 	rApp.on('saveExhibit', function() {
 		var result = doErrorCheck();

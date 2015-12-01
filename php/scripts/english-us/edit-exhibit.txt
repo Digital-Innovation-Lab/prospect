@@ -260,9 +260,11 @@
 			<span title="Click to select color" class="viz-icon" style="background-color:{{c.lClrs[tIndex]}}" on-click="setLColor:{{vIndex}},{{tIndex}}"></span>
 			<br/>
 			<b>Provide Legends:</b> 
-			{{#each c.lgnds[tIndex]}}
+			{{#each c.lgnds[tIndex]:lIndex}}
 				<span class="attribute-controls">
 					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}">Left</button>
+					<button decorator="iconButton:ui-icon-arrowthick-1-e "on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}">Right</button>
 				</span>
 			{{/each}}
 		</div>
@@ -327,9 +329,11 @@
 				</span>
 			{{/each}}
 			<br/><b>Provide Legends: </b>
-			{{#each c.lgnds[tIndex]:cIndex}}
+			{{#each c.lgnds[tIndex]:lIndex}}
 				<span class="attribute-controls">
 					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}">Left</button>
+					<button decorator="iconButton:ui-icon-arrowthick-1-e "on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}">Right</button>
 				</span>
 			{{/each}}
 		</div>
@@ -378,9 +382,11 @@
 			<span title="Click to select color" class="viz-icon" style="background-color:{{c.lClrs[tIndex]}}" on-click="setLColor:{{vIndex}},{{tIndex}}"></span>
 			<br/>
 			<b>Provide Legends: </b>
-			{{#each c.lgnds[tIndex]}}
+			{{#each c.lgnds[tIndex]:lIndex}}
 				<span class="attribute-controls">
 					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}">Left</button>
+					<button decorator="iconButton:ui-icon-arrowthick-1-e "on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}">Right</button>
 				</span>
 			{{/each}}
 		</div>
@@ -442,9 +448,11 @@
 			</select>
 			<br/>
 			<b>Provide Legends: </b>
-			{{#each c.lgnds[tIndex]}}
+			{{#each c.lgnds[tIndex]:lIndex}}
 				<span class="attribute-controls">
 					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}">Left</button>
+					<button decorator="iconButton:ui-icon-arrowthick-1-e "on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}">Right</button>
 				</span>
 			{{/each}}
 		</div>
@@ -507,9 +515,11 @@
 			{{/each}}
 			</select>
 			<br/><b>Provide Legends: </b>
-			{{#each c.lgnds[tIndex]}}
+			{{#each c.lgnds[tIndex]:lIndex}}
 				<span class="attribute-controls">
 					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}">Left</button>
+					<button decorator="iconButton:ui-icon-arrowthick-1-e "on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}">Right</button>
 				</span>
 			{{/each}}
 		</div>
@@ -542,9 +552,11 @@
 				<br/>
 			{{/each}}
 			<b>Provide Legends:</b> 
-			{{#each c.lgnds[tIndex]}}
+			{{#each c.lgnds[tIndex]:lIndex}}
 				<span class="attribute-controls">
 					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}">Left</button>
+					<button decorator="iconButton:ui-icon-arrowthick-1-e "on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}">Right</button>
 				</span>
 			{{/each}}
 		</div>
