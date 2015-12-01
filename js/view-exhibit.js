@@ -4397,7 +4397,8 @@ PFilterVocab.prototype.evalPrep = function()
 	var v = this.insertPt().find('div.filter-vocab-row input:checked');
 	v.each(function() {
 		var attID = jQuery(this).parent().data('id');
-		self.sel.push(attID);
+		if (attID)
+			self.sel.push(attID);
 	});
 	self.sel.sort();
 } // evalPrep()
