@@ -1230,6 +1230,7 @@ svg .mbm-cell {
 
 svg .mbm-cell.obj-sel {
 	stroke: red;
+	stroke-width: 2px;
 }
 
 svg .mbm-title {

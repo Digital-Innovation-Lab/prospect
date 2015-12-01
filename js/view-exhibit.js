@@ -3844,6 +3844,8 @@ VizMBMap.prototype.setup = function()
 
 	function clickReset()
 	{
+		if (self.bkSel)
+			self.bkSel.s = false;
 		self.clearSel();
 	}
 		// Height: Margins (10) + select space (30) + Attribute bars (title + graphic)
@@ -3886,12 +3888,19 @@ VizMBMap.prototype.resetAttBars = function()
 		.attr("width", function(d) { return d.w0; });
 } // resetAttBars()
 
+	// PURPOSE: Return Attribute bars to default distribution
+VizMBMap.prototype.refreshTitles = function()
+{
+	this.svg.selectAll(".mbm-title")
+		.attr('class', function(d) { return d.s ? "mbm-title obj-sel" : "mbm-title"; });
+} // resetAttBars()
+
 	// PURPOSE: Create or update MultiMlockMap tree
 VizMBMap.prototype.renderTree = function(aI)
 {
 	var self=this;
 
-		// PURPOSE: Recalculate width of bars according to bkSel
+		// PURPOSE: Recalculate width of bars according to current selection
 	function recalcBars()
 	{
 		var bI=0;
@@ -3934,11 +3943,13 @@ VizMBMap.prototype.renderTree = function(aI)
 		} else {
 				// Deselect others
 			self.svg.selectAll('.mbm-cell').classed('obj-sel', false);
-			self.svg.selectAll('.mbm-title').classed('obj-sel', false);
-			self.sbkSel = null;
+			if (self.bkSel)
+				self.bkSel.s = false;
 
+			d.s = true;
 			self.bkSel = d;
-			d3.select(this).classed('obj-sel', true);
+			self.sbkSel = null;
+			self.refreshTitles();
 			self.infoG.select(".mbm-select").remove();
 			self.infoG.append("text")
 				.attr("class", "mbm-select")
@@ -3960,7 +3971,8 @@ VizMBMap.prototype.renderTree = function(aI)
 			} else {
 					// Deselect others
 				self.svg.selectAll('.mbm-cell').classed('obj-sel', false);
-				self.svg.selectAll('.mbm-title').classed('obj-sel', false);
+				if (self.bkSel)
+					self.bkSel.s = false;
 
 				self.sbkSel = d;
 				d3.select(this).classed('obj-sel', true);
@@ -3971,34 +3983,36 @@ VizMBMap.prototype.renderTree = function(aI)
 					.attr("y", "23")
 					.text(d.l);
 
-					// TO DO: Select parent title
-
+					// Select parent title
+				d.p.s = true;
 				self.bkSel = d.p;
+				self.refreshTitles();
 				recalcBars();
 				self.vFrame.selBtns(true);
 			}
 
-			// Parent block
-		} else
-			clickTitle(d);
+		} else {
+				// Parent block
+			// Not needed, as either title or subblock selected
+		}
 	} // clickBlock()
 
-	this.svg.selectAll(".mbm-cell").remove();
+	this.svg.selectAll(".mbm-g").remove();
 
 		// New Treemap from selection
-	// var nodes = this.treemap.nodes(this.trees[aI]);
 	var nodes = this.treemaps[aI];
 
-	var cell = this.svg.selectAll(".mbm-cell")
+	var cell = this.svg.selectAll(".mbm-g")
 		.data(nodes, function(d) { return d.id; });
 
 		// New blocks
 	var add = cell.enter()
 		.append("g")
-		.attr("class", "mbm-cell")
+		.attr("class", "mbm-g")
 		.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
 
 	add.append("rect")
+		.attr("class", "mbm-cell")
 		.attr("width", function(d) { return d.dx; })
 		// .attr("width", "0")
 		.attr("height", function(d) { return d.dy; })
@@ -4023,9 +4037,9 @@ VizMBMap.prototype.renderTree = function(aI)
 
 		// Removing blocks
 	// cell.exit()
-		// .transition().duration(500)
-		// .attr("width", "0")
-		// .remove();
+	// 	.transition().duration(500)
+	// 	.attr("width", "0")
+	// 	.remove();
 } // renderTree()
 
 VizMBMap.prototype.render = function(stream)
@@ -4038,6 +4052,7 @@ VizMBMap.prototype.render = function(stream)
 			PState.set(PSTATE_UPDATE);
 			self.attsG.selectAll(".mbm-att-title").classed('obj-sel', false);
 
+			self.clearSel();
 			self.resetAttBars();
 			self.renderTree(bI);
 
@@ -4144,7 +4159,7 @@ VizMBMap.prototype.render = function(stream)
 		var thisTree = { z: [], id: vI+'.'+fI };
 		pCat.forEach(function(p1Cat, pI) {
 			var z2 = [];
-			var pNode = { i: p1Cat.i, l: p1Cat.l, z: z2, id: vI+'.'+fI+'.'+pI };
+			var pNode = { i: p1Cat.i, l: p1Cat.l, s: false, z: z2, id: vI+'.'+fI+'.'+pI };
 			thisF.c.forEach(function(d2Cat, aI) {
 				var i2=[];
 				i2 = PData.intersect(p1Cat.i, d2Cat.i);
@@ -4180,6 +4195,9 @@ VizMBMap.prototype.setSel = function(absIArray)
 
 VizMBMap.prototype.clearSel = function()
 {
+		// Set selection flag to false for all trees
+	if (this.bkSel)
+		this.bkSel.s = false;
 	this.infoG.select(".mbm-select").remove();
 	this.bkSel=null;
 	this.sbkSel=null;
