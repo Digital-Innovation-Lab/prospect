@@ -4423,7 +4423,8 @@ PFilterVocab.prototype.eval = function(rec)
 PFilterVocab.prototype.setup = function()
 {
 	var self = this;
-	var t = '<div class="filter-vocab-container">';
+	var t = '<div class="filter-vocab-container"><div class="filter-vocab-hsa"><input type="checkbox" checked="checked" data-index=-1><i> '+
+		dlText.sha+'</i></div>';
 	this.att.l.forEach(function(lEntry, lI) {
 		t += '<div class="filter-vocab-entry" data-index="'+lI+'"><div class="filter-vocab-row" data-id="'+
 				lEntry.l+'">'+'<input type="checkbox" value="min-use" checked="checked">'+
@@ -4444,8 +4445,15 @@ PFilterVocab.prototype.setup = function()
 	ip.append(t+'</div>');
 		// A click on any checkboxes dirties filter
 	ip.click(function(event) {
-		if (event.target.nodeName == 'INPUT')
+		var t = event.target;
+		if (t.nodeName == 'INPUT') {
+			if (typeof t.dataset.index != 'undefined' && t.dataset.index == -1) {
+				var s = t.checked;
+				var cx = ip.find('div.filter-vocab-row input');
+				cx.prop("checked", s);
+			}
 			self.isDirty(true);
+		}
 	});
 } // setup()
 
@@ -4455,7 +4463,8 @@ PFilterVocab.prototype.getState = function()
 	var v = this.insertPt().find('div.filter-vocab-row input:checked');
 	v.each(function() {
 		var attID = jQuery(this).parent().data('id');
-		s.push(attID);
+		if (attID)
+			s.push(attID);
 	});
 	s.sort();
 	return { s: s };
@@ -5821,8 +5830,8 @@ function PViewFrame(vfIndex)
 							newSelect.change(selectTmpltAtt);
 							jQuery(newTLegend).append(newSelect);
 								// Create Hide/Show all checkbox
-							jQuery(newTLegend).append('<div class="lgnd-entry lgnd-sh"><input type="checkbox" checked="checked" class="lgnd-entry-check"/>'+
-								dlText.sha+'</div><div class="lgnd-group"></div>');
+							jQuery(newTLegend).append('<div class="lgnd-entry lgnd-sh"><input type="checkbox" checked="checked" class="lgnd-entry-check"/><i>'+
+								dlText.sha+'</i></div><div class="lgnd-group"></div>');
 							lgndCntr.append(newTLegend);
 								// Default feature selection is first Attribute
 							var fAttID = fAtts[0];

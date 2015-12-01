@@ -1332,6 +1332,11 @@ div.filter-vocab-container {
 	margin-bottom: 2px;
 }
 
+	/* Outer container for Hide/Show All checkbox */
+div.filter-vocab-hsa {
+	margin: 2px;
+}
+
 div.filter-vocab-entry {
 	display: -webkit-box;
 	display: -moz-box;
