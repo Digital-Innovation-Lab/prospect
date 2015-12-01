@@ -4013,9 +4013,9 @@ VizMBMap.prototype.renderTree = function(aI)
 
 	add.append("rect")
 		.attr("class", "mbm-cell")
-		.attr("width", function(d) { return d.dx; })
+		.attr("width", function(d) { return d.dx-1; })
 		// .attr("width", "0")
-		.attr("height", function(d) { return d.dy; })
+		.attr("height", function(d) { return d.dy-1; })
 		.attr("rx", "3")
 		.attr("ry", "3")
 		.style("fill", function(d) { return d.depth == 2 ? d.c : '#888888'; })
@@ -4158,15 +4158,17 @@ VizMBMap.prototype.render = function(stream)
 	self.facets.forEach(function(thisF, fI) {
 		var thisTree = { z: [], id: vI+'.'+fI };
 		pCat.forEach(function(p1Cat, pI) {
-			var z2 = [];
-			var pNode = { i: p1Cat.i, l: p1Cat.l, s: false, z: z2, id: vI+'.'+fI+'.'+pI };
-			thisF.c.forEach(function(d2Cat, aI) {
-				var i2=[];
-				i2 = PData.intersect(p1Cat.i, d2Cat.i);
-				if (i2.length > 0)
-					z2.push({ i: i2, p: pNode, c: d2Cat.c, l: p1Cat.l+' + '+d2Cat.l+' ('+i2.length+')', id: vI+'.'+fI+'.'+pI+'.'+aI });
-			});
-			thisTree.z.push(pNode);
+			if (p1Cat.i.length > 0) {
+				var z2 = [];
+				var pNode = { i: p1Cat.i, l: p1Cat.l, s: false, z: z2, id: vI+'.'+fI+'.'+pI };
+				thisF.c.forEach(function(d2Cat, aI) {
+					var i2=[];
+					i2 = PData.intersect(p1Cat.i, d2Cat.i);
+					if (i2.length > 0)
+						z2.push({ i: i2, p: pNode, c: d2Cat.c, l: p1Cat.l+' + '+d2Cat.l+' ('+i2.length+')', id: vI+'.'+fI+'.'+pI+'.'+aI });
+				});
+				thisTree.z.push(pNode);
+			}
 		});
 		self.trees.push(thisTree);
 	});
@@ -5791,8 +5793,8 @@ function PViewFrame(vfIndex)
 				var fAttID = newViz.getFeatureAtts();
 				var fAtt = PData.getAttID(fAttID);
 				lgndCntr.append('<div class="lgnd-template" data-index="0"><div class="lgnd-title">'+fAtt.def.l+
-					'</div><div class="lgnd-entry lgnd-sh"><input type="checkbox" checked="checked" class="lgnd-entry-check"/>'+
-					dlText.sha+'</div><div class="lgnd-group"></div></div>');
+					'</div><div class="lgnd-entry lgnd-sh"><input type="checkbox" checked="checked" class="lgnd-entry-check"/><i>'+
+					dlText.sha+'</i></div><div class="lgnd-group"></div></div>');
 					// Only a single Attribute available
 				legendIDs.push(fAttID);
 				setLegendFeatures(0, fAttID);
