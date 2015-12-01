@@ -165,6 +165,7 @@
 		<button id="map-zoom-<%= vi %>">Zoom</button>
 		<button id="map-unzoom-<%= vi %>">Unzoom</button>
 		<button id="map-reset-<%= vi %>">Reset</button>
+		<button id="map-cloc-<%= vi %>">Current Location</button>
 	</div>
 </script>
 

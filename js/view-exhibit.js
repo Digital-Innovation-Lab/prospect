@@ -303,6 +303,13 @@ VizMap.prototype.setup = function()
 	{
 		self.lMap.setView([centerLat, centerLon], zoom);
 	} // resetMap()
+	function curLoc()
+	{
+		function setHere(pos) {
+			self.lMap.setView([pos.coords.latitude, pos.coords.longitude]);
+		}
+		navigator.geolocation.getCurrentPosition(setHere);
+	} // curLoc()
 
 	var vI = this.vFrame.getIndex();
 
@@ -346,6 +353,8 @@ VizMap.prototype.setup = function()
 		.click(unzoomMap);
 	jQuery('#map-reset-'+vI).button({ text: false, icons: { primary: "ui-icon-arrowrefresh-1-w" }})
 		.click(resetMap);
+	jQuery('#map-cloc-'+vI).button({ text: false, icons: { primary: "ui-icon-pin-s" }})
+		.click(curLoc);
 
 	var markers = L.featureGroup();            
 	this.markerLayer = markers;
