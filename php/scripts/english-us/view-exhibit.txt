@@ -71,7 +71,7 @@
 
 	<div id="dialog-about" title="About Prospect&#8482;">
 		<div class="scroll-container">
-			<p>Prospect&#8482; 0.8.9</p>
+			<p>Prospect&#8482; 0.9.0</p>
 			<img class="logo"/>
 			<p>From the <a href="http://digitalinnovation.unc.edu" target="_blank">Digital Innovation Lab</a> of the <a href="http://www.unc.edu" target="_blank">University of North Carolina, Chapel Hill</a>.</p>
 			<p style="margin:6px"><b>Credits:</b><br/>
