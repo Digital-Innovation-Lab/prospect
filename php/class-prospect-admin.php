@@ -88,6 +88,7 @@ class ProspectAdmin {
 	private $version;
 	private $options;
 
+
 		// PURPOSE: Add perspective parameter to URL query variables for use with Prospect
 	public function add_query_vars_filter($vars)
 	{
@@ -105,6 +106,80 @@ class ProspectAdmin {
 
 		return $mime_types;
 	} // add_mime_types()
+
+		// PURPOSE: Restrict Record directory by Template ID
+		// INPUT:	$_GET['post_type'] is set to post type being edited in admin panel
+	public function filter_restrict_rec_by_id()
+	{
+		$type = 'post';
+		if (isset($_GET['post_type'])) {
+			$type = $_GET['post_type'];
+		}
+
+		//only add filter to post type you want
+		if ($type == 'prsp-record')
+		{
+			$values = ProspectTemplate::get_all_template_ids('');
+			?>
+			<select name="PRSP_TEMPLATE_ID">
+			<option value=""><?php _e('Filter By Template', 'prospect'); ?></option>
+			<?php
+				$current_v = isset($_GET['PRSP_TEMPLATE_ID']) ? $_GET['PRSP_TEMPLATE_ID'] : '';
+				foreach ($values as $label) {
+					printf('<option value="%s"%s>%s</option>', $label, $label == $current_v ? ' selected="selected"' : '', $label);
+				}
+			?>
+			</select>
+			<?php
+		}
+	} // filter_restrict_rec_by_id()
+
+		// PURPOSE:	Modify the query string (used to show list in Records admin panel) according to UI selection
+		// INPUT:	$query = the array describing the query for Records to display in panel
+		//			$_GET['post_type'] = post type of posts being displayed in admin panel
+		//			$_GET['PRSP_TEMPLATE_ID'] = ID of Template selected in option button
+		// ASSUMES:	$pagenow global is set to file name of current page-wide template file
+	public function filter_rec_query( $query )
+	{
+		global $pagenow;
+
+		$type = 'post';
+		if (isset($_GET['post_type'])) {
+			$type = $_GET['post_type'];
+		}
+		if ($type == 'prsp-record' && is_admin() && $pagenow == 'edit.php' && isset($_GET['PRSP_TEMPLATE_ID']) && $_GET['PRSP_TEMPLATE_ID'] != '') {
+			$query->query_vars['meta_key'] = 'tmplt-id';
+			$query->query_vars['meta_value'] = $_GET['PRSP_TEMPLATE_ID'];
+		}
+	} // filter_rec_query()
+
+		// PURPOSE: Handle modifying array of columns to show when listing Markers in admin panel
+		// INPUT:	$columns = hash/array of field names and labels for the columns to display
+		// RETURNS:	Hash/array of column names with Project added
+	public function set_record_columns($columns)
+	{
+		unset($columns['comments']);
+		return array_merge($columns, array('template' => 'Template'));
+	} // set_record_columns()
+
+		// PURPOSE: Output value of custom column for Record in admin panel
+		// INPUT:	$column = key for column (name of field)
+		//			$post_id = ID of Record post
+		// SIDE-FX:	Outputs text for name of Template
+	public function record_custom_column($column, $post_id)
+	{
+		switch ($column) {
+		case 'template':
+			$template_id = get_post_meta($post_id, 'tmplt-id', true);
+			if ($template_id == '') {
+				$template_id = _e('(orphan)', 'prospect');
+			}
+			echo $template_id;
+			break;
+		default:
+			break;
+		}
+	} // record_custom_column()
 
 
 	public function add_prsp_attribute_admin_edit($post_type)
@@ -1441,7 +1516,7 @@ class ProspectAdmin {
 			$this->parse_import_object($data);
 	} // import_archive_file()
 
-
+		// PURPOSE: Initialization (uses 'admin_init' hook)
 		// NOTES: 	Must check POST vars at 'admin_init' as it creates file in output buffer
 		// 			Check to see if POST with parameters sent to program that were generated
 		//				from form on show_prsp_archive_page()
@@ -1459,6 +1534,9 @@ class ProspectAdmin {
 				$this->import_archive_file();
 			}
 		}
+
+			// Get current list of Template IDs and Labels
+
 
 			// To save options in DB
 		register_setting(

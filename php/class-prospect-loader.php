@@ -13,12 +13,14 @@ class ProspectLoader {
 		$this->filters = array();
 	} // construct()
 
-	public function add_action($hook, $component, $callback)
+	public function add_action($hook, $component, $callback, $priority, $args)
 	{
 		array_push($this->actions, array(
 			'hook'      => $hook,
 			'component' => $component,
-			'callback'  => $callback
+			'callback'  => $callback,
+			'priority'  => $priority,
+			'args'      => $args
 		));
 	} // add_action()
 
@@ -46,7 +48,13 @@ class ProspectLoader {
 		}
  
 		foreach ($this->actions as $hook) {
-			add_action($hook['hook'], array($hook['component'], $hook['callback']));
+			if ($hook['args'] == null) {
+				if ($hook['priority'] == null)
+					add_action($hook['hook'], array($hook['component'], $hook['callback']));
+				else
+					add_action($hook['hook'], array($hook['component'], $hook['callback']), $hook['priority']);
+			} else
+				add_action($hook['hook'], array($hook['component'], $hook['callback']), $hook['priority'], $hook['args']);
 		}
 	} // run()
 

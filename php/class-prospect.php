@@ -158,48 +158,53 @@ class Prospect {
 			// Add Dashboard hooks
 		$this->admin = new ProspectAdmin($this->get_version());
 
-		$this->loader->add_action('upload_mimes', $this->admin, 'add_mime_types');
+		$this->loader->add_action('upload_mimes', $this->admin, 'add_mime_types', null, null);
 		$this->loader->add_filter('query_vars', $this->admin, 'add_query_vars_filter', null, null);
 
 			// Add JS to Dashboard editors
-		$this->loader->add_action('admin_enqueue_scripts', $this->admin, 'add_admin_scripts');
+		$this->loader->add_action('admin_enqueue_scripts', $this->admin, 'add_admin_scripts', null, null);
 			// Modify HTML for Dashboard editors
-		$this->loader->add_action('add_meta_boxes_prsp-attribute', $this->admin, 'add_prsp_attribute_admin_edit');
-		$this->loader->add_action('add_meta_boxes_prsp-template', $this->admin, 'add_prsp_template_admin_edit');
-		$this->loader->add_action('add_meta_boxes_prsp-record', $this->admin, 'add_prsp_record_admin_edit');
-		$this->loader->add_action('add_meta_boxes_prsp-exhibit', $this->admin, 'add_prsp_exhibit_admin_edit');
-		$this->loader->add_action('add_meta_boxes_prsp-map', $this->admin, 'add_prsp_map_admin_edit');
-		$this->loader->add_action('add_meta_boxes_prsp-prspctv', $this->admin, 'add_prsp_prspctv_admin_edit');
+		$this->loader->add_action('add_meta_boxes_prsp-attribute', $this->admin, 'add_prsp_attribute_admin_edit', null, null);
+		$this->loader->add_action('add_meta_boxes_prsp-template', $this->admin, 'add_prsp_template_admin_edit', null, null);
+		$this->loader->add_action('add_meta_boxes_prsp-record', $this->admin, 'add_prsp_record_admin_edit', null, null);
+		$this->loader->add_action('add_meta_boxes_prsp-exhibit', $this->admin, 'add_prsp_exhibit_admin_edit', null, null);
+		$this->loader->add_action('add_meta_boxes_prsp-map', $this->admin, 'add_prsp_map_admin_edit', null, null);
+		$this->loader->add_action('add_meta_boxes_prsp-prspctv', $this->admin, 'add_prsp_prspctv_admin_edit', null, null);
 			// Hook for saving Dashboard data
-		$this->loader->add_action('save_post', $this->admin, 'save_post');
+		$this->loader->add_action('save_post', $this->admin, 'save_post', null, null);
+			// Restricting Records to a particular Template type
+		$this->loader->add_action('restrict_manage_posts', $this->admin, 'filter_restrict_rec_by_id', null, null);
+		$this->loader->add_action('parse_query', $this->admin, 'filter_rec_query', null, null);
+		$this->loader->add_filter('manage_prsp-record_posts_columns', $this->admin, 'set_record_columns', null, null);
+		$this->loader->add_action('manage_prsp-record_posts_custom_column', $this->admin, 'record_custom_column', 10, 2);
 
 			// Hooks for exporting JSON files from directory and simple Archive page links
-		$this->loader->add_action('admin_action_prsp_export_attribute', $this->admin, 'prsp_export_attribute');
-		$this->loader->add_action('admin_action_prsp_export_all_attributes', $this->admin, 'prsp_export_all_attributes');
-		$this->loader->add_action('admin_action_prsp_export_template', $this->admin, 'prsp_export_template');
-		$this->loader->add_action('admin_action_prsp_export_all_ts', $this->admin, 'prsp_export_all_ts');
-		$this->loader->add_action('admin_action_prsp_export_record', $this->admin, 'prsp_export_record');
-		$this->loader->add_action('admin_action_prsp_export_exhibit', $this->admin, 'prsp_export_exhibit');
-		$this->loader->add_action('admin_action_prsp_export_all_exhibits', $this->admin, 'prsp_export_all_exhibits');
-		$this->loader->add_action('admin_action_prsp_export_all', $this->admin, 'prsp_export_all');
-		$this->loader->add_action('admin_action_prsp_export_map', $this->admin, 'prsp_export_map');
-		$this->loader->add_action('admin_action_prsp_export_all_maps', $this->admin, 'prsp_export_all_maps');
-		$this->loader->add_action('admin_action_prsp_export_prspctv', $this->admin, 'prsp_export_prspctv');
-		$this->loader->add_action('admin_action_prsp_export_xhbt_prspctvs', $this->admin, 'prsp_export_xhbt_prspctvs');
-		$this->loader->add_action('admin_action_prsp_export_all_prspctvs', $this->admin, 'prsp_export_all_prspctvs');
+		$this->loader->add_action('admin_action_prsp_export_attribute', $this->admin, 'prsp_export_attribute', null, null);
+		$this->loader->add_action('admin_action_prsp_export_all_attributes', $this->admin, 'prsp_export_all_attributes', null, null);
+		$this->loader->add_action('admin_action_prsp_export_template', $this->admin, 'prsp_export_template', null, null);
+		$this->loader->add_action('admin_action_prsp_export_all_ts', $this->admin, 'prsp_export_all_ts', null, null);
+		$this->loader->add_action('admin_action_prsp_export_record', $this->admin, 'prsp_export_record', null, null);
+		$this->loader->add_action('admin_action_prsp_export_exhibit', $this->admin, 'prsp_export_exhibit', null, null);
+		$this->loader->add_action('admin_action_prsp_export_all_exhibits', $this->admin, 'prsp_export_all_exhibits', null, null);
+		$this->loader->add_action('admin_action_prsp_export_all', $this->admin, 'prsp_export_all', null, null);
+		$this->loader->add_action('admin_action_prsp_export_map', $this->admin, 'prsp_export_map', null, null);
+		$this->loader->add_action('admin_action_prsp_export_all_maps', $this->admin, 'prsp_export_all_maps', null, null);
+		$this->loader->add_action('admin_action_prsp_export_prspctv', $this->admin, 'prsp_export_prspctv', null, null);
+		$this->loader->add_action('admin_action_prsp_export_xhbt_prspctvs', $this->admin, 'prsp_export_xhbt_prspctvs', null, null);
+		$this->loader->add_action('admin_action_prsp_export_all_prspctvs', $this->admin, 'prsp_export_all_prspctvs', null, null);
 
-		$this->loader->add_action('admin_init', $this->admin, 'do_prsp_init');
+		$this->loader->add_action('admin_init', $this->admin, 'do_prsp_init', null, null);
 
 			// Hook for Archive page
-		$this->loader->add_action('admin_menu', $this->admin, 'add_prsp_menus');
+		$this->loader->add_action('admin_menu', $this->admin, 'add_prsp_menus', null, null);
 
 			// AJAX calls
-		$this->loader->add_action('wp_ajax_prsp_get_rec_ids', $this->admin, 'prsp_get_rec_ids');
-		$this->loader->add_action('wp_ajax_prsp_get_records', $this->admin, 'prsp_get_records');
-		$this->loader->add_action('wp_ajax_nopriv_prsp_get_records', $this->admin, 'prsp_get_records');
-		$this->loader->add_action('wp_ajax_prsp_get_cf_vals', $this->admin, 'prsp_get_cf_vals');
+		$this->loader->add_action('wp_ajax_prsp_get_rec_ids', $this->admin, 'prsp_get_rec_ids', null, null);
+		$this->loader->add_action('wp_ajax_prsp_get_records', $this->admin, 'prsp_get_records', null, null);
+		$this->loader->add_action('wp_ajax_nopriv_prsp_get_records', $this->admin, 'prsp_get_records', null, null);
+		$this->loader->add_action('wp_ajax_prsp_get_cf_vals', $this->admin, 'prsp_get_cf_vals', null, null);
 
-		$this->loader->add_action('wp_ajax_prsp_save_prspctv', $this->admin, 'prsp_save_prspctv');
+		$this->loader->add_action('wp_ajax_prsp_save_prspctv', $this->admin, 'prsp_save_prspctv', null, null);
 		// $this->loader->add_action('wp_ajax_nopriv_prsp_save_prspctv', $this->admin, 'prsp_save_prspctv');
 	} // define_admin_hooks()
 
