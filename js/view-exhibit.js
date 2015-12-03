@@ -3964,7 +3964,7 @@ VizMBMap.prototype.renderTree = function(aI)
 				.attr("class", "mbm-select")
 				.attr("x", "70")
 				.attr("y", "23")
-				.text(d.l);
+				.text(d.l+" ("+d.i.length+")");
 			recalcBars();
 			self.vFrame.selBtns(true);
 		}
