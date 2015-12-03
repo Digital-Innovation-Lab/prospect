@@ -172,7 +172,7 @@ class ProspectAdmin {
 		case 'template':
 			$template_id = get_post_meta($post_id, 'tmplt-id', true);
 			if ($template_id == '') {
-				$template_id = _e('(orphan)', 'prospect');
+				$template_id = _e('(unassigned)', 'prospect');
 			}
 			echo $template_id;
 			break;
