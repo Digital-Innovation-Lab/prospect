@@ -53,7 +53,7 @@
 	echo('"'.plugins_url('/assets/', dirname(__FILE__)).'"');
 ?>,
 		add_prspctv: <?php
-	if (current_user_can('create_prsp_prspctv'))
+	if (current_user_can('create_prsp_prspctvs'))
 		echo('true');
 	else
 		echo('false');
