@@ -6658,7 +6658,8 @@ var PData = (function() {
 					}
 				}
 				return null;
-			case 'D': 			// Just looking for overlap, date doesn't have to be completely contained
+			case 'D':
+					 			// Just looking for overlap, date doesn't have to be completely contained
 								// Disqualify for overlap if (1) end of event is before min bound, or
 								//	(2) start of event is after max bound
 				for (var f=0; f<lI; f++) {
@@ -7269,7 +7270,7 @@ var PData = (function() {
 			if (uT) {
 				cats.sort(function(a,b) { return PData.strcmp(b.l, a.l); });
 			}
-		}, // fillRCats()
+		}, // fillCats()
 
 			// PURPOSE: Created new sorted category array in sCats based on sAtt value
 			// INPUT: 	cat = array of aIs of Records
