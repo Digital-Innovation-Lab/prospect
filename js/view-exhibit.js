@@ -6372,12 +6372,14 @@ var PData = (function() {
 			case 'N':
 				return a.toString();
 			case 'D':
-				var ds;
+				var ds='';
 					// Range
 				if (a.max) {
-					ds = dltextFrom;
+					// ds = dltextFrom;
+					// if (a.min.f)
+					// 	ds += dltextApprox;
 					if (a.min.f)
-						ds += dltextApprox;
+						ds = dltextApprox;
 					ds += a.min.y.toString();
 					if (a.min.m) {
 						ds += '-'+a.min.m.toString();
@@ -8338,6 +8340,10 @@ jQuery(document).ready(function($) {
 				doApplySelector();
 		}
 
+			// Minimize filter and selector bars
+		jQuery('#filter-frame').hide();
+		jQuery('#selector-frame').hide();
+
 		return true;
 	} // doShowPerspective()
 
@@ -8472,6 +8478,12 @@ jQuery(document).ready(function($) {
 			.click(clickRecompute);
 	jQuery('#btn-set-layout').button({icons: { primary: 'ui-icon-newwin' }, text: false })
 			.click(clickTog2nd);
+	jQuery('#btn-hs-bars').button({icons: { primary: 'ui-icon-carat-2-n-s' }, text: false })
+			.click(function(event) {
+				jQuery('#filter-frame').slideToggle(400);
+				jQuery('#selector-frame').slideToggle(400);
+				event.preventDefault();
+			});
 	jQuery('#btn-show-prspctv').button({icons: { primary: 'ui-icon-image' }, text: false })
 			.click(clickShowPerspective);
 	jQuery('#btn-save-prspctv').button({icons: { primary: 'ui-icon-pencil' }, text: false })

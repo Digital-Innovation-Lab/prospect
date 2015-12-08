@@ -765,7 +765,7 @@ div.card:hover {
 	-moz-transform: scale(1.5);
 	-ms-transform: scale(1.5);
 
-	z-index: 2;
+	z-index: 1001 !important;
 }
 
 div.card.obj-sel {
