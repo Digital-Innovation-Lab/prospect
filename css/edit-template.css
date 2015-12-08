@@ -109,3 +109,7 @@
 .att-table tr:nth-child(odd) {
 	background-color: #FFF;
 }
+
+.att-table td.click-here {
+	cursor: pointer;
+}

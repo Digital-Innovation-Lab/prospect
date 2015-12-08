@@ -35,7 +35,13 @@
 			<tr>
 				<td>{{id}}</td>
 				<td>{{attMap[this.t]}}</td>
-				<td on-click="selJoin:{{index}}">{{this.j}}</td>
+				<td class="click-here" on-click="selJoin:{{index}}">
+					{{#if this.j.length > 0}}
+						{{this.j}}
+					{{elseif this.t == 'J'}}
+						<i>Click to choose</i>
+					{{/if}}
+				</td>
 				<td><input type='checkbox' checked='{{view}}'/></td>
 				<td>
 					<button decorator="iconButton:ui-icon-arrow-1-n" on-click="moveUp:{{index}}">Move Up</button>

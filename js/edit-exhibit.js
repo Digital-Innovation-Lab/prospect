@@ -289,7 +289,7 @@ jQuery(document).ready(function() {
 			clearTimeout(errTimer);
 		var newError = getText(errID);
 		rApp.set('errorMsg', newError);
-		errTimer = setTimeout(function() { rApp.set('errorMsg', ''); }, 4000);
+		errTimer = setTimeout(function() { rApp.set('errorMsg', ''); }, 5000);
 	} // displayError()
 
 

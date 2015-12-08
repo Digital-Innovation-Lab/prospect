@@ -70,7 +70,7 @@ input[type=range] {
 }
 
 .jq-dialog-template {
-	font-size: 12px;
+	font-size: 12px !important;
 }
 
 	/* To minimize size of ui buttons */
@@ -116,7 +116,7 @@ input[type=range] {
 }
 
 .ui-dialog-title, .ui-dialog-content, .ui-dialog-buttonpane {
-	font-size: small;
+	font-size: 12px;
 	font-family: "Trebuchet MS", "Arial", "Helvetica", "Verdana", "sans-serif";
 }
 
