@@ -361,7 +361,7 @@ VizMap.prototype.setup = function()
 
 		// Create options properties if they don't already exist
 	markers.options = markers.options || { };
-	markers.options.layerName = 'Markers';
+	markers.options.layerName = dlText.markers;
 
 	markers.addTo(this.lMap);
 
@@ -7516,6 +7516,10 @@ jQuery(document).ready(function($) {
 
 	function clickRecompute(event)
 	{
+			// Remove any selections first
+		view0.clearSel();
+		if (view1)
+			view1.clearSel();
 		doRecompute();
 		PState.set(PSTATE_READY);
 		event.preventDefault();
@@ -8269,6 +8273,10 @@ jQuery(document).ready(function($) {
 
 		PState.set(PSTATE_PROCESS);
 
+			// Minimize filter and selector bars
+		jQuery('#filter-frame').hide();
+		jQuery('#selector-frame').hide();
+
 			// Clear current Filter Stack & Selector Filter
 		filters.forEach(function(theF) {
 			theF.f.teardown();
@@ -8283,7 +8291,6 @@ jQuery(document).ready(function($) {
 		jQuery('#filter-instances').hide();
 		jQuery('#btn-toggle-filters').button(p.s.f.length == 0 ? "disable" : "enable");
 
-
 		doDelSelFilter();
 		if (p.s.s != null) {
 			createFilter(p.s.s.id, null, true);
@@ -8294,6 +8301,7 @@ jQuery(document).ready(function($) {
 		jQuery('#selector-instance').hide();
 
 		var vI;
+		var resize0=false;
 
 		PState.set(PSTATE_BUILD);
 		vI = vizIndex(p.s.v0.l);
@@ -8304,7 +8312,6 @@ jQuery(document).ready(function($) {
 			view0 = PViewFrame(0);
 			view0.initDOM(vI);
 		}
-		view0.setState(p.s.v0.s);
 
 		if (p.s.v1 != null) {
 			vI = vizIndex(p.s.v1.l);
@@ -8317,16 +8324,21 @@ jQuery(document).ready(function($) {
 				view1 = PViewFrame(1);
 				view1.initDOM(vI);
 				view1.setState(p.s.v1.s);
-				view0.resize();
+				resize0 = true;
 			}
 		} else {
 			if (view1) {
 				view1 = null;
 				jQuery('#view-frame-1').remove();
 				jQuery('#selector-v1').prop("disabled", true);
-				view0.resize();
+				resize0 = true;
 			}
 		}
+
+			// Do left-side last because of resizing with right side
+		if (resize0)
+			view0.resize();
+		view0.setState(p.s.v0.s);
 
 		setAnnote(p.n);
 
@@ -8339,10 +8351,6 @@ jQuery(document).ready(function($) {
 			if (selFilter)
 				doApplySelector();
 		}
-
-			// Minimize filter and selector bars
-		jQuery('#filter-frame').hide();
-		jQuery('#selector-frame').hide();
 
 		return true;
 	} // doShowPerspective()
@@ -8387,6 +8395,7 @@ jQuery(document).ready(function($) {
 		loadFrag('dltext-manage', 'manage');
 		loadFrag('dltext-delete', 'del');
 		loadFrag('dltext-edit', 'edit');
+		loadFrag('dltext-markers', 'markers');
 		loadFrag('dltext-hint-marker', 'markersize');
 		loadFrag('dltext-hint-text', 'textsize');
 		loadFrag('dltext-xaxis', 'xaxis');
