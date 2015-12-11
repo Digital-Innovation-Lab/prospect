@@ -545,6 +545,8 @@ jQuery(document).ready(function($) {
 			if (datum) {
 				if (l.charAt(0) == '_')
 					newText += '<div>'+datum+'</div>';
+				else if (att.def.t == 'I')
+					newText += '<div><b>'+l+'</b>:<br/>'+datum+'</div>';
 				else
 					newText += '<div><b>'+l+'</b>: '+datum+'</div>';				
 			}
