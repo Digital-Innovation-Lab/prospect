@@ -1629,10 +1629,10 @@ VizTime.prototype.setup = function()
 
 			// The XOR filter ensures that text contrasts with any background
 			// TO DO: Not quite working properly...
-		var filter = defs.append('filter')
-			.attr('id', 'xortext');
-		filter.append('feComposite')
-			.attr('operator', "xor");
+		// var filter = defs.append('filter')
+		// 	.attr('id', 'xortext');
+		// filter.append('feComposite')
+		// 	.attr('operator', "xor");
 	} // makeDefs
 
 	makeDefs();
@@ -5212,7 +5212,9 @@ function PViewFrame(vfIndex)
 			var recAbsI = recSel[i];
 			rec = PData.getRecByIndex(recAbsI);
 			var title = ' '+rec.l+' ('+(i+1)+'/'+recSel.length+') ';
-			jQuery('#inspect-name').text(title);
+			var nameDOM = jQuery('#inspect-name');
+			nameDOM.text(title);
+			nameDOM.prop('title', rec.id);
 				// Which template type?
 			var tI = PData.aIndex2Tmplt(recAbsI);
 
