@@ -5460,6 +5460,9 @@ function PViewFrame(vfIndex)
 				w=Math.max(w,550);
 		} // if Transcriptions
 
+			// Stop pulsing while Inspector open
+		doSelBtns(false);
+
 		inspector = jQuery("#dialog-inspector").dialog({
 			width: w,
 			height: h,
@@ -5499,6 +5502,8 @@ function PViewFrame(vfIndex)
 						jQuery('#btn-inspect-left').off("click");
 						jQuery('#btn-inspect-right').off("click");
 						inspector.dialog("close");
+							// turn pulsing back on
+						doSelBtns(true);
 					} // click
 				}
 			]
