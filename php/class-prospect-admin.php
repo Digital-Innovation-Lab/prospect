@@ -159,7 +159,8 @@ class ProspectAdmin {
 	public function set_record_columns($columns)
 	{
 		unset($columns['comments']);
-		return array_merge($columns, array('template' => 'Template'));
+		$temp = array_merge($columns, array('template' => 'Template'));
+		return array_merge($temp, array('recordid' => 'record-id'));
 	} // set_record_columns()
 
 		// PURPOSE: Output value of custom column for Record in admin panel
@@ -175,6 +176,13 @@ class ProspectAdmin {
 				$template_id = _e('(unassigned)', 'prospect');
 			}
 			echo $template_id;
+			break;
+		case 'recordid':
+			$rec_id = get_post_meta($post_id, 'record-id', true);
+			if ($rec_id == '') {
+				$rec_id = _e('(unassigned)', 'prospect');
+			}
+			echo $rec_id;
 			break;
 		default:
 			break;
