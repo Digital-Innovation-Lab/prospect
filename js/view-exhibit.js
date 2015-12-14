@@ -4349,12 +4349,16 @@ PFilterText.prototype.constructor = PFilterText;
 
 PFilterText.prototype.evalPrep = function()
 {
-	this.fStr = this.insertPt().find('input.filter-text').val();
+	var ip = this.insertPt();
+	this.cs = ip.find('input.filter-text-cs').prop('checked');
+	this.s = ip.find('input.filter-text').val();
+	if (!this.cs)
+		this.s = this.s.toLocaleLowerCase();
 } // evalPrep()
 
 PFilterText.prototype.eval = function(rec)
 {
-	var s = this.fStr;
+	var s = this.s;
 
 	if (s == null || s == '')
 		return true;
@@ -4362,6 +4366,8 @@ PFilterText.prototype.eval = function(rec)
 	var t = rec.a[this.att.id];
 	if (typeof t == 'undefined')
 		return false;
+	if (!this.cs)
+		t = t.toLocaleLowerCase();
 	return t.indexOf(s) != -1;
 } // eval()
 
@@ -4376,16 +4382,22 @@ PFilterText.prototype.setup = function()
 	inserted.find('input.filter-text').change(function() {
 		self.isDirty(true);
 	});
+	inserted.find('input.filter-text-cs').click(function(event) {
+		self.isDirty(true);
+	});
 } // setup()
 
 PFilterText.prototype.getState = function()
 {
-	return { t: this.insertPt().find('input.filter-text').val() };
+	var ip = this.insertPt();
+	return { cs: ip.find('input.filter-text-cs').prop('checked'), t: ip.find('input.filter-text').val() };
 } // getState()
 
 PFilterText.prototype.setState = function(state)
 {
-	this.insertPt().find('input.filter-text').val(state.t);
+	var ip = this.insertPt();
+	ip.find('input.filter-text-cs').prop('checked', state.cs);
+	ip.find('input.filter-text').val(state.t);
 } // setState()
 
 // ===================================================
