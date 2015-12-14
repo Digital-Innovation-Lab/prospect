@@ -133,7 +133,7 @@
 	}
 ?> ],
 		m: [ <?php
-	$map_defs = ProspectMap::get_all_maps();
+	$map_defs = ProspectMap::get_all_maps(true);
 		// Output each entry
 	$first = true;
 	foreach($map_defs as $the_map) {

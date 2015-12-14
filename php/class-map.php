@@ -45,12 +45,16 @@ class ProspectMap {
 
 
 		// PURPOSE: Return list of all prsp-maps on website
+		// INPUT: 	If $only_published, only return those that in Published state
 		// RETURNS: array [id, sname]
-	static function get_all_maps()
+	static function get_all_maps($only_published)
 	{
 		$layer_data = array();
 
 		$args = array('post_type' => 'prsp-map', 'posts_per_page' => -1);
+		if ($only_published)
+			$args = array_merge($args, array('post_status' => 'publish'));
+
 		$loop = new WP_Query($args);
 		if ($loop->have_posts()) {
 			foreach ($loop->posts as $rec) {

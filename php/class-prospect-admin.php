@@ -511,10 +511,15 @@ class ProspectAdmin {
 				$data = sanitize_text_field($_POST['prsp_map_url']);
 				update_post_meta($post_id, 'map_url', $data);
 			}
-			if (isset($_POST['prsp_map_inverse_y'])) {
+
+			if (isset($_POST['prsp_map_inverse_y']))
 				$data = sanitize_text_field($_POST['prsp_map_inverse_y']);
-				update_post_meta($post_id, 'map_inverse_y', $data);
-			}
+			else
+				$data = 'false';
+			if ($data != 'true')
+				$data = 'false';
+			update_post_meta($post_id, 'map_inverse_y', $data);
+
 			if (isset($_POST['prsp_map_subd'])) {
 				$data = sanitize_text_field($_POST['prsp_map_subd']);
 				update_post_meta($post_id, 'map_subdomains', $data);
@@ -1191,7 +1196,7 @@ class ProspectAdmin {
 		fwrite($fp, '{"type": "Archive", "items": ['."\n");
 
 			// Get all definitions of all current Exhibits
-		$all_maps = ProspectMap::get_all_maps();
+		$all_maps = ProspectMap::get_all_maps(false);
 		$first = true;
 		foreach($all_maps as $the_map) {
 			if (!$first)
