@@ -4451,10 +4451,10 @@ PFilterVocab.prototype.setup = function()
 		dlText.sha+'</i></div>';
 	this.att.l.forEach(function(lEntry, lI) {
 		t += '<div class="filter-vocab-entry" data-index="'+lI+'"><div class="filter-vocab-row" data-id="'+
-				lEntry.l+'">'+'<input type="checkbox" value="min-use" checked="checked">'+
+				lEntry.l+'">'+'<input type="checkbox" class="term-parent" checked="checked">'+
 				lEntry.l+'</div><div class="filter-vocab-bar" style="background-color:'+lEntry.v+'"></div>';
 		lEntry.z.forEach(function(zEntry, zI) {
-			t += '<div class="filter-vocab-row" data-id="'+zEntry.l+'"><input type="checkbox" value="min-use" checked="checked">'+
+			t += '<div class="filter-vocab-row" data-id="'+zEntry.l+'"><input type="checkbox" data-parent="'+lI+'" checked="checked">'+
 				zEntry.l+'</div>';
 			if (zEntry.v == null || zEntry.v == '') {
 				t += '<div class="filter-vocab-bar" style="background-color:'+lEntry.v+'"></div>';
@@ -4471,10 +4471,14 @@ PFilterVocab.prototype.setup = function()
 	ip.click(function(event) {
 		var t = event.target;
 		if (t.nodeName == 'INPUT') {
+				// Show/Hide All
 			if (typeof t.dataset.index != 'undefined' && t.dataset.index == -1) {
 				var s = t.checked;
 				var cx = ip.find('div.filter-vocab-row input');
 				cx.prop("checked", s);
+			} else if (event.target.className == 'term-parent' && t.checked) {
+				var index = event.target.parentElement.parentElement.dataset.index;
+				ip.find('input[data-parent="'+index+'"]').prop("checked", true);
 			}
 			self.isDirty(true);
 		}
@@ -7163,11 +7167,20 @@ var PData = (function() {
 					switch (inc) {
 					case 'd':
 						rCat.max = PData.date3Nums(curY, curM, curD+1, true);
-						curD++;
+						if (++curD > mnthDays[curM-1]) {
+							curD=1;
+							if (++curM > 12) {
+								curM = 1;
+								curY++;
+							}
+						}
 						break;
 					case 'm':
 						rCat.max = PData.date3Nums(curY, curM+1, curD, true);
-						curM++;
+						if (++curM > 12) {
+							curM = 1;
+							curY++;
+						}
 						break;
 					case 'y':
 						rCat.max = PData.date3Nums(curY+1, curM, curD, true);
