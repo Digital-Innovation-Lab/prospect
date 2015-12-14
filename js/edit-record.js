@@ -268,7 +268,7 @@ jQuery(document).ready(function() {
 					attObject.def.newLgnd.push(newItem);
 					if (theLegend.z.length)
 						_.forEach(theLegend.z, function(child) {
-							var newChild = { newL: theLegend.l+' > '+child.l, newV: child.l };
+							var newChild = { newL: '> '+child.l, newV: child.l };
 							attObject.def.newLgnd.push(newChild);
 						});
 				});
