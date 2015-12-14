@@ -275,7 +275,10 @@
 		<option value="{{id}}">{{sname}}</option>
 	{{/each}}
 	</select>
-	Map Overlay Layers: <button on-click="addMapLayer:{{vIndex}}">Add Layer</button><br/>
+	Map Overlay Layers:
+	{{#if layerMaps.length > 0 }}
+	<button on-click="addMapLayer:{{vIndex}}">Add Layer</button><br/>
+	{{/if}}
 	{{#each c.lyrs:lIndex}}
 		<div class="map-layer-div">
 			Map ID: <select value="{{lid}}">

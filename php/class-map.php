@@ -18,14 +18,14 @@ class ProspectMap {
 	} // cmp_map_obj_ids()
 
 
-		// PURPOSE: Return list of all prsp-maps on website
+		// PURPOSE: Return list of all prsp-maps on website (that have been Published)
 		// RETURNS: array [id, sname]
 	static function get_map_layer_list()
 	{
 		$layer_data = array();
 		$meta_data_set = array('id' => 'map-id', 'sname' => 'map_sname');
 
-		$args = array('post_type' => 'prsp-map', 'posts_per_page' => -1);
+		$args = array('post_type' => 'prsp-map', 'posts_per_page' => -1, 'post_status' => 'publish');
 		$loop = new WP_Query($args);
 		if ($loop->have_posts()) {
 			foreach ($loop->posts as $rec) {
