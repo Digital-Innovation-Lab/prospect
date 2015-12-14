@@ -216,15 +216,15 @@
 <!-- Create/Edit Text Legend Dialog -->
 <script id="dialog-legend-text" type='text/ractive'>
 	<dialog title="Text Legend Entry" width="300" height="200">
-		Label: <input type="text" size="20" value="{{label}}"/><br>
-		Text pattern: <input type="text" size="16" value="{{pattern}}"/><br>
+		Label: <input type="text" size="20" value="{{label}}" placeholder="Enter Label"/><br>
+		Text pattern: <input type="text" size="16" value="{{pattern}}" placeholder="Enter Text Pattern"/><br>
 	</dialog>
 </script>
 
 <!-- Create/Edit Number Legend Dialog -->
 <script id="dialog-legend-number" type='text/ractive'>
 	<dialog title="Number Legend Entry" width="300" height="250">
-		Label for Range: <input type="text" size="12" value="{{label}}"/><br>
+		Label for Range: <input type="text" size="12" value="{{label}}" placeholder="Enter Label"/><br>
 		Minimum Value: <input type="text" size="8" value="{{min}}" pattern="\d*"/><br>
 		Maximum Value: <input type="text" size="8" value="{{max}}" pattern="\d*"/>
 	</dialog>
@@ -233,7 +233,7 @@
 <!-- Create/Edit Dates Legend Dialog -->
 <script id="dialog-legend-dates" type='text/ractive'>
 	<dialog title="Date Legend Entry" width="400" height="210">
-		Label for Range: <input type="text" size="20" value="{{label}}" required/><br>
+		Label for Range: <input type="text" size="20" value="{{label}}" required placeholder="Enter Range Label"/><br>
 		Start Date: Year <input type="text" size="5" value="{{min.y}}" placeholder="YYYY" pattern="(open|-?\d+)"/>
 		Month <input type="text" size="2" value="{{min.m}}" placeholder="MM" pattern="\d{0,2}"/>
 		Day <input type="text" size="2" value="{{min.d}}" placeholder="DD" pattern="\d{0,2}"/>

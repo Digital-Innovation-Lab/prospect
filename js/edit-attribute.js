@@ -618,18 +618,18 @@ jQuery(document).ready(function() {
 						});
 			break;
 		case 'T':
-			editBlob.label = 'Name me';
-			editBlob.pattern = '*';
+			editBlob.label = '';
+			editBlob.pattern = '';
 			editDialog = createEditDialog('#dialog-legend-text', editBlob);
 			break;
 		case 'N':
-			editBlob.label = 'Name me';
+			editBlob.label = '';
 			editBlob.min = rApp.get('theRange.min');
 			editBlob.max = rApp.get('theRange.max');
 			editDialog = createEditDialog('#dialog-legend-number', editBlob);
 			break;
 		case 'D':
-			editBlob.label = 'Name me';
+			editBlob.label = '';
 			editBlob.min = { y: rApp.get('theRange.min.y'),
 							 m: rApp.get('theRange.min.m'),
 							 d: rApp.get('theRange.min.d') };
