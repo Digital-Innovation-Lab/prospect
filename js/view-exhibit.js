@@ -65,8 +65,6 @@ var V_FLAG_HSCRL = 0x40;		// Add horizontal scroll bar
 
 var parseTC = /(\d\d)\:(\d\d)\:(\d\d)\.(\d\d?)/; 	// precise regular expression for parsing timecodes
 
-var mnthDays = [ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ];
-
 var MS_IN_DAY = 86399990; 		// milliseconds in a day: 1000*60*60*24 - 10
 
 	// GLOBAL VARS
@@ -1521,7 +1519,7 @@ VizTime.prototype.setup = function()
 								if (typeof dAtt.r.max.d != 'undefined')
 									maxD = dAtt.r.max.d;
 								else
-									maxD = mnthDays[maxM-1];
+									maxD = PData.lenMnth(maxY, maxM);
 							} else {
 								maxM = 12; maxD = 31;
 							}
@@ -1533,7 +1531,7 @@ VizTime.prototype.setup = function()
 							if (typeof dAtt.r.max.d != 'undefined')
 								maxD = dAtt.r.max.d;
 							else
-								maxD = mnthDays[maxM-1];
+								maxD = PData.lenMnth(maxY, maxM);
 						} else {
 							maxM = 12; maxD = 31;
 						}
@@ -1544,7 +1542,7 @@ VizTime.prototype.setup = function()
 								if (typeof dAtt.r.max.d != 'undefined')
 									maxD = dAtt.r.max.d;
 								else
-									maxD = mnthDays[maxM-1];
+									maxD = PData.lenMnth(maxY, maxM);
 							} else if (dAtt.r.max.m == maxM) {
 								if (typeof dAtt.r.max.d != 'undefined') {
 									if (dAtt.r.max.d > maxD)
@@ -2003,7 +2001,7 @@ VizTime.prototype.render = function(stream)
 									} else {
 										m = dData.max.m;
 										if (typeof dData.max.d == 'undefined')
-											d = mnthDays[m-1];
+											d = PData.lenMnth(y, m);
 										else
 											d = dData.max.d;
 									}
@@ -2059,7 +2057,7 @@ VizTime.prototype.render = function(stream)
 					} else {
 						m = l.max.m;
 						if (typeof l.max.d == 'undefined')
-							d = mnthDays[m-1];
+							d = PData.lenMnth(y, m);
 						else
 							d = l.max.d;
 					}
@@ -6154,6 +6152,8 @@ var PData = (function() {
 	var dltextApprox;
 	var dltextNow;
 
+	var mnthDays = [ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ];
+
 	// INTERNAL VARIABLES
 	// ==================
 
@@ -6816,6 +6816,16 @@ var PData = (function() {
 			return null;
 		}, // getVLgndVal()
 
+			// PURPOSE: Return number of days in month, accounting for leap years
+		lenMnth: function(y, m)
+		{
+				// if February, check to see if leap year
+			if (m == 2 && ((y % 4) == 0) && ((y % 100) != 0) || ((y % 400) == 0)) {
+				return 29;
+			} else
+				return mnthDays[m-1];
+		}, // lenMnth()
+
 			// PURPOSE: Create a single Date from three numbers
 			// INPUT:   year, month (1-12), day (1) must be definite numbers
 			//			if end, make the Date the end of the day (not beginning)
@@ -6847,9 +6857,9 @@ var PData = (function() {
 				if (typeof field.d != 'undefined' && field.d != null)
 					d = field.d;
 				else
-					d = mnthDays[m-1];
+					d = PData.lenMnth(field.y, m);
 			} else {
-				d = mnthDays[m-1];
+				d = PData.lenMnth(field.y, m);
 			}
 			return PData.date3Nums(field.y, m, d, end);
 		}, // objDate()
@@ -6877,7 +6887,7 @@ var PData = (function() {
 					d = parseInt(cmpts[2]);
 				} else {
 					if (end)
-						d = mnthDays[m-1];
+						d = PData.lenMnth(y, m);
 					else
 						d = 1;
 				}
@@ -6923,7 +6933,7 @@ var PData = (function() {
 					} else {
 						m = data.max.m;
 						if (typeof data.max.d == 'undefined')
-							d = mnthDays[m-1];
+							d = PData.lenMnth(y, m);
 						else
 							d = data.max.d;
 					}
@@ -6937,7 +6947,7 @@ var PData = (function() {
 						m = 12; d = 31;
 					} else {
 						m = data.min.m;
-						d = mnthDays[m-1];
+						d = PData.lenMnth(y, m);
 					}
 					e = PData.date3Nums(y,m,d,true);
 				}
@@ -7098,7 +7108,7 @@ var PData = (function() {
 						} else {
 							m = field.m;
 							if (typeof field.d == 'undefined')
-								d = mnthDays[m-1];
+								d = PData.lenMnth(y, m);
 							else
 								d = field.d;
 						}
@@ -7167,7 +7177,7 @@ var PData = (function() {
 					switch (inc) {
 					case 'd':
 						rCat.max = PData.date3Nums(curY, curM, curD+1, true);
-						if (++curD > mnthDays[curM-1]) {
+						if (++curD > PData.lenMnth(curY, curM)) {
 							curD=1;
 							if (++curM > 12) {
 								curM = 1;
