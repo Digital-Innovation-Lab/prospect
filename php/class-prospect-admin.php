@@ -1406,7 +1406,8 @@ class ProspectAdmin {
 		// RETURNS: 0 if already exists; post ID number if new
 	public function create_entity($type, $id_field, $id, $title)
 	{
-			// Create query to get all Records of this Template type
+			// Create query to check if entity with this name exists
+			// NOTE: WP_Query search is case-insensitive! So, "match" that doesn't match case might be returned
 		$args = array('post_type' => $type, 'meta_key' => $id_field, 'meta_value' => $id, 'posts_per_page' => 1);
 		$query = new WP_Query($args);
 		if ($query->have_posts()) {
