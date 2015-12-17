@@ -144,6 +144,7 @@ jQuery(document).ready(function() {
 	var savedRanges = [ ];				// saved Range settings
 	var savedLegends = [ ];				// saved Legend configurations
 
+	var otherAtts;						// results of attMatch()
 
 	var embedData;
 
@@ -218,12 +219,12 @@ jQuery(document).ready(function() {
 		} // switch
 	}
 
-		// Unpack Legend data
-	embedData = jQuery('textarea[name="prsp_att_lgnd"]').val();
-	if (embedData && embedData.length > 2) {
-		tempLegend = JSON.parse(embedData);
+		// PURPOSE: Reformat raw Legend array for editing purposes into defLegend
+	function unpackLegend(legArray)
+	{
+		defLegend=[];
 
-		tempLegend.forEach(function(lgndEntry) {
+		legArray.forEach(function(lgndEntry) {
 			var newEntry = lgndEntry;
 			switch (defAttribute.t) {
 			case 'V':
@@ -307,6 +308,15 @@ jQuery(document).ready(function() {
 			} // switch
 			defLegend.push(newEntry);
 		}); // forEach
+	} // unpackLegend()
+
+
+		// Unpack Legend data
+	embedData = jQuery('textarea[name="prsp_att_lgnd"]').val();
+	if (embedData && embedData.length > 2) {
+		tempLegend = JSON.parse(embedData);
+
+		unpackLegend(tempLegend);
 	} // if legend
 
 
@@ -434,6 +444,20 @@ jQuery(document).ready(function() {
 				};
 	} // doErrorCheck()
 
+		// PURPOSE: Find pre-defined Attributes of this type that have Legends
+		// RETURN: 	Array of { Attribute id, l[abel] }
+	function attMatch(type, notID)
+	{
+		var atts=[];
+
+		if (prspdata.att_data.length == 0)
+			return [];
+		prspdata.att_data.forEach(function(theAtt) {
+			if (theAtt.def.t == type && theAtt.id != notID && theAtt.l.length > 0)
+				atts.push({ id: theAtt.id, l: theAtt.def.l })
+		});
+		return atts;
+	} // attMatch()
 
 		// PURPOSE: Present a confirmation modal
 		// RETURNS: true if OK, false if Cancel
@@ -458,6 +482,7 @@ jQuery(document).ready(function() {
 		modalDialog.on('dialog.cancel', modalDialog.teardown);
 	} // confirmModal()
 
+	otherAtts = attMatch(defAttribute.t, attID);
 
 		// Create our main App Ractive instance with wrapped jQueryUI components
 	rApp = new Ractive({
@@ -473,7 +498,8 @@ jQuery(document).ready(function() {
 			theLegend: defLegend,
 			theRange: defRange,
 			newVocab: newVocab,
-			errorMsg: errorString
+			errorMsg: errorString,
+			others: otherAtts
 		},
 	});
 
@@ -492,6 +518,10 @@ jQuery(document).ready(function() {
 			} else {
 				rApp.set('theLegend', []);
 			}
+
+				// Compile new array of "peer" Attributes
+			otherAtts = attMatch(newValue, rApp.get('attID'));
+			rApp.set('others', otherAtts);
 
 				// Restore previous Ranges if they exist, or initialize new ones
 			if (savedRanges[newValue]) {
@@ -514,84 +544,85 @@ jQuery(document).ready(function() {
 		}
 	}); // observe theAttribute.t
 
+		// TO DO: Observe attID so that otherAtts list is correct ??
 
 		// Reset visual codes algorithmically
 	rApp.on('resetLegend', function() {
 		var lgnd = rApp.get('theLegend');
 
-			var modalDialog = new Ractive({
-				el: '#att-insert-dialog',
-				template: '#dialog-reset-colors',
+		var modalDialog = new Ractive({
+			el: '#att-insert-dialog',
+			template: '#dialog-reset-colors',
+			data: {
+				reset: 'random',
+				c0: randomColor(),
+				c1: randomColor()
+			},
+			components: {
+				dialog: RJDialogComponent
+			}
+		}); // new Ractive()
+		modalDialog.on('selectColor', function(evt, i) {
+			var theColor = modalDialog.get('c'+i);
+			var colorPicker = new Ractive({
+				el: '#insert-2nd-dialog',
+				template: '#dialog-choose-color',
 				data: {
-					reset: 'random',
-					c0: randomColor(),
-					c1: randomColor()
+					color: theColor
 				},
 				components: {
-					dialog: RJDialogComponent
+					dialog: RJDialogComponent,
+					iris: RJIrisColor
 				}
 			}); // new Ractive()
-			modalDialog.on('selectColor', function(evt, i) {
-				var theColor = modalDialog.get('c'+i);
-				var colorPicker = new Ractive({
-					el: '#insert-2nd-dialog',
-					template: '#dialog-choose-color',
-					data: {
-						color: theColor
-					},
-					components: {
-						dialog: RJDialogComponent,
-						iris: RJIrisColor
-					}
-				}); // new Ractive()
-				colorPicker.on('dialog.ok', function() {
-					var finalColor = colorPicker.get('color');
-					modalDialog.set('c'+i, finalColor);
-					colorPicker.teardown();
-				});
-				colorPicker.on('dialog.cancel', colorPicker.teardown);
+			colorPicker.on('dialog.ok', function() {
+				var finalColor = colorPicker.get('color');
+				modalDialog.set('c'+i, finalColor);
+				colorPicker.teardown();
 			});
-			modalDialog.on('dialog.ok', function() {
-				if (modalDialog.get('reset') == 'gradient') {
-					var c0 = modalDialog.get('c0');
-					var c1 = modalDialog.get('c1');
-					var rainbow = new Rainbow();
-					rainbow.setSpectrum(c0, c1);
-					rainbow.setNumberRange(0, lgnd.length-1);
+			colorPicker.on('dialog.cancel', colorPicker.teardown);
+		});
+		modalDialog.on('dialog.ok', function() {
+			if (modalDialog.get('reset') == 'gradient') {
+				var c0 = modalDialog.get('c0');
+				var c1 = modalDialog.get('c1');
+				var rainbow = new Rainbow();
+				rainbow.setSpectrum(c0, c1);
+				rainbow.setNumberRange(0, lgnd.length-1);
 
-					for (var i=0; i<lgnd.length; i++) {
-						var item = 'theLegend['+i+'].';
-						var grad = '#'+rainbow.colourAt(i);
-						rApp.set(item+'v', grad);
-						var children = rApp.get(item+'z');
-						if (typeof(children) !== 'undefined') {
-							for (var j=0; j<children.length; j++) {
-								var child = item+'z['+j+'].';
-								rApp.set(child+'v', '');
-							}
-						}
-					}
-
-				} else {	// Random colors
-					for (var i=0; i<lgnd.length; i++) {
-						var item = 'theLegend['+i+'].';
-						var r = randomColor();
-						rApp.set(item+'v', r);
-						var children = rApp.get(item+'z');
-						if (typeof(children) !== 'undefined') {
-							for (var j=0; j<children.length; j++) {
-								var child = item+'z['+j+'].';
-								r = randomColor();
-								rApp.set(child+'v', r);
-							}
+				for (var i=0; i<lgnd.length; i++) {
+					var item = 'theLegend['+i+'].';
+					var grad = '#'+rainbow.colourAt(i);
+					rApp.set(item+'v', grad);
+					var children = rApp.get(item+'z');
+					if (typeof(children) !== 'undefined') {
+						for (var j=0; j<children.length; j++) {
+							var child = item+'z['+j+'].';
+							rApp.set(child+'v', '');
 						}
 					}
 				}
-				modalDialog.teardown();
-			});
-			modalDialog.on('dialog.cancel', function() {
-				modalDialog.teardown();
-			});
+
+			} else {	// Random colors
+				for (var i=0; i<lgnd.length; i++) {
+					var item = 'theLegend['+i+'].';
+					var r = randomColor();
+					rApp.set(item+'v', r);
+					var children = rApp.get(item+'z');
+					if (typeof(children) !== 'undefined') {
+						for (var j=0; j<children.length; j++) {
+							var child = item+'z['+j+'].';
+							r = randomColor();
+							rApp.set(child+'v', r);
+						}
+					}
+				}
+			}
+			modalDialog.teardown();
+		});
+		modalDialog.on('dialog.cancel', function() {
+			modalDialog.teardown();
+		});
 		return false;
 	}); // on resetLegend
 
@@ -652,6 +683,40 @@ jQuery(document).ready(function() {
 		} // if
 		return false;
 	}); // on addLegend
+
+
+		// PURPOSE: Give user chance to copy the Legend from another Attribute of same type
+	rApp.on('copyLegend', function() {
+		var modalDialog = new Ractive({
+			el: '#att-insert-dialog',
+			template: '#dialog-copy-legend',
+			data: {
+				others: otherAtts,
+				fid: otherAtts[0].id
+			},
+			components: {
+				dialog: RJDialogComponent
+			}
+		}); // new Ractive()
+		modalDialog.on('dialog.ok', function() {
+			var choice = modalDialog.get('fid');
+
+			for (var i=0; i<prspdata.att_data.length; i++) {
+				var theAtt = prspdata.att_data[i];
+				if (theAtt.id == choice) {
+					unpackLegend(theAtt.l);
+					rApp.set('theLegend', defLegend);
+					break;
+				}
+			}
+			modalDialog.teardown();
+		});
+		modalDialog.on('dialog.cancel', function() {
+			modalDialog.teardown();
+		});
+
+		return false;
+	});
 
 
 		// PURPOSE: Provide options for moving term and children (if any)
