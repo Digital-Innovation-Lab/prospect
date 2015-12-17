@@ -1,0 +1,9 @@
+TECHNICAL NOTES
+
+Non-DIL Code files in /lib
+	CSV Importer 0.3.8 (PHP)
+	Leaflet 1.0.0-beta.2 (JS)
+	D3 3.5.9 (JS)
+	Ractive 0.7.3 (JS)
+	RainbowVis-JS (JS)
+	RandomColor (JS)
