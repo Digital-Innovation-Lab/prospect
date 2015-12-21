@@ -1252,6 +1252,24 @@ jQuery(document).ready(function() {
 		return false;
 	});
 
+		// Turn all Legends On for a particular Viz's Template
+	rApp.on('allLgndsOn', function(event, a, b) {
+		var keypath = 'viewSettings['+a+'].c.lgnds['+b+']';
+		var n = rApp.get(keypath+'.length');
+		for (var i=0; i<n; i++)
+			rApp.set(keypath+'['+i+'].useAtt', true);
+		return false;
+	});
+
+		// Turn all Legends Off for a particular Viz's Template
+	rApp.on('allLgndsOff', function(event, a, b) {
+		var keypath = 'viewSettings['+a+'].c.lgnds['+b+']';
+		var n = rApp.get(keypath+'.length');
+		for (var i=0; i<n; i++)
+			rApp.set(keypath+'['+i+'].useAtt', false);
+		return false;
+	});
+
 		// Move a Legend ID "left" in visualization's Template - Legend array
 	rApp.on('moveLgndLeft', function(event, a, b, c) {
 		if (c) {

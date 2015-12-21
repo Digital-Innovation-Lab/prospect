@@ -623,11 +623,24 @@ class ProspectAdmin {
 					// Get all current Attribute IDs except this one
 				$att_ids = ProspectAttribute::get_all_attribute_ids($postID);
 
+					// Get all definitions of all current Attributes
+				$att_defs = ProspectAttribute::get_all_attributes(true, false, false, true);
+					// Compile definition JSON strings into array
+				$att_data = array();
+				foreach($att_defs as $the_attribute) {
+					$an_att = array();
+					$an_att['id'] = $the_attribute->id;
+					$an_att['def'] = $the_attribute->def;
+					$an_att['l'] = $the_attribute->legend;
+					array_push($att_data, $an_att);
+				}
+
 				wp_localize_script('edit-attribute', 'prspdata', array(
 					'ajax_url' => $dev_url,
 					'post_id' => $postID,
 					'cfs' => $cfs,
-					'att_ids' => $att_ids
+					'att_ids' => $att_ids,
+					'att_data' => $att_data
 				));
 				break;
 			case 'prsp-template':

@@ -259,12 +259,14 @@
 			Link Line Color: <input type="text" value="{{c.lClrs[tIndex]}}" size="10"/>
 			<span title="Click to select color" class="viz-icon" style="background-color:{{c.lClrs[tIndex]}}" on-click="setLColor:{{vIndex}},{{tIndex}}"></span>
 			<br/>
-			<b>Provide Legends:</b> 
+			<b>Provide Legends:</b>
+			<button decorator="iconButton:ui-icon-check" on-click="allLgndsOn:{{vIndex}},{{tIndex}}">All On</button>
+			<button decorator="iconButton:ui-icon-cancel" on-click="allLgndsOff:{{vIndex}},{{tIndex}}">All Off</button>
 			{{#each c.lgnds[tIndex]:lIndex}}
 				<span class="attribute-controls">
 					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
 					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}">Left</button>
-					<button decorator="iconButton:ui-icon-arrowthick-1-e "on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}">Right</button>
+					<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}">Right</button>
 				</span>
 			{{/each}}
 		</div>
@@ -328,15 +330,18 @@
 				<span class="attribute-controls">
 					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
 					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveAttLeft:{{vIndex}},{{tIndex}},{{cIndex}}">Left</button>
-					<button decorator="iconButton:ui-icon-arrowthick-1-e "on-click="moveAttRight:{{vIndex}},{{tIndex}},{{cIndex}}">Right</button>
+					<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveAttRight:{{vIndex}},{{tIndex}},{{cIndex}}">Right</button>
 				</span>
 			{{/each}}
-			<br/><b>Provide Legends: </b>
+			<br/>
+			<b>Provide Legends: </b>
+			<button decorator="iconButton:ui-icon-check" on-click="allLgndsOn:{{vIndex}},{{tIndex}}">All On</button>
+			<button decorator="iconButton:ui-icon-cancel" on-click="allLgndsOff:{{vIndex}},{{tIndex}}">All Off</button>
 			{{#each c.lgnds[tIndex]:lIndex}}
 				<span class="attribute-controls">
 					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
 					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}">Left</button>
-					<button decorator="iconButton:ui-icon-arrowthick-1-e "on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}">Right</button>
+					<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}">Right</button>
 				</span>
 			{{/each}}
 		</div>
@@ -385,11 +390,13 @@
 			<span title="Click to select color" class="viz-icon" style="background-color:{{c.lClrs[tIndex]}}" on-click="setLColor:{{vIndex}},{{tIndex}}"></span>
 			<br/>
 			<b>Provide Legends: </b>
+			<button decorator="iconButton:ui-icon-check" on-click="allLgndsOn:{{vIndex}},{{tIndex}}">All On</button>
+			<button decorator="iconButton:ui-icon-cancel" on-click="allLgndsOff:{{vIndex}},{{tIndex}}">All Off</button>
 			{{#each c.lgnds[tIndex]:lIndex}}
 				<span class="attribute-controls">
 					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
 					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}">Left</button>
-					<button decorator="iconButton:ui-icon-arrowthick-1-e "on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}">Right</button>
+					<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}">Right</button>
 				</span>
 			{{/each}}
 		</div>
@@ -451,11 +458,13 @@
 			</select>
 			<br/>
 			<b>Provide Legends: </b>
+			<button decorator="iconButton:ui-icon-check" on-click="allLgndsOn:{{vIndex}},{{tIndex}}">All On</button>
+			<button decorator="iconButton:ui-icon-cancel" on-click="allLgndsOff:{{vIndex}},{{tIndex}}">All Off</button>
 			{{#each c.lgnds[tIndex]:lIndex}}
 				<span class="attribute-controls">
 					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
 					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}">Left</button>
-					<button decorator="iconButton:ui-icon-arrowthick-1-e "on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}">Right</button>
+					<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}">Right</button>
 				</span>
 			{{/each}}
 		</div>
@@ -478,7 +487,7 @@
 				<span class="attribute-controls">
 					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
 					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveAttLeft:{{vIndex}},{{tIndex}},{{cIndex}}">Left</button>
-					<button decorator="iconButton:ui-icon-arrowthick-1-e "on-click="moveAttRight:{{vIndex}},{{tIndex}},{{cIndex}}">Right</button>
+					<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveAttRight:{{vIndex}},{{tIndex}},{{cIndex}}">Right</button>
 				</span>
 			{{/each}}
 		</div>
@@ -517,12 +526,15 @@
 				<option>{{this}}</option>
 			{{/each}}
 			</select>
-			<br/><b>Provide Legends: </b>
+			<br/>
+			<b>Provide Legends: </b>
+			<button decorator="iconButton:ui-icon-check" on-click="allLgndsOn:{{vIndex}},{{tIndex}}">All On</button>
+			<button decorator="iconButton:ui-icon-cancel" on-click="allLgndsOff:{{vIndex}},{{tIndex}}">All Off</button>
 			{{#each c.lgnds[tIndex]:lIndex}}
 				<span class="attribute-controls">
 					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
 					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}">Left</button>
-					<button decorator="iconButton:ui-icon-arrowthick-1-e "on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}">Right</button>
+					<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}">Right</button>
 				</span>
 			{{/each}}
 		</div>
@@ -555,11 +567,13 @@
 				<br/>
 			{{/each}}
 			<b>Provide Legends:</b> 
+			<button decorator="iconButton:ui-icon-check" on-click="allLgndsOn:{{vIndex}},{{tIndex}}">All On</button>
+			<button decorator="iconButton:ui-icon-cancel" on-click="allLgndsOff:{{vIndex}},{{tIndex}}">All Off</button>
 			{{#each c.lgnds[tIndex]:lIndex}}
 				<span class="attribute-controls">
 					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
 					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}">Left</button>
-					<button decorator="iconButton:ui-icon-arrowthick-1-e "on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}">Right</button>
+					<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}">Right</button>
 				</span>
 			{{/each}}
 		</div>

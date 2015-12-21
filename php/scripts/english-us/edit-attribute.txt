@@ -72,6 +72,9 @@
 	<h3>Configure Vocabulary Legend</h3>
 	<button id="vocab-add-terms" on-click="addTerms">Add Terms</button>
 	<button on-click="resetLegend">Reset Visuals</button>
+	{{#if others.length > 1}}
+		<button on-click="copyLegend">Copy Legend</button>
+	{{/if}}
 	<br/>
 	<input type="text" id="vocab-new-term" value='{{newVocab}}' placeholder="New Vocab Term" size="24"/> <label for="vocab-new-term"> New Term</label>
 	<button on-click="addLegend">Add Entry</button>
@@ -125,6 +128,9 @@
 	<h3>Configure Text Legend</h3>
 	<button on-click="resetLegend">Reset Visuals</button>
 	<button on-click="addLegend">Add Entry</button>
+	{{#if others.length > 1}}
+		<button on-click="copyLegend">Copy Legend</button>
+	{{/if}}
 	<br/>
 	<div class="legend-data">
 		{{#each theLegend:index}}
@@ -138,6 +144,9 @@
 	<h3>Configure Numeric Legend</h3>
 	<button on-click="resetLegend">Reset Visuals</button>
 	<button on-click="addLegend">Add Entry</button>
+	{{#if others.length > 1}}
+		<button on-click="copyLegend">Copy Legend</button>
+	{{/if}}
 	<br/>
 	<div class="legend-data">
 		{{#each theLegend:index}}
@@ -151,6 +160,9 @@
 	<h3>Configure Date Legend</h3>
 	<button on-click="resetLegend">Reset Visuals</button>
 	<button on-click="addLegend">Add Entry</button>
+	{{#if others.length > 1}}
+		<button on-click="copyLegend">Copy Legend</button>
+	{{/if}}
 	<br/>
 	<div class="legend-data">
 		{{#each theLegend:index}}
@@ -322,6 +334,19 @@
 	<dialog title="Choose Color" width="250" height="355">
 		<input type='checkbox' checked='{{doClear}}'> Remove visuals<br/>
 		<iris color="{{color}}"></iris>
+	</dialog>
+</script>
+
+<!-- List of peer Attributes with Legends Dialog -->
+<script id="dialog-copy-legend" type='text/ractive'>
+	<dialog title="Choose Attribute" width="400" height="230">
+		Choose the Attribute whose Legend you wish to copy over the current Legend you are editing.<br/>
+		<b>WARNING: No undo.</b><br/>
+		<label for="choose-att">Attribute </label>
+		<select id="choose-att" value='{{fid}}'>
+		{{#each others}}
+			<option value="{{this.id}}">{{this.l}} ({{this.id}})</option>
+		{{/each}}
 	</dialog>
 </script>
 
