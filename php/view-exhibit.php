@@ -133,7 +133,8 @@
 	}
 ?> ],
 		m: [ <?php
-	$map_defs = ProspectMap::get_all_maps(true);
+		// Only output maps that are used by this Exhibit
+	$map_defs = $the_xhbt->get_used_maps();
 		// Output each entry
 	$first = true;
 	foreach($map_defs as $the_map) {

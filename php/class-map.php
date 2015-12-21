@@ -6,13 +6,13 @@ class ProspectMap {
 		// =============
 
 		// PURPOSE: Compare map IDs for sort function
-	static function cmp_map_array_ids($a, $b)
+	static public function cmp_map_array_ids($a, $b)
 	{
 		return strcmp($a["id"], $b["id"]);
 	} // cmp_map_array_ids()
 
 		// PURPOSE: Compare map IDs for sort function
-	static function cmp_map_obj_ids($a, $b)
+	static public function cmp_map_obj_ids($a, $b)
 	{
 		return strcmp($a->id, $b->id);
 	} // cmp_map_obj_ids()
