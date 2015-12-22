@@ -41,7 +41,17 @@ function prospect_register_post_types()
 		'menu_position' => null,
 		'supports' => array('title', 'thumbnail', 'revisions'),
 		'capability_type' => array('prsp_attribute','prsp_attributes'),
-		'map_meta_cap' => true
+		'map_meta_cap' => true,
+		'capabilities' => array(
+			'create_posts' => 'edit_prsp_attributes',
+			'edit_post' => 'edit_prsp_attribute',
+			'edit_posts' => 'edit_prsp_attributes',
+			'edit_others_posts' => 'edit_other_prsp_attributes',
+			'publish_posts' => 'publish_prsp_attributes',
+			'read_post' => 'read_prsp_attribute',
+			'read_private_posts' => 'read_private_prsp_attributes',
+			'delete_post' => 'delete_prsp_attribute'
+		)
 	); 
 	register_post_type('prsp-attribute', $args);
 
@@ -71,7 +81,17 @@ function prospect_register_post_types()
 		'menu_position' => null,
 		'supports' => array('title', 'thumbnail', 'revisions'),
 		'capability_type' => array('prsp_template','prsp_templates'),
-		'map_meta_cap' => true
+		'map_meta_cap' => true,
+		'capabilities' => array(
+			'create_posts' => 'edit_prsp_templates',
+			'edit_post' => 'edit_prsp_template',
+			'edit_posts' => 'edit_prsp_templates',
+			'edit_others_posts' => 'edit_other_prsp_templates',
+			'publish_posts' => 'publish_prsp_templates',
+			'read_post' => 'read_prsp_template',
+			'read_private_posts' => 'read_private_prsp_templates',
+			'delete_post' => 'delete_prsp_template'
+		)
 	); 
 	register_post_type('prsp-template', $args);
 
@@ -103,7 +123,17 @@ function prospect_register_post_types()
 		'menu_position' => null,
 		'supports' => array('title', 'editor', 'thumbnail', 'revisions'),
 		'capability_type' => array('prsp_record','prsp_records'),
-		'map_meta_cap' => true
+		'map_meta_cap' => true,
+		'capabilities' => array(
+			'create_posts' => 'edit_prsp_records',
+			'edit_post' => 'edit_prsp_record',
+			'edit_posts' => 'edit_prsp_records',
+			'edit_others_posts' => 'edit_other_prsp_records',
+			'publish_posts' => 'publish_prsp_records',
+			'read_post' => 'read_prsp_record',
+			'read_private_posts' => 'read_private_prsp_records',
+			'delete_post' => 'delete_prsp_record'
+		)
 	); 
 	register_post_type('prsp-record', $args);
 
@@ -135,7 +165,17 @@ function prospect_register_post_types()
 		'menu_position' => null,
 		'supports' => array('title', 'thumbnail', 'revisions'),
 		'capability_type' => array('prsp_exhibit','prsp_exhibits'),
-		'map_meta_cap' => true
+		'map_meta_cap' => true,
+		'capabilities' => array(
+			'create_posts' => 'edit_prsp_exhibits',
+			'edit_post' => 'edit_prsp_exhibit',
+			'edit_posts' => 'edit_prsp_exhibits',
+			'edit_others_posts' => 'edit_other_prsp_exhibits',
+			'publish_posts' => 'publish_prsp_exhibits',
+			'read_post' => 'read_prsp_exhibit',
+			'read_private_posts' => 'read_private_prsp_exhibits',
+			'delete_post' => 'delete_prsp_exhibit'
+		)
 	); 
 	register_post_type('prsp-exhibit', $args);
 
@@ -169,7 +209,17 @@ function prospect_register_post_types()
 		'menu_position' => null,
 		'supports' => array('title', 'comments', 'revisions'),
 		'capability_type' => array('prsp_map','prsp_maps'),
-		'map_meta_cap' => true
+		'map_meta_cap' => true,
+		'capabilities' => array(
+			'create_posts' => 'edit_prsp_maps',
+			'edit_post' => 'edit_prsp_map',
+			'edit_posts' => 'edit_prsp_maps',
+			'edit_others_posts' => 'edit_other_prsp_maps',
+			'publish_posts' => 'publish_prsp_maps',
+			'read_post' => 'read_prsp_map',
+			'read_private_posts' => 'read_private_prsp_maps',
+			'delete_post' => 'delete_prsp_map'
+		)
 	);
 	register_post_type('prsp-map', $args);
 
@@ -201,7 +251,17 @@ function prospect_register_post_types()
 		'menu_position' => null,
 		'supports' => array('title', 'thumbnail', 'revisions'),
 		'capability_type' => array('prsp_prspctv','prsp_prspctvs'),
-		'map_meta_cap' => true
+		'map_meta_cap' => true,
+		'capabilities' => array(
+			'create_posts' => 'edit_prsp_prspctvs',
+			'edit_post' => 'edit_prsp_prspctv',
+			'edit_posts' => 'edit_prsp_prspctvs',
+			'edit_others_posts' => 'edit_other_prsp_prspctvs',
+			'publish_posts' => 'publish_prsp_prspctvs',
+			'read_post' => 'read_prsp_prspctv',
+			'read_private_posts' => 'read_private_prsp_prspctvs',
+			'delete_post' => 'delete_prsp_prspctv'
+		)
 	);
 	register_post_type('prsp-prspctv', $args);
 } // prospect_register_post_types()
@@ -231,6 +291,7 @@ function prospect_activate()
 	$role->add_cap('edit_others_prsp_records');
 	$role->add_cap('edit_published_prsp_records');
 	$role->add_cap('publish_prsp_records');
+	$role->add_cap('delete_prsp_record');
 	$role->add_cap('delete_prsp_records');
 	$role->add_cap('delete_others_prsp_records');
 	$role->add_cap('delete_private_prsp_records');
@@ -350,6 +411,7 @@ function prospect_deactivate()
 	$role->remove_cap('edit_others_prsp_records');
 	$role->remove_cap('edit_published_prsp_records');
 	$role->remove_cap('publish_prsp_records');
+	$role->remove_cap('delete_prsp_record');
 	$role->remove_cap('delete_prsp_records');
 	$role->remove_cap('delete_others_prsp_records');
 	$role->remove_cap('delete_private_prsp_records');
@@ -469,8 +531,8 @@ if ( ! class_exists( 'CSVImporterPlugin' ) ) {
 
 function run_prospect()
 { 
-    $prospect = new Prospect();
-    $prospect->run();
+	$prospect = new Prospect();
+	$prospect->run();
 } // run_prospect()
  
 run_prospect();
