@@ -4429,8 +4429,9 @@ PFilterVocab.prototype.evalPrep = function()
 	this.sel.sort();
 
 		// Create counters
-	this.ctr = new Uint16Array(this.sel.length);
-	this.ctr.fill(0);
+	this.ctrs = new Uint16Array(this.sel.length);
+	for (var i=0; i<this.sel.length; i++)
+		this.ctrs[i] = 0;
 } // evalPrep()
 
 PFilterVocab.prototype.eval = function(rec)
@@ -4447,7 +4448,7 @@ PFilterVocab.prototype.eval = function(rec)
 		vi = v[i];
 		s = _.sortedIndex(this.sel, vi);
 		if (this.sel[s] == vi) {
-			this.ctr[s]++;
+			this.ctrs[s]++;
 			return true;
 		}
 	}
@@ -4465,7 +4466,7 @@ PFilterVocab.prototype.evalDone = function(total)
 		if (attID) {
 			s = _.sortedIndex(self.sel, attID);
 			if (self.sel[s] == attID) {
-				w = (total > 0) ? (self.ctr[s] * 100) / total : 0;
+				w = (total > 0) ? Math.round((self.ctrs[s] * 100) / total) : 0;
 			} else
 				w = 0;
 			j.next().width(w+"%");
@@ -4563,7 +4564,8 @@ PFilterNum.prototype.evalPrep = function()
 		this.useMax = dom.find('input.filter-num-max-use').is(':checked');
 	} else {
 		this.ctrs = new Uint16Array(this.rCats.length);
-		this.ctrs.fill(0);
+		for (var i=0; i<this.rCats.length; i++)
+			this.ctrs[i] = 0;
 	}
 } // evalPrep()
 
@@ -4601,8 +4603,9 @@ PFilterNum.prototype.evalDone = function(total)
 		var innerH = 80 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
 		var p = new Uint16Array(this.ctrs.length);
 		for (var x=0; x<this.ctrs.length; x++)
-			p[x] = (total > 0) ? (this.ctrs[x] * 100) / total : 0;
+			p[x] = (total > 0) ? Math.round((this.ctrs[x] * 100) / total) : 0;
 		this.chart.selectAll(".bar")
+			.transition().duration(500)
 			.attr("height", function(d, i) { return innerH - self.yScale(p[i]); })
 			.attr("y", function(d, i) { return self.yScale(p[i]); });
 	}
@@ -4661,11 +4664,11 @@ PFilterNum.prototype.setup = function()
 	} else {
 			// Set defaults
 		this.useMin = this.useMax = true;
-		this.min = this.rCats[0].min;
-		this.max = this.rCats[this.rCats.length-1].max;
 			// indices of rCats contained by brush (inclusive)
 		this.b0  = 0;
 		this.b1  = this.rCats.length-1;
+		this.min = this.rCats[0].min;
+		this.max = this.rCats[this.b1].max;
 
 		var innerH = 80 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
 
@@ -4777,7 +4780,7 @@ PFilterNum.prototype.getState = function()
 		var useMax = dom.find('input.filter-num-max-use').is(':checked');
 		return { rc: false, min: min, max: max, useMin: useMin, useMax: useMax };
 	} else {
-		return { rc: true, e0: this.b0, e1: this.b1 };
+		return { rc: true, e0: this.b0, e1: this.b1+1 };
 	}
 } // getState()
 
@@ -4785,10 +4788,10 @@ PFilterNum.prototype.setState = function(state)
 {
 	if (state.rc) {
 		this.b0  = state.e0;
-		this.b1  = state.e1;
-		this.min = this.rCats[state.e0].min;
-		this.max = this.rCats[state.e1].max;
-		this.brush.extent([state.e0, state.e1+1]);
+		this.b1  = state.e1-1;
+		this.min = this.rCats[this.b0].min;
+		this.max = this.rCats[this.b1].max;
+		this.brush.extent([state.e0, state.e1]);
 		this.brushg.call(this.brush);
 	} else {
 		var dom = this.insertPt();
@@ -4815,6 +4818,9 @@ PFilterDates.prototype.constructor = PFilterDates;
 PFilterDates.prototype.evalPrep = function()
 {
 	this.c = jQuery('input[name=dctrl-'+this.id+']:checked').val();
+	this.ctrs = new Uint16Array(this.rCats.length);
+	for (var i=0; i<this.rCats.length; i++)
+		this.ctrs[i] = 0;
 } // evalPrep()
 
 	// ASSUMES: Brush code in setup sets min & max
@@ -4836,8 +4842,10 @@ PFilterDates.prototype.eval = function(rec)
 
 		// Is it a single event?
 	if (typeof d.max == 'undefined') {
-		var c = makeDate(d.min.y, 1, 1, d.min, false);
-		return (this.min <= c) && (c < this.max);
+		var s = makeDate(d.min.y, 1, 1, d.min, false);
+		// return (this.min <= s) && (s < this.max);
+		if (s < this.min || s >= this.max)
+			return false;
 	} else {
 		var s = makeDate(d.min.y, 1, 1, d.min, false);
 		var e;
@@ -4850,12 +4858,36 @@ PFilterDates.prototype.eval = function(rec)
 		if (this.c == 'o') {
 			if (e < this.min || s >= this.max)
 				return false;
-			return true;
+			// return true;
 		} else {
-			return (this.min <= s) && (e <= this.max);
+			// return (this.min <= s) && (e <= this.max);
+			if (this.min > s || e > this.max)
+				return false;
 		}
 	}
+		// Now find category it belongs to
+	for (var i=this.b0; i<=this.b1; i++) {
+		c = this.rCats[i];
+		if (c.min <= s && s <= c.max) {
+			this.ctrs[i]++;
+			break;
+		}
+	}
+	return true;
 } // eval()
+
+PFilterDates.prototype.evalDone = function(total)
+{
+	var self=this;
+	var innerH = 80 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
+	var p = new Uint16Array(this.ctrs.length);
+	for (var x=0; x<this.ctrs.length; x++)
+		p[x] = (total > 0) ? Math.round((this.ctrs[x] * 100) / total) : 0;
+	this.chart.selectAll(".bar")
+		.transition().duration(500)
+		.attr("height", function(d, i) { return innerH - self.yScale(p[i]); })
+		.attr("y", function(d, i) { return self.yScale(p[i]); });
+} // evalDone()
 
 PFilterDates.prototype.setup = function()
 {
@@ -4863,8 +4895,10 @@ PFilterDates.prototype.setup = function()
 
 	this.rCats = PData.getRCats(this.att, false);
 		// Set defaults
+	this.b0  = 0;
+	this.b1  = this.rCats.length-1;
 	this.min = this.rCats[0].min;
-	this.max = this.rCats[this.rCats.length-1].max;
+	this.max = this.rCats[this.b1].max;
 
 	var innerH = 80 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
 
@@ -4897,8 +4931,10 @@ PFilterDates.prototype.setup = function()
 		d3.select(this).transition()
 			.call(self.brush.extent(extent1));
 
-		self.min = self.rCats[extent1[0]].min;
-		self.max = self.rCats[extent1[1]-1].max;
+		self.b0  = extent1[0];
+		self.b1  = extent1[1]-1;
+		self.min = self.rCats[self.b0].min;
+		self.max = self.rCats[self.b1].max;
 		self.isDirty(true);
 	} // brushended()
 
@@ -4913,6 +4949,7 @@ PFilterDates.prototype.setup = function()
 	var xScale = d3.scale.linear().domain([0, this.rCats.length])
 		.rangeRound([0, innerW]);
 	var yScale = d3.scale.linear().domain([0,100]).range([innerH, 0]);
+	this.yScale = yScale;
 
 	var rScale = d3.scale.ordinal().rangeRoundBands([0, innerW]);
 	rScale.domain(this.rCats.map(function(rc) { return rc.l; }));
@@ -4932,6 +4969,7 @@ PFilterDates.prototype.setup = function()
 		.attr("height", innerH+D3FG_MARGINS.top+D3FG_MARGINS.bottom)
 		.append("g")
 		.attr("transform", "translate("+D3FG_MARGINS.left+","+D3FG_MARGINS.top+")");
+	this.chart = chart;
 
 	chart.append("g")
 		.attr("class", "x axis")
@@ -4947,10 +4985,8 @@ PFilterDates.prototype.setup = function()
 		.enter().append("rect")
 		.attr("class", "bar")
 		.attr("x", function(d, i) { return xScale(i)+2; })
-		// .attr("y", "0")
 		.attr("y", function(d) { return yScale(100); })
 		.attr("fill", function(d) { return d.c; })
-		// .attr("height", function(d) { return innerH; })
 		.attr("height", function(d) { return innerH - yScale(100); })
 		.attr("width", colW-4);
 
@@ -4972,16 +5008,17 @@ PFilterDates.prototype.setup = function()
 
 PFilterDates.prototype.getState = function()
 {
-	var e = this.brush.extent();
 	var c = jQuery('input[name=dctrl-'+this.id+']:checked').val();
-	return { e0: e[0], e1: e[1], c: c };
+	return { e0: this.b0, e1: this.b1+1, c: c };
 } // getState()
 
 PFilterDates.prototype.setState = function(state)
 {
 	jQuery('input[name="dctrl-'+this.id+'"]').val([state.c]);
-	this.min = this.rCats[state.e0].min;
-	this.max = this.rCats[state.e1-1].max;
+	this.b0  = state.e0;
+	this.b1  = state.e1-1;
+	this.min = this.rCats[this.b0].min;
+	this.max = this.rCats[this.b1].max;
 	this.brush.extent([state.e0, state.e1]);
 	this.brushg.call(this.brush);
 } // setState()
@@ -8347,6 +8384,7 @@ jQuery(document).ready(function($) {
 				}
 			}
 			selFilter.isDirty(false);
+			selFilter.evalDone(endStream.l);
 		}
 
 		PState.set(PSTATE_UPDATE);
