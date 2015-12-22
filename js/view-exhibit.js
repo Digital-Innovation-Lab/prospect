@@ -4254,6 +4254,7 @@ function PFilterModel(id, attRec)
 	// this.setUp()
 	// this.evalPrep()
 	// this.eval(rec)
+	// this.evalDone(total)
 	// this.getState()
 	// this.setState(data)
 } // PFilterModel
@@ -4278,6 +4279,14 @@ PFilterModel.prototype.title = function()
 	return this.att.def.l;
 } // title()
 
+PFilterModel.prototype.evalPrep = function()
+{
+} // evalPrep()
+
+PFilterModel.prototype.evalDone = function()
+{
+} // teardown()
+
 	// PURPOSE: Return jQuery result for contents of this filter
 PFilterModel.prototype.insertPt = function()
 {
@@ -4287,6 +4296,15 @@ PFilterModel.prototype.insertPt = function()
 PFilterModel.prototype.teardown = function()
 {
 } // teardown()
+
+PFilterModel.prototype.getState = function()
+{
+	return { };
+} // getState()
+
+PFilterModel.prototype.setState = function(state)
+{
+} // setState()
 
 
 // ==============================================================================
@@ -4306,10 +4324,6 @@ PFilterRemove.prototype.title = function()
 	return dlText.rha;
 } // title()
 
-PFilterRemove.prototype.evalPrep = function()
-{
-} // evalPrep()
-
 PFilterRemove.prototype.eval = function(rec)
 {
 	return false;
@@ -4323,15 +4337,6 @@ PFilterRemove.prototype.setup = function()
 
 	inserted.append(htmlText);
 } // setup()
-
-PFilterRemove.prototype.getState = function()
-{
-	return { };
-} // getState()
-
-PFilterRemove.prototype.setState = function(state)
-{
-} // setState()
 
 // ============================================
 // PFilterText: Class to filter Text Attributes
@@ -4421,7 +4426,12 @@ PFilterVocab.prototype.evalPrep = function()
 		if (attID)
 			self.sel.push(attID);
 	});
-	self.sel.sort();
+	this.sel.sort();
+
+		// Create counters
+	this.ctrs = new Uint16Array(this.sel.length);
+	for (var i=0; i<this.sel.length; i++)
+		this.ctrs[i] = 0;
 } // evalPrep()
 
 PFilterVocab.prototype.eval = function(rec)
@@ -4431,16 +4441,38 @@ PFilterVocab.prototype.eval = function(rec)
 	var v = rec.a[this.att.id];
 	if (typeof v == 'undefined')
 		return false;
-		// Try all possible Attribute values
+
+		// Try all possible Attribute values (will be array)
 	var s, vi;
 	for (var i=0; i<v.length; i++) {
 		vi = v[i];
 		s = _.sortedIndex(this.sel, vi);
-		if (this.sel[s] == vi)
+		if (this.sel[s] == vi) {
+			this.ctrs[s]++;
 			return true;
+		}
 	}
 	return false;
 } // eval()
+
+PFilterVocab.prototype.evalDone = function(total)
+{
+	var self=this;
+	var attID, s, w, j;
+	var v = this.insertPt().find('div.filter-vocab-row');
+	v.each(function() {
+		j = jQuery(this);
+		attID = j.data('id');
+		if (attID) {
+			s = _.sortedIndex(self.sel, attID);
+			if (self.sel[s] == attID) {
+				w = (total > 0) ? Math.round((self.ctrs[s] * 100) / total) : 0;
+			} else
+				w = 0;
+			j.next().width(w+"%");
+		}
+	});
+} // evalDone()
 
 PFilterVocab.prototype.setup = function()
 {
@@ -4530,6 +4562,10 @@ PFilterNum.prototype.evalPrep = function()
 		this.max = parseInt(dom.find('input.filter-num-max-val').val());
 		this.useMin = dom.find('input.filter-num-min-use').is(':checked');
 		this.useMax = dom.find('input.filter-num-max-use').is(':checked');
+	} else {
+		this.ctrs = new Uint16Array(this.rCats.length);
+		for (var i=0; i<this.rCats.length; i++)
+			this.ctrs[i] = 0;
 	}
 } // evalPrep()
 
@@ -4547,9 +4583,33 @@ PFilterNum.prototype.eval = function(rec)
 	} else {
 		if (num >= this.max)
 			return false;
+			// in range but now must find category it matched to inc count
+		var c;
+		for (var i=this.b0; i<= this.b1; i++) {
+			c=this.rCats[i];
+			if (c.min <= num && num <= c.max) {
+				this.ctrs[i]++;
+				break;
+			}
+		}
 	}
 	return true;
 } // eval()
+
+PFilterNum.prototype.evalDone = function(total)
+{
+	if (this.rCats) {
+		var self=this;
+		var innerH = 80 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
+		var p = new Uint16Array(this.ctrs.length);
+		for (var x=0; x<this.ctrs.length; x++)
+			p[x] = (total > 0) ? Math.round((this.ctrs[x] * 100) / total) : 0;
+		this.chart.selectAll(".bar")
+			.transition().duration(500)
+			.attr("height", function(d, i) { return innerH - self.yScale(p[i]); })
+			.attr("y", function(d, i) { return self.yScale(p[i]); });
+	}
+} // evalDone()
 
 PFilterNum.prototype.setup = function()
 {
@@ -4604,8 +4664,11 @@ PFilterNum.prototype.setup = function()
 	} else {
 			// Set defaults
 		this.useMin = this.useMax = true;
+			// indices of rCats contained by brush (inclusive)
+		this.b0  = 0;
+		this.b1  = this.rCats.length-1;
 		this.min = this.rCats[0].min;
-		this.max = this.rCats[this.rCats.length-1].max;
+		this.max = this.rCats[this.b1].max;
 
 		var innerH = 80 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
 
@@ -4638,8 +4701,10 @@ PFilterNum.prototype.setup = function()
 			d3.select(this).transition()
 				.call(self.brush.extent(extent1));
 
-			self.min = self.rCats[extent1[0]].min;
-			self.max = self.rCats[extent1[1]-1].max;
+			self.b0  = extent1[0];
+			self.b1  = extent1[1]-1;
+			self.min = self.rCats[self.b0].min;
+			self.max = self.rCats[self.b1].max;
 			self.isDirty(true);
 		} // brushended()
 
@@ -4653,6 +4718,7 @@ PFilterNum.prototype.setup = function()
 		var xScale = d3.scale.linear().domain([0, this.rCats.length])
 			.rangeRound([0, innerW]);
 		var yScale = d3.scale.linear().domain([0,100]).range([innerH, 0]);
+		this.yScale = yScale;
 
 		var rScale = d3.scale.ordinal().rangeRoundBands([0, innerW]);
 		rScale.domain(this.rCats.map(function(rc) { return rc.l; }));
@@ -4665,6 +4731,8 @@ PFilterNum.prototype.setup = function()
 			.append("g")
 			.attr("transform", "translate("+D3FG_MARGINS.left+","+D3FG_MARGINS.top+")");
 
+		this.chart = chart;
+
 		chart.append("g")
 			.attr("class", "x axis")
 			.attr("transform", "translate(0,"+innerH+")")
@@ -4674,6 +4742,7 @@ PFilterNum.prototype.setup = function()
 			.attr("class", "y axis")
 			.call(yAxis);
 
+			// Initialize bars at 100%
 		chart.selectAll(".bar")
 			.data(this.rCats)
 			.enter().append("rect")
@@ -4711,16 +4780,17 @@ PFilterNum.prototype.getState = function()
 		var useMax = dom.find('input.filter-num-max-use').is(':checked');
 		return { rc: false, min: min, max: max, useMin: useMin, useMax: useMax };
 	} else {
-		var e = this.brush.extent();
-		return { rc: true, e0: e[0], e1: e[1] };
+		return { rc: true, e0: this.b0, e1: this.b1+1 };
 	}
 } // getState()
 
 PFilterNum.prototype.setState = function(state)
 {
 	if (state.rc) {
-		this.min = this.rCats[state.e0].min;
-		this.max = this.rCats[state.e1-1].max;
+		this.b0  = state.e0;
+		this.b1  = state.e1-1;
+		this.min = this.rCats[this.b0].min;
+		this.max = this.rCats[this.b1].max;
 		this.brush.extent([state.e0, state.e1]);
 		this.brushg.call(this.brush);
 	} else {
@@ -4748,6 +4818,9 @@ PFilterDates.prototype.constructor = PFilterDates;
 PFilterDates.prototype.evalPrep = function()
 {
 	this.c = jQuery('input[name=dctrl-'+this.id+']:checked').val();
+	this.ctrs = new Uint16Array(this.rCats.length);
+	for (var i=0; i<this.rCats.length; i++)
+		this.ctrs[i] = 0;
 } // evalPrep()
 
 	// ASSUMES: Brush code in setup sets min & max
@@ -4769,8 +4842,10 @@ PFilterDates.prototype.eval = function(rec)
 
 		// Is it a single event?
 	if (typeof d.max == 'undefined') {
-		var c = makeDate(d.min.y, 1, 1, d.min, false);
-		return (this.min <= c) && (c < this.max);
+		var s = makeDate(d.min.y, 1, 1, d.min, false);
+		// return (this.min <= s) && (s < this.max);
+		if (s < this.min || s >= this.max)
+			return false;
 	} else {
 		var s = makeDate(d.min.y, 1, 1, d.min, false);
 		var e;
@@ -4783,12 +4858,36 @@ PFilterDates.prototype.eval = function(rec)
 		if (this.c == 'o') {
 			if (e < this.min || s >= this.max)
 				return false;
-			return true;
+			// return true;
 		} else {
-			return (this.min <= s) && (e <= this.max);
+			// return (this.min <= s) && (e <= this.max);
+			if (this.min > s || e > this.max)
+				return false;
 		}
 	}
+		// Now find category it belongs to
+	for (var i=this.b0; i<=this.b1; i++) {
+		c = this.rCats[i];
+		if (c.min <= s && s <= c.max) {
+			this.ctrs[i]++;
+			break;
+		}
+	}
+	return true;
 } // eval()
+
+PFilterDates.prototype.evalDone = function(total)
+{
+	var self=this;
+	var innerH = 80 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
+	var p = new Uint16Array(this.ctrs.length);
+	for (var x=0; x<this.ctrs.length; x++)
+		p[x] = (total > 0) ? Math.round((this.ctrs[x] * 100) / total) : 0;
+	this.chart.selectAll(".bar")
+		.transition().duration(500)
+		.attr("height", function(d, i) { return innerH - self.yScale(p[i]); })
+		.attr("y", function(d, i) { return self.yScale(p[i]); });
+} // evalDone()
 
 PFilterDates.prototype.setup = function()
 {
@@ -4796,8 +4895,10 @@ PFilterDates.prototype.setup = function()
 
 	this.rCats = PData.getRCats(this.att, false);
 		// Set defaults
+	this.b0  = 0;
+	this.b1  = this.rCats.length-1;
 	this.min = this.rCats[0].min;
-	this.max = this.rCats[this.rCats.length-1].max;
+	this.max = this.rCats[this.b1].max;
 
 	var innerH = 80 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
 
@@ -4830,8 +4931,10 @@ PFilterDates.prototype.setup = function()
 		d3.select(this).transition()
 			.call(self.brush.extent(extent1));
 
-		self.min = self.rCats[extent1[0]].min;
-		self.max = self.rCats[extent1[1]-1].max;
+		self.b0  = extent1[0];
+		self.b1  = extent1[1]-1;
+		self.min = self.rCats[self.b0].min;
+		self.max = self.rCats[self.b1].max;
 		self.isDirty(true);
 	} // brushended()
 
@@ -4846,6 +4949,7 @@ PFilterDates.prototype.setup = function()
 	var xScale = d3.scale.linear().domain([0, this.rCats.length])
 		.rangeRound([0, innerW]);
 	var yScale = d3.scale.linear().domain([0,100]).range([innerH, 0]);
+	this.yScale = yScale;
 
 	var rScale = d3.scale.ordinal().rangeRoundBands([0, innerW]);
 	rScale.domain(this.rCats.map(function(rc) { return rc.l; }));
@@ -4865,6 +4969,7 @@ PFilterDates.prototype.setup = function()
 		.attr("height", innerH+D3FG_MARGINS.top+D3FG_MARGINS.bottom)
 		.append("g")
 		.attr("transform", "translate("+D3FG_MARGINS.left+","+D3FG_MARGINS.top+")");
+	this.chart = chart;
 
 	chart.append("g")
 		.attr("class", "x axis")
@@ -4903,16 +5008,17 @@ PFilterDates.prototype.setup = function()
 
 PFilterDates.prototype.getState = function()
 {
-	var e = this.brush.extent();
 	var c = jQuery('input[name=dctrl-'+this.id+']:checked').val();
-	return { e0: e[0], e1: e[1], c: c };
+	return { e0: this.b0, e1: this.b1+1, c: c };
 } // getState()
 
 PFilterDates.prototype.setState = function(state)
 {
 	jQuery('input[name="dctrl-'+this.id+'"]').val([state.c]);
-	this.min = this.rCats[state.e0].min;
-	this.max = this.rCats[state.e1-1].max;
+	this.b0  = state.e0;
+	this.b1  = state.e1-1;
+	this.min = this.rCats[this.b0].min;
+	this.max = this.rCats[this.b1].max;
 	this.brush.extent([state.e0, state.e1]);
 	this.brushg.call(this.brush);
 } // setState()
@@ -7512,11 +7618,12 @@ jQuery(document).ready(function($) {
 				// If we've started, evaluate and propagate
 			if (started || theF.f.isDirty(null)) {
 				started = true;
-				theF.f.evalPrep();
+				var f = theF.f;
+				f.evalPrep();
 				var newStream = PData.newIndexStream(false);
 				var relI=0, absI, rec;
-				var tI=0, tRec=endStream.t[0], tRn=0, e;
-				e=fDiv.find('.apply-tmplt-0').is(':checked');
+				var tI=0, tRec=endStream.t[0], tRn=0, rTotal=0;
+				var e=fDiv.find('.apply-tmplt-0').is(':checked');
 					// Must keep absolute indices and template params updated!
 				while (relI < endStream.l) {
  						// Advance until we get to current Template rec
@@ -7527,12 +7634,15 @@ jQuery(document).ready(function($) {
 						e=fDiv.find('.apply-tmplt-'+tI).is(':checked');
  					}
 	 				absI = endStream.s[relI++];
+	 					// Need to evaluate
  					if (e) {
 	 					rec = PData.getRecByIndex(absI);
-						if (theF.f.eval(rec)) {
+						if (f.eval(rec)) {
 							newStream.s[newStream.l++] = absI;
 							tRn++;
 						}
+						rTotal++;
+						// Pass-through
  					} else {
 						newStream.s[newStream.l++] = absI;
 						tRn++;
@@ -7543,8 +7653,9 @@ jQuery(document).ready(function($) {
 					newStream.t.push( { i: (newStream.l-tRn), n: tRn } );
 					tRn = 0;
 				}
-				theF.f.isDirty(false);
-				theF.f.out = newStream;
+				f.isDirty(false);
+				f.out = newStream;
+				f.evalDone(rTotal);
 				endStream = newStream;
 			} else
 				endStream = theF.f.out;
@@ -8273,6 +8384,7 @@ jQuery(document).ready(function($) {
 				}
 			}
 			selFilter.isDirty(false);
+			selFilter.evalDone(endStream.l);
 		}
 
 		PState.set(PSTATE_UPDATE);
