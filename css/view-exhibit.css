@@ -1161,8 +1161,9 @@ svg .node circle.obj-sel {
 }
 
 svg .node text {
-	font: 300 11px "Helvetica Neue", Helvetica, Arial, sans-serif;
-	stroke-width: 1px;
+	font: 11px "Helvetica Neue", Helvetica, Arial, sans-serif;
+	stroke-width: .5px;
+	stroke-opacity: .5;
 }
 
 svg .link

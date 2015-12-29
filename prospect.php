@@ -3,7 +3,7 @@
  * Plugin Name:       Prospect
  * Plugin URI:        https://prospect.web.unc.edu/
  * Description:       Digital Humanities platform for visualizing curated collections
- * Version:           0.9.6
+ * Version:           0.9.7
  * Author:            Michael Newton, Breon Williams, Digital Innovation Lab, UNC-CH
  * Author URI:        
  * Text Domain:       dil-prospect
@@ -122,6 +122,7 @@ function prospect_register_post_types()
 		'hierarchical' => false,
 		'menu_position' => null,
 		'supports' => array('title', 'editor', 'thumbnail', 'revisions'),
+		'taxonomies' => array('category', 'post_tag'),
 		'capability_type' => array('prsp_record','prsp_records'),
 		'map_meta_cap' => true,
 		'capabilities' => array(

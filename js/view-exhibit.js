@@ -3327,9 +3327,13 @@ VizNetWheel.prototype.render = function(stream)
 			}
 		});
 
-		node.select("text").attr("fill", function(n) { return n.linked ? "white" : "black"; });
+		node.select("text")
+			.attr("fill", function(n) { return n.linked ? "white" : "black"; })
+			.attr("stroke", "none");
 
-		d3.select(lSelf).attr("fill", "red");
+		d3.select(lSelf)
+			.attr("fill", "red")
+			.attr("stroke", "black");
 
 		PState.set(PSTATE_READY);
 	} // clickName()
@@ -3437,6 +3441,7 @@ VizNetWheel.prototype.render = function(stream)
 			.attr("transform", function(d) { return d.x < 180 ? "" : "rotate(180)"; })
 			.style("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
 			.attr("fill", "black")
+			.attr("stroke", "none")
 			.text(function(d) { return d.r.l; })
 			.on("click", clickName);
 
