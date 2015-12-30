@@ -33,7 +33,8 @@ function prospect_register_post_types()
 	);
 	$args = array(
 		'labels' => $labels,
-		'public' => false,
+		'public' => true,
+		'publicly_queryable' => true,
 		'show_ui' => true, 
 		'show_in_menu' => 'prsp-top-level-handle',
 		'rewrite' => array('slug' => 'prsp-attribute', 'with_front' => FALSE),
@@ -53,7 +54,8 @@ function prospect_register_post_types()
 			'read_private_posts' => 'read_private_prsp_attributes',
 			'delete_post' => 'delete_prsp_attribute'
 		),
-		'show_in_rest' => true
+		'show_in_rest' => true,
+		'rest_controller_class' => 'WP_REST_Posts_Controller'
 	); 
 	register_post_type('prsp-attribute', $args);
 
@@ -75,7 +77,8 @@ function prospect_register_post_types()
 	);
 	$args = array(
 		'labels' => $labels,
-		'public' => false,
+		'public' => true,
+		'publicly_queryable' => true,
 		'show_ui' => true, 
 		'show_in_menu' => 'prsp-top-level-handle',
 		'rewrite' => array('slug' => 'prsp-template', 'with_front' => FALSE),
@@ -95,8 +98,8 @@ function prospect_register_post_types()
 			'read_private_posts' => 'read_private_prsp_templates',
 			'delete_post' => 'delete_prsp_template'
 		),
-		'show_in_rest' => true
-
+		'show_in_rest' => true,
+		'rest_controller_class' => 'WP_REST_Posts_Controller'
 	); 
 	register_post_type('prsp-template', $args);
 
@@ -140,8 +143,8 @@ function prospect_register_post_types()
 			'read_private_posts' => 'read_private_prsp_records',
 			'delete_post' => 'delete_prsp_record'
 		),
-		'show_in_rest' => true
-
+		'show_in_rest' => true,
+		'rest_controller_class' => 'WP_REST_Posts_Controller'
 	); 
 	register_post_type('prsp-record', $args);
 
@@ -164,7 +167,7 @@ function prospect_register_post_types()
 	);
 	$args = array(
 		'labels' => $labels,
-		'public' => false,
+		'public' => true,
 		'show_ui' => true, 
 		'show_in_menu' => 'prsp-top-level-handle',
 		'rewrite' => array('slug' => 'prsp-exhibit', 'with_front' => FALSE),
@@ -206,7 +209,7 @@ function prospect_register_post_types()
 	);
 	$args = array(
 		'labels' => $labels,
-		'public' => false,
+		'public' => true,
 		'publicly_queryable' => true,
 		'show_ui' => true,
 		'show_in_menu' => 'prsp-top-level-handle',
@@ -250,7 +253,7 @@ function prospect_register_post_types()
 	);
 	$args = array(
 		'labels' => $labels,
-		'public' => false,
+		'public' => true,
 		'show_ui' => true, 
 		'show_in_menu' => 'prsp-top-level-handle',
 		'rewrite' => array('slug' => 'prsp-prspctv', 'with_front' => FALSE),

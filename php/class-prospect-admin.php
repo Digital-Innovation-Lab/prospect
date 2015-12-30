@@ -1801,6 +1801,192 @@ class ProspectAdmin {
 	} // add_prsp_menus()
 
 
+	// REST API
+	//=========
+
+		// PURPOSE: Endpoint for .../wp-json/wp/v2/prsp/v1/attributes
+	public function rest_get_attributes()
+	{
+		return 'rest_get_attributes()';		// Temporary test for success
+
+		$ids = ProspectAttribute::get_all_attribute_ids();
+		return $ids;
+	} // rest_get_attributes()
+
+		// PURPOSE: Endpoint for .../wp-json/wp/v2/prsp/v1/attribute/ID
+	public function rest_get_attribute(WP_REST_Request $request)
+	{
+		$id = $request['id'];
+		return 'Test: '.$id;		// Temporary test for success
+
+		$att = new ProspectAttribute(false, $id, true, false, true, true, true);
+		$result = array(
+			'id' => $id,
+			'def' => json_encode($att->def, JSON_UNESCAPED_UNICODE),
+			'l' => json_encode($the_attribute->legend, JSON_UNESCAPED_UNICODE)
+		);
+		if ($att->x != null)
+			$result[] = array('x' => $att->x);
+		return $result;
+	} // rest_get_attribute()
+
+
+		// PURPOSE: Endpoint for .../wp-json/wp/v2/prsp/v1/templates
+	public function rest_get_templates()
+	{
+		return 'rest_get_templates()';		// Temporary test for success
+
+		$ids = ProspectTemplate::get_all_template_ids();
+		return $ids;
+	} // rest_get_templates()
+
+		// PURPOSE: Endpoint for .../wp-json/wp/v2/prsp/v1/template/ID
+	public function rest_get_template(WP_REST_Request $request)
+	{
+		$id = $request['id'];
+		return 'Test: '.$id;		// Temporary test for success
+
+		$template = new ProspectTemplate(false, $id, true, true, false);
+			// Replace Template's Unjoined Attribute list with Joined
+		$template->get_all_attributes(false);
+		$template->def->a = $the_template->all_att_ids;
+
+		$result = array(
+			'id' => $id,
+			'def' => json_encode($template->def, JSON_UNESCAPED_UNICODE),
+			'n' => $template->get_num_records()
+		);
+		return $result;
+	} // rest_get_template()
+
+		// PURPOSE: Endpoint for .../wp-json/wp/v2/prsp/v1/recids/id
+		// INPUT: 	id = ID of Template
+	public function rest_get_record_ids(WP_REST_Request $request)
+	{
+		$id = $request['id'];
+		return 'rest_get_records()'.$id;		// Temporary test for success
+
+		$args = array('post_type' => 'prsp-record', 'meta_key' => 'tmplt-id',
+						'meta_value' => $id, 'post_status' => 'publish');
+		$query = new WP_Query($args);
+
+		$ids = array();
+		if ($query->have_posts()) {
+			foreach ($query->posts as $post) {
+				$id = get_post_meta($post->ID, 'record-id', true);
+				if ($id && $id != '')
+					array_push($ids, $id);
+			}
+		}
+		return $ids;
+	} // rest_get_record_ids()
+
+		// PURPOSE: Endpoint for .../wp-json/wp/v2/prsp/v1/record/ID
+		// INPUT: 	id = ID of Template
+		//			from = index of first Record
+		//			count = count of Records to get
+	public function rest_get_records(WP_REST_Request $request)
+	{
+		$tmplt_id = $request['id'];
+		$from = $request['from'];
+		$count = $request['count'];
+		return 'Template: '.$id." from ".$from." count ".$count;		// Temporary test for success
+
+
+		$result = array();
+
+			// Load Template definition
+		$the_template = new ProspectTemplate(false, $tmplt_id, true, true, false);
+
+			// Get dependent Templates needed for Joins
+		$d_templates = $the_template->get_dependent_templates(false);
+
+			// Get associative array for all Attribute definitions
+		$assoc_atts = ProspectAttribute::get_assoc_defs();
+
+			// Get Records -- Need to order by Record ID, etc
+		$args = array('post_type' => 'prsp-record',
+						'post_status' => 'publish',
+						'meta_key' => 'record-id',
+						'orderby' => 'meta_value',
+						'order' => 'ASC',
+						'offset' => $from,
+						'posts_per_page' => $count,
+						'meta_query' =>
+							array('key' => 'tmplt-id',
+								'value' => $tmplt_id,
+								'compare' => '=')
+					);
+
+		$query = new WP_Query($args);
+		if ($query->have_posts()) {
+			foreach ($query->posts as $rec) {
+				$the_rec = new ProspectRecord(true, $rec->ID, false, $the_template, $d_templates, $assoc_atts);
+					// Extract the necessary data in proper format
+				$extracted_rec = array();
+				$extracted_rec['id'] = $the_rec->id;
+				$extracted_rec['wp'] = $the_rec->post_id;
+				$extracted_rec['l']  = $the_rec->label;
+				$extracted_rec['a']  = $the_rec->att_data;
+				array_push($result, $extracted_rec);
+			}
+		}
+		return json_encode($result, JSON_UNESCAPED_UNICODE);
+	} // rest_get_records()
+
+
+		// PURPOSE: Endpoint for .../wp-json/wp/v2/prsp/v1/record/ID
+	public function rest_get_record(WP_REST_Request $request)
+	{
+		$id = $request['id'];
+		return 'Test: '.$id;		// Temporary test for success
+
+			// Need to get ID of Template first!
+		$args = array('post_type' => 'prsp-record',
+						'meta_key' => 'record-id',
+						'meta_value' => $the_id,
+						'posts_per_page' => 1);
+		$query = new WP_Query($args);
+		if ($query->have_posts()) {
+			$rec_post_id = $query->posts[0]->ID;
+
+				// Get Template ID for this Record
+			$template_id = get_post_meta($rec_post_id, 'tmplt-id', true);
+			$template = new ProspectTemplate(false, $template_id, true, true, false);
+
+				// Get dependent Templates needed for Joins
+			$d_templates = $the_template->get_dependent_templates(false);
+
+				// Get associative array for all Attribute definitions
+			$assoc_atts = ProspectAttribute::get_assoc_defs();
+
+			$record = new ProspectRecord(false, $id, false, $template, $d_templates, $assoc_atts);
+
+			$result = array();
+			$result['id'] = $record->id;
+			$result['wp'] = $record->post_id;
+			$result['l']  = $record->label;
+			$result['a']  = $record->att_data;
+			return $result;
+		} else
+			return '';
+	} // rest_get_record()
+
+
+		// PURPOSE: Add the REST endpoints
+	public function add_rest_api()
+	{
+		register_rest_route('prsp/v1', '/attributes', array(
+				'methods' => 'GET',
+				'callback' => array($this, 'rest_get_attributes')
+			));
+		register_rest_route('prsp/v1', '/attribute/(?P<id>\w+)', array(
+				'methods' => 'GET',
+				'callback' => array($this, 'rest_get_attribute')
+			));
+	} // add_rest_api()
+
+
 	// AJAX CALLS
 	//===========
 
