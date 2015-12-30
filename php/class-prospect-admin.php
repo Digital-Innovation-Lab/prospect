@@ -1804,7 +1804,7 @@ class ProspectAdmin {
 	// REST API
 	//=========
 
-		// PURPOSE: Endpoint for .../wp-json/prsp/v1/attributes
+		// PURPOSE: Endpoint for .../wp-json/prsp/v1/attids
 	public function rest_get_attributes()
 	{
 		$ids = ProspectAttribute::get_all_attribute_ids();
@@ -1830,14 +1830,17 @@ class ProspectAdmin {
 	} // rest_get_attribute()
 
 
-		// PURPOSE: Endpoint for .../wp-json/prsp/v1/templates
+		// PURPOSE: Endpoint for .../wp-json/prsp/v1/tempids
 	public function rest_get_templates()
 	{
 		$ids = ProspectTemplate::get_all_template_ids();
 		return $ids;
 	} // rest_get_templates()
 
-		// PURPOSE: Endpoint for .../wp-json/prsp/v1/template/ID
+		// PURPOSE: Endpoint for .../wp-json/prsp/v1/template/ID&t
+		// INPUT:	id = ID of Template
+		//			t = 'r' for raw format, else 'j' for Joined
+		// TO DO: 	Check and use t parameter
 	public function rest_get_template(WP_REST_Request $request)
 	{
 		$id = $request['id'];
@@ -1887,7 +1890,8 @@ class ProspectAdmin {
 		return $ids;
 	} // rest_get_record_ids()
 
-		// PURPOSE: Endpoint for .../wp-json/prsp/v1/records/ID
+		// PURPOSE: Endpoint for .../wp-json/prsp/v1/records/ID&from&to
+		// RETURNS: Fully joined Record data
 		// INPUT: 	id = ID of Template
 		//			from = index of first Record
 		//			count = count of Records to get
@@ -1942,6 +1946,8 @@ class ProspectAdmin {
 
 
 		// PURPOSE: Endpoint for .../wp-json/prsp/v1/record/ID
+		// RETURNS: Raw (unjoined) data for Record
+		// TO DO: 	Check user status -- don't allow raw data to go out to unathorized
 	public function rest_get_record(WP_REST_Request $request)
 	{
 		$id = $request['id'];
@@ -1965,7 +1971,7 @@ class ProspectAdmin {
 				// Get associative array for all Attribute definitions
 			$assoc_atts = ProspectAttribute::get_assoc_defs();
 
-			$record = new ProspectRecord(false, $id, false, $template, $d_templates, $assoc_atts);
+			$record = new ProspectRecord(false, $id, true, $template, $d_templates, $assoc_atts);
 
 			$result = array();
 			$result['id'] = $record->id;
@@ -1981,7 +1987,7 @@ class ProspectAdmin {
 		// PURPOSE: Add the REST endpoints
 	public function add_rest_api()
 	{
-		register_rest_route('prsp/v1', '/attributes', array(
+		register_rest_route('prsp/v1', '/attids', array(
 				'methods' => 'GET',
 				'callback' => array($this, 'rest_get_attributes')
 			));
@@ -1989,7 +1995,7 @@ class ProspectAdmin {
 				'methods' => 'GET',
 				'callback' => array($this, 'rest_get_attribute')
 			));
-		register_rest_route('prsp/v1', '/templates', array(
+		register_rest_route('prsp/v1', '/tempids', array(
 				'methods' => 'GET',
 				'callback' => array($this, 'rest_get_templates')
 			));
