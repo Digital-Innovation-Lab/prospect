@@ -4592,7 +4592,7 @@ PFilterNum.prototype.eval = function(rec)
 		var c;
 		for (var i=this.b0; i<= this.b1; i++) {
 			c=this.rCats[i];
-			if (c.min <= num && num <= c.max) {
+			if (c.min <= num && num < c.max) {
 				this.ctrs[i]++;
 				break;
 			}
@@ -4873,7 +4873,7 @@ PFilterDates.prototype.eval = function(rec)
 		// Now find category it belongs to
 	for (var i=this.b0; i<=this.b1; i++) {
 		c = this.rCats[i];
-		if (c.min <= s && s <= c.max) {
+		if (c.min <= s && s < c.max) {
 			this.ctrs[i]++;
 			break;
 		}
