@@ -7396,7 +7396,7 @@ var PData = (function() {
 								// Did we pass eligible category?
 							if (datum < cRec.min)
 								break;
-							if (cRec.min <= datum && datum <= cRec.max) {
+							if (cRec.min <= datum && datum < cRec.max) {
 								cRec.i.push(aI);
 								break;
 							}
@@ -7410,7 +7410,7 @@ var PData = (function() {
 								// Did we pass eligible category?
 							if (sd < cRec.min)
 								break;
-							if (cRec.min <= sd && sd <= cRec.max) {
+							if (cRec.min <= sd && sd < cRec.max) {
 								cRec.i.push(aI);
 								break;
 							}
@@ -7467,7 +7467,7 @@ var PData = (function() {
 								// Did we pass eligible category?
 							if (datum < sRec.min)
 								break;
-							if (sRec.min <= datum && datum <= sRec.max) {
+							if (sRec.min <= datum && datum < sRec.max) {
 								sRec.i.push(aI);
 								break;
 							}
@@ -7481,7 +7481,7 @@ var PData = (function() {
 								// Did we pass eligible category?
 							if (sd < sRec.min)
 								break;
-							if (sRec.min <= sd && sd <= sRec.max) {
+							if (sRec.min <= sd && sd < sRec.max) {
 								sRec.i.push(aI);
 								break;
 							}
