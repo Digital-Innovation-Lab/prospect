@@ -1511,6 +1511,9 @@ class ProspectAdmin {
 	public function import_archive_file()
 	{
 		$fname = $_FILES['archive-import-select']['tmp_name'];
+		if ($fname == null || $fname == '')
+			return;
+
 		$res = fopen($fname, 'r');
 
 			// Return if file not found or empty file
