@@ -459,6 +459,26 @@ jQuery(document).ready(function() {
 		return atts;
 	} // attMatch()
 
+		// PURPOSE: Present user message in modal dialog box
+	function messageModal(mText)
+	{
+		var modalDialog = new Ractive({
+			el: '#att-insert-dialog',
+			template: '#dialog-message',
+			data: {
+				message: mText
+			},
+			components: {
+				dialog: RJDialogComponent
+			}
+		}); // new Ractive()
+
+		modalDialog.on('dialog.ok', function() {
+			modalDialog.teardown();
+			return false;
+		});
+	} // messageModal()
+
 		// PURPOSE: Present a confirmation modal
 		// RETURNS: true if OK, false if Cancel
 	function confirmModal(msgID, callback)
@@ -625,6 +645,13 @@ jQuery(document).ready(function() {
 		});
 		return false;
 	}); // on resetLegend
+
+		// Pop up modal with hint about IDs
+	rApp.on('idHint', function() {
+		var hint = getText('#errmsg-id-bad-chars');
+		messageModal(hint);
+		return false;
+	});
 
 		// User asked for new Legend entry
 	rApp.on('addLegend', function() {

@@ -398,17 +398,17 @@ VizMap.prototype.render = function(stream)
 				mLayer.eachLayer(function(marker) {
 					if (marker.options._aid == aid) {
 						if (added)
-							marker.setStyle({ color: "#ff0000" });
+							marker.setStyle({ color: "yellow", weight: 2 });
 						else
-							marker.setStyle({ color: "#000" });
+							marker.setStyle({ color: "#000", weight: 1 });
 					}
 				});
 				PState.set(PSTATE_READY);
 			} else {
 				if (added)
-					this.setStyle({ color: "#ff0000" });
+					this.setStyle({ color: "yellow", weight: 2 });
 				else
-					this.setStyle({ color: "#000" });
+					this.setStyle({ color: "#000", weight: 1 });
 			}
 		}
 	} // markerClick()
@@ -613,7 +613,7 @@ VizMap.prototype.clearSel = function()
 		this.recSel = [];
 		if (this.markerLayer) {
 			this.markerLayer.eachLayer(function(marker) {
-				marker.setStyle({ color: "#000" });
+				marker.setStyle({ color: "#000", weight: 1 });
 			});
 		}
 	}
@@ -627,9 +627,9 @@ VizMap.prototype.setSel = function(absIArray)
 	if (this.markerLayer) {
 		this.markerLayer.eachLayer(function(marker) {
 			if (self.isSel(marker.options._aid))
-				marker.setStyle({ color: "#ff0000" });
+				marker.setStyle({ color: "yellow", weight: 2 });
 			else
-				marker.setStyle({ color: "#000" });
+				marker.setStyle({ color: "#000", weight: 1 });
 		});
 	}
 } // setSel()
@@ -4592,7 +4592,7 @@ PFilterNum.prototype.eval = function(rec)
 		var c;
 		for (var i=this.b0; i<= this.b1; i++) {
 			c=this.rCats[i];
-			if (c.min <= num && num <= c.max) {
+			if (c.min <= num && num < c.max) {
 				this.ctrs[i]++;
 				break;
 			}
@@ -4873,7 +4873,7 @@ PFilterDates.prototype.eval = function(rec)
 		// Now find category it belongs to
 	for (var i=this.b0; i<=this.b1; i++) {
 		c = this.rCats[i];
-		if (c.min <= s && s <= c.max) {
+		if (c.min <= s && s < c.max) {
 			this.ctrs[i]++;
 			break;
 		}
@@ -7105,7 +7105,7 @@ var PData = (function() {
 						if (d.max.y == null)
 							dmax = TODAY;
 						else
-							dmax = PData.objDate(d.max, 12, true);
+							dmax = PData.objDate(d.max, 12, false);
 						rcs.push({ l: d.l, c: d.v, min: dmin, max: dmax, i:[] });
 					}
 				});
@@ -7223,7 +7223,8 @@ var PData = (function() {
 							else
 								d = field.d;
 						}
-						return PData.date3Nums(y,m,d,true);
+							// Since max value is exclusive boundary, don't add day to it
+						return PData.date3Nums(y,m,d,false);
 					}
 				} // makeMaxDate()
 
@@ -7287,7 +7288,6 @@ var PData = (function() {
 					rCat.min = curDate;
 					switch (inc) {
 					case 'd':
-						rCat.max = PData.date3Nums(curY, curM, curD+1, true);
 						if (++curD > PData.lenMnth(curY, curM)) {
 							curD=1;
 							if (++curM > 12) {
@@ -7297,25 +7297,23 @@ var PData = (function() {
 						}
 						break;
 					case 'm':
-						rCat.max = PData.date3Nums(curY, curM+1, curD, true);
 						if (++curM > 12) {
 							curM = 1;
 							curY++;
 						}
 						break;
 					case 'y':
-						rCat.max = PData.date3Nums(curY+1, curM, curD, true);
 						curY++;
 						break;
 					case 't':
-						rCat.max = PData.date3Nums(curY+10, curM, curD, true);
 						curY += 10;
 						break;
 					case 'c':
-						rCat.max = PData.date3Nums(curY+100, curM, curD, true);
 						curY += 100;
 						break;
 					}
+						// Since max value is exclusive boundary, don't add day to it
+					rCat.max = PData.date3Nums(curY, curM, curD, false);
 					rcs.push(rCat);
 					curDate = PData.date3Nums(curY, curM, curD, false);
 				}
@@ -7396,7 +7394,7 @@ var PData = (function() {
 								// Did we pass eligible category?
 							if (datum < cRec.min)
 								break;
-							if (cRec.min <= datum && datum <= cRec.max) {
+							if (cRec.min <= datum && datum < cRec.max) {
 								cRec.i.push(aI);
 								break;
 							}
@@ -7410,7 +7408,7 @@ var PData = (function() {
 								// Did we pass eligible category?
 							if (sd < cRec.min)
 								break;
-							if (cRec.min <= sd && sd <= cRec.max) {
+							if (cRec.min <= sd && sd < cRec.max) {
 								cRec.i.push(aI);
 								break;
 							}
@@ -7467,7 +7465,7 @@ var PData = (function() {
 								// Did we pass eligible category?
 							if (datum < sRec.min)
 								break;
-							if (sRec.min <= datum && datum <= sRec.max) {
+							if (sRec.min <= datum && datum < sRec.max) {
 								sRec.i.push(aI);
 								break;
 							}
@@ -7481,7 +7479,7 @@ var PData = (function() {
 								// Did we pass eligible category?
 							if (sd < sRec.min)
 								break;
-							if (sRec.min <= sd && sd <= sRec.max) {
+							if (sRec.min <= sd && sd < sRec.max) {
 								sRec.i.push(aI);
 								break;
 							}

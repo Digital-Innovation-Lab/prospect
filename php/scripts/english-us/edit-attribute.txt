@@ -186,6 +186,7 @@
 	</select>
 	<br/>
 	Attribute's unique internal id: <input value='{{attID}}' placeholder="Enter id" size="24" pattern="[\w\-]+" required/>
+	<button decorator="iconButton:ui-icon-info" on-click="idHint">Hint about IDs</button>
 	<select value='{{chosenCF}}'>
 		{{#each cfs}}
 			<option>{{this}}</option>
@@ -322,6 +323,13 @@
 	</dialog>
 </script>
 
+<!-- Hint Dialog -->
+<script id="dialog-message" type='text/ractive'>
+	<dialog title="Display Hint" width="300" height="300" cancel="false">
+		{{message}}
+	</dialog>
+</script>
+
 <!-- Color Choice Dialog -->
 <script id="dialog-choose-color" type='text/ractive'>
 	<dialog title="Choose Color" width="250" height="330">
@@ -371,7 +379,7 @@ The Attribute internal ID is too long.
 </script>
 
 <script id="errmsg-id-bad-chars" type='text/ractive'>
-An Attribute internal ID can only consist of alphabetic characters (in plain ASCII), numbers, underscores and hyphens (it cannot contain spaces, punctuation, Unicode-only characters, etc).
+An Attribute internal ID must consist of alphabetic characters (in plain ASCII), numbers, underscores and hyphens (it cannot contain spaces, punctuation, Unicode-only characters, etc).
 </script>
 
 <script id="errmsg-no-label" type='text/ractive'>

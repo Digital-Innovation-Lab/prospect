@@ -150,6 +150,24 @@ class ProspectTemplate {
 		return (int)$query->found_posts;
 	} // get_num_records()
 
+		// PURPOSE: Return all Record IDs of this Template type
+	public function get_all_record_ids()
+	{
+		$args = array('post_type' => 'prsp-record', 'meta_key' => 'tmplt-id',
+						'meta_value' => $this->id, 'post_status' => 'publish');
+		$query = new WP_Query($args);
+
+		$ids = array();
+		if ($query->have_posts()) {
+			foreach ($query->posts as $post) {
+				$id = get_post_meta($post->ID, 'record-id', true);
+				if ($id && $id != '')
+					array_push($ids, $id);
+			}
+		}
+		return $ids;
+	} // get_all_record_ids()
+
 
 		// RETURNS: Array of Dependent templates joined by this Template ordered by ID
 		// INPUT: 	$view is passed as $load_view parameter

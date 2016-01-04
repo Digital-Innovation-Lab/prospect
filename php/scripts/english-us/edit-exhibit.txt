@@ -37,7 +37,9 @@
 		<h3>General Settings</h3>
 		<div>
 			<label for="ext-label">Exhibit's external label: </label><input id="ext-label" type='text' value='{{genSettings.l}}' placeholder="Enter label" size="24" required/>
+			<br/>
 			<label for="int-id">Exhibit's unique internal id: </label><input type='text' id="int-id" value='{{xhbtID}}' placeholder="Enter id" pattern="[\w\-]+" size="24" required/>
+			<button decorator="iconButton:ui-icon-info" on-click="idHint">Hint about IDs</button>
 			<br/>
 			"{{genSettings.l}}" will display Template types:<br/>
 			{{#each iTemplates}}
@@ -694,6 +696,13 @@
 <!-- Confirm Dialog -->
 <script id="dialog-confirm" type='text/ractive'>
 	<dialog title="Confirm" width="300" height="200">
+		{{message}}
+	</dialog>
+</script>
+
+<!-- Hint Dialog -->
+<script id="dialog-message" type='text/ractive'>
+	<dialog title="Display Hint" width="300" height="300" cancel="false">
 		{{message}}
 	</dialog>
 </script>

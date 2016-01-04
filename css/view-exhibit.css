@@ -652,25 +652,25 @@ label {
 @-webkit-keyframes pulse {
 	0% { border-color: red; transform: scale(1.0);}
 	5% { border-color: red; transform: scale(1.3);}
-	50% { border-color: yellow; transform: scale(0.8);}
+	50% { border-color: red; transform: scale(0.8);}
 	100% { border-color: red; transform: scale(1.0);}
 }
 @-moz-keyframes pulse {
 	0% { border-color: red; transform: scale(1.0);}
 	5% { border-color: red; transform: scale(1.3);}
-	50% { border-color: yellow; transform: scale(0.8); }
+	50% { border-color: red; transform: scale(0.8); }
 	100% { border-color: red; transform: scale(1.0); }
 }
 @-ms-keyframes pulse {
 	0% { border-color: red; transform: scale(1.0);}
 	5% { border-color: red; transform: scale(1.3);}
-	50% { border-color: yellow; transform: scale(0.8); }
+	50% { border-color: red; transform: scale(0.8); }
 	100% { border-color: red; transform: scale(1.0); }
 }
 @keyframes pulse {
 	0% { border-color: red; transform: scale(1.0);}
 	5% { border-color: red; transform: scale(1.3);}
-	50% { border-color: yellow; transform: scale(0.8); }
+	50% { border-color: red; transform: scale(0.8); }
 	100% { border-color: red; transform: scale(1.0); }
 }
 
@@ -771,7 +771,7 @@ div.card:hover {
 }
 
 div.card.obj-sel {
-	border: red solid 1px;
+	border: yellow solid 1px;
 }
 
 div.card.wt {
@@ -984,7 +984,7 @@ svg .recobj
 
 svg .recobj.obj-sel
 {
-	stroke: red;
+	stroke: yellow;
 	stroke-width: 1;
 	fill: none;
 }
@@ -1075,7 +1075,7 @@ svg.tl-vf .event.instant {
 
 svg.tl-vf .event.obj-sel
 {
-	stroke: red;
+	stroke: yellow;
 	stroke-width: 2px;
 }
 
@@ -1133,7 +1133,7 @@ div.viz-textstream div.recitem {
 }
 
 div.viz-textstream div.recitem.obj-sel {
-	border: red solid 1px;
+	border: yellow solid 2px;
 }
 
 	/* Stacked Chart styles */
@@ -1145,8 +1145,8 @@ svg .block
 
 svg .block.obj-sel
 {
-	stroke: red;
-	stroke-width: 1;
+	stroke: yellow;
+	stroke-width: 2px;
 }
 
 	/* Network Wheel styles */
@@ -1156,8 +1156,8 @@ svg .node
 }
 
 svg .node circle.obj-sel {
-	stroke: red;
-	stroke-width: 1px;
+	stroke: yellow;
+	stroke-width: 2px;
 }
 
 svg .node text {
@@ -1189,8 +1189,8 @@ svg .bar
 
 svg .bar.obj-sel
 {
-	stroke: red;
-	stroke-width: 1px;
+	stroke: yellow;
+	stroke-width: 2px;
 }
 
 svg .flow
@@ -1210,8 +1210,8 @@ svg .flow.active
 
 svg .flow.obj-sel
 {
-	stroke: red;
-	stroke-width: 1px;
+	stroke: yellow;
+	stroke-width: 2px;
 }
 
 svg .att-title
@@ -1232,7 +1232,7 @@ svg .mbm-cell {
 }
 
 svg .mbm-cell.obj-sel {
-	stroke: red;
+	stroke: yellow;
 	stroke-width: 2px;
 }
 
@@ -1248,7 +1248,7 @@ svg .mbm-title {
 
 svg .mbm-title.obj-sel {
 	cursor: pointer;
-	fill: red;
+	fill: yellow;
 }
 
 svg .mbm-att-title
@@ -1264,7 +1264,7 @@ svg .mbm-att-title
 
 svg .mbm-att-title.obj-sel
 {
-	fill: red;
+	fill: yellow;
 }
 
 svg .mbm-reset

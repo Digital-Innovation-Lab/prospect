@@ -158,6 +158,14 @@ class Prospect {
 			// Add Dashboard hooks
 		$this->admin = new ProspectAdmin($this->get_version());
 
+		$this->loader->add_action('admin_init', $this->admin, 'do_prsp_init', null, null);
+
+			// Hook for Archive page
+		$this->loader->add_action('admin_menu', $this->admin, 'add_prsp_menus', null, null);
+
+			// Hooks for REST API
+		$this->loader->add_action('rest_api_init', $this->admin, 'add_rest_api', null, null);
+
 		$this->loader->add_action('upload_mimes', $this->admin, 'add_mime_types', null, null);
 		$this->loader->add_filter('query_vars', $this->admin, 'add_query_vars_filter', null, null);
 
@@ -192,11 +200,6 @@ class Prospect {
 		$this->loader->add_action('admin_action_prsp_export_prspctv', $this->admin, 'prsp_export_prspctv', null, null);
 		$this->loader->add_action('admin_action_prsp_export_xhbt_prspctvs', $this->admin, 'prsp_export_xhbt_prspctvs', null, null);
 		$this->loader->add_action('admin_action_prsp_export_all_prspctvs', $this->admin, 'prsp_export_all_prspctvs', null, null);
-
-		$this->loader->add_action('admin_init', $this->admin, 'do_prsp_init', null, null);
-
-			// Hook for Archive page
-		$this->loader->add_action('admin_menu', $this->admin, 'add_prsp_menus', null, null);
 
 			// AJAX calls
 		$this->loader->add_action('wp_ajax_prsp_get_rec_ids', $this->admin, 'prsp_get_rec_ids', null, null);

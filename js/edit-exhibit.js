@@ -409,6 +409,26 @@ jQuery(document).ready(function() {
 		modalDialog.on('dialog.cancel', modalDialog.teardown);
 	} // confirmModal()
 
+		// PURPOSE: Present user message in modal dialog box
+	function messageModal(mText)
+	{
+		var modalDialog = new Ractive({
+			el: '#insert-dialog',
+			template: '#dialog-message',
+			data: {
+				message: mText
+			},
+			components: {
+				dialog: RJDialogComponent
+			}
+		}); // new Ractive()
+
+		modalDialog.on('dialog.ok', function() {
+			modalDialog.teardown();
+			return false;
+		});
+	} // messageModal()
+
 
 		// Compile array about independent Template types from input configuration data
 		//	into format usable by edit GUI
@@ -1093,6 +1113,13 @@ jQuery(document).ready(function() {
 			newDialog.teardown();
 		});
 		newDialog.on('dialog.cancel', newDialog.teardown);
+		return false;
+	});
+
+		// Pop up modal with hint about IDs
+	rApp.on('idHint', function() {
+		var hint = getText('#errmsg-id');
+		messageModal(hint);
 		return false;
 	});
 

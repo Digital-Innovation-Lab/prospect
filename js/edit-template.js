@@ -247,6 +247,27 @@ jQuery(document).ready(function() {
 	} // doErrorCheck()
 
 
+		// PURPOSE: Present user message in modal dialog box
+	function messageModal(mText)
+	{
+		var modalDialog = new Ractive({
+			el: '#insert-dialog',
+			template: '#dialog-message',
+			data: {
+				message: mText
+			},
+			components: {
+				dialog: RJDialogComponent
+			}
+		}); // new Ractive()
+
+		modalDialog.on('dialog.ok', function() {
+			modalDialog.teardown();
+			return false;
+		});
+	} // messageModal()
+
+
 		// PURPOSE: Present a confirmation modal
 		// RETURNS: true if OK, false if Cancel
 	function confirmModal(msgID, callback)
@@ -422,6 +443,13 @@ jQuery(document).ready(function() {
 		return false;
 	}); // delAttribute
 
+
+		// Pop up modal with hint about IDs
+	rApp.on('idHint', function() {
+		var hint = getText('#errmsg-no-id');
+		messageModal(hint);
+		return false;
+	});
 
 		// Compile Text Attribute list when Attributes change
 		// 	initially oldValue == undefined
