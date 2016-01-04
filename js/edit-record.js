@@ -423,6 +423,13 @@ jQuery(document).ready(function() {
 		return false;
 	});
 
+		// Pop up modal with all IDs of this Template type
+	rApp.on('idHint', function() {
+		var hint = getText('#errmsg-id');
+		messageModal(hint);
+		return false;
+	});
+
 		// Set Lat-Lon coordinate to current geo location
 	rApp.on('setHere', function(event, index) {
 		navigator.geolocation.getCurrentPosition(function(pos) {

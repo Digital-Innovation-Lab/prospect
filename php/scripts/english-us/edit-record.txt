@@ -16,6 +16,7 @@
 	<button id="prsp-save-data" on-click="saveRecord">Verify and Save Record</button><br/>
 	<div>
 		<label for="rec-id">Unique Record ID </label> <input type="text" id="rec-id" size="32" value="{{recID}}" pattern="[\w\-]+" required/>
+		<button decorator="iconButton:ui-icon-info" on-click="idHint">Hint for IDs</button>
 		<label for="rec-type">Template Type </label>
 		<select id="rec-type" value="{{recType}}">
 		{{#each defTemplates}}
@@ -175,9 +176,9 @@
 	</dialog>
 </script>
 
-<!-- Attribute Contributor Hint Dialog -->
+<!-- Hint Dialog -->
 <script id="dialog-message" type='text/ractive'>
-	<dialog title="Entry Hint" width="300" height="350" cancel="false">
+	<dialog title="Display Hint" width="300" height="350" cancel="false">
 		<div class="scroll-container">
 			{{message}}
 		</div>
@@ -186,7 +187,7 @@
 
 <!-- ERRORS -->
 <script id="errmsg-id" type='text/ractive'>
-You must supply an internal ID for the Record that is no more than 32 characters in length and consists entirely of alphanumeric characters (in plain ASCII), spaces and underscores  (it cannot contain spaces, punctuation, Unicode-only characters, etc).
+You must supply an internal ID for the Record that is no more than 32 characters in length and consists entirely of alphanumeric characters (in plain ASCII), spaces and underscores (it cannot contain spaces, punctuation, Unicode-only characters, etc).
 </script>
 
 <script id="errmsg-no-templates" type='text/ractive'>
