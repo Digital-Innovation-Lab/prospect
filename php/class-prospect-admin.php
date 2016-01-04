@@ -1952,6 +1952,8 @@ class ProspectAdmin {
 	{
 		$id = $request['id'];
 
+			// TO DO: Check user id -- see http://v2.wp-api.org/guide/authentication/
+
 			// Need to get ID of Template first!
 		$args = array('post_type' => 'prsp-record',
 						'meta_key' => 'record-id',
