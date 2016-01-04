@@ -7105,7 +7105,7 @@ var PData = (function() {
 						if (d.max.y == null)
 							dmax = TODAY;
 						else
-							dmax = PData.objDate(d.max, 12, true);
+							dmax = PData.objDate(d.max, 12, false);
 						rcs.push({ l: d.l, c: d.v, min: dmin, max: dmax, i:[] });
 					}
 				});
@@ -7223,7 +7223,8 @@ var PData = (function() {
 							else
 								d = field.d;
 						}
-						return PData.date3Nums(y,m,d,true);
+							// Since max value is exclusive boundary, don't add day to it
+						return PData.date3Nums(y,m,d,false);
 					}
 				} // makeMaxDate()
 
@@ -7287,7 +7288,6 @@ var PData = (function() {
 					rCat.min = curDate;
 					switch (inc) {
 					case 'd':
-						rCat.max = PData.date3Nums(curY, curM, curD+1, true);
 						if (++curD > PData.lenMnth(curY, curM)) {
 							curD=1;
 							if (++curM > 12) {
@@ -7297,25 +7297,23 @@ var PData = (function() {
 						}
 						break;
 					case 'm':
-						rCat.max = PData.date3Nums(curY, curM+1, curD, true);
 						if (++curM > 12) {
 							curM = 1;
 							curY++;
 						}
 						break;
 					case 'y':
-						rCat.max = PData.date3Nums(curY+1, curM, curD, true);
 						curY++;
 						break;
 					case 't':
-						rCat.max = PData.date3Nums(curY+10, curM, curD, true);
 						curY += 10;
 						break;
 					case 'c':
-						rCat.max = PData.date3Nums(curY+100, curM, curD, true);
 						curY += 100;
 						break;
 					}
+						// Since max value is exclusive boundary, don't add day to it
+					rCat.max = PData.date3Nums(curY, curM, curD, false);
 					rcs.push(rCat);
 					curDate = PData.date3Nums(curY, curM, curD, false);
 				}
