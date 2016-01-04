@@ -398,17 +398,17 @@ VizMap.prototype.render = function(stream)
 				mLayer.eachLayer(function(marker) {
 					if (marker.options._aid == aid) {
 						if (added)
-							marker.setStyle({ color: "#ff0000" });
+							marker.setStyle({ color: "yellow", weight: 2 });
 						else
-							marker.setStyle({ color: "#000" });
+							marker.setStyle({ color: "#000", weight: 1 });
 					}
 				});
 				PState.set(PSTATE_READY);
 			} else {
 				if (added)
-					this.setStyle({ color: "#ff0000" });
+					this.setStyle({ color: "yellow", weight: 2 });
 				else
-					this.setStyle({ color: "#000" });
+					this.setStyle({ color: "#000", weight: 1 });
 			}
 		}
 	} // markerClick()
@@ -613,7 +613,7 @@ VizMap.prototype.clearSel = function()
 		this.recSel = [];
 		if (this.markerLayer) {
 			this.markerLayer.eachLayer(function(marker) {
-				marker.setStyle({ color: "#000" });
+				marker.setStyle({ color: "#000", weight: 1 });
 			});
 		}
 	}
@@ -627,9 +627,9 @@ VizMap.prototype.setSel = function(absIArray)
 	if (this.markerLayer) {
 		this.markerLayer.eachLayer(function(marker) {
 			if (self.isSel(marker.options._aid))
-				marker.setStyle({ color: "#ff0000" });
+				marker.setStyle({ color: "yellow", weight: 2 });
 			else
-				marker.setStyle({ color: "#000" });
+				marker.setStyle({ color: "#000", weight: 1 });
 		});
 	}
 } // setSel()
