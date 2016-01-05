@@ -3328,12 +3328,10 @@ VizNetWheel.prototype.render = function(stream)
 		});
 
 		node.select("text")
-			.attr("fill", function(n) { return n.linked ? "white" : "black"; })
-			.attr("stroke", "none");
+			.attr("fill", function(n) { return n.linked ? "white" : "black"; });
 
 		d3.select(lSelf)
-			.attr("fill", "red")
-			.attr("stroke", "black");
+			.attr("fill", "yellow");
 
 		PState.set(PSTATE_READY);
 	} // clickName()
@@ -3441,7 +3439,6 @@ VizNetWheel.prototype.render = function(stream)
 			.attr("transform", function(d) { return d.x < 180 ? "" : "rotate(180)"; })
 			.style("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
 			.attr("fill", "black")
-			.attr("stroke", "none")
 			.text(function(d) { return d.r.l; })
 			.on("click", clickName);
 
@@ -7124,9 +7121,9 @@ var PData = (function() {
 			// ASSUMES: Only called for Text, Vocabulary, Number and Dates types
 			//			Date range has minimum year
 			//			JS Data creation deals with “spillover” values
-			// NOTES: 	To qualify for a Legend category, a range category only needs to start within it
+			// NOTES: 	To match a Legend category, a value only needs to start within it
 			//			A range category with no Legend match is assigned color black
-			//			max value is exclusive (must be less than, not equal!)
+			//			max value for Dates only (!) is exclusive (value must be less than, not equal!)
 			// TO DO: 	Handle case that scale of max-min and g would be too large ??
 		getRCats: function(att, addItems)
 		{
@@ -7184,17 +7181,15 @@ var PData = (function() {
 					}
 					min = curV;
 					curV += inc;
-					max = curV;
+					max = curV-1;	// Since Number max is inclusive
 					var l=min.toString();
 						// Show min and max if not individual digits and too long
-					if (inc > 1 && l.length < 4) {
-						var n=max-1;
-						l += "-"+n.toString();
-					}
+					if (inc > 1 && l.length < 4)
+						l += "-"+max.toString();
 					if (addItems)
-						rcs.push({ l: l, c: rgb, min: min, max: curV, i: [] });
+						rcs.push({ l: l, c: rgb, min: min, max: max, i: [] });
 					else
-						rcs.push({ l: l, c: rgb, min: min, max: curV });
+						rcs.push({ l: l, c: rgb, min: min, max: max });
 				}
 				return rcs;
 			case 'D':
@@ -7394,7 +7389,7 @@ var PData = (function() {
 								// Did we pass eligible category?
 							if (datum < cRec.min)
 								break;
-							if (cRec.min <= datum && datum < cRec.max) {
+							if (cRec.min <= datum && datum <= cRec.max) {
 								cRec.i.push(aI);
 								break;
 							}
@@ -7465,7 +7460,7 @@ var PData = (function() {
 								// Did we pass eligible category?
 							if (datum < sRec.min)
 								break;
-							if (sRec.min <= datum && datum < sRec.max) {
+							if (sRec.min <= datum && datum <= sRec.max) {
 								sRec.i.push(aI);
 								break;
 							}
