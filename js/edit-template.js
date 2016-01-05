@@ -123,8 +123,10 @@ jQuery(document).ready(function() {
 	embedData = jQuery('textarea[name="prsp_tmp_def"]').val();
 	if (embedData && embedData.length > 2) {
 		defTemplate = JSON.parse(embedData);
+		if (typeof defTemplate.h == 'undefined')
+			defTemplate.h = '';
 	} else {
-		defTemplate = { l: '', d: false, t: '', a: [] };
+		defTemplate = { l: '', d: false, t: '', a: [], h: '' };
 	}
 
 	embedData = jQuery('textarea[name="prsp_tmp_view"]').val();
@@ -217,8 +219,6 @@ jQuery(document).ready(function() {
 		// SIDE-FX: sets errorMsg to explanation of error
 	function doErrorCheck()
 	{
-		var defObj;
-
 		var theID = rApp.get('templateID').trim();
 		if (theID.length == 0) {
 			displayError('#errmsg-no-id');
@@ -243,7 +243,18 @@ jQuery(document).ready(function() {
 			return false;
 		}
 
-		return { l: theLabel };
+		var defObj = { l: theLabel };
+
+		var theHint = rApp.get('theTemplate.h').trim();
+		if (theHint.length > 0) {
+			if (theHint.indexOf('"') > -1) {
+				displayError('#errmsg-hint-quotes');
+				return false;
+			}
+			defObj.h = theHint;
+		}
+
+		return defObj;
 	} // doErrorCheck()
 
 
