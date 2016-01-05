@@ -4767,8 +4767,8 @@ PFilterNum.prototype.setup = function()
 		self.brushg.attr("class", "brush")
 			.call(self.brush);
 		self.brushg.selectAll("rect")
-			.attr("y", 0)
-			.attr("height", innerH);
+			.attr("y", -1)
+			.attr("height", innerH+4);
 		self.brushg.selectAll(".resize")
 			.append("path")
 			.attr("d", resizePath);
@@ -5004,8 +5004,8 @@ PFilterDates.prototype.setup = function()
 	self.brushg.attr("class", "brush")
 		.call(self.brush);
 	self.brushg.selectAll("rect")
-		.attr("y", 0)
-		.attr("height", innerH);
+		.attr("y", -1)
+		.attr("height", innerH+4);
 	self.brushg.selectAll(".resize")
 		.append("path")
 		.attr("d", resizePath);
