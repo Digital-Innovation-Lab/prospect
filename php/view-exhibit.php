@@ -98,6 +98,8 @@
 		array_push($all_ts, $the_template);
 			// Replace Template's Unjoined Attribute list with Joined
 		$the_template->def->a = $the_template->all_att_ids;
+			// Remove any Record hints
+		unset($the_template->def->h);
 		echo('{ id: "'.$the_template->id.'", ');
 		echo(' def: '.json_encode($the_template->def, JSON_UNESCAPED_UNICODE).', ');
 		echo(' n: '.$the_template->get_num_records().' }');

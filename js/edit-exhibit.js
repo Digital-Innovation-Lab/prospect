@@ -72,7 +72,8 @@ jQuery(document).ready(function() {
 			return {
 				title: '',
 				width: 350,
-				height: 300
+				height: 300,
+				cancel: true
 			}
 		}, // data
 
@@ -80,28 +81,27 @@ jQuery(document).ready(function() {
 		onrender: function() {
 			var self = this;
 			var thisComponent = this.find('*');
+			var theButtons = [ {
+					text: 'OK',
+					click: function() {
+						self.fire('ok');
+					}
+				} ];
+			if (self.get('cancel')) {
+				theButtons.push( {
+					text: 'Cancel',
+					click: function() {
+						self.fire('cancel');
+					}
+				} );
+			}
 			self.modal = jQuery(thisComponent).dialog({
 				width: self.get('width'),
 				height: self.get('height'),
 				modal : true,
 				autoOpen: true,
-				buttons: [
-				{
-					text: 'Cancel',
-					click: function() {
-						// self.modal.dialog('close');
-						// self.teardown();
-						self.fire('cancel');
-					}
-				},
-				{
-					text: 'OK',
-					click: function() {
-						self.fire('ok');
-					}
-				}]
+				buttons: theButtons
 			});
-			// self.modal.dialog('open');
 		}, // onrender
 
 			// Intercept teardown so that jQueryUI component destroyed

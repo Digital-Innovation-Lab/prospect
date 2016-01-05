@@ -13,11 +13,14 @@
 	<div id="error-frame">{{errorMsg}}</div>
 	{{/if}}
 	<button id="prsp-save-data" on-click="saveTemplate">Verify and Save Template Definition</button><br/>
-	<label for="ext-label">Template's external label: </label><input id="ext-label" value='{{theTemplate.l}}' placeholder="Enter label" size="24" required/>
+	<label for="ext-label">Template's external label: </label> <input id="ext-label" value='{{theTemplate.l}}' placeholder="Enter label" size="24" required/>
 	<br/>
-	<label for="int-id">Template's unique internal id: </label><input id="int-id" value='{{templateID}}' placeholder="Enter id" size="24" pattern="[\w\-]+" required/>
+	<label for="int-id">Template's unique internal id: </label> <input id="int-id" value='{{templateID}}' placeholder="Enter id" size="24" pattern="[\w\-]+" required/>
 	<button decorator="iconButton:ui-icon-info" on-click="idHint">Hint about IDs</button>
 	<input id="dep-tmplt" type='checkbox' checked='{{theTemplate.d}}'> Dependent Template
+	<br/>
+
+	<label for="hint">Hint for Record IDs: </label> <input id="hint" value='{{theTemplate.h}}' placeholder="Enter Hint or leave blank" size="44" required/>
 	<br/>
 
 	<label for="label-latt">Label for each Record supplied by: </label> <select id="label-latt" value='{{theTemplate.t}}'>
@@ -125,9 +128,9 @@
 	</dialog>
 </script>
 
-<!-- Confirm Dialog -->
+<!-- Message Dialog -->
 <script id="dialog-message" type='text/ractive'>
-	<dialog title="Display Hint" width="300" height="300">
+	<dialog title="Display Hint" width="300" height="300" cancel="false">
 		{{message}}
 	</dialog>
 </script>
@@ -175,6 +178,10 @@ You are defining a dependent Templates, which cannot have Attributes of type 'Jo
 
 <script id="errmsg-missing-join-tmp" type='text/ractive'>
 You added an Attribute of type 'Join' but have not yet connected it to a Template.
+</script>
+
+<script id="errmsg-hint-quotes" type='text/ractive'>
+You used a straight double quote (") in your hint, but this is not allowed. If you need double-quotes, use angled ones (“ ”).
 </script>
 
 

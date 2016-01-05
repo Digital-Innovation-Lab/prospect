@@ -425,7 +425,13 @@ jQuery(document).ready(function() {
 
 		// Pop up modal with all IDs of this Template type
 	rApp.on('idHint', function() {
-		var hint = getText('#errmsg-id');
+		var templateID = rApp.get('recType');
+		var theTemplate = getTemplate(templateID);
+		var hint;
+		if (typeof theTemplate.def.h == 'undefined')
+			hint = getText('#errmsg-id');
+		else
+			hint = theTemplate.def.h;
 		messageModal(hint);
 		return false;
 	});
