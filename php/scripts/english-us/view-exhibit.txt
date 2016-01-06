@@ -272,6 +272,10 @@ about
 now
 </script>
 
+<script id="dltext-undefined" type="text">
+Undefined
+</script>
+
 <script id="dltext-delete" type="text">
 Delete
 </script>

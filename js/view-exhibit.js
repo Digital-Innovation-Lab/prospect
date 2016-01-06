@@ -1971,7 +1971,7 @@ VizTime.prototype.render = function(stream)
 
 				rec = PData.getRecByIndex(aI);
 				fData = rec.a[fAttID];
-				if (typeof fData != 'undefined') {
+				if (typeof fData != 'undefined' && fData != '?') {
 					if (fData = PData.getAttLgndRecs(fData, fAtt, featSet, false)) {
 						if (dData = rec.a[dAttID]) {
 							f = dData.min.f ? EVENT_F_START : 0;
@@ -5819,6 +5819,12 @@ function PViewFrame(vfIndex)
 		legendIDs[lIndex] = attID;
 			// Insert new items
 		var attDef = PData.getAttID(attID);
+			// Create pseudo-entry for undefined value
+		if (typeof attDef.r.u != 'undefined') {
+			element = '<div class="lgnd-value lgnd-entry" data-index="-1"><input type="checkbox" checked="checked" class="lgnd-entry-check"/>'+
+						'<div class="lgnd-viz" style="background-color: '+attDef.r.u.v+'"> </div> <span class="lgnd-value-title">'+dlText.undef+'</span></div>';
+			group.append(element);
+		}
 		attDef.l.forEach(function(legEntry, lgIndex) {
 			element = '<div class="lgnd-value lgnd-entry" data-index="'+lgIndex+'"><input type="checkbox" checked="checked" class="lgnd-entry-check"/>'+
 						'<div class="lgnd-viz" style="background-color: '+legEntry.v+'"> </div> <span class="lgnd-value-title">'+legEntry.l+'</span></div>';
@@ -6501,8 +6507,13 @@ var PData = (function() {
 			case 'T':
 				return a;
 			case 'N':
+				if (a == '?')
+					return dlText.undef;
 				return a.toString();
 			case 'D':
+				if (a == '?')
+					return dlText.undef;
+
 				var ds='';
 					// Range
 				if (a.max) {
@@ -6775,21 +6786,33 @@ var PData = (function() {
 			case 'N':
 				for (var f=0; f<lI; f++) {
 					fI = fSet[f];
-					lE = att.l[fI];
-						// either min and max can be left out (= no bound), but not both
-					if (typeof lE.d.min != 'undefined') {
-						if (lE.d.min <= val) {
-							if (typeof lE.d.max != 'undefined') {
-								if (val <= lE.d.max)
+						// Special undefined character?
+					if (fI == -1) {
+						if (val == '?') {
+							if (typeof att.r.u == 'undefined')
+								return null;
+							return att.r.u;
+						}
+					} else {
+							// As undefined is first entry (-1), abort now
+						if (val == '?')
+							return null;
+						lE = att.l[fI];
+							// either min and max can be left out (= no bound), but not both
+						if (typeof lE.d.min != 'undefined') {
+							if (lE.d.min <= val) {
+								if (typeof lE.d.max != 'undefined') {
+									if (val <= lE.d.max)
+										return lE;
+								} else
 									return lE;
-							} else
+							}
+						} else {	// max only
+							if (val <= lE.d.max)
 								return lE;
 						}
-					} else {	// max only
-						if (val <= lE.d.max)
-							return lE;
-					}
-				}
+					} // else
+				} // for
 				return null;
 			case 'D':
 					 			// Just looking for overlap, date doesn't have to be completely contained
@@ -6797,81 +6820,93 @@ var PData = (function() {
 								//	(2) start of event is after max bound
 				for (var f=0; f<lI; f++) {
 					fI = fSet[f];
-					lE = att.l[fI];
-					if (typeof lE.d.max.y != 'undefined') {		// max bounds
-							// Test val maxs against min bound for disqualification
-						if (typeof val.max != 'undefined' && val.max != 'open') {
-							if (val.max.y < lE.d.min.y)
-								continue;
-							if (val.max.y == lE.d.min.y) {
-								if (val.max.m && lE.d.min.m) {
-									if (val.max.m < lE.d.min.m)
-										continue;
-									if (val.max.m == lE.d.min.m) {
-										if (val.max.d && lE.d.min.d) {
-											if (val.max.d < lE.d.min.d)
-												continue;
-										}
-									}
-								}
-							}
+						// Special undefined character?
+					if (fI == -1) {
+						if (val == '?') {
+							if (typeof att.r.u == 'undefined')
+								return null;
+							return att.r.u;
 						}
-							// Test val mins against max bound for disqualification
-						if (val.min.y > lE.d.max.y)
-							continue;
-						if (val.min.y == lE.d.max.y) {
-							if (val.min.m && lE.d.max.m) {
-								if (val.min.m > lE.d.max.m)
+					} else {
+							// As undefined is first entry (-1), abort now
+						if (val == '?')
+							return null;
+						lE = att.l[fI];
+						if (typeof lE.d.max.y != 'undefined') {		// max bounds
+								// Test val maxs against min bound for disqualification
+							if (typeof val.max != 'undefined' && val.max != 'open') {
+								if (val.max.y < lE.d.min.y)
 									continue;
-								if (val.min.m == lE.d.max.m) {
-									if (val.min.d && lE.d.max.d) {
-										if (val.min.d > lE.d.max.d)
+								if (val.max.y == lE.d.min.y) {
+									if (val.max.m && lE.d.min.m) {
+										if (val.max.m < lE.d.min.m)
 											continue;
+										if (val.max.m == lE.d.min.m) {
+											if (val.max.d && lE.d.min.d) {
+												if (val.max.d < lE.d.min.d)
+													continue;
+											}
+										}
 									}
 								}
 							}
-						}
-						return lE;
-					} else {				// min bound only
-							// Event is range
-						if (typeof val.max != 'undefined') {
-							if (val.max == 'open')		// double open always overlap
+								// Test val mins against max bound for disqualification
+							if (val.min.y > lE.d.max.y)
+								continue;
+							if (val.min.y == lE.d.max.y) {
+								if (val.min.m && lE.d.max.m) {
+									if (val.min.m > lE.d.max.m)
+										continue;
+									if (val.min.m == lE.d.max.m) {
+										if (val.min.d && lE.d.max.d) {
+											if (val.min.d > lE.d.max.d)
+												continue;
+										}
+									}
+								}
+							}
+							return lE;
+						} else {				// min bound only
+								// Event is range
+							if (typeof val.max != 'undefined') {
+								if (val.max == 'open')		// double open always overlap
+									return lE;
+								if (val.max.y < lE.d.min.y)
+									continue;
+								if (val.max.y == lE.d.min.y) {
+									if (val.max.m && lE.d.min.m) {
+										if (val.max.m < lE.d.min.m)
+											continue;
+										if (val.max.m == lE.d.min.m) {
+											if (val.max.d && lE.d.min.d) {
+												if (val.max.d < lE.d.min.d)
+													continue;
+											}
+										}
+									}
+								}
 								return lE;
-							if (val.max.y < lE.d.min.y)
-								continue;
-							if (val.max.y == lE.d.min.y) {
-								if (val.max.m && lE.d.min.m) {
-									if (val.max.m < lE.d.min.m)
-										continue;
-									if (val.max.m == lE.d.min.m) {
-										if (val.max.d && lE.d.min.d) {
-											if (val.max.d < lE.d.min.d)
-												continue;
-										}
-									}
-								}
-							}
-							return lE;
 
-							// Single date
-						} else {
-							if (val.min.y < lE.d.min.y)
-								continue;
-							if (val.min.y == lE.d.min.y) {
-								if (val.min.m && lE.d.min.m) {
-									if (val.min.m < lE.d.min.m)
-										continue;
-									if (val.min.m == lE.d.min.m) {
-										if (val.min.d && lE.d.min.d) {
-											if (val.min.d < lE.d.min.d)
-												continue;
+								// Single date
+							} else {
+								if (val.min.y < lE.d.min.y)
+									continue;
+								if (val.min.y == lE.d.min.y) {
+									if (val.min.m && lE.d.min.m) {
+										if (val.min.m < lE.d.min.m)
+											continue;
+										if (val.min.m == lE.d.min.m) {
+											if (val.min.d && lE.d.min.d) {
+												if (val.min.d < lE.d.min.d)
+													continue;
+											}
 										}
 									}
 								}
+								return lE;
 							}
-							return lE;
 						}
-					}
+					} // else ≠ -1
 				} // for f
 				break;
 			}
@@ -8552,6 +8587,7 @@ jQuery(document).ready(function($) {
 		loadFrag('dltext-hint-text', 'textsize');
 		loadFrag('dltext-xaxis', 'xaxis');
 		loadFrag('dltext-yaxis', 'yaxis');
+		loadFrag('dltext-undefined', 'undef');
 		loadFrag('dltext-orderedby', 'orderedby');
 		loadFrag('dltext-grpblks', 'grpblks');
 		loadFrag('dltext-reset', 'reset');

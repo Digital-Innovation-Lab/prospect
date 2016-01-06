@@ -30,7 +30,7 @@
 <script src="<?php echo(plugins_url('lib/d3.min.js', dirname(__FILE__))); ?>"></script>
 
 <script src="<?php echo(plugins_url('js/map-hub.js', dirname(__FILE__))); ?>"></script>
-<script src="<?php echo(plugins_url('js/view-exhibit.min.js', dirname(__FILE__))); ?>"></script>
+<script src="<?php echo(plugins_url('js/view-exhibit.js', dirname(__FILE__))); ?>"></script>
 
 <?php
 	$the_xhbt = new ProspectExhibit(true, get_the_ID(), true);
@@ -119,7 +119,8 @@
 			$first = false;
 			echo('{ id: "'.$the_attribute->id.'", ');
 			echo(' def: '.json_encode($the_attribute->def, JSON_UNESCAPED_UNICODE).', ');
-			echo(' r: '.$the_attribute->meta_range.', ');
+			$the_attribute->convert_undefined();
+			echo(' r: '.json_encode($the_attribute->range, JSON_UNESCAPED_UNICODE).', ');
 			echo(' l: '.json_encode($the_attribute->legend, JSON_UNESCAPED_UNICODE).', ');
 				// In which Templates does this Attribute appear?
 			$appear_in_t = array();

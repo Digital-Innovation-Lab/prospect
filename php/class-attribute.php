@@ -389,4 +389,18 @@ class ProspectAttribute {
 			} // if load_legend
 		} // if post_id
 	} // __construct()
+
+		// PURPOSE: If an undefined color given, convert the <u> field of range to look like Legend entry
+	public function convert_undefined()
+	{
+		if (($this->def->t == 'N' || $this->def->t == 'D') && isset($this->range->u)) {
+			$color = $this->range->u;
+			$b = ProspectAttribute::black_contrast($color);
+				// Create pseudo-obect to contain Legend entry
+			$this->range->u = new stdClass;
+			$this->range->u->v = $color;
+			$this->range->u->b = $b;
+			$this->range->u->l = '?';
+		}
+	} // convert_undefined()
 } // class ProspectAttribute
