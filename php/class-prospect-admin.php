@@ -1949,13 +1949,15 @@ class ProspectAdmin {
 
 
 		// PURPOSE: Endpoint for .../wp-json/prsp/v1/record/ID
-		// RETURNS: Raw (unjoined) data for Record
-		// TO DO: 	Check user status -- don't allow raw data to go out to unathorized
+		// RETURNS: Raw (unjoined) data for named Record
 	public function rest_get_record(WP_REST_Request $request)
 	{
 		$id = $request['id'];
 
-			// TO DO: Check user id -- see http://v2.wp-api.org/guide/authentication/
+			// This should logically work, but may require JS client to add data
+			// See http://v2.wp-api.org/guide/authentication/
+		if (!current_user_can('edit_prsp_record'))
+			return '';
 
 			// Need to get ID of Template first!
 		$args = array('post_type' => 'prsp-record',
