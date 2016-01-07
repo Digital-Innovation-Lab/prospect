@@ -87,11 +87,11 @@
 </script>
 
 <script id="att-type-Number" type='text/ractive'>
-	<input type="number" min="{{def.r.min}}" max="{{def.r.max}}" value="{{value}}"/>
+	<input type="text" size="10" value="{{value}}"/> (Min {{def.r.min}}, Max {{def.r.max}})
 </script>
 
 <script id="att-type-Dates" type='text/ractive'>
-	From <input type="text" size="6" value="{{value.min.y}}" placeholder="YYYY" pattern="(^$|open|~?-?\d+)"/>
+	From <input type="text" size="6" value="{{value.min.y}}" placeholder="YYYY" pattern="(^$|\?|~?-?\d+)"/>
 		<input type="text" size="2" value="{{value.min.m}}" placeholder="MM" pattern="\d{0,2}"/>
 		<input type="text" size="2" value="{{value.min.d}}" placeholder="DD" pattern="\d{0,2}"/>
 	To <input type="text" size="6" value="{{value.max.y}}" placeholder="YYYY" pattern="(^$|open|~?-?\d+)"/>
@@ -194,12 +194,20 @@ You must supply an internal ID for the Record that is no more than 32 characters
 <p><b>You cannot create any Records until you have defined Templates.</b></p>
 </script>
 
+<script id="errmsg-number" type='text/ractive'>
+You have entered a value into a number field that is not formatted properly.
+</script>
+
 <script id="errmsg-number-range" type='text/ractive'>
-The number you entered is below the minimum value or above the maximum.
+A number you entered is below the minimum allowable value or above the allowable maximum.
 </script>
 
 <script id="errmsg-date-range" type='text/ractive'>
-The Date you entered is not a valid date, or is before the start date or past the end date.
+A Date you entered is not a valid, or is before the minimum allowable year or past the maximum allowable year.
+</script>
+
+<script id="errmsg-date-maxmin" type='text/ractive'>
+The start year is greater than the end year for a Date you have entered.
 </script>
 
 

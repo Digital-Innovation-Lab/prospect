@@ -294,6 +294,11 @@ jQuery(document).ready(function() {
 				if (defVal && defVal != '') {
 					function parseDate(dateStr) {
 						var date = { y: '' };
+							// Special undefined character
+						if (dateStr == '?') {
+							date.y = "?";
+							return date;
+						}
 						if (dateStr.charAt(0) == '~') {
 							date.y = '~';
 							dateStr = dateStr.substring(1);
@@ -622,6 +627,8 @@ jQuery(document).ready(function() {
 		var newAttVals = { };
 		var numAtts = rApp.get('defRecord.length');
 		var i;
+		var numCheck = /^(-?\d+)$/;
+		var yearCheck = /^~?(-?\d+)$/;
 
 			// Check for errors and convert to single string if necessary
 		for (i=0; i<numAtts; i++) {
@@ -631,15 +638,48 @@ jQuery(document).ready(function() {
 				// Only need special processing for Numbers and Dates
 			switch (thisAtt.def.t) {
 			case 'N':
-				if (newVal < thisAtt.def.r.min || newVal > thisAtt.def.r.max) {
+					// Allow null
+				if (newVal.length == 0)
+					break;
+					// Allow undefined value
+				if (newVal == '?')
+					break;
+
+				if (typeof newVal != 'string')
+					newVal = newVal.toString();
+
+					// Ensure valid number
+				if (newVal.match(numCheck) == null) {
+					displayError('#errmsg-number');
+					return false;					
+				}
+
+				var newNum = parseInt(newVal, 10);
+
+				if (newNum < thisAtt.def.r.min || newNum > thisAtt.def.r.max) {
 					displayError('#errmsg-number-range');
 					return false;
 				}
-				newVal = newVal.toString();
 				break;
 			case 'D':
-					// TO DO: Range check
 				var newDate = newVal.min.y;
+					// Blank or special undefined character?
+				if (newDate.length == 0 || newDate == '?') {
+					newVal = newDate;
+					break;
+				}
+					// Range check minimum year
+				var dateMatch = yearCheck.exec(newDate);
+				if (dateMatch == null) {
+					displayError('#errmsg-date-range');
+					return false;
+				}
+				var minYear = parseInt(dateMatch[1]);
+				if (minYear < thisAtt.def.r.min.y || minYear > thisAtt.def.r.max.y) {
+					displayError('#errmsg-date-range');
+					return false;
+				}
+
 				if (newVal.min.m && newVal.min.m != '') {
 					newDate += '-'+newVal.min.m;
 					if (newVal.min.d && newVal.min.d != '')
@@ -647,6 +687,28 @@ jQuery(document).ready(function() {
 				}
 				if (newVal.max.y && newVal.max.y != '') {
 					newDate += '/'+newVal.max.y;
+
+						// Skip other processing if "open"
+					if (newVal.max.y == 'open') {
+						newVal = newDate;
+						break;
+					}
+						// Range check maximum year
+					dateMatch = yearCheck.exec(newVal.max.y);
+					if (dateMatch == null) {
+						displayError('#errmsg-date-range');
+						return false;
+					}
+					var maxYear = parseInt(dateMatch[1]);
+					if (maxYear < thisAtt.def.r.min.y || maxYear > thisAtt.def.r.max.y) {
+						displayError('#errmsg-date-range');
+						return false;
+					}
+					if (minYear > maxYear) {
+						displayError('#errmsg-date-maxmin');
+						return false;						
+					}
+
 					if (newVal.max.m && newVal.max.m != '') {
 						newDate += '-'+newVal.max.m;
 						if (newVal.max.d && newVal.max.d != '')

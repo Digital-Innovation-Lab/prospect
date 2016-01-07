@@ -128,7 +128,10 @@ class ProspectRecord {
 								$this->att_data[$att_to_load] = array(trim($val));
 							break;
 						case 'N':
-							$this->att_data[$att_to_load] = (int)$val;
+							if ($val == '?')
+								$this->att_data[$att_to_load] = '?';
+							else
+								$this->att_data[$att_to_load] = (int)$val;
 							break;
 						case 'L':
 						case 'X':
@@ -153,6 +156,11 @@ class ProspectRecord {
 							}
 							break;
 						case 'D':
+								// Special undefined character?
+							if ($val == '?') {
+								$this->att_data[$att_to_load] = '?';
+								break;
+							}
 								// Parse individual elements into max/min, f/y/m/d
 							$date_val = array();
 							$date_min = array();

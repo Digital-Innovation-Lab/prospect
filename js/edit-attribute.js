@@ -190,6 +190,12 @@ jQuery(document).ready(function() {
 				defRange.max = '';
 			else
 				defRange.max = defRange.max.toString();
+
+			if (typeof(defRange.u) == 'undefined') {
+				defRange.u = '#888888';
+				defRange.useU = false;
+			} else
+				defRange.useU = true;
 			break;
 		case 'D':
 				// Convert into 
@@ -215,6 +221,11 @@ jQuery(document).ready(function() {
 				else
 					defRange.max.d = defRange.max.d.toString();
 			}
+			if (typeof(defRange.u) == 'undefined') {
+				defRange.u = '#888888';
+				defRange.useU = false;
+			} else
+				defRange.useU = true;
 			break;
 		} // switch
 	}
@@ -550,13 +561,14 @@ jQuery(document).ready(function() {
 					// Create new defaults
 				switch(newValue) {
 				case 'N':
-					rApp.set('theRange', { min: '', max: '', g: 0 });
+					rApp.set('theRange', { min: '', max: '', g: 0, u: '#888888', useU: false });
 					break;
 				case 'D':
 					rApp.set('theRange', {
 								min: { d: '', m: '', y: '' }, 
 								max: { d: '', m: '', y: '' },
-								g: 'y'
+								g: 'y',
+								u: '#888888', useU: false
 							});
 					break;
 				}
@@ -1077,6 +1089,28 @@ jQuery(document).ready(function() {
 		return false;
 	});
 
+	rApp.on('setUColor', function() {
+		var colorPicker;
+		colorPicker = new Ractive({
+			el: '#att-insert-dialog',
+			template: '#dialog-choose-color',
+			data: {
+				color: rApp.get('theRange.u')
+			},
+			components: {
+				dialog: RJDialogComponent,
+				iris: RJIrisColor
+			}
+		}); // new Ractive()
+		colorPicker.on('dialog.ok', function(evt) {
+			var finalColor = colorPicker.get('color');
+			rApp.set('theRange.u', finalColor);
+			colorPicker.teardown();
+		});
+		colorPicker.on('dialog.cancel', colorPicker.teardown);
+		return false;
+	});
+
 		// Use chosen custom field
 	rApp.on('copyCF', function() {
 		rApp.set('attID', rApp.get('chosenCF'));
@@ -1201,6 +1235,9 @@ jQuery(document).ready(function() {
 				}
 				attR.g = rApp.get('theRange.g');
 
+				if (rApp.get('theRange.useU') == true)
+					attR.u = rApp.get('theRange.u');
+
 				var legend = rApp.get('theLegend');
 				_.forEach(legend, function(entry) {
 					var newEntry = { };
@@ -1272,6 +1309,10 @@ jQuery(document).ready(function() {
 						}
 					}
 				}
+
+				if (rApp.get('theRange.useU') == true)
+					attR.u = rApp.get('theRange.u');
+
 					// Compile Date Legend
 				var legend = rApp.get('theLegend');
 				_.forEach(legend, function(entry) {

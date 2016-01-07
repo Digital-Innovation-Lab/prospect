@@ -26,7 +26,7 @@
 <script id='legendDataEntry' type='text/ractive'>
 	<div class="legend-data-entry">
 		<span class="legend-label">{{l}}</span> <span class="legend-val">{{val}}</span>
-		<span title="Click to select color" class="viz-icon" style="background-color:{{v}}"  on-click="doLegendViz:{{index}}"></span>
+		<span title="Click to select color" class="viz-icon" style="background-color:{{v}}" on-click="doLegendViz:{{index}}"></span>
 		{{>legendBtns}}
 	</div>
 </script>
@@ -35,11 +35,12 @@
 <!-- Partial: Range for Number -->
 <script id="rangeNum" type='text/ractive'>
 	<h3>Set Valid Number Range</h3>
-	<label for="num-r-min">Minimum number: </label><input type="text" id="num-r-min" value='{{theRange.min}}' placeholder="Min val" size="8"/>
-	<label for="num-r-max">Maximum number: </label><input type="text" id="num-r-max" value='{{theRange.max}}' placeholder="Max val" size="8"/>
+	<label for="num-r-min">Minimum number: </label> <input type="text" id="num-r-min" value='{{theRange.min}}' placeholder="Min val" size="8"/>
+	<label for="num-r-max">Maximum number: </label> <input type="text" id="num-r-max" value='{{theRange.max}}' placeholder="Max val" size="8"/>
 	<br/>
-	<label for="num-g">Group values together by </label><input type="number" id="num-g" value='{{theRange.g}}' min="0" max="4"> digits
+	<label for="num-g">Group values together by </label> <input type="number" id="num-g" value='{{theRange.g}}' min="0" max="4"/> digits
 	<br/>
+	Use<input type='checkbox' checked='{{theRange.useU}}'/> color for undefined Number values <span title="Click to select color" class="viz-icon" style="background-color:{{theRange.u}}" on-click="setUColor"></span>
 </script>
 
 <!-- Partial: Range for Dates -->
@@ -64,6 +65,7 @@
 		<option value="c">Century</option>
 	</select>
 	<br/>
+	 Use<input type='checkbox' checked='{{theRange.useU}}'/> color for undefined Date values <span title="Click to select color" class="viz-icon" style="background-color:{{theRange.u}}" on-click="setUColor"></span>
 </script>
 
 

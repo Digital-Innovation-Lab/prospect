@@ -1973,7 +1973,8 @@ VizTime.prototype.render = function(stream)
 				fData = rec.a[fAttID];
 				if (typeof fData != 'undefined') {
 					if (fData = PData.getAttLgndRecs(fData, fAtt, featSet, false)) {
-						if (dData = rec.a[dAttID]) {
+							// dData will either be object, '?' or undefined
+						if ((dData = rec.a[dAttID]) && (dData != '?')) {
 							f = dData.min.f ? EVENT_F_START : 0;
 							y = dData.min.y;
 							if (typeof dData.min.m == 'undefined') {
@@ -2009,7 +2010,7 @@ VizTime.prototype.render = function(stream)
 								} // number
 							}
 							te.push({ s: s, e: e, ai: aI, f: f, c: fData, l: rec.l, t: 0 });
-						} // has Date data
+						} // has valid Date data
 					} // translates to Legend value
 				} // has Legend value
 			} // for
@@ -4565,7 +4566,6 @@ PFilterNum.prototype.evalPrep = function()
 		this.useMin = dom.find('input.filter-num-min-use').is(':checked');
 		this.useMax = dom.find('input.filter-num-max-use').is(':checked');
 	} else {
-		this.ctrs = new Uint16Array(this.rCats.length);
 		for (var i=0; i<this.rCats.length; i++)
 			this.ctrs[i] = 0;
 	}
@@ -4577,19 +4577,36 @@ PFilterNum.prototype.eval = function(rec)
 	if (typeof num == 'undefined')
 		return false;
 
-	if (this.useMin && num < this.min)
-		return false;
+		// Numbers entered by hand?
 	if (this.rCats == null) {
+		if (this.useMin && num < this.min)
+			return false;
 		if (this.useMax && num > this.max)
 			return false;
 	} else {
-		if (num >= this.max)
+			// Check for 'undefined' exception
+		var i=this.b0, c=this.rCats[i];
+
+			// Only true when i=0
+		if (c.min == '?') {
+			if (num == '?') {
+				this.ctrs[0]++;
+				return true;
+			}
+			if (this.max == '?')	// This 'undefined' only category?
+				return false;
+			i=1;
+		}
+		if (num == '?')
 			return false;
+
+		if ((num < this.min) || (num > this.max))
+			return false;
+
 			// in range but now must find category it matched to inc count
-		var c;
-		for (var i=this.b0; i<= this.b1; i++) {
+		for (; i<= this.b1; i++) {
 			c=this.rCats[i];
-			if (c.min <= num && num < c.max) {
+			if (c.min <= num && num <= c.max) {
 				this.ctrs[i]++;
 				break;
 			}
@@ -4664,12 +4681,18 @@ PFilterNum.prototype.setup = function()
 
 		// Create range category viz & slider
 	} else {
+		this.ctrs = new Uint16Array(this.rCats.length);
+
 			// Set defaults
-		this.useMin = this.useMax = true;
+		// this.useMin = this.useMax = true;
 			// indices of rCats contained by brush (inclusive)
 		this.b0  = 0;
 		this.b1  = this.rCats.length-1;
-		this.min = this.rCats[0].min;
+			// Must deal with 'undefined' exception -- always first category
+		var r = this.rCats[0];
+		if (r.min == '?')
+			r = this.rCats[1];
+		this.min = r.min;
 		this.max = this.rCats[this.b1].max;
 
 		var innerH = 80 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
@@ -4705,7 +4728,11 @@ PFilterNum.prototype.setup = function()
 
 			self.b0  = extent1[0];
 			self.b1  = extent1[1]-1;
-			self.min = self.rCats[self.b0].min;
+				// Deal with 'undefined' exception -- only rCats[0]
+			r = self.rCats[self.b0];
+			if (r.min == '?')
+				r = self.rCats[1];
+			self.min = r.min;
 			self.max = self.rCats[self.b1].max;
 			self.isDirty(true);
 		} // brushended()
@@ -4791,7 +4818,12 @@ PFilterNum.prototype.setState = function(state)
 	if (state.rc) {
 		this.b0  = state.e0;
 		this.b1  = state.e1-1;
-		this.min = this.rCats[this.b0].min;
+
+			// Deal with 'undefined' exception -- only rCats[0]
+		var r = this.rCats[this.b0];
+		if (r.min == '?')
+			r = this.rCats[1];
+		this.min = r.min;
 		this.max = this.rCats[this.b1].max;
 		this.brush.extent([state.e0, state.e1]);
 		this.brushg.call(this.brush);
@@ -4820,7 +4852,6 @@ PFilterDates.prototype.constructor = PFilterDates;
 PFilterDates.prototype.evalPrep = function()
 {
 	this.c = jQuery('input[name=dctrl-'+this.id+']:checked').val();
-	this.ctrs = new Uint16Array(this.rCats.length);
 	for (var i=0; i<this.rCats.length; i++)
 		this.ctrs[i] = 0;
 } // evalPrep()
@@ -4840,6 +4871,22 @@ PFilterDates.prototype.eval = function(rec)
 
 	var d = rec.a[this.att.id];
 	if (typeof d == 'undefined')
+		return false;
+
+		// Check for 'undefined' exception
+	var i=this.b0, c=this.rCats[i];
+
+		// Only true when i=0
+	if (c.min == '?') {
+		if (d == '?') {
+			this.ctrs[0]++;
+			return true;
+		}
+		if (this.max == '?')	// This 'undefined' only category?
+			return false;
+		i=1;
+	}
+	if (d == '?')
 		return false;
 
 		// Is it a single event?
@@ -4868,7 +4915,7 @@ PFilterDates.prototype.eval = function(rec)
 		}
 	}
 		// Now find category it belongs to
-	for (var i=this.b0; i<=this.b1; i++) {
+	for (; i<=this.b1; i++) {
 		c = this.rCats[i];
 		if (c.min <= s && s < c.max) {
 			this.ctrs[i]++;
@@ -4896,10 +4943,17 @@ PFilterDates.prototype.setup = function()
 	var self = this;
 
 	this.rCats = PData.getRCats(this.att, false);
+	this.ctrs = new Uint16Array(this.rCats.length);
+
 		// Set defaults
 	this.b0  = 0;
 	this.b1  = this.rCats.length-1;
-	this.min = this.rCats[0].min;
+
+		// Must deal with 'undefined' exception -- always first category
+	var r = this.rCats[0];
+	if (r.min == '?')
+		r = this.rCats[1];
+	this.min = r.min;
 	this.max = this.rCats[this.b1].max;
 
 	var innerH = 80 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
@@ -4935,7 +4989,11 @@ PFilterDates.prototype.setup = function()
 
 		self.b0  = extent1[0];
 		self.b1  = extent1[1]-1;
-		self.min = self.rCats[self.b0].min;
+			// Deal with 'undefined' exception -- only when i=0
+		r = self.rCats[self.b0];
+		if (r.min == '?')
+			r = self.rCats[1];
+		self.min = r.min;
 		self.max = self.rCats[self.b1].max;
 		self.isDirty(true);
 	} // brushended()
@@ -5019,7 +5077,11 @@ PFilterDates.prototype.setState = function(state)
 	jQuery('input[name="dctrl-'+this.id+'"]').val([state.c]);
 	this.b0  = state.e0;
 	this.b1  = state.e1-1;
-	this.min = this.rCats[this.b0].min;
+		// Deal with 'undefined' exception -- only for rCats[0]
+	var r = this.rCats[this.b0];
+	if (r.min == '?')
+		r = this.rCats[1];
+	this.min = r.min;
 	this.max = this.rCats[this.b1].max;
 	this.brush.extent([state.e0, state.e1]);
 	this.brushg.call(this.brush);
@@ -5819,6 +5881,12 @@ function PViewFrame(vfIndex)
 		legendIDs[lIndex] = attID;
 			// Insert new items
 		var attDef = PData.getAttID(attID);
+			// Create pseudo-entry for undefined value
+		if (typeof attDef.r.u != 'undefined') {
+			element = '<div class="lgnd-value lgnd-entry" data-index="-1"><input type="checkbox" checked="checked" class="lgnd-entry-check"/>'+
+						'<div class="lgnd-viz" style="background-color: '+attDef.r.u.v+'"> </div> <span class="lgnd-value-title">'+dlText.undef+'</span></div>';
+			group.append(element);
+		}
 		attDef.l.forEach(function(legEntry, lgIndex) {
 			element = '<div class="lgnd-value lgnd-entry" data-index="'+lgIndex+'"><input type="checkbox" checked="checked" class="lgnd-entry-check"/>'+
 						'<div class="lgnd-viz" style="background-color: '+legEntry.v+'"> </div> <span class="lgnd-value-title">'+legEntry.l+'</span></div>';
@@ -6501,8 +6569,13 @@ var PData = (function() {
 			case 'T':
 				return a;
 			case 'N':
+				if (a == '?')
+					return dlText.undef;
 				return a.toString();
 			case 'D':
+				if (a == '?')
+					return dlText.undef;
+
 				var ds='';
 					// Range
 				if (a.max) {
@@ -6773,7 +6846,20 @@ var PData = (function() {
 				}
 				return null;
 			case 'N':
-				for (var f=0; f<lI; f++) {
+				var f=0;
+					// Check for undefined char/entry first to remove exceptional cases
+				if (fSet[0] == -1) {
+					if (val == '?') {
+						if (typeof att.r.u == 'undefined')
+							return null;
+						return att.r.u;
+					}
+					f=1;
+				}
+					// As undefined is first entry (-1), abort now
+				if (val == '?')
+					return null;
+				for (; f<lI; f++) {
 					fI = fSet[f];
 					lE = att.l[fI];
 						// either min and max can be left out (= no bound), but not both
@@ -6789,13 +6875,26 @@ var PData = (function() {
 						if (val <= lE.d.max)
 							return lE;
 					}
-				}
+				} // for
 				return null;
 			case 'D':
+				var f=0;
+					// Check for undefined char/entry first to remove exceptional cases
+				if (fSet[0] == -1) {
+					if (val == '?') {
+						if (typeof att.r.u == 'undefined')
+							return null;
+						return att.r.u;
+					}
+					f=1;
+				}
+					// As undefined is first entry (-1), abort now
+				if (val == '?')
+					return null;
 					 			// Just looking for overlap, date doesn't have to be completely contained
 								// Disqualify for overlap if (1) end of event is before min bound, or
 								//	(2) start of event is after max bound
-				for (var f=0; f<lI; f++) {
+				for (; f<lI; f++) {
 					fI = fSet[f];
 					lE = att.l[fI];
 					if (typeof lE.d.max.y != 'undefined') {		// max bounds
@@ -6871,7 +6970,7 @@ var PData = (function() {
 							}
 							return lE;
 						}
-					}
+					} // min bound only
 				} // for f
 				break;
 			}
@@ -7089,12 +7188,22 @@ var PData = (function() {
 				});
 				return rcs;
 			case 'N':
+					// Create undefined category? -- must be initial one
+				if (typeof att.r.u != 'undefined') {
+					if (fSet == null || PData.getAttLgndRecs('?', att, fSet, false))
+						rcs.push({ l: '?', c: att.r.u.v, min: '?', max: '?', i: [] });
+				}
 				att.l.forEach(function(n) {
 					if (fSet == null || PData.getAttLgndRecs(n.d.min, att, fSet, false))
 						rcs.push({ l: n.l, c: n.v, min: n.d.min, max: n.d.max, i: [] })
 				});
 				return rcs;
 			case 'D':
+					// Create undefined category? -- must be initial one
+				if (typeof att.r.u != 'undefined') {
+					if (fSet == null || PData.getAttLgndRecs('?', att, fSet, false))
+						rcs.push({ l: '?', c: att.r.u.v, min: '?', max: '?', i: [] });
+				}
 				var dmin, dmax;
 				att.l.forEach(function(d) {
 					dmin = PData.objDate(d.min, 1, false);
@@ -7124,6 +7233,7 @@ var PData = (function() {
 			// NOTES: 	To match a Legend category, a value only needs to start within it
 			//			A range category with no Legend match is assigned color black
 			//			max value for Dates only (!) is exclusive (value must be less than, not equal!)
+			//			If undefined color given for Number or Dates, that will be first category
 			// TO DO: 	Handle case that scale of max-min and g would be too large ??
 		getRCats: function(att, addItems)
 		{
@@ -7155,6 +7265,15 @@ var PData = (function() {
 					// Can't create range category unless both bounds provided
 				if (typeof att.r.min == 'undefined' || typeof att.r.max == 'undefined')
 					return null;
+
+					// Create undefined category? -- must be initial one
+				if (typeof att.r.u != 'undefined') {
+					if (addItems)
+						rcs.push({ l: '?', c: att.r.u.v, min: '?', max: '?', i: [] });
+					else
+						rcs.push({ l: '?', c: att.r.u.v, min: '?', max: '?' });
+				}
+
 				var inc = Math.pow(10, att.r.g);
 				var curV = att.r.min, lI=0, curL, min, rgb;
 				if (att.l.length > 0)
@@ -7239,6 +7358,15 @@ var PData = (function() {
 					lMinDate = makeDate(curL.d.min.y, 1, 1, curL.d.min);
 					lMaxDate = makeMaxDate(curL.d.max);
 				}
+
+					// Create undefined category? -- must be initial one
+				if (typeof att.r.u != 'undefined') {
+					if (addItems)
+						rcs.push({ l: '?', c: att.r.u.v, min: '?', max: '?', i: [] });
+					else
+						rcs.push({ l: '?', c: att.r.u.v, min: '?', max: '?' });
+				}
+
 				while (curDate <= maxDate) {
 					var rCat={};
 					if (addItems)
@@ -7384,7 +7512,19 @@ var PData = (function() {
 						});
 						break;
 					case 'N':
-						for (cI=0; cI<cats.length; cI++) {
+							// Check for 'undefined' category and value as initial exceptions
+						cI=0; cRec = cats[0];
+						if (cRec.min == '?') {
+							if (datum == '?') {
+								cRec.i.push(aI);
+								break;
+							}
+							cI=1;
+						}
+							// if first category wasn't undefined, abort if undefined value
+						if (datum == '?')
+							break;
+						for (; cI<cats.length; cI++) {
 							cRec = cats[cI];
 								// Did we pass eligible category?
 							if (datum < cRec.min)
@@ -7396,9 +7536,21 @@ var PData = (function() {
 						}
 						break;
 					case 'D':
+							// Check for 'undefined' category and value as initial exceptions
+						cI=0; cRec = cats[0];
+						if (cRec.min == '?') {
+							if (datum == '?') {
+								cRec.i.push(aI);
+								break;
+							}
+							cI=1;
+						}
+							// if first category wasn't undefined, abort if undefined value
+						if (datum == '?')
+							break;
 							// Only need to look at start date!
 						var sd = PData.objDate(datum.min, 1, false);
-						for (cI=0; cI<cats.length; cI++) {
+						for (; cI<cats.length; cI++) {
 							cRec = cats[cI];
 								// Did we pass eligible category?
 							if (sd < cRec.min)
@@ -7455,7 +7607,19 @@ var PData = (function() {
 						});
 						break;
 					case 'N':
-						for (sI=0; sI<sCats.length; sI++) {
+							// Check for 'undefined' category and value as initial exceptions
+						sI=0; sRec = sCats[0];
+						if (sRec.min == '?') {
+							if (datum == '?') {
+								sRec.i.push(aI);
+								break;
+							}
+							sI=1;
+						}
+							// if first category wasn't undefined, abort if undefined value
+						if (datum == '?')
+							break;
+						for (; sI<sCats.length; sI++) {
 							sRec = sCats[sI];
 								// Did we pass eligible category?
 							if (datum < sRec.min)
@@ -7467,6 +7631,18 @@ var PData = (function() {
 						}
 						break;
 					case 'D':
+							// Check for 'undefined' category and value as initial exceptions
+						sI=0; sRec = sCats[0];
+						if (sRec.min == '?') {
+							if (datum == '?') {
+								sRec.i.push(aI);
+								break;
+							}
+							sI=1;
+						}
+							// if first category wasn't undefined, abort if undefined value
+						if (datum == '?')
+							break;
 							// Only need to look at start date!
 						var sd = PData.objDate(datum.min, 1, false);
 						for (sI=0; sI<sCats.length; sI++) {
@@ -7500,6 +7676,9 @@ var PData = (function() {
 			}
 			function vDate(v)
 			{
+					// 'undefined' exception
+				if (v == '?')
+					return '?';
 				var m = 1, d = 1;
 				if (typeof v.min.m != 'undefined') {
 					m = v.min.m;
@@ -7546,7 +7725,13 @@ var PData = (function() {
 			// 	});
 			// 	break;
 			case 'N':
-				ord.sort(function(a,b) { return a.v - b.v; });
+				ord.sort(function(a,b) {
+					if (a.v == '?')
+						return -1;
+					if (b.v == '?')
+						return 1;
+					return a.v - b.v;
+				});
 				break;
 			}
 
@@ -8552,6 +8737,7 @@ jQuery(document).ready(function($) {
 		loadFrag('dltext-hint-text', 'textsize');
 		loadFrag('dltext-xaxis', 'xaxis');
 		loadFrag('dltext-yaxis', 'yaxis');
+		loadFrag('dltext-undefined', 'undef');
 		loadFrag('dltext-orderedby', 'orderedby');
 		loadFrag('dltext-grpblks', 'grpblks');
 		loadFrag('dltext-reset', 'reset');
