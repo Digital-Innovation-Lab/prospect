@@ -1971,9 +1971,10 @@ VizTime.prototype.render = function(stream)
 
 				rec = PData.getRecByIndex(aI);
 				fData = rec.a[fAttID];
-				if (typeof fData != 'undefined' && fData != '?') {
+				if (typeof fData != 'undefined') {
 					if (fData = PData.getAttLgndRecs(fData, fAtt, featSet, false)) {
-						if (dData = rec.a[dAttID]) {
+							// dData will either be object, '?' or undefined
+						if ((dData = rec.a[dAttID]) && (dData != '?')) {
 							f = dData.min.f ? EVENT_F_START : 0;
 							y = dData.min.y;
 							if (typeof dData.min.m == 'undefined') {
@@ -2009,7 +2010,7 @@ VizTime.prototype.render = function(stream)
 								} // number
 							}
 							te.push({ s: s, e: e, ai: aI, f: f, c: fData, l: rec.l, t: 0 });
-						} // has Date data
+						} // has valid Date data
 					} // translates to Legend value
 				} // has Legend value
 			} // for
@@ -6784,129 +6785,131 @@ var PData = (function() {
 				}
 				return null;
 			case 'N':
-				for (var f=0; f<lI; f++) {
-					fI = fSet[f];
-						// Special undefined character?
-					if (fI == -1) {
-						if (val == '?') {
-							if (typeof att.r.u == 'undefined')
-								return null;
-							return att.r.u;
-						}
-					} else {
-							// As undefined is first entry (-1), abort now
-						if (val == '?')
+				var f=0;
+					// Check for undefined char/entry first to remove exceptional cases
+				if (fSet[0] == -1) {
+					if (val == '?') {
+						if (typeof att.r.u == 'undefined')
 							return null;
-						lE = att.l[fI];
-							// either min and max can be left out (= no bound), but not both
-						if (typeof lE.d.min != 'undefined') {
-							if (lE.d.min <= val) {
-								if (typeof lE.d.max != 'undefined') {
-									if (val <= lE.d.max)
-										return lE;
-								} else
+						return att.r.u;
+					}
+					f=1;
+				}
+					// As undefined is first entry (-1), abort now
+				if (val == '?')
+					return null;
+				for (; f<lI; f++) {
+					fI = fSet[f];
+					lE = att.l[fI];
+						// either min and max can be left out (= no bound), but not both
+					if (typeof lE.d.min != 'undefined') {
+						if (lE.d.min <= val) {
+							if (typeof lE.d.max != 'undefined') {
+								if (val <= lE.d.max)
 									return lE;
-							}
-						} else {	// max only
-							if (val <= lE.d.max)
+							} else
 								return lE;
 						}
-					} // else
+					} else {	// max only
+						if (val <= lE.d.max)
+							return lE;
+					}
 				} // for
 				return null;
 			case 'D':
+				var f=0;
+					// Check for undefined char/entry first to remove exceptional cases
+				if (fSet[0] == -1) {
+					if (val == '?') {
+						if (typeof att.r.u == 'undefined')
+							return null;
+						return att.r.u;
+					}
+					f=1;
+				}
+					// As undefined is first entry (-1), abort now
+				if (val == '?')
+					return null;
 					 			// Just looking for overlap, date doesn't have to be completely contained
 								// Disqualify for overlap if (1) end of event is before min bound, or
 								//	(2) start of event is after max bound
-				for (var f=0; f<lI; f++) {
+				for (; f<lI; f++) {
 					fI = fSet[f];
-						// Special undefined character?
-					if (fI == -1) {
-						if (val == '?') {
-							if (typeof att.r.u == 'undefined')
-								return null;
-							return att.r.u;
-						}
-					} else {
-							// As undefined is first entry (-1), abort now
-						if (val == '?')
-							return null;
-						lE = att.l[fI];
-						if (typeof lE.d.max.y != 'undefined') {		// max bounds
-								// Test val maxs against min bound for disqualification
-							if (typeof val.max != 'undefined' && val.max != 'open') {
-								if (val.max.y < lE.d.min.y)
-									continue;
-								if (val.max.y == lE.d.min.y) {
-									if (val.max.m && lE.d.min.m) {
-										if (val.max.m < lE.d.min.m)
-											continue;
-										if (val.max.m == lE.d.min.m) {
-											if (val.max.d && lE.d.min.d) {
-												if (val.max.d < lE.d.min.d)
-													continue;
-											}
+					lE = att.l[fI];
+					if (typeof lE.d.max.y != 'undefined') {		// max bounds
+							// Test val maxs against min bound for disqualification
+						if (typeof val.max != 'undefined' && val.max != 'open') {
+							if (val.max.y < lE.d.min.y)
+								continue;
+							if (val.max.y == lE.d.min.y) {
+								if (val.max.m && lE.d.min.m) {
+									if (val.max.m < lE.d.min.m)
+										continue;
+									if (val.max.m == lE.d.min.m) {
+										if (val.max.d && lE.d.min.d) {
+											if (val.max.d < lE.d.min.d)
+												continue;
 										}
 									}
 								}
 							}
-								// Test val mins against max bound for disqualification
-							if (val.min.y > lE.d.max.y)
+						}
+							// Test val mins against max bound for disqualification
+						if (val.min.y > lE.d.max.y)
+							continue;
+						if (val.min.y == lE.d.max.y) {
+							if (val.min.m && lE.d.max.m) {
+								if (val.min.m > lE.d.max.m)
+									continue;
+								if (val.min.m == lE.d.max.m) {
+									if (val.min.d && lE.d.max.d) {
+										if (val.min.d > lE.d.max.d)
+											continue;
+									}
+								}
+							}
+						}
+						return lE;
+					} else {				// min bound only
+							// Event is range
+						if (typeof val.max != 'undefined') {
+							if (val.max == 'open')		// double open always overlap
+								return lE;
+							if (val.max.y < lE.d.min.y)
 								continue;
-							if (val.min.y == lE.d.max.y) {
-								if (val.min.m && lE.d.max.m) {
-									if (val.min.m > lE.d.max.m)
+							if (val.max.y == lE.d.min.y) {
+								if (val.max.m && lE.d.min.m) {
+									if (val.max.m < lE.d.min.m)
 										continue;
-									if (val.min.m == lE.d.max.m) {
-										if (val.min.d && lE.d.max.d) {
-											if (val.min.d > lE.d.max.d)
+									if (val.max.m == lE.d.min.m) {
+										if (val.max.d && lE.d.min.d) {
+											if (val.max.d < lE.d.min.d)
 												continue;
 										}
 									}
 								}
 							}
 							return lE;
-						} else {				// min bound only
-								// Event is range
-							if (typeof val.max != 'undefined') {
-								if (val.max == 'open')		// double open always overlap
-									return lE;
-								if (val.max.y < lE.d.min.y)
-									continue;
-								if (val.max.y == lE.d.min.y) {
-									if (val.max.m && lE.d.min.m) {
-										if (val.max.m < lE.d.min.m)
-											continue;
-										if (val.max.m == lE.d.min.m) {
-											if (val.max.d && lE.d.min.d) {
-												if (val.max.d < lE.d.min.d)
-													continue;
-											}
-										}
-									}
-								}
-								return lE;
 
-								// Single date
-							} else {
-								if (val.min.y < lE.d.min.y)
-									continue;
-								if (val.min.y == lE.d.min.y) {
-									if (val.min.m && lE.d.min.m) {
-										if (val.min.m < lE.d.min.m)
-											continue;
-										if (val.min.m == lE.d.min.m) {
-											if (val.min.d && lE.d.min.d) {
-												if (val.min.d < lE.d.min.d)
-													continue;
-											}
+							// Single date
+						} else {
+							if (val.min.y < lE.d.min.y)
+								continue;
+							if (val.min.y == lE.d.min.y) {
+								if (val.min.m && lE.d.min.m) {
+									if (val.min.m < lE.d.min.m)
+										continue;
+									if (val.min.m == lE.d.min.m) {
+										if (val.min.d && lE.d.min.d) {
+											if (val.min.d < lE.d.min.d)
+												continue;
 										}
 									}
 								}
-								return lE;
 							}
+							return lE;
 						}
-					} // else ≠ -1
+					} // min bound only
 				} // for f
 				break;
 			}
