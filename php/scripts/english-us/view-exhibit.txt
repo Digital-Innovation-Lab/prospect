@@ -273,7 +273,7 @@ now
 </script>
 
 <script id="dltext-undefined" type="text">
-Undefined
+Indefinite
 </script>
 
 <script id="dltext-delete" type="text">

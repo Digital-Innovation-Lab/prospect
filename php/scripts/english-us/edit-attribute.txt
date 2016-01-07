@@ -40,21 +40,21 @@
 	<br/>
 	<label for="num-g">Group values together by </label> <input type="number" id="num-g" value='{{theRange.g}}' min="0" max="4"/> digits
 	<br/>
-	Use<input type='checkbox' checked='{{theRange.useU}}'/> color for undefined Number values <span title="Click to select color" class="viz-icon" style="background-color:{{theRange.u}}" on-click="setUColor"></span>
+	Use<input type='checkbox' checked='{{theRange.useU}}'/> color for indefinite Number values <span title="Click to select color" class="viz-icon" style="background-color:{{theRange.u}}" on-click="setUColor"></span>
 </script>
 
 <!-- Partial: Range for Dates -->
 <script id="rangeDates" type='text/ractive'>
 	<h3>Set Valid Date Range</h3>
 	Earliest Date: 
-		<label for="date-r-min-y">Year </label><input type="text" id="date-r-min-y" value='{{theRange.min.y}}' placeholder="YYYY" size="6" pattern="(open|-?\d+)" required>
-		<label for="date-r-min-m">Month </label><input type="text" id="date-r-min-m" value='{{theRange.min.m}}' placeholder="MM" size="2" pattern="\d{0,2}">
-		<label for="date-r-min-d">Day </label><input type="text" id="date-r-min-d" value='{{theRange.min.d}}' placeholder="DD" size="2" pattern="\d{0,2}">
+		<label for="date-r-min-y">Year </label> <input type="text" id="date-r-min-y" value='{{theRange.min.y}}' placeholder="YYYY" size="6" pattern="(open|-?\d+)" required>
+		<label for="date-r-min-m">Month </label> <input type="text" id="date-r-min-m" value='{{theRange.min.m}}' placeholder="MM" size="2" pattern="\d{0,2}">
+		<label for="date-r-min-d">Day </label> <input type="text" id="date-r-min-d" value='{{theRange.min.d}}' placeholder="DD" size="2" pattern="\d{0,2}">
 		<br/>
 	Latest Date:
-		<label for="date-r-max-y">Year </label><input type="text" id="date-r-max-y" value='{{theRange.max.y}}' placeholder="YYYY" size="6" pattern="(open|~?-?\d+)">
-		<label for="date-r-max-m">Month </label><input type="text" id="date-r-max-m" value='{{theRange.max.m}}' placeholder="MM" size="2" pattern="\d{0,2}">
-		<label for="date-r-max-d">Day </label><input type="text" id="date-r-max-d" value='{{theRange.max.d}}' placeholder="DD" size="2" pattern="\d{0,2}">
+		<label for="date-r-max-y">Year </label> <input type="text" id="date-r-max-y" value='{{theRange.max.y}}' placeholder="YYYY" size="6" pattern="(open|~?-?\d+)">
+		<label for="date-r-max-m">Month </label> <input type="text" id="date-r-max-m" value='{{theRange.max.m}}' placeholder="MM" size="2" pattern="\d{0,2}">
+		<label for="date-r-max-d">Day </label> <input type="text" id="date-r-max-d" value='{{theRange.max.d}}' placeholder="DD" size="2" pattern="\d{0,2}">
 		<br/>
 	<label for="date-g">Group Dates together by</label>
 	<select id="date-g" value='{{theRange.g}}'>
@@ -65,7 +65,7 @@
 		<option value="c">Century</option>
 	</select>
 	<br/>
-	 Use<input type='checkbox' checked='{{theRange.useU}}'/> color for undefined Date values <span title="Click to select color" class="viz-icon" style="background-color:{{theRange.u}}" on-click="setUColor"></span>
+	 Use<input type='checkbox' checked='{{theRange.useU}}'/> color for indefinite Date values <span title="Click to select color" class="viz-icon" style="background-color:{{theRange.u}}" on-click="setUColor"></span>
 </script>
 
 
