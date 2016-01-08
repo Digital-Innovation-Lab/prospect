@@ -511,7 +511,7 @@ VizMap.prototype.render = function(stream)
 						if (typeof locData[0] == 'number') {
 							if (sAttID) {
 								sAtt = rec.a[sAttID];
-								if (typeof sAtt != 'undefined') {
+								if (typeof sAtt == 'number') {
 									sAtt = Math.floor(((sAtt-minS)*dR)/dS) + minR;
 								} else
 									sAtt = minR;
@@ -1232,7 +1232,7 @@ VizPinboard.prototype.render = function(stream)
 				if (fData) {
 					if (sAttID) {
 						sAtt = rec.a[sAttID];
-						if (typeof sAtt != 'undefined') {
+						if (typeof sAtt == 'number') {
 							sAtt = Math.floor(((sAtt-minS)*dR)/dS) + minR;
 						} else
 							sAtt = minR;
