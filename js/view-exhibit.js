@@ -2899,7 +2899,7 @@ VizTextStream.prototype.render = function(stream)
 						{
 							if (szAttID) {
 								s = rec.a[szAttID];
-								if (typeof s != 'undefined') {
+								if (typeof s == 'number') {
 									s = Math.floor(((s-szAtt.r.min)*dt)/da) + self.settings.min;
 								} else
 									s = self.settings.min;
