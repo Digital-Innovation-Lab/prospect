@@ -130,6 +130,11 @@ class ProspectMap {
 		$this->meta_data	= array();
 
 		if ($is_postid) {
+				// Check to see if Map post exists; trick from https://tommcfarlin.com/wordpress-post-exists-by-id/
+			if (!is_string(get_post_status($the_id))) {
+				trigger_error("Map not found by Post ID");
+				return null;
+			}
 			$this->post_id = $the_id;
 			$this->id = get_post_meta($this->post_id, 'map-id', true);
 

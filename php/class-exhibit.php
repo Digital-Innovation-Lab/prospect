@@ -49,6 +49,11 @@ class ProspectExhibit {
 		$this->meta_def 	= $this->def = null;
 
 		if ($is_postid) {
+				// Check to see if Exhibit post exists; trick from https://tommcfarlin.com/wordpress-post-exists-by-id/
+			if (!is_string(get_post_status($the_id))) {
+				trigger_error("Exhibit not found by Post ID");
+				return null;
+			}
 			$this->post_id = $the_id;
 			$this->id = get_post_meta($this->post_id, 'xhbt-id', true);
 

@@ -1820,6 +1820,9 @@ class ProspectAdmin {
 		$id = $request['id'];
 
 		$att = new ProspectAttribute(false, $id, true, false, true, true, true);
+		if ($att == null || $att->post_id == null)
+			return '';
+
 		$result = array(
 			'id' => $id,
 			'def' => $att->def,
@@ -1843,20 +1846,24 @@ class ProspectAdmin {
 		// PURPOSE: Endpoint for .../wp-json/prsp/v1/template/ID&t
 		// INPUT:	id = ID of Template
 		//			t = 'r' for raw format, else 'j' for Joined
-		// TO DO: 	Check and use t parameter
 	public function rest_get_template(WP_REST_Request $request)
 	{
 		$id = $request['id'];
+		$format = $request['t'];
 
 		$template = new ProspectTemplate(false, $id, true, true, false);
-			// Replace Template's Unjoined Attribute list with Joined
-		$template->get_all_attributes(false);
-		$template->def->a = $the_template->all_att_ids;
+		if ($template == null || $template->post_id == null)
+			return '';
+
+		if ($format == 'j') {
+				// Replace Template's Unjoined Attribute list with Joined
+			$template->get_all_attributes(false);
+			$template->def->a = $template->all_att_ids;
+		}
 
 		$result = array(
 			'id' => $id,
 			'def' => $template->def,
-			// 'def' => json_encode($template->def, JSON_UNESCAPED_UNICODE),
 			'n' => $template->get_num_records()
 		);
 		return $result;
@@ -1904,11 +1911,12 @@ class ProspectAdmin {
 		$from = $request['from'];
 		$count = $request['count'];
 
-
 		$result = array();
 
 			// Load Template definition
 		$the_template = new ProspectTemplate(false, $tmplt_id, true, true, false);
+		if ($the_template == null || $the_template->post_id == null)
+			return '';
 
 			// Get dependent Templates needed for Joins
 		$d_templates = $the_template->get_dependent_templates(false);
@@ -2006,7 +2014,7 @@ class ProspectAdmin {
 				'methods' => 'GET',
 				'callback' => array($this, 'rest_get_templates')
 			));
-		register_rest_route('prsp/v1', '/template/(?P<id>[\w\-]+)', array(
+		register_rest_route('prsp/v1', '/template/(?P<id>[\w\-]+)&(?P<t>[rj])', array(
 				'methods' => 'GET',
 				'callback' => array($this, 'rest_get_template')
 			));
