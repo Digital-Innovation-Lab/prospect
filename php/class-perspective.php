@@ -55,6 +55,11 @@ class ProspectPerspective {
 	public function __construct($is_postid, $the_id, $unpack)
 	{
 		if ($is_postid) {
+				// Check to see if Perspective post exists; trick from https://tommcfarlin.com/wordpress-post-exists-by-id/
+			if (!is_string(get_post_status($the_id))) {
+				trigger_error("Perspective not found by Post ID");
+				return null;
+			}
 			$this->post_id = $the_id;
 			$this->id = get_post_meta($this->post_id, 'prspctv-id', true);
 		} else {
