@@ -6156,9 +6156,9 @@ function PViewFrame(vfIndex)
 				.click(clickOpenSelection).next()
 				.button({icons: { primary: 'ui-icon-cancel' }, text: false })
 				.click(clickClearSelection).next()
-				.button({icons: { primary: 'ui-icon-gear' }, text: false })
+				.button({icons: { primary: 'ui-icon-wrench' }, text: false })
 				.click(clickVizControls).next()
-				.button({icons: { primary: 'ui-icon-help' }, text: false })
+				.button({icons: { primary: 'ui-icon-info' }, text: false })
 				.click(clickVizNotes).next();
 
 		frame.find('div.lgnd-container')
@@ -8819,7 +8819,7 @@ jQuery(document).ready(function($) {
 	}
 
 		// Command Bar
-	jQuery('#btn-about').button({icons: { primary: 'ui-icon-info' }, text: false })
+	jQuery('#btn-about').button({icons: { primary: 'ui-icon-power' }, text: false })
 			.click(clickAbout);
 	jQuery('#btn-recompute').button({icons: { primary: 'ui-icon-refresh' }, text: false })
 			.click(clickRecompute);

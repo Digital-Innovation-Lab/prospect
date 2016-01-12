@@ -137,6 +137,11 @@ ul.radio li:hover, ul.radio li.focus {
 	margin-top: 2px;
 }
 
+#command-bar button.ui-button {
+	margin-left: 4px;
+	margin-right: 4px;
+}
+
 #command-bar .ui-icon {
 	cursor: pointer;
 }
@@ -369,21 +374,27 @@ div.view-control-bar {
 	padding: 10px 20px 30px;
 	margin: 0;
 	vertical-align: middle;
-	font-size: 12px;
+	font-size: 14px;
 	background: #eee;
+}
+
+div.view-control-bar button.ui-button {
+	margin-left: 3px;
+	margin-right: 3px;
 }
 
 div.view-control-bar .ui-icon {
 	cursor: pointer;
 }
 
+	/* Right-justified (optional) toolbar */
 div.view-control-bar div.iconbar
 {
 	padding: 2px;
-	margin: 2px;
+	margin: 1px;
 	margin-top: -4px;
 /*	display: inline-block; */
-	font-size: 9px;
+	font-size: 11px;
 	float: right;
 }
 
