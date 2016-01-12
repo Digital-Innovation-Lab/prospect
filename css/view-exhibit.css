@@ -55,6 +55,12 @@ body.waiting * {
 	cursor: wait !important;
 }
 
+	/* To indicate input errors */
+input[type=text].error {
+	background-color: yellow;
+	color: red;
+}
+
 	/* For maximal expansion of an element */
 div.max-size {
 	width: 100%;
@@ -116,7 +122,6 @@ ul.radio li:hover, ul.radio li.focus {
 	 * #command-bar
 	 * #note
 	 * #filter-frame
-	 * #selector-frame
 	 * #viz-display-frame
 	 */
 
@@ -201,7 +206,7 @@ ul.radio li:hover, ul.radio li.focus {
 
 	/* All Filters go into this frame */
 #filter-frame {
-	background-color: #eee;
+	background-color: #ccc;
 }
 
 	/* This is the control bar for filters */
@@ -248,7 +253,22 @@ div.filter-body {
 	margin: 0px;
 }
 
+div.filter-body div.cntrl-blck {
+	display: inline-block;
+	padding-top: 3px;
+	padding-right: 4px;
+	vertical-align: top;
+}
+
+/*
+div.filter-body div.h-center {
+	display: block;
+	margin: 0 auto;
+}
+*/
+
 div.filter-body svg {
+	display: inline;
 	margin: 2px;
 	padding: 0px;
 }
@@ -277,39 +297,6 @@ div.filter-body svg .brush .extent {
 	stroke: #fff;
 	fill-opacity: .125;
 	shape-rendering: crispEdges;
-}
-
-	/* DOM Structure of Selector filter
-	 * #selector-frame
-	 * 	#selector-control-bar
-	 *	#selector-instance
-	 *		.filter-instance data-id = 0
-	 *			.filter-head
-	 *			.filter-body
-	 */
-
-	/* All Selection Filter controls go into this frame */
-#selector-frame {
-	background-color: #ccc;
-}
-
-	/* This is the control bar for Selection */
-#selector-control-bar {
-	height: 28px;
-	padding: 10px 20px 30px;
-	margin: 0;
-	vertical-align: middle;
-	font-size: 12px;
-}
-
-	/* Any Selector filter goes into this area */
-#selector-instance {
-	min-height: 0;
-	max-height: 300px;
-	overflow-y: auto;
-	font-size: 12px;
-	margin: 0;
-	padding: 0;
 }
 
 	/* DOM Structure of Visualization frames
@@ -1318,16 +1305,6 @@ div.filter-num-slider.ui-slider .ui-slider-handle {
 }
 
 div.filter-num-slider.ui-slider .ui-slider-range {
-}
-
-div.filter-body div.cntrl-blck {
-	display: inline-block;
-	padding-right: 4px;
-	vertical-align: top;
-}
-
-div.filter-body svg {
-	display: inline;
 }
 
 	/* Outer container for Vocabulary filters */

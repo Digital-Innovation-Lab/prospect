@@ -24,21 +24,6 @@
 	</div>
 </div>
 
-<div id="selector-frame">
-	<div id="selector-control-bar">
-		Selection
-		<button id="btn-new-selector">New Filter</button>
-		<button id="btn-toggle-selector" disabled="disabled">Show/Hide Filter</button>
-		<button id="btn-apply-selector" disabled="disabled">Apply Selection Filter</button>
-		<input type="checkbox" id="selector-v0" checked="checked"/> Apply to View 1
-		<input type="checkbox" id="selector-v1" disabled="disabled"/> Apply to View 2
-	</div>
-	<div id="selector-instance">
-		<div class="filter-instance" data-id="0">
-		</div>
-	</div>
-</div>
-
 <div id="viz-display-frame">
 </div>
 
@@ -147,6 +132,7 @@
 		<button class="xsel">Clear Selection</button>
 		<button class="vopts">View Options</button>
 		<button class="vnote">Visualization Notes</button>
+		<button class="hilite">Highlight</button>
 	</div>
 	<div class="lgnd-container">
 		<div class="lgnd-handle">
@@ -215,8 +201,16 @@ All Records from selected Templates will be removed/hidden.
 <script id="dltext-filter-date-ctrl" type='text'>
 	<div class="cntrl-blck">
 		<input type="radio" name="dctrl-<%= id %>" value="o" checked> Overlap<br>
-		<input type="radio" name="dctrl-<%= id %>" value="c"> Contain
-	<div>
+		<input type="radio" name="dctrl-<%= id %>" value="c"> Contain<br>
+		<input type="checkbox" class="allow-undef"> Allow undefined
+	</div>
+	<div class="cntrl-blck">
+		From <input type="text" class="from-y" size="5" placeholder="YYYY"/> <input type="text" class="from-m" size="2" placeholder="MM"/> <input type="text" class="from-d" size="2" placeholder="DD"/>
+		<br/>
+		To <input type="text" class="to-y" size="5" placeholder="YYYY"/> <input type="text" class="to-m" size="2" placeholder="MM"/> <input type="text" class="to-d" size="2" placeholder="DD"/>
+		<br/>
+		<button class="filter-update" disabled>Use Date</button>
+	</div>
 </script>
 
 <script id="dltext-selector-head" type='text'>
