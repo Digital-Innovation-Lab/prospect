@@ -8821,8 +8821,6 @@ jQuery(document).ready(function($) {
 		// Command Bar
 	jQuery('#btn-about').button({icons: { primary: 'ui-icon-power' }, text: false })
 			.click(clickAbout);
-	jQuery('#btn-recompute').button({icons: { primary: 'ui-icon-refresh' }, text: false })
-			.click(clickRecompute);
 	jQuery('#btn-set-layout').button({icons: { primary: 'ui-icon-newwin' }, text: false })
 			.click(clickTog2nd);
 	jQuery('#btn-hs-bars').button({icons: { primary: 'ui-icon-carat-2-n-s' }, text: false })
@@ -8872,6 +8870,8 @@ jQuery(document).ready(function($) {
 			.click(clickNewFilter);
 	jQuery('#btn-toggle-filters').button({icons: { primary: 'ui-icon-arrow-2-n-s' }, text: false })
 			.click(clickToggleFilters);
+	jQuery('#btn-recompute').button({icons: { primary: 'ui-icon-refresh' }, text: false })
+			.click(clickRecompute);
 
 		// Selector Control Bar
 	jQuery('#btn-new-selector').button({icons: { primary: 'ui-icon-plus' }, text: false })
