@@ -48,6 +48,8 @@ var PSTATE_PROCESS = 2;			// Processing data or handling command
 var PSTATE_BUILD = 3;			// Building visuals
 var PSTATE_UPDATE = 4;			// Updating visuals (selection, etc)
 var PSTATE_READY = 5;			// Waiting for user
+	// Further internal async Signals, not states
+var PSTATE_FDIRTY = 6;
 
 var D3FG_BAR_WIDTH 	= 25;		// D3 Graphs created for filters
 var D3FG_MARGINS	= { top: 4, right: 7, bottom: 22, left: 30 };
@@ -4265,12 +4267,13 @@ function PFilterModel(id, attRec)
 	// PURPOSE: Either set or get dirty state of Filter
 	// RETURNS: true if filter is "dirty" (has been changed and thus forces recompute)
 	// INPUT:   null if only retrieving state, else true or false
-PFilterModel.prototype.isDirty = function(setDirty)
+PFilterModel.prototype.isDirty = function(set)
 {
-	if (setDirty != null) {
-		if (!this.dirty && setDirty && this.id > 0)
-			jQuery('#btn-recompute').addClass('pulse');
-		this.dirty = setDirty;
+	if (set != null) {
+		if (!this.dirty && set && this.id > 0) {
+			jQuery("body").trigger("prospect", { s: PSTATE_FDIRTY });
+		}
+		this.dirty = set;
 	}
 	return this.dirty;
 } // isDirty
@@ -6192,6 +6195,7 @@ function PViewFrame(vfIndex)
 		}
 
 			// Enable or disable corresponding Selector Filter
+			// TO DO: Redo for new design
 		var c = jQuery('#selector-v'+vfIndex);
 		if (flags & V_FLAG_SEL) {
 			c.removeAttr("disabled");
@@ -6528,7 +6532,7 @@ var PData = (function() {
 		if (done) {
 			loaded=true;
 			setTimeout(function() {
-				jQuery("body").trigger("prospect", { pstate: PSTATE_PROCESS, component: 0 });
+				jQuery("body").trigger("prospect", { s: PSTATE_PROCESS });
 			}, 500);
 		}
 	} // checkDataLoad()
@@ -7627,18 +7631,18 @@ var PData = (function() {
 						if (uT) {
 							for (cI=0; cI<cats.length; cI++) {
 								cRec = cats[cI];
-								if (datum == cRec.l) {
+								if (datum === cRec.l) {
 									cRec.i.push(aI);
 									break;
 								}
 							}
-							if (cI == cats.length) {
+							if (cI === cats.length) {
 								cats.push({ l: datum, i: [ aI ] });
 							}
 						} else {
 							for (cI=0; cI<cats.length; cI++) {
 								cRec = cats[cI];
-								if (datum.indexOf(cRec.x) != -1) {
+								if (datum.indexOf(cRec.x) !== -1) {
 									cRec.i.push(aI);
 									break;
 								}
@@ -7659,15 +7663,15 @@ var PData = (function() {
 					case 'N':
 							// Check for 'undefined' category and value as initial exceptions
 						cI=0; cRec = cats[0];
-						if (cRec.min == '?') {
-							if (datum == '?') {
+						if (cRec.min === '?') {
+							if (datum === '?') {
 								cRec.i.push(aI);
 								break;
 							}
 							cI=1;
 						}
 							// if first category wasn't undefined, abort if undefined value
-						if (datum == '?')
+						if (datum === '?')
 							break;
 						for (; cI<cats.length; cI++) {
 							cRec = cats[cI];
@@ -7683,15 +7687,15 @@ var PData = (function() {
 					case 'D':
 							// Check for 'undefined' category and value as initial exceptions
 						cI=0; cRec = cats[0];
-						if (cRec.min == '?') {
-							if (datum == '?') {
+						if (cRec.min === '?') {
+							if (datum === '?') {
 								cRec.i.push(aI);
 								break;
 							}
 							cI=1;
 						}
 							// if first category wasn't undefined, abort if undefined value
-						if (datum == '?')
+						if (datum === '?')
 							break;
 							// Only need to look at start date!
 						var sd = PData.objDate(datum.min, 1, false);
@@ -7734,7 +7738,7 @@ var PData = (function() {
 					case 'T':
 						for (sI=0; sI<sCats.length; sI++) {
 							sRec = sCats[sI];
-							if (datum.indexOf(sRec.x) != -1) {
+							if (datum.indexOf(sRec.x) !== -1) {
 								sRec.i.push(aI);
 								break;
 							}
@@ -7744,7 +7748,7 @@ var PData = (function() {
 						datum.forEach(function(d) {
 							for (sI=0; sI<sCats.length; sI++) {
 								sRec = sCats[sI];
-								if (d == sRec.l) {
+								if (d === sRec.l) {
 									sRec.i.push(aI);
 									break;
 								}
@@ -7754,15 +7758,15 @@ var PData = (function() {
 					case 'N':
 							// Check for 'undefined' category and value as initial exceptions
 						sI=0; sRec = sCats[0];
-						if (sRec.min == '?') {
-							if (datum == '?') {
+						if (sRec.min === '?') {
+							if (datum === '?') {
 								sRec.i.push(aI);
 								break;
 							}
 							sI=1;
 						}
 							// if first category wasn't undefined, abort if undefined value
-						if (datum == '?')
+						if (datum === '?')
 							break;
 						for (; sI<sCats.length; sI++) {
 							sRec = sCats[sI];
@@ -7778,15 +7782,15 @@ var PData = (function() {
 					case 'D':
 							// Check for 'undefined' category and value as initial exceptions
 						sI=0; sRec = sCats[0];
-						if (sRec.min == '?') {
-							if (datum == '?') {
+						if (sRec.min === '?') {
+							if (datum === '?') {
 								sRec.i.push(aI);
 								break;
 							}
 							sI=1;
 						}
 							// if first category wasn't undefined, abort if undefined value
-						if (datum == '?')
+						if (datum === '?')
 							break;
 							// Only need to look at start date!
 						var sd = PData.objDate(datum.min, 1, false);
@@ -7822,12 +7826,12 @@ var PData = (function() {
 			function vDate(v)
 			{
 					// 'undefined' exception
-				if (v == '?')
+				if (v === '?')
 					return '?';
 				var m = 1, d = 1;
-				if (typeof v.min.m != 'undefined') {
+				if (typeof v.min.m !== 'undefined') {
 					m = v.min.m;
-					if (typeof v.min.d != 'undefined')
+					if (typeof v.min.d !== 'undefined')
 						d = v.min.d;
 				}
 				return PData.date3Nums(v.min.y, m, d, false);
@@ -7851,7 +7855,7 @@ var PData = (function() {
 
 				v = rec.a[att.id];
 					// If there is no value, we need to use max value
-				if (typeof v == 'undefined')
+				if (typeof v === 'undefined')
 					ord.push({ i: absI, v: maxV });
 				else
 					ord.push({ i: absI, v: eval(v) });
@@ -7871,9 +7875,9 @@ var PData = (function() {
 			// 	break;
 			case 'N':
 				ord.sort(function(a,b) {
-					if (a.v == '?')
+					if (a.v === '?')
 						return -1;
-					if (b.v == '?')
+					if (b.v === '?')
 						return 1;
 					return a.v - b.v;
 				});
@@ -7912,10 +7916,12 @@ jQuery(document).ready(function($) {
 	var view0;				// Primary viewFrame
 	var view1;				// Secondary
 
-	var filters=[];			// Filter Stack: { id, f [PFilterModel], out }
+	var apTmStr;			// Apply to <template label> for Filters
+	var filters=[];			// Filter Stack: { id, f [PFilterModel], out [stream] }
+	var fState=0;			// Filter State: 0 = no filter, 1 = filters changed, 2 = filters run
+
 	var selFilter=null;		// Selector Filter
 	var selFID;				// Attribute ID for Selector Filter
-	var apTmStr;			// Apply to <template label> for Filters
 
 	var annote;				// Annotation from current Perspective
 
@@ -7992,10 +7998,16 @@ jQuery(document).ready(function($) {
 		view0.showStream(endStream);
 		if (view1)
 			view1.showStream(endStream);
-		jQuery('#btn-recompute').removeClass('pulse');
+		if (filters.length) {
+			fState = 2;
+			jQuery('#btn-f-state').prop('disabled', true).html(dlText.filtered);
+		} else {
+			fState = 0;
+			jQuery('#btn-f-state').prop('disabled', true).html(dlText.nofilter);
+		}
 	} // doRecompute()
 
-	function clickRecompute(event)
+	function clickFilter(event)
 	{
 			// Remove any selections first
 		view0.clearSel();
@@ -8004,7 +8016,7 @@ jQuery(document).ready(function($) {
 		doRecompute();
 		PState.set(PSTATE_READY);
 		event.preventDefault();
-	} // clickRecompute()
+	} // clickFilter()
 
 		// PURPOSE: Set annotation text to <t>
 	function setAnnote(t)
@@ -8037,6 +8049,7 @@ jQuery(document).ready(function($) {
 		if (view1 != null) {
 			view1 = null;
 			jQuery('#view-frame-1').remove();
+				// TO DO
 			jQuery('#selector-v1').prop("checked", false);
 			jQuery('#selector-v1').prop("disabled", true);
 		} else {
@@ -8045,6 +8058,7 @@ jQuery(document).ready(function($) {
 			view1 = PViewFrame(1);
 			view1.initDOM(0);
 			view1.showStream(endStream);
+				// TO DO
 			jQuery('#selector-v1').prop("disabled", false);
 			PState.set(PSTATE_READY);
 		}
@@ -8110,6 +8124,7 @@ jQuery(document).ready(function($) {
 		var label = jQuery('#save-psrctv-lbl').val().trim();
 		label = label.replace(/"/, '');
 
+			// TO DO -- redo for new design
 		var a0 = !jQuery('#selector-v0').prop("disabled") && jQuery('#selector-v0').is(':checked');
 		var a1 = !jQuery('#selector-v1').prop("disabled") && jQuery('#selector-v1').is(':checked');
 
@@ -8485,7 +8500,6 @@ jQuery(document).ready(function($) {
 			view0.setStream(endStream);
 			if (view1)
 				view1.setStream(endStream);
-			jQuery('#btn-recompute').addClass('pulse');
 		} else {
 				// Output must be recomputed from successor on
 			filters[fI].f.isDirty(true);
@@ -8496,11 +8510,15 @@ jQuery(document).ready(function($) {
 
 		if (filters.length == 0) {
 			jQuery('#btn-toggle-filters').button("disable");
+				// TO DO: Immediately refresh visuals? Set fState = 0 and set label
 		}
+		fState = 1;
+		jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
 
 		event.preventDefault();
 	} // clickFilterDel()
 
+			// TO DO -- redo for new design
 	function doDelSelFilter()
 	{
 		if (selFilter != null) {
@@ -8592,7 +8610,8 @@ jQuery(document).ready(function($) {
 						text: false, icons: { primary: 'ui-icon-trash' }
 					}).click(clickFilterDel);
 
-			jQuery('#btn-recompute').addClass('pulse');
+			fState = 1;
+			jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
 		}
 
 			// Allow Filter to insert required HTML
@@ -8649,6 +8668,7 @@ jQuery(document).ready(function($) {
 	} // clickToggleFilters()
 
 
+			// TO DO -- redo for new design
 	function clickNewSelector(event)
 	{
 			// Clear previous selection
@@ -8689,13 +8709,14 @@ jQuery(document).ready(function($) {
 		event.preventDefault();
 	} // clickNewSelector()
 
-
+			// TO DO -- redo for new design
 	function clickToggleSelector(event)
 	{
 		jQuery('#selector-instance').slideToggle(400);
 		event.preventDefault();
 	} // clickToggleSelector()
 
+			// TO DO -- redo for new design
 	function doApplySelector()
 	{
 		PState.set(PSTATE_PROCESS);
@@ -8730,6 +8751,7 @@ jQuery(document).ready(function($) {
 		}
 	} // doApplySelector()
 
+			// TO DO -- redo for new design
 	function clickApplySelector(event)
 	{
 		doApplySelector();
@@ -8757,7 +8779,6 @@ jQuery(document).ready(function($) {
 
 			// Minimize filter and selector bars
 		jQuery('#filter-frame').hide();
-		jQuery('#selector-frame').hide();
 
 			// Clear current Filter Stack & Selector Filter
 		filters.forEach(function(theF) {
@@ -8773,6 +8794,7 @@ jQuery(document).ready(function($) {
 		jQuery('#filter-instances').hide();
 		jQuery('#btn-toggle-filters').button(p.s.f.length == 0 ? "disable" : "enable");
 
+			// TO DO -- redo for new design
 		doDelSelFilter();
 		if (p.s.s != null) {
 			createFilter(p.s.s.id, null, true);
@@ -8824,6 +8846,7 @@ jQuery(document).ready(function($) {
 
 		setAnnote(p.n);
 
+			// TO DO -- redo for new design
 		jQuery('#selector-v0').prop('checked', p.s.a0);
 		jQuery('#selector-v1').prop('checked', p.s.a1);
 
@@ -8853,7 +8876,6 @@ jQuery(document).ready(function($) {
 	} // localizeColor()
 	localizeColor('cb', '#command-bar');
 	localizeColor('fs', '#filter-frame');
-	localizeColor('sf', '#selector-frame');
 
 	PState.init();
 	PMapHub.init(prspdata.m);
@@ -8887,6 +8909,13 @@ jQuery(document).ready(function($) {
 		loadFrag('dltext-grpblks', 'grpblks');
 		loadFrag('dltext-reset', 'reset');
 
+		loadFrag('dltext-nofilter', 'nofilter');
+		loadFrag('dltext-dofilters', 'dofilters');
+		loadFrag('dltext-filtered', 'filtered');
+		loadFrag('dltext-nohilite', 'nohilite');
+		loadFrag('dltext-dohilite', 'dohilite');
+		loadFrag('dltext-hilited', 'hilited');
+
 		text = document.getElementById('dltext-month-names').innerHTML;
 		months = text.trim().split('|');
 
@@ -8914,7 +8943,7 @@ jQuery(document).ready(function($) {
 	xhbtURL = xhbtURL.replace(/^\//, '');
 	xhbtURL = "http://" + window.location.host + "/" + xhbtURL;
 
-		// Create string for apply Filters to Templates
+		// Create string to add to Filter Headers inserting Template IDs & labels
 	(function () {
 		var at = _.template(document.getElementById('dltext-filter-template').innerHTML);
 		var ts = [];
@@ -8971,7 +9000,6 @@ jQuery(document).ready(function($) {
 	jQuery('#btn-hs-bars').button({icons: { primary: 'ui-icon-carat-2-n-s' }, text: false })
 			.click(function(event) {
 				jQuery('#filter-frame').slideToggle(400);
-				jQuery('#selector-frame').slideToggle(400);
 				event.preventDefault();
 			});
 	jQuery('#btn-show-prspctv').button({icons: { primary: 'ui-icon-image' }, text: false })
@@ -9015,8 +9043,7 @@ jQuery(document).ready(function($) {
 			.click(clickNewFilter);
 	jQuery('#btn-toggle-filters').button({icons: { primary: 'ui-icon-arrow-2-n-s' }, text: false })
 			.click(clickToggleFilters);
-	jQuery('#btn-recompute').button({icons: { primary: 'ui-icon-refresh' }, text: false })
-			.click(clickRecompute);
+	jQuery('#btn-f-state').click(clickFilter);
 
 		// Selector Control Bar
 	// jQuery('#btn-new-selector').button({icons: { primary: 'ui-icon-plus' }, text: false })
@@ -9062,16 +9089,24 @@ jQuery(document).ready(function($) {
 			view1.resize();
 	});
 
-		// Intercept global state changes: data { pstate, component [0=global, 1=view1, 2=view2] }
+		// Intercept global state changes: data { s[tate] }
 	jQuery("body").on("prospect", function(event, data) {
-			// ASSUMED: This won't be triggered until after Filters & Views set up
-		if (data.pstate == PSTATE_PROCESS) {
+		switch (data.s) {
+		case PSTATE_PROCESS:
+console.log("Message: Data loaded");
+				// ASSUMED: This won't be triggered until after Filters & Views set up
 			PState.set(PSTATE_PROCESS);
 			doRecompute();
 			if (selFilter)
 				doApplySelector();
 			PState.set(PSTATE_READY);
 			jQuery('body').removeClass('waiting');
+			break;
+		case PSTATE_FDIRTY:
+console.log("Message: Dirty");
+			fState = 1;
+			jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
+			break;
 		}
 	});
 

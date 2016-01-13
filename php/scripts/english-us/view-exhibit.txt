@@ -18,7 +18,7 @@
 		Filters
 		<button id="btn-new-filter">New Filter</button>
 		<button id="btn-toggle-filters" disabled="disabled">Show/Hide Filters</button>
-		<button id="btn-recompute">Run Filters</button>
+		<button id="btn-f-state" disabled>No Filters</button>
 	</div>
 	<div id="filter-instances">
 	</div>
@@ -315,7 +315,7 @@ RESET
 </script>
 
 <script id="dltext-nofilter" type="text">
-No Filter
+No Filters
 </script>
 
 <script id="dltext-dofilters" type="text">
