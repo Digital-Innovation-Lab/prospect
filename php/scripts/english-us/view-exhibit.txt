@@ -128,11 +128,11 @@
 		<select class="view-viz-select">
 		</select>
 		<button class="hslgnd">Show/Hide Legend</button>
-		<button class="osel">Show Selection</button>
-		<button class="xsel">Clear Selection</button>
 		<button class="vopts">View Options</button>
 		<button class="vnote">Visualization Notes</button>
-		<button class="hilite" disabled>No Highlight</button>
+		<button class="hilite">Highlight</button>
+		<button class="osel">Show Highlighted</button>
+		<button class="xsel">Clear Highlighted</button>
 	</div>
 	<div class="lgnd-container">
 		<div class="lgnd-handle">
@@ -324,18 +324,6 @@ Run Filters
 
 <script id="dltext-filtered" type="text">
 Filtered
-</script>
-
-<script id="dltext-nohilite" type="text">
-No Highlight
-</script>
-
-<script id="dltext-dohilite" type="text">
-Do Highlight
-</script>
-
-<script id="dltext-hilited" type="text">
-Highlighted
 </script>
 
 <script id="dltext-sync-xscript" type="text">

@@ -6289,14 +6289,14 @@ function PViewFrame(vfIndex)
 		frame.find('div.view-control-bar button:first')
 				.button({icons: { primary: 'ui-icon-bookmark' }, text: false })
 				.click(clickShowHideLegend).next()
-				.button({icons: { primary: 'ui-icon-search' }, text: false })
-				.click(clickOpenSelection).next()
-				.button({icons: { primary: 'ui-icon-cancel' }, text: false })
-				.click(clickClearSelection).next()
 				.button({icons: { primary: 'ui-icon-wrench' }, text: false })
 				.click(clickVizControls).next()
 				.button({icons: { primary: 'ui-icon-info' }, text: false })
-				.click(clickVizNotes).next();
+				.click(clickVizNotes).next().next()
+				.button({icons: { primary: 'ui-icon-search' }, text: false })
+				.click(clickOpenSelection).next()
+				.button({icons: { primary: 'ui-icon-cancel' }, text: false })
+				.click(clickClearSelection).next();
 
 		frame.find('div.lgnd-container')
 			.click(clickInLegend);
@@ -7998,6 +7998,7 @@ jQuery(document).ready(function($) {
 		view0.showStream(endStream);
 		if (view1)
 			view1.showStream(endStream);
+
 		if (filters.length) {
 			fState = 2;
 			jQuery('#btn-f-state').prop('disabled', true).html(dlText.filtered);
@@ -8462,6 +8463,7 @@ jQuery(document).ready(function($) {
 		event.preventDefault();
 	} // clickFilterToggle()
 
+		// PURPOSE: Handle clicking which Template Filter should apply to
 	function clickFilterApply(event)
 	{
 		var head = jQuery(this).closest('div.filter-instance');
@@ -8510,10 +8512,12 @@ jQuery(document).ready(function($) {
 
 		if (filters.length == 0) {
 			jQuery('#btn-toggle-filters').button("disable");
-				// TO DO: Immediately refresh visuals? Set fState = 0 and set label
+			doRecompute();
+			PState.set(PSTATE_READY);
+		} else {
+			fState = 1;
+			jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
 		}
-		fState = 1;
-		jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
 
 		event.preventDefault();
 	} // clickFilterDel()
@@ -8908,13 +8912,9 @@ jQuery(document).ready(function($) {
 		loadFrag('dltext-orderedby', 'orderedby');
 		loadFrag('dltext-grpblks', 'grpblks');
 		loadFrag('dltext-reset', 'reset');
-
 		loadFrag('dltext-nofilter', 'nofilter');
 		loadFrag('dltext-dofilters', 'dofilters');
 		loadFrag('dltext-filtered', 'filtered');
-		loadFrag('dltext-nohilite', 'nohilite');
-		loadFrag('dltext-dohilite', 'dohilite');
-		loadFrag('dltext-hilited', 'hilited');
 
 		text = document.getElementById('dltext-month-names').innerHTML;
 		months = text.trim().split('|');
@@ -9093,7 +9093,6 @@ jQuery(document).ready(function($) {
 	jQuery("body").on("prospect", function(event, data) {
 		switch (data.s) {
 		case PSTATE_PROCESS:
-console.log("Message: Data loaded");
 				// ASSUMED: This won't be triggered until after Filters & Views set up
 			PState.set(PSTATE_PROCESS);
 			doRecompute();
@@ -9103,7 +9102,6 @@ console.log("Message: Data loaded");
 			jQuery('body').removeClass('waiting');
 			break;
 		case PSTATE_FDIRTY:
-console.log("Message: Dirty");
 			fState = 1;
 			jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
 			break;
