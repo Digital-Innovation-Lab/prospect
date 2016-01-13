@@ -4862,6 +4862,7 @@ PFilterDates.prototype = Object.create(PFilterModel.prototype);
 
 PFilterDates.prototype.constructor = PFilterDates;
 
+	// PURPOSE: Set text in boxes to min / max values
 PFilterDates.prototype.refreshBoxes = function()
 {
 	var insert = this.insertPt();
@@ -4878,6 +4879,7 @@ PFilterDates.prototype.refreshBoxes = function()
 	} // upDate()
 	upDate(this.min, '.from');
 	upDate(this.max, '.to');
+	insert.find('.filter-update').prop('disabled', true);
 } // refreshBoxes()
 
 PFilterDates.prototype.evalPrep = function()
@@ -4903,28 +4905,28 @@ PFilterDates.prototype.eval = function(rec)
 	} // makeDate()
 
 	var d = rec.a[this.att.id];
-	if (typeof d == 'undefined')
+	if (typeof d === 'undefined')
 		return false;
 
 		// Check for 'undefined' exception
-	if (d == '?')
+	if (d === '?')
 		return this.u;
 
 		// Is it a single event?
-	if (typeof d.max == 'undefined') {
+	if (typeof d.max === 'undefined') {
 		var s = makeDate(d.min.y, 1, 1, d.min, false);
 		if (s < this.min || s >= this.max)
 			return false;
 	} else {
 		var s = makeDate(d.min.y, 1, 1, d.min, false);
 		var e;
-		if (d.max == 'open')
+		if (d.max === 'open')
 			e = TODAY;
 		else
 			e = makeDate(d.max.y, 12, 31, d.max, true);
 
 			// Overlap?
-		if (this.c == 'o') {
+		if (this.c === 'o') {
 			if (e < this.min || s >= this.max)
 				return false;
 		} else {
@@ -5014,17 +5016,21 @@ PFilterDates.prototype.setup = function()
 	} // brushended()
 
 	var insert = this.insertPt();
+	var uDates = new Array(2);
 
 	function evalBoxes()
 	{
-		var failFrom, failTo;
-
 		var yRE = /^(-?\d+)$/;
 		var dRE = /^(\d{1,2})$/;
 
-		function checkSet(sel)
+		var failFrom, failTo;
+
+			// RETURNS: true if passes conditions
+		function checkSet(sel, i)
 		{
 			var fail=false;
+			var thisDate={y: 0, m: 0, d: 0, ms: null};
+
 			function setError(e)
 			{
 				fail = true;
@@ -5038,17 +5044,18 @@ PFilterDates.prototype.setup = function()
 			var d = insert.find(sel+'-y');		// DOM element
 			var t = d.val();					// Text value
 			var r = yRE.exec(t);				// RegExp result
-			if (r)
-				noError('y');
-			else
+			if (r) {
+				noError('-y');
+				thisDate.y = parseInt(r[1], 10);
+			} else
 				setError('-y');
 			d = insert.find(sel+'-m');
 			t = d.val();
 			r = dRE.exec(t);
 			if (r) {
-				var m = parseInt(r[1], 10);
-				if (m < 1 || m > 12)
-					setError('-m')
+				thisDate.m = parseInt(r[1], 10);
+				if (thisDate.m < 1 || thisDate.m > 12)
+					setError('-m');
 				else
 					noError('-m');
 			} else
@@ -5057,23 +5064,69 @@ PFilterDates.prototype.setup = function()
 			t = d.val();						// Text value
 			r = dRE.exec(t);					// RegExp result
 			if (r) {
-				var m = parseInt(r[1], 10);
-				if (m < 1 || m > 31)
+				thisDate.d = parseInt(r[1], 10);
+				if (thisDate.d < 1 || thisDate.d > 31)
 					setError('-d')
 				else
 					noError('-d');
 			} else
 				setError('-d');
+				// If OK so far, check against bounds
+			if (!fail) {
+					// <end> must be false to ensure ms is less than rCats.max for check
+				thisDate.ms = PData.date3Nums(thisDate.y, thisDate.m, thisDate.d, false);
+					// Check against bounds
+				if (i == 0) {
+					if (thisDate.ms < self.rCats[0].min) {
+						setError('-y');
+						setError('-m');
+						setError('-d');
+					}
+				} else {
+					if (thisDate.ms > self.rCats[self.rCats.length-1].max) {
+						setError('-y');
+						setError('-m');
+						setError('-d');
+					}
+				}
+			}
+			uDates[i] = thisDate;
 			return fail;
+		} // checkSet()
+		failFrom = checkSet('.from', 0);
+		failTo = checkSet('.to', 1);
+		if (uDates[0].ms > uDates[1].ms) {
+			failTo = true;
 		}
-		failFrom = checkSet('.from');
-		failTo = checkSet('.to');
 		insert.find('.filter-update').prop('disabled', failFrom || failTo);
+		return !(failFrom || failTo);
 	} // evalBoxes()
+		// PURPOSE: Handle user hitting "Use Date"
+		// ASSUMES: Button disabled unless Date values are usable
 	function useBoxes()
 	{
-			// Update min, max, b0, b1
-			// Redraw brush
+		if (evalBoxes()) {
+				// Dirty filter
+			self.isDirty(true);
+				// Update min, max
+			self.min = uDates[0].ms;
+			var thisDate = uDates[1];
+			self.max = PData.date3Nums(thisDate.y, thisDate.m, thisDate.d, true);
+				// Find appropriate rCats bounds for brush and redraw
+			var b0, b1;
+			for (b0=0; b0<self.rCats.length; b0++) {
+				if (self.min < self.rCats[b0].max)
+					break;
+			}
+			for (b1=b0; b1<self.rCats.length; b1++) {
+				if (self.max <= self.rCats[b1].max)
+					break;
+			}
+			b1 = (b1 === self.rCats.length) ? self.rCats.length-1 : b1;
+			self.b0 = b0;
+			self.b1 = b1;
+			self.brushg.call(self.brush.extent([b0, b1+1]));
+		}
 	} // useBoxes()
 
 	var colW=0;
@@ -6928,9 +6981,9 @@ var PData = (function() {
 			case 'N':
 				var f=0;
 					// Check for undefined char/entry first to remove exceptional cases
-				if (fSet[0] == -1) {
-					if (val == '?') {
-						if (typeof att.r.u == 'undefined')
+				if (fSet[0] === -1) {
+					if (val === '?') {
+						if (typeof att.r.u === 'undefined')
 							return null;
 						return att.r.u;
 					}
@@ -6943,9 +6996,9 @@ var PData = (function() {
 					fI = fSet[f];
 					lE = att.l[fI];
 						// either min and max can be left out (= no bound), but not both
-					if (typeof lE.d.min != 'undefined') {
+					if (typeof lE.d.min !== 'undefined') {
 						if (lE.d.min <= val) {
-							if (typeof lE.d.max != 'undefined') {
+							if (typeof lE.d.max !== 'undefined') {
 								if (val <= lE.d.max)
 									return lE;
 							} else
@@ -6960,8 +7013,8 @@ var PData = (function() {
 			case 'D':
 				var f=0;
 					// Check for undefined char/entry first to remove exceptional cases
-				if (fSet[0] == -1) {
-					if (val == '?') {
+				if (fSet[0] === -1) {
+					if (val === '?') {
 						if (typeof att.r.u == 'undefined')
 							return null;
 						return att.r.u;
@@ -6969,7 +7022,7 @@ var PData = (function() {
 					f=1;
 				}
 					// As undefined is first entry (-1), abort now
-				if (val == '?')
+				if (val === '?')
 					return null;
 					 			// Just looking for overlap, date doesn't have to be completely contained
 								// Disqualify for overlap if (1) end of event is before min bound, or
@@ -7139,9 +7192,9 @@ var PData = (function() {
 		objDate: function(field, m, end) {
 			var d;
 
-			if (typeof field.m != 'undefined' && field.m != null) {
+			if (typeof field.m !== 'undefined' && field.m !== null) {
 				m = field.m;
-				if (typeof field.d != 'undefined' && field.d != null)
+				if (typeof field.d !== 'undefined' && field.d !== null)
 					d = field.d;
 				else
 					d = PData.lenMnth(field.y, m);
@@ -7162,7 +7215,7 @@ var PData = (function() {
 				return TODAY;
 
 			var np = 1;
-			if (str.charAt(0) == '-') {
+			if (str.charAt(0) === '-') {
 				np = -1;
 				str = str.substring(1);
 			}
@@ -7198,11 +7251,11 @@ var PData = (function() {
 			var y, m, d, single=false;
 
 			y = data.min.y;
-			if (typeof data.min.m == 'undefined') {
+			if (typeof data.min.m === 'undefined') {
 				m = 1; d = 1;
 			} else {
 				m = data.min.m;
-				if (typeof data.min.d == 'undefined')
+				if (typeof data.min.d === 'undefined')
 					d = 1;
 				else {
 					d = data.min.d;
@@ -7210,16 +7263,16 @@ var PData = (function() {
 				}
 			}
 			s = PData.date3Nums(y,m,d,false);
-			if (typeof data.max != 'undefined') {
-				if (data.max == 'open')
+			if (typeof data.max !== 'undefined') {
+				if (data.max === 'open')
 					e = TODAY;
 				else {
 					y = data.max.y;
-					if (typeof data.max.m == 'undefined') {
+					if (typeof data.max.m === 'undefined') {
 						m = 12; d = 31;
 					} else {
 						m = data.max.m;
-						if (typeof data.max.d == 'undefined')
+						if (typeof data.max.d === 'undefined')
 							d = PData.lenMnth(y, m);
 						else
 							d = data.max.d;
@@ -7230,7 +7283,7 @@ var PData = (function() {
 				if (single)
 					return [s, null];
 				else {
-					if (typeof data.min.m == 'undefined') {
+					if (typeof data.min.m === 'undefined') {
 						m = 12; d = 31;
 					} else {
 						m = data.min.m;
@@ -7263,8 +7316,13 @@ var PData = (function() {
 					if (fSet == null || PData.getAttLgndRecs([v.l], att, fSet, false))
 						rcs.push({ l: v.l, c: v.v, i: [] });
 					v.z.forEach(function(v2) {
-						if (fSet == null || PData.getAttLgndRecs([v2.l], att, fSet, false))
-							rcs.push({ l: v2.l, c: v2.v, i: [] });
+						if (fSet == null || PData.getAttLgndRecs([v2.l], att, fSet, false)) {
+								// Does it inherit from parent or have its own color?
+							if (v2.v === '')
+								rcs.push({ l: v2.l, c: v.v, i: [] });
+							else
+								rcs.push({ l: v2.l, c: v2.v, i: [] });
+						}
 					});
 				});
 				return rcs;
@@ -7288,8 +7346,8 @@ var PData = (function() {
 				var dmin, dmax;
 				att.l.forEach(function(d) {
 					dmin = PData.objDate(d.min, 1, false);
-					if (fSet == null || PData.getAttLgndRecs(dmin, att, fSet, false)) {
-						if (d.max.y == null)
+					if (fSet === null || PData.getAttLgndRecs(dmin, att, fSet, false)) {
+						if (d.max.y === null)
 							dmax = TODAY;
 						else
 							dmax = PData.objDate(d.max, 12, false);
@@ -7336,20 +7394,21 @@ var PData = (function() {
 					else
 						rcs.push({ l: i.l, c: i.v });
 					i.z.forEach(function(i2) {
+						var v = i2 === '' ? i.v : i2.v;
 						if (addItems)
-							rcs.push({ l: i2.l, c: i2.v, i: [] });
+							rcs.push({ l: i2.l, c: v, i: [] });
 						else
-							rcs.push({ l: i2.l, c: i2.v });
+							rcs.push({ l: i2.l, c: v });
 					});
 				});
 				return rcs;
 			case 'N':
 					// Can't create range category unless both bounds provided
-				if (typeof att.r.min == 'undefined' || typeof att.r.max == 'undefined')
+				if (typeof att.r.min === 'undefined' || typeof att.r.max === 'undefined')
 					return null;
 
 					// Create undefined category? -- must be initial one
-				if (undef && typeof att.r.u != 'undefined') {
+				if (undef && typeof att.r.u !== 'undefined') {
 					if (addItems)
 						rcs.push({ l: '?', c: att.r.u.v, min: '?', max: '?', i: [] });
 					else
@@ -7362,7 +7421,7 @@ var PData = (function() {
 					curL = att.l[0];
 				while (curV <= att.r.max) {
 						// Advance to the relevant legend category
-					while (lI < att.l.length && typeof curL.d.max != 'undefined' && curV > curL.d.max) {
+					while (lI < att.l.length && typeof curL.d.max !== 'undefined' && curV > curL.d.max) {
 						curL = att.l[++lI];
 					}
 						// Is current range category before current legend category?
@@ -7370,11 +7429,11 @@ var PData = (function() {
 						rgb = '#777777';
 
 						// Does it occur beyond last category?
-					} else if (lI == att.l.length) {
+					} else if (lI === att.l.length) {
 						rgb = '#777777';
 
 						// Does it start within current category (inc one w/o max bound)
-					} else if (typeof curL.d.max == 'undefined' || curV <= curL.d.max) {
+					} else if (typeof curL.d.max === 'undefined' || curV <= curL.d.max) {
 						rgb = curL.v;
 
 					} else {
@@ -7406,15 +7465,15 @@ var PData = (function() {
 				function makeMaxDate(field)
 				{
 					var y,m,d;
-					if (typeof field.y == 'undefined') {
+					if (typeof field.y === 'undefined') {
 						return TODAY;
 					} else {
 						y = field.y;
-						if (typeof field.m == 'undefined') {
+						if (typeof field.m === 'undefined') {
 							m = 12; d = 31;
 						} else {
 							m = field.m;
-							if (typeof field.d == 'undefined')
+							if (typeof field.d === 'undefined')
 								d = PData.lenMnth(y, m);
 							else
 								d = field.d;
@@ -7427,9 +7486,9 @@ var PData = (function() {
 				var maxDate = makeMaxDate(att.r.max);
 				var inc = att.r.g;
 				var curY=att.r.min.y, curM=1, curD=1;
-				if (typeof att.r.min.m != 'undefined') {
+				if (typeof att.r.min.m !== 'undefined') {
 					curM = att.r.min.m;
-					if (typeof att.r.min.d != 'undefined') {
+					if (typeof att.r.min.d !== 'undefined') {
 						curD = att.r.min.d;
 					}
 				}
@@ -7442,7 +7501,7 @@ var PData = (function() {
 				}
 
 					// Create undefined category? -- must be initial one
-				if (undef && typeof att.r.u != 'undefined') {
+				if (undef && typeof att.r.u !== 'undefined') {
 					if (addItems)
 						rcs.push({ l: '?', c: att.r.u.v, min: '?', max: '?', i: [] });
 					else
@@ -7519,6 +7578,10 @@ var PData = (function() {
 					}
 						// Since max value is exclusive boundary, don't add day to it
 					rCat.max = PData.date3Nums(curY, curM, curD, false);
+						// Don't go beyond current date
+					if (rCat.max > TODAY) {
+						rCat.max = TODAY;
+					}
 					rcs.push(rCat);
 					curDate = PData.date3Nums(curY, curM, curD, false);
 				}
