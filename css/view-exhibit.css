@@ -209,6 +209,10 @@ ul.radio li:hover, ul.radio li.focus {
 	background-color: #ccc;
 }
 
+#filter-frame button {
+	font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans-serif;
+}
+
 	/* This is the control bar for filters */
 #filter-control-bar {
 	height: 28px;
@@ -329,6 +333,10 @@ div.filter-body svg .brush .extent {
 	-webkit-flex-direction: row;
 	-moz-flex-direction: row;
 	-ms-flex-direction: row;
+}
+
+#viz-display-frame button {
+	font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans-serif;
 }
 
 	/* The first visualization display */
