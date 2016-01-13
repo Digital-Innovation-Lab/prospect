@@ -245,14 +245,15 @@ div.filter-head {
 	border-bottom: black 1px dotted;
 }
 
-	/* Area for filter GUI controls */
+	/* Area for each filter's GUI controls */
 div.filter-body {
-	overflow-y: auto;
+	white-space: nowrap;	/* don't allow controls to wrap to new line */
 	padding: 0px;
 	padding-left: 4px;
 	margin: 0px;
 }
 
+	/* Group of items within a filter body */
 div.filter-body div.cntrl-blck {
 	display: inline-block;
 	padding-top: 3px;
