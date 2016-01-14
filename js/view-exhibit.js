@@ -50,6 +50,7 @@ var PSTATE_UPDATE = 4;			// Updating visuals (selection, etc)
 var PSTATE_READY = 5;			// Waiting for user
 	// Further internal async Signals, not states
 var PSTATE_FDIRTY = 6;
+var PSTATE_HILITE = 7;
 
 var D3FG_BAR_WIDTH 	= 25;		// D3 Graphs created for filters
 var D3FG_MARGINS	= { top: 4, right: 7, bottom: 22, left: 30 };
@@ -4850,7 +4851,7 @@ PFilterNum.prototype.setState = function(state)
 //		min = minimum allowed Date (inclusive) -- maintained dynamically
 //		max = maximum allowed Date (exclusive)  -- maintained dynamically
 //		c = 'o' if overlap, 'c' if contain within range -- checked at eval time
-//		u = true if undefined checkbox is checked -- checked at eval time
+//		u = true if undefined checkbox is checked -- checked at evalPrep, savePerspective
 //		yScale = D3 scale
 //		chart = SVG for graph
 //		brush = D3 brush object
@@ -5151,7 +5152,11 @@ PFilterDates.prototype.setup = function()
 
 	var fh = _.template(document.getElementById('dltext-filter-date-ctrl').innerHTML);
 	insert.append(fh({ id: this.id }));
+		// Dirty filter if user changes settings
 	insert.find("input[name=dctrl-"+self.id+"]").change(function() {
+		self.isDirty(true);
+	});
+	insert.find(".allow-undef").click(function() {
 		self.isDirty(true);
 	});
 
@@ -5224,10 +5229,9 @@ PFilterDates.prototype.setState = function(state)
 } // setState()
 
 
-// ========================================================================
+// ===================================================================================
 // PViewFrame: Pseudo-object that manages contents of visualization frame
 //				Creates Legend and maintains selection (passed to PVizModel on update)
-
 // INPUT: 	vfIndex = index for this visualization frame (0 or 1)
 
 function PViewFrame(vfIndex)
@@ -5299,7 +5303,6 @@ function PViewFrame(vfIndex)
 					milliSecs += parseInt(match[4])*10;
 				}
 			} else {
-				reportError(false, "Error in transcript file: Cannot parse " + tc + " as timecode.");
 				throw new Error("Error in transcript file: Cannot parse " + tc + " as timecode.");
 				milliSecs = 0;
 			}
@@ -5847,6 +5850,13 @@ function PViewFrame(vfIndex)
 		}
 	} // doSelBtns()
 
+	function clickHighlight(event)
+	{
+			// Send signal back to Prospect "main app" to create Highlight filter on this viz
+		jQuery("body").trigger("prospect", { s: PSTATE_HILITE, v: vfIndex });
+		event.preventDefault();
+	} // clickHighlight()
+
 	function clickClearSelection(event)
 	{
 		PState.set(PSTATE_UPDATE);
@@ -6264,7 +6274,7 @@ function PViewFrame(vfIndex)
 	instance.initDOM = function(vI)
 	{
 		var viewDOM = document.getElementById('dltext-viewframe-dom').innerHTML;
-		jQuery('#viz-display-frame').append('<div id="view-frame-'+vfIndex+'">'+viewDOM+'</div>');
+		jQuery('#viz-frame').append('<div id="view-frame-'+vfIndex+'">'+viewDOM+'</div>');
 
 		var frame = jQuery(getFrameID());
 
@@ -6292,7 +6302,7 @@ function PViewFrame(vfIndex)
 				.button({icons: { primary: 'ui-icon-wrench' }, text: false })
 				.click(clickVizControls).next()
 				.button({icons: { primary: 'ui-icon-info' }, text: false })
-				.click(clickVizNotes).next().next()
+				.click(clickVizNotes).next().next()		// Skip over "Highlight" button
 				.button({icons: { primary: 'ui-icon-search' }, text: false })
 				.click(clickOpenSelection).next()
 				.button({icons: { primary: 'ui-icon-cancel' }, text: false })
@@ -6300,6 +6310,8 @@ function PViewFrame(vfIndex)
 
 		frame.find('div.lgnd-container')
 			.click(clickInLegend);
+		frame.find('button.hilite')
+			.click(clickHighlight);
 
 		createViz(vI, false);
 	} // initDOM()
@@ -6460,7 +6472,6 @@ var PData = (function() {
 	// =========
 
 	var LOAD_DATA_CHUNK = 1000;	// default, overridden by WP-saved option
-	var dltextFrom;
 	var dltextTo;
 	var dltextApprox;
 	var dltextNow;
@@ -6545,7 +6556,6 @@ var PData = (function() {
 			// PURPOSE: Initialize data hub, initiate data loading
 		init: function()
 		{
-			dltextFrom = document.getElementById('dltext-from').innerHTML;
 			dltextTo = document.getElementById('dltext-to').innerHTML;
 			dltextApprox = document.getElementById('dltext-approximately').innerHTML;
 			dltextNow = document.getElementById('dltext-now').innerHTML;
@@ -6716,9 +6726,6 @@ var PData = (function() {
 				var ds='';
 					// Range
 				if (a.max) {
-					// ds = dltextFrom;
-					// if (a.min.f)
-					// 	ds += dltextApprox;
 					if (a.min.f)
 						ds = dltextApprox;
 					ds += a.min.y.toString();
@@ -7913,23 +7920,23 @@ jQuery(document).ready(function($) {
 
 		// VARIABLES
 		//==========
-	var view0;				// Primary viewFrame
-	var view1;				// Secondary
+	var view0;					// Primary viewFrame
+	var view1;					// Secondary
 
-	var apTmStr;			// Apply to <template label> for Filters
-	var filters=[];			// Filter Stack: { id, f [PFilterModel], out [stream] }
-	var fState=0;			// Filter State: 0 = no filter, 1 = filters changed, 2 = filters run
+	var apTmStr;				// Apply to <template label> for Filters
+	var filters=[];				// Filter Stack: { id, f [PFilterModel], out [stream] }
+	var fState=0;				// Filter State: 0 = no filter, 1 = filters changed, 2 = filters run
 
-	var selFilter=null;		// Selector Filter
-	var selFID;				// Attribute ID for Selector Filter
+	var hFilters=[null, null];	// Highlight Filter
+	var hFilterIDs=[null, null]; // Highlight Filter Attribute IDs
 
-	var annote;				// Annotation from current Perspective
+	var annote;					// Annotation from current Perspective
 
-	var topStream;			// Top-level IndexStream (before Filters)
-	var endStream;			// Final resulting IndexStream (after Filters)
+	var topStream;				// Top-level IndexStream (before Filters)
+	var endStream;				// Final resulting IndexStream (after Filters)
 
-	var localStore=null;	// Local (Browser) storage (if Browser capable)
-	var localPrspctvs=[];	// locally-stored Perspectives
+	var localStore=null;		// Local (Browser) storage (if Browser capable)
+	var localPrspctvs=[];		// locally-stored Perspectives
 
 		// FUNCTIONS
 		//==========
@@ -8119,10 +8126,10 @@ jQuery(document).ready(function($) {
 		if (dest == '')
 			return null;
 
-		var note = jQuery('#save-psrctv-note').val();
+		var note = jQuery('#save-prspctv-note').val();
 		note = note.replace(/"/, '');
 
-		var label = jQuery('#save-psrctv-lbl').val().trim();
+		var label = jQuery('#save-prspctv-lbl').val().trim();
 		label = label.replace(/"/, '');
 
 			// TO DO -- redo for new design
@@ -8182,9 +8189,9 @@ jQuery(document).ready(function($) {
 		var idExp = /[^\w\-]/;
 
 			// Clear any previous input values
-		jQuery('#save-psrctv-id').val('');
-		jQuery('#save-psrctv-lbl').val('');
-		jQuery('#save-psrctv-note').val('');
+		jQuery('#save-prspctv-id').val('');
+		jQuery('#save-prspctv-lbl').val('');
+		jQuery('#save-prspctv-note').val('');
 
 			// Make sure Browser has local storage capability
 		if (!localStore) {
@@ -8203,7 +8210,7 @@ jQuery(document).ready(function($) {
 				{
 					text: dlText.ok,
 					click: function() {
-						var id = jQuery('#save-psrctv-id').val().trim();
+						var id = jQuery('#save-prspctv-id').val().trim();
 							// Make sure ID correct format
 						var idError = id.match(idExp);
 						if (id.length == 0 || id.length > 20 || idError)
@@ -8231,7 +8238,7 @@ jQuery(document).ready(function($) {
 									// Calculate Embed value
 								var embed = xhbtURL + '/?prspctv=' + id;
 
-								jQuery('#save-psrctv-embed').val(embed);
+								jQuery('#save-prspctv-embed').val(embed);
 								var embedDialog = jQuery("#dialog-prspctv-url").dialog({
 									width: 480,
 									height: 230,
@@ -8348,8 +8355,8 @@ jQuery(document).ready(function($) {
 						});
 						break;
 					} // switch
-					jQuery('#edit-psrctv-lbl').val(pRec.l);
-					jQuery('#edit-psrctv-note').val(pRec.n);
+					jQuery('#edit-prspctv-lbl').val(pRec.l);
+					jQuery('#edit-prspctv-note').val(pRec.n);
 
 					var epDialog = jQuery("#dialog-edit-prsrctv").dialog({
 						width: 340,
@@ -8359,8 +8366,8 @@ jQuery(document).ready(function($) {
 							{
 								text: dlText.ok,
 								click: function() {
-									pRec.l = jQuery('#edit-psrctv-lbl').val();
-									pRec.n = jQuery('#edit-psrctv-note').val();
+									pRec.l = jQuery('#edit-prspctv-lbl').val();
+									pRec.n = jQuery('#edit-prspctv-note').val();
 									parent.find('.label').text(pRec.l);
 									if (t == 'x')
 										xDataDirty = true;
@@ -8522,30 +8529,16 @@ jQuery(document).ready(function($) {
 		event.preventDefault();
 	} // clickFilterDel()
 
-			// TO DO -- redo for new design
-	function doDelSelFilter()
-	{
-		if (selFilter != null) {
-			selFilter.teardown();
-			jQuery('div.filter-instance[data-id="0"]').empty();
-			selFilter = null;
-			jQuery('#btn-toggle-selector').button("disable");
-			jQuery('#btn-apply-selector').button("disable");
-		}
-	} // doDelSelFilter()
-
 		// PURPOSE: Add a new filter to the stack
 		// INPUT: 	fID = Attribute ID
-		//			selector = true if filter for the selector
 		//			apply = initial state of apply array (boolean for each Template)
+		//			highlight = null if in Filter stack, else 0 or 1 (to indicate view applied to)
 		// RETURNS: The Filter object created
-	function createFilter(fID, apply, selector)
+	function createFilter(fID, apply, highlight)
 	{
 		var newID;
 
-		if (selector) {
-				// Remove any pre-existing selector filter
-			doDelSelFilter();
+		if (highlight !== null) {
 			newID = 0;
 		} else {
 			do {
@@ -8578,7 +8571,7 @@ jQuery(document).ready(function($) {
 			}
 		}
 
-		if (selector) {
+		if (highlight !== null) {
 			selFilter = newFilter;
 			selFID = fID;
 
@@ -8603,7 +8596,7 @@ jQuery(document).ready(function($) {
 			for (var i=0; i<PData.getNumETmplts(); i++) {
 				var applier = head.find('.apply-tmplt-'+i);
 				applier.prop('disabled', !theAtt.t[i]);
-				applier.prop('checked', apply[i]);
+				applier.prop('checked', apply[i] && theAtt.t[i]);
 				applier.click(clickFilterApply);
 			}
 
@@ -8623,17 +8616,20 @@ jQuery(document).ready(function($) {
 		return newFilter;
 	} // createFilter()
 
-
-	function clickNewFilter(event)
+		// PURPOSE: Allow user to choose an Attribute from a list
+	function chooseAttribute(showRemove, callback)
 	{
-		var applyDef = PData.getNumETmplts() == 1 ? [true] : [false, false, false, false];
-
 			// Clear previous selection
 		jQuery("#filter-list li").removeClass("selected");
-		jQuery("#filter-list li.remove").show();
-		var newFilterDialog;
+			// Do we show "Remove" Filter Option?
+		if (showRemove) {
+			jQuery("#filter-list li.remove").show();
+		} else {
+			jQuery("#filter-list li.remove").hide();
+		}
+		var attDialog;
 
-		newFilterDialog = jQuery("#dialog-new-filter").dialog({
+		attDialog = jQuery("#dialog-choose-att").dialog({
 			height: 300,
 			width: 350,
 			modal: true,
@@ -8644,21 +8640,28 @@ jQuery(document).ready(function($) {
 						var selected = jQuery("#filter-list li.selected");
 						if (selected.length) {
 							jQuery('#filter-instances').show(400);
-							createFilter(selected.data("id"), applyDef, false);
+							callback(selected.data("id"));
 							jQuery('#btn-toggle-filters').button("enable");
 						}
 							// Remove click handler
-						newFilterDialog.dialog("close");
+						attDialog.dialog("close");
 					}
 				},
 				{
 					text: dlText.cancel,
 					click: function() {
 							// Remove click handler
-						newFilterDialog.dialog("close");
+						attDialog.dialog("close");
 					}
 				}
 			]
+		});
+	} // chooseAttribute()
+
+	function clickNewFilter(event)
+	{
+		chooseAttribute(true, function(id) {
+			createFilter(id, [true, true, true, true], null);
 		});
 
 		event.preventDefault();
@@ -8671,97 +8674,73 @@ jQuery(document).ready(function($) {
 		event.preventDefault();
 	} // clickToggleFilters()
 
-
-			// TO DO -- redo for new design
-	function clickNewSelector(event)
+		// PURPOSE: Apply effect of a Highlight filter
+	function doApplyHighlight(v)
 	{
-			// Clear previous selection
-		jQuery("#filter-list li").removeClass("selected");
-		jQuery("#filter-list li.remove").hide();
+		PState.set(PSTATE_PROCESS);
 
-		var newFilterDialog;
+		var list=[];
+		var hFilter=hFilters[v];
+		if (endStream !== null) {
+			hFilter.evalPrep();
+			var relI=0, absI, rec;
+			while (relI < endStream.l) {
+				absI = endStream.s[relI++];
+				rec = PData.getRecByIndex(absI);
+				if (hFilter.eval(rec)) {
+					list.push(absI);
+				}
+			}
+			hFilter.isDirty(false);
+			hFilter.evalDone(endStream.l);
+		}
 
-		newFilterDialog = jQuery("#dialog-new-filter").dialog({
-			height: 300,
-			width: 350,
+		PState.set(PSTATE_UPDATE);
+
+		if (v === 0) {
+			view0.setSel(list);			
+		} else {
+			view1.setSel(list);
+		}
+		PState.set(PSTATE_READY);
+	} // doApplyHighlight()
+
+		// PURPOSE: Handle click on "Highlight" button
+		// INPUT: 	v = index of view frame
+	function clickHighlight(v)
+	{
+		var dialog;
+
+		filterDialog = jQuery("#dialog-hilite-"+v).dialog({
+			height: 500,
+			width: Math.min(jQuery(window).width() - 40, 600),
 			modal: true,
 			buttons: [
 				{
-					text: dlText.add,
+					text: dlText.chatt,
 					click: function() {
-						var selected = jQuery("#filter-list li.selected");
-						if (selected.length) {
-							jQuery('#selector-instance').show(400);
-							createFilter(selected.data("id"), null, true);
-							jQuery('#btn-toggle-selector').button("enable");
-							jQuery('#btn-apply-selector').button("enable");
-						}
-							// Remove click handler
-						newFilterDialog.dialog("close");
+						chooseAttribute(false, function(id) {
+console.log("Chose ID"+id);
+						});
+					}
+				},
+				{
+					text: dlText.ok,
+					click: function() {
+						// TO DO
+console.log("Apply Highlight");
+						filterDialog.dialog("close");
 					}
 				},
 				{
 					text: dlText.cancel,
 					click: function() {
-							// Remove click handler
-						newFilterDialog.dialog("close");
+						filterDialog.dialog("close");
 					}
 				}
 			]
 		});
-
-		event.preventDefault();
-	} // clickNewSelector()
-
-			// TO DO -- redo for new design
-	function clickToggleSelector(event)
-	{
-		jQuery('#selector-instance').slideToggle(400);
-		event.preventDefault();
-	} // clickToggleSelector()
-
-			// TO DO -- redo for new design
-	function doApplySelector()
-	{
-		PState.set(PSTATE_PROCESS);
-
-		var selList=[], mustCopy=false;
-		if (selFilter != null && endStream != null) {
-			selFilter.evalPrep();
-			var relI=0, absI, rec;
-			while (relI < endStream.l) {
-				absI = endStream.s[relI++];
-				rec = PData.getRecByIndex(absI);
-				if (selFilter.eval(rec)) {
-					selList.push(absI);
-				}
-			}
-			selFilter.isDirty(false);
-			selFilter.evalDone(endStream.l);
-		}
-
-		PState.set(PSTATE_UPDATE);
-
-			// Which Views to send Selection? Assumed won't be checked if disabled
-		if (jQuery('#selector-v0').is(':checked')) {
-			mustCopy = view0.setSel(selList);
-		}
-		if (jQuery('#selector-v1').is(':checked')) {
-			if (view1) {
-				if (mustCopy)
-					selList = selList.slice(0);
-				view1.setSel(selList);				
-			}
-		}
-	} // doApplySelector()
-
-			// TO DO -- redo for new design
-	function clickApplySelector(event)
-	{
-		doApplySelector();
-		PState.set(PSTATE_READY);
-		event.preventDefault();
-	} // clickApplySelector()
+	} // clickHighlight()
 
 
 		// PURPOSE: Attempt to show Perspective pID
@@ -8897,6 +8876,7 @@ jQuery(document).ready(function($) {
 		loadFrag('dltext-showhideall', 'sha');
 		loadFrag('dltext-ok', 'ok');
 		loadFrag('dltext-cancel', 'cancel');
+		loadFrag('dltext-choose-att', 'chatt');
 		loadFrag('dltext-seerec', 'seerec');
 		loadFrag('dltext-close', 'close');
 		loadFrag('dltext-add', 'add');
@@ -9045,14 +9025,6 @@ jQuery(document).ready(function($) {
 			.click(clickToggleFilters);
 	jQuery('#btn-f-state').click(clickFilter);
 
-		// Selector Control Bar
-	// jQuery('#btn-new-selector').button({icons: { primary: 'ui-icon-plus' }, text: false })
-	// 		.click(clickNewSelector);
-	// jQuery('#btn-toggle-selector').button({icons: { primary: 'ui-icon-arrow-2-n-s' }, text: false })
-	// 		.click(clickToggleSelector);
-	// jQuery('#btn-apply-selector').button({icons: { primary: 'ui-icon-arrowreturn-1-e' }, text: false })
-	// 		.click(clickApplySelector);
-
 	jQuery('#dialog-about .logo').attr("src", prspdata.assets+"prospectlogo.jpg");
 
 		// Inspector Modal
@@ -9089,21 +9061,24 @@ jQuery(document).ready(function($) {
 			view1.resize();
 	});
 
-		// Intercept global state changes: data { s[tate] }
+		// Intercept global signals: data { s[tate] }
 	jQuery("body").on("prospect", function(event, data) {
 		switch (data.s) {
 		case PSTATE_PROCESS:
 				// ASSUMED: This won't be triggered until after Filters & Views set up
 			PState.set(PSTATE_PROCESS);
 			doRecompute();
-			if (selFilter)
-				doApplySelector();
+			// if (selFilter)
+			// 	doApplySelector();
 			PState.set(PSTATE_READY);
 			jQuery('body').removeClass('waiting');
 			break;
 		case PSTATE_FDIRTY:
 			fState = 1;
 			jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
+			break;
+		case PSTATE_HILITE:
+			clickHighlight(data.v);
 			break;
 		}
 	});
