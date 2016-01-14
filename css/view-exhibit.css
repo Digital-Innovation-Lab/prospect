@@ -314,7 +314,7 @@ div.filter-body svg .brush .extent {
 	/* DOM Structure of Visualization frames
 	 * #viz-frame
 	 *	 #view-frame-0
-	 *		.view-control-bar
+	 *		.view-controls
 	 *		.lgnd-container
 	 *		.viz-content
 	 *			.viz-result
@@ -371,7 +371,7 @@ div.filter-body svg .brush .extent {
 	margin-left: 2.5px;
 }
 
-div.view-control-bar {
+div.view-controls {
 	height: 28px;
 	width: 100%;
 	padding: 10px 20px 30px;
@@ -381,17 +381,17 @@ div.view-control-bar {
 	background: #eee;
 }
 
-div.view-control-bar button.ui-button {
+div.view-controls button.ui-button {
 	margin-left: 3px;
 	margin-right: 3px;
 }
 
-div.view-control-bar .ui-icon {
+div.view-controls .ui-icon {
 	cursor: pointer;
 }
 
 	/* Right-justified (optional) toolbar */
-div.view-control-bar div.iconbar
+div.view-controls div.iconbar
 {
 	padding: 2px;
 	margin: 1px;

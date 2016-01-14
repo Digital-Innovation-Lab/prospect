@@ -346,7 +346,7 @@ VizMap.prototype.setup = function()
 	});
 
 	var fh = _.template(document.getElementById('dltext-v-map').innerHTML);
-	jQuery('#view-frame-'+vI+' div.view-control-bar').append(fh({ vi: vI }));
+	jQuery('#view-frame-'+vI+' div.view-controls').append(fh({ vi: vI }));
 
 	jQuery('#map-zoom-'+vI).button({ text: false, icons: { primary: "ui-icon-plus" }})
 		.click(zoomMap);
@@ -601,7 +601,7 @@ VizMap.prototype.render = function(stream)
 VizMap.prototype.teardown = function()
 {
 	var vi = this.vFrame.getIndex();
-	jQuery('#view-frame-'+vi+' div.view-control-bar div.iconbar').remove();
+	jQuery('#view-frame-'+vi+' div.view-controls div.iconbar').remove();
 } // teardown()
 
 
@@ -3251,7 +3251,7 @@ VizNetWheel.prototype.setup = function()
 
 	var vi = this.vFrame.getIndex();
 	var fh = _.template(document.getElementById('dltext-v-nwheel').innerHTML);
-	jQuery('#view-frame-'+vi+' div.view-control-bar').append(fh({ vi: vi }));
+	jQuery('#view-frame-'+vi+' div.view-controls').append(fh({ vi: vi }));
 
 	jQuery('#nw-prev-'+vi).button({ text: false, icons: { primary: " ui-icon-arrowreturnthick-1-s" }})
 		.click(function() {
@@ -3497,7 +3497,7 @@ VizNetWheel.prototype.render = function(stream)
 VizNetWheel.prototype.teardown = function()
 {
 	var vi = this.vFrame.getIndex();
-	jQuery('#view-frame-'+vi+' div.view-control-bar div.iconbar').remove();
+	jQuery('#view-frame-'+vi+' div.view-controls div.iconbar').remove();
 } // teardown()
 
 VizNetWheel.prototype.setSel = function(absIArray)
@@ -5264,7 +5264,7 @@ function PViewFrame(vfIndex)
 
 	function selectChangeViz(event)
 	{
-		var selector = jQuery(getFrameID()+' div.view-control-bar select.view-viz-select option:selected');
+		var selector = jQuery(getFrameID()+' div.view-controls select.view-viz-select option:selected');
 		var newSelIndex   = selector.val();
 		PState.set(PSTATE_BUILD);
 		createViz(newSelIndex, true);
@@ -5844,7 +5844,7 @@ function PViewFrame(vfIndex)
 		// PURPOSE: Change state Highlight buttons
 	function doSelBtns(enable)
 	{
-		var vCnxt = jQuery(getFrameID()+' .view-control-bar');
+		var vCnxt = jQuery(getFrameID()+' div.view-controls');
 
 		if (enable) {
 			vCnxt.find('.osel').button("enable");
@@ -6269,7 +6269,7 @@ function PViewFrame(vfIndex)
 	instance.setViz = function(vI, refresh)
 	{
 		if (vI != vizSelIndex) {
-			var select = jQuery(getFrameID()+' div.view-control-bar select.view-viz-select');
+			var select = jQuery(getFrameID()+' div.view-controls select.view-viz-select');
 			select.val(vI);
 			createViz(vI, refresh);
 		}
@@ -6286,12 +6286,12 @@ function PViewFrame(vfIndex)
 			// Localize color scheme?
 		var clr = prspdata.bClrs.vf;
 		if (clr && clr.length > 0)
-			frame.find('div.view-control-bar').css('background-color', clr);
+			frame.find('div.view-controls').css('background-color', clr);
 
 			// Activate drag handle on Legend
 		frame.find('div.lgnd-container').draggable({ handle: frame.find('div.lgnd-handle'), containment: "parent" });
 
-		var select = frame.find('div.view-control-bar select.view-viz-select');
+		var select = frame.find('div.view-controls select.view-viz-select');
 			// Set Dropdown to View names
 		prspdata.e.vf.forEach(function(theVF, i) {
 			var optionStr = '<option value="'+i+'">'+theVF.l+'</option>';
@@ -6301,7 +6301,7 @@ function PViewFrame(vfIndex)
 		select.change(selectChangeViz);
 
 			// Hook control bar Icon buttons
-		frame.find('div.view-control-bar button:first')
+		frame.find('div.view-controls button:first')
 				.button({icons: { primary: 'ui-icon-bookmark' }, text: false })
 				.click(clickShowHideLegend).next()
 				.button({icons: { primary: 'ui-icon-wrench' }, text: false })

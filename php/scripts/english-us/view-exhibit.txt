@@ -140,7 +140,7 @@
 
 <!-- DYNAMICALLY LOADED TEXT -->
 <script id="dltext-viewframe-dom" type='text'>
-	<div class="view-control-bar">
+	<div class="view-controls">
 		<select class="view-viz-select">
 		</select>
 		<button class="hslgnd">Show/Hide Legend</button>
