@@ -5156,9 +5156,14 @@ PFilterDates.prototype.setup = function()
 	insert.find("input[name=dctrl-"+self.id+"]").change(function() {
 		self.isDirty(true);
 	});
-	insert.find(".allow-undef").click(function() {
-		self.isDirty(true);
-	});
+		// Only enabled "allow undefined" if enabled by Attribute
+	if (typeof this.att.r.u === 'undefined') {
+		insert.find(".allow-undef").prop('disabled', true);
+	} else {
+		insert.find(".allow-undef").click(function() {
+			self.isDirty(true);
+		});
+	}
 
 	this.refreshBoxes();
 
@@ -8534,22 +8539,25 @@ jQuery(document).ready(function($) {
 		//			apply = initial state of apply array (boolean for each Template)
 		//			highlight = null if in Filter stack, else 0 or 1 (to indicate view applied to)
 		// RETURNS: The Filter object created
+		// NOTES:   IDs 0 and 1 are specially allocated to Highlight those respective views
+		// ASSUMED: Remove filter won't be created for Highlight condition
 	function createFilter(fID, apply, highlight)
 	{
 		var newID;
+		var newFilter;
+		var theAtt;
+		var insert;
 
 		if (highlight !== null) {
-			newID = 0;
+			newID = highlight;
 		} else {
 			do {
-				newID = Math.floor((Math.random() * 1000) + 1);
+				newID = Math.floor((Math.random() * 1000) + 2);
 				if (filters.findIndex(function(theF) { return theF.id == newID; }) != -1)
 					newID = -1;
 			} while (newID == -1);
 		}
 
-		var newFilter;
-		var theAtt;
 		if (fID == '_remove') {
 			newFilter = new PFilterRemove(newID);
 			theAtt = { t: [true, true, true, true ] };	// Create pseudo-Attribute entry
@@ -8572,15 +8580,9 @@ jQuery(document).ready(function($) {
 		}
 
 		if (highlight !== null) {
-			selFilter = newFilter;
-			selFID = fID;
-
-			var fh = _.template(document.getElementById('dltext-selector-head').innerHTML);
-			var head = jQuery('div.filter-instance[data-id="0"]');
-			head.append(fh({ title: newFilter.title() }));
-			head.find('button.btn-filter-del').button({
-						text: false, icons: { primary: 'ui-icon-trash' }
-					}).click(doDelSelFilter);
+			insert = jQuery('#dialog-hilite-'+highlight+' span.filter-id').html(theAtt.def.l);
+			insert = jQuery('#hilite-'+highlight);
+			insert.empty();
 
 		} else {
 			var newFRec = { id: newID, attID: fID, f: newFilter, out: null };
@@ -8663,7 +8665,6 @@ jQuery(document).ready(function($) {
 		chooseAttribute(true, function(id) {
 			createFilter(id, [true, true, true, true], null);
 		});
-
 		event.preventDefault();
 	} // clickNewFilter()
 
@@ -8712,7 +8713,7 @@ jQuery(document).ready(function($) {
 		var dialog;
 
 		filterDialog = jQuery("#dialog-hilite-"+v).dialog({
-			height: 500,
+			height: 275,
 			width: Math.min(jQuery(window).width() - 40, 600),
 			modal: true,
 			buttons: [
@@ -8720,16 +8721,18 @@ jQuery(document).ready(function($) {
 					text: dlText.chatt,
 					click: function() {
 						chooseAttribute(false, function(id) {
-console.log("Chose ID"+id);
+							hFilterIDs[v] = id;
+							hFilters[v] = createFilter(id, null, v);
 						});
 					}
 				},
 				{
 					text: dlText.ok,
 					click: function() {
-						// TO DO
-console.log("Apply Highlight");
 						filterDialog.dialog("close");
+						if (hFilters[v] !== null) {
+							doApplyHighlight(v);
+						}
 					}
 				},
 				{

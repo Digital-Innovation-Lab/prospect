@@ -37,12 +37,18 @@
 	</div>
 
 	<div id="dialog-hilite-0" title="Highlight On View 1">
-		<div id="hilite-0" class="filter-body">
+		<div class="filter-instance" data-id="0">
+			Highlight by condition of Attribute: <span class="filter-id">(None selected)</span>
+			<div id="hilite-0" class="filter-body">
+			</div>
 		</div>
 	</div>
 
 	<div id="dialog-hilite-1" title="Highlight On View 2">
-		<div id="hilite-1" class="filter-body">
+		<div class="filter-instance" data-id="1">
+			Highlight by condition of Attribute: <span class="filter-id">(None selected)</span>
+			<div id="hilite-1" class="filter-body">
+			</div>
 		</div>
 	</div>
 
@@ -220,15 +226,6 @@ All Records from selected Templates will be removed/hidden.
 		To <input type="text" class="to-y" size="5" placeholder="YYYY"/> <input type="text" class="to-m" size="2" placeholder="MM"/> <input type="text" class="to-d" size="2" placeholder="DD"/>
 		<br/>
 		<button class="filter-update" disabled>Use Date</button>
-	</div>
-</script>
-
-<script id="dltext-selector-head" type='text'>
-	<div class="filter-head">
-		<%= title %> &nbsp;
-		<button class="btn-filter-del">Delete Filter</button>
-	</div>
-	<div class="filter-body">
 	</div>
 </script>
 
