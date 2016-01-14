@@ -24,16 +24,25 @@
 	</div>
 </div>
 
-<div id="viz-display-frame">
+<div id="viz-frame">
 </div>
 
 <!-- DYNAMIC JQUERYUI CONTENT -->
 <div style="display:none">
-	<div id="dialog-new-filter" title="New Data Filter">
-		<p class="validateTips">Choose Attribute to Filter</p>
+	<div id="dialog-choose-att" title="Choose Attribute">
 		<div class="scroll-container">
 			<ul id="filter-list">
 			</ul>
+		</div>
+	</div>
+
+	<div id="dialog-hilite-0" title="Highlight On View 1">
+		<div id="hilite-0" class="filter-body">
+		</div>
+	</div>
+
+	<div id="dialog-hilite-1" title="Highlight On View 2">
+		<div id="hilite-1" class="filter-body">
 		</div>
 	</div>
 
@@ -73,7 +82,7 @@
 	</div>
 
 	<div id="dialog-save-prsrctv" title="Save Perspective">
-		<fieldset class="radiogroup"> 
+		<fieldset class="radiogroup">
 			<legend>Where to save</legend>
 			<ul class="radio">
 				<li><input type="radio" name="save-prspctv-dest" id="save-prspctv-d-1" value="local" checked/><label for="save-prspctv-d-1">Private (Your Browser)</label></li>
@@ -81,16 +90,17 @@
 			</ul>
 		</fieldset>
 		Unique ID:<br/>
-		<input id="save-psrctv-id" type="text" size="20" placeholder="Unique ID"/><br/>
+		<input id="save-prspctv-id" type="text" size="20" placeholder="Unique ID"/><br/>
 		Label:<br/>
-		<input id="save-psrctv-lbl" type="text" size="42" placeholder="Label"/><br/>
-		<textarea id="save-psrctv-note" rows="4" cols="42" placeholder="Add an annotation (cannot use double quotes)" style="margin-top: 4px"></textarea>
+		<input id="save-prspctv-lbl" type="text" size="42" placeholder="Label"/><br/>
+		<input type="checkbox" id="save-prspctv-h1"/>Save Highlight 1 <input type="checkbox" id="save-prspctv-h2"/>Save Highlight 2<br/>
+		<textarea id="save-prspctv-note" rows="4" cols="42" placeholder="Add an annotation (cannot use double quotes)" style="margin-top: 4px"></textarea>
 	</div>
 
 	<div id="dialog-edit-prsrctv" title="Edit Perspective">
 		Label:<br/>
-		<input id="edit-psrctv-lbl" type="text" size="42" placeholder="Label"/><br/>
-		<textarea id="edit-psrctv-note" rows="4" cols="42" placeholder="Annotation (cannot use double quotes)" style="margin-top: 4px"></textarea>
+		<input id="edit-prspctv-lbl" type="text" size="42" placeholder="Label"/><br/>
+		<textarea id="edit-prspctv-note" rows="4" cols="42" placeholder="Annotation (cannot use double quotes)" style="margin-top: 4px"></textarea>
 	</div>
 
 	<div id="dialog-show-prsrctv" title="Show Perspective">
@@ -118,7 +128,7 @@
 
 	<div id="dialog-prspctv-url" title="Perspective URL">
 		<p>To show this Perspective after it has been Published on the server, use the following URL:</p>
-		<textarea id="save-psrctv-embed" cols="60" rows="3" readonly="readonly"></textarea>
+		<textarea id="save-prspctv-embed" cols="60" rows="3" readonly="readonly"></textarea>
 	</div>
 </div> <!-- Hidden content ->
 
@@ -250,8 +260,8 @@ Close
 Add
 </script>
 
-<script id="dltext-from" type="text">
-From
+<script id="dltext-choose-att" type="text">
+Choose Attribute
 </script>
 
 <script id="dltext-to" type="text">
