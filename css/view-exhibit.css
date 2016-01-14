@@ -122,7 +122,7 @@ ul.radio li:hover, ul.radio li.focus {
 	 * #command-bar
 	 * #note
 	 * #filter-frame
-	 * #viz-display-frame
+	 * #viz-frame
 	 */
 
 	/* Command Bar always along top row of window */
@@ -222,7 +222,7 @@ ul.radio li:hover, ul.radio li.focus {
 	font-size: 12px;
 }
 
-	/* All filter instances going into this scrolling area */
+	/* All Filter instances go into this scrolling area */
 #filter-instances {
 	min-height: 0px;
 	max-height: 300px;
@@ -249,7 +249,9 @@ div.filter-head {
 	border-bottom: black 1px dotted;
 }
 
-	/* Area for each filter's GUI controls */
+	/* Area for each filter's GUI controls
+	 * Also used in Highlight dialog
+	 */
 div.filter-body {
 	white-space: nowrap;	/* don't allow controls to wrap to new line */
 	padding: 0px;
@@ -305,19 +307,19 @@ div.filter-body svg .brush .extent {
 }
 
 	/* DOM Structure of Visualization frames
-	 * #viz-display-frame
-	 *	 #viz-frame-0
+	 * #viz-frame
+	 *	 #view-frame-0
 	 *		.view-control-bar
 	 *		.lgnd-container
 	 *		.viz-content
 	 *			.viz-result
 	 *			.annote
-	 *	 #viz-frame-1
+	 *	 #view-frame-1
 	 *		... (same as above)
 	 */
 
 	/* One or two displays go into this frame */
-#viz-display-frame {
+#viz-frame {
 	flex: 1 1 auto;
 	-webkit-flex: 1 1 auto;
 	-moz-flex: 1 1 auto;
@@ -335,7 +337,7 @@ div.filter-body svg .brush .extent {
 	-ms-flex-direction: row;
 }
 
-#viz-display-frame button {
+#viz-frame button {
 	font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans-serif;
 }
 
