@@ -232,7 +232,7 @@ ul.radio li:hover, ul.radio li.focus {
 	padding: 0px;
 }
 
-	/* Each Filter instance has this class as outer wrapper */
+	/* Each Filter instance (inc Highlight dialogs) has this class as outer wrapper */
 div.filter-instance {
 	max-height: 300px;
 	padding-left: 8px;
@@ -273,6 +273,11 @@ div.filter-body div.h-center {
 	margin: 0 auto;
 }
 */
+div.filter-body input[type=text] {
+	font-size: 10px;
+	padding: 1px;
+	margin: 1px;
+}
 
 div.filter-body svg {
 	display: inline;
@@ -574,6 +579,10 @@ div.lgnd-value-title {
 div.ui-dialog-content p {
 	margin: 2px;
 	padding: 0;
+}
+
+div.ui-dialog-content input[type=text] {
+	margin-bottom: 2px;
 }
 
 div.scroll-container ul {

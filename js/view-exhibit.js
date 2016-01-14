@@ -1779,7 +1779,7 @@ VizTime.prototype.setup = function()
 		};
 
 		band.parts.push(axisDraw); // for brush.redraw
-		self.cmpnts.push(axisDraw); // for timeline.redraw -- TO DO: Need both?? Test
+		self.cmpnts.push(axisDraw); // for timeline.redraw
 	} // createXAxis()
 
 	createXAxis(0);
@@ -3468,7 +3468,7 @@ VizNetWheel.prototype.render = function(stream)
 						var found=false, r2;
 						tLoop: for (var tI=0; tI<head.children.length; tI++) {
 							var tRecs = head.children[tI];
-								// TO DO: binary search!
+								// TO DO: binary search
 							for (var rI=0; rI<tRecs.children.length; rI++) {
 								r2 = tRecs.children[rI];
 								if (r2.r.id == rID) {
@@ -5130,6 +5130,7 @@ PFilterDates.prototype.setup = function()
 			self.b0 = b0;
 			self.b1 = b1;
 			self.brushg.call(self.brush.extent([b0, b1+1]));
+			insert.find('.filter-update').prop('disabled', true);
 		}
 	} // useBoxes()
 
@@ -5150,7 +5151,7 @@ PFilterDates.prototype.setup = function()
 	var xAxis = d3.svg.axis().scale(rScale).orient("bottom");
 	var yAxis = d3.svg.axis().scale(yScale).orient("left").ticks(4);
 
-	var fh = _.template(document.getElementById('dltext-filter-date-ctrl').innerHTML);
+	var fh = _.template(document.getElementById('dltext-filter-dates').innerHTML);
 	insert.append(fh({ id: this.id }));
 		// Dirty filter if user changes settings
 	insert.find("input[name=dctrl-"+self.id+"]").change(function() {
@@ -5840,6 +5841,7 @@ function PViewFrame(vfIndex)
 		event.preventDefault();
 	} // clickOpenSelection()
 
+		// PURPOSE: Change state Highlight buttons
 	function doSelBtns(enable)
 	{
 		var vCnxt = jQuery(getFrameID()+' .view-control-bar');
@@ -6139,7 +6141,7 @@ function PViewFrame(vfIndex)
 
 			// Does Viz support Legend at all?
 		if (flags & V_FLAG_LGND) {
-			frame.find('.hslgnd').button("enable");
+			frame.find('.hslgnd').button('enable');
 				// Clear out previous Legend
 				// remove all previous locate Attributes
 			var lgndCntr = frame.find('div.lgnd-container div.lgnd-scroll');
@@ -6204,20 +6206,18 @@ function PViewFrame(vfIndex)
 			}
 			frame.find('div.lgnd-container').show();
 		} else {
-			frame.find('.hslgnd').button("disable");
+			frame.find('button.hslgnd').button('disable');
 				// Just hide Legend
 			frame.find('div.lgnd-container').hide();
 		}
 
-			// Enable or disable corresponding Selector Filter
-			// TO DO: Redo for new design
-		var c = jQuery('#selector-v'+vfIndex);
+			// Enable or disable corresponding Highlight button & Save Perspective checkboxes
 		if (flags & V_FLAG_SEL) {
-			c.removeAttr("disabled");
-			c.prop('checked', true);
+			frame.find('button.hilite').prop('disabled', false);
+			jQuery('#save-prspctv-h'+vfIndex).prop('disabled', false).prop('checked', false);
 		} else {
-			c.attr("disabled", true);
-			c.prop('checked', false);
+			frame.find('button.hilite').prop('disabled', true);
+			jQuery('#save-prspctv-h'+vfIndex).prop('disabled', true).prop('checked', false);
 		}
 
 			// Does Viz have an Options dialog?
@@ -6307,7 +6307,9 @@ function PViewFrame(vfIndex)
 				.button({icons: { primary: 'ui-icon-wrench' }, text: false })
 				.click(clickVizControls).next()
 				.button({icons: { primary: 'ui-icon-info' }, text: false })
-				.click(clickVizNotes).next().next()		// Skip over "Highlight" button
+				.click(clickVizNotes).next()
+				.button({icons: { primary: 'ui-icon-star' }, text: false })
+				.click(clickHighlight).next()
 				.button({icons: { primary: 'ui-icon-search' }, text: false })
 				.click(clickOpenSelection).next()
 				.button({icons: { primary: 'ui-icon-cancel' }, text: false })
@@ -6315,8 +6317,6 @@ function PViewFrame(vfIndex)
 
 		frame.find('div.lgnd-container')
 			.click(clickInLegend);
-		frame.find('button.hilite')
-			.click(clickHighlight);
 
 		createViz(vI, false);
 	} // initDOM()
@@ -8207,9 +8207,11 @@ jQuery(document).ready(function($) {
 			jQuery('#save-prspctv-d-2').attr('disabled', 'disabled');
 		}
 
+			// TO DO -- Check Highlight filters for en-/disable checkboxes
+
 		spDialog = jQuery("#dialog-save-prsrctv").dialog({
 			width: 340,
-			height: 350,
+			height: 370,
 			modal: true,
 			buttons: [
 				{
@@ -8640,10 +8642,8 @@ jQuery(document).ready(function($) {
 					text: dlText.add,
 					click: function() {
 						var selected = jQuery("#filter-list li.selected");
-						if (selected.length) {
-							jQuery('#filter-instances').show(400);
+						if (selected.length === 1) {
 							callback(selected.data("id"));
-							jQuery('#btn-toggle-filters').button("enable");
 						}
 							// Remove click handler
 						attDialog.dialog("close");
@@ -8663,7 +8663,9 @@ jQuery(document).ready(function($) {
 	function clickNewFilter(event)
 	{
 		chooseAttribute(true, function(id) {
+			jQuery('#filter-instances').show(400);
 			createFilter(id, [true, true, true, true], null);
+			jQuery('#btn-toggle-filters').button("enable");
 		});
 		event.preventDefault();
 	} // clickNewFilter()
@@ -8714,11 +8716,11 @@ jQuery(document).ready(function($) {
 
 		filterDialog = jQuery("#dialog-hilite-"+v).dialog({
 			height: 275,
-			width: Math.min(jQuery(window).width() - 40, 600),
+			width: Math.min(jQuery(window).width() - 20, 675),
 			modal: true,
 			buttons: [
 				{
-					text: dlText.chatt,
+					text: dlText.chsatt,
 					click: function() {
 						chooseAttribute(false, function(id) {
 							hFilterIDs[v] = id;
@@ -8879,7 +8881,7 @@ jQuery(document).ready(function($) {
 		loadFrag('dltext-showhideall', 'sha');
 		loadFrag('dltext-ok', 'ok');
 		loadFrag('dltext-cancel', 'cancel');
-		loadFrag('dltext-choose-att', 'chatt');
+		loadFrag('dltext-choose-att', 'chsatt');
 		loadFrag('dltext-seerec', 'seerec');
 		loadFrag('dltext-close', 'close');
 		loadFrag('dltext-add', 'add');
