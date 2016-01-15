@@ -4846,6 +4846,7 @@ PFilterNum.prototype.setState = function(state)
 //	Instance Variables:
 //		rCats = category buckets for Date range
 //		ctrs = array of integers for category counters
+//		uDates = Working array of {y,m,d,ms}[min, max] from user entry
 //		b0 = index of bucket for brush from (0-based) -- maintained dynamically
 //		b1 = index of bucket for brush to -- maintained dynamically
 //		min = minimum allowed Date (inclusive) -- maintained dynamically
@@ -4866,7 +4867,7 @@ PFilterDates.prototype = Object.create(PFilterModel.prototype);
 
 PFilterDates.prototype.constructor = PFilterDates;
 
-	// PURPOSE: Set text in boxes to min / max values
+	// PURPOSE: Set text in edit boxes acc. to min / max values
 PFilterDates.prototype.refreshBoxes = function()
 {
 	var insert = this.insertPt();
@@ -4886,11 +4887,129 @@ PFilterDates.prototype.refreshBoxes = function()
 	insert.find('.filter-update').prop('disabled', true);
 } // refreshBoxes()
 
+	// PURPOSE: Check values in edit boxes
+	// SIDE-FX: Set or clear "error" class; sets values in uDates[]
+PFilterDates.prototype.evalBoxes = function(insert)
+{
+	var self=this;
+	var yRE = /^(-?\d+)$/;
+	var dRE = /^(\d{1,2})$/;
+
+	var failFrom, failTo;
+
+		// RETURNS: true if passes conditions
+	function checkSet(sel, i)
+	{
+		var fail=false;
+		var thisDate={y: 0, m: 0, d: 0, ms: null};
+
+		function setError(e)
+		{
+			fail = true;
+			insert.find(sel+e).addClass('error');
+		} // setError()
+		function noError(e)
+		{
+			insert.find(sel+e).removeClass('error');
+		} // noError()
+
+		var d = insert.find(sel+'-y');		// DOM element
+		var t = d.val();					// Text value
+		var r = yRE.exec(t);				// RegExp result
+		if (r) {
+			noError('-y');
+			thisDate.y = parseInt(r[1], 10);
+		} else
+			setError('-y');
+		d = insert.find(sel+'-m');
+		t = d.val();
+		r = dRE.exec(t);
+		if (r) {
+			thisDate.m = parseInt(r[1], 10);
+			if (thisDate.m < 1 || thisDate.m > 12)
+				setError('-m');
+			else
+				noError('-m');
+		} else
+			setError('-m');
+		d = insert.find(sel+'-d');			// DOM element
+		t = d.val();						// Text value
+		r = dRE.exec(t);					// RegExp result
+		if (r) {
+			thisDate.d = parseInt(r[1], 10);
+			if (thisDate.d < 1 || thisDate.d > 31)
+				setError('-d')
+			else
+				noError('-d');
+		} else
+			setError('-d');
+			// If OK so far, check against bounds
+		if (!fail) {
+				// <end> must be false to ensure ms is less than rCats.max for check
+			thisDate.ms = PData.date3Nums(thisDate.y, thisDate.m, thisDate.d, false);
+				// Check against bounds
+			if (i == 0) {
+				if (thisDate.ms < self.rCats[0].min) {
+					setError('-y');
+					setError('-m');
+					setError('-d');
+				}
+			} else {
+				if (thisDate.ms > self.rCats[self.rCats.length-1].max) {
+					setError('-y');
+					setError('-m');
+					setError('-d');
+				}
+			}
+		}
+		self.uDates[i] = thisDate;
+		return fail;
+	} // checkSet()
+
+	failFrom = checkSet('.from', 0);
+	failTo = checkSet('.to', 1);
+	if (this.uDates[0].ms > this.uDates[1].ms) {
+		failTo = true;
+	}
+	insert.find('.filter-update').prop('disabled', failFrom || failTo);
+	return !(failFrom || failTo);
+} // evalBoxes()
+
+	// PURPOSE: Try to use values in boxes to calculate Filter settings,
+	//				as when user clicks "Use Date"
+	// INPUT: 	insert = insertPt() for this filter
+	// SIDE-FX: Sets min, max, b0, b1 and brush from text boxes
+PFilterDates.prototype.useBoxes = function(insert)
+{
+	if (this.evalBoxes(insert)) {
+			// Dirty filter
+		this.isDirty(true);
+			// Update min, max
+		this.min = this.uDates[0].ms;
+		var thisDate = this.uDates[1];
+		this.max = PData.date3Nums(thisDate.y, thisDate.m, thisDate.d, true);
+			// Find appropriate rCats bounds for brush and redraw
+		var b0, b1;
+		for (b0=0; b0<this.rCats.length; b0++) {
+			if (this.min < this.rCats[b0].max)
+				break;
+		}
+		for (b1=b0; b1<this.rCats.length; b1++) {
+			if (this.max <= this.rCats[b1].max)
+				break;
+		}
+		b1 = (b1 === this.rCats.length) ? this.rCats.length-1 : b1;
+		this.b0 = b0;
+		this.b1 = b1;
+		this.brushg.call(this.brush.extent([b0, b1+1]));
+		insert.find('.filter-update').prop('disabled', true);
+	}
+} // useBoxes()
+
 PFilterDates.prototype.evalPrep = function()
 {
 	this.c = jQuery('input[name=dctrl-'+this.id+']:checked').val();
 	var dom = this.insertPt();
-	this.u = dom.find('input.allow-undef').prop('checked');
 	for (var i=0; i<this.rCats.length; i++)
 		this.ctrs[i] = 0;
 } // evalPrep()
@@ -4974,9 +5093,12 @@ PFilterDates.prototype.setup = function()
 		// Set defaults
 	this.b0  = 0;
 	this.b1  = this.rCats.length-1;
-
+	this.u   = false;
 	this.min = this.rCats[0].min;
 	this.max = this.rCats[this.b1].max;
+
+	this.uDates = new Array(2);
+
 
 	var innerH = 80 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
 
@@ -5020,119 +5142,6 @@ PFilterDates.prototype.setup = function()
 	} // brushended()
 
 	var insert = this.insertPt();
-	var uDates = new Array(2);
-
-	function evalBoxes()
-	{
-		var yRE = /^(-?\d+)$/;
-		var dRE = /^(\d{1,2})$/;
-
-		var failFrom, failTo;
-
-			// RETURNS: true if passes conditions
-		function checkSet(sel, i)
-		{
-			var fail=false;
-			var thisDate={y: 0, m: 0, d: 0, ms: null};
-
-			function setError(e)
-			{
-				fail = true;
-				insert.find(sel+e).addClass('error');
-			} // setError()
-			function noError(e)
-			{
-				insert.find(sel+e).removeClass('error');
-			} // noError()
-
-			var d = insert.find(sel+'-y');		// DOM element
-			var t = d.val();					// Text value
-			var r = yRE.exec(t);				// RegExp result
-			if (r) {
-				noError('-y');
-				thisDate.y = parseInt(r[1], 10);
-			} else
-				setError('-y');
-			d = insert.find(sel+'-m');
-			t = d.val();
-			r = dRE.exec(t);
-			if (r) {
-				thisDate.m = parseInt(r[1], 10);
-				if (thisDate.m < 1 || thisDate.m > 12)
-					setError('-m');
-				else
-					noError('-m');
-			} else
-				setError('-m');
-			d = insert.find(sel+'-d');			// DOM element
-			t = d.val();						// Text value
-			r = dRE.exec(t);					// RegExp result
-			if (r) {
-				thisDate.d = parseInt(r[1], 10);
-				if (thisDate.d < 1 || thisDate.d > 31)
-					setError('-d')
-				else
-					noError('-d');
-			} else
-				setError('-d');
-				// If OK so far, check against bounds
-			if (!fail) {
-					// <end> must be false to ensure ms is less than rCats.max for check
-				thisDate.ms = PData.date3Nums(thisDate.y, thisDate.m, thisDate.d, false);
-					// Check against bounds
-				if (i == 0) {
-					if (thisDate.ms < self.rCats[0].min) {
-						setError('-y');
-						setError('-m');
-						setError('-d');
-					}
-				} else {
-					if (thisDate.ms > self.rCats[self.rCats.length-1].max) {
-						setError('-y');
-						setError('-m');
-						setError('-d');
-					}
-				}
-			}
-			uDates[i] = thisDate;
-			return fail;
-		} // checkSet()
-		failFrom = checkSet('.from', 0);
-		failTo = checkSet('.to', 1);
-		if (uDates[0].ms > uDates[1].ms) {
-			failTo = true;
-		}
-		insert.find('.filter-update').prop('disabled', failFrom || failTo);
-		return !(failFrom || failTo);
-	} // evalBoxes()
-		// PURPOSE: Handle user hitting "Use Date"
-		// ASSUMES: Button disabled unless Date values are usable
-	function useBoxes()
-	{
-		if (evalBoxes()) {
-				// Dirty filter
-			self.isDirty(true);
-				// Update min, max
-			self.min = uDates[0].ms;
-			var thisDate = uDates[1];
-			self.max = PData.date3Nums(thisDate.y, thisDate.m, thisDate.d, true);
-				// Find appropriate rCats bounds for brush and redraw
-			var b0, b1;
-			for (b0=0; b0<self.rCats.length; b0++) {
-				if (self.min < self.rCats[b0].max)
-					break;
-			}
-			for (b1=b0; b1<self.rCats.length; b1++) {
-				if (self.max <= self.rCats[b1].max)
-					break;
-			}
-			b1 = (b1 === self.rCats.length) ? self.rCats.length-1 : b1;
-			self.b0 = b0;
-			self.b1 = b1;
-			self.brushg.call(self.brush.extent([b0, b1+1]));
-			insert.find('.filter-update').prop('disabled', true);
-		}
-	} // useBoxes()
 
 	var colW=0;
 	this.rCats.forEach(function(c) {
@@ -5153,7 +5162,7 @@ PFilterDates.prototype.setup = function()
 
 	var fh = _.template(document.getElementById('dltext-filter-dates').innerHTML);
 	insert.append(fh({ id: this.id }));
-		// Dirty filter if user changes settings
+		// Dirty filter if user changes overlap/contain setting
 	insert.find("input[name=dctrl-"+self.id+"]").change(function() {
 		self.isDirty(true);
 	});
@@ -5162,6 +5171,7 @@ PFilterDates.prototype.setup = function()
 		insert.find(".allow-undef").prop('disabled', true);
 	} else {
 		insert.find(".allow-undef").click(function() {
+			self.u = insert.find('input.allow-undef').prop('checked');
 			self.isDirty(true);
 		});
 	}
@@ -5169,9 +5179,15 @@ PFilterDates.prototype.setup = function()
 	this.refreshBoxes();
 
 		// Try to evaluate Date values whenever user enters something
-	insert.find("input[type=text]").change(evalBoxes);
+	insert.find("input[type=text]").change(function() {
+		// PFilterDates.evalBoxes.call(self, insert);
+		self.evalBoxes(insert);
+	});
 		// Try to use Dates
-	insert.find(".filter-update").click(useBoxes);
+	insert.find(".filter-update").click(function() {
+		// PFilterDates.useBoxes.call(self, insert);
+		self.useBoxes(insert);
+	});
 
 	var chart = d3.select(insert.get(0)).append("svg")
 		.attr("width", innerW+D3FG_MARGINS.left+D3FG_MARGINS.right)
@@ -5217,21 +5233,40 @@ PFilterDates.prototype.setup = function()
 
 PFilterDates.prototype.getState = function()
 {
+		// Construct min-max Dates
+	function makeDate(d)
+	{
+		return 	d.getUTCFullYear()+'-'+(d.getUTCMonth()+1)+'-'+d.getUTCDate();
+	}
 	var c = jQuery('input[name=dctrl-'+this.id+']:checked').val();
-		// TO DO: Specific dates, undefined flag
-	return { e0: this.b0, e1: this.b1+1, c: c };
+	return { min: makeDate(this.min), max: makeDate(this.max), c: c, u: this.u };
 } // getState()
 
 PFilterDates.prototype.setState = function(state)
 {
+	var insert = this.insertPt();
+
+	function setBoxes(s, d)
+	{
+		var c = d.split('-');
+		var i=0;
+			// Only 4 components if begins w/- (years BCE)
+		if (c.length === 4) {
+			insert.find(s+'-y').removeClass('error').val('-'+c[1]);
+			i=1;
+		} else {
+			insert.find(s+'-y').removeClass('error').val(c[0]);
+		}
+		insert.find(s+'-m').removeClass('error').val(c[++i]);
+		insert.find(s+'-d').removeClass('error').val(c[++i]);
+	}
+
 	jQuery('input[name="dctrl-'+this.id+'"]').val([state.c]);
-	this.b0  = state.e0;
-	this.b1  = state.e1-1;
-	this.min = this.rCats[this.b0].min;
-	this.max = this.rCats[this.b1].max;
-	this.brush.extent([state.e0, state.e1]);
-	this.brushg.call(this.brush);
-	this.refreshBoxes();
+	insert.find('input.allow-undef').prop('checked', state.u);
+	this.u = state.u;
+	setBoxes('.from', state.min);
+	setBoxes('.to', state.max);
+	this.useBoxes(insert);
 } // setState()
 
 
@@ -6213,25 +6248,25 @@ function PViewFrame(vfIndex)
 
 			// Enable or disable corresponding Highlight button & Save Perspective checkboxes
 		if (flags & V_FLAG_SEL) {
-			frame.find('button.hilite').prop('disabled', false);
+			frame.find('.hilite').button('enable');
 			jQuery('#save-prspctv-h'+vfIndex).prop('disabled', false).prop('checked', false);
 		} else {
-			frame.find('button.hilite').prop('disabled', true);
+			frame.find('.hilite').button('disable');
 			jQuery('#save-prspctv-h'+vfIndex).prop('disabled', true).prop('checked', false);
 		}
 
 			// Does Viz have an Options dialog?
 		if (flags & V_FLAG_OPT) {
-			frame.find('.vopts').button("enable");
+			frame.find('.vopts').button('enable');
 		} else {
-			frame.find('.vopts').button("disable");
+			frame.find('.vopts').button('disable');
 		}
 
 			// Does Viz have annotation?
 		var hint = newViz.hint();
 		if (hint || typeof theView.n == 'string' && theView.n != '')
 		{
-			frame.find('.vnote').button("enable");
+			frame.find('.vnote').button('enable');
 			if (hint) {
 				if (typeof theView.n == 'string' && theView.n != '')
 					hint += '.<br/>'+theView.n;
@@ -6278,7 +6313,7 @@ function PViewFrame(vfIndex)
 		// PURPOSE: Initialize basic DOM structure for ViewFrame
 	instance.initDOM = function(vI)
 	{
-		var viewDOM = document.getElementById('dltext-viewframe-dom').innerHTML;
+		var viewDOM = document.getElementById('dltext-view-controls').innerHTML;
 		jQuery('#viz-frame').append('<div id="view-frame-'+vfIndex+'">'+viewDOM+'</div>');
 
 		var frame = jQuery(getFrameID());
@@ -6310,10 +6345,10 @@ function PViewFrame(vfIndex)
 				.click(clickVizNotes).next()
 				.button({icons: { primary: 'ui-icon-star' }, text: false })
 				.click(clickHighlight).next()
-				.button({icons: { primary: 'ui-icon-search' }, text: false })
-				.click(clickOpenSelection).next()
 				.button({icons: { primary: 'ui-icon-cancel' }, text: false })
-				.click(clickClearSelection).next();
+				.click(clickClearSelection).next()
+				.button({icons: { primary: 'ui-icon-search' }, text: false })
+				.click(clickOpenSelection).next();
 
 		frame.find('div.lgnd-container')
 			.click(clickInLegend);
@@ -7926,7 +7961,7 @@ jQuery(document).ready(function($) {
 		// VARIABLES
 		//==========
 	var view0;					// Primary viewFrame
-	var view1;					// Secondary
+	var view1=null;				// Secondary
 
 	var apTmStr;				// Apply to <template label> for Filters
 	var filters=[];				// Filter Stack: { id, f [PFilterModel], out [stream] }
@@ -8059,20 +8094,15 @@ jQuery(document).ready(function($) {
 		// PURPOSE: Add 2nd window if not already there; remove if so
 	function clickTog2nd()
 	{
-		if (view1 != null) {
+		if (view1 !== null) {
 			view1 = null;
 			jQuery('#view-frame-1').remove();
-				// TO DO
-			jQuery('#selector-v1').prop("checked", false);
-			jQuery('#selector-v1').prop("disabled", true);
 		} else {
 			view0.flushLgnd();
 			PState.set(PSTATE_BUILD);
 			view1 = PViewFrame(1);
 			view1.initDOM(0);
 			view1.showStream(endStream);
-				// TO DO
-			jQuery('#selector-v1').prop("disabled", false);
 			PState.set(PSTATE_READY);
 		}
 		view0.resize();
@@ -8124,7 +8154,7 @@ jQuery(document).ready(function($) {
 
 		// PURPOSE: Save current Perspective as <id>
 		// RETURNS: "local" or "server" if save successful, else null
-	function doSavePerspective(id)
+	function doSavePerspective(id, label)
 	{
 			// Where to save it?
 		var dest = jQuery('input[name=save-prspctv-dest]:checked').val();
@@ -8134,29 +8164,29 @@ jQuery(document).ready(function($) {
 		var note = jQuery('#save-prspctv-note').val();
 		note = note.replace(/"/, '');
 
-		var label = jQuery('#save-prspctv-lbl').val().trim();
-		label = label.replace(/"/, '');
-
-			// TO DO -- redo for new design
-		var a0 = !jQuery('#selector-v0').prop("disabled") && jQuery('#selector-v0').is(':checked');
-		var a1 = !jQuery('#selector-v1').prop("disabled") && jQuery('#selector-v1').is(':checked');
-
-			// Compile Perspective state from Filter stack, Selector Filter & Views
-		var pState = { f: [], s: null, a0: a0, a1: a1, v0: { l: view0.title(), s: view0.getState() },
-						v1: null };
+			// Compile Perspective state from Views & Filter Stack
+		var pState = { f: [], h0: null, h1: null, v0: { l: view0.title(), s: view0.getState() }, v1: null };
+		if (view1)
+			pState.v1 = { l: view1.title(), s: view1.getState() };
 		filters.forEach(function(theF) {
 			var a=[];
 			var fDiv = jQuery('div.filter-instance[data-id="'+theF.id+'"]');
-			for (var ti=0; ti<PData.getNumETmplts(); ti++)
+			for (var ti=0; ti<PData.getNumETmplts(); ti++) {
 				a.push(fDiv.find('.apply-tmplt-'+ti).is(':checked'));
+			}
 			pState.f.push({ id: theF.attID, a: a, s: theF.f.getState() });
 		});
-		if (selFilter) {
-			pState.s = { id: selFID, s: selFilter.getState() };
+
+			// Save Highlight filters?
+		for (var h=0; h<2; h++) {
+			var hFilter = hFilters[h];
+			if (hFilter !== null && jQuery('#save-prspctv-h'+h).is(':checked')) {
+				pState['h'+h] = { id: hFilterIDs[h], s: hFilter.getState() };
+			}
 		}
-		if (view1)
-			pState.v1 = { l: view1.title(), s: view1.getState() };
+			// Store everything in Perspective object
 		var sPrspctv = { id: id, l: label, n: note, s: pState };
+console.log("Saved Perspective: "+JSON.stringify(sPrspctv));
 
 		if (dest == 'local') {
 			localPrspctvs.push(sPrspctv);
@@ -8200,17 +8230,24 @@ jQuery(document).ready(function($) {
 
 			// Make sure Browser has local storage capability
 		if (!localStore) {
-			jQuery('#save-prspctv-d-1').attr('disabled', 'disabled');
+			jQuery('#save-prspctv-d-1').prop('disabled', true);
 		}
 			// If user not logged in, disable server capability
 		if (!prspdata.add_prspctv) {
-			jQuery('#save-prspctv-d-2').attr('disabled', 'disabled');
+			jQuery('#save-prspctv-d-2').prop('disabled', true);
 		}
 
-			// TO DO -- Check Highlight filters for en-/disable checkboxes
+			// Uncheck Highlight filters by default
+		jQuery('#save-prspctv-h0').prop('checked', false);
+		jQuery('#save-prspctv-h1').prop('checked', false);
+			// Dis-/enable if no filter
+		for (var h=0; h<2; h++) {
+			var disable = (hFilters[h] === null || ((h === 1) && view1 === null));
+			jQuery('#save-prspctv-h'+h).prop('disabled', disable);
+		}
 
 		spDialog = jQuery("#dialog-save-prsrctv").dialog({
-			width: 340,
+			width: 380,
 			height: 370,
 			modal: true,
 			buttons: [
@@ -8220,11 +8257,16 @@ jQuery(document).ready(function($) {
 						var id = jQuery('#save-prspctv-id').val().trim();
 							// Make sure ID correct format
 						var idError = id.match(idExp);
-						if (id.length == 0 || id.length > 20 || idError)
+						var label = jQuery('#save-prspctv-lbl').val().trim();
+						label = label.replace(/"/, '');
+
+						if (id.length === 0 || id.length > 20 || idError)
 							idError = '#dialog-prspctv-id-badchars';
 							// Make sure ID not already taken
 						else if (getPerspective(id))
 							idError = '#dialog-prspctv-id-used';
+						else if (label.length === 0 || label.length > 32)
+							idError = '#dialog-prspctv-label-bad';
 						if (idError) {
 							var errDialog = jQuery(idError).dialog({
 								width: 320,
@@ -8238,7 +8280,7 @@ jQuery(document).ready(function($) {
 								}]
 							});
 						} else {
-							var saved = doSavePerspective(id);
+							var saved = doSavePerspective(id, label);
 							spDialog.dialog("close");
 
 							if (saved == 'server') {
@@ -8776,21 +8818,25 @@ jQuery(document).ready(function($) {
 		jQuery('#filter-instances').empty();
 
 		p.s.f.forEach(function(fRec) {
-			var newF = createFilter(fRec.id, fRec.a, false);
+			var newF = createFilter(fRec.id, fRec.a, null);
 			newF.setState(fRec.s);
 		});
 		jQuery('#filter-instances').hide();
 		jQuery('#btn-toggle-filters').button(p.s.f.length == 0 ? "disable" : "enable");
 
-			// TO DO -- redo for new design
-		doDelSelFilter();
-		if (p.s.s != null) {
-			createFilter(p.s.s.id, null, true);
-			selFilter.setState(p.s.s.s);
-			jQuery('#btn-toggle-selector').button("enable");
-			jQuery('#btn-apply-selector').button("enable");
+			// Load Highlight filters?
+		for (var h=0; h<2; h++) {
+			if (p.s['h'+h] !== null) {
+				var hFData = p.s['h'+h];
+				hFilterIDs[h] = hFData.id;
+				var hFilter = createFilter(hFData.id, null, h);
+				hFilters[h] = hFilter;
+				hFilter.setState(hFData.s);
+			} else {
+				hFilters[h] = null;
+				hFilterIDs[h] = null;
+			}
 		}
-		jQuery('#selector-instance').hide();
 
 		var vI;
 		var resize0=false;
@@ -8822,7 +8868,6 @@ jQuery(document).ready(function($) {
 			if (view1) {
 				view1 = null;
 				jQuery('#view-frame-1').remove();
-				jQuery('#selector-v1').prop("disabled", true);
 				resize0 = true;
 			}
 		}
@@ -8834,15 +8879,14 @@ jQuery(document).ready(function($) {
 
 		setAnnote(p.n);
 
-			// TO DO -- redo for new design
-		jQuery('#selector-v0').prop('checked', p.s.a0);
-		jQuery('#selector-v1').prop('checked', p.s.a1);
-
 			// Don't recompute if data not loaded yet
 		if (PData.ready() && topStream) {
 			doRecompute();
-			if (selFilter)
-				doApplySelector();
+			for (h=0; h<2; h++) {
+				if (hFilterIDs[h] !== null) {
+					doApplyHighlight(h);
+				}
+			}
 		}
 
 		return true;
@@ -9073,8 +9117,11 @@ jQuery(document).ready(function($) {
 				// ASSUMED: This won't be triggered until after Filters & Views set up
 			PState.set(PSTATE_PROCESS);
 			doRecompute();
-			// if (selFilter)
-			// 	doApplySelector();
+			for (var h=0; h<2; h++) {
+				if (hFilters[h] !== null) {
+					doApplyHighlight(h);
+				}
+			}
 			PState.set(PSTATE_READY);
 			jQuery('body').removeClass('waiting');
 			break;

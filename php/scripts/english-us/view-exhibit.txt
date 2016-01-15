@@ -18,7 +18,7 @@
 		Filters
 		<button id="btn-new-filter">New Filter</button>
 		<button id="btn-toggle-filters" disabled="disabled">Show/Hide Filters</button>
-		<button id="btn-f-state" disabled>No Filters</button>
+		<button id="btn-f-state" disabled="disabled">No Filters</button>
 	</div>
 	<div id="filter-instances">
 	</div>
@@ -99,7 +99,7 @@
 		<input id="save-prspctv-id" type="text" size="20" placeholder="Unique ID"/><br/>
 		Label:<br/>
 		<input id="save-prspctv-lbl" type="text" size="42" placeholder="Label"/><br/>
-		<input type="checkbox" id="save-prspctv-h1"/>Save Highlight 1 <input type="checkbox" id="save-prspctv-h2"/>Save Highlight 2<br/>
+		<input type="checkbox" name="save-prspctv-h0" id="save-prspctv-h0"/> <label for="save-prspctv-h0">Save Highlight Filter 1</label> <input type="checkbox" name="save-prspctv-h1" id="save-prspctv-h1" disabled="disabled"/> <label for="save-prspctv-h1">Save Highlight Filter 2</label><br/>
 		<textarea id="save-prspctv-note" rows="4" cols="42" placeholder="Add an annotation (cannot use double quotes)" style="margin-top: 4px"></textarea>
 	</div>
 
@@ -132,6 +132,10 @@
 		<p>That Perspective ID has illegal characters or is too long. Please create another ID of no more than 20 characters (alphabetic characters, numbers, hyphens and underscores only, no spaces), or click the 'Cancel' button.</p>
 	</div>
 
+	<div id="dialog-prspctv-label-bad" title="Perspective ID Error">
+		<p>You must enter a label for the Perspective between 1 and 32 characters in length.</p>
+	</div>
+
 	<div id="dialog-prspctv-url" title="Perspective URL">
 		<p>To show this Perspective after it has been Published on the server, use the following URL:</p>
 		<textarea id="save-prspctv-embed" cols="60" rows="3" readonly="readonly"></textarea>
@@ -139,7 +143,7 @@
 </div> <!-- Hidden content ->
 
 <!-- DYNAMICALLY LOADED TEXT -->
-<script id="dltext-viewframe-dom" type='text'>
+<script id="dltext-view-controls" type='text'>
 	<div class="view-controls">
 		<select class="view-viz-select">
 		</select>
@@ -147,8 +151,8 @@
 		<button class="vopts">View Options</button>
 		<button class="vnote">Visualization Notes</button>
 		<button class="hilite">Highlight</button>
-		<button class="osel">Show Highlighted</button>
 		<button class="xsel">Clear Highlighted</button>
+		<button class="osel">Show Highlighted</button>
 	</div>
 	<div class="lgnd-container">
 		<div class="lgnd-handle">
@@ -226,7 +230,7 @@ All Records from selected Templates will be removed/hidden.
 		<br/>
 		To <input type="text" class="to-y" size="5" placeholder="YYYY"/> <input type="text" class="to-m" size="2" placeholder="MM"/> <input type="text" class="to-d" size="2" placeholder="DD"/>
 		<br/>
-		<button class="filter-update" disabled>Use Date</button>
+		<button class="filter-update" disabled="disabled">Use Date</button>
 	</div>
 </script>
 
