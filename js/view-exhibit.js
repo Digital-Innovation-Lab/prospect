@@ -8912,7 +8912,7 @@ jQuery(document).ready(function($) {
 
 			// Load Highlight filters?
 		for (var h=0; h<2; h++) {
-			if (p.s['h'+h] !== null) {
+			if (p.s['h'+h] != null) {	// Want to check for both null and undefined!
 				var hFData = p.s['h'+h];
 				hFilterIDs[h] = hFData.id;
 				var hFilter = createFilter(hFData.id, null, h);
