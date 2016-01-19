@@ -8707,8 +8707,6 @@ console.log("Saved Perspective: "+JSON.stringify(sPrspctv));
 		}
 
 		attDialog = jQuery("#dialog-choose-att").dialog(dialogParams);
-			// Ensure it is on top
-		attDialog.dialog("moveToTop");
 	} // chooseAttribute()
 
 	function clickNewFilter(event)
@@ -8797,8 +8795,6 @@ console.log("Saved Perspective: "+JSON.stringify(sPrspctv));
 				}
 			]
 		});
-			// Ensure it is on top
-		filterDialog.dialog("moveToTop");
 	} // clickHighlight()
 
 
