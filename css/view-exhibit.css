@@ -519,6 +519,12 @@ button.lgnd-update {
 	color: #0066FF;
 }
 
+button.lgnd-update:disabled {
+	opacity: 0.65;
+	color: grey;
+	cursor: not-allowed;
+}
+
 div.lgnd-scroll {
 	overflow-y: auto;
 	height: 232px;

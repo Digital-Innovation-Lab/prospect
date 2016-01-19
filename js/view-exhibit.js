@@ -5285,10 +5285,20 @@ function PViewFrame(vfIndex)
 	var vizSelIndex = 0;		// index of currently selected Viz
 	var vizModel = null;		// PVizModel currently in frame
 	var legendIDs = [];			// Attribute IDs of Legend selections (one per Template)
+	var lDirty = null;			// Legend Dirty (enabled) if true
 	var datastream = null;		// pointer to datastream given to view
 
 	// PRIVATE FUNCTIONS
 	//==================
+
+		// PURPOSE: Set Legend Dirty flag to true or false
+	function setLDirty(s)
+	{
+		if (s !== lDirty) {
+			lDirty = s;
+			jQuery(getFrameID()+' div.lgnd-container div.lgnd-handle button.lgnd-update').prop('disabled', !s);
+		}
+	} // setLDirty
 
 		// PURPOSE: Return ID of Frame's outermost DIV container
 	function getFrameID()
@@ -5940,6 +5950,7 @@ function PViewFrame(vfIndex)
 	{
 		jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
 								tmpltIndex+'"] div.lgnd-group input.lgnd-entry-check').prop('checked', show);
+		setLDirty(true);
 	} // doShowHideAll()
 
 
@@ -5947,10 +5958,11 @@ function PViewFrame(vfIndex)
 		// NOTE: 	GUI already updated
 	function doLocateSelect(tmpltIndex, lID, show)
 	{
+		setLDirty(true);
 	} // doLocateSelect()
 
 
-		// PURPOSE: Make vIndex the only selected locate attribute for tmpltIndex
+		// PURPOSE: Make lID the only selected locate attribute for tmpltIndex
 		// NOTE: 	Must update GUI
 	function doLocateSelectOnly(tmpltIndex, lID)
 	{
@@ -5960,6 +5972,7 @@ function PViewFrame(vfIndex)
 			// Just reselect this one
 		jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
 								tmpltIndex+'"] div.lgnd-locate[data-id="'+lID+'"] input.lgnd-entry-check').prop('checked', true);
+		setLDirty(true);
 	} // doLocateSelect()
 
 
@@ -5967,6 +5980,7 @@ function PViewFrame(vfIndex)
 		// NOTE: 	GUI already updated
 	function doFeatureSelect(tmpltIndex, vIndex, show)
 	{
+		setLDirty(true);
 	} // doFeatureSelect()
 
 
@@ -5981,6 +5995,7 @@ function PViewFrame(vfIndex)
 		jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
 								tmpltIndex+'"] div.lgnd-group div.lgnd-value[data-index="'+vIndex+
 								'"] input.lgnd-entry-check').prop('checked', true);
+		setLDirty(true);
 	} // doFeatureSelectOnly()
 
 
@@ -5996,6 +6011,7 @@ function PViewFrame(vfIndex)
 				PState.set(PSTATE_BUILD);
 				doSelBtns(false);
 				vizModel.render(datastream);
+				setLDirty(false);
 				PState.set(PSTATE_READY);
 			}
 			break;
@@ -6051,6 +6067,7 @@ function PViewFrame(vfIndex)
 		var tmpltIndex = jQuery(event.target).closest('div.lgnd-template').data('index');
 		var attID = jQuery(event.target).val();
 		setLegendFeatures(tmpltIndex, attID);
+		setLDirty(true);
 	} // selectTmpltAtt()
 
 
@@ -6245,6 +6262,8 @@ function PViewFrame(vfIndex)
 				// Just hide Legend
 			frame.find('div.lgnd-container').hide();
 		}
+			// As we initially render view, "Update" should be disabled
+		setLDirty(false);
 
 			// Enable or disable corresponding Highlight button & Save Perspective checkboxes
 		if (flags & V_FLAG_SEL) {
@@ -6436,6 +6455,7 @@ function PViewFrame(vfIndex)
 		datastream = stream;
 		if (vizModel)
 			vizModel.render(stream);
+		setLDirty(false);
 	} // showStream()
 
 	instance.setStream = function(stream)
