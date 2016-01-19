@@ -1355,7 +1355,7 @@ div.filter-vocab-entry {
 
 	flex-direction: column;
 	align-items: flex-start;
-	min-width: 70px;
+/*	min-width: 70px; */
 	margin: 2px;
 }
 
