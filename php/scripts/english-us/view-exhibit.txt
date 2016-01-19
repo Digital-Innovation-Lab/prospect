@@ -27,18 +27,18 @@
 <div id="viz-frame">
 </div>
 
+	<!-- Insertion points to ensure proper stacking of multiple dialogs -->
+<div id="dialog-1">
+</div>
+
+<div id="dialog-2">
+</div>
+
 <!-- DYNAMIC JQUERYUI CONTENT -->
 <div style="display:none">
-	<div id="dialog-choose-att" title="Choose Attribute">
-		<div class="scroll-container">
-			<ul id="filter-list">
-			</ul>
-		</div>
-	</div>
-
 	<div id="dialog-hilite-0" title="Highlight On View 1">
 		<div class="filter-instance" data-id="0">
-			Highlight by condition of Attribute: <span class="filter-id">(None selected)</span>
+			Attribute which provides condition: <span class="filter-id">(None selected)</span>
 			<div id="hilite-0" class="filter-body">
 			</div>
 		</div>
@@ -46,9 +46,16 @@
 
 	<div id="dialog-hilite-1" title="Highlight On View 2">
 		<div class="filter-instance" data-id="1">
-			Highlight by condition of Attribute: <span class="filter-id">(None selected)</span>
+			Attribute which provides condition: <span class="filter-id">(None selected)</span>
 			<div id="hilite-1" class="filter-body">
 			</div>
+		</div>
+	</div>
+
+	<div id="dialog-choose-att" title="Choose Attribute">
+		<div class="scroll-container">
+			<ul id="filter-list">
+			</ul>
 		</div>
 	</div>
 

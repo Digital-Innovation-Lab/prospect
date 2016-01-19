@@ -8663,7 +8663,9 @@ console.log("Saved Perspective: "+JSON.stringify(sPrspctv));
 	} // createFilter()
 
 		// PURPOSE: Allow user to choose an Attribute from a list
-	function chooseAttribute(showRemove, callback)
+		// NOTES: 	Since this dialog can be invoked from two other modal dialogs, need
+		//				to append at particular point in DOM to ensure stacked properly
+	function chooseAttribute(showRemove, secondary, callback)
 	{
 			// Clear previous selection
 		jQuery("#filter-list li").removeClass("selected");
@@ -8675,7 +8677,7 @@ console.log("Saved Perspective: "+JSON.stringify(sPrspctv));
 		}
 		var attDialog;
 
-		attDialog = jQuery("#dialog-choose-att").dialog({
+		var dialogParams = {
 			height: 300,
 			width: 350,
 			modal: true,
@@ -8699,12 +8701,19 @@ console.log("Saved Perspective: "+JSON.stringify(sPrspctv));
 					}
 				}
 			]
-		});
+		};
+		if (secondary) {
+			dialogParams.appendTo = '#dialog-2';
+		}
+
+		attDialog = jQuery("#dialog-choose-att").dialog(dialogParams);
+			// Ensure it is on top
+		attDialog.dialog("moveToTop");
 	} // chooseAttribute()
 
 	function clickNewFilter(event)
 	{
-		chooseAttribute(true, function(id) {
+		chooseAttribute(true, false, function(id) {
 			jQuery('#filter-instances').show(400);
 			createFilter(id, [true, true, true, true], null);
 			jQuery('#btn-toggle-filters').button("enable");
@@ -8760,11 +8769,12 @@ console.log("Saved Perspective: "+JSON.stringify(sPrspctv));
 			height: 275,
 			width: Math.min(jQuery(window).width() - 20, 675),
 			modal: true,
+			appendTo: "#dialog-1",
 			buttons: [
 				{
 					text: dlText.chsatt,
 					click: function() {
-						chooseAttribute(false, function(id) {
+						chooseAttribute(false, true, function(id) {
 							hFilterIDs[v] = id;
 							hFilters[v] = createFilter(id, null, v);
 						});
@@ -8787,6 +8797,8 @@ console.log("Saved Perspective: "+JSON.stringify(sPrspctv));
 				}
 			]
 		});
+			// Ensure it is on top
+		filterDialog.dialog("moveToTop");
 	} // clickHighlight()
 
 
