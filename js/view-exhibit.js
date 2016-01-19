@@ -48,6 +48,9 @@ var PSTATE_PROCESS = 2;			// Processing data or handling command
 var PSTATE_BUILD = 3;			// Building visuals
 var PSTATE_UPDATE = 4;			// Updating visuals (selection, etc)
 var PSTATE_READY = 5;			// Waiting for user
+	// Further internal async Signals, not states
+var PSTATE_FDIRTY = 6;
+var PSTATE_HILITE = 7;
 
 var D3FG_BAR_WIDTH 	= 25;		// D3 Graphs created for filters
 var D3FG_MARGINS	= { top: 4, right: 7, bottom: 22, left: 30 };
@@ -343,7 +346,7 @@ VizMap.prototype.setup = function()
 	});
 
 	var fh = _.template(document.getElementById('dltext-v-map').innerHTML);
-	jQuery('#view-frame-'+vI+' div.view-control-bar').append(fh({ vi: vI }));
+	jQuery('#view-frame-'+vI+' div.view-controls').append(fh({ vi: vI }));
 
 	jQuery('#map-zoom-'+vI).button({ text: false, icons: { primary: "ui-icon-plus" }})
 		.click(zoomMap);
@@ -598,7 +601,7 @@ VizMap.prototype.render = function(stream)
 VizMap.prototype.teardown = function()
 {
 	var vi = this.vFrame.getIndex();
-	jQuery('#view-frame-'+vi+' div.view-control-bar div.iconbar').remove();
+	jQuery('#view-frame-'+vi+' div.view-controls div.iconbar').remove();
 } // teardown()
 
 
@@ -1776,7 +1779,7 @@ VizTime.prototype.setup = function()
 		};
 
 		band.parts.push(axisDraw); // for brush.redraw
-		self.cmpnts.push(axisDraw); // for timeline.redraw -- TO DO: Need both?? Test
+		self.cmpnts.push(axisDraw); // for timeline.redraw
 	} // createXAxis()
 
 	createXAxis(0);
@@ -3060,9 +3063,9 @@ VizStackChart.prototype.setup = function()
 
 	if (oAtt.def.t != 'T' || !this.settings.tlit) {
 		if (this.settings.gr)
-			this.cats = PData.getRCats(oAtt, true);
+			this.cats = PData.getRCats(oAtt, true, true);
 		else
-			this.cats = PData.getLCats(oAtt, null);
+			this.cats = PData.getLCats(oAtt, null, true);
 		this.setup2();
 	} else
 		this.cats = null;
@@ -3109,7 +3112,7 @@ VizStackChart.prototype.render = function(stream)
 	var sAtt = PData.getAttID(sAttID);
 	var maxY=0, rec;
 	var fSet = self.vFrame.getSelFeatAtts(0);
-	var yCats = PData.getLCats(sAtt, fSet);
+	var yCats = PData.getLCats(sAtt, fSet, true);
 		// Pass 2 -- create Blocks by processing Records within a single Range Category by sAtt
 	for (var rI=0; rI<this.cats.length; rI++) {
 		if (rI > 0) { // clear previous entries
@@ -3248,7 +3251,7 @@ VizNetWheel.prototype.setup = function()
 
 	var vi = this.vFrame.getIndex();
 	var fh = _.template(document.getElementById('dltext-v-nwheel').innerHTML);
-	jQuery('#view-frame-'+vi+' div.view-control-bar').append(fh({ vi: vi }));
+	jQuery('#view-frame-'+vi+' div.view-controls').append(fh({ vi: vi }));
 
 	jQuery('#nw-prev-'+vi).button({ text: false, icons: { primary: " ui-icon-arrowreturnthick-1-s" }})
 		.click(function() {
@@ -3465,7 +3468,7 @@ VizNetWheel.prototype.render = function(stream)
 						var found=false, r2;
 						tLoop: for (var tI=0; tI<head.children.length; tI++) {
 							var tRecs = head.children[tI];
-								// TO DO: binary search!
+								// TO DO: binary search
 							for (var rI=0; rI<tRecs.children.length; rI++) {
 								r2 = tRecs.children[rI];
 								if (r2.r.id == rID) {
@@ -3494,7 +3497,7 @@ VizNetWheel.prototype.render = function(stream)
 VizNetWheel.prototype.teardown = function()
 {
 	var vi = this.vFrame.getIndex();
-	jQuery('#view-frame-'+vi+' div.view-control-bar div.iconbar').remove();
+	jQuery('#view-frame-'+vi+' div.view-controls div.iconbar').remove();
 } // teardown()
 
 VizNetWheel.prototype.setSel = function(absIArray)
@@ -3619,9 +3622,9 @@ VizFlow.prototype.render = function(stream)
 		var att = PData.getAttID(attID);
 		if (att.def.t != 'T' || !self.settings.tlit) {
 			if (self.settings.gr)
-				tCat = PData.getRCats(att, true);
+				tCat = PData.getRCats(att, true, true);
 			else
-				tCat = PData.getLCats(att, null);
+				tCat = PData.getLCats(att, null, true);
 			PData.fillCats(tCat, attID, null, stream, false);
 		} else {
 			tCat=[];
@@ -4092,9 +4095,9 @@ VizMBMap.prototype.render = function(stream)
 		var y=aI * 30;
 		if (att.def.t != 'T' || !self.settings.tlit) {
 			if (self.settings.gr)
-				tCat = PData.getRCats(att, true);
+				tCat = PData.getRCats(att, true, true);
 			else
-				tCat = PData.getLCats(att, null);
+				tCat = PData.getLCats(att, null, true);
 			PData.fillCats(tCat, attID, null, stream, false);
 		} else {
 			tCat=[];
@@ -4151,9 +4154,9 @@ VizMBMap.prototype.render = function(stream)
 	var pCat;
 	if (pAtt.def.t != 'T' || !self.settings.tlit) {
 		if (self.settings.gr)
-			pCat = PData.getRCats(pAtt, true);
+			pCat = PData.getRCats(pAtt, true, true);
 		else
-			pCat = PData.getLCats(pAtt, null);
+			pCat = PData.getLCats(pAtt, null, true);
 		PData.fillCats(pCat, pAttID, null, stream, false);
 	} else {
 		pCat=[];
@@ -4265,12 +4268,13 @@ function PFilterModel(id, attRec)
 	// PURPOSE: Either set or get dirty state of Filter
 	// RETURNS: true if filter is "dirty" (has been changed and thus forces recompute)
 	// INPUT:   null if only retrieving state, else true or false
-PFilterModel.prototype.isDirty = function(setDirty)
+PFilterModel.prototype.isDirty = function(set)
 {
-	if (setDirty != null) {
-		if (!this.dirty && setDirty && this.id > 0)
-			jQuery('#btn-recompute').addClass('pulse');
-		this.dirty = setDirty;
+	if (set != null) {
+		if (!this.dirty && set && this.id > 0) {
+			jQuery("body").trigger("prospect", { s: PSTATE_FDIRTY });
+		}
+		this.dirty = set;
 	}
 	return this.dirty;
 } // isDirty
@@ -4546,6 +4550,18 @@ PFilterVocab.prototype.setState = function(state)
 
 // ================================================
 // PFilterNum: Class to filter Number Attributes
+//		rCats = category buckets for Number range (only if min and max defined!)
+//		ctrs = array of integers for category counters (if rCats exists)
+//		uNums = Working array of [min, max] from user entry
+//		b0 = index of bucket for brush from (0-based) -- maintained dynamically if rCats exists
+//		b1 = index of bucket for brush to -- maintained dynamically if rCats exists
+//		min = minimum allowed Number (inclusive) -- maintained dynamically
+//		max = maximum allowed Number (inclusive)  -- maintained dynamically
+//		u = true if undefined checkbox is checked -- checked at evalPrep, savePerspective
+//		yScale = D3 scale
+//		chart = SVG for graph
+//		brush = D3 brush object
+//		brushg = SVG for brush
 
 var PFilterNum = function(id, attRec)
 {
@@ -4556,16 +4572,112 @@ PFilterNum.prototype = Object.create(PFilterModel.prototype);
 
 PFilterNum.prototype.constructor = PFilterNum;
 
+	// PURPOSE: Set text in edit boxes acc. to min / max values
+PFilterNum.prototype.refreshBoxes = function()
+{
+	var insert = this.insertPt();
+	insert.find('.from').removeClass('error').val(this.min);
+	insert.find('.to').removeClass('error').val(this.max);
+	insert.find('.filter-update').prop('disabled', true);
+} // refreshBoxes()
+
+	// PURPOSE: Check values in edit boxes
+	// SIDE-FX: Set or clear "error" class; sets values in uDates[]
+PFilterNum.prototype.evalBoxes = function(insert)
+{
+	var self=this;
+	var nRE = /^(\d+)$/;
+	var attMin = (typeof this.att.r.min === 'undefined') ? null : this.att.r.min;
+	var attMax = (typeof this.att.r.max === 'undefined') ? null : this.att.r.max;
+
+	var failFrom, failTo;
+
+		// RETURNS: true if passes conditions
+	function checkOne(sel, i)
+	{
+		var fail=false;
+		var val;
+
+		function setError()
+		{
+			fail = true;
+			insert.find(sel).addClass('error');
+		} // setError()
+		function noError()
+		{
+			insert.find(sel).removeClass('error');
+		} // noError()
+
+		var d = insert.find(sel);		// DOM element
+		var t = d.val();				// Text value
+		var r = nRE.exec(t);			// RegExp result
+		if (r) {
+			noError();
+			val = parseInt(r[1], 10);
+		} else
+			setError();
+			// If OK so far, check against bounds
+		if (!fail) {
+				// Check against bounds
+			if (i == 0) {
+				if (attMin !== null && val < attMin) {
+					setError();
+				}
+			} else {
+				if (attMax !== null && val > attMax) {
+					setError();
+				}
+			}
+		}
+		self.uNums[i] = val;
+		return fail;
+	} // checkSet()
+
+	failFrom = checkOne('.from', 0);
+	failTo = checkOne('.to', 1);
+	if (this.uNums[0] > this.uNums[1]) {
+		failTo = true;
+	}
+	insert.find('.filter-update').prop('disabled', failFrom || failTo);
+	return !(failFrom || failTo);
+} // evalBoxes()
+
+	// PURPOSE: Try to use values in boxes to calculate Filter settings,
+	//				as when user clicks "Use Number"
+	// INPUT: 	insert = insertPt() for this filter
+	// SIDE-FX: Sets min, max, b0, b1 and brush from text boxes
+PFilterNum.prototype.useBoxes = function(insert)
+{
+	if (this.evalBoxes(insert)) {
+			// Dirty filter
+		this.isDirty(true);
+			// Update min, max
+		this.min = this.uNums[0];
+		this.max = this.uNums[1];
+			// If rCats exist, find appropriate bounds for brush and redraw
+		if (this.rCats !== null) {
+			var b0, b1;
+			for (b0=0; b0<this.rCats.length; b0++) {
+				if (this.min < this.rCats[b0].max)
+					break;
+			}
+			for (b1=b0; b1<this.rCats.length; b1++) {
+				if (this.max <= this.rCats[b1].max)
+					break;
+			}
+			b1 = (b1 === this.rCats.length) ? this.rCats.length-1 : b1;
+			this.b0 = b0;
+			this.b1 = b1;
+			this.brushg.call(this.brush.extent([b0, b1+1]));
+		}
+		insert.find('.filter-update').prop('disabled', true);
+	}
+} // useBoxes()
+
 	// ASSUMES: Code handling brush has set min & max
 PFilterNum.prototype.evalPrep = function()
 {
-	if (this.rCats == null) {
-		var dom = this.insertPt();
-		this.min = parseInt(dom.find('input.filter-num-min-val').val());
-		this.max = parseInt(dom.find('input.filter-num-max-val').val());
-		this.useMin = dom.find('input.filter-num-min-use').is(':checked');
-		this.useMax = dom.find('input.filter-num-max-use').is(':checked');
-	} else {
+	if (this.rCats !== null) {
 		for (var i=0; i<this.rCats.length; i++)
 			this.ctrs[i] = 0;
 	}
@@ -4574,42 +4686,27 @@ PFilterNum.prototype.evalPrep = function()
 PFilterNum.prototype.eval = function(rec)
 {
 	var num = rec.a[this.att.id];
-	if (typeof num == 'undefined')
+	if (typeof num === 'undefined')
 		return false;
 
-		// Numbers entered by hand?
-	if (this.rCats == null) {
-		if (this.useMin && num < this.min)
-			return false;
-		if (this.useMax && num > this.max)
-			return false;
-	} else {
-			// Check for 'undefined' exception
-		var i=this.b0, c=this.rCats[i];
+		// Only true when i=0
+	if (num === '?') {
+		return this.u;
+	}
 
-			// Only true when i=0
-		if (c.min == '?') {
-			if (num == '?') {
-				this.ctrs[0]++;
-				return true;
-			}
-			if (this.max == '?')	// This 'undefined' only category?
-				return false;
-			i=1;
-		}
-		if (num == '?')
-			return false;
+	if ((num < this.min) || (num > this.max))
+		return false;
 
-		if ((num < this.min) || (num > this.max))
-			return false;
+	if (this.rCats === null)
+		return true;
 
-			// in range but now must find category it matched to inc count
-		for (; i<= this.b1; i++) {
-			c=this.rCats[i];
-			if (c.min <= num && num <= c.max) {
-				this.ctrs[i]++;
-				break;
-			}
+	var c;
+		// in range but now must find category it matched to inc count
+	for (var i=this.b0; i<= this.b1; i++) {
+		c=this.rCats[i];
+		if (c.min <= num && num <= c.max) {
+			this.ctrs[i]++;
+			break;
 		}
 	}
 	return true;
@@ -4617,7 +4714,7 @@ PFilterNum.prototype.eval = function(rec)
 
 PFilterNum.prototype.evalDone = function(total)
 {
-	if (this.rCats) {
+	if (this.rCats !== null) {
 		var self=this;
 		var innerH = 80 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
 		var p = new Uint16Array(this.ctrs.length);
@@ -4632,67 +4729,35 @@ PFilterNum.prototype.evalDone = function(total)
 
 PFilterNum.prototype.setup = function()
 {
-	var self = this;
+	var self=this;
+
+		// Set defaults
+	this.u   = false;
+	this.uNums = new Array(2);
+
 	var insert = this.insertPt();
-
-	this.rCats = PData.getRCats(this.att, false);
-
-		// Lack of range bounds? Create generic HTML input boxes, can't create range sliders
-	if (this.rCats == null) {
-		var fh = _.template(document.getElementById('dltext-filter-num-boxes').innerHTML);
-		var min = (typeof this.att.r.min == 'undefined') ? 0 : this.att.r.min;
-		var max = (typeof this.att.r.max == 'undefined') ? min+100 : this.att.r.max;
-		insert.append(fh({ min: min, max: max }));
-
-		insert.click(function(event) {
-			if (event.target.nodeName == 'INPUT') {
-				self.isDirty(true);
-			}
+	insert.append(document.getElementById('dltext-filter-nums').innerHTML);
+		// Only enabled "allow undefined" if enabled by Attribute
+	if (typeof this.att.r.u === 'undefined') {
+		insert.find(".allow-undef").prop('disabled', true);
+	} else {
+		insert.find(".allow-undef").click(function() {
+			self.u = insert.find('input.allow-undef').prop('checked');
+			self.isDirty(true);
 		});
+	}
 
-			// Intercept changes to min & max checkboxes
-		// insert.find('.filter-num-min-use').change(function() {
-		// 	self.isDirty(true);
-		// });
-		// insert.find('.filter-num-max-use').change(function() {
-		// 	self.isDirty(true);
-		// });
-
-		insert.find('input.filter-num-min-val').change(function() {
-				// Ensure it is less than max
-			var newMin = jQuery(this).val();
-			var curMax = insert.find('input.filter-num-max-val').val();
-			if (newMin <= curMax) {
-				self.isDirty(true);
-			} else {
-				jQuery(this).val(curMax);
-			}
-		});
-		insert.find('input.filter-num-max-val').change(function() {
-				// Ensure it is greater than min
-			var newMax = jQuery(this).val();
-			var curMin = insert.find('input.filter-num-min-val').val();
-			if (newMax >= curMin) {
-				self.isDirty(true);
-			} else {
-				jQuery(this).val(curMin);
-			}
-		});
+	this.rCats = PData.getRCats(this.att, false, false);
 
 		// Create range category viz & slider
-	} else {
+	if (this.rCats !== null) {
 		this.ctrs = new Uint16Array(this.rCats.length);
 
 			// Set defaults
-		// this.useMin = this.useMax = true;
 			// indices of rCats contained by brush (inclusive)
 		this.b0  = 0;
 		this.b1  = this.rCats.length-1;
-			// Must deal with 'undefined' exception -- always first category
-		var r = this.rCats[0];
-		if (r.min == '?')
-			r = this.rCats[1];
-		this.min = r.min;
+		this.min = this.rCats[0].min;
 		this.max = this.rCats[this.b1].max;
 
 		var innerH = 80 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
@@ -4728,12 +4793,11 @@ PFilterNum.prototype.setup = function()
 
 			self.b0  = extent1[0];
 			self.b1  = extent1[1]-1;
-				// Deal with 'undefined' exception -- only rCats[0]
-			r = self.rCats[self.b0];
-			if (r.min == '?')
-				r = self.rCats[1];
-			self.min = r.min;
+
+			self.min = self.rCats[self.b0].min;
 			self.max = self.rCats[self.b1].max;
+			self.refreshBoxes();
+
 			self.isDirty(true);
 		} // brushended()
 
@@ -4796,49 +4860,57 @@ PFilterNum.prototype.setup = function()
 		self.brushg.selectAll(".resize")
 			.append("path")
 			.attr("d", resizePath);
+	} else {
+			// no rCats because of lack of min or max bounds
+		this.min = typeof att.r.min === 'undefined' ? 0 : att.r.min;
+		this.max = typeof att.r.max === 'undefined' ? 100 : att.r.max;
 	}
+
+	this.refreshBoxes();
+
+		// Try to evaluate values whenever user enters something
+	insert.find("input[type=text]").change(function() {
+		self.evalBoxes(insert);
+	});
+		// Try to use Dates
+	insert.find(".filter-update").click(function() {
+		self.useBoxes(insert);
+	});
 } // setup()
 
 PFilterNum.prototype.getState = function()
 {
-	if (this.rCats == null) {
-		var dom = this.insertPt();
-		var min = parseInt(dom.find('input.filter-num-min-val').val());
-		var max = parseInt(dom.find('input.filter-num-max-val').val());
-		var useMin = dom.find('input.filter-num-min-use').is(':checked');
-		var useMax = dom.find('input.filter-num-max-use').is(':checked');
-		return { rc: false, min: min, max: max, useMin: useMin, useMax: useMax };
-	} else {
-		return { rc: true, e0: this.b0, e1: this.b1+1 };
-	}
+	return { min: this.min, max: this.max, u: this.u };
 } // getState()
 
 PFilterNum.prototype.setState = function(state)
 {
-	if (state.rc) {
-		this.b0  = state.e0;
-		this.b1  = state.e1-1;
+	var insert = this.insertPt();
 
-			// Deal with 'undefined' exception -- only rCats[0]
-		var r = this.rCats[this.b0];
-		if (r.min == '?')
-			r = this.rCats[1];
-		this.min = r.min;
-		this.max = this.rCats[this.b1].max;
-		this.brush.extent([state.e0, state.e1]);
-		this.brushg.call(this.brush);
-	} else {
-		var dom = this.insertPt();
-		dom.find('input.filter-num-min-val').val(state.min);
-		dom.find('input.filter-num-max-val').val(state.max);
-		dom.find('input.filter-num-min-use').prop('checked', state.useMin);
-		dom.find('input.filter-num-max-use').prop('checked', state.useMax);
-	}
+	insert.find('input.allow-undef').prop('checked', state.u);
+	this.u = state.u;
+	insert.find('.from').removeClass('error').val(state.min);
+	insert.find('.to').removeClass('error').val(state.max);
+	this.useBoxes(insert);
 } // setState()
 
 
 // ==============================================
 // PFilterDates: Class to filter Dates Attributes
+//	Instance Variables:
+//		rCats = category buckets for Date range
+//		ctrs = array of integers for category counters
+//		uDates = Working array of {y,m,d,ms}[min, max] from user entry
+//		b0 = index of bucket for brush from (0-based) -- maintained dynamically
+//		b1 = index of bucket for brush to -- maintained dynamically
+//		min = minimum allowed Date (inclusive) -- maintained dynamically
+//		max = maximum allowed Date (exclusive)  -- maintained dynamically
+//		c = 'o' if overlap, 'c' if contain within range -- checked at eval time
+//		u = true if undefined checkbox is checked -- checked at evalPrep, savePerspective
+//		yScale = D3 scale
+//		chart = SVG for graph
+//		brush = D3 brush object
+//		brushg = SVG for brush
 
 var PFilterDates = function(id, attRec, req)
 {
@@ -4848,6 +4920,145 @@ var PFilterDates = function(id, attRec, req)
 PFilterDates.prototype = Object.create(PFilterModel.prototype);
 
 PFilterDates.prototype.constructor = PFilterDates;
+
+	// PURPOSE: Set text in edit boxes acc. to min / max values
+PFilterDates.prototype.refreshBoxes = function()
+{
+	var insert = this.insertPt();
+
+	function upDate(date, sel)
+	{
+		var y = date.getUTCFullYear();
+		var m = date.getUTCMonth() + 1;
+		var d = date.getUTCDate();
+
+		insert.find(sel+'-y').removeClass('error').val(y);
+		insert.find(sel+'-m').removeClass('error').val(m);
+		insert.find(sel+'-d').removeClass('error').val(d);
+	} // upDate()
+	upDate(this.min, '.from');
+	upDate(this.max, '.to');
+	insert.find('.filter-update').prop('disabled', true);
+} // refreshBoxes()
+
+	// PURPOSE: Check values in edit boxes
+	// SIDE-FX: Set or clear "error" class; sets values in uDates[]
+PFilterDates.prototype.evalBoxes = function(insert)
+{
+	var self=this;
+	var yRE = /^(-?\d+)$/;
+	var dRE = /^(\d{1,2})$/;
+
+	var failFrom, failTo;
+
+		// RETURNS: true if passes conditions
+	function checkSet(sel, i)
+	{
+		var fail=false;
+		var thisDate={y: 0, m: 0, d: 0, ms: null};
+
+		function setError(e)
+		{
+			fail = true;
+			insert.find(sel+e).addClass('error');
+		} // setError()
+		function noError(e)
+		{
+			insert.find(sel+e).removeClass('error');
+		} // noError()
+
+		var d = insert.find(sel+'-y');		// DOM element
+		var t = d.val();					// Text value
+		var r = yRE.exec(t);				// RegExp result
+		if (r) {
+			noError('-y');
+			thisDate.y = parseInt(r[1], 10);
+		} else
+			setError('-y');
+		d = insert.find(sel+'-m');
+		t = d.val();
+		r = dRE.exec(t);
+		if (r) {
+			thisDate.m = parseInt(r[1], 10);
+			if (thisDate.m < 1 || thisDate.m > 12)
+				setError('-m');
+			else
+				noError('-m');
+		} else
+			setError('-m');
+		d = insert.find(sel+'-d');			// DOM element
+		t = d.val();						// Text value
+		r = dRE.exec(t);					// RegExp result
+		if (r) {
+			thisDate.d = parseInt(r[1], 10);
+			if (thisDate.d < 1 || thisDate.d > 31)
+				setError('-d')
+			else
+				noError('-d');
+		} else
+			setError('-d');
+			// If OK so far, check against bounds
+		if (!fail) {
+				// <end> must be false to ensure ms is less than rCats.max for check
+			thisDate.ms = PData.date3Nums(thisDate.y, thisDate.m, thisDate.d, false);
+				// Check against bounds
+			if (i == 0) {
+				if (thisDate.ms < self.rCats[0].min) {
+					setError('-y');
+					setError('-m');
+					setError('-d');
+				}
+			} else {
+				if (thisDate.ms > self.rCats[self.rCats.length-1].max) {
+					setError('-y');
+					setError('-m');
+					setError('-d');
+				}
+			}
+		}
+		self.uDates[i] = thisDate;
+		return fail;
+	} // checkSet()
+
+	failFrom = checkSet('.from', 0);
+	failTo = checkSet('.to', 1);
+	if (this.uDates[0].ms > this.uDates[1].ms) {
+		failTo = true;
+	}
+	insert.find('.filter-update').prop('disabled', failFrom || failTo);
+	return !(failFrom || failTo);
+} // evalBoxes()
+
+	// PURPOSE: Try to use values in boxes to calculate Filter settings,
+	//				as when user clicks "Use Date"
+	// INPUT: 	insert = insertPt() for this filter
+	// SIDE-FX: Sets min, max, b0, b1 and brush from text boxes
+PFilterDates.prototype.useBoxes = function(insert)
+{
+	if (this.evalBoxes(insert)) {
+			// Dirty filter
+		this.isDirty(true);
+			// Update min, max
+		this.min = this.uDates[0].ms;
+		var thisDate = this.uDates[1];
+		this.max = PData.date3Nums(thisDate.y, thisDate.m, thisDate.d, true);
+			// Find appropriate rCats bounds for brush and redraw
+		var b0, b1;
+		for (b0=0; b0<this.rCats.length; b0++) {
+			if (this.min < this.rCats[b0].max)
+				break;
+		}
+		for (b1=b0; b1<this.rCats.length; b1++) {
+			if (this.max <= this.rCats[b1].max)
+				break;
+		}
+		b1 = (b1 === this.rCats.length) ? this.rCats.length-1 : b1;
+		this.b0 = b0;
+		this.b1 = b1;
+		this.brushg.call(this.brush.extent([b0, b1+1]));
+		insert.find('.filter-update').prop('disabled', true);
+	}
+} // useBoxes()
 
 PFilterDates.prototype.evalPrep = function()
 {
@@ -4870,52 +5081,39 @@ PFilterDates.prototype.eval = function(rec)
 	} // makeDate()
 
 	var d = rec.a[this.att.id];
-	if (typeof d == 'undefined')
+	if (typeof d === 'undefined')
 		return false;
 
 		// Check for 'undefined' exception
-	var i=this.b0, c=this.rCats[i];
-
-		// Only true when i=0
-	if (c.min == '?') {
-		if (d == '?') {
-			this.ctrs[0]++;
-			return true;
-		}
-		if (this.max == '?')	// This 'undefined' only category?
-			return false;
-		i=1;
-	}
-	if (d == '?')
-		return false;
+	if (d === '?')
+		return this.u;
 
 		// Is it a single event?
-	if (typeof d.max == 'undefined') {
+	if (typeof d.max === 'undefined') {
 		var s = makeDate(d.min.y, 1, 1, d.min, false);
-		// return (this.min <= s) && (s < this.max);
 		if (s < this.min || s >= this.max)
 			return false;
 	} else {
 		var s = makeDate(d.min.y, 1, 1, d.min, false);
 		var e;
-		if (d.max == 'open')
+		if (d.max === 'open')
 			e = TODAY;
 		else
 			e = makeDate(d.max.y, 12, 31, d.max, true);
 
 			// Overlap?
-		if (this.c == 'o') {
+		if (this.c === 'o') {
 			if (e < this.min || s >= this.max)
 				return false;
-			// return true;
 		} else {
-			// return (this.min <= s) && (e <= this.max);
 			if (this.min > s || e > this.max)
 				return false;
 		}
 	}
+
 		// Now find category it belongs to
-	for (; i<=this.b1; i++) {
+	var c;
+	for (var i=this.b0; i<=this.b1; i++) {
 		c = this.rCats[i];
 		if (c.min <= s && s < c.max) {
 			this.ctrs[i]++;
@@ -4942,19 +5140,18 @@ PFilterDates.prototype.setup = function()
 {
 	var self = this;
 
-	this.rCats = PData.getRCats(this.att, false);
+	this.rCats = PData.getRCats(this.att, false, false);
 	this.ctrs = new Uint16Array(this.rCats.length);
 
 		// Set defaults
 	this.b0  = 0;
 	this.b1  = this.rCats.length-1;
-
-		// Must deal with 'undefined' exception -- always first category
-	var r = this.rCats[0];
-	if (r.min == '?')
-		r = this.rCats[1];
-	this.min = r.min;
+	this.u   = false;
+	this.min = this.rCats[0].min;
 	this.max = this.rCats[this.b1].max;
+
+	this.uDates = new Array(2);
+
 
 	var innerH = 80 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
 
@@ -4989,15 +5186,15 @@ PFilterDates.prototype.setup = function()
 
 		self.b0  = extent1[0];
 		self.b1  = extent1[1]-1;
-			// Deal with 'undefined' exception -- only when i=0
-		r = self.rCats[self.b0];
-		if (r.min == '?')
-			r = self.rCats[1];
-		self.min = r.min;
+
+		self.min = self.rCats[self.b0].min;
 		self.max = self.rCats[self.b1].max;
+		self.refreshBoxes();
+
 		self.isDirty(true);
 	} // brushended()
 
+	var insert = this.insertPt();
 
 	var colW=0;
 	this.rCats.forEach(function(c) {
@@ -5016,12 +5213,31 @@ PFilterDates.prototype.setup = function()
 	var xAxis = d3.svg.axis().scale(rScale).orient("bottom");
 	var yAxis = d3.svg.axis().scale(yScale).orient("left").ticks(4);
 
-	var insert = this.insertPt();
-
-	var fh = _.template(document.getElementById('dltext-filter-date-ctrl').innerHTML);
+	var fh = _.template(document.getElementById('dltext-filter-dates').innerHTML);
 	insert.append(fh({ id: this.id }));
+		// Dirty filter if user changes overlap/contain setting
 	insert.find("input[name=dctrl-"+self.id+"]").change(function() {
 		self.isDirty(true);
+	});
+		// Only enabled "allow undefined" if enabled by Attribute
+	if (typeof this.att.r.u === 'undefined') {
+		insert.find(".allow-undef").prop('disabled', true);
+	} else {
+		insert.find(".allow-undef").click(function() {
+			self.u = insert.find('input.allow-undef').prop('checked');
+			self.isDirty(true);
+		});
+	}
+
+	this.refreshBoxes();
+
+		// Try to evaluate Date values whenever user enters something
+	insert.find("input[type=text]").change(function() {
+		self.evalBoxes(insert);
+	});
+		// Try to use Dates
+	insert.find(".filter-update").click(function() {
+		self.useBoxes(insert);
 	});
 
 	var chart = d3.select(insert.get(0)).append("svg")
@@ -5068,30 +5284,46 @@ PFilterDates.prototype.setup = function()
 
 PFilterDates.prototype.getState = function()
 {
+		// Construct min-max Dates
+	function makeDate(d)
+	{
+		return 	d.getUTCFullYear()+'-'+(d.getUTCMonth()+1)+'-'+d.getUTCDate();
+	}
 	var c = jQuery('input[name=dctrl-'+this.id+']:checked').val();
-	return { e0: this.b0, e1: this.b1+1, c: c };
+	return { min: makeDate(this.min), max: makeDate(this.max), c: c, u: this.u };
 } // getState()
 
 PFilterDates.prototype.setState = function(state)
 {
+	var insert = this.insertPt();
+
+	function setBoxes(s, d)
+	{
+		var c = d.split('-');
+		var i=0;
+			// Only 4 components if begins w/- (years BCE)
+		if (c.length === 4) {
+			insert.find(s+'-y').removeClass('error').val('-'+c[1]);
+			i=1;
+		} else {
+			insert.find(s+'-y').removeClass('error').val(c[0]);
+		}
+		insert.find(s+'-m').removeClass('error').val(c[++i]);
+		insert.find(s+'-d').removeClass('error').val(c[++i]);
+	}
+
 	jQuery('input[name="dctrl-'+this.id+'"]').val([state.c]);
-	this.b0  = state.e0;
-	this.b1  = state.e1-1;
-		// Deal with 'undefined' exception -- only for rCats[0]
-	var r = this.rCats[this.b0];
-	if (r.min == '?')
-		r = this.rCats[1];
-	this.min = r.min;
-	this.max = this.rCats[this.b1].max;
-	this.brush.extent([state.e0, state.e1]);
-	this.brushg.call(this.brush);
+	insert.find('input.allow-undef').prop('checked', state.u);
+	this.u = state.u;
+	setBoxes('.from', state.min);
+	setBoxes('.to', state.max);
+	this.useBoxes(insert);
 } // setState()
 
 
-// ========================================================================
+// ===================================================================================
 // PViewFrame: Pseudo-object that manages contents of visualization frame
 //				Creates Legend and maintains selection (passed to PVizModel on update)
-
 // INPUT: 	vfIndex = index for this visualization frame (0 or 1)
 
 function PViewFrame(vfIndex)
@@ -5104,10 +5336,20 @@ function PViewFrame(vfIndex)
 	var vizSelIndex = 0;		// index of currently selected Viz
 	var vizModel = null;		// PVizModel currently in frame
 	var legendIDs = [];			// Attribute IDs of Legend selections (one per Template)
+	var lDirty = null;			// Legend Dirty (enabled) if true
 	var datastream = null;		// pointer to datastream given to view
 
 	// PRIVATE FUNCTIONS
 	//==================
+
+		// PURPOSE: Set Legend Dirty flag to true or false
+	function setLDirty(s)
+	{
+		if (s !== lDirty) {
+			lDirty = s;
+			jQuery(getFrameID()+' div.lgnd-container div.lgnd-handle button.lgnd-update').prop('disabled', !s);
+		}
+	} // setLDirty
 
 		// PURPOSE: Return ID of Frame's outermost DIV container
 	function getFrameID()
@@ -5118,7 +5360,7 @@ function PViewFrame(vfIndex)
 
 	function selectChangeViz(event)
 	{
-		var selector = jQuery(getFrameID()+' div.view-control-bar select.view-viz-select option:selected');
+		var selector = jQuery(getFrameID()+' div.view-controls select.view-viz-select option:selected');
 		var newSelIndex   = selector.val();
 		PState.set(PSTATE_BUILD);
 		createViz(newSelIndex, true);
@@ -5163,7 +5405,6 @@ function PViewFrame(vfIndex)
 					milliSecs += parseInt(match[4])*10;
 				}
 			} else {
-				reportError(false, "Error in transcript file: Cannot parse " + tc + " as timecode.");
 				throw new Error("Error in transcript file: Cannot parse " + tc + " as timecode.");
 				milliSecs = 0;
 			}
@@ -5696,9 +5937,10 @@ function PViewFrame(vfIndex)
 		event.preventDefault();
 	} // clickOpenSelection()
 
+		// PURPOSE: Change state Highlight buttons
 	function doSelBtns(enable)
 	{
-		var vCnxt = jQuery(getFrameID()+' .view-control-bar');
+		var vCnxt = jQuery(getFrameID()+' div.view-controls');
 
 		if (enable) {
 			vCnxt.find('.osel').button("enable");
@@ -5710,6 +5952,13 @@ function PViewFrame(vfIndex)
 			vCnxt.find('.xsel').button("disable");
 		}
 	} // doSelBtns()
+
+	function clickHighlight(event)
+	{
+			// Send signal back to Prospect "main app" to create Highlight filter on this viz
+		jQuery("body").trigger("prospect", { s: PSTATE_HILITE, v: vfIndex });
+		event.preventDefault();
+	} // clickHighlight()
 
 	function clickClearSelection(event)
 	{
@@ -5752,6 +6001,7 @@ function PViewFrame(vfIndex)
 	{
 		jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
 								tmpltIndex+'"] div.lgnd-group input.lgnd-entry-check').prop('checked', show);
+		setLDirty(true);
 	} // doShowHideAll()
 
 
@@ -5759,10 +6009,11 @@ function PViewFrame(vfIndex)
 		// NOTE: 	GUI already updated
 	function doLocateSelect(tmpltIndex, lID, show)
 	{
+		setLDirty(true);
 	} // doLocateSelect()
 
 
-		// PURPOSE: Make vIndex the only selected locate attribute for tmpltIndex
+		// PURPOSE: Make lID the only selected locate attribute for tmpltIndex
 		// NOTE: 	Must update GUI
 	function doLocateSelectOnly(tmpltIndex, lID)
 	{
@@ -5772,6 +6023,7 @@ function PViewFrame(vfIndex)
 			// Just reselect this one
 		jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
 								tmpltIndex+'"] div.lgnd-locate[data-id="'+lID+'"] input.lgnd-entry-check').prop('checked', true);
+		setLDirty(true);
 	} // doLocateSelect()
 
 
@@ -5779,6 +6031,7 @@ function PViewFrame(vfIndex)
 		// NOTE: 	GUI already updated
 	function doFeatureSelect(tmpltIndex, vIndex, show)
 	{
+		setLDirty(true);
 	} // doFeatureSelect()
 
 
@@ -5793,6 +6046,7 @@ function PViewFrame(vfIndex)
 		jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
 								tmpltIndex+'"] div.lgnd-group div.lgnd-value[data-index="'+vIndex+
 								'"] input.lgnd-entry-check').prop('checked', true);
+		setLDirty(true);
 	} // doFeatureSelectOnly()
 
 
@@ -5808,6 +6062,7 @@ function PViewFrame(vfIndex)
 				PState.set(PSTATE_BUILD);
 				doSelBtns(false);
 				vizModel.render(datastream);
+				setLDirty(false);
 				PState.set(PSTATE_READY);
 			}
 			break;
@@ -5863,6 +6118,7 @@ function PViewFrame(vfIndex)
 		var tmpltIndex = jQuery(event.target).closest('div.lgnd-template').data('index');
 		var attID = jQuery(event.target).val();
 		setLegendFeatures(tmpltIndex, attID);
+		setLDirty(true);
 	} // selectTmpltAtt()
 
 
@@ -5988,7 +6244,7 @@ function PViewFrame(vfIndex)
 
 			// Does Viz support Legend at all?
 		if (flags & V_FLAG_LGND) {
-			frame.find('.hslgnd').button("enable");
+			frame.find('.hslgnd').button('enable');
 				// Clear out previous Legend
 				// remove all previous locate Attributes
 			var lgndCntr = frame.find('div.lgnd-container div.lgnd-scroll');
@@ -6053,33 +6309,34 @@ function PViewFrame(vfIndex)
 			}
 			frame.find('div.lgnd-container').show();
 		} else {
-			frame.find('.hslgnd').button("disable");
+			frame.find('button.hslgnd').button('disable');
 				// Just hide Legend
 			frame.find('div.lgnd-container').hide();
 		}
+			// As we initially render view, "Update" should be disabled
+		setLDirty(false);
 
-			// Enable or disable corresponding Selector Filter
-		var c = jQuery('#selector-v'+vfIndex);
+			// Enable or disable corresponding Highlight button & Save Perspective checkboxes
 		if (flags & V_FLAG_SEL) {
-			c.removeAttr("disabled");
-			c.prop('checked', true);
+			frame.find('.hilite').button('enable');
+			jQuery('#save-prspctv-h'+vfIndex).prop('disabled', false).prop('checked', false);
 		} else {
-			c.attr("disabled", true);
-			c.prop('checked', false);
+			frame.find('.hilite').button('disable');
+			jQuery('#save-prspctv-h'+vfIndex).prop('disabled', true).prop('checked', false);
 		}
 
 			// Does Viz have an Options dialog?
 		if (flags & V_FLAG_OPT) {
-			frame.find('.vopts').button("enable");
+			frame.find('.vopts').button('enable');
 		} else {
-			frame.find('.vopts').button("disable");
+			frame.find('.vopts').button('disable');
 		}
 
 			// Does Viz have annotation?
 		var hint = newViz.hint();
 		if (hint || typeof theView.n == 'string' && theView.n != '')
 		{
-			frame.find('.vnote').button("enable");
+			frame.find('.vnote').button('enable');
 			if (hint) {
 				if (typeof theView.n == 'string' && theView.n != '')
 					hint += '.<br/>'+theView.n;
@@ -6117,7 +6374,7 @@ function PViewFrame(vfIndex)
 	instance.setViz = function(vI, refresh)
 	{
 		if (vI != vizSelIndex) {
-			var select = jQuery(getFrameID()+' div.view-control-bar select.view-viz-select');
+			var select = jQuery(getFrameID()+' div.view-controls select.view-viz-select');
 			select.val(vI);
 			createViz(vI, refresh);
 		}
@@ -6126,20 +6383,20 @@ function PViewFrame(vfIndex)
 		// PURPOSE: Initialize basic DOM structure for ViewFrame
 	instance.initDOM = function(vI)
 	{
-		var viewDOM = document.getElementById('dltext-viewframe-dom').innerHTML;
-		jQuery('#viz-display-frame').append('<div id="view-frame-'+vfIndex+'">'+viewDOM+'</div>');
+		var viewDOM = document.getElementById('dltext-view-controls').innerHTML;
+		jQuery('#viz-frame').append('<div id="view-frame-'+vfIndex+'">'+viewDOM+'</div>');
 
 		var frame = jQuery(getFrameID());
 
 			// Localize color scheme?
 		var clr = prspdata.bClrs.vf;
 		if (clr && clr.length > 0)
-			frame.find('div.view-control-bar').css('background-color', clr);
+			frame.find('div.view-controls').css('background-color', clr);
 
 			// Activate drag handle on Legend
 		frame.find('div.lgnd-container').draggable({ handle: frame.find('div.lgnd-handle'), containment: "parent" });
 
-		var select = frame.find('div.view-control-bar select.view-viz-select');
+		var select = frame.find('div.view-controls select.view-viz-select');
 			// Set Dropdown to View names
 		prspdata.e.vf.forEach(function(theVF, i) {
 			var optionStr = '<option value="'+i+'">'+theVF.l+'</option>';
@@ -6149,17 +6406,19 @@ function PViewFrame(vfIndex)
 		select.change(selectChangeViz);
 
 			// Hook control bar Icon buttons
-		frame.find('div.view-control-bar button:first')
+		frame.find('div.view-controls button:first')
 				.button({icons: { primary: 'ui-icon-bookmark' }, text: false })
 				.click(clickShowHideLegend).next()
-				.button({icons: { primary: 'ui-icon-search' }, text: false })
-				.click(clickOpenSelection).next()
+				.button({icons: { primary: 'ui-icon-wrench' }, text: false })
+				.click(clickVizControls).next()
+				.button({icons: { primary: 'ui-icon-info' }, text: false })
+				.click(clickVizNotes).next()
+				.button({icons: { primary: 'ui-icon-star' }, text: false })
+				.click(clickHighlight).next()
 				.button({icons: { primary: 'ui-icon-cancel' }, text: false })
 				.click(clickClearSelection).next()
-				.button({icons: { primary: 'ui-icon-gear' }, text: false })
-				.click(clickVizControls).next()
-				.button({icons: { primary: 'ui-icon-help' }, text: false })
-				.click(clickVizNotes).next();
+				.button({icons: { primary: 'ui-icon-search' }, text: false })
+				.click(clickOpenSelection).next();
 
 		frame.find('div.lgnd-container')
 			.click(clickInLegend);
@@ -6247,6 +6506,7 @@ function PViewFrame(vfIndex)
 		datastream = stream;
 		if (vizModel)
 			vizModel.render(stream);
+		setLDirty(false);
 	} // showStream()
 
 	instance.setStream = function(stream)
@@ -6323,7 +6583,6 @@ var PData = (function() {
 	// =========
 
 	var LOAD_DATA_CHUNK = 1000;	// default, overridden by WP-saved option
-	var dltextFrom;
 	var dltextTo;
 	var dltextApprox;
 	var dltextNow;
@@ -6395,7 +6654,7 @@ var PData = (function() {
 		if (done) {
 			loaded=true;
 			setTimeout(function() {
-				jQuery("body").trigger("prospect", { pstate: PSTATE_PROCESS, component: 0 });
+				jQuery("body").trigger("prospect", { s: PSTATE_PROCESS });
 			}, 500);
 		}
 	} // checkDataLoad()
@@ -6408,7 +6667,6 @@ var PData = (function() {
 			// PURPOSE: Initialize data hub, initiate data loading
 		init: function()
 		{
-			dltextFrom = document.getElementById('dltext-from').innerHTML;
 			dltextTo = document.getElementById('dltext-to').innerHTML;
 			dltextApprox = document.getElementById('dltext-approximately').innerHTML;
 			dltextNow = document.getElementById('dltext-now').innerHTML;
@@ -6579,9 +6837,6 @@ var PData = (function() {
 				var ds='';
 					// Range
 				if (a.max) {
-					// ds = dltextFrom;
-					// if (a.min.f)
-					// 	ds += dltextApprox;
 					if (a.min.f)
 						ds = dltextApprox;
 					ds += a.min.y.toString();
@@ -6848,9 +7103,9 @@ var PData = (function() {
 			case 'N':
 				var f=0;
 					// Check for undefined char/entry first to remove exceptional cases
-				if (fSet[0] == -1) {
-					if (val == '?') {
-						if (typeof att.r.u == 'undefined')
+				if (fSet[0] === -1) {
+					if (val === '?') {
+						if (typeof att.r.u === 'undefined')
 							return null;
 						return att.r.u;
 					}
@@ -6863,9 +7118,9 @@ var PData = (function() {
 					fI = fSet[f];
 					lE = att.l[fI];
 						// either min and max can be left out (= no bound), but not both
-					if (typeof lE.d.min != 'undefined') {
+					if (typeof lE.d.min !== 'undefined') {
 						if (lE.d.min <= val) {
-							if (typeof lE.d.max != 'undefined') {
+							if (typeof lE.d.max !== 'undefined') {
 								if (val <= lE.d.max)
 									return lE;
 							} else
@@ -6880,8 +7135,8 @@ var PData = (function() {
 			case 'D':
 				var f=0;
 					// Check for undefined char/entry first to remove exceptional cases
-				if (fSet[0] == -1) {
-					if (val == '?') {
+				if (fSet[0] === -1) {
+					if (val === '?') {
 						if (typeof att.r.u == 'undefined')
 							return null;
 						return att.r.u;
@@ -6889,7 +7144,7 @@ var PData = (function() {
 					f=1;
 				}
 					// As undefined is first entry (-1), abort now
-				if (val == '?')
+				if (val === '?')
 					return null;
 					 			// Just looking for overlap, date doesn't have to be completely contained
 								// Disqualify for overlap if (1) end of event is before min bound, or
@@ -7059,9 +7314,9 @@ var PData = (function() {
 		objDate: function(field, m, end) {
 			var d;
 
-			if (typeof field.m != 'undefined' && field.m != null) {
+			if (typeof field.m !== 'undefined' && field.m !== null) {
 				m = field.m;
-				if (typeof field.d != 'undefined' && field.d != null)
+				if (typeof field.d !== 'undefined' && field.d !== null)
 					d = field.d;
 				else
 					d = PData.lenMnth(field.y, m);
@@ -7082,7 +7337,7 @@ var PData = (function() {
 				return TODAY;
 
 			var np = 1;
-			if (str.charAt(0) == '-') {
+			if (str.charAt(0) === '-') {
 				np = -1;
 				str = str.substring(1);
 			}
@@ -7118,11 +7373,11 @@ var PData = (function() {
 			var y, m, d, single=false;
 
 			y = data.min.y;
-			if (typeof data.min.m == 'undefined') {
+			if (typeof data.min.m === 'undefined') {
 				m = 1; d = 1;
 			} else {
 				m = data.min.m;
-				if (typeof data.min.d == 'undefined')
+				if (typeof data.min.d === 'undefined')
 					d = 1;
 				else {
 					d = data.min.d;
@@ -7130,16 +7385,16 @@ var PData = (function() {
 				}
 			}
 			s = PData.date3Nums(y,m,d,false);
-			if (typeof data.max != 'undefined') {
-				if (data.max == 'open')
+			if (typeof data.max !== 'undefined') {
+				if (data.max === 'open')
 					e = TODAY;
 				else {
 					y = data.max.y;
-					if (typeof data.max.m == 'undefined') {
+					if (typeof data.max.m === 'undefined') {
 						m = 12; d = 31;
 					} else {
 						m = data.max.m;
-						if (typeof data.max.d == 'undefined')
+						if (typeof data.max.d === 'undefined')
 							d = PData.lenMnth(y, m);
 						else
 							d = data.max.d;
@@ -7150,7 +7405,7 @@ var PData = (function() {
 				if (single)
 					return [s, null];
 				else {
-					if (typeof data.min.m == 'undefined') {
+					if (typeof data.min.m === 'undefined') {
 						m = 12; d = 31;
 					} else {
 						m = data.min.m;
@@ -7166,8 +7421,9 @@ var PData = (function() {
 			// PURPOSE: Return array of categories for facet att based on Legend definitions
 			// INPUT: 	att = complete Attribute definition
 			//			fSet = allowable Legend indices (returned by getSelFeatAtts) or null
+			//			If undef, create initial category for undefined value if allowed in Attribute
 			// RETURNS: category array in same format as getRCats (always has i[])
-		getLCats: function(att, fSet)
+		getLCats: function(att, fSet, undef)
 		{
 			var rcs = [];
 			switch (att.def.t) {
@@ -7182,14 +7438,19 @@ var PData = (function() {
 					if (fSet == null || PData.getAttLgndRecs([v.l], att, fSet, false))
 						rcs.push({ l: v.l, c: v.v, i: [] });
 					v.z.forEach(function(v2) {
-						if (fSet == null || PData.getAttLgndRecs([v2.l], att, fSet, false))
-							rcs.push({ l: v2.l, c: v2.v, i: [] });
+						if (fSet == null || PData.getAttLgndRecs([v2.l], att, fSet, false)) {
+								// Does it inherit from parent or have its own color?
+							if (v2.v === '')
+								rcs.push({ l: v2.l, c: v.v, i: [] });
+							else
+								rcs.push({ l: v2.l, c: v2.v, i: [] });
+						}
 					});
 				});
 				return rcs;
 			case 'N':
 					// Create undefined category? -- must be initial one
-				if (typeof att.r.u != 'undefined') {
+				if (undef && typeof att.r.u !== 'undefined') {
 					if (fSet == null || PData.getAttLgndRecs('?', att, fSet, false))
 						rcs.push({ l: '?', c: att.r.u.v, min: '?', max: '?', i: [] });
 				}
@@ -7200,15 +7461,15 @@ var PData = (function() {
 				return rcs;
 			case 'D':
 					// Create undefined category? -- must be initial one
-				if (typeof att.r.u != 'undefined') {
+				if (undef && typeof att.r.u !== 'undefined') {
 					if (fSet == null || PData.getAttLgndRecs('?', att, fSet, false))
 						rcs.push({ l: '?', c: att.r.u.v, min: '?', max: '?', i: [] });
 				}
 				var dmin, dmax;
 				att.l.forEach(function(d) {
 					dmin = PData.objDate(d.min, 1, false);
-					if (fSet == null || PData.getAttLgndRecs(dmin, att, fSet, false)) {
-						if (d.max.y == null)
+					if (fSet === null || PData.getAttLgndRecs(dmin, att, fSet, false)) {
+						if (d.max.y === null)
 							dmax = TODAY;
 						else
 							dmax = PData.objDate(d.max, 12, false);
@@ -7223,6 +7484,7 @@ var PData = (function() {
 			// PURPOSE: Return array of range categories for facet att
 			// INPUT: 	Complete Attribute definition <att>
 			//			If addItems, create empty members array in range category entries
+			//			If undef, create initial category for undefined value if allowed in Attribute
 			// RETURNS: full range category array = { l[abel], c[olor], min, max, x, i[tems] },
 			//					(min and max only used for Number and Dates types)
 			//					(x is the text to match, only for Text pattern type)
@@ -7235,7 +7497,7 @@ var PData = (function() {
 			//			max value for Dates only (!) is exclusive (value must be less than, not equal!)
 			//			If undefined color given for Number or Dates, that will be first category
 			// TO DO: 	Handle case that scale of max-min and g would be too large ??
-		getRCats: function(att, addItems)
+		getRCats: function(att, addItems, undef)
 		{
 			var rcs = [];
 			switch (att.def.t) {
@@ -7254,20 +7516,21 @@ var PData = (function() {
 					else
 						rcs.push({ l: i.l, c: i.v });
 					i.z.forEach(function(i2) {
+						var v = i2 === '' ? i.v : i2.v;
 						if (addItems)
-							rcs.push({ l: i2.l, c: i2.v, i: [] });
+							rcs.push({ l: i2.l, c: v, i: [] });
 						else
-							rcs.push({ l: i2.l, c: i2.v });
+							rcs.push({ l: i2.l, c: v });
 					});
 				});
 				return rcs;
 			case 'N':
 					// Can't create range category unless both bounds provided
-				if (typeof att.r.min == 'undefined' || typeof att.r.max == 'undefined')
+				if (typeof att.r.min === 'undefined' || typeof att.r.max === 'undefined')
 					return null;
 
 					// Create undefined category? -- must be initial one
-				if (typeof att.r.u != 'undefined') {
+				if (undef && typeof att.r.u !== 'undefined') {
 					if (addItems)
 						rcs.push({ l: '?', c: att.r.u.v, min: '?', max: '?', i: [] });
 					else
@@ -7280,7 +7543,7 @@ var PData = (function() {
 					curL = att.l[0];
 				while (curV <= att.r.max) {
 						// Advance to the relevant legend category
-					while (lI < att.l.length && typeof curL.d.max != 'undefined' && curV > curL.d.max) {
+					while (lI < att.l.length && typeof curL.d.max !== 'undefined' && curV > curL.d.max) {
 						curL = att.l[++lI];
 					}
 						// Is current range category before current legend category?
@@ -7288,11 +7551,11 @@ var PData = (function() {
 						rgb = '#777777';
 
 						// Does it occur beyond last category?
-					} else if (lI == att.l.length) {
+					} else if (lI === att.l.length) {
 						rgb = '#777777';
 
 						// Does it start within current category (inc one w/o max bound)
-					} else if (typeof curL.d.max == 'undefined' || curV <= curL.d.max) {
+					} else if (typeof curL.d.max === 'undefined' || curV <= curL.d.max) {
 						rgb = curL.v;
 
 					} else {
@@ -7301,6 +7564,8 @@ var PData = (function() {
 					min = curV;
 					curV += inc;
 					max = curV-1;	// Since Number max is inclusive
+					if (max > att.r.max)
+						max = att.r.max;
 					var l=min.toString();
 						// Show min and max if not individual digits and too long
 					if (inc > 1 && l.length < 4)
@@ -7324,15 +7589,15 @@ var PData = (function() {
 				function makeMaxDate(field)
 				{
 					var y,m,d;
-					if (typeof field.y == 'undefined') {
+					if (typeof field.y === 'undefined') {
 						return TODAY;
 					} else {
 						y = field.y;
-						if (typeof field.m == 'undefined') {
+						if (typeof field.m === 'undefined') {
 							m = 12; d = 31;
 						} else {
 							m = field.m;
-							if (typeof field.d == 'undefined')
+							if (typeof field.d === 'undefined')
 								d = PData.lenMnth(y, m);
 							else
 								d = field.d;
@@ -7345,9 +7610,9 @@ var PData = (function() {
 				var maxDate = makeMaxDate(att.r.max);
 				var inc = att.r.g;
 				var curY=att.r.min.y, curM=1, curD=1;
-				if (typeof att.r.min.m != 'undefined') {
+				if (typeof att.r.min.m !== 'undefined') {
 					curM = att.r.min.m;
-					if (typeof att.r.min.d != 'undefined') {
+					if (typeof att.r.min.d !== 'undefined') {
 						curD = att.r.min.d;
 					}
 				}
@@ -7360,7 +7625,7 @@ var PData = (function() {
 				}
 
 					// Create undefined category? -- must be initial one
-				if (typeof att.r.u != 'undefined') {
+				if (undef && typeof att.r.u !== 'undefined') {
 					if (addItems)
 						rcs.push({ l: '?', c: att.r.u.v, min: '?', max: '?', i: [] });
 					else
@@ -7437,6 +7702,10 @@ var PData = (function() {
 					}
 						// Since max value is exclusive boundary, don't add day to it
 					rCat.max = PData.date3Nums(curY, curM, curD, false);
+						// Don't go beyond current date
+					if (rCat.max > TODAY) {
+						rCat.max = TODAY;
+					}
 					rcs.push(rCat);
 					curDate = PData.date3Nums(curY, curM, curD, false);
 				}
@@ -7482,18 +7751,18 @@ var PData = (function() {
 						if (uT) {
 							for (cI=0; cI<cats.length; cI++) {
 								cRec = cats[cI];
-								if (datum == cRec.l) {
+								if (datum === cRec.l) {
 									cRec.i.push(aI);
 									break;
 								}
 							}
-							if (cI == cats.length) {
+							if (cI === cats.length) {
 								cats.push({ l: datum, i: [ aI ] });
 							}
 						} else {
 							for (cI=0; cI<cats.length; cI++) {
 								cRec = cats[cI];
-								if (datum.indexOf(cRec.x) != -1) {
+								if (datum.indexOf(cRec.x) !== -1) {
 									cRec.i.push(aI);
 									break;
 								}
@@ -7514,15 +7783,15 @@ var PData = (function() {
 					case 'N':
 							// Check for 'undefined' category and value as initial exceptions
 						cI=0; cRec = cats[0];
-						if (cRec.min == '?') {
-							if (datum == '?') {
+						if (cRec.min === '?') {
+							if (datum === '?') {
 								cRec.i.push(aI);
 								break;
 							}
 							cI=1;
 						}
 							// if first category wasn't undefined, abort if undefined value
-						if (datum == '?')
+						if (datum === '?')
 							break;
 						for (; cI<cats.length; cI++) {
 							cRec = cats[cI];
@@ -7538,15 +7807,15 @@ var PData = (function() {
 					case 'D':
 							// Check for 'undefined' category and value as initial exceptions
 						cI=0; cRec = cats[0];
-						if (cRec.min == '?') {
-							if (datum == '?') {
+						if (cRec.min === '?') {
+							if (datum === '?') {
 								cRec.i.push(aI);
 								break;
 							}
 							cI=1;
 						}
 							// if first category wasn't undefined, abort if undefined value
-						if (datum == '?')
+						if (datum === '?')
 							break;
 							// Only need to look at start date!
 						var sd = PData.objDate(datum.min, 1, false);
@@ -7589,7 +7858,7 @@ var PData = (function() {
 					case 'T':
 						for (sI=0; sI<sCats.length; sI++) {
 							sRec = sCats[sI];
-							if (datum.indexOf(sRec.x) != -1) {
+							if (datum.indexOf(sRec.x) !== -1) {
 								sRec.i.push(aI);
 								break;
 							}
@@ -7599,7 +7868,7 @@ var PData = (function() {
 						datum.forEach(function(d) {
 							for (sI=0; sI<sCats.length; sI++) {
 								sRec = sCats[sI];
-								if (d == sRec.l) {
+								if (d === sRec.l) {
 									sRec.i.push(aI);
 									break;
 								}
@@ -7609,15 +7878,15 @@ var PData = (function() {
 					case 'N':
 							// Check for 'undefined' category and value as initial exceptions
 						sI=0; sRec = sCats[0];
-						if (sRec.min == '?') {
-							if (datum == '?') {
+						if (sRec.min === '?') {
+							if (datum === '?') {
 								sRec.i.push(aI);
 								break;
 							}
 							sI=1;
 						}
 							// if first category wasn't undefined, abort if undefined value
-						if (datum == '?')
+						if (datum === '?')
 							break;
 						for (; sI<sCats.length; sI++) {
 							sRec = sCats[sI];
@@ -7633,15 +7902,15 @@ var PData = (function() {
 					case 'D':
 							// Check for 'undefined' category and value as initial exceptions
 						sI=0; sRec = sCats[0];
-						if (sRec.min == '?') {
-							if (datum == '?') {
+						if (sRec.min === '?') {
+							if (datum === '?') {
 								sRec.i.push(aI);
 								break;
 							}
 							sI=1;
 						}
 							// if first category wasn't undefined, abort if undefined value
-						if (datum == '?')
+						if (datum === '?')
 							break;
 							// Only need to look at start date!
 						var sd = PData.objDate(datum.min, 1, false);
@@ -7677,12 +7946,12 @@ var PData = (function() {
 			function vDate(v)
 			{
 					// 'undefined' exception
-				if (v == '?')
+				if (v === '?')
 					return '?';
 				var m = 1, d = 1;
-				if (typeof v.min.m != 'undefined') {
+				if (typeof v.min.m !== 'undefined') {
 					m = v.min.m;
-					if (typeof v.min.d != 'undefined')
+					if (typeof v.min.d !== 'undefined')
 						d = v.min.d;
 				}
 				return PData.date3Nums(v.min.y, m, d, false);
@@ -7706,7 +7975,7 @@ var PData = (function() {
 
 				v = rec.a[att.id];
 					// If there is no value, we need to use max value
-				if (typeof v == 'undefined')
+				if (typeof v === 'undefined')
 					ord.push({ i: absI, v: maxV });
 				else
 					ord.push({ i: absI, v: eval(v) });
@@ -7726,9 +7995,9 @@ var PData = (function() {
 			// 	break;
 			case 'N':
 				ord.sort(function(a,b) {
-					if (a.v == '?')
+					if (a.v === '?')
 						return -1;
-					if (b.v == '?')
+					if (b.v === '?')
 						return 1;
 					return a.v - b.v;
 				});
@@ -7764,21 +8033,23 @@ jQuery(document).ready(function($) {
 
 		// VARIABLES
 		//==========
-	var view0;				// Primary viewFrame
-	var view1;				// Secondary
+	var view0;					// Primary viewFrame
+	var view1=null;				// Secondary
 
-	var filters=[];			// Filter Stack: { id, f [PFilterModel], out }
-	var selFilter=null;		// Selector Filter
-	var selFID;				// Attribute ID for Selector Filter
-	var apTmStr;			// Apply to <template label> for Filters
+	var apTmStr;				// Apply to <template label> for Filters
+	var filters=[];				// Filter Stack: { id, f [PFilterModel], out [stream] }
+	var fState=0;				// Filter State: 0 = no filter, 1 = filters changed, 2 = filters run
 
-	var annote;				// Annotation from current Perspective
+	var hFilters=[null, null];	// Highlight Filter
+	var hFilterIDs=[null, null]; // Highlight Filter Attribute IDs
 
-	var topStream;			// Top-level IndexStream (before Filters)
-	var endStream;			// Final resulting IndexStream (after Filters)
+	var annote;					// Annotation from current Perspective
 
-	var localStore=null;	// Local (Browser) storage (if Browser capable)
-	var localPrspctvs=[];	// locally-stored Perspectives
+	var topStream;				// Top-level IndexStream (before Filters)
+	var endStream;				// Final resulting IndexStream (after Filters)
+
+	var localStore=null;		// Local (Browser) storage (if Browser capable)
+	var localPrspctvs=[];		// locally-stored Perspectives
 
 		// FUNCTIONS
 		//==========
@@ -7847,10 +8118,17 @@ jQuery(document).ready(function($) {
 		view0.showStream(endStream);
 		if (view1)
 			view1.showStream(endStream);
-		jQuery('#btn-recompute').removeClass('pulse');
+
+		if (filters.length > 0) {
+			fState = 2;
+			jQuery('#btn-f-state').prop('disabled', true).html(dlText.filtered);
+		} else {
+			fState = 0;
+			jQuery('#btn-f-state').prop('disabled', true).html(dlText.nofilter);
+		}
 	} // doRecompute()
 
-	function clickRecompute(event)
+	function clickFilter(event)
 	{
 			// Remove any selections first
 		view0.clearSel();
@@ -7859,7 +8137,7 @@ jQuery(document).ready(function($) {
 		doRecompute();
 		PState.set(PSTATE_READY);
 		event.preventDefault();
-	} // clickRecompute()
+	} // clickFilter()
 
 		// PURPOSE: Set annotation text to <t>
 	function setAnnote(t)
@@ -7889,18 +8167,15 @@ jQuery(document).ready(function($) {
 		// PURPOSE: Add 2nd window if not already there; remove if so
 	function clickTog2nd()
 	{
-		if (view1 != null) {
+		if (view1 !== null) {
 			view1 = null;
 			jQuery('#view-frame-1').remove();
-			jQuery('#selector-v1').prop("checked", false);
-			jQuery('#selector-v1').prop("disabled", true);
 		} else {
 			view0.flushLgnd();
 			PState.set(PSTATE_BUILD);
 			view1 = PViewFrame(1);
 			view1.initDOM(0);
 			view1.showStream(endStream);
-			jQuery('#selector-v1').prop("disabled", false);
 			PState.set(PSTATE_READY);
 		}
 		view0.resize();
@@ -7952,37 +8227,37 @@ jQuery(document).ready(function($) {
 
 		// PURPOSE: Save current Perspective as <id>
 		// RETURNS: "local" or "server" if save successful, else null
-	function doSavePerspective(id)
+	function doSavePerspective(id, label)
 	{
 			// Where to save it?
 		var dest = jQuery('input[name=save-prspctv-dest]:checked').val();
 		if (dest == '')
 			return null;
 
-		var note = jQuery('#save-psrctv-note').val();
+		var note = jQuery('#save-prspctv-note').val();
 		note = note.replace(/"/, '');
 
-		var label = jQuery('#save-psrctv-lbl').val().trim();
-		label = label.replace(/"/, '');
-
-		var a0 = !jQuery('#selector-v0').prop("disabled") && jQuery('#selector-v0').is(':checked');
-		var a1 = !jQuery('#selector-v1').prop("disabled") && jQuery('#selector-v1').is(':checked');
-
-			// Compile Perspective state from Filter stack, Selector Filter & Views
-		var pState = { f: [], s: null, a0: a0, a1: a1, v0: { l: view0.title(), s: view0.getState() },
-						v1: null };
+			// Compile Perspective state from Views & Filter Stack
+		var pState = { f: [], h0: null, h1: null, v0: { l: view0.title(), s: view0.getState() }, v1: null };
+		if (view1)
+			pState.v1 = { l: view1.title(), s: view1.getState() };
 		filters.forEach(function(theF) {
 			var a=[];
 			var fDiv = jQuery('div.filter-instance[data-id="'+theF.id+'"]');
-			for (var ti=0; ti<PData.getNumETmplts(); ti++)
+			for (var ti=0; ti<PData.getNumETmplts(); ti++) {
 				a.push(fDiv.find('.apply-tmplt-'+ti).is(':checked'));
+			}
 			pState.f.push({ id: theF.attID, a: a, s: theF.f.getState() });
 		});
-		if (selFilter) {
-			pState.s = { id: selFID, s: selFilter.getState() };
+
+			// Save Highlight filters?
+		for (var h=0; h<2; h++) {
+			var hFilter = hFilters[h];
+			if (hFilter !== null && jQuery('#save-prspctv-h'+h).is(':checked')) {
+				pState['h'+h] = { id: hFilterIDs[h], s: hFilter.getState() };
+			}
 		}
-		if (view1)
-			pState.v1 = { l: view1.title(), s: view1.getState() };
+			// Store everything in Perspective object
 		var sPrspctv = { id: id, l: label, n: note, s: pState };
 
 		if (dest == 'local') {
@@ -8021,35 +8296,49 @@ jQuery(document).ready(function($) {
 		var idExp = /[^\w\-]/;
 
 			// Clear any previous input values
-		jQuery('#save-psrctv-id').val('');
-		jQuery('#save-psrctv-lbl').val('');
-		jQuery('#save-psrctv-note').val('');
+		jQuery('#save-prspctv-id').val('');
+		jQuery('#save-prspctv-lbl').val('');
+		jQuery('#save-prspctv-note').val('');
 
 			// Make sure Browser has local storage capability
 		if (!localStore) {
-			jQuery('#save-prspctv-d-1').attr('disabled', 'disabled');
+			jQuery('#save-prspctv-d-1').prop('disabled', true);
 		}
 			// If user not logged in, disable server capability
 		if (!prspdata.add_prspctv) {
-			jQuery('#save-prspctv-d-2').attr('disabled', 'disabled');
+			jQuery('#save-prspctv-d-2').prop('disabled', true);
+		}
+
+			// Uncheck Highlight filters by default
+		jQuery('#save-prspctv-h0').prop('checked', false);
+		jQuery('#save-prspctv-h1').prop('checked', false);
+			// Dis-/enable if no filter
+		for (var h=0; h<2; h++) {
+			var disable = (hFilters[h] === null || ((h === 1) && view1 === null));
+			jQuery('#save-prspctv-h'+h).prop('disabled', disable);
 		}
 
 		spDialog = jQuery("#dialog-save-prsrctv").dialog({
-			width: 340,
-			height: 350,
+			width: 380,
+			height: 370,
 			modal: true,
 			buttons: [
 				{
 					text: dlText.ok,
 					click: function() {
-						var id = jQuery('#save-psrctv-id').val().trim();
+						var id = jQuery('#save-prspctv-id').val().trim();
 							// Make sure ID correct format
 						var idError = id.match(idExp);
-						if (id.length == 0 || id.length > 20 || idError)
+						var label = jQuery('#save-prspctv-lbl').val().trim();
+						label = label.replace(/"/, '');
+
+						if (id.length === 0 || id.length > 20 || idError)
 							idError = '#dialog-prspctv-id-badchars';
 							// Make sure ID not already taken
 						else if (getPerspective(id))
 							idError = '#dialog-prspctv-id-used';
+						else if (label.length === 0 || label.length > 32)
+							idError = '#dialog-prspctv-label-bad';
 						if (idError) {
 							var errDialog = jQuery(idError).dialog({
 								width: 320,
@@ -8063,14 +8352,14 @@ jQuery(document).ready(function($) {
 								}]
 							});
 						} else {
-							var saved = doSavePerspective(id);
+							var saved = doSavePerspective(id, label);
 							spDialog.dialog("close");
 
 							if (saved == 'server') {
 									// Calculate Embed value
 								var embed = xhbtURL + '/?prspctv=' + id;
 
-								jQuery('#save-psrctv-embed').val(embed);
+								jQuery('#save-prspctv-embed').val(embed);
 								var embedDialog = jQuery("#dialog-prspctv-url").dialog({
 									width: 480,
 									height: 230,
@@ -8187,8 +8476,8 @@ jQuery(document).ready(function($) {
 						});
 						break;
 					} // switch
-					jQuery('#edit-psrctv-lbl').val(pRec.l);
-					jQuery('#edit-psrctv-note').val(pRec.n);
+					jQuery('#edit-prspctv-lbl').val(pRec.l);
+					jQuery('#edit-prspctv-note').val(pRec.n);
 
 					var epDialog = jQuery("#dialog-edit-prsrctv").dialog({
 						width: 340,
@@ -8198,8 +8487,8 @@ jQuery(document).ready(function($) {
 							{
 								text: dlText.ok,
 								click: function() {
-									pRec.l = jQuery('#edit-psrctv-lbl').val();
-									pRec.n = jQuery('#edit-psrctv-note').val();
+									pRec.l = jQuery('#edit-prspctv-lbl').val();
+									pRec.n = jQuery('#edit-prspctv-note').val();
 									parent.find('.label').text(pRec.l);
 									if (t == 'x')
 										xDataDirty = true;
@@ -8302,12 +8591,13 @@ jQuery(document).ready(function($) {
 		event.preventDefault();
 	} // clickFilterToggle()
 
+		// PURPOSE: Handle clicking which Template Filter should apply to
 	function clickFilterApply(event)
 	{
 		var head = jQuery(this).closest('div.filter-instance');
 		if (head) {
 			var fID = head.data('id');
-			if (fID && fID != '') {
+			if (fID && fID !== '') {
 				var fRec;
 				fRec = filters.find(function(fr) { return fr.id == fID; });
 				if (fRec == null)	{ alert('Bad Filter ID '+fID); return; }
@@ -8323,7 +8613,7 @@ jQuery(document).ready(function($) {
 
 		var fI, fRec;
 		fI = filters.findIndex(function(fRec) { return fRec.id == fID; });
-		if (fI == -1)	{ alert('Bad Filter ID '+fID); return; }
+		if (fI === -1)	{ alert('Bad Filter ID '+fID); return; }
 
 		fRec = filters[fI].f;
 		fRec.teardown();
@@ -8333,14 +8623,13 @@ jQuery(document).ready(function($) {
 		if (fI >= filters.length) {
 			var endStream;
 				// No filters left, reset ViewFrame data source
-			if (filters.length == 0)
+			if (filters.length === 0)
 				endStream = topStream;
 			else
 				endStream = filters[fI-1].out;
 			view0.setStream(endStream);
 			if (view1)
 				view1.setStream(endStream);
-			jQuery('#btn-recompute').addClass('pulse');
 		} else {
 				// Output must be recomputed from successor on
 			filters[fI].f.isDirty(true);
@@ -8349,47 +8638,46 @@ jQuery(document).ready(function($) {
 			// Remove this DOM element
 		head.remove();
 
-		if (filters.length == 0) {
+		if (filters.length === 0) {
 			jQuery('#btn-toggle-filters').button("disable");
+				// Invalidate selections
+			view0.clearSel();
+			if (view1)
+				view1.clearSel();
+			doRecompute();
+			PState.set(PSTATE_READY);
+		} else {
+			fState = 1;
+			jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
 		}
 
 		event.preventDefault();
 	} // clickFilterDel()
 
-	function doDelSelFilter()
-	{
-		if (selFilter != null) {
-			selFilter.teardown();
-			jQuery('div.filter-instance[data-id="0"]').empty();
-			selFilter = null;
-			jQuery('#btn-toggle-selector').button("disable");
-			jQuery('#btn-apply-selector').button("disable");
-		}
-	} // doDelSelFilter()
-
 		// PURPOSE: Add a new filter to the stack
 		// INPUT: 	fID = Attribute ID
-		//			selector = true if filter for the selector
 		//			apply = initial state of apply array (boolean for each Template)
+		//			highlight = null if in Filter stack, else 0 or 1 (to indicate view applied to)
 		// RETURNS: The Filter object created
-	function createFilter(fID, apply, selector)
+		// NOTES:   IDs 0 and 1 are specially allocated to Highlight those respective views
+		// ASSUMED: Remove filter won't be created for Highlight condition
+	function createFilter(fID, apply, highlight)
 	{
 		var newID;
+		var newFilter;
+		var theAtt;
+		var insert;
 
-		if (selector) {
-				// Remove any pre-existing selector filter
-			doDelSelFilter();
-			newID = 0;
+		if (highlight !== null) {
+			newID = highlight;
 		} else {
 			do {
-				newID = Math.floor((Math.random() * 1000) + 1);
+				newID = Math.floor((Math.random() * 1000) + 2);
 				if (filters.findIndex(function(theF) { return theF.id == newID; }) != -1)
 					newID = -1;
 			} while (newID == -1);
 		}
 
-		var newFilter;
-		var theAtt;
 		if (fID == '_remove') {
 			newFilter = new PFilterRemove(newID);
 			theAtt = { t: [true, true, true, true ] };	// Create pseudo-Attribute entry
@@ -8411,16 +8699,10 @@ jQuery(document).ready(function($) {
 			}
 		}
 
-		if (selector) {
-			selFilter = newFilter;
-			selFID = fID;
-
-			var fh = _.template(document.getElementById('dltext-selector-head').innerHTML);
-			var head = jQuery('div.filter-instance[data-id="0"]');
-			head.append(fh({ title: newFilter.title() }));
-			head.find('button.btn-filter-del').button({
-						text: false, icons: { primary: 'ui-icon-trash' }
-					}).click(doDelSelFilter);
+		if (highlight !== null) {
+			insert = jQuery('#dialog-hilite-'+highlight+' span.filter-id').html(theAtt.def.l);
+			insert = jQuery('#hilite-'+highlight);
+			insert.empty();
 
 		} else {
 			var newFRec = { id: newID, attID: fID, f: newFilter, out: null };
@@ -8436,7 +8718,7 @@ jQuery(document).ready(function($) {
 			for (var i=0; i<PData.getNumETmplts(); i++) {
 				var applier = head.find('.apply-tmplt-'+i);
 				applier.prop('disabled', !theAtt.t[i]);
-				applier.prop('checked', apply[i]);
+				applier.prop('checked', apply[i] && theAtt.t[i]);
 				applier.click(clickFilterApply);
 			}
 
@@ -8447,7 +8729,8 @@ jQuery(document).ready(function($) {
 						text: false, icons: { primary: 'ui-icon-trash' }
 					}).click(clickFilterDel);
 
-			jQuery('#btn-recompute').addClass('pulse');
+			fState = 1;
+			jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
 		}
 
 			// Allow Filter to insert required HTML
@@ -8455,17 +8738,22 @@ jQuery(document).ready(function($) {
 		return newFilter;
 	} // createFilter()
 
-
-	function clickNewFilter(event)
+		// PURPOSE: Allow user to choose an Attribute from a list
+		// NOTES: 	Since this dialog can be invoked from two other modal dialogs, need
+		//				to append at particular point in DOM to ensure stacked properly
+	function chooseAttribute(showRemove, secondary, callback)
 	{
-		var applyDef = PData.getNumETmplts() == 1 ? [true] : [false, false, false, false];
-
 			// Clear previous selection
 		jQuery("#filter-list li").removeClass("selected");
-		jQuery("#filter-list li.remove").show();
-		var newFilterDialog;
+			// Do we show "Remove" Filter Option?
+		if (showRemove) {
+			jQuery("#filter-list li.remove").show();
+		} else {
+			jQuery("#filter-list li.remove").hide();
+		}
+		var attDialog;
 
-		newFilterDialog = jQuery("#dialog-new-filter").dialog({
+		var dialogParams = {
 			height: 300,
 			width: 350,
 			modal: true,
@@ -8474,25 +8762,36 @@ jQuery(document).ready(function($) {
 					text: dlText.add,
 					click: function() {
 						var selected = jQuery("#filter-list li.selected");
-						if (selected.length) {
-							jQuery('#filter-instances').show(400);
-							createFilter(selected.data("id"), applyDef, false);
-							jQuery('#btn-toggle-filters').button("enable");
+						if (selected.length === 1) {
+							callback(selected.data("id"));
 						}
 							// Remove click handler
-						newFilterDialog.dialog("close");
+						attDialog.dialog("close");
 					}
 				},
 				{
 					text: dlText.cancel,
 					click: function() {
 							// Remove click handler
-						newFilterDialog.dialog("close");
+						attDialog.dialog("close");
 					}
 				}
 			]
-		});
+		};
+		if (secondary) {
+			dialogParams.appendTo = '#dialog-2';
+		}
 
+		attDialog = jQuery("#dialog-choose-att").dialog(dialogParams);
+	} // chooseAttribute()
+
+	function clickNewFilter(event)
+	{
+		chooseAttribute(true, false, function(id) {
+			jQuery('#filter-instances').show(400);
+			createFilter(id, [true, true, true, true], null);
+			jQuery('#btn-toggle-filters').button("enable");
+		});
 		event.preventDefault();
 	} // clickNewFilter()
 
@@ -8503,94 +8802,78 @@ jQuery(document).ready(function($) {
 		event.preventDefault();
 	} // clickToggleFilters()
 
-
-	function clickNewSelector(event)
+		// PURPOSE: Apply effect of a Highlight filter
+	function doApplyHighlight(v)
 	{
-			// Clear previous selection
-		jQuery("#filter-list li").removeClass("selected");
-		jQuery("#filter-list li.remove").hide();
+		PState.set(PSTATE_PROCESS);
 
-		var newFilterDialog;
+		var list=[];
+		var hFilter=hFilters[v];
+		if (endStream !== null) {
+			hFilter.evalPrep();
+			var relI=0, absI, rec;
+			while (relI < endStream.l) {
+				absI = endStream.s[relI++];
+				rec = PData.getRecByIndex(absI);
+				if (hFilter.eval(rec)) {
+					list.push(absI);
+				}
+			}
+			hFilter.isDirty(false);
+			hFilter.evalDone(endStream.l);
+		}
 
-		newFilterDialog = jQuery("#dialog-new-filter").dialog({
-			height: 300,
-			width: 350,
+		PState.set(PSTATE_UPDATE);
+
+		var view = v === 0 ? view0 : view1;
+		if (list.length > 0) {
+			view.setSel(list);			
+		} else {
+			view.clearSel();
+		}
+
+		PState.set(PSTATE_READY);
+	} // doApplyHighlight()
+
+		// PURPOSE: Handle click on "Highlight" button
+		// INPUT: 	v = index of view frame
+	function clickHighlight(v)
+	{
+		var dialog;
+
+		filterDialog = jQuery("#dialog-hilite-"+v).dialog({
+			height: 275,
+			width: Math.min(jQuery(window).width() - 20, 675),
 			modal: true,
+			appendTo: "#dialog-1",
 			buttons: [
 				{
-					text: dlText.add,
+					text: dlText.chsatt,
 					click: function() {
-						var selected = jQuery("#filter-list li.selected");
-						if (selected.length) {
-							jQuery('#selector-instance').show(400);
-							createFilter(selected.data("id"), null, true);
-							jQuery('#btn-toggle-selector').button("enable");
-							jQuery('#btn-apply-selector').button("enable");
+						chooseAttribute(false, true, function(id) {
+							hFilterIDs[v] = id;
+							hFilters[v] = createFilter(id, null, v);
+						});
+					}
+				},
+				{
+					text: dlText.ok,
+					click: function() {
+						filterDialog.dialog("close");
+						if (hFilters[v] !== null) {
+							doApplyHighlight(v);
 						}
-							// Remove click handler
-						newFilterDialog.dialog("close");
 					}
 				},
 				{
 					text: dlText.cancel,
 					click: function() {
-							// Remove click handler
-						newFilterDialog.dialog("close");
+						filterDialog.dialog("close");
 					}
 				}
 			]
 		});
-
-		event.preventDefault();
-	} // clickNewSelector()
-
-
-	function clickToggleSelector(event)
-	{
-		jQuery('#selector-instance').slideToggle(400);
-		event.preventDefault();
-	} // clickToggleSelector()
-
-	function doApplySelector()
-	{
-		PState.set(PSTATE_PROCESS);
-
-		var selList=[], mustCopy=false;
-		if (selFilter != null && endStream != null) {
-			selFilter.evalPrep();
-			var relI=0, absI, rec;
-			while (relI < endStream.l) {
-				absI = endStream.s[relI++];
-				rec = PData.getRecByIndex(absI);
-				if (selFilter.eval(rec)) {
-					selList.push(absI);
-				}
-			}
-			selFilter.isDirty(false);
-			selFilter.evalDone(endStream.l);
-		}
-
-		PState.set(PSTATE_UPDATE);
-
-			// Which Views to send Selection? Assumed won't be checked if disabled
-		if (jQuery('#selector-v0').is(':checked')) {
-			mustCopy = view0.setSel(selList);
-		}
-		if (jQuery('#selector-v1').is(':checked')) {
-			if (view1) {
-				if (mustCopy)
-					selList = selList.slice(0);
-				view1.setSel(selList);				
-			}
-		}
-	} // doApplySelector()
-
-	function clickApplySelector(event)
-	{
-		doApplySelector();
-		PState.set(PSTATE_READY);
-		event.preventDefault();
-	} // clickApplySelector()
+	} // clickHighlight()
 
 
 		// PURPOSE: Attempt to show Perspective pID
@@ -8612,7 +8895,6 @@ jQuery(document).ready(function($) {
 
 			// Minimize filter and selector bars
 		jQuery('#filter-frame').hide();
-		jQuery('#selector-frame').hide();
 
 			// Clear current Filter Stack & Selector Filter
 		filters.forEach(function(theF) {
@@ -8622,26 +8904,32 @@ jQuery(document).ready(function($) {
 		jQuery('#filter-instances').empty();
 
 		p.s.f.forEach(function(fRec) {
-			var newF = createFilter(fRec.id, fRec.a, false);
+			var newF = createFilter(fRec.id, fRec.a, null);
 			newF.setState(fRec.s);
 		});
 		jQuery('#filter-instances').hide();
 		jQuery('#btn-toggle-filters').button(p.s.f.length == 0 ? "disable" : "enable");
 
-		doDelSelFilter();
-		if (p.s.s != null) {
-			createFilter(p.s.s.id, null, true);
-			selFilter.setState(p.s.s.s);
-			jQuery('#btn-toggle-selector').button("enable");
-			jQuery('#btn-apply-selector').button("enable");
+			// Load Highlight filters?
+		for (var h=0; h<2; h++) {
+			if (p.s['h'+h] !== null) {
+				var hFData = p.s['h'+h];
+				hFilterIDs[h] = hFData.id;
+				var hFilter = createFilter(hFData.id, null, h);
+				hFilters[h] = hFilter;
+				hFilter.setState(hFData.s);
+			} else {
+				hFilters[h] = null;
+				hFilterIDs[h] = null;
+			}
 		}
-		jQuery('#selector-instance').hide();
 
 		var vI;
 		var resize0=false;
 
 		PState.set(PSTATE_BUILD);
 		vI = vizIndex(p.s.v0.l);
+			// Already exists?
 		if (view0) {
 			view0.setViz(vI, false);
 			view0.selBtns(false);
@@ -8650,8 +8938,9 @@ jQuery(document).ready(function($) {
 			view0.initDOM(vI);
 		}
 
-		if (p.s.v1 != null) {
+		if (p.s.v1 !== null) {
 			vI = vizIndex(p.s.v1.l);
+				// Already exists?
 			if (view1) {
 				view1.selBtns(false);
 				view1.setViz(vI, false);
@@ -8667,7 +8956,6 @@ jQuery(document).ready(function($) {
 			if (view1) {
 				view1 = null;
 				jQuery('#view-frame-1').remove();
-				jQuery('#selector-v1').prop("disabled", true);
 				resize0 = true;
 			}
 		}
@@ -8679,14 +8967,14 @@ jQuery(document).ready(function($) {
 
 		setAnnote(p.n);
 
-		jQuery('#selector-v0').prop('checked', p.s.a0);
-		jQuery('#selector-v1').prop('checked', p.s.a1);
-
 			// Don't recompute if data not loaded yet
 		if (PData.ready() && topStream) {
 			doRecompute();
-			if (selFilter)
-				doApplySelector();
+			for (h=0; h<2; h++) {
+				if (hFilterIDs[h] !== null) {
+					doApplyHighlight(h);
+				}
+			}
 		}
 
 		return true;
@@ -8708,7 +8996,6 @@ jQuery(document).ready(function($) {
 	} // localizeColor()
 	localizeColor('cb', '#command-bar');
 	localizeColor('fs', '#filter-frame');
-	localizeColor('sf', '#selector-frame');
 
 	PState.init();
 	PMapHub.init(prspdata.m);
@@ -8726,6 +9013,7 @@ jQuery(document).ready(function($) {
 		loadFrag('dltext-showhideall', 'sha');
 		loadFrag('dltext-ok', 'ok');
 		loadFrag('dltext-cancel', 'cancel');
+		loadFrag('dltext-choose-att', 'chsatt');
 		loadFrag('dltext-seerec', 'seerec');
 		loadFrag('dltext-close', 'close');
 		loadFrag('dltext-add', 'add');
@@ -8741,6 +9029,9 @@ jQuery(document).ready(function($) {
 		loadFrag('dltext-orderedby', 'orderedby');
 		loadFrag('dltext-grpblks', 'grpblks');
 		loadFrag('dltext-reset', 'reset');
+		loadFrag('dltext-nofilter', 'nofilter');
+		loadFrag('dltext-dofilters', 'dofilters');
+		loadFrag('dltext-filtered', 'filtered');
 
 		text = document.getElementById('dltext-month-names').innerHTML;
 		months = text.trim().split('|');
@@ -8769,7 +9060,7 @@ jQuery(document).ready(function($) {
 	xhbtURL = xhbtURL.replace(/^\//, '');
 	xhbtURL = "http://" + window.location.host + "/" + xhbtURL;
 
-		// Create string for apply Filters to Templates
+		// Create string to add to Filter Headers inserting Template IDs & labels
 	(function () {
 		var at = _.template(document.getElementById('dltext-filter-template').innerHTML);
 		var ts = [];
@@ -8819,16 +9110,13 @@ jQuery(document).ready(function($) {
 	}
 
 		// Command Bar
-	jQuery('#btn-about').button({icons: { primary: 'ui-icon-info' }, text: false })
+	jQuery('#btn-about').button({icons: { primary: 'ui-icon-power' }, text: false })
 			.click(clickAbout);
-	jQuery('#btn-recompute').button({icons: { primary: 'ui-icon-refresh' }, text: false })
-			.click(clickRecompute);
 	jQuery('#btn-set-layout').button({icons: { primary: 'ui-icon-newwin' }, text: false })
 			.click(clickTog2nd);
 	jQuery('#btn-hs-bars').button({icons: { primary: 'ui-icon-carat-2-n-s' }, text: false })
 			.click(function(event) {
 				jQuery('#filter-frame').slideToggle(400);
-				jQuery('#selector-frame').slideToggle(400);
 				event.preventDefault();
 			});
 	jQuery('#btn-show-prspctv').button({icons: { primary: 'ui-icon-image' }, text: false })
@@ -8872,14 +9160,7 @@ jQuery(document).ready(function($) {
 			.click(clickNewFilter);
 	jQuery('#btn-toggle-filters').button({icons: { primary: 'ui-icon-arrow-2-n-s' }, text: false })
 			.click(clickToggleFilters);
-
-		// Selector Control Bar
-	jQuery('#btn-new-selector').button({icons: { primary: 'ui-icon-plus' }, text: false })
-			.click(clickNewSelector);
-	jQuery('#btn-toggle-selector').button({icons: { primary: 'ui-icon-arrow-2-n-s' }, text: false })
-			.click(clickToggleSelector);
-	jQuery('#btn-apply-selector').button({icons: { primary: 'ui-icon-arrowreturn-1-e' }, text: false })
-			.click(clickApplySelector);
+	jQuery('#btn-f-state').click(clickFilter);
 
 	jQuery('#dialog-about .logo').attr("src", prspdata.assets+"prospectlogo.jpg");
 
@@ -8917,16 +9198,28 @@ jQuery(document).ready(function($) {
 			view1.resize();
 	});
 
-		// Intercept global state changes: data { pstate, component [0=global, 1=view1, 2=view2] }
+		// Intercept global signals: data { s[tate] }
 	jQuery("body").on("prospect", function(event, data) {
-			// ASSUMED: This won't be triggered until after Filters & Views set up
-		if (data.pstate == PSTATE_PROCESS) {
+		switch (data.s) {
+		case PSTATE_PROCESS:
+				// ASSUMED: This won't be triggered until after Filters & Views set up
 			PState.set(PSTATE_PROCESS);
 			doRecompute();
-			if (selFilter)
-				doApplySelector();
+			for (var h=0; h<2; h++) {
+				if (hFilters[h] !== null) {
+					doApplyHighlight(h);
+				}
+			}
 			PState.set(PSTATE_READY);
 			jQuery('body').removeClass('waiting');
+			break;
+		case PSTATE_FDIRTY:
+			fState = 1;
+			jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
+			break;
+		case PSTATE_HILITE:
+			clickHighlight(data.v);
+			break;
 		}
 	});
 

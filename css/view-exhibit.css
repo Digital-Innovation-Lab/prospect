@@ -55,6 +55,12 @@ body.waiting * {
 	cursor: wait !important;
 }
 
+	/* To indicate input errors */
+input[type=text].error {
+	background-color: yellow;
+	color: red;
+}
+
 	/* For maximal expansion of an element */
 div.max-size {
 	width: 100%;
@@ -116,8 +122,7 @@ ul.radio li:hover, ul.radio li.focus {
 	 * #command-bar
 	 * #note
 	 * #filter-frame
-	 * #selector-frame
-	 * #viz-display-frame
+	 * #viz-frame
 	 */
 
 	/* Command Bar always along top row of window */
@@ -135,6 +140,11 @@ ul.radio li:hover, ul.radio li.focus {
 #command-bar .title {
 	margin-left: 3px;
 	margin-top: 2px;
+}
+
+#command-bar button.ui-button {
+	margin-left: 4px;
+	margin-right: 4px;
 }
 
 #command-bar .ui-icon {
@@ -196,7 +206,11 @@ ul.radio li:hover, ul.radio li.focus {
 
 	/* All Filters go into this frame */
 #filter-frame {
-	background-color: #eee;
+	background-color: #ccc;
+}
+
+#filter-frame button {
+	font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans-serif;
 }
 
 	/* This is the control bar for filters */
@@ -208,7 +222,7 @@ ul.radio li:hover, ul.radio li.focus {
 	font-size: 12px;
 }
 
-	/* All filter instances going into this scrolling area */
+	/* All Filter instances go into this scrolling area */
 #filter-instances {
 	min-height: 0px;
 	max-height: 300px;
@@ -218,7 +232,7 @@ ul.radio li:hover, ul.radio li.focus {
 	padding: 0px;
 }
 
-	/* Each Filter instance has this class as outer wrapper */
+	/* Each Filter instance (inc Highlight dialogs) has this class as outer wrapper */
 div.filter-instance {
 	max-height: 300px;
 	padding-left: 8px;
@@ -235,15 +249,38 @@ div.filter-head {
 	border-bottom: black 1px dotted;
 }
 
-	/* Area for filter GUI controls */
+	/* Area for each filter's GUI controls
+	 * Also used in Highlight dialog
+	 */
 div.filter-body {
-	overflow-y: auto;
+	white-space: nowrap;	/* don't allow controls to wrap to new line */
 	padding: 0px;
 	padding-left: 4px;
 	margin: 0px;
 }
 
+	/* Group of items within a filter body */
+div.filter-body div.cntrl-blck {
+	display: inline-block;
+	padding-top: 3px;
+	padding-right: 4px;
+	vertical-align: top;
+}
+
+/*
+div.filter-body div.h-center {
+	display: block;
+	margin: 0 auto;
+}
+*/
+div.filter-body input[type=text] {
+	font-size: 10px;
+	padding: 1px;
+	margin: 1px;
+}
+
 div.filter-body svg {
+	display: inline;
 	margin: 2px;
 	padding: 0px;
 }
@@ -274,53 +311,20 @@ div.filter-body svg .brush .extent {
 	shape-rendering: crispEdges;
 }
 
-	/* DOM Structure of Selector filter
-	 * #selector-frame
-	 * 	#selector-control-bar
-	 *	#selector-instance
-	 *		.filter-instance data-id = 0
-	 *			.filter-head
-	 *			.filter-body
-	 */
-
-	/* All Selection Filter controls go into this frame */
-#selector-frame {
-	background-color: #ccc;
-}
-
-	/* This is the control bar for Selection */
-#selector-control-bar {
-	height: 28px;
-	padding: 10px 20px 30px;
-	margin: 0;
-	vertical-align: middle;
-	font-size: 12px;
-}
-
-	/* Any Selector filter goes into this area */
-#selector-instance {
-	min-height: 0;
-	max-height: 300px;
-	overflow-y: auto;
-	font-size: 12px;
-	margin: 0;
-	padding: 0;
-}
-
 	/* DOM Structure of Visualization frames
-	 * #viz-display-frame
-	 *	 #viz-frame-0
-	 *		.view-control-bar
+	 * #viz-frame
+	 *	 #view-frame-0
+	 *		.view-controls
 	 *		.lgnd-container
 	 *		.viz-content
 	 *			.viz-result
 	 *			.annote
-	 *	 #viz-frame-1
+	 *	 #view-frame-1
 	 *		... (same as above)
 	 */
 
 	/* One or two displays go into this frame */
-#viz-display-frame {
+#viz-frame {
 	flex: 1 1 auto;
 	-webkit-flex: 1 1 auto;
 	-moz-flex: 1 1 auto;
@@ -336,6 +340,10 @@ div.filter-body svg .brush .extent {
 	-webkit-flex-direction: row;
 	-moz-flex-direction: row;
 	-ms-flex-direction: row;
+}
+
+#viz-frame button {
+	font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans-serif;
 }
 
 	/* The first visualization display */
@@ -363,27 +371,33 @@ div.filter-body svg .brush .extent {
 	margin-left: 2.5px;
 }
 
-div.view-control-bar {
+div.view-controls {
 	height: 28px;
 	width: 100%;
 	padding: 10px 20px 30px;
 	margin: 0;
 	vertical-align: middle;
-	font-size: 12px;
+	font-size: 14px;
 	background: #eee;
 }
 
-div.view-control-bar .ui-icon {
+div.view-controls button.ui-button {
+	margin-left: 2px;
+	margin-right: 2px;
+}
+
+div.view-controls .ui-icon {
 	cursor: pointer;
 }
 
-div.view-control-bar div.iconbar
+	/* Right-justified (optional) toolbar */
+div.view-controls div.iconbar
 {
 	padding: 2px;
-	margin: 2px;
+	margin: 1px;
 	margin-top: -4px;
 /*	display: inline-block; */
-	font-size: 9px;
+	font-size: 11px;
 	float: right;
 }
 
@@ -505,6 +519,12 @@ button.lgnd-update {
 	color: #0066FF;
 }
 
+button.lgnd-update:disabled {
+	opacity: 0.65;
+	color: grey;
+	cursor: not-allowed;
+}
+
 div.lgnd-scroll {
 	overflow-y: auto;
 	height: 232px;
@@ -565,6 +585,10 @@ div.lgnd-value-title {
 div.ui-dialog-content p {
 	margin: 2px;
 	padding: 0;
+}
+
+div.ui-dialog-content input[type=text] {
+	margin-bottom: 2px;
 }
 
 div.scroll-container ul {
@@ -1309,16 +1333,6 @@ div.filter-num-slider.ui-slider .ui-slider-handle {
 div.filter-num-slider.ui-slider .ui-slider-range {
 }
 
-div.filter-body div.cntrl-blck {
-	display: inline-block;
-	padding-right: 4px;
-	vertical-align: top;
-}
-
-div.filter-body svg {
-	display: inline;
-}
-
 	/* Outer container for Vocabulary filters */
 div.filter-vocab-container {
 	display: -webkit-box;
@@ -1347,7 +1361,7 @@ div.filter-vocab-entry {
 
 	flex-direction: column;
 	align-items: flex-start;
-	min-width: 70px;
+/*	min-width: 70px; */
 	margin: 2px;
 }
 
