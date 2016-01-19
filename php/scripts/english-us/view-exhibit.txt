@@ -218,11 +218,13 @@ All Records from selected Templates will be removed/hidden.
 	Text must include <input class="filter-text" type="text" size="20"/>
 </script>
 
-<script id="dltext-filter-num-boxes" type='text'>
-	Use minimum <input type="checkbox" class="filter-num-min-use" value="min-use" checked="checked">
-	Min <input type="number" class="filter-num-min-val" min="<%= min %>" max="<%= max %>" value="<%= min %>"> &nbsp; &nbsp; &nbsp;
-	&nbsp; &nbsp; Use maximum <input type="checkbox" class="filter-num-max-use" value="max-use" checked="checked">
-	Max <input type="number" class="filter-num-max-val" min="<%= min %>" max="<%= max %>" value="<%= max %>">
+<script id="dltext-filter-nums" type='text'>
+	<div class="cntrl-blck">
+		<input type="checkbox" class="allow-undef"> Allow undefined<br/>
+		Min <input type="text" class="from" size="5"><br/>
+		Max <input type="text" class="to" size="5"><br/>
+		<button class="filter-update" disabled="disabled">Use Numbers</button>
+	</div>
 </script>
 
 <script id="dltext-filter-dates" type='text'>
@@ -237,7 +239,7 @@ All Records from selected Templates will be removed/hidden.
 		<br/>
 		To <input type="text" class="to-y" size="5" placeholder="YYYY"/> <input type="text" class="to-m" size="2" placeholder="MM"/> <input type="text" class="to-d" size="2" placeholder="DD"/>
 		<br/>
-		<button class="filter-update" disabled="disabled">Use Date</button>
+		<button class="filter-update" disabled="disabled">Use Dates</button>
 	</div>
 </script>
 

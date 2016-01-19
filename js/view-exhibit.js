@@ -4550,6 +4550,18 @@ PFilterVocab.prototype.setState = function(state)
 
 // ================================================
 // PFilterNum: Class to filter Number Attributes
+//		rCats = category buckets for Number range (only if min and max defined!)
+//		ctrs = array of integers for category counters (if rCats exists)
+//		uNums = Working array of [min, max] from user entry
+//		b0 = index of bucket for brush from (0-based) -- maintained dynamically if rCats exists
+//		b1 = index of bucket for brush to -- maintained dynamically if rCats exists
+//		min = minimum allowed Number (inclusive) -- maintained dynamically
+//		max = maximum allowed Number (inclusive)  -- maintained dynamically
+//		u = true if undefined checkbox is checked -- checked at evalPrep, savePerspective
+//		yScale = D3 scale
+//		chart = SVG for graph
+//		brush = D3 brush object
+//		brushg = SVG for brush
 
 var PFilterNum = function(id, attRec)
 {
@@ -4560,16 +4572,112 @@ PFilterNum.prototype = Object.create(PFilterModel.prototype);
 
 PFilterNum.prototype.constructor = PFilterNum;
 
+	// PURPOSE: Set text in edit boxes acc. to min / max values
+PFilterNum.prototype.refreshBoxes = function()
+{
+	var insert = this.insertPt();
+	insert.find('.from').removeClass('error').val(this.min);
+	insert.find('.to').removeClass('error').val(this.max);
+	insert.find('.filter-update').prop('disabled', true);
+} // refreshBoxes()
+
+	// PURPOSE: Check values in edit boxes
+	// SIDE-FX: Set or clear "error" class; sets values in uDates[]
+PFilterNum.prototype.evalBoxes = function(insert)
+{
+	var self=this;
+	var nRE = /^(\d+)$/;
+	var attMin = (typeof this.att.r.min === 'undefined') ? null : this.att.r.min;
+	var attMax = (typeof this.att.r.max === 'undefined') ? null : this.att.r.max;
+
+	var failFrom, failTo;
+
+		// RETURNS: true if passes conditions
+	function checkOne(sel, i)
+	{
+		var fail=false;
+		var val;
+
+		function setError()
+		{
+			fail = true;
+			insert.find(sel).addClass('error');
+		} // setError()
+		function noError()
+		{
+			insert.find(sel).removeClass('error');
+		} // noError()
+
+		var d = insert.find(sel);		// DOM element
+		var t = d.val();				// Text value
+		var r = nRE.exec(t);			// RegExp result
+		if (r) {
+			noError();
+			val = parseInt(r[1], 10);
+		} else
+			setError();
+			// If OK so far, check against bounds
+		if (!fail) {
+				// Check against bounds
+			if (i == 0) {
+				if (attMin !== null && val < attMin) {
+					setError();
+				}
+			} else {
+				if (attMax !== null && val > attMax) {
+					setError();
+				}
+			}
+		}
+		self.uNums[i] = val;
+		return fail;
+	} // checkSet()
+
+	failFrom = checkOne('.from', 0);
+	failTo = checkOne('.to', 1);
+	if (this.uNums[0] > this.uNums[1]) {
+		failTo = true;
+	}
+	insert.find('.filter-update').prop('disabled', failFrom || failTo);
+	return !(failFrom || failTo);
+} // evalBoxes()
+
+	// PURPOSE: Try to use values in boxes to calculate Filter settings,
+	//				as when user clicks "Use Number"
+	// INPUT: 	insert = insertPt() for this filter
+	// SIDE-FX: Sets min, max, b0, b1 and brush from text boxes
+PFilterNum.prototype.useBoxes = function(insert)
+{
+	if (this.evalBoxes(insert)) {
+			// Dirty filter
+		this.isDirty(true);
+			// Update min, max
+		this.min = this.uNums[0];
+		this.max = this.uNums[1];
+			// If rCats exist, find appropriate bounds for brush and redraw
+		if (this.rCats !== null) {
+			var b0, b1;
+			for (b0=0; b0<this.rCats.length; b0++) {
+				if (this.min < this.rCats[b0].max)
+					break;
+			}
+			for (b1=b0; b1<this.rCats.length; b1++) {
+				if (this.max <= this.rCats[b1].max)
+					break;
+			}
+			b1 = (b1 === this.rCats.length) ? this.rCats.length-1 : b1;
+			this.b0 = b0;
+			this.b1 = b1;
+			this.brushg.call(this.brush.extent([b0, b1+1]));
+		}
+		insert.find('.filter-update').prop('disabled', true);
+	}
+} // useBoxes()
+
 	// ASSUMES: Code handling brush has set min & max
 PFilterNum.prototype.evalPrep = function()
 {
-	if (this.rCats == null) {
-		var dom = this.insertPt();
-		this.min = parseInt(dom.find('input.filter-num-min-val').val());
-		this.max = parseInt(dom.find('input.filter-num-max-val').val());
-		this.useMin = dom.find('input.filter-num-min-use').is(':checked');
-		this.useMax = dom.find('input.filter-num-max-use').is(':checked');
-	} else {
+	if (this.rCats !== null) {
 		for (var i=0; i<this.rCats.length; i++)
 			this.ctrs[i] = 0;
 	}
@@ -4578,42 +4686,27 @@ PFilterNum.prototype.evalPrep = function()
 PFilterNum.prototype.eval = function(rec)
 {
 	var num = rec.a[this.att.id];
-	if (typeof num == 'undefined')
+	if (typeof num === 'undefined')
 		return false;
 
-		// Numbers entered by hand?
-	if (this.rCats == null) {
-		if (this.useMin && num < this.min)
-			return false;
-		if (this.useMax && num > this.max)
-			return false;
-	} else {
-			// Check for 'undefined' exception
-		var i=this.b0, c=this.rCats[i];
+		// Only true when i=0
+	if (num === '?') {
+		return this.u;
+	}
 
-			// Only true when i=0
-		if (c.min == '?') {
-			if (num == '?') {
-				this.ctrs[0]++;
-				return true;
-			}
-			if (this.max == '?')	// This 'undefined' only category?
-				return false;
-			i=1;
-		}
-		if (num == '?')
-			return false;
+	if ((num < this.min) || (num > this.max))
+		return false;
 
-		if ((num < this.min) || (num > this.max))
-			return false;
+	if (this.rCats === null)
+		return true;
 
-			// in range but now must find category it matched to inc count
-		for (; i<= this.b1; i++) {
-			c=this.rCats[i];
-			if (c.min <= num && num <= c.max) {
-				this.ctrs[i]++;
-				break;
-			}
+	var c;
+		// in range but now must find category it matched to inc count
+	for (var i=this.b0; i<= this.b1; i++) {
+		c=this.rCats[i];
+		if (c.min <= num && num <= c.max) {
+			this.ctrs[i]++;
+			break;
 		}
 	}
 	return true;
@@ -4621,7 +4714,7 @@ PFilterNum.prototype.eval = function(rec)
 
 PFilterNum.prototype.evalDone = function(total)
 {
-	if (this.rCats) {
+	if (this.rCats !== null) {
 		var self=this;
 		var innerH = 80 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
 		var p = new Uint16Array(this.ctrs.length);
@@ -4636,67 +4729,35 @@ PFilterNum.prototype.evalDone = function(total)
 
 PFilterNum.prototype.setup = function()
 {
-	var self = this;
+	var self=this;
+
+		// Set defaults
+	this.u   = false;
+	this.uNums = new Array(2);
+
 	var insert = this.insertPt();
+	insert.append(document.getElementById('dltext-filter-nums').innerHTML);
+		// Only enabled "allow undefined" if enabled by Attribute
+	if (typeof this.att.r.u === 'undefined') {
+		insert.find(".allow-undef").prop('disabled', true);
+	} else {
+		insert.find(".allow-undef").click(function() {
+			self.u = insert.find('input.allow-undef').prop('checked');
+			self.isDirty(true);
+		});
+	}
 
 	this.rCats = PData.getRCats(this.att, false, false);
 
-		// Lack of range bounds? Create generic HTML input boxes, can't create range sliders
-	if (this.rCats == null) {
-		var fh = _.template(document.getElementById('dltext-filter-num-boxes').innerHTML);
-		var min = (typeof this.att.r.min == 'undefined') ? 0 : this.att.r.min;
-		var max = (typeof this.att.r.max == 'undefined') ? min+100 : this.att.r.max;
-		insert.append(fh({ min: min, max: max }));
-
-		insert.click(function(event) {
-			if (event.target.nodeName == 'INPUT') {
-				self.isDirty(true);
-			}
-		});
-
-			// Intercept changes to min & max checkboxes
-		// insert.find('.filter-num-min-use').change(function() {
-		// 	self.isDirty(true);
-		// });
-		// insert.find('.filter-num-max-use').change(function() {
-		// 	self.isDirty(true);
-		// });
-
-		insert.find('input.filter-num-min-val').change(function() {
-				// Ensure it is less than max
-			var newMin = jQuery(this).val();
-			var curMax = insert.find('input.filter-num-max-val').val();
-			if (newMin <= curMax) {
-				self.isDirty(true);
-			} else {
-				jQuery(this).val(curMax);
-			}
-		});
-		insert.find('input.filter-num-max-val').change(function() {
-				// Ensure it is greater than min
-			var newMax = jQuery(this).val();
-			var curMin = insert.find('input.filter-num-min-val').val();
-			if (newMax >= curMin) {
-				self.isDirty(true);
-			} else {
-				jQuery(this).val(curMin);
-			}
-		});
-
 		// Create range category viz & slider
-	} else {
+	if (this.rCats !== null) {
 		this.ctrs = new Uint16Array(this.rCats.length);
 
 			// Set defaults
-		// this.useMin = this.useMax = true;
 			// indices of rCats contained by brush (inclusive)
 		this.b0  = 0;
 		this.b1  = this.rCats.length-1;
-			// Must deal with 'undefined' exception -- always first category
-		var r = this.rCats[0];
-		if (r.min == '?')
-			r = this.rCats[1];
-		this.min = r.min;
+		this.min = this.rCats[0].min;
 		this.max = this.rCats[this.b1].max;
 
 		var innerH = 80 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
@@ -4732,12 +4793,11 @@ PFilterNum.prototype.setup = function()
 
 			self.b0  = extent1[0];
 			self.b1  = extent1[1]-1;
-				// Deal with 'undefined' exception -- only rCats[0]
-			r = self.rCats[self.b0];
-			if (r.min == '?')
-				r = self.rCats[1];
-			self.min = r.min;
+
+			self.min = self.rCats[self.b0].min;
 			self.max = self.rCats[self.b1].max;
+			self.refreshBoxes();
+
 			self.isDirty(true);
 		} // brushended()
 
@@ -4800,44 +4860,38 @@ PFilterNum.prototype.setup = function()
 		self.brushg.selectAll(".resize")
 			.append("path")
 			.attr("d", resizePath);
+	} else {
+			// no rCats because of lack of min or max bounds
+		this.min = typeof att.r.min === 'undefined' ? 0 : att.r.min;
+		this.max = typeof att.r.max === 'undefined' ? 100 : att.r.max;
 	}
+
+	this.refreshBoxes();
+
+		// Try to evaluate values whenever user enters something
+	insert.find("input[type=text]").change(function() {
+		self.evalBoxes(insert);
+	});
+		// Try to use Dates
+	insert.find(".filter-update").click(function() {
+		self.useBoxes(insert);
+	});
 } // setup()
 
 PFilterNum.prototype.getState = function()
 {
-	if (this.rCats == null) {
-		var dom = this.insertPt();
-		var min = parseInt(dom.find('input.filter-num-min-val').val());
-		var max = parseInt(dom.find('input.filter-num-max-val').val());
-		var useMin = dom.find('input.filter-num-min-use').is(':checked');
-		var useMax = dom.find('input.filter-num-max-use').is(':checked');
-		return { rc: false, min: min, max: max, useMin: useMin, useMax: useMax };
-	} else {
-		return { rc: true, e0: this.b0, e1: this.b1+1 };
-	}
+	return { min: this.min, max: this.max, u: this.u };
 } // getState()
 
 PFilterNum.prototype.setState = function(state)
 {
-	if (state.rc) {
-		this.b0  = state.e0;
-		this.b1  = state.e1-1;
+	var insert = this.insertPt();
 
-			// Deal with 'undefined' exception -- only rCats[0]
-		var r = this.rCats[this.b0];
-		if (r.min == '?')
-			r = this.rCats[1];
-		this.min = r.min;
-		this.max = this.rCats[this.b1].max;
-		this.brush.extent([state.e0, state.e1]);
-		this.brushg.call(this.brush);
-	} else {
-		var dom = this.insertPt();
-		dom.find('input.filter-num-min-val').val(state.min);
-		dom.find('input.filter-num-max-val').val(state.max);
-		dom.find('input.filter-num-min-use').prop('checked', state.useMin);
-		dom.find('input.filter-num-max-use').prop('checked', state.useMax);
-	}
+	insert.find('input.allow-undef').prop('checked', state.u);
+	this.u = state.u;
+	insert.find('.from').removeClass('error').val(state.min);
+	insert.find('.to').removeClass('error').val(state.max);
+	this.useBoxes(insert);
 } // setState()
 
 
@@ -5009,7 +5063,6 @@ PFilterDates.prototype.useBoxes = function(insert)
 PFilterDates.prototype.evalPrep = function()
 {
 	this.c = jQuery('input[name=dctrl-'+this.id+']:checked').val();
-	var dom = this.insertPt();
 	for (var i=0; i<this.rCats.length; i++)
 		this.ctrs[i] = 0;
 } // evalPrep()
@@ -5180,12 +5233,10 @@ PFilterDates.prototype.setup = function()
 
 		// Try to evaluate Date values whenever user enters something
 	insert.find("input[type=text]").change(function() {
-		// PFilterDates.evalBoxes.call(self, insert);
 		self.evalBoxes(insert);
 	});
 		// Try to use Dates
 	insert.find(".filter-update").click(function() {
-		// PFilterDates.useBoxes.call(self, insert);
 		self.useBoxes(insert);
 	});
 
@@ -7399,7 +7450,7 @@ var PData = (function() {
 				return rcs;
 			case 'N':
 					// Create undefined category? -- must be initial one
-				if (typeof att.r.u != 'undefined') {
+				if (undef && typeof att.r.u !== 'undefined') {
 					if (fSet == null || PData.getAttLgndRecs('?', att, fSet, false))
 						rcs.push({ l: '?', c: att.r.u.v, min: '?', max: '?', i: [] });
 				}
@@ -7410,7 +7461,7 @@ var PData = (function() {
 				return rcs;
 			case 'D':
 					// Create undefined category? -- must be initial one
-				if (typeof att.r.u != 'undefined') {
+				if (undef && typeof att.r.u !== 'undefined') {
 					if (fSet == null || PData.getAttLgndRecs('?', att, fSet, false))
 						rcs.push({ l: '?', c: att.r.u.v, min: '?', max: '?', i: [] });
 				}
@@ -7513,6 +7564,8 @@ var PData = (function() {
 					min = curV;
 					curV += inc;
 					max = curV-1;	// Since Number max is inclusive
+					if (max > att.r.max)
+						max = att.r.max;
 					var l=min.toString();
 						// Show min and max if not individual digits and too long
 					if (inc > 1 && l.length < 4)
@@ -8066,7 +8119,7 @@ jQuery(document).ready(function($) {
 		if (view1)
 			view1.showStream(endStream);
 
-		if (filters.length) {
+		if (filters.length > 0) {
 			fState = 2;
 			jQuery('#btn-f-state').prop('disabled', true).html(dlText.filtered);
 		} else {
@@ -8206,7 +8259,6 @@ jQuery(document).ready(function($) {
 		}
 			// Store everything in Perspective object
 		var sPrspctv = { id: id, l: label, n: note, s: pState };
-console.log("Saved Perspective: "+JSON.stringify(sPrspctv));
 
 		if (dest == 'local') {
 			localPrspctvs.push(sPrspctv);
@@ -8545,7 +8597,7 @@ console.log("Saved Perspective: "+JSON.stringify(sPrspctv));
 		var head = jQuery(this).closest('div.filter-instance');
 		if (head) {
 			var fID = head.data('id');
-			if (fID && fID != '') {
+			if (fID && fID !== '') {
 				var fRec;
 				fRec = filters.find(function(fr) { return fr.id == fID; });
 				if (fRec == null)	{ alert('Bad Filter ID '+fID); return; }
@@ -8561,7 +8613,7 @@ console.log("Saved Perspective: "+JSON.stringify(sPrspctv));
 
 		var fI, fRec;
 		fI = filters.findIndex(function(fRec) { return fRec.id == fID; });
-		if (fI == -1)	{ alert('Bad Filter ID '+fID); return; }
+		if (fI === -1)	{ alert('Bad Filter ID '+fID); return; }
 
 		fRec = filters[fI].f;
 		fRec.teardown();
@@ -8571,7 +8623,7 @@ console.log("Saved Perspective: "+JSON.stringify(sPrspctv));
 		if (fI >= filters.length) {
 			var endStream;
 				// No filters left, reset ViewFrame data source
-			if (filters.length == 0)
+			if (filters.length === 0)
 				endStream = topStream;
 			else
 				endStream = filters[fI-1].out;
@@ -8586,8 +8638,12 @@ console.log("Saved Perspective: "+JSON.stringify(sPrspctv));
 			// Remove this DOM element
 		head.remove();
 
-		if (filters.length == 0) {
+		if (filters.length === 0) {
 			jQuery('#btn-toggle-filters').button("disable");
+				// Invalidate selections
+			view0.clearSel();
+			if (view1)
+				view1.clearSel();
 			doRecompute();
 			PState.set(PSTATE_READY);
 		} else {
@@ -8769,11 +8825,13 @@ console.log("Saved Perspective: "+JSON.stringify(sPrspctv));
 
 		PState.set(PSTATE_UPDATE);
 
-		if (v === 0) {
-			view0.setSel(list);			
+		var view = v === 0 ? view0 : view1;
+		if (list.length > 0) {
+			view.setSel(list);			
 		} else {
-			view1.setSel(list);
+			view.clearSel();
 		}
+
 		PState.set(PSTATE_READY);
 	} // doApplyHighlight()
 
@@ -8871,6 +8929,7 @@ console.log("Saved Perspective: "+JSON.stringify(sPrspctv));
 
 		PState.set(PSTATE_BUILD);
 		vI = vizIndex(p.s.v0.l);
+			// Already exists?
 		if (view0) {
 			view0.setViz(vI, false);
 			view0.selBtns(false);
@@ -8879,8 +8938,9 @@ console.log("Saved Perspective: "+JSON.stringify(sPrspctv));
 			view0.initDOM(vI);
 		}
 
-		if (p.s.v1 != null) {
+		if (p.s.v1 !== null) {
 			vI = vizIndex(p.s.v1.l);
+				// Already exists?
 			if (view1) {
 				view1.selBtns(false);
 				view1.setViz(vI, false);
