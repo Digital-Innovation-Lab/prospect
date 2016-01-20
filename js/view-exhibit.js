@@ -7112,7 +7112,7 @@ var PData = (function() {
 					f=1;
 				}
 					// As undefined is first entry (-1), abort now
-				if (val == '?')
+				if (val === '?')
 					return null;
 				for (; f<lI; f++) {
 					fI = fSet[f];
@@ -7269,7 +7269,7 @@ var PData = (function() {
 					hi = pos - 1;
 				} else {
 					var i = att.x[pos].i;
-					if (typeof i == 'number')
+					if (typeof i === 'number')
 						return att.l[i];
 					else
 						return att.l[i[0]].z[i[1]];
