@@ -234,7 +234,7 @@ All Records from selected Templates will be removed/hidden.
 		<input type="checkbox" class="allow-undef"> Allow undefined
 	</div>
 	<div class="cntrl-blck">
-		Date Format: YYYY / MM / DD<br/>
+		Date Format: YYYY &nbsp; MM &nbsp; DD<br/>
 		From <input type="text" class="from-y" size="5" placeholder="YYYY"/> <input type="text" class="from-m" size="2" placeholder="MM"/> <input type="text" class="from-d" size="2" placeholder="DD"/>
 		<br/>
 		To <input type="text" class="to-y" size="5" placeholder="YYYY"/> <input type="text" class="to-m" size="2" placeholder="MM"/> <input type="text" class="to-d" size="2" placeholder="DD"/>

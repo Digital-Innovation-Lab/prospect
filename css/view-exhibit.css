@@ -226,7 +226,8 @@ ul.radio li:hover, ul.radio li.focus {
 #filter-instances {
 	min-height: 0px;
 	max-height: 300px;
-	overflow-y: auto;
+/*	overflow-y: auto; */
+	overflow: auto;
 	font-size: 12px;
 	margin: 0px;
 	padding: 0px;
@@ -250,7 +251,7 @@ div.filter-head {
 }
 
 	/* Area for each filter's GUI controls
-	 * Also used in Highlight dialog
+	 * Used in Filter DIV and in Highlight dialogs
 	 */
 div.filter-body {
 	white-space: nowrap;	/* don't allow controls to wrap to new line */
@@ -1344,11 +1345,14 @@ div.filter-vocab-container {
 	flex-direction: row;
 	justify-content: flex-start;
 
+/*	flex: 1 1 auto; */
+
 	margin-bottom: 2px;
 }
 
 	/* Outer container for Hide/Show All checkbox */
 div.filter-vocab-hsa {
+	min-width: 80px;
 	margin: 2px;
 }
 
@@ -1361,7 +1365,10 @@ div.filter-vocab-entry {
 
 	flex-direction: column;
 	align-items: flex-start;
+
+/*	flex: 1 1 auto; */
 /*	min-width: 70px; */
+
 	margin: 2px;
 }
 
