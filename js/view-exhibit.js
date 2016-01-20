@@ -2263,63 +2263,6 @@ VizTime.prototype.render = function(stream)
 		// NOTES: 	Brush SVGs must be "on top" of everything else and hence must be created last
 		//			Code must destroy any previous SVG which would now be below stack
 	(function () {
-			// Object for creating brush handles, variant of: http://bl.ocks.org/jisaacks/5678983
-			// NOTE: Assumes that self.brush has already been created
-		var BrushHandler = (function() {
-			function BrushHandles(g, height) {
-				this._height = height;
-				this.g = g;
-				this.mask  = this.g.attr("class", "brush").call(self.brush);
-				this.mask.selectAll("rect").attr("y", 0).attr("height", height);
-
-				this.left  = this.mask.append("polygon").attr("class","dragger");
-				this.right = this.mask.append("polygon").attr("class","dragger");
-				this._x = null;
-				this._top = null;
-				this._bottom = null;
-			}
-
-			BrushHandles.prototype.style = function(prop, val) {
-				this.left.style(prop, val);
-				this.right.style(prop, val);
-				return this;
-			}
-
-			BrushHandles.prototype.x = function(f) {
-				if (f == null) { return this._x; }
-				this._x = f;
-				return this;
-			}
-
-			BrushHandles.prototype.height = function(h) {
-				if (h == null) { return this._height; }
-				this._height = h;
-				this.mask.selectAll("rect").attr("height", h);
-				return this;
-			}
-
-				// NOTE: This only redraws handles
-			BrushHandles.prototype.redraw = function() {
-				var lTime, rTime, lp, rp, xRange, theExtent;
-
-				theExtent = self.brush.extent();
-				xRange = this._x.range();
-				lTime = theExtent[0];
-				rTime = theExtent[1];
-				lp = this._x(lTime);
-				rp = this._x(rTime);
-
-					// Bottom handles
-				this.left.attr("points", "" + lp+","+this._height + " " + (lp+5)+","+(this._height+5) + " " + (lp+5)+","+(this._height+9) + " " +
-								(lp-5)+","+(this._height+9) + " " + (lp-5)+","+(this._height+5) + " " + lp+","+this._height);
-				this.right.attr("points", "" + rp+","+this._height + " " + (rp+5)+","+(this._height+5) + " " + (rp+5)+","+(this._height+9) + " " +
-								(rp-5)+","+(this._height+9) + " " + (rp-5)+","+(this._height+5) + " " + rp+","+this._height);
-				return this;
-			}
-
-			return BrushHandles;
-		})();
-
 		var band = self.bands[0];	// Place brush in top macro band
 
 			// SVG area where brush is created -- delete old one?
@@ -2355,9 +2298,7 @@ VizTime.prototype.render = function(stream)
 
 				self.zMinDate = extent1[0];
 				self.zMaxDate = extent1[1];
-
-				self.brush.extent(extent1);
-				self.brushHandler.redraw();
+				d3.select(this).call(self.brush.extent(extent1));
 
 					// Rescale bottom/zoom timeline
 				zoom = self.bands[1];
@@ -2365,12 +2306,26 @@ VizTime.prototype.render = function(stream)
 				zoom.redraw();
 			});
 
-		self.brushSVG = band.g.append("svg");
+		self.brushSVG = band.g.append("g");
+		self.brushSVG.attr("class", "brush")
+			.call(self.brush);
+		self.brushSVG.selectAll("rect")
+			.attr("y", -1)
+			.attr("height", band.h);
 
-		self.brushHandler =
-			new BrushHandler(self.brushSVG, band.h-1)
-				.x(band.xScale)
-				.redraw();
+		self.brushSVG.selectAll(".resize")
+			.append("path")
+			.attr("d", function (d) {
+				// Create SVG path for brush resize handles
+				var e = +(d == "e"),
+					x = e ? 1 : -1,
+					y = band.h / 4; // Relative positon if handles
+				return "M"+(.5*x)+","+y+"A6,6 0 0 "+e+" "+(6.5*x)+","+(y+6)
+					+"V"+(2*y-6)+"A6,6 0 0 "+e+" "+(.5*x)+","+(2*y)
+					+"Z"+"M"+(2.5*x)+","+(y+8)+"V"+(2*y-8)
+					+"M"+(4.5*x)+","+(y+8)
+					+"V"+(2*y-8);
+			});
 	}());
 
 		// PURPOSE: Update the clipping rectangle
