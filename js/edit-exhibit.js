@@ -358,7 +358,7 @@ jQuery(document).ready(function() {
 			return false;
 		}
 
-		var exhibitL = rApp.get('genSettings.l').trim();
+		var exhibitL = rApp.get('genSettings.l').replace(/"/g, '').trim();
 		if (exhibitL.length == 0 || exhibitL.length > 48) {
 			displayError('#errmsg-label');
 			return false;
@@ -1359,9 +1359,9 @@ jQuery(document).ready(function() {
 			var vCount = rApp.get('viewSettings.length');
 			for (var i=0; i<vCount; i++) {
 				var saveView = {}, viewSettings = rApp.get('viewSettings['+i+']');
-				saveView.l  = viewSettings.l;
-				saveView.vf = viewSettings.vf; 
-				saveView.n = viewSettings.n.replace(/"/, '');
+				saveView.l  = viewSettings.l.replace(/"/g, '');
+				saveView.vf = viewSettings.vf;
+				saveView.n = viewSettings.n.replace(/"/g, '');
 				saveView.c = {};
 				switch (saveView.vf) {
 				case 'M': 	// Map

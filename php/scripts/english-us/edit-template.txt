@@ -136,7 +136,7 @@
 </script>
 
 <!-- ERRORS -->
-<script id="errmsg-no-id" type='text/ractive'>
+<script id="errmsg-id" type='text/ractive'>
 You must supply an internal ID for the new Template. It must only consist of alphabetic characters (in plain ASCII), numbers, underscores and hyphens (it cannot contain spaces, punctuation, Unicode-only characters, etc).
 </script>
 
@@ -188,4 +188,9 @@ You used a straight double quote (") in your hint, but this is not allowed. If y
 <!-- MESSAGE -->
 <script id="msg-confirm-del-att" type='text/ractive'>
 Are you sure that you wish to delete this Attribute from your Template?
+</script>
+
+<!-- DYNAMICALLY LOADED TEXT -->
+<script id="att-types" type='text/ractive'>
+V,Vocabulary|T,Text|N,Number|D,Dates|L,Lat-Lon|X,X-Y|I,Image|l,Link To|S,SoundCloud|Y,YouTube|x,Transcript|t,Timecode|P,Pointer|J,Join
 </script>

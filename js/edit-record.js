@@ -623,6 +623,10 @@ jQuery(document).ready(function() {
 			displayError('#errmsg-id');
 			return false;
 		}
+		if (!/^[\w\-]+$/.test(newRecID)) {
+			displayError('#errmsg-id');
+			return false;
+		}
 
 		var newAttVals = { };
 		var numAtts = rApp.get('defRecord.length');
@@ -635,8 +639,11 @@ jQuery(document).ready(function() {
 			var thisAtt = rApp.get('defRecord['+i+']');
 			var newVal = thisAtt.value;
 
-				// Only need special processing for Numbers and Dates
+				// Special processing for Text, Numbers and Dates
 			switch (thisAtt.def.t) {
+			case 'T':
+				newVal = newVal.replace(/"/g, '');
+				break;
 			case 'N':
 					// Allow null
 				if (newVal.length == 0)

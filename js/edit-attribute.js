@@ -355,7 +355,7 @@ jQuery(document).ready(function() {
 		// TO DO: 	Error checking
 	function extractLegendEntry(editDialog) {
 		var newEntry = { };
-		newEntry.l = editDialog.get('label');
+		newEntry.l = editDialog.get('label').replace(/"/g, '').trim();
 
 		switch (rApp.get('theAttribute.t')) {
 		case 'T':
@@ -434,7 +434,7 @@ jQuery(document).ready(function() {
 			return false;
 		}
 
-		var theLabel = rApp.get('theAttribute.l').trim();
+		var theLabel = rApp.get('theAttribute.l').trim().replace(/"/g, '');
 		if (theLabel.length == 0) {
 			displayError('#errmsg-no-label');
 			return false;
@@ -444,15 +444,33 @@ jQuery(document).ready(function() {
 			return false;
 		}
 
+		var attType = rApp.get('theAttribute.t');
+
 		var theDelim = rApp.get('theAttribute.d').trim();
 		if (theDelim.length > 1) {
 			displayError('#errmsg-delim-too-long');
 			return false;
+		} else if (theDelim.length == 1) {
+			switch (attType) {
+			case 'V':
+			case 'P':
+				break;
+			case 'L':
+				if (theDelim === ',') {
+					displayError('#errmsg-delim-comma-ll');
+					return false;
+				}
+				break;
+			default:
+				displayError('#errmsg-delim-bad-type');
+				return false;
+			}
 		}
+		var theHint = rApp.get('theAttribute.h');
+		theHint = theHint.replace(/"/g, '');
 
-		return { l: theLabel, t: rApp.get('theAttribute.t'),
-				 d: theDelim, h: rApp.get('theAttribute.h')
-				};
+		return { l: theLabel, t: attType,
+				 d: theDelim, h: theHint };
 	} // doErrorCheck()
 
 		// PURPOSE: Find pre-defined Attributes of this type that have Legends
@@ -461,10 +479,10 @@ jQuery(document).ready(function() {
 	{
 		var atts=[];
 
-		if (prspdata.att_data.length == 0)
+		if (prspdata.att_data.length === 0)
 			return [];
 		prspdata.att_data.forEach(function(theAtt) {
-			if (theAtt.def.t == type && theAtt.id != notID && theAtt.l.length > 0)
+			if (theAtt.def.t === type && theAtt.id !== notID && theAtt.l.length > 0)
 				atts.push({ id: theAtt.id, l: theAtt.def.l })
 		});
 		return atts;
@@ -673,7 +691,7 @@ jQuery(document).ready(function() {
 		switch (rApp.get('theAttribute.t')) {
 		case 'V':
 				// Must provide a valid term, and it must not already exist
-			var newTerm = rApp.get('newVocab').trim();
+			var newTerm = rApp.get('newVocab').replace(/"/g, '').trim();
 			if (newTerm.length == 0) {
 				displayError('#errmsg-no-term-name');
 				return false;
@@ -683,9 +701,7 @@ jQuery(document).ready(function() {
 				displayError('#errmsg-term-name-taken');
 				return false;
 			}
-			rApp.splice('theLegend', 0, 0,
-						{	l: newTerm, v: '#888888', z: []
-						});
+			rApp.splice('theLegend', 0, 0, { l: newTerm, v: '#888888', z: [] });
 			break;
 		case 'T':
 			editBlob.label = '';
