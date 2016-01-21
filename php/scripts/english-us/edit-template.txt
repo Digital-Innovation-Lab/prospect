@@ -20,7 +20,7 @@
 	<input id="dep-tmplt" type='checkbox' checked='{{theTemplate.d}}'> Dependent Template
 	<br/>
 
-	<label for="hint">Hint for Record IDs: </label> <input id="hint" value='{{theTemplate.h}}' placeholder="Enter Hint or leave blank" size="44" required/>
+	<label for="hint">Hint for Record IDs: </label> <input id="hint" value='{{theTemplate.h}}' placeholder="Enter Hint or leave blank" size="44"/>
 	<br/>
 
 	<label for="label-latt">Label for each Record supplied by: </label> <select id="label-latt" value='{{theTemplate.t}}'>

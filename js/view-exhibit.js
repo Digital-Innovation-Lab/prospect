@@ -1242,6 +1242,7 @@ VizPinboard.prototype.render = function(stream)
 					} else
 						sAtt = minR;
 
+						// TO DO: Handle polygons?
 					nodes.push({ ai: aI, v: fData, x: locData[0], y: locData[1], r: sAtt });
 					if (cEntry)
 						cEntry.c = locData;
@@ -6782,11 +6783,11 @@ var PData = (function() {
 			case 'T':
 				return a;
 			case 'N':
-				if (a == '?')
+				if (a === '?')
 					return dlText.undef;
 				return a.toString();
 			case 'D':
-				if (a == '?')
+				if (a === '?')
 					return dlText.undef;
 
 				var ds='';
@@ -6828,7 +6829,14 @@ var PData = (function() {
 				return ds;
 			case 'L':
 			case 'X':
-				return a.join(', ');
+				if (att.def.d != null & att.def.d !== '') {
+					if (typeof a[0] === 'number') {
+						return a.join(', ');
+					} else {
+						return a.map(function(p) { return p.join(', '); }).join(att.def.d+' ');
+					}
+				} else
+					return a.join(', ');
 			case 'I':
 				return '<img src="'+a+'" alt="'+att.def.l+'"/>';
 			case 'l': 	// Link To

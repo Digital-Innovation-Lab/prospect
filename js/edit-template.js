@@ -167,14 +167,14 @@ jQuery(document).ready(function() {
 		var attID = defTemplate.a[i];
 		var attObj = { id: attID };
 			// Find Attribute definition
-		var attDef = _.find(defAtts, function(att) { return att.id == attID; });
+		var attDef = _.find(defAtts, function(att) { return att.id === attID; });
 			// Only copy Attributes that exist now
 		if (attDef) {
-			attObj.view = viewAtts.cnt.findIndex(function(att) { return att == attDef.id; } ) != -1;
+			attObj.view = viewAtts.cnt.findIndex(function(att) { return att === attDef.id; } ) != -1;
 			attObj.t = attDef.def.t;
 			if (attDef.def.t == 'J') {
 					// Find Join entry and add template ID
-				var joinDef = _.find(joins, function(j) { return j.id == attID; });
+				var joinDef = _.find(joins, function(j) { return j.id === attID; });
 				if (joinDef)
 					attObj.j = joinDef.t;
 			} else {

@@ -1,5 +1,5 @@
-<script id="dltext-from" type="text">
-From
+<script id="dltext-undef" type="text">
+Undefined
 </script>
 
 <script id="dltext-to" type="text">
