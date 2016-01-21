@@ -1,5 +1,5 @@
 <script id="dltext-undef" type="text">
-Undefined
+Indefinite
 </script>
 
 <script id="dltext-to" type="text">
