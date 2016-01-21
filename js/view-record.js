@@ -433,10 +433,10 @@ jQuery(document).ready(function($) {
 	} // if YouTube
 
 
-	var dltextFrom = document.getElementById('dltext-from').innerHTML;
 	var dltextTo = document.getElementById('dltext-to').innerHTML;
 	var dltextApprox = document.getElementById('dltext-approximately').innerHTML;
 	var dltextNow = document.getElementById('dltext-now').innerHTML;
+	var dlTextUndef = document.getElementById('dltext-undef').innerHTML;
 
 		// RETURNS: Attribute definition with this ID
 		// INPUT:   attID = full Attribute ID (could be in Join dot notation)
@@ -474,14 +474,18 @@ jQuery(document).ready(function($) {
 		case 'T':
 			return a;
 		case 'N':
+			if (a === '?')
+				return dlTextUndef;
 			return a.toString();
 		case 'D':
+			if (a === '?')
+				return dlTextUndef;
 			var ds;
 				// Range
 			if (a.max) {
-				ds = dltextFrom+' ';
+				ds = ' ';
 				if (a.min.f)
-					ds += ' '+dltextApprox+' ';
+					ds = dltextApprox+' ';
 				ds += a.min.y.toString();
 				if (a.min.m) {
 					ds += '-'+a.min.m.toString();
@@ -516,7 +520,14 @@ jQuery(document).ready(function($) {
 			return ds;
 		case 'L':
 		case 'X':
-			return a.join();
+			if (att.def.d != null & att.def.d !== '') {
+				if (typeof a[0] === 'number') {
+					return a.join(', ');
+				} else {
+					return a.map(function(p) { return p.join(', '); }).join(att.def.d+' ');
+				}
+			} else
+				return a.join(', ');
 		case 'I':
 			return '<img src="'+a+'" alt="'+att.def.l+'"/>';
 		case 'l':
