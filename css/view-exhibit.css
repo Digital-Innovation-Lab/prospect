@@ -1137,12 +1137,6 @@ svg.tl-vf .brush .extent {
 	fill-opacity: .2;
 }
 
-svg.tl-vf .brush .dragger {
-	fill: #99CCCC;
-	stroke: black;
-	stroke-width: 1;
-}
-
 	/* TextStream styles */
 div.viz-textstream {
 	margin: 0;

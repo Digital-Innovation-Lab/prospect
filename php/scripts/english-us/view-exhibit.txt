@@ -62,7 +62,7 @@
 	<div id="dialog-sortby" title="Sort By">
 	</div>
 
-	<div id="dialog-inspector" title="Selection Inspector">
+	<div id="dialog-inspector" title="Record Inspector">
 		<div class="inspector-header">
 			<button id="btn-inspect-left">Previous</button>
 			<span id="inspect-name"></span>

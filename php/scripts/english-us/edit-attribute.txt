@@ -448,6 +448,14 @@ You have a Date Legend without start or end year; you must specify at least one 
 One of the Date Legend entries has a start date that is greater than the end date.
 </script>
 
+<script id="errmsg-delim-bad-type" type='text/ractive'>
+You cannot use a delimiter with this type of Attribute (Vocabulary, Lat-Lon and Pointer only).
+</script>
+
+<script id="errmsg-delim-comma-ll" type='text/ractive'>
+You cannot use a comma as a delimiter with a Lat-Lon Attribute.
+</script>
+
 <!-- MESSAGES -->
 
 <script id="msg-confirm-del-vocab" type='text/ractive'>

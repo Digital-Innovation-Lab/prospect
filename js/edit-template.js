@@ -103,22 +103,14 @@ jQuery(document).ready(function() {
 	var viewAtts;						// Attributes that can be viewed from Record's Post page
 	var scAtts, ytAtts, trAtts, tcAtts;	// Attribute IDs for configuring widgets of specific types
 	var attMap = {};					// For translating from code to label/name
-		attMap.V = 'Vocabulary';
-		attMap.T = 'Text';
-		attMap.N = 'Number';
-		attMap.D = 'Dates';
-		attMap.L = 'Lat-Lon';
-		attMap.X = 'X-Y';
-		attMap.I = 'Image';
-		attMap.l = 'Link To';
-		attMap.S = 'SoundCloud';
-		attMap.Y = 'YouTube';
-		attMap.x = 'Transcript';
-		attMap.t = 'Timecode';
-		attMap.P = 'Pointer';
-		attMap.J = 'Join';
 
 	var embedData;
+
+	embedData = getText('#att-types');
+	embedData.split("|").forEach(function(pair) {
+		var t = pair.split(",");
+		attMap[t[0]] = t[1];
+	});
 
 	embedData = jQuery('textarea[name="prsp_tmp_def"]').val();
 	if (embedData && embedData.length > 2) {
@@ -221,7 +213,11 @@ jQuery(document).ready(function() {
 	{
 		var theID = rApp.get('templateID').trim();
 		if (theID.length == 0) {
-			displayError('#errmsg-no-id');
+			displayError('#errmsg-id');
+			return false;
+		}
+		if (!/^[\w\-]+$/.test(theID)) {
+			displayError('#errmsg-id');
 			return false;
 		}
 		if (theID.length > 32) {
@@ -233,7 +229,7 @@ jQuery(document).ready(function() {
 			return false;
 		}
 
-		var theLabel = rApp.get('theTemplate.l').trim();
+		var theLabel = rApp.get('theTemplate.l').replace(/"/g, '').trim();
 		if (theLabel.length == 0) {
 			displayError('#errmsg-no-label');
 			return false;
@@ -245,12 +241,8 @@ jQuery(document).ready(function() {
 
 		var defObj = { l: theLabel };
 
-		var theHint = rApp.get('theTemplate.h').trim();
+		var theHint = rApp.get('theTemplate.h').replace(/"/g, '').trim();
 		if (theHint.length > 0) {
-			if (theHint.indexOf('"') > -1) {
-				displayError('#errmsg-hint-quotes');
-				return false;
-			}
 			defObj.h = theHint;
 		}
 
@@ -457,7 +449,7 @@ jQuery(document).ready(function() {
 
 		// Pop up modal with hint about IDs
 	rApp.on('idHint', function() {
-		var hint = getText('#errmsg-no-id');
+		var hint = getText('#errmsg-id');
 		messageModal(hint);
 		return false;
 	});
