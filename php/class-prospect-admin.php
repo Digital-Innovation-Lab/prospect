@@ -991,6 +991,7 @@ class ProspectAdmin {
 		foreach ($the_record->att_data as $key => $value) {
 			array_push($rec_vals, $key);
 		}
+		array_push($rec_vals, 'csv_post_post');
 
 			// Write out as first line of CSV file
 		fputcsv($fp, $rec_vals);
@@ -1004,6 +1005,7 @@ class ProspectAdmin {
 		foreach ($the_record->att_data as $key => $value) {
 			array_push($rec_vals, $value);
 		}
+		array_push($rec_vals, get_post_field('post_content', $the_record->post_id));
 
 		fputcsv($fp, $rec_vals);
 
@@ -1052,6 +1054,7 @@ class ProspectAdmin {
 
 			// List of attribute IDs/custom fields to write
 		$firstLine = array_merge(array('csv_post_title', 'csv_post_type', 'record-id', 'tmplt-id'), $the_template->def->a);
+		array_push($firstLine, 'csv_post_post');
 
 			// Write out as first line of CSV file
 		fputcsv($fp, $firstLine);
@@ -1071,6 +1074,7 @@ class ProspectAdmin {
 					$val = get_post_meta($rec->ID, $the_attribute, true);
 					array_push($rec_vals, $val);
 				}
+				array_push($rec_vals, get_post_field('post_content', $rec->ID));
 				fputcsv($fp, $rec_vals);
 			}
 		}
