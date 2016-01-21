@@ -8282,7 +8282,7 @@ jQuery(document).ready(function($) {
 		}
 
 		spDialog = jQuery("#dialog-save-prsrctv").dialog({
-			width: 380,
+			width: 350,
 			height: 370,
 			modal: true,
 			buttons: [
