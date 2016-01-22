@@ -220,7 +220,7 @@ All Records from selected Templates will be removed/hidden.
 
 <script id="dltext-filter-nums" type='text'>
 	<div class="cntrl-blck">
-		<input type="checkbox" class="allow-undef"> Allow undefined<br/>
+		<input type="checkbox" class="allow-undef"> Allow indefinite<br/>
 		Min <input type="text" class="from" size="5"><br/>
 		Max <input type="text" class="to" size="5"><br/>
 		<button class="filter-update" disabled="disabled">Use Numbers</button>
@@ -231,7 +231,7 @@ All Records from selected Templates will be removed/hidden.
 	<div class="cntrl-blck">
 		<input type="radio" name="dctrl-<%= id %>" value="o" checked> Overlap<br>
 		<input type="radio" name="dctrl-<%= id %>" value="c"> Contain<br>
-		<input type="checkbox" class="allow-undef"> Allow undefined
+		<input type="checkbox" class="allow-undef"> Allow indefinite
 	</div>
 	<div class="cntrl-blck">
 		Date Format: YYYY &nbsp; MM &nbsp; DD<br/>
