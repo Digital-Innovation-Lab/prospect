@@ -4614,7 +4614,7 @@ PFilterNum.prototype.useBoxes = function(insert)
 		if (this.rCats !== null) {
 			var b0, b1;
 			for (b0=0; b0<this.rCats.length; b0++) {
-				if (this.min < this.rCats[b0].max)
+				if (this.min <= this.rCats[b0].max)
 					break;
 			}
 			for (b1=b0; b1<this.rCats.length; b1++) {
