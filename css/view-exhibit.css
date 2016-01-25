@@ -777,7 +777,7 @@ div.card {
 	margin: 3px;
 	border: black solid 1px;
 	box-shadow: 3px 2px 3px rgba(0, 0, 0, 0.3);
-	padding: 2px;
+	padding: 3px;
 	overflow: hidden;
 
 	transition: all 0.6s ease;
@@ -796,7 +796,7 @@ div.card:hover {
 }
 
 div.card.obj-sel {
-	border: yellow solid 1px;
+	border: yellow solid 2px;
 }
 
 div.card.wt {
@@ -871,8 +871,8 @@ div.card.wm > div.card-body > img.full {
 	width: 144px;
 }
 div.card.ww > div.card-body > img.full {
-	margin: 3px;
-	width: 290px;
+	margin: 2px;
+	width: 190px;
 }
 
 div.card > div.card-body > div.card-cnt {
