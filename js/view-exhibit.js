@@ -4996,8 +4996,7 @@ PFilterDates.prototype.useBoxes = function(insert)
 		this.isDirty(true);
 			// Update min, max
 		this.min = this.uDates[0].ms;
-		var thisDate = this.uDates[1];
-		this.max = PData.date3Nums(thisDate.y, thisDate.m, thisDate.d, true);
+		this.max = this.uDates[1].ms;
 			// Find appropriate rCats bounds for brush and redraw
 		var b0, b1;
 		for (b0=0; b0<this.rCats.length; b0++) {
