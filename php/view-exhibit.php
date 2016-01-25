@@ -71,8 +71,6 @@
 	echo ('cb: '.$color.',');
 	$color = isset($options['prsp_fs_color']) ? '"'.$options['prsp_fs_color'].'"' : 'null';
 	echo ('fs: '.$color.',');
-	$color = isset($options['prsp_sf_color']) ? '"'.$options['prsp_sf_color'].'"' : 'null';
-	echo ('sf: '.$color.',');
 	$color = isset($options['prsp_vf_color']) ? '"'.$options['prsp_vf_color'].'"' : 'null';
 	echo ('vf: '.$color.' }');
 ?>,
