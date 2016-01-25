@@ -153,7 +153,46 @@ class ProspectAdmin {
 		}
 	} // filter_rec_query()
 
-		// PURPOSE: Handle modifying array of columns to show when listing Markers in admin panel
+		// PURPOSE: Handle modifying array of columns to show when listing Attributes in admin panel
+		// INPUT:	$columns = hash/array of field names and labels for the columns to display
+		// RETURNS:	Hash/array of column names with Project added
+	public function set_attribute_columns($columns)
+	{
+		unset($columns['comments']);
+		$temp = array_merge($columns, array('att-label' => 'Attribute Label'));
+		return array_merge($temp, array('att-id' => 'Attribute ID'));
+	} // set_attribute_columns()
+
+		// PURPOSE: Output value of custom column for Attribute in admin panel
+		// INPUT:	$column = key for column (name of field)
+		//			$post_id = ID of Attribute post
+		// SIDE-FX:	Outputs text for name of Template
+	public function attribute_custom_column($column, $post_id)
+	{
+		switch ($column) {
+		case 'att-label':
+			$att_def_meta = get_post_meta($post_id, 'att-def', true);
+			if ($att_def_meta == '') {
+				$att_label = _e('(unassigned)', 'prospect');
+			} else {
+				$att_def = json_decode($att_def_meta, false);
+				$att_label = $att_def->l;
+			}
+			echo $att_label;
+			break;
+		case 'att-id':
+			$att_id = get_post_meta($post_id, 'att-id', true);
+			if ($att_id == '') {
+				$att_id = _e('(unassigned)', 'prospect');
+			}
+			echo $att_id;
+			break;
+		default:
+			break;
+		}
+	} // attribute_custom_column()
+
+		// PURPOSE: Handle modifying array of columns to show when listing Records in admin panel
 		// INPUT:	$columns = hash/array of field names and labels for the columns to display
 		// RETURNS:	Hash/array of column names with Project added
 	public function set_record_columns($columns)

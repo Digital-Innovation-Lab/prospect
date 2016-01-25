@@ -180,9 +180,12 @@ class Prospect {
 		$this->loader->add_action('add_meta_boxes_prsp-prspctv', $this->admin, 'add_prsp_prspctv_admin_edit', null, null);
 			// Hook for saving Dashboard data
 		$this->loader->add_action('save_post', $this->admin, 'save_post', null, null);
-			// Restricting Records to a particular Template type
+			// Restrict Records to a particular Template type
 		$this->loader->add_action('restrict_manage_posts', $this->admin, 'filter_restrict_rec_by_id', null, null);
 		$this->loader->add_action('parse_query', $this->admin, 'filter_rec_query', null, null);
+			// Add columns to directory views
+		$this->loader->add_filter('manage_prsp-attribute_posts_columns', $this->admin, 'set_attribute_columns', null, null);
+		$this->loader->add_action('manage_prsp-attribute_posts_custom_column', $this->admin, 'attribute_custom_column', 10, 2);
 		$this->loader->add_filter('manage_prsp-record_posts_columns', $this->admin, 'set_record_columns', null, null);
 		$this->loader->add_action('manage_prsp-record_posts_custom_column', $this->admin, 'record_custom_column', 10, 2);
 
