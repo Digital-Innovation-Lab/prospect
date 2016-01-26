@@ -4994,9 +4994,11 @@ PFilterDates.prototype.useBoxes = function(insert)
 	if (this.evalBoxes(insert)) {
 			// Dirty filter
 		this.isDirty(true);
-			// Update min, max
+			// Update min, max -- bump max just over edge to allow exclusive comparison
 		this.min = this.uDates[0].ms;
-		this.max = this.uDates[1].ms;
+		var maxMS = this.uDates[1].ms;
+		maxMS.setTime(maxMS.getTime() + 10);
+		this.max = maxMS;
 			// Find appropriate rCats bounds for brush and redraw
 		var b0, b1;
 		for (b0=0; b0<this.rCats.length; b0++) {
@@ -7435,6 +7437,9 @@ var PData = (function() {
 							dmax = TODAY;
 						else
 							dmax = PData.objDate(d.max, 12, false);
+
+							// Just bump slightly to enable exclusive comparison
+						dmax.setTime(dmax.getTime() + 10);
 						rcs.push({ l: d.l, c: d.v, min: dmin, max: dmax, i:[] });
 					}
 				});
@@ -7579,7 +7584,7 @@ var PData = (function() {
 					}
 				}
 				var curDate = PData.date3Nums(curY, curM, curD, false);
-				var lI=0, curL, lMinDate, lMaxDate;
+				var lI=0, curL, lMinDate, lMaxDate, maxMS;
 				if (att.l.length > 0) {
 					curL = att.l[0];
 					lMinDate = makeDate(curL.d.min.y, 1, 1, curL.d.min);
@@ -7662,12 +7667,14 @@ var PData = (function() {
 						curY += 100;
 						break;
 					}
-						// Since max value is exclusive boundary, don't add day to it
-					rCat.max = PData.date3Nums(curY, curM, curD, false);
-						// Don't go beyond current date
-					if (rCat.max > TODAY) {
-						rCat.max = TODAY;
+					maxMS = PData.date3Nums(curY, curM, curD, false);
+					if (maxMS > TODAY) {
+						maxMS = TODAY;
 					}
+						// Bump up slightly to enable exclusive comparison
+					maxMS.setTime(maxMS.getTime() + 10);
+					rCat.max = maxMS;
+
 					rcs.push(rCat);
 					curDate = PData.date3Nums(curY, curM, curD, false);
 				}
