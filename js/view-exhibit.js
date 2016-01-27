@@ -179,7 +179,7 @@ PVizModel.prototype.isSel = function(absI)
 PVizModel.prototype.getSel = function()
 {
 	return this.recSel;
-} // isSel()
+} // getSel()
 
 	// PURPOSE: Toggle presence of record (by absolute index) in selection list
 	// NOTES: 	Called by VizModel based on user interaction
@@ -3130,7 +3130,7 @@ VizStackChart.prototype.getSel = function()
 	});
 
 	return u;
-} // isSel()
+} // getSel()
 
 VizStackChart.prototype.getState = function()
 {
@@ -8788,7 +8788,7 @@ jQuery(document).ready(function($) {
 					list.push(absI);
 				}
 			}
-			hFilter.isDirty(false);
+			// Don't call hFilter.isDirty(false) because we don't want to affect real Filter Stack
 			hFilter.evalDone(endStream.l);
 		}
 
