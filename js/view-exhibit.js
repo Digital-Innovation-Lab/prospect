@@ -287,7 +287,7 @@ VizMap.prototype.setup = function()
 	var centerLat = parseFloat(this.settings.clat);
 	var centerLon = parseFloat(this.settings.clon);
 	var zoom;
-	if (typeof(this.settings.zoom) == 'string')
+	if (typeof(this.settings.zoom) === 'string')
 		zoom = parseInt(this.settings.zoom);
 	else
 		zoom = this.settings.zoom;
@@ -399,7 +399,7 @@ VizMap.prototype.render = function(stream)
 			if (self.tLCnt[tI] > 1) {
 				PState.set(PSTATE_UPDATE);
 				mLayer.eachLayer(function(marker) {
-					if (marker.options._aid == aid) {
+					if (marker.options._aid === aid) {
 						if (added)
 							marker.setStyle({ color: "yellow", weight: 2 });
 						else
@@ -433,10 +433,10 @@ VizMap.prototype.render = function(stream)
 	var sAttID, sAtt, minR, maxR, dR, minS, dS;
 
 	minR = this.settings.min;
-	if (typeof(minR) == 'string')
+	if (typeof(minR) === 'string')
 		minR = parseInt(minR);
 	maxR = this.settings.max;
-	if (typeof(maxR) == 'string')
+	if (typeof(maxR) === 'string')
 		maxR = parseInt(maxR);
 	dR = maxR - minR;
 
@@ -448,7 +448,7 @@ VizMap.prototype.render = function(stream)
 		//		{ id, c(oordinates)[], p(ointers)[] }
 	var mCache;
 	for (i=0; i<numTmplts; i++)
-		if (this.settings.pAtts[i] != 'disable') {
+		if (this.settings.pAtts[i] !== 'disable') {
 			mCache=[];
 			break;
 		}
@@ -462,17 +462,17 @@ VizMap.prototype.render = function(stream)
 				if (++tI == numTmplts)
 					break doStream;
 				tRec = stream.t[tI];
-			} while (tRec.n == 0 || (tRec.i+tRec.n) == i);
+			} while (tRec.n === 0 || (tRec.i+tRec.n) === i);
 
 			locAtts = this.vFrame.getSelLocAtts(tI);
 				// Skip Template if no locate Atts
-			if (locAtts.length == 0) {
+			if (locAtts.length === 0) {
 				locAtts = null;
 				continue;
 			} // if no locAtts
 			featSet = self.vFrame.getSelFeatAtts(tI);
 				// Skip Templates if no feature Atts
-			if (featSet.length == 0) {
+			if (featSet.length === 0) {
 				locAtts = null;
 				continue;
 			} // if no featAtts
@@ -488,7 +488,7 @@ VizMap.prototype.render = function(stream)
 			sAttID = self.settings.sAtts[tI];
 			if (sAttID) {
 				sAtt = PData.getAttID(sAttID);
-				if (typeof sAtt.r.min == 'number' && typeof sAtt.r.max == 'number') {
+				if (typeof sAtt.r.min === 'number' && typeof sAtt.r.max === 'number') {
 					minS = sAtt.r.min;
 					dS = sAtt.r.max - minS;
 				} else
@@ -508,13 +508,13 @@ VizMap.prototype.render = function(stream)
 			locData = rec.a[theLAtt];
 			if (locData) {
 				fData = rec.a[fAttID];
-				if (typeof fData != 'undefined') {
+				if (typeof fData !== 'undefined') {
 					fData = PData.getAttLgndVal(fData, fAtt, featSet);
 					if (fData) {
-						if (typeof locData[0] == 'number') {
+						if (typeof locData[0] === 'number') {
 							if (sAttID) {
 								sAtt = rec.a[sAttID];
-								if (typeof sAtt == 'number') {
+								if (typeof sAtt === 'number') {
 									sAtt = Math.floor(((sAtt-minS)*dR)/dS) + minR;
 								} else
 									sAtt = minR;
@@ -529,7 +529,7 @@ VizMap.prototype.render = function(stream)
 							if (cEntry)
 								cEntry.c.push(locData);
 						} else {
-							if (locData.length == 2) {
+							if (locData.length === 2) {
 								newMarker = L.polyline(locData,
 									{	_aid: aI, weight: 1,
 										fillColor: fData, color: "#000",
@@ -579,10 +579,10 @@ VizMap.prototype.render = function(stream)
 					i = _.sortedIndex(mCache, { id: aPtr }, 'id');
 					if (i < mCache.length) {
 						var cnct = mCache[i];
-						if (cnct.id == aPtr) {
+						if (cnct.id === aPtr) {
 							node.c.forEach(function(from) {
 								cnct.c.forEach(function(to) {
-									if (from[0] != to[0] || from[1] != to[1])
+									if (from[0] !== to[0] || from[1] !== to[1])
 										links.push({p: [from, to], c: node.l });
 								})
 							})
@@ -657,7 +657,7 @@ VizMap.prototype.hint = function()
 	for (var tI=0; tI<numT; tI++) {
 		var sAttID = this.settings.sAtts[tI];
 		if (sAttID) {
-			if (h.length == 0) {
+			if (h.length === 0) {
 				h = dlText.markersize;
 			} else {
 				h += ',';
@@ -735,7 +735,7 @@ VizCards.prototype.setup = function()
 	var self = this;
 
 	jQuery(this.frameID).on("click.vf", function(event) {
-		if (event.target.nodeName == 'DIV' || event.target.nodeName == 'IMG') {
+		if (event.target.nodeName === 'DIV' || event.target.nodeName === 'IMG') {
 			var card = jQuery(event.target).closest('div.card');
 			if (card.size() == 1) {
 				var absI = card.data('ai');
@@ -789,9 +789,9 @@ VizCards.prototype.render = function(stream)
 	tRec = stream.t[0]; tI=0;
 	while (tI<numTmplts) {
 			// Advance until we get to current Template rec
-		while (tRec.n == 0) {
+		while (tRec.n === 0) {
 				// Have we run out of Templates?
-			if (++tI == numTmplts)
+			if (++tI === numTmplts)
 				return;
 			tRec = stream.t[tI];
 		}
@@ -801,7 +801,7 @@ VizCards.prototype.render = function(stream)
 
 		featSet = self.vFrame.getSelFeatAtts(tI);
 			// Skip Templates if no feature Atts
-		if (featSet.length == 0) {
+		if (featSet.length === 0) {
 			tRec = stream.t[++tI];
 			continue;
 		} // if no featAtts
@@ -825,7 +825,7 @@ VizCards.prototype.render = function(stream)
 
 				// Eval Legend
 			datum = rec.a[fAttID];
-			if (typeof datum != 'undefined') {
+			if (typeof datum !== 'undefined') {
 				c = PData.getAttLgndRecs(datum, fAtt, featSet, false);
 
 				if (c) {
@@ -899,7 +899,7 @@ VizCards.prototype.rerender = function(tI)
 		rec = PData.getRecByIndex(oRec.i);
 			// Apply Legend
 		datum = rec.a[fAttID];
-		if (typeof datum != 'undefined') {
+		if (typeof datum !== 'undefined') {
 			c = PData.getAttLgndRecs(datum, fAtt, featSet, false);
 			if (c) {
 				tDiv = self.settings.lOn ? '<div class="card-title">'+rec.l+'</div>' : '';
@@ -1163,16 +1163,16 @@ VizPinboard.prototype.render = function(stream)
 		//		{ id, c(oordinates)[], p(ointers)[] }
 	var mCache;
 	for (i=0; i<numTmplts; i++)
-		if (this.settings.pAtts[i] != 'disable') {
+		if (this.settings.pAtts[i] !== 'disable') {
 			mCache=[];
 			break;
 		}
 
 	minR = this.settings.min;
-	if (typeof(minR) == 'string')
+	if (typeof minR === 'string')
 		minR = parseInt(minR);
 	maxR = this.settings.max;
-	if (typeof(maxR) == 'string')
+	if (typeof maxR === 'string')
 		maxR = parseInt(maxR);
 	dR = maxR - minR;
 
@@ -1184,14 +1184,14 @@ VizPinboard.prototype.render = function(stream)
 			// Starting with new Template?
 		if (locAtts == null) {
 			do {
-				if (++tI == numTmplts)
+				if (++tI === numTmplts)
 					break doStream;
 				tRec = stream.t[tI];
-			} while (tRec.n == 0 || (tRec.i+tRec.n) == i);
+			} while (tRec.n === 0 || (tRec.i+tRec.n) === i);
 
 			locAtts = this.vFrame.getSelLocAtts(tI);
 				// Skip Template if no locate Atts
-			if (locAtts.length == 0) {
+			if (locAtts.length === 0) {
 				locAtts = null;
 				continue;
 			} // if no locAtts
@@ -1199,7 +1199,7 @@ VizPinboard.prototype.render = function(stream)
 			locAtts = locAtts[0];
 			featSet = self.vFrame.getSelFeatAtts(tI);
 				// Skip Templates if no feature Atts
-			if (featSet.length == 0) {
+			if (featSet.length === 0) {
 				locAtts = null;
 				continue;
 			} // if no featAtts
@@ -1211,7 +1211,7 @@ VizPinboard.prototype.render = function(stream)
 			sAttID = self.settings.sAtts[tI];
 			if (sAttID) {
 				sAtt = PData.getAttID(sAttID);
-				if (typeof sAtt.r.min == 'number' && typeof sAtt.r.max == 'number') {
+				if (typeof sAtt.r.min === 'number' && typeof sAtt.r.max === 'number') {
 					minS = sAtt.r.min;
 					dS = sAtt.r.max - minS;
 				} else
@@ -1228,14 +1228,14 @@ VizPinboard.prototype.render = function(stream)
 		}
 
 		locData = rec.a[locAtts];
-		if (typeof locData != 'undefined') {
+		if (typeof locData !== 'undefined') {
 			fData = rec.a[fAttID];
-			if (typeof fData != 'undefined') {
+			if (typeof fData !== 'undefined') {
 				fData = PData.getAttLgndVal(fData, fAtt, featSet);
 				if (fData) {
 					if (sAttID) {
 						sAtt = rec.a[sAttID];
-						if (typeof sAtt == 'number') {
+						if (typeof sAtt === 'number') {
 							sAtt = Math.floor(((sAtt-minS)*dR)/dS) + minR;
 						} else
 							sAtt = minR;
@@ -1279,7 +1279,7 @@ VizPinboard.prototype.render = function(stream)
 					i = _.sortedIndex(mCache, { id: aPtr }, 'id');
 					if (i < mCache.length) {
 						var cnct = mCache[i];
-						if (cnct.id == aPtr)
+						if (cnct.id === aPtr)
 							links.push({ f: node.c, t: cnct.c, c: node.l });
 					}
 				});
@@ -1369,7 +1369,7 @@ VizPinboard.prototype.hint = function()
 	for (var tI=0; tI<numT; tI++) {
 		var sAttID = this.settings.sAtts[tI];
 		if (sAttID) {
-			if (h.length == 0) {
+			if (h.length === 0) {
 				h = dlText.markersize;
 			} else {
 				h += ',';
@@ -1447,7 +1447,7 @@ VizTime.prototype.setup = function()
 {
 	var self = this;
 
-	if (typeof this.settings.xLbl != 'number')
+	if (typeof this.settings.xLbl !== 'number')
 		this.settings.xLbl = parseInt(this.settings.xLbl);
 
 	this.brush = null;
@@ -1479,31 +1479,31 @@ VizTime.prototype.setup = function()
 
 			// By default, use min & max time bounds from Dates Attributes
 		s.dAtts.forEach(function(dAttID) {
-			if (dAttID != null && dAttID != 'disable') {
+			if (dAttID != null && dAttID !== 'disable') {
 				var dAtt = PData.getAttID(dAttID);
 				if (dAtt) {
 						// Check mins
 					if (minY == null || dAtt.r.min.y < minY) {
 						minY = dAtt.r.min.y;
-						if (typeof dAtt.r.min.m != 'undefined') {
+						if (typeof dAtt.r.min.m !== 'undefined') {
 							minM = dAtt.r.min.m;
-							if (typeof dAtt.r.min.d != 'undefined')
+							if (typeof dAtt.r.min.d !== 'undefined')
 								minD = dAtt.r.min.d;
 							else
 								minD = 1;
 						} else {
 							minM = 1; minD = 1;
 						}
-					} else if (dAtt.r.min.y == minY) {
-						if (typeof dAtt.r.min.m != 'undefined') {
+					} else if (dAtt.r.min.y === minY) {
+						if (typeof dAtt.r.min.m !== 'undefined') {
 							if (dAtt.r.min.m < minM) {
 								minM = dAtt.r.min.m;
-								if (typeof dAtt.r.min.d != 'undefined')
+								if (typeof dAtt.r.min.d !== 'undefined')
 									minD = dAtt.r.min.d;
 								else
 									minD = 1;
-							} else if (dAtt.r.min.m == minM) {
-								if (typeof dAtt.r.min.d != 'undefined') {
+							} else if (dAtt.r.min.m === minM) {
+								if (typeof dAtt.r.min.d !== 'undefined') {
 									if (dAtt.r.min.d < minD)
 										minD = dAtt.r.min.d;
 								}
@@ -1512,15 +1512,15 @@ VizTime.prototype.setup = function()
 					}
 						// Check maxs
 					if (maxY == null) {
-						if (typeof dAtt.r.max.y == 'undefined') {
+						if (typeof dAtt.r.max.y === 'undefined') {
 							maxY = TODAY.getUTCFullYear();
 							maxM = TODAY.getMonth() + 1;
 							maxD = TODAY.getDate();
 						} else {
 							maxY = dAtt.r.max.y;
-							if (typeof dAtt.r.max.m != 'undefined') {
+							if (typeof dAtt.r.max.m !== 'undefined') {
 								maxM = dAtt.r.max.m;
-								if (typeof dAtt.r.max.d != 'undefined')
+								if (typeof dAtt.r.max.d !== 'undefined')
 									maxD = dAtt.r.max.d;
 								else
 									maxD = PData.lenMnth(maxY, maxM);
@@ -1530,25 +1530,25 @@ VizTime.prototype.setup = function()
 						}
 					} else if (dAtt.r.max.y > maxY) {
 						maxY = dAtt.r.max.y;
-						if (typeof dAtt.r.max.m != 'undefined') {
+						if (typeof dAtt.r.max.m !== 'undefined') {
 							maxM = dAtt.r.max.m;
-							if (typeof dAtt.r.max.d != 'undefined')
+							if (typeof dAtt.r.max.d !== 'undefined')
 								maxD = dAtt.r.max.d;
 							else
 								maxD = PData.lenMnth(maxY, maxM);
 						} else {
 							maxM = 12; maxD = 31;
 						}
-					} else if (dAtt.r.max.y == maxY) {
-						if (typeof dAtt.r.max.m != 'undefined') {
+					} else if (dAtt.r.max.y === maxY) {
+						if (typeof dAtt.r.max.m !== 'undefined') {
 							if (dAtt.r.max.m > maxM) {
 								maxM = dAtt.r.max.m;
-								if (typeof dAtt.r.max.d != 'undefined')
+								if (typeof dAtt.r.max.d !== 'undefined')
 									maxD = dAtt.r.max.d;
 								else
 									maxD = PData.lenMnth(maxY, maxM);
-							} else if (dAtt.r.max.m == maxM) {
-								if (typeof dAtt.r.max.d != 'undefined') {
+							} else if (dAtt.r.max.m === maxM) {
+								if (typeof dAtt.r.max.d !== 'undefined') {
 									if (dAtt.r.max.d > maxD)
 										maxD = dAtt.r.max.d;
 								}
@@ -1792,7 +1792,7 @@ VizTime.prototype.setup = function()
 
 		var labelH;
 			// Zoom band has double height labels
-		if (bi == 1) {
+		if (bi === 1) {
 			labelH = 32;
 		} else {
 			labelH = 16;
@@ -1860,7 +1860,7 @@ VizTime.prototype.setup = function()
 		self.cmpnts.push(yLabeler);
 
 			// If creating zoom band, need to add text features for months
-		if (bi == 1) {
+		if (bi === 1) {
 			var mLabels = bLblSVGs.append("text")
 				.attr("class", 'bMinMaxLbl')
 				.attr("id", function(l) { return 'm-txt-'+l.name; } )
@@ -1938,7 +1938,7 @@ VizTime.prototype.render = function(stream)
 		while (tI<numTmplts) {
 			tRec = stream.t[tI];
 				// Advance until we get to current Template rec
-			while (tRec.n == 0) {
+			while (tRec.n === 0) {
 					// Have we run out of Templates?
 				if (++tI == numTmplts)
 					return;
@@ -1947,14 +1947,14 @@ VizTime.prototype.render = function(stream)
 
 				// only 1 Location Attribute possible - skip if not selected
 			featSet = self.vFrame.getSelLocAtts(tI);
-			if (featSet.length == 0) {
+			if (featSet.length === 0) {
 				tI++;
 				continue;
 			}
 
 			featSet = self.vFrame.getSelFeatAtts(tI);
 				// Skip Templates if no feature Atts
-			if (featSet.length == 0) {
+			if (featSet.length === 0) {
 				tI++;
 				continue;
 			}
@@ -1975,37 +1975,37 @@ VizTime.prototype.render = function(stream)
 
 				rec = PData.getRecByIndex(aI);
 				fData = rec.a[fAttID];
-				if (typeof fData != 'undefined') {
+				if (typeof fData !== 'undefined') {
 					if (fData = PData.getAttLgndRecs(fData, fAtt, featSet, false)) {
 							// dData will either be object, '?' or undefined
-						if ((dData = rec.a[dAttID]) && (dData != '?')) {
+						if ((dData = rec.a[dAttID]) && (dData !== '?')) {
 							f = dData.min.f ? EVENT_F_START : 0;
 							y = dData.min.y;
-							if (typeof dData.min.m == 'undefined') {
+							if (typeof dData.min.m === 'undefined') {
 								m = 1; d = 1;
 							} else {
 								m = dData.min.m;
-								if (typeof dData.min.d == 'undefined')
+								if (typeof dData.min.d === 'undefined')
 									d = 1;
 								else
 									d = dData.min.d;
 							}
 							s = PData.date3Nums(y,m,d,false);
-							if (typeof dData.max == 'undefined') {
+							if (typeof dData.max === 'undefined') {
 								f |= EVENT_INSTANT;
 								e = s.getTime() + self.instGap;
 							} else {
-								if (dData.max == 'open')
+								if (dData.max === 'open')
 									e = TODAY;
 								else {
 									if (dData.max.f)
 										f |= EVENT_F_END;
 									y = dData.max.y;
-									if (typeof dData.max.m == 'undefined') {
+									if (typeof dData.max.m === 'undefined') {
 										m = 12; d = 31;
 									} else {
 										m = dData.max.m;
-										if (typeof dData.max.d == 'undefined')
+										if (typeof dData.max.d === 'undefined')
 											d = PData.lenMnth(y, m);
 										else
 											d = dData.max.d;
@@ -2043,25 +2043,25 @@ VizTime.prototype.render = function(stream)
 			dAtt.l.forEach(function(lEntry) {
 				l = lEntry.d;
 				y = l.min.y;
-				if (typeof l.min.m == 'undefined') {
+				if (typeof l.min.m === 'undefined') {
 					m = 1; d = 1;
 				} else {
 					m = l.min.m;
-					if (typeof l.min.d == 'undefined')
+					if (typeof l.min.d === 'undefined')
 						d = 1;
 					else
 						d = l.min.d;
 				}
 				s = PData.date3Nums(y,m,d,false);
-				if (typeof l.max.y == 'undefined') {
+				if (typeof l.max.y === 'undefined') {
 					e = TODAY;
 				} else {
 					y = l.max.y;
-					if (typeof l.max.m == 'undefined') {
+					if (typeof l.max.m === 'undefined') {
 						m = 12; d = 31;
 					} else {
 						m = l.max.m;
-						if (typeof l.max.d == 'undefined')
+						if (typeof l.max.d === 'undefined')
 							d = PData.lenMnth(y, m);
 						else
 							d = l.max.d;
@@ -2151,7 +2151,7 @@ VizTime.prototype.render = function(stream)
 			.attr("width", "100%")
 			.attr("height", "100%")
 			.attr("fill", function(d) { return d.d.v; });
-		if (bi == 1) {
+		if (bi === 1) {
 			allLgBds.append("text")
 				.attr("class", "lgBdLbl")
 				.attr("x", 2)
@@ -2177,7 +2177,7 @@ VizTime.prototype.render = function(stream)
 			.attr("y", function (d) { return band.yScale(d.t); })
 			.attr("height", band.iHt);
 
-		if (bi == 1)
+		if (bi === 1)
 			allEs.on("click", clickEvent);
 
 			// Complete specifying data for date ranges
@@ -2188,9 +2188,9 @@ VizTime.prototype.render = function(stream)
 			.attr("height", "100%")
 			.attr("fill", function(d) {
 					// check to see if fuzzy start or end
-				if (bi == 1 && (d.f & (EVENT_F_START|EVENT_F_END))) {
+				if (bi === 1 && (d.f & (EVENT_F_START|EVENT_F_END))) {
 						// both?
-					if ((d.f & (EVENT_F_START|EVENT_F_END)) == (EVENT_F_START|EVENT_F_END)) {
+					if ((d.f & (EVENT_F_START|EVENT_F_END)) === (EVENT_F_START|EVENT_F_END)) {
 						return 'url('+d.c.v+'-fb)';
 					} else if ((d.f & EVENT_F_START) === EVENT_F_START) {
 						return 'url('+d.c.v+'-fs)';
@@ -2203,7 +2203,7 @@ VizTime.prototype.render = function(stream)
 			});
 
 			// Label for range -- zoom band only
-		if (bi == 1) {
+		if (bi === 1) {
 			ranges.append("text")
 				.attr("class", "rangeLbl")
 				.attr("x", 4)
@@ -2229,7 +2229,7 @@ VizTime.prototype.render = function(stream)
 			});
 
 			// Labels on zoom band only
-		if (bi == 1) {
+		if (bi === 1) {
 				// Create label
 			instants.append("text")
 				.attr("class", "instantLbl")
@@ -2396,7 +2396,7 @@ VizTime.prototype.resize = function()
 		var txtLeft = toLabel.x()+toLabel.tDelta;
 		b.labelSVGs.select('#rect-'+toLabel.name).attr("x", toLabel.left() );
 		b.labelSVGs.select('#txt-'+toLabel.name).attr("x", txtLeft);
-		if (bi == 0) {
+		if (bi === 0) {
 			if (self.brush) {
 					// Update brush by reinstating its extent
 				if (self.brushSVG) {
@@ -2510,7 +2510,7 @@ VizDirectory.prototype.setup = function()
 	var self=this;
 
 	jQuery(this.frameID).on("click.vf", function(event) {
-		if (event.target.nodeName == 'TD') {
+		if (event.target.nodeName === 'TD') {
 			var row = jQuery(event.target).closest('tr');
 			var absI = row.data('ai');
 			if (absI != null) {
@@ -2556,9 +2556,9 @@ VizDirectory.prototype.render = function(stream)
 	tRec = stream.t[0];
 	while (tI<numTmplts) {
 			// Advance until we get to current Template rec
-		while (tRec.n == 0) {
+		while (tRec.n === 0) {
 				// Have we run out of Templates?
-			if (++tI == numTmplts)
+			if (++tI === numTmplts)
 				return;
 			tRec = stream.t[tI];
 		}
@@ -2585,7 +2585,7 @@ VizDirectory.prototype.render = function(stream)
 			t = '<tr data-id="'+rec.id+'" data-ai='+oRec.i+'>';
 			fAtts.forEach(function(attID) {
 				datum = rec.a[attID];
-				if (typeof datum != 'undefined') {
+				if (typeof datum !== 'undefined') {
 					datum = PData.procAttTxt(attID, datum);
 					if (datum) {
 						t += '<td>'+datum+'</td>';
@@ -2626,7 +2626,7 @@ VizDirectory.prototype.rerender = function(tI)
 		t = '<tr '+(self.isSel(oRec.i) ? 'class="obj-sel" ' : '')+'data-id="'+rec.id+'" data-ai='+oRec.i+'>';
 		fAtts.forEach(function(attID) {
 			datum = rec.a[attID];
-			if (typeof datum != 'undefined') {
+			if (typeof datum !== 'undefined') {
 				datum = PData.procAttTxt(attID, datum);
 				if (datum) {
 					t += '<td>'+datum+'</td>';
@@ -2661,7 +2661,7 @@ VizDirectory.prototype.doOptions = function()
 					PState.set(PSTATE_BUILD);
 					for (var tI=0; tI<PData.getNumETmplts(); tI++) {
 						var sAttID = jQuery('#dialog-sortby select[data-ti="'+tI+'"]').val();
-						if (sAttID != self.sAtts[tI]) {
+						if (sAttID !== self.sAtts[tI]) {
 							self.sAtts[tI] = sAttID;
 							self.rerender(tI);
 						}
@@ -2762,10 +2762,10 @@ VizTextStream.prototype.setup = function()
 	var self = this;
 
 	jQuery(this.frameID).on("click.vf", function(event) {
-		if (event.target.nodeName == 'DIV') {
+		if (event.target.nodeName === 'DIV') {
 			var word = jQuery(event.target);
 			var aI = word.data('ai');
-			if (typeof aI != 'undefined' && aI >= 0) {
+			if (typeof aI !== 'undefined' && aI >= 0) {
 				var s = self.toggleSel(aI);
 				if (s)
 					word.addClass("obj-sel");
@@ -2798,23 +2798,23 @@ VizTextStream.prototype.render = function(stream)
 	tRec = stream.t[0];
 	while (tI<numTmplts) {
 			// Advance until we get to current Template rec
-		while (tRec.n == 0) {
+		while (tRec.n === 0) {
 				// Have we run out of Templates?
-			if (++tI == numTmplts)
+			if (++tI === numTmplts)
 				return;
 			tRec = stream.t[tI];
 		}
 
 			// only 1 Location Attribute possible - skip if not selected
 		featSet = self.vFrame.getSelLocAtts(tI);
-		if (featSet.length == 0) {
+		if (featSet.length === 0) {
 			tI++;
 			continue;
 		}
 
 		featSet = self.vFrame.getSelFeatAtts(tI);
 			// Skip Templates if no feature Atts
-		if (featSet.length == 0) {
+		if (featSet.length === 0) {
 			tI++;
 			continue;
 		}
@@ -2835,7 +2835,7 @@ VizTextStream.prototype.render = function(stream)
 		szAttID = self.settings.sAtts[tI];
 		if (szAttID) {
 			szAtt = PData.getAttID(szAttID);
-			if (typeof szAtt.r.min == 'number' && typeof szAtt.r.max == 'number')
+			if (typeof szAtt.r.min === 'number' && typeof szAtt.r.max === 'number')
 				da = szAtt.r.max - szAtt.r.min;
 			else
 				szAttID = null;
@@ -2848,7 +2848,7 @@ VizTextStream.prototype.render = function(stream)
 				rec = PData.getRecByIndex(oRec.i);
 					// Apply Legend
 				datum = rec.a[fAttID];
-				if (typeof datum != 'undefined') {
+				if (typeof datum !== 'undefined') {
 					fData = PData.getAttLgndRecs(datum, fAtt, featSet, false);
 					if (fData) {
 						t = rec.a[cAttID];
@@ -2858,7 +2858,7 @@ VizTextStream.prototype.render = function(stream)
 						{
 							if (szAttID) {
 								s = rec.a[szAttID];
-								if (typeof s == 'number') {
+								if (typeof s === 'number') {
 									s = Math.floor(((s-szAtt.r.min)*dt)/da) + self.settings.min;
 								} else
 									s = self.settings.min;
@@ -3017,7 +3017,7 @@ VizStackChart.prototype.setup = function()
 	var oAttID = this.settings.oAtt;
 	var oAtt = PData.getAttID(oAttID);
 
-	if (oAtt.def.t != 'T' || !this.settings.tlit) {
+	if (oAtt.def.t !== 'T' || !this.settings.tlit) {
 		if (this.settings.gr)
 			this.cats = PData.getRCats(oAtt, true, true);
 		else
@@ -3035,7 +3035,7 @@ VizStackChart.prototype.render = function(stream)
 	{
 		var sz = self.bSel.length;
 		var i = _.sortedIndex(self.bSel, bI);
-		if (self.bSel[i] == bI) {
+		if (self.bSel[i] === bI) {
 			d3.select(this).classed('obj-sel', false);
 			self.bSel.splice(i, 1);
 			if (sz > 0 && self.bSel.length == 0)
@@ -3305,7 +3305,7 @@ VizNetWheel.prototype.render = function(stream)
 		// Compute inner radius based on circumference needed to show all labels
 	var rad = Math.max((stream.l*14 + 20)/(Math.PI*2), 30);
 	var lw = this.settings.lw;
-	if (typeof lw == 'string')
+	if (typeof lw === 'string')
 		lw = parseInt(lw);
 
 	this.cr = lw+12+rad;	// Radius to center
@@ -3339,13 +3339,13 @@ VizNetWheel.prototype.render = function(stream)
 
 		tLoop: while (i<stream.l) {
 				// Advance until we get to current Template rec
-			while (tRec.n == 0 || (tRec.i+tRec.n) == i || featSet.length == 0) {
+			while (tRec.n === 0 || (tRec.i+tRec.n) === i || featSet.length === 0) {
 				if (clan.length > 0) {
 					head.children.push({ ti: tI, children: clan});
 					clan=[];
 				}
 					// Have we run out of Templates?
-				if (++tI == PData.getNumETmplts()) {
+				if (++tI === PData.getNumETmplts()) {
 					break tLoop;
 				}
 
@@ -3361,7 +3361,7 @@ VizNetWheel.prototype.render = function(stream)
 			aI = stream.s[i];
 			rec = PData.getRecByIndex(aI);
 			datum = rec.a[fAttID];
-			if (typeof datum != 'undefined') {
+			if (typeof datum !== 'undefined') {
 				fData = PData.getAttLgndRecs(datum, fAtt, featSet, false);
 				if (fData)
 					clan.push({ r: rec, ai: aI, c: fData.v, children: [] });
@@ -3418,7 +3418,7 @@ VizNetWheel.prototype.render = function(stream)
 		theT.children.forEach(function(d) {
 			pAtts.forEach(function(p) {
 				q = d.r.a[p.pid];
-				if (typeof q != 'undefined') {
+				if (typeof q !== 'undefined') {
 						// Array of Rec IDs -- must find each one in head.children.children!
 					q.forEach(function(rID) {
 						var found=false, r2;
@@ -3531,15 +3531,15 @@ VizFlow.prototype.render = function(stream)
 	{
 		var sz = self.bSel.length;
 		var i = _.sortedIndex(self.bSel, bI);
-		if (self.bSel[i] == bI) {
+		if (self.bSel[i] === bI) {
 			d3.select(this).classed('obj-sel', false);
 			self.bSel.splice(i, 1);
-			if (sz > 0 && self.bSel.length == 0 && self.fSel.length == 0)
+			if (sz > 0 && self.bSel.length === 0 && self.fSel.length === 0)
 				self.vFrame.selBtns(false);
 		} else {
 			d3.select(this).classed('obj-sel', true);
 			self.bSel.splice(i, 0, bI);
-			if (sz == 0 && self.fSel.length == 0 && self.bSel.length > 0)
+			if (sz === 0 && self.fSel.length === 0 && self.bSel.length > 0)
 				self.vFrame.selBtns(true);
 		}
 	} // clickBar()
@@ -3548,15 +3548,15 @@ VizFlow.prototype.render = function(stream)
 	{
 		var sz = self.fSel.length;
 		var i = _.sortedIndex(self.fSel, fI);
-		if (self.fSel[i] == fI) {
+		if (self.fSel[i] === fI) {
 			d3.select(this).classed('obj-sel', false);
 			self.fSel.splice(i, 1);
-			if (sz > 0 && self.fSel.length == 0 && self.bSel.length == 0)
+			if (sz > 0 && self.fSel.length === 0 && self.bSel.length === 0)
 				self.vFrame.selBtns(false);
 		} else {
 			d3.select(this).classed('obj-sel', true);
 			self.fSel.splice(i, 0, fI);
-			if (sz == 0 && self.bSel.length == 0 && self.fSel.length > 0)
+			if (sz === 0 && self.bSel.length === 0 && self.fSel.length > 0)
 				self.vFrame.selBtns(true);
 		}
 	} // clickFlow()
@@ -3576,7 +3576,7 @@ VizFlow.prototype.render = function(stream)
 	self.settings.fcts.forEach(function(attID, aI) {
 		var tCat;
 		var att = PData.getAttID(attID);
-		if (att.def.t != 'T' || !self.settings.tlit) {
+		if (att.def.t !== 'T' || !self.settings.tlit) {
 			if (self.settings.gr)
 				tCat = PData.getRCats(att, true, true);
 			else
@@ -3656,7 +3656,7 @@ VizFlow.prototype.render = function(stream)
 		// NOTE: The following algorithm handles the case of multiple Attribute values
 		//			It attempts to float flows on bars according to leftover space and order
 	self.atts.forEach(function(att, aI) {
-		if (aI != self.atts.length-1) {
+		if (aI !== self.atts.length-1) {
 			var att2 = self.atts[aI+1];
 
 				// Create 2-dim array (att1 x att2) to hold intersections
@@ -3875,7 +3875,7 @@ VizMBMap.prototype.renderTree = function(aI)
 		var bI=0;
 		var w=self.settings.w;
 
-		var src = self.sbkSel != null ? self.sbkSel.i : self.bkSel.i;
+		var src = self.sbkSel !== null ? self.sbkSel.i : self.bkSel.i;
 
 		PState.set(PSTATE_UPDATE);
 		self.facets.forEach(function(thisF, fI) {
@@ -3932,7 +3932,7 @@ VizMBMap.prototype.renderTree = function(aI)
 
 	function clickBlock(d)
 	{
-		if (d.depth == 2) {
+		if (d.depth === 2) {
 				// Child sublock
 			if (self.sbkSel === d) {
 					// Deselect this item (same as "RESET")
@@ -3987,12 +3987,12 @@ VizMBMap.prototype.renderTree = function(aI)
 		.attr("height", function(d) { return d.dy-1; })
 		.attr("rx", "3")
 		.attr("ry", "3")
-		.style("fill", function(d) { return d.depth == 2 ? d.c : '#888888'; })
+		.style("fill", function(d) { return d.depth === 2 ? d.c : '#888888'; })
 		.on("click", clickBlock)
 		.append("title")
 		.text(function(d) { return d.l; });
 
-	add.filter(function(d) { return d.depth == 1; })
+	add.filter(function(d) { return d.depth === 1; })
 		.append("text")
 		.attr("class", "mbm-title")
 		.attr("x", "3")
@@ -4049,7 +4049,7 @@ VizMBMap.prototype.render = function(stream)
 		var tCat;
 		var att = PData.getAttID(attID);
 		var y=aI * 30;
-		if (att.def.t != 'T' || !self.settings.tlit) {
+		if (att.def.t !== 'T' || !self.settings.tlit) {
 			if (self.settings.gr)
 				tCat = PData.getRCats(att, true, true);
 			else
@@ -4085,7 +4085,7 @@ VizMBMap.prototype.render = function(stream)
 		.data(self.facets)
 		.enter()
 		.append("text")
-		.attr("class", function(d,i) { return i == 0 ? "mbm-att-title obj-sel" : "mbm-att-title" })
+		.attr("class", function(d,i) { return i === 0 ? "mbm-att-title obj-sel" : "mbm-att-title" })
 		.attr("x", "0")
 		.attr("y", function(d) { return d.y; })
 		.text(function (d) { return d.l; })
@@ -4108,7 +4108,7 @@ VizMBMap.prototype.render = function(stream)
 	var pAttID = this.settings.p;
 	var pAtt = PData.getAttID(pAttID);
 	var pCat;
-	if (pAtt.def.t != 'T' || !self.settings.tlit) {
+	if (pAtt.def.t !== 'T' || !self.settings.tlit) {
 		if (self.settings.gr)
 			pCat = PData.getRCats(pAtt, true, true);
 		else
@@ -4147,7 +4147,7 @@ VizMBMap.prototype.render = function(stream)
 			.size([w, this.settings.h])
 			.round(true)
 			.children(function(d, depth) {
-				return (depth == 2) ? null : d.z;
+				return (depth === 2) ? null : d.z;
 			})
 			.value(function(d) {
 				return d.i.length;
@@ -4181,9 +4181,9 @@ VizMBMap.prototype.clearSel = function()
 	// RETURNS: Array of absolute IDs of selected records
 VizMBMap.prototype.getSel = function()
 {
-	if (this.sbkSel != null)
+	if (this.sbkSel !== null)
 		return this.sbkSel.i;
-	else if (this.bkSel != null)
+	else if (this.bkSel !== null)
 		return this.bkSel.i;
 	else
 		return [];
@@ -4326,15 +4326,15 @@ PFilterText.prototype.eval = function(rec)
 {
 	var s = this.s;
 
-	if (s == null || s == '')
+	if (s == null || s === '')
 		return true;
 
 	var t = rec.a[this.att.id];
-	if (typeof t == 'undefined')
+	if (typeof t === 'undefined')
 		return false;
 	if (!this.cs)
 		t = t.toLocaleLowerCase();
-	return t.indexOf(s) != -1;
+	return t.indexOf(s) !== -1;
 } // eval()
 
 PFilterText.prototype.setup = function()
@@ -4399,10 +4399,10 @@ PFilterVocab.prototype.evalPrep = function()
 
 PFilterVocab.prototype.eval = function(rec)
 {
-	if (this.sel.length == 0)
+	if (this.sel.length === 0)
 		return false;
 	var v = rec.a[this.att.id];
-	if (typeof v == 'undefined')
+	if (typeof v === 'undefined')
 		return false;
 
 		// Try all possible Attribute values (will be array)
@@ -4410,7 +4410,7 @@ PFilterVocab.prototype.eval = function(rec)
 	for (var i=0; i<v.length; i++) {
 		vi = v[i];
 		s = _.sortedIndex(this.sel, vi);
-		if (this.sel[s] == vi) {
+		if (this.sel[s] === vi) {
 			this.ctrs[s]++;
 			return true;
 		}
@@ -4428,7 +4428,7 @@ PFilterVocab.prototype.evalDone = function(total)
 		attID = j.data('id');
 		if (attID) {
 			s = _.sortedIndex(self.sel, attID);
-			if (self.sel[s] == attID) {
+			if (self.sel[s] === attID) {
 				w = (total > 0) ? Math.round((self.ctrs[s] * 100) / total) : 0;
 			} else
 				w = 0;
@@ -4449,7 +4449,7 @@ PFilterVocab.prototype.setup = function()
 		lEntry.z.forEach(function(zEntry, zI) {
 			t += '<div class="filter-vocab-row" data-id="'+zEntry.l+'"><input type="checkbox" data-parent="'+lI+'" checked="checked">'+
 				zEntry.l+'</div>';
-			if (zEntry.v == null || zEntry.v == '') {
+			if (zEntry.v == null || zEntry.v === '') {
 				t += '<div class="filter-vocab-bar" style="background-color:'+lEntry.v+'"></div>';
 			} else {
 				t += '<div class="filter-vocab-bar" style="background-color:'+zEntry.v+'"></div>';
@@ -4463,13 +4463,13 @@ PFilterVocab.prototype.setup = function()
 		// A click on any checkboxes dirties filter
 	ip.click(function(event) {
 		var t = event.target;
-		if (t.nodeName == 'INPUT') {
+		if (t.nodeName === 'INPUT') {
 				// Show/Hide All
-			if (typeof t.dataset.index != 'undefined' && t.dataset.index == -1) {
+			if (typeof t.dataset.index !== 'undefined' && t.dataset.index == -1) {
 				var s = t.checked;
 				var cx = ip.find('div.filter-vocab-row input');
 				cx.prop("checked", s);
-			} else if (event.target.className == 'term-parent' && t.checked) {
+			} else if (event.target.className === 'term-parent' && t.checked) {
 				var index = event.target.parentElement.parentElement.dataset.index;
 				ip.find('input[data-parent="'+index+'"]').prop("checked", true);
 			}
@@ -4499,7 +4499,7 @@ PFilterVocab.prototype.setState = function(state)
 		var j = jQuery(this);
 		var id = j.data('id');
 		var c = _.indexOf(state.s, id, true);
-		j.find('input').prop("checked", c != -1);
+		j.find('input').prop("checked", c !== -1);
 	});
 } // setState()
 
@@ -6095,7 +6095,7 @@ function PViewFrame(vfIndex)
 			// Insert new items
 		var attDef = PData.getAttID(attID);
 			// Create pseudo-entry for undefined value
-		if (typeof attDef.r.u != 'undefined') {
+		if (typeof attDef.r.u !== 'undefined') {
 			element = '<div class="lgnd-value lgnd-entry" data-index="-1"><input type="checkbox" checked="checked" class="lgnd-entry-check"/>'+
 						'<div class="lgnd-viz" style="background-color: '+attDef.r.u.v+'"> </div> <span class="lgnd-value-title">'+dlText.undef+'</span></div>';
 			group.append(element);
@@ -6108,7 +6108,7 @@ function PViewFrame(vfIndex)
 				legEntry.z.forEach(function(zEntry, zIndex) {
 					element = '<div class="lgnd-value lgnd-entry" data-index="'+lgIndex+','+zIndex+
 								'"><input type="checkbox" checked="checked" class="lgnd-entry-check"/>';
-					if (zEntry.v && zEntry.v != '') {
+					if (zEntry.v && zEntry.v !== '') {
 						element += '<div class="lgnd-viz" style="background-color: '+zEntry.v+'"></div>';
 					} else {
 						element += '<div class="lgnd-viz lgnd-viz-empty"></div>';
@@ -6291,11 +6291,11 @@ function PViewFrame(vfIndex)
 
 			// Does Viz have annotation?
 		var hint = newViz.hint();
-		if (hint || typeof theView.n == 'string' && theView.n != '')
+		if (hint || typeof theView.n === 'string' && theView.n !== '')
 		{
 			frame.find('.vnote').button('enable');
 			if (hint) {
-				if (typeof theView.n == 'string' && theView.n != '')
+				if (typeof theView.n === 'string' && theView.n !== '')
 					hint += '.<br/>'+theView.n;
 				else
 					hint += '.';
@@ -7016,14 +7016,14 @@ var PData = (function() {
 							// Parent-level 
 						if (typeof fI === 'number') {
 							lE = att.l[fI];
-							if (lE.l == v)
+							if (lE.l === v)
 								return lE;
 							// Secondary-level
 						} else {
 							lE = att.l[fI[0]];
 							var lE2 = lE.z[fI[1]];
-							if (lE2.l == v) {
-								if (lE2.v && lE2.v != '')
+							if (lE2.l === v) {
+								if (lE2.v && lE2.v !== '')
 									return lE2;
 								else
 									return lE;
@@ -7033,7 +7033,7 @@ var PData = (function() {
 					return null;
 				} // s()
 					// Return all possible matched atts?
-				if (all && att.def.d != '') {
+				if (all && att.def.d !== '') {
 					var r = [], f;
 					val.forEach(function(v) {
 						f = s(v);
@@ -7101,7 +7101,7 @@ var PData = (function() {
 					// Check for undefined char/entry first to remove exceptional cases
 				if (fSet[0] === -1) {
 					if (val === '?') {
-						if (typeof att.r.u == 'undefined')
+						if (typeof att.r.u === 'undefined')
 							return null;
 						return att.r.u;
 					}
@@ -7116,12 +7116,12 @@ var PData = (function() {
 				for (; f<lI; f++) {
 					fI = fSet[f];
 					lE = att.l[fI];
-					if (typeof lE.d.max.y != 'undefined') {		// max bounds
+					if (typeof lE.d.max.y !== 'undefined') {		// max bounds
 							// Test val maxs against min bound for disqualification
-						if (typeof val.max != 'undefined' && val.max != 'open') {
+						if (typeof val.max !== 'undefined' && val.max !== 'open') {
 							if (val.max.y < lE.d.min.y)
 								continue;
-							if (val.max.y == lE.d.min.y) {
+							if (val.max.y === lE.d.min.y) {
 								if (val.max.m && lE.d.min.m) {
 									if (val.max.m < lE.d.min.m)
 										continue;
@@ -7137,11 +7137,11 @@ var PData = (function() {
 							// Test val mins against max bound for disqualification
 						if (val.min.y > lE.d.max.y)
 							continue;
-						if (val.min.y == lE.d.max.y) {
+						if (val.min.y === lE.d.max.y) {
 							if (val.min.m && lE.d.max.m) {
 								if (val.min.m > lE.d.max.m)
 									continue;
-								if (val.min.m == lE.d.max.m) {
+								if (val.min.m === lE.d.max.m) {
 									if (val.min.d && lE.d.max.d) {
 										if (val.min.d > lE.d.max.d)
 											continue;
@@ -7152,16 +7152,16 @@ var PData = (function() {
 						return lE;
 					} else {				// min bound only
 							// Event is range
-						if (typeof val.max != 'undefined') {
-							if (val.max == 'open')		// double open always overlap
+						if (typeof val.max !== 'undefined') {
+							if (val.max === 'open')		// double open always overlap
 								return lE;
 							if (val.max.y < lE.d.min.y)
 								continue;
-							if (val.max.y == lE.d.min.y) {
+							if (val.max.y === lE.d.min.y) {
 								if (val.max.m && lE.d.min.m) {
 									if (val.max.m < lE.d.min.m)
 										continue;
-									if (val.max.m == lE.d.min.m) {
+									if (val.max.m === lE.d.min.m) {
 										if (val.max.d && lE.d.min.d) {
 											if (val.max.d < lE.d.min.d)
 												continue;
@@ -7175,11 +7175,11 @@ var PData = (function() {
 						} else {
 							if (val.min.y < lE.d.min.y)
 								continue;
-							if (val.min.y == lE.d.min.y) {
+							if (val.min.y === lE.d.min.y) {
 								if (val.min.m && lE.d.min.m) {
 									if (val.min.m < lE.d.min.m)
 										continue;
-									if (val.min.m == lE.d.min.m) {
+									if (val.min.m === lE.d.min.m) {
 										if (val.min.d && lE.d.min.d) {
 											if (val.min.d < lE.d.min.d)
 												continue;
