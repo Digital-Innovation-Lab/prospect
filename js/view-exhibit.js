@@ -7610,8 +7610,9 @@ var PData = (function() {
 						max = att.r.max;
 					var l=min.toString();
 						// Show min and max if not individual digits and too long
-					if (inc > 1 && l.length < 4)
+					if (inc > 1 && l.length < 4 && min !== max) {
 						l += "-"+max.toString();
+					}
 					if (addItems)
 						rcs.push({ l: l, c: rgb, min: min, max: max, i: [] });
 					else
