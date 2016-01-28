@@ -5982,7 +5982,7 @@ function PViewFrame(vfIndex)
 	function clickHighlight(event)
 	{
 			// Send signal back to Prospect "main app" to create Highlight filter on this viz
-		jQuery("body").trigger("prospect", { s: PSTATE_HILITE, v: vfIndex });
+		jQuery("body").trigger("prospect", { s: PSTATE_HILITE, v: vfIndex, t: vizModel.tUsed, r: vizModel.rMap });
 		event.preventDefault();
 	} // clickHighlight()
 
@@ -8791,18 +8791,48 @@ jQuery(document).ready(function($) {
 	} // createFilter()
 
 		// PURPOSE: Allow user to choose an Attribute from a list
+		// INPUT: 	if showRemove, then show the "Remove All" pseudo-Filter
+		//			if secondary, this dialog must appear on top of another
+		//			usedTs is either null (show all Attributes) or is array of flags for each Template
+		//				(Attribute must belong to one to appear)
+		//			if Attribute is chosen, pass selection on to callback function
 		// NOTES: 	Since this dialog can be invoked from two other modal dialogs, need
 		//				to append at particular point in DOM to ensure stacked properly
-	function chooseAttribute(showRemove, secondary, callback)
+	function chooseAttribute(showRemove, secondary, usedTs, callback)
 	{
 			// Clear previous selection
 		jQuery("#filter-list li").removeClass("selected");
-			// Do we show "Remove" Filter Option?
-		if (showRemove) {
-			jQuery("#filter-list li.remove").show();
-		} else {
-			jQuery("#filter-list li.remove").hide();
-		}
+			// Hide or Show Attributes
+		var attList = jQuery("#filter-list li");
+		var li, attID, attDef, on;
+		attList.each(function(i) {
+			li = jQuery(this);
+			attID = li.data("id");
+			if (attID == '_remove') {
+					// Do we show "Remove" Filter Option?
+				if (showRemove) {
+					li.show();
+				} else {
+					li.hide();
+				}
+			} else {
+				if (usedTs) {
+					attDef = PData.aByID(attID);
+						// Only show an Attribute if it appears in a Template that was rendered in the view
+					on = false;
+					attDef.t.forEach(function(u, uI) {
+						on = on || (u && usedTs[uI]);
+					});
+					if (on)
+						li.show();
+					else
+						li.hide();
+				} else {
+					li.show();
+				}
+			}
+		});
+
 		var attDialog;
 
 		var dialogParams = {
@@ -8839,7 +8869,7 @@ jQuery(document).ready(function($) {
 
 	function clickNewFilter(event)
 	{
-		chooseAttribute(true, false, function(id) {
+		chooseAttribute(true, false, null, function(id) {
 			jQuery('#filter-instances').show(400);
 			createFilter(id, [true, true, true, true], null);
 			jQuery('#btn-toggle-filters').button("enable");
@@ -8855,23 +8885,35 @@ jQuery(document).ready(function($) {
 	} // clickToggleFilters()
 
 		// PURPOSE: Apply effect of a Highlight filter
-	function doApplyHighlight(vI)
+	function doApplyHighlight(vI, tUsed, rMap)
 	{
 		PState.set(PSTATE_PROCESS);
 
 		var list=[];
 		var hFilter=hFilters[vI];
+
 		if (endStream !== null) {
 			hFilter.evalPrep();
+
 			var relI=0, absI, rec;
+			var tI=0, tRec=endStream.t[0];
+				// Must keep absolute indices and template params updated!
 			while (relI < endStream.l) {
-				absI = endStream.s[relI++];
-				rec = PData.rByN(absI);
-				if (hFilter.eval(rec)) {
-					list.push(absI);
+					// Advance until we get to current Template rec
+				while (!tUsed[tI] || tRec.n == 0 || (tRec.i+tRec.n) == relI) {
+						// Fast-forward to next used template set
+					tRec = endStream.t[++tI];
+					relI = tRec.i;
+				}
+	 			absI = endStream.s[relI++];
+	 				// Check bitflag if Record rendered
+	 			if (rMap[absI >> 4] & (1 << (absI & 15))) {
+		 			rec = PData.rByN(absI);
+					if (hFilter.eval(rec)) {
+						list.push(absI);
+					}
 				}
 			}
-			// Don't call hFilter.isDirty(false) because we don't want to affect real Filter Stack
 			hFilter.evalDone(endStream.l);
 		}
 
@@ -8888,11 +8930,13 @@ jQuery(document).ready(function($) {
 
 		// PURPOSE: Handle click on "Highlight" button
 		// INPUT: 	vI = index of view frame
-	function clickHighlight(vI)
+		//			tUsed = array of booleans indicating which Templates rendered
+		//			rMap = bitmap array indicating which Records rendered
+	function clickHighlight(vI, tUsed, rMap)
 	{
 		var dialog;
 
-		filterDialog = jQuery("#dialog-hilite-"+vI).dialog({
+		dialog = jQuery("#dialog-hilite-"+vI).dialog({
 			height: 275,
 			width: Math.min(jQuery(window).width() - 20, 675),
 			modal: true,
@@ -8901,7 +8945,7 @@ jQuery(document).ready(function($) {
 				{
 					text: dlText.chsatt,
 					click: function() {
-						chooseAttribute(false, true, function(id) {
+						chooseAttribute(false, true, tUsed, function(id) {
 							hFilterIDs[vI] = id;
 							hFilters[vI] = createFilter(id, null, vI);
 						});
@@ -8910,16 +8954,16 @@ jQuery(document).ready(function($) {
 				{
 					text: dlText.ok,
 					click: function() {
-						filterDialog.dialog("close");
+						dialog.dialog("close");
 						if (hFilters[vI] !== null) {
-							doApplyHighlight(vI);
+							doApplyHighlight(vI, tUsed, rMap);
 						}
 					}
 				},
 				{
 					text: dlText.cancel,
 					click: function() {
-						filterDialog.dialog("close");
+						dialog.dialog("close");
 					}
 				}
 			]
@@ -9269,7 +9313,7 @@ jQuery(document).ready(function($) {
 			jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
 			break;
 		case PSTATE_HILITE:
-			clickHighlight(data.v);
+			clickHighlight(data.v, data.t, data.r);
 			break;
 		}
 	});
