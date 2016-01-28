@@ -8899,11 +8899,15 @@ jQuery(document).ready(function($) {
 			var relI=0, absI, rec;
 			var tI=0, tRec=endStream.t[0];
 				// Must keep absolute indices and template params updated!
+			outer:
 			while (relI < endStream.l) {
 					// Advance until we get to current Template rec
 				while (!tUsed[tI] || tRec.n == 0 || (tRec.i+tRec.n) == relI) {
 						// Fast-forward to next used template set
-					tRec = endStream.t[++tI];
+					if (++tI === PData.eTNum()) {
+						break outer;
+					}
+					tRec = endStream.t[tI];
 					relI = tRec.i;
 				}
 	 			absI = endStream.s[relI++];
