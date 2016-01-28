@@ -371,7 +371,7 @@ VizMap.prototype.setup = function()
 	lines.addTo(this.lMap);
 
 		// Maintain number of Loc Atts per Template type
-	var numT = PData.getNumETmplts();
+	var numT = PData.eTNum();
 	this.tLCnt = new Uint16Array(numT);
 } // setup()
 
@@ -394,7 +394,7 @@ VizMap.prototype.render = function(stream)
 			var added = self.toggleSel(aid);
 
 				// Which Template type does absolute index belong to? Does it have multiple location Attributes?
-			var tI = PData.aIndex2Tmplt(aid);
+			var tI = PData.n2T(aid);
 				// If so, go through all markers looking for fellows of same _aid and setStyle accordingly
 			if (self.tLCnt[tI] > 1) {
 				PState.set(PSTATE_UPDATE);
@@ -425,7 +425,7 @@ VizMap.prototype.render = function(stream)
 	var lines = this.lineLayer;
 	lines.clearLayers();
 
-	var numTmplts = PData.getNumETmplts();
+	var numTmplts = PData.eTNum();
 	var i=0, aI, tI=0, tRec, tLClr, rec;
 	var fAttID, fAtt, locAtts, featSet, pAttID;
 	var locData, fData, newMarker;
@@ -481,13 +481,13 @@ VizMap.prototype.render = function(stream)
 
 				// Get Feature Attribute ID and def for this Template
 			fAttID = self.vFrame.getSelLegend(tI);
-			fAtt = PData.getAttID(fAttID);
+			fAtt = PData.aByID(fAttID);
 
 			pAttID = self.settings.pAtts[tI];
 			tLClr = self.settings.lClrs[tI];
 			sAttID = self.settings.sAtts[tI];
 			if (sAttID) {
-				sAtt = PData.getAttID(sAttID);
+				sAtt = PData.aByID(sAttID);
 				if (typeof sAtt.r.min === 'number' && typeof sAtt.r.max === 'number') {
 					minS = sAtt.r.min;
 					dS = sAtt.r.max - minS;
@@ -498,7 +498,7 @@ VizMap.prototype.render = function(stream)
 
 			// Get Record data and create cache entry
 		aI = stream.s[i];
-		rec = PData.getRecByIndex(aI);
+		rec = PData.rByN(aI);
 		var cEntry;
 		if (mCache) {
 			cEntry={ id: rec.id, c: [], p: rec.a[pAttID], l: tLClr };
@@ -509,7 +509,7 @@ VizMap.prototype.render = function(stream)
 			if (locData) {
 				fData = rec.a[fAttID];
 				if (typeof fData !== 'undefined') {
-					fData = PData.getAttLgndVal(fData, fAtt, featSet);
+					fData = PData.lClr(fData, fAtt, featSet);
 					if (fData) {
 						if (typeof locData[0] === 'number') {
 							if (sAttID) {
@@ -652,7 +652,7 @@ VizMap.prototype.setState = function(state)
 VizMap.prototype.hint = function()
 {
 	var h='';
-	var numT = PData.getNumETmplts();
+	var numT = PData.eTNum();
 
 	for (var tI=0; tI<numT; tI++) {
 		var sAttID = this.settings.sAtts[tI];
@@ -662,9 +662,9 @@ VizMap.prototype.hint = function()
 			} else {
 				h += ',';
 			}
-			var sAtt = PData.getAttID(sAttID);
-			var tID = PData.getETmpltIndex(tI);
-			var tDef = PData.getTmpltID(tID);
+			var sAtt = PData.aByID(sAttID);
+			var tID = PData.eTByN(tI);
+			var tDef = PData.tByID(tID);
 			h += ' '+sAtt.def.l+' ('+tDef.l+')';
 		}
 	}
@@ -752,12 +752,12 @@ VizCards.prototype.setup = function()
 
 		// Get default sort Atts -- first item choices
 	self.sAtts=[];
-	for (var tI=0; tI<PData.getNumETmplts(); tI++) {
+	for (var tI=0; tI<PData.eTNum(); tI++) {
 		var attID = jQuery('#dialog-sortby select[data-ti="'+tI+'"] :first').val();
 		self.sAtts.push(attID);
 	}
 		// Set menus to these selections
-	for (var tI=0; tI<PData.getNumETmplts(); tI++)
+	for (var tI=0; tI<PData.eTNum(); tI++)
 		jQuery('#dialog-sortby select[data-ti="'+tI+'"]').val(this.sAtts[tI]);
 } // setup()
 
@@ -769,7 +769,7 @@ VizCards.prototype.render = function(stream)
 		// Save reference to stream for rerender after sort
 	this.stream = stream;
 
-	var numTmplts = PData.getNumETmplts();
+	var numTmplts = PData.eTNum();
 	var tI, tID, tRec, tDef;
 	var fAttID, fAtt, iAttID;
 	var oAttID, oAtt, order;
@@ -796,8 +796,8 @@ VizCards.prototype.render = function(stream)
 			tRec = stream.t[tI];
 		}
 
-		tID = PData.getETmpltIndex(tI);
-		tDef = PData.getTmpltID(tID);
+		tID = PData.eTByN(tI);
+		tDef = PData.tByID(tID);
 
 		featSet = self.vFrame.getSelFeatAtts(tI);
 			// Skip Templates if no feature Atts
@@ -811,22 +811,22 @@ VizCards.prototype.render = function(stream)
 
 			// Get Feature Attribute ID and def for this Template
 		fAttID = self.vFrame.getSelLegend(tI);
-		fAtt = PData.getAttID(fAttID);
+		fAtt = PData.aByID(fAttID);
 
 		iAttID = self.settings.iAtts[tI];
 		cnt = self.settings.cnt[tI];
 
 		oAttID = self.sAtts[tI];
-		oAtt = PData.getAttID(oAttID);
-		order = PData.orderTBy(oAtt, stream, tI);
+		oAtt = PData.aByID(oAttID);
+		order = PData.rTOrder(oAtt, stream, tI);
 
 		order.forEach(function(oRec) {
-			rec = PData.getRecByIndex(oRec.i);
+			rec = PData.rByN(oRec.i);
 
 				// Eval Legend
 			datum = rec.a[fAttID];
 			if (typeof datum !== 'undefined') {
-				c = PData.getAttLgndRecs(datum, fAtt, featSet, false);
+				c = PData.lRecs(datum, fAtt, featSet, false);
 
 				if (c) {
 					tDiv = self.settings.lOn ? '<div class="card-title">'+rec.l+'</div>' : '';
@@ -887,20 +887,20 @@ VizCards.prototype.rerender = function(tI)
 
 		// Which Attribute chosen for Legend?
 	fAttID = self.vFrame.getSelLegend(tI);
-	fAtt = PData.getAttID(fAttID);
+	fAtt = PData.aByID(fAttID);
 	iAttID = self.settings.iAtts[tI];
 	cnt = self.settings.cnt[tI];
 
 	oAttID = self.sAtts[tI];
-	oAtt = PData.getAttID(oAttID);
-	order = PData.orderTBy(oAtt, self.stream, tI);
+	oAtt = PData.aByID(oAttID);
+	order = PData.rTOrder(oAtt, self.stream, tI);
 
 	order.forEach(function(oRec) {
-		rec = PData.getRecByIndex(oRec.i);
+		rec = PData.rByN(oRec.i);
 			// Apply Legend
 		datum = rec.a[fAttID];
 		if (typeof datum !== 'undefined') {
-			c = PData.getAttLgndRecs(datum, fAtt, featSet, false);
+			c = PData.lRecs(datum, fAtt, featSet, false);
 			if (c) {
 				tDiv = self.settings.lOn ? '<div class="card-title">'+rec.l+'</div>' : '';
 					// Get and add textual content
@@ -943,7 +943,7 @@ VizCards.prototype.doOptions = function()
 				click: function() {
 					d.dialog("close");
 					PState.set(PSTATE_BUILD);
-					for (var tI=0; tI<PData.getNumETmplts(); tI++) {
+					for (var tI=0; tI<PData.eTNum(); tI++) {
 						var sAttID = jQuery('#dialog-sortby select[data-ti="'+tI+'"]').val();
 						if (sAttID != self.sAtts[tI]) {
 							self.sAtts[tI] = sAttID;
@@ -1062,7 +1062,7 @@ VizPinboard.prototype.setup = function()
 	});
 
 		// Maintain number of Loc Atts per Template type
-	var numT = PData.getNumETmplts();
+	var numT = PData.eTNum();
 
 	this.xScale = d3.scale.linear().domain([0, s.iw-1])
 		.rangeRound([0, s.dw-1]);
@@ -1152,7 +1152,7 @@ VizPinboard.prototype.render = function(stream)
 	if (this.recSel.length > 0)
 		this.recSel=[];
 
-	var numTmplts = PData.getNumETmplts();
+	var numTmplts = PData.eTNum();
 	var i, aI, tI=0, tRec, tLClr, rec;
 	var fAttID, fAtt, locAtts, featSet, pAttID;
 	var locData, fData;
@@ -1205,12 +1205,12 @@ VizPinboard.prototype.render = function(stream)
 			} // if no featAtts
 				// Get Feature Attribute ID and def for this Template
 			fAttID = self.vFrame.getSelLegend(tI);
-			fAtt = PData.getAttID(fAttID);
+			fAtt = PData.aByID(fAttID);
 			pAttID = self.settings.pAtts[tI];
 			tLClr = self.settings.lClrs[tI];
 			sAttID = self.settings.sAtts[tI];
 			if (sAttID) {
-				sAtt = PData.getAttID(sAttID);
+				sAtt = PData.aByID(sAttID);
 				if (typeof sAtt.r.min === 'number' && typeof sAtt.r.max === 'number') {
 					minS = sAtt.r.min;
 					dS = sAtt.r.max - minS;
@@ -1221,7 +1221,7 @@ VizPinboard.prototype.render = function(stream)
 
 			// Get Record data
 		aI = stream.s[i];
-		rec = PData.getRecByIndex(aI);
+		rec = PData.rByN(aI);
 		var cEntry;
 		if (mCache) {
 			cEntry={ id: rec.id, c: null, p: rec.a[pAttID], l: tLClr };
@@ -1231,7 +1231,7 @@ VizPinboard.prototype.render = function(stream)
 		if (typeof locData !== 'undefined') {
 			fData = rec.a[fAttID];
 			if (typeof fData !== 'undefined') {
-				fData = PData.getAttLgndVal(fData, fAtt, featSet);
+				fData = PData.lClr(fData, fAtt, featSet);
 				if (fData) {
 					if (sAttID) {
 						sAtt = rec.a[sAttID];
@@ -1364,7 +1364,7 @@ VizPinboard.prototype.setState = function(state)
 VizPinboard.prototype.hint = function()
 {
 	var h='';
-	var numT = PData.getNumETmplts();
+	var numT = PData.eTNum();
 
 	for (var tI=0; tI<numT; tI++) {
 		var sAttID = this.settings.sAtts[tI];
@@ -1374,9 +1374,9 @@ VizPinboard.prototype.hint = function()
 			} else {
 				h += ',';
 			}
-			var sAtt = PData.getAttID(sAttID);
-			var tID = PData.getETmpltIndex(tI);
-			var tDef = PData.getTmpltID(tID);
+			var sAtt = PData.aByID(sAttID);
+			var tID = PData.eTByN(tI);
+			var tDef = PData.tByID(tID);
 			h += ' '+sAtt.def.l+' ('+tDef.l+')';
 		}
 	}
@@ -1480,7 +1480,7 @@ VizTime.prototype.setup = function()
 			// By default, use min & max time bounds from Dates Attributes
 		s.dAtts.forEach(function(dAttID) {
 			if (dAttID != null && dAttID !== 'disable') {
-				var dAtt = PData.getAttID(dAttID);
+				var dAtt = PData.aByID(dAttID);
 				if (dAtt) {
 						// Check mins
 					if (minY == null || dAtt.r.min.y < minY) {
@@ -1561,13 +1561,13 @@ VizTime.prototype.setup = function()
 
 			// Override default min & max bounds?
 		if (s.from.length > 0)
-			self.minDate = PData.parseDate(s.from, false);
+			self.minDate = PData.dStr(s.from, false);
 		else
-			self.minDate = PData.date3Nums(minY, minM, minD, false);
+			self.minDate = PData.d3Nums(minY, minM, minD, false);
 		if (s.to.length > 0)
-			self.maxDate = PData.parseDate(s.to, true);
+			self.maxDate = PData.dStr(s.to, true);
 		else
-			self.maxDate = PData.date3Nums(maxY, maxM, maxD, true);
+			self.maxDate = PData.d3Nums(maxY, maxM, maxD, true);
 
 			// Size of instananeous event: 1.5% of total time period space
 		self.instGap = (self.maxDate - self.minDate) * .015;
@@ -1596,7 +1596,7 @@ VizTime.prototype.setup = function()
 			// Gather all color values for all possible Legends
 		var cVals=[];
 		lAttIDs.forEach(function(lAttID) {
-			var att = PData.getAttID(lAttID);
+			var att = PData.aByID(lAttID);
 			if (att) {
 				att.l.forEach(function(lVal) {
 					cVals.push(lVal.v);				
@@ -1705,9 +1705,9 @@ VizTime.prototype.setup = function()
 		{
 			var zMin=self.minDate, zMax=self.maxDate;
 			if (self.settings.zFrom.length > 0)
-				zMin = PData.parseDate(self.settings.zFrom, false);
+				zMin = PData.dStr(self.settings.zFrom, false);
 			if (self.settings.zTo.length > 0)
-				zMax = PData.parseDate(self.settings.zTo, true);
+				zMax = PData.dStr(self.settings.zTo, true);
 			band.xScale.domain([zMin, zMax]);
 			self.zMinDate = zMin;
 			self.zMaxDate = zMax;
@@ -1929,7 +1929,7 @@ VizTime.prototype.render = function(stream)
 
 		// Process each Template's data
 	(function () {
-		var numTmplts = PData.getNumETmplts();
+		var numTmplts = PData.eTNum();
 		var tI=0, tRec, aI;
 		var featSet, dAttID, dAtt, fData, dData;
 		var fAtt, fAttID;
@@ -1960,7 +1960,7 @@ VizTime.prototype.render = function(stream)
 			}
 				// Get Feature Attribute ID and def for this Template
 			fAttID = self.vFrame.getSelLegend(tI);
-			fAtt = PData.getAttID(fAttID);
+			fAtt = PData.aByID(fAttID);
 			dAttID = self.settings.dAtts[tI];
 
 			var y, m, d;
@@ -1973,10 +1973,10 @@ VizTime.prototype.render = function(stream)
 			for (var i=tRec.i; i<(tRec.i+tRec.n); i++) {
 				aI = stream.s[i];
 
-				rec = PData.getRecByIndex(aI);
+				rec = PData.rByN(aI);
 				fData = rec.a[fAttID];
 				if (typeof fData !== 'undefined') {
-					if (fData = PData.getAttLgndRecs(fData, fAtt, featSet, false)) {
+					if (fData = PData.lRecs(fData, fAtt, featSet, false)) {
 							// dData will either be object, '?' or undefined
 						if ((dData = rec.a[dAttID]) && (dData !== '?')) {
 							f = dData.min.f ? EVENT_F_START : 0;
@@ -1990,7 +1990,7 @@ VizTime.prototype.render = function(stream)
 								else
 									d = dData.min.d;
 							}
-							s = PData.date3Nums(y,m,d,false);
+							s = PData.d3Nums(y,m,d,false);
 							if (typeof dData.max === 'undefined') {
 								f |= EVENT_INSTANT;
 								e = s.getTime() + self.instGap;
@@ -2010,7 +2010,7 @@ VizTime.prototype.render = function(stream)
 										else
 											d = dData.max.d;
 									}
-									e = PData.date3Nums(y,m,d,true);
+									e = PData.d3Nums(y,m,d,true);
 								} // number
 							}
 							te.push({ s: s, e: e, ai: aI, f: f, c: fData, l: rec.l, t: 0 });
@@ -2039,7 +2039,7 @@ VizTime.prototype.render = function(stream)
 			});
 
 				// Process Date Legend Background data
-			dAtt = PData.getAttID(dAttID);
+			dAtt = PData.aByID(dAttID);
 			dAtt.l.forEach(function(lEntry) {
 				l = lEntry.d;
 				y = l.min.y;
@@ -2052,7 +2052,7 @@ VizTime.prototype.render = function(stream)
 					else
 						d = l.min.d;
 				}
-				s = PData.date3Nums(y,m,d,false);
+				s = PData.d3Nums(y,m,d,false);
 				if (typeof l.max.y === 'undefined') {
 					e = TODAY;
 				} else {
@@ -2066,7 +2066,7 @@ VizTime.prototype.render = function(stream)
 						else
 							d = l.max.d;
 					}
-					e = PData.date3Nums(y,m,d,true);
+					e = PData.d3Nums(y,m,d,true);
 				}
 				self.lgBds.push({s: s, e: e, t: numTracks, h: tracks.length+1, d: lEntry });
 			});
@@ -2474,8 +2474,8 @@ VizTime.prototype.getState = function()
 	// ASSUMES: This is called after setup but before render, so we only need to reset zMinDate
 VizTime.prototype.setState = function(state)
 {
-	var e0 = PData.parseDate(state.d0, false);
-	var e1 = PData.parseDate(state.d1, true);
+	var e0 = PData.dStr(state.d0, false);
+	var e1 = PData.dStr(state.d1, true);
 
 		// Rescale bottom/zoom timeline
 	var zoom = this.bands[1];
@@ -2525,13 +2525,13 @@ VizDirectory.prototype.setup = function()
 
 		// Get default sort Atts -- first item choices
 	self.sAtts=[];
-	for (var tI=0; tI<PData.getNumETmplts(); tI++) {
+	for (var tI=0; tI<PData.eTNum(); tI++) {
 		var attID = jQuery('#dialog-sortby select[data-ti="'+tI+'"] :first').val();
 		self.sAtts.push(attID);
 	}
 
 		// Set menu selections to these
-	for (var tI=0; tI<PData.getNumETmplts(); tI++)
+	for (var tI=0; tI<PData.eTNum(); tI++)
 		jQuery('#dialog-sortby select[data-ti="'+tI+'"]').val(self.sAtts[tI]);
 } // setup()
 
@@ -2539,7 +2539,7 @@ VizDirectory.prototype.render = function(stream)
 {
 	var self = this;
 
-	var numTmplts = PData.getNumETmplts();
+	var numTmplts = PData.eTNum();
 	var tI=0, tID, tRec, tDef;
 	var insert, fAtts, datum, rec, t;
 	var oAttID, oAtt, order;
@@ -2563,25 +2563,25 @@ VizDirectory.prototype.render = function(stream)
 			tRec = stream.t[tI];
 		}
 			// Starting with new Template: Create new table
-		tID = PData.getETmpltIndex(tI);
-		tDef = PData.getTmpltID(tID);
+		tID = PData.eTByN(tI);
+		tDef = PData.tByID(tID);
 		thisFrame.append('<div class="template-label">'+tDef.l+'</div>'+
 			'<table cellspacing="0" class="viz-directory" data-ti='+tI+'></table>');
 		insert = thisFrame.find('table[data-ti="'+tI+'"]');
 		fAtts = self.settings.cnt[tI];
 		t = '<thead><tr>';
 		fAtts.forEach(function(theAtt) {
-			var att = PData.getAttID(theAtt);
+			var att = PData.aByID(theAtt);
 			t += '<th>'+att.def.l+'</th>';
 		})
 		insert.append(t+'<tr></thead><tbody></tbody>');
 		insert = insert.find('tbody');
 
 		oAttID = self.sAtts[tI];
-		oAtt = PData.getAttID(oAttID);
-		order = PData.orderTBy(oAtt, self.stream, tI);
+		oAtt = PData.aByID(oAttID);
+		order = PData.rTOrder(oAtt, self.stream, tI);
 		order.forEach(function(oRec) {
-			rec = PData.getRecByIndex(oRec.i);
+			rec = PData.rByN(oRec.i);
 			t = '<tr data-id="'+rec.id+'" data-ai='+oRec.i+'>';
 			fAtts.forEach(function(attID) {
 				datum = rec.a[attID];
@@ -2618,11 +2618,11 @@ VizDirectory.prototype.rerender = function(tI)
 	fAtts = self.settings.cnt[tI];
 
 	oAttID = self.sAtts[tI];
-	oAtt = PData.getAttID(oAttID);
-	order = PData.orderTBy(oAtt, self.stream, tI);
+	oAtt = PData.aByID(oAttID);
+	order = PData.rTOrder(oAtt, self.stream, tI);
 
 	order.forEach(function(oRec) {
-		rec = PData.getRecByIndex(oRec.i);
+		rec = PData.rByN(oRec.i);
 		t = '<tr '+(self.isSel(oRec.i) ? 'class="obj-sel" ' : '')+'data-id="'+rec.id+'" data-ai='+oRec.i+'>';
 		fAtts.forEach(function(attID) {
 			datum = rec.a[attID];
@@ -2659,7 +2659,7 @@ VizDirectory.prototype.doOptions = function()
 				click: function() {
 					d.dialog("close");
 					PState.set(PSTATE_BUILD);
-					for (var tI=0; tI<PData.getNumETmplts(); tI++) {
+					for (var tI=0; tI<PData.eTNum(); tI++) {
 						var sAttID = jQuery('#dialog-sortby select[data-ti="'+tI+'"]').val();
 						if (sAttID !== self.sAtts[tI]) {
 							self.sAtts[tI] = sAttID;
@@ -2780,7 +2780,7 @@ VizTextStream.prototype.render = function(stream)
 {
 	var self = this;
 
-	var numTmplts = PData.getNumETmplts();
+	var numTmplts = PData.eTNum();
 	var tI=0, tID, tRec, tDef;
 	var insert, rec, datum, t, s;
 
@@ -2820,36 +2820,36 @@ VizTextStream.prototype.render = function(stream)
 		}
 			// Which Attribute chosen for Legend?
 		fAttID = self.vFrame.getSelLegend(tI);
-		fAtt = PData.getAttID(fAttID);
+		fAtt = PData.aByID(fAttID);
 
 			// Starting with new Template? Create new DIV & order Records
 		vizDiv.append('<div class="viz-textstream" data-ti='+tI+'></div>');
 		insert = vizDiv.find('div.viz-textstream[data-ti='+tI+']');
 
 			// Begin with Template name
-		tID = PData.getETmpltIndex(tI);
-		tDef = PData.getTmpltID(tID);
+		tID = PData.eTByN(tI);
+		tDef = PData.tByID(tID);
 		insert.append('<div class="template-label">'+tDef.l+'</div>');
 
 		cAttID = self.settings.cnt[tI];
 		szAttID = self.settings.sAtts[tI];
 		if (szAttID) {
-			szAtt = PData.getAttID(szAttID);
+			szAtt = PData.aByID(szAttID);
 			if (typeof szAtt.r.min === 'number' && typeof szAtt.r.max === 'number')
 				da = szAtt.r.max - szAtt.r.min;
 			else
 				szAttID = null;
 		}
 		if (cAttID) {
-			oAtt = PData.getAttID(self.settings.order[tI]);
-			order = PData.orderTBy(oAtt, stream, tI);
+			oAtt = PData.aByID(self.settings.order[tI]);
+			order = PData.rTOrder(oAtt, stream, tI);
 
 			order.forEach(function(oRec) {
-				rec = PData.getRecByIndex(oRec.i);
+				rec = PData.rByN(oRec.i);
 					// Apply Legend
 				datum = rec.a[fAttID];
 				if (typeof datum !== 'undefined') {
-					fData = PData.getAttLgndRecs(datum, fAtt, featSet, false);
+					fData = PData.lRecs(datum, fAtt, featSet, false);
 					if (fData) {
 						t = rec.a[cAttID];
 						if (t)
@@ -2926,21 +2926,21 @@ VizTextStream.prototype.hint = function()
 	var h='';
 	var attID, attDef, tID, tDef, sAtt;
 
-	var numT = PData.getNumETmplts();
+	var numT = PData.eTNum();
 
 	for (var tI=0; tI<numT; tI++) {
 		attID = this.settings.order[tI];
 		if (attID) {
-			attDef = PData.getAttID(attID);
-			tID = PData.getETmpltIndex(tI);
-			tDef = PData.getTmpltID(tID);
+			attDef = PData.aByID(attID);
+			tID = PData.eTByN(tI);
+			tDef = PData.tByID(tID);
 			if (h.length > 0)
 				h += '; ';
 			h += tDef.l+': '+dlText.orderedby+' '+attDef.def.l;
 
 			attID = this.settings.sAtts[tI];
 			if (attID) {
-				attDef = PData.getAttID(attID);
+				attDef = PData.aByID(attID);
 				h += ', '+dlText.textsize+' '+attDef.def.l;
 			}
 		} // if attID
@@ -3015,13 +3015,13 @@ VizStackChart.prototype.setup2 = function()
 VizStackChart.prototype.setup = function()
 {
 	var oAttID = this.settings.oAtt;
-	var oAtt = PData.getAttID(oAttID);
+	var oAtt = PData.aByID(oAttID);
 
 	if (oAtt.def.t !== 'T' || !this.settings.tlit) {
 		if (this.settings.gr)
-			this.cats = PData.getRCats(oAtt, true, true);
+			this.cats = PData.cRNew(oAtt, true, true);
 		else
-			this.cats = PData.getLCats(oAtt, null, true);
+			this.cats = PData.cLNew(oAtt, null, true);
 		this.setup2();
 	} else
 		this.cats = null;
@@ -3058,24 +3058,24 @@ VizStackChart.prototype.render = function(stream)
 		// Pass 1 -- sort all Records into categories on X-Axis by oAtt
 	if (this.cats == null) {
 		this.cats = [];
-		PData.fillCats(this.cats, oAttID, sAttID, stream, true);
+		PData.cFill(this.cats, oAttID, sAttID, stream, true);
 		this.setup2();
 
 	} else
-		PData.fillCats(this.cats, oAttID, sAttID, stream, false);
+		PData.cFill(this.cats, oAttID, sAttID, stream, false);
 
 	this.blocks=[];		// { x[rCat index], c[olor], y, h, a[Indices] }
-	var sAtt = PData.getAttID(sAttID);
+	var sAtt = PData.aByID(sAttID);
 	var maxY=0, rec;
 	var fSet = self.vFrame.getSelFeatAtts(0);
-	var yCats = PData.getLCats(sAtt, fSet, true);
+	var yCats = PData.cLNew(sAtt, fSet, true);
 		// Pass 2 -- create Blocks by processing Records within a single Range Category by sAtt
 	for (var rI=0; rI<this.cats.length; rI++) {
 		if (rI > 0) { // clear previous entries
 			for (var yi=0; yi<yCats.length; yi++)
 				yCats[yi].i = [];
 		}
-		PData.sortCats(self.cats[rI].i, sAtt, yCats);
+		PData.cSort(self.cats[rI].i, sAtt, yCats);
 
 			// Create Blocks entries from yCats
 		var y=0;
@@ -3145,9 +3145,9 @@ VizStackChart.prototype.setState = function(state)
 VizStackChart.prototype.hint = function()
 {
 	var h=dlText.xaxis+': ';
-	var att = PData.getAttID(this.settings.oAtt);
+	var att = PData.aByID(this.settings.oAtt);
 	h += att.def.l+', '+dlText.yaxis+': ';
-	att = PData.getAttID(this.settings.sAtt);
+	att = PData.aByID(this.settings.sAtt);
 	h += att.def.l;
 	return h;
 } // hint()
@@ -3334,7 +3334,7 @@ VizNetWheel.prototype.render = function(stream)
 
 		tRec = stream.t[0];
 		fAttID = self.vFrame.getSelLegend(0);
-		fAtt = PData.getAttID(fAttID);
+		fAtt = PData.aByID(fAttID);
 		featSet = self.vFrame.getSelFeatAtts(0);
 
 		tLoop: while (i<stream.l) {
@@ -3345,7 +3345,7 @@ VizNetWheel.prototype.render = function(stream)
 					clan=[];
 				}
 					// Have we run out of Templates?
-				if (++tI === PData.getNumETmplts()) {
+				if (++tI === PData.eTNum()) {
 					break tLoop;
 				}
 
@@ -3353,16 +3353,16 @@ VizNetWheel.prototype.render = function(stream)
 				tRec = stream.t[tI];
 					// Which Attribute chosen for Legend?
 				fAttID = self.vFrame.getSelLegend(tI);
-				fAtt = PData.getAttID(fAttID);
+				fAtt = PData.aByID(fAttID);
 				featSet = self.vFrame.getSelFeatAtts(tI);
 			}
 
 				// Get Record data
 			aI = stream.s[i];
-			rec = PData.getRecByIndex(aI);
+			rec = PData.rByN(aI);
 			datum = rec.a[fAttID];
 			if (typeof datum !== 'undefined') {
-				fData = PData.getAttLgndRecs(datum, fAtt, featSet, false);
+				fData = PData.lRecs(datum, fAtt, featSet, false);
 				if (fData)
 					clan.push({ r: rec, ai: aI, c: fData.v, children: [] });
 			}
@@ -3575,16 +3575,16 @@ VizFlow.prototype.render = function(stream)
 	self.atts=[];
 	self.settings.fcts.forEach(function(attID, aI) {
 		var tCat;
-		var att = PData.getAttID(attID);
+		var att = PData.aByID(attID);
 		if (att.def.t !== 'T' || !self.settings.tlit) {
 			if (self.settings.gr)
-				tCat = PData.getRCats(att, true, true);
+				tCat = PData.cRNew(att, true, true);
 			else
-				tCat = PData.getLCats(att, null, true);
-			PData.fillCats(tCat, attID, null, stream, false);
+				tCat = PData.cLNew(att, null, true);
+			PData.cFill(tCat, attID, null, stream, false);
 		} else {
 			tCat=[];
-			PData.fillCats(tCat, attID, null, stream, true);
+			PData.cFill(tCat, attID, null, stream, true);
 		}
 			// Compile used categories
 		var used=[];
@@ -4047,17 +4047,17 @@ VizMBMap.prototype.render = function(stream)
 	this.bars=[];
 	this.settings.fcts.forEach(function(attID, aI) {
 		var tCat;
-		var att = PData.getAttID(attID);
+		var att = PData.aByID(attID);
 		var y=aI * 30;
 		if (att.def.t !== 'T' || !self.settings.tlit) {
 			if (self.settings.gr)
-				tCat = PData.getRCats(att, true, true);
+				tCat = PData.cRNew(att, true, true);
 			else
-				tCat = PData.getLCats(att, null, true);
-			PData.fillCats(tCat, attID, null, stream, false);
+				tCat = PData.cLNew(att, null, true);
+			PData.cFill(tCat, attID, null, stream, false);
 		} else {
 			tCat=[];
-			PData.fillCats(tCat, attID, null, stream, true);
+			PData.cFill(tCat, attID, null, stream, true);
 		}
 
 			// Compile used categories
@@ -4106,17 +4106,17 @@ VizMBMap.prototype.render = function(stream)
 
 		// Create Category array from primary dimension Facet
 	var pAttID = this.settings.p;
-	var pAtt = PData.getAttID(pAttID);
+	var pAtt = PData.aByID(pAttID);
 	var pCat;
 	if (pAtt.def.t !== 'T' || !self.settings.tlit) {
 		if (self.settings.gr)
-			pCat = PData.getRCats(pAtt, true, true);
+			pCat = PData.cRNew(pAtt, true, true);
 		else
-			pCat = PData.getLCats(pAtt, null, true);
-		PData.fillCats(pCat, pAttID, null, stream, false);
+			pCat = PData.cLNew(pAtt, null, true);
+		PData.cFill(pCat, pAttID, null, stream, false);
 	} else {
 		pCat=[];
-		PData.fillCats(pCat, pAttID, null, stream, true);
+		PData.cFill(pCat, pAttID, null, stream, true);
 	}
 
 	var vI = this.vFrame.getIndex();
@@ -4191,7 +4191,7 @@ VizMBMap.prototype.getSel = function()
 
 VizMBMap.prototype.hint = function()
 {
-	var att = PData.getAttID(this.settings.p);
+	var att = PData.aByID(this.settings.p);
 	return dlText.grpblks+' '+att.def.l;
 } // hint()
 
@@ -4703,7 +4703,7 @@ PFilterNum.prototype.setup = function()
 		});
 	}
 
-	this.rCats = PData.getRCats(this.att, false, false);
+	this.rCats = PData.cRNew(this.att, false, false);
 
 		// Create range category viz & slider
 	if (this.rCats !== null) {
@@ -4956,7 +4956,7 @@ PFilterDates.prototype.evalBoxes = function(insert)
 			// If OK so far, check against bounds
 		if (!fail) {
 				// <end> must be false to ensure ms is less than rCats.max for check
-			thisDate.ms = PData.date3Nums(thisDate.y, thisDate.m, thisDate.d, false);
+			thisDate.ms = PData.d3Nums(thisDate.y, thisDate.m, thisDate.d, false);
 				// Check against bounds
 			if (i == 0) {
 				if (thisDate.ms < self.rCats[0].min) {
@@ -5034,7 +5034,7 @@ PFilterDates.prototype.eval = function(rec)
 				d = field.d;
 			}
 		}
-		return PData.date3Nums(y, m, d, end);
+		return PData.d3Nums(y, m, d, end);
 	} // makeDate()
 
 	var d = rec.a[this.att.id];
@@ -5097,7 +5097,7 @@ PFilterDates.prototype.setup = function()
 {
 	var self = this;
 
-	this.rCats = PData.getRCats(this.att, false, false);
+	this.rCats = PData.cRNew(this.att, false, false);
 	this.ctrs = new Uint16Array(this.rCats.length);
 
 		// Set defaults
@@ -5592,13 +5592,13 @@ function PViewFrame(vfIndex)
 		function inspectShow()
 		{
 			var recAbsI = recSel[i];
-			rec = PData.getRecByIndex(recAbsI);
+			rec = PData.rByN(recAbsI);
 			var title = ' '+rec.l+' ('+(i+1)+'/'+recSel.length+') ';
 			var nameDOM = jQuery('#inspect-name');
 			nameDOM.text(title);
 			nameDOM.prop('title', rec.id);
 				// Which template type?
-			var tI = PData.aIndex2Tmplt(recAbsI);
+			var tI = PData.n2T(recAbsI);
 
 				// PURPOSE: Return start and end times for extract if any
 				// ASSUMES: Any timecode given contains both start and end separated by "-"
@@ -5623,9 +5623,9 @@ function PViewFrame(vfIndex)
 				// Show all Attribute content data
 			container.empty();
 			prspdata.e.i.modal.atts[tI].forEach(function(attID) {
-				var attVal = PData.getRecAtt(recAbsI, attID, false);
+				var attVal = PData.rAV(recAbsI, attID, false);
 				if (attVal) {
-					var theAtt = PData.getAttID(attID);
+					var theAtt = PData.aByID(attID);
 					var html;
 						// Special case - Labels that begin with underscore are "invisible"
 					if (theAtt.def.l.charAt(0) == '_')
@@ -6093,7 +6093,7 @@ function PViewFrame(vfIndex)
 		group.empty();
 		legendIDs[lIndex] = attID;
 			// Insert new items
-		var attDef = PData.getAttID(attID);
+		var attDef = PData.aByID(attID);
 			// Create pseudo-entry for undefined value
 		if (typeof attDef.r.u !== 'undefined') {
 			element = '<div class="lgnd-value lgnd-entry" data-index="-1"><input type="checkbox" checked="checked" class="lgnd-entry-check"/>'+
@@ -6129,7 +6129,7 @@ function PViewFrame(vfIndex)
 		//			if refresh, then immediately redraw
 	function createViz(vIndex, refresh)
 	{
-		var theView = PData.getVizIndex(vIndex);
+		var theView = PData.vByN(vIndex);
 
 			// Remove current viz content
 		if (vizModel) {
@@ -6210,7 +6210,7 @@ function PViewFrame(vfIndex)
 				// Is it just a single Legend for all Records?
 			if (flags & V_FLAG_SLGND) {
 				var fAttID = newViz.getFeatureAtts();
-				var fAtt = PData.getAttID(fAttID);
+				var fAtt = PData.aByID(fAttID);
 				lgndCntr.append('<div class="lgnd-template" data-index="0"><div class="lgnd-title">'+fAtt.def.l+
 					'</div><div class="lgnd-entry lgnd-sh"><input type="checkbox" checked="checked" class="lgnd-entry-check"/><i>'+
 					dlText.sha+'</i></div><div class="lgnd-group"></div></div>');
@@ -6221,7 +6221,7 @@ function PViewFrame(vfIndex)
 					// Create Legend sections for each Template
 				var prev=false;
 				prspdata.e.g.ts.forEach(function(tID, tIndex) {
-					var tmpltDef = PData.getTmpltID(tID);
+					var tmpltDef = PData.tByID(tID);
 						// Insert locate attributes into Legends
 					var locAtts = newViz.getLocAtts(tIndex);
 					if ((locAtts && locAtts.length > 0) || !(flags & V_FLAG_LOC)) {
@@ -6237,14 +6237,14 @@ function PViewFrame(vfIndex)
 											'"><div class="lgnd-title">'+tmpltDef.l+'</div></div>');
 							if (locAtts)
 								locAtts.forEach(function(attID, aIndex) {
-									var attDef = PData.getAttID(attID);
+									var attDef = PData.aByID(attID);
 									newTLegend.append('<div class="lgnd-entry lgnd-locate" data-id="'+attID+
 										'"><input type="checkbox" checked="checked" class="lgnd-entry-check"/><span class="lgnd-value-title">'+
 										attDef.def.l+'</span></div>');
 								});
 							var newStr = '<select class="lgnd-select">';
 							fAtts.forEach(function(attID, aIndex) {
-								var attDef = PData.getAttID(attID);
+								var attDef = PData.aByID(attID);
 								newStr += '<option value="'+attID+'">'+attDef.def.l+'</option>';
 							});
 							newStr += '</select>';
@@ -6508,7 +6508,7 @@ function PViewFrame(vfIndex)
 
 	instance.title = function()
 	{
-		var v = PData.getVizIndex(vizSelIndex);
+		var v = PData.vByN(vizSelIndex);
 		return v.l;
 	} // title()
 
@@ -6532,7 +6532,9 @@ function PViewFrame(vfIndex)
 //			PData is implemented with the "Module" design pattern for hiding
 //				private variables and minimizing external interference
 // 			The s array of an IndexStream contains absolute index numbers to global data array
-
+//			Function names are minimized in length for lookup speed, using abbreviations:
+//				a[ttribute], c[ategory], d[ates], l[egend], r[ecord], s[tream], t[emplate], v[iz]
+//				id, n[index]
 
 var PData = (function() {
 
@@ -6552,7 +6554,7 @@ var PData = (function() {
 	var recs=[];				// "head" array of all Records, one entry per Template type
 								// Corresponding to prspdata.t
 								// { n = # loaded, i = initial index for these records, d = data array }
-	var recsCount=0;			// Total number of Records
+	var rCount=0;				// Total number of Records
 	var loaded=false;			// All data loaded?
 
 	// INTERNAL FUNCTIONS
@@ -6560,7 +6562,7 @@ var PData = (function() {
 
 
 		// PURPOSE: Load a particular chunk of Records
-	function loadAJAXRecs(tIndex, from, count)
+	function rChunk(tIndex, from, count)
 	{
 		jQuery.ajax({
 			type: 'POST',
@@ -6581,18 +6583,18 @@ var PData = (function() {
 				else
 					r.d = newD;
 				r.n += count;
-				checkDataLoad();
+				rLoad();
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown)
 			{
 			   alert(errorThrown);
 			}
 		});
-	} // loadAJAXRecs()
+	} // rChunk()
 
 
 		// PURPOSE: Look for set of Records that haven't been loaded and request
-	function checkDataLoad()
+	function rLoad()
 	{
 		var done = true;
 
@@ -6603,7 +6605,7 @@ var PData = (function() {
 				done = false;
 				var gap = needed - current;
 				var size = gap < LOAD_DATA_CHUNK ? gap : LOAD_DATA_CHUNK;
-				loadAJAXRecs(i, current, size);
+				rChunk(i, current, size);
 					// Since this is a recursive action, break on first find
 				break;
 			}
@@ -6614,7 +6616,7 @@ var PData = (function() {
 				jQuery("body").trigger("prospect", { s: PSTATE_PROCESS });
 			}, 500);
 		}
-	} // checkDataLoad()
+	} // rLoad()
 
 
 	// PUBLIC INTERFACE
@@ -6634,11 +6636,11 @@ var PData = (function() {
 				// For each entry: head entry for Record Data and collect Legends
 			prspdata.t.forEach(function(tmplt) {
 					// Head Record entry
-				var newTData = { i: recsCount, n: 0, d: null };
+				var newTData = { i: rCount, n: 0, d: null };
 				recs.push(newTData);
-				recsCount += tmplt.n;
+				rCount += tmplt.n;
 			});
-			checkDataLoad();
+			rLoad();
 		}, // init()
 
 			// RETURNS: intersection between a and b (as array)
@@ -6705,61 +6707,60 @@ var PData = (function() {
 			// PURPOSE: Create a new IndexStream: { s = index array, t = array of template params, l = total length }
 			// INPUT: 	if full, fill with entries for all Records
 			// NOTE: 	JS Arrays are quirky; s is always full size, so l is used to maintain length
-		newIndexStream: function(full)
+		sNew: function(full)
 		{
 			var newStream = { };
-			newStream.s = new Uint16Array(recsCount);
+			newStream.s = new Uint16Array(rCount);
 			newStream.t = [];
 			newStream.l = 0;
 
 			if (full) {
 				var i;
-				for (i=0; i<recsCount; i++)
+				for (i=0; i<rCount; i++)
 					newStream.s[i] = i;
 				for (i=0; i<recs.length; i++) {
 					var tEntry = recs[i];
 					var newEntry = { i: tEntry.i, n: tEntry.n };
 					newStream.t.push(newEntry);
 				}
-				newStream.l = recsCount;
+				newStream.l = rCount;
 			}
 			return newStream;
-		}, // newIndexStream()
-
+		}, // sNew()
 
 			// RETURNS: Index of Template to which absolute index <absI> belongs
-		aIndex2Tmplt: function(absI)
+		n2T: function(absI)
 		{
 			for (var i=0; i<recs.length; i++) {
 				var tData = recs[i];
 				if (tData.i <= absI  && absI < (tData.i+tData.n))
 					return i;
 			}
-		}, // aIndex2Tmplt()
+		}, // n2T()
 
 			// RETURNS: True if attID is in template tIndex
-		attInTmplt: function(attID, tIndex)
+		aInT: function(attID, tIndex)
 		{
 			var tEntry = prspdata.t[tIndex];
 			return (tEntry.def.a.findIndex(function(a) { return a == attID; }) != -1);
-		}, // attInTmplt()
+		}, // aInT()
 
 
 			// RETURNS: The index of first entry in <datastream> which belongs to Template <tIndex>
 			//			-1 if the Template has no entries
 			// NOTE: 	This is for effectively "fast-forwarding" to a particular Template section
 			// 			This is tricky because binary-search needs to look for range
-		stream1stTEntry: function(datastream, tIndex)
+		s1stT: function(datastream, tIndex)
 		{
 			var tEntry = datastream.t[tIndex];
 			if (tEntry.n == 0)
 				return -1;
 			return tEntry.i;
-		}, // stream1stTEntry()
+		}, // s1stT()
 
 
 			// RETURNS: Object for Record whose absolute index is <absI>
-		getRecByIndex: function(absI)
+		rByN: function(absI)
 		{
 			for (var i=0; i<recs.length; i++) {
 				var tData = recs[i];
@@ -6769,7 +6770,7 @@ var PData = (function() {
 				}
 			}
 			return null;
-		}, // getRecByIndex()
+		}, // rByN()
 
 			// RETURNS: Attribute value in string format
 			// INPUT: 	attID = ID of Attribute
@@ -6777,7 +6778,7 @@ var PData = (function() {
 			// TO DO: 	Change attID to att definition
 		procAttTxt: function(attID, a)
 		{
-			var att = PData.getAttID(attID);
+			var att = PData.aByID(attID);
 			switch (att.def.t) {
 			case 'V':
 				return a.join(', ');
@@ -6854,7 +6855,7 @@ var PData = (function() {
 				if (a.length > 0) {
 					var t = '';
 					a.forEach(function(onePtr) {
-						var ptrRec = PData.getRecByID(onePtr);
+						var ptrRec = PData.rByID(onePtr);
 						if (ptrRec) {
 							t += '<a href="'+prspdata.site_url+'?p='+ptrRec.wp+'" target="_blank">'+ptrRec.l+'</a> ';
 						}
@@ -6870,7 +6871,7 @@ var PData = (function() {
 			// RETURNS: Attribute value for <attID> in Record whose absolute index is <index>
 			//				or null if either is non-existent
 			// INPUT: 	If <raw>, return as is; otherwise, turn into string/HTML
-		getRecAtt: function(absI, attID, raw)
+		rAV: function(absI, attID, raw)
 		{
 			for (var i=0; i<recs.length; i++) {
 				var tData = recs[i];
@@ -6885,10 +6886,10 @@ var PData = (function() {
 				}
 			}
 			return null;
-		}, // getRecAtt()
+		}, // rAV()
 
 			// RETURNS: Absolute index for Record whose ID is recID
-		getAbsIByID: function(recID)
+		nByID: function(recID)
 		{
 			for (var i=0; i<recs.length; i++) {
 				var tData = recs[i];
@@ -6915,11 +6916,11 @@ var PData = (function() {
 				} // if tData
 			} // for i
 			return null;
-		}, // getAbsIByID()
+		}, // nByID()
 
 
 			// RETURNS: Record data for recID
-		getRecByID: function(recID)
+		rByID: function(recID)
 		{
 			for (var i=0; i<recs.length; i++) {
 				var tData = recs[i];
@@ -6946,13 +6947,13 @@ var PData = (function() {
 				} // if tData
 			} // for i
 			return null;
-		}, // getRecByID()
+		}, // rByID()
 
 
 			// RETURNS: Attribute definition with this ID
 			// INPUT:   attID = full Attribute ID (could be in Join dot notation)
 			// TO DO: 	Use Intl.Collator for string compare??
-		getAttID: function(attID)
+		aByID: function(attID)
 		{
 			var lo = 0;
 			var hi = prspdata.a.length-1;
@@ -6971,40 +6972,40 @@ var PData = (function() {
 				}
 			}
 			return null;
-		}, // getAttID()
+		}, // aByID()
 
-		getAttIndex: function(aIndex)
+		aByN: function(aIndex)
 		{
 			return prspdata.a[aIndex];
-		}, // getAttIndex()
+		}, // aByN()
 
 			// RETURNS: Number of Templates used by this Exhibit
-		getNumETmplts: function()
+		eTNum: function()
 		{
 			return prspdata.e.g.ts.length;
 		},
 
 			// RETURNS: The ID of this Exhibit's tIndex Template
-		getETmpltIndex: function(tIndex)
+		eTByN: function(tIndex)
 		{
 			return prspdata.e.g.ts[tIndex];
 		},
 
 			// RETURNS: Definition of template whose ID is tID
-		getTmpltID: function(tID)
+		tByID: function(tID)
 		{
 			for (var i=0; i<prspdata.t.length; i++) {
 				if (tID == prspdata.t[i].id)
 					return prspdata.t[i].def;
 			}
-		}, // getTmpltID()
+		}, // tByID()
 
 			// RETURNS: The visual feature for an Attribute value, an array (if all), or null if no match
 			// INPUT:   val = raw Attribute val (String or Number)
 			//			att = full Attribute entry
 			//			fSet = array of selected Legend indices ([x,y] for 2ndary level!)
 			//			all = return array for all possible matches for <val> (true), or just first match (false)
-		getAttLgndRecs: function(val, att, fSet, all)
+		lRecs: function(val, att, fSet, all)
 		{
 			var fI, lI = fSet.length, lE;
 
@@ -7194,7 +7195,7 @@ var PData = (function() {
 				break;
 			}
 			return null;
-		}, // getAttLgndRecs()
+		}, // lRecs()
 
 
 			// RETURNS: Just color code for an Attribute value, an array (if all), or null if no match
@@ -7203,44 +7204,45 @@ var PData = (function() {
 			//			fSet = array of selected Legend indices ([x,y] for 2ndary level!)
 			//			all = return array for all possible matches for <val> (true), or just first match (false)
 			// TO DO: 	Change to ptr to legend record so can access both <v> and <b> ??
-		getAttLgndVal: function(val, att, fSet)
+		lClr: function(val, att, fSet)
 		{
 			var rec;
 
-			if (rec = PData.getAttLgndRecs(val, att, fSet, false)) {
+			if (rec = PData.lRecs(val, att, fSet, false)) {
 				return rec.v;
 			} else
 				return null
-		}, // getAttLgndVal()
+		}, // lClr()
 
 
 			// PURPOSE: Find the visual code for this Attribute's vocabulary item
+			//			-- Not currently used --
 			// RETURNS: pointer to Legend record, or null if failure
 			// ASSUMES: <att> is a complete record for a Vocabulary Attribute
-		getVLgndVal: function(att, val)
-		{
-			var lo = 0;
-			var hi = att.x.length-1;
-			var pos, cmp;
+		// getVLgndVal: function(att, val)
+		// {
+		// 	var lo = 0;
+		// 	var hi = att.x.length-1;
+		// 	var pos, cmp;
 
-			while (lo <= hi) {
-				pos = (lo + hi) >> 1;
-				cmp = PData.strcmp(val, att.x[pos].l);
+		// 	while (lo <= hi) {
+		// 		pos = (lo + hi) >> 1;
+		// 		cmp = PData.strcmp(val, att.x[pos].l);
 
-				if (cmp < 0) {
-					lo = pos + 1;
-				} else if (cmp > 0) {
-					hi = pos - 1;
-				} else {
-					var i = att.x[pos].i;
-					if (typeof i === 'number')
-						return att.l[i];
-					else
-						return att.l[i[0]].z[i[1]];
-				}
-			}
-			return null;
-		}, // getVLgndVal()
+		// 		if (cmp < 0) {
+		// 			lo = pos + 1;
+		// 		} else if (cmp > 0) {
+		// 			hi = pos - 1;
+		// 		} else {
+		// 			var i = att.x[pos].i;
+		// 			if (typeof i === 'number')
+		// 				return att.l[i];
+		// 			else
+		// 				return att.l[i[0]].z[i[1]];
+		// 		}
+		// 	}
+		// 	return null;
+		// }, // getVLgndVal()
 
 			// PURPOSE: Return number of days in month, accounting for leap years
 		lenMnth: function(y, m)
@@ -7256,7 +7258,7 @@ var PData = (function() {
 			// INPUT:   year, month (1-12), day (1) must be definite numbers
 			//			if end, make the Date the end of the day (not beginning)
 			// NOTE:    JavaScript Date month is 0-based (not 1-based: 0=January)
-		date3Nums: function(year, month, day, end)
+		d3Nums: function(year, month, day, end)
 		{
 			var date;
 
@@ -7272,10 +7274,10 @@ var PData = (function() {
 			if (end)
 				date.setTime(date.getTime() + MS_IN_DAY);
 			return date;
-		}, // date3Nums
+		}, // d3Nums
 
 			// PURPOSE: Create a Date from minimal specification in Object fields
-		objDate: function(field, m, end) {
+		dObj: function(field, m, end) {
 			var d;
 
 			if (typeof field.m !== 'undefined' && field.m !== null) {
@@ -7287,13 +7289,13 @@ var PData = (function() {
 			} else {
 				d = PData.lenMnth(field.y, m);
 			}
-			return PData.date3Nums(field.y, m, d, end);
-		}, // objDate()
+			return PData.d3Nums(field.y, m, d, end);
+		}, // dObj()
 
 			// PURPOSE: Create Date by parsing string
 			// INPUT: 	end = true if last part of range
 			// ASSUMES: Definite date: won't have initial ~ character
-		parseDate: function(str, end)
+		dStr: function(str, end)
 		{
 			var m, d;
 
@@ -7326,83 +7328,84 @@ var PData = (function() {
 			}
 
 				// add end of day?
-			return PData.date3Nums(y, m, d, end);
-		}, // parseDate()
+			return PData.d3Nums(y, m, d, end);
+		}, // dStr()
 
 			// PURPOSE: Create Dates (single date or range) from Record value
+			//			-- Currently unused --
 			// RETURNS: [date, date] (if a single day, second date is empty)
-		makeDates: function(data)
-		{
-			var s, e;
-			var y, m, d, single=false;
+		// dData: function(data)
+		// {
+		// 	var s, e;
+		// 	var y, m, d, single=false;
 
-			y = data.min.y;
-			if (typeof data.min.m === 'undefined') {
-				m = 1; d = 1;
-			} else {
-				m = data.min.m;
-				if (typeof data.min.d === 'undefined')
-					d = 1;
-				else {
-					d = data.min.d;
-					single=true;
-				}
-			}
-			s = PData.date3Nums(y,m,d,false);
-			if (typeof data.max !== 'undefined') {
-				if (data.max === 'open')
-					e = TODAY;
-				else {
-					y = data.max.y;
-					if (typeof data.max.m === 'undefined') {
-						m = 12; d = 31;
-					} else {
-						m = data.max.m;
-						if (typeof data.max.d === 'undefined')
-							d = PData.lenMnth(y, m);
-						else
-							d = data.max.d;
-					}
-					e = PData.date3Nums(y,m,d,true);
-				} // number
-			} else {
-				if (single)
-					return [s, null];
-				else {
-					if (typeof data.min.m === 'undefined') {
-						m = 12; d = 31;
-					} else {
-						m = data.min.m;
-						d = PData.lenMnth(y, m);
-					}
-					e = PData.date3Nums(y,m,d,true);
-				}
-			}
-			return [s, e];
-		}, // makeDates
+		// 	y = data.min.y;
+		// 	if (typeof data.min.m === 'undefined') {
+		// 		m = 1; d = 1;
+		// 	} else {
+		// 		m = data.min.m;
+		// 		if (typeof data.min.d === 'undefined')
+		// 			d = 1;
+		// 		else {
+		// 			d = data.min.d;
+		// 			single=true;
+		// 		}
+		// 	}
+		// 	s = PData.d3Nums(y,m,d,false);
+		// 	if (typeof data.max !== 'undefined') {
+		// 		if (data.max === 'open')
+		// 			e = TODAY;
+		// 		else {
+		// 			y = data.max.y;
+		// 			if (typeof data.max.m === 'undefined') {
+		// 				m = 12; d = 31;
+		// 			} else {
+		// 				m = data.max.m;
+		// 				if (typeof data.max.d === 'undefined')
+		// 					d = PData.lenMnth(y, m);
+		// 				else
+		// 					d = data.max.d;
+		// 			}
+		// 			e = PData.d3Nums(y,m,d,true);
+		// 		} // number
+		// 	} else {
+		// 		if (single)
+		// 			return [s, null];
+		// 		else {
+		// 			if (typeof data.min.m === 'undefined') {
+		// 				m = 12; d = 31;
+		// 			} else {
+		// 				m = data.min.m;
+		// 				d = PData.lenMnth(y, m);
+		// 			}
+		// 			e = PData.d3Nums(y,m,d,true);
+		// 		}
+		// 	}
+		// 	return [s, e];
+		// }, // dData
 
 
 			// PURPOSE: Return array of categories for facet att based on Legend definitions
 			// INPUT: 	att = complete Attribute definition
 			//			fSet = allowable Legend indices (returned by getSelFeatAtts) or null
 			//			If undef, create initial category for undefined value if allowed in Attribute
-			// RETURNS: category array in same format as getRCats (always has i[])
-		getLCats: function(att, fSet, undef)
+			// RETURNS: category array in same format as cRNew (always has i[])
+		cLNew: function(att, fSet, undef)
 		{
 			var rcs = [];
 			switch (att.def.t) {
 			case 'T':
 				att.l.forEach(function(t) {
-					if (fSet == null || PData.getAttLgndRecs(t.d, att, fSet, false))
+					if (fSet == null || PData.lRecs(t.d, att, fSet, false))
 						rcs.push({ l: t.l, x: t.d, c: t.v, i: [] });
 				});
 				return rcs;
 			case 'V':
 				att.l.forEach(function(v) {
-					if (fSet == null || PData.getAttLgndRecs([v.l], att, fSet, false))
+					if (fSet == null || PData.lRecs([v.l], att, fSet, false))
 						rcs.push({ l: v.l, c: v.v, i: [] });
 					v.z.forEach(function(v2) {
-						if (fSet == null || PData.getAttLgndRecs([v2.l], att, fSet, false)) {
+						if (fSet == null || PData.lRecs([v2.l], att, fSet, false)) {
 								// Does it inherit from parent or have its own color?
 							if (v2.v === '')
 								rcs.push({ l: v2.l, c: v.v, i: [] });
@@ -7415,28 +7418,28 @@ var PData = (function() {
 			case 'N':
 					// Create undefined category? -- must be initial one
 				if (undef && typeof att.r.u !== 'undefined') {
-					if (fSet == null || PData.getAttLgndRecs('?', att, fSet, false))
+					if (fSet == null || PData.lRecs('?', att, fSet, false))
 						rcs.push({ l: '?', c: att.r.u.v, min: '?', max: '?', i: [] });
 				}
 				att.l.forEach(function(n) {
-					if (fSet == null || PData.getAttLgndRecs(n.d.min, att, fSet, false))
+					if (fSet == null || PData.lRecs(n.d.min, att, fSet, false))
 						rcs.push({ l: n.l, c: n.v, min: n.d.min, max: n.d.max, i: [] })
 				});
 				return rcs;
 			case 'D':
 					// Create undefined category? -- must be initial one
 				if (undef && typeof att.r.u !== 'undefined') {
-					if (fSet == null || PData.getAttLgndRecs('?', att, fSet, false))
+					if (fSet == null || PData.lRecs('?', att, fSet, false))
 						rcs.push({ l: '?', c: att.r.u.v, min: '?', max: '?', i: [] });
 				}
 				var dmin, dmax;
 				att.l.forEach(function(d) {
-					dmin = PData.objDate(d.min, 1, false);
-					if (fSet === null || PData.getAttLgndRecs(dmin, att, fSet, false)) {
+					dmin = PData.dObj(d.min, 1, false);
+					if (fSet === null || PData.lRecs(dmin, att, fSet, false)) {
 						if (d.max.y === null)
 							dmax = TODAY;
 						else
-							dmax = PData.objDate(d.max, 12, false);
+							dmax = PData.dObj(d.max, 12, false);
 
 							// Just bump slightly to enable exclusive comparison
 						dmax.setTime(dmax.getTime() + 10);
@@ -7445,7 +7448,7 @@ var PData = (function() {
 				});
 				return rcs;
 			} // switch
-		}, // getLCats()
+		}, // cLNew()
 
 
 			// PURPOSE: Return array of range categories for facet att
@@ -7464,7 +7467,7 @@ var PData = (function() {
 			//			max value for Dates only (!) is exclusive (value must be less than, not equal!)
 			//			If undefined color given for Number or Dates, that will be first category
 			// TO DO: 	Handle case that scale of max-min and g would be too large ??
-		getRCats: function(att, addItems, undef)
+		cRNew: function(att, addItems, undef)
 		{
 			var rcs = [];
 			switch (att.def.t) {
@@ -7551,7 +7554,7 @@ var PData = (function() {
 							d = field.d;
 						}
 					}
-					return PData.date3Nums(y,m,d,false);
+					return PData.d3Nums(y,m,d,false);
 				} // makeDate()
 				function makeMaxDate(field)
 				{
@@ -7570,7 +7573,7 @@ var PData = (function() {
 								d = field.d;
 						}
 							// Since max value is exclusive boundary, don't add day to it
-						return PData.date3Nums(y,m,d,false);
+						return PData.d3Nums(y,m,d,false);
 					}
 				} // makeMaxDate()
 
@@ -7583,7 +7586,7 @@ var PData = (function() {
 						curD = att.r.min.d;
 					}
 				}
-				var curDate = PData.date3Nums(curY, curM, curD, false);
+				var curDate = PData.d3Nums(curY, curM, curD, false);
 				var lI=0, curL, lMinDate, lMaxDate, maxMS;
 				if (att.l.length > 0) {
 					curL = att.l[0];
@@ -7667,7 +7670,7 @@ var PData = (function() {
 						curY += 100;
 						break;
 					}
-					maxMS = PData.date3Nums(curY, curM, curD, false);
+					maxMS = PData.d3Nums(curY, curM, curD, false);
 					if (maxMS > TODAY) {
 						maxMS = TODAY;
 					}
@@ -7676,33 +7679,33 @@ var PData = (function() {
 					rCat.max = maxMS;
 
 					rcs.push(rCat);
-					curDate = PData.date3Nums(curY, curM, curD, false);
+					curDate = PData.d3Nums(curY, curM, curD, false);
 				}
 				return rcs;
 			} // switch
-		}, // getRCats()
+		}, // cRNew()
 
 
 			// PURPOSE: Sort all Records in stream into categories according to order Attribute
-			// INPUT: 	cats = array generated by getLCats/getRCats (or empty array if unique Text values)
+			// INPUT: 	cats = array generated by cLNew/cRNew (or empty array if unique Text values)
 			//			oAttID = ID of Attribute used for ordering (used to make cats)
 			//			sAttID = ID of secondary, required Attribute used later (or null)
 			//			stream = datastream
 			//			uT = if true, collect all unique text strings (add to rCats)
 			// NOTES: 	Puts aIDs from stream into i arrays of rCats
-		fillCats: function(cats, oAttID, sAttID, stream, uT)
+		cFill: function(cats, oAttID, sAttID, stream, uT)
 		{
-			var numTmplts = PData.getNumETmplts();
+			var numTmplts = PData.eTNum();
 			var tI=0, tRec;
 			var rI=0, aI, rec, datum, fData;
 			var cI, cRec;
 
-			var oAtt = PData.getAttID(oAttID);
+			var oAtt = PData.aByID(oAttID);
 
 			tRec = stream.t[0];
 			while (rI<stream.l) {
 					// Advance until we get to next used Template rec that has both necessary Attributes
-				while (tRec.n == 0 || (tRec.i+tRec.n) == rI || !PData.attInTmplt(oAttID, tI) || (sAttID && !PData.attInTmplt(sAttID, tI))) {
+				while (tRec.n == 0 || (tRec.i+tRec.n) == rI || !PData.aInT(oAttID, tI) || (sAttID && !PData.aInT(sAttID, tI))) {
 						// Have we run out of Templates?
 					if (++tI == numTmplts)
 						return;
@@ -7712,7 +7715,7 @@ var PData = (function() {
 
 					// Get Record data
 				aI = stream.s[rI];
-				rec = PData.getRecByIndex(aI);
+				rec = PData.rByN(aI);
 				datum = rec.a[oAttID];
 				if (typeof datum != 'undefined') {
 					switch (oAtt.def.t) {
@@ -7787,7 +7790,7 @@ var PData = (function() {
 						if (datum === '?')
 							break;
 							// Only need to look at start date!
-						var sd = PData.objDate(datum.min, 1, false);
+						var sd = PData.dObj(datum.min, 1, false);
 						for (; cI<cats.length; cI++) {
 							cRec = cats[cI];
 								// Did we pass eligible category?
@@ -7808,19 +7811,19 @@ var PData = (function() {
 			if (uT) {
 				cats.sort(function(a,b) { return PData.strcmp(b.l, a.l); });
 			}
-		}, // fillCats()
+		}, // cFill()
 
 			// PURPOSE: Created new sorted category array in sCats based on sAtt value
 			// INPUT: 	cat = array of aIs of Records
 			//			sAtt = definition of Attribute used for sorting
-			//			sCats = category array created by getLCats for storing new aIs
-		sortCats: function(cat, sAtt, sCats)
+			//			sCats = category array created by cLNew for storing new aIs
+		cSort: function(cat, sAtt, sCats)
 		{
 			var id=sAtt.id;
 			var rec, sI, sRec;
 
 			cat.forEach(function(aI) {
-				rec = PData.getRecByIndex(aI);
+				rec = PData.rByN(aI);
 				datum = rec.a[id];
 				if (typeof datum != 'undefined') {
 					switch (sAtt.def.t) {
@@ -7882,7 +7885,7 @@ var PData = (function() {
 						if (datum === '?')
 							break;
 							// Only need to look at start date!
-						var sd = PData.objDate(datum.min, 1, false);
+						var sd = PData.dObj(datum.min, 1, false);
 						for (sI=0; sI<sCats.length; sI++) {
 							sRec = sCats[sI];
 								// Did we pass eligible category?
@@ -7897,12 +7900,12 @@ var PData = (function() {
 					} // switch type
 				}
 			});
-		}, // sortCats()
+		}, // cSort()
 
 			// PURPOSE: Create index for records of particular Template in stream, ordered by the value of an Attribute
 			// RETURNS: Array containing objects: { i [absolute index of record], v [value] }
 			// NOTES: 	Only uses first value in the case of multiple (V, D, etc)
-		orderTBy: function(att, stream, tI)
+		rTOrder: function(att, stream, tI)
 		{
 			function vIden(v)
 			{
@@ -7923,7 +7926,7 @@ var PData = (function() {
 					if (typeof v.min.d !== 'undefined')
 						d = v.min.d;
 				}
-				return PData.date3Nums(v.min.y, m, d, false);
+				return PData.d3Nums(v.min.y, m, d, false);
 			}
 
 			var eval, maxV;
@@ -7974,13 +7977,13 @@ var PData = (function() {
 			}
 
 			return ord;
-		}, // orderTBy()
+		}, // rTOrder()
 
 			// RETURNS: View configuration data for vIndex
-		getVizIndex: function(vIndex)
+		vByN: function(vIndex)
 		{
 			return prspdata.e.vf[vIndex];
-		}, // getVizIndex()
+		}, // vByN()
 
 			// RETURNS: true after all data has been loaded
 		ready: function()
@@ -8030,7 +8033,7 @@ jQuery(document).ready(function($) {
 		PState.set(PSTATE_PROCESS);
 
 		if (topStream == null)
-			topStream = PData.newIndexStream(true);
+			topStream = PData.sNew(true);
 		endStream = topStream;
 
 			// Go through filter stack -- find 1st dirty and recompute from there
@@ -8043,7 +8046,7 @@ jQuery(document).ready(function($) {
 				started = true;
 				var f = theF.f;
 				f.evalPrep();
-				var newStream = PData.newIndexStream(false);
+				var newStream = PData.sNew(false);
 				var relI=0, absI, rec;
 				var tI=0, tRec=endStream.t[0], tRn=0, rTotal=0;
 				var e=fDiv.find('.apply-tmplt-0').is(':checked');
@@ -8059,7 +8062,7 @@ jQuery(document).ready(function($) {
 	 				absI = endStream.s[relI++];
 	 					// Need to evaluate
  					if (e) {
-	 					rec = PData.getRecByIndex(absI);
+	 					rec = PData.rByN(absI);
 						if (f.eval(rec)) {
 							newStream.s[newStream.l++] = absI;
 							tRn++;
@@ -8072,7 +8075,7 @@ jQuery(document).ready(function($) {
  					}
 				}
 					// push out remaining Template recs
-				while (tI++ < PData.getNumETmplts()) {
+				while (tI++ < PData.eTNum()) {
 					newStream.t.push( { i: (newStream.l-tRn), n: tRn } );
 					tRn = 0;
 				}
@@ -8213,7 +8216,7 @@ jQuery(document).ready(function($) {
 		filters.forEach(function(theF) {
 			var a=[];
 			var fDiv = jQuery('div.filter-instance[data-id="'+theF.id+'"]');
-			for (var ti=0; ti<PData.getNumETmplts(); ti++) {
+			for (var ti=0; ti<PData.eTNum(); ti++) {
 				a.push(fDiv.find('.apply-tmplt-'+ti).is(':checked'));
 			}
 			pState.f.push({ id: theF.attID, a: a, s: theF.f.getState() });
@@ -8651,7 +8654,7 @@ jQuery(document).ready(function($) {
 			newFilter = new PFilterRemove(newID);
 			theAtt = { t: [true, true, true, true ] };	// Create pseudo-Attribute entry
 		} else {
-			theAtt = PData.getAttID(fID);
+			theAtt = PData.aByID(fID);
 			switch (theAtt.def.t) {
 			case 'V':
 				newFilter = new PFilterVocab(newID, theAtt);
@@ -8684,7 +8687,7 @@ jQuery(document).ready(function($) {
 			var head = jQuery('div.filter-instance[data-id="'+newID+'"]');
 
 				// Check each checkbox acoording to default settings, disable acc to Template appearance
-			for (var i=0; i<PData.getNumETmplts(); i++) {
+			for (var i=0; i<PData.eTNum(); i++) {
 				var applier = head.find('.apply-tmplt-'+i);
 				applier.prop('disabled', !theAtt.t[i]);
 				applier.prop('checked', apply[i] && theAtt.t[i]);
@@ -8783,7 +8786,7 @@ jQuery(document).ready(function($) {
 			var relI=0, absI, rec;
 			while (relI < endStream.l) {
 				absI = endStream.s[relI++];
-				rec = PData.getRecByIndex(absI);
+				rec = PData.rByN(absI);
 				if (hFilter.eval(rec)) {
 					list.push(absI);
 				}
@@ -9045,7 +9048,7 @@ jQuery(document).ready(function($) {
 		prspdata.t.forEach(function(tmplt, ti) {
 			var opts='';
 			tmplt.def.a.forEach(function(attID) {
-				att = PData.getAttID(attID);
+				att = PData.aByID(attID);
 				switch (att.def.t) {
 				case 'T':
 				case 'V':
