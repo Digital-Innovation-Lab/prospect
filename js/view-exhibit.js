@@ -3401,6 +3401,9 @@ VizNetWheel.prototype.render = function(stream)
 		fAttID = self.vFrame.getSelLegend(0);
 		fAtt = PData.aByID(fAttID);
 		featSet = self.vFrame.getSelFeatAtts(0);
+		if (featSet.length > 0 && tRec.n > 0) {
+			self.tUsed[0] = true;
+		}
 
 		tLoop: while (i<stream.l) {
 				// Advance until we get to current Template rec
@@ -3420,7 +3423,7 @@ VizNetWheel.prototype.render = function(stream)
 				fAttID = self.vFrame.getSelLegend(tI);
 				fAtt = PData.aByID(fAttID);
 				featSet = self.vFrame.getSelFeatAtts(tI);
-				if (featSet.length > 0) {
+				if (featSet.length > 0 && tRec.n > 0) {
 					self.tUsed[tI] = true;
 				}
 			}
