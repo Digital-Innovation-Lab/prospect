@@ -129,19 +129,24 @@ var PState = (function() {
 
 // ==============================================================================
 // PVizModel: An abstract class to be subclassed by specific visualizations
-//			VizModels are responsible for rendering graphics, handling selections
-//			and indicating types of visual attributes
+//			VizModels are responsible for rendering Records, handling selections,
+//			indicating visual attributes & tracking used Templates & Records
 
 	// INPUT: 	viewFrame = instance variable returned from ViewModel pseudo-constructor
 	//			frameID = base ID for frame DIV
 	//			vizSettings = c section of VF entry
 function PVizModel(viewFrame, vizSettings)
 {
-	this.vFrame   = viewFrame;
-	this.frameID  = viewFrame.getFrameID()+' div.viz-content div.viz-result';
-	this.settings = vizSettings;
-	this.recSel   = [];
+	this.vFrame 	= viewFrame;
+	this.frameID 	= viewFrame.getFrameID()+' div.viz-content div.viz-result';
+	this.settings 	= vizSettings;
+	this.recSel		= [];		// Array of selected Records kept in order by absIndex
+	this.tUsed		= [false, false, false, false];		// true if Records belonging to corresponding Template rendered
+	this.rMap 		= null;		// bit map by absIndex tracking whether Record was rendered
 
+		// Utility functions
+	// this.preRender
+	// this.tUsed
 		// Subclasses can override the following:
 	// this.getLocAtts(tIndex)
 	// this.getFeatureAtts(tIndex)
@@ -167,6 +172,33 @@ PVizModel.prototype.flags = function()
 {
 	return 0;
 } // flags()
+
+	// PURPOSE: Clear variables used to track use of Templates and Records
+	// NOTES: 	Needed by visualizations that render individual Records (not aggregates)
+PVizModel.prototype.preRender = function()
+{
+	var i, rCnt = PData.rSize(), mCnt = Math.floor((rCnt+15)/16);
+
+	for (i=0; i<4; i++) {
+		this.tUsed[i] = false;
+	}
+	if (this.rMap == null) {
+		this.rMap = new Uint16Array(mCnt);
+	}
+	for (i=0; i<mCnt; i++) {
+		this.rMap[i] = 0;
+	}
+} // preRender()
+
+// PVizModel.prototype.rendTmplts = function()
+// {
+// 	return this.tUsed;
+// } // rendTmplts()
+
+// PVizModel.prototype.rendRecs = function()
+// {
+// 	return this.rMap;
+// } // rendRecs()
 
 	// RETURNS: True if record ID is in selected list
 PVizModel.prototype.isSel = function(absI)
@@ -419,6 +451,8 @@ VizMap.prototype.render = function(stream)
 	if (this.recSel.length > 0)
 		this.recSel=[];
 
+	this.preRender();
+
 		// Remove previous Markers
 	mLayer.clearLayers();
 
@@ -433,10 +467,10 @@ VizMap.prototype.render = function(stream)
 	var sAttID, sAtt, minR, maxR, dR, minS, dS;
 
 	minR = this.settings.min;
-	if (typeof(minR) === 'string')
+	if (typeof minR === 'string')
 		minR = parseInt(minR);
 	maxR = this.settings.max;
-	if (typeof(maxR) === 'string')
+	if (typeof maxR === 'string')
 		maxR = parseInt(maxR);
 	dR = maxR - minR;
 
@@ -478,6 +512,7 @@ VizMap.prototype.render = function(stream)
 			} // if no featAtts
 
 			self.tLCnt[tI] = locAtts.length;
+			self.tUsed[tI] = true;
 
 				// Get Feature Attribute ID and def for this Template
 			fAttID = self.vFrame.getSelLegend(tI);
@@ -511,6 +546,8 @@ VizMap.prototype.render = function(stream)
 				if (typeof fData !== 'undefined') {
 					fData = PData.lClr(fData, fAtt, featSet);
 					if (fData) {
+							// Set bit in rMap corresponding to absIndex
+						self.rMap[aI >> 4] |= (1 << (aI & 15));
 						if (typeof locData[0] === 'number') {
 							if (sAttID) {
 								sAtt = rec.a[sAttID];
@@ -782,6 +819,8 @@ VizCards.prototype.render = function(stream)
 	if (this.recSel.length > 0)
 		this.recSel=[];
 
+	this.preRender();
+
 	var insert;
 
 	var div = 'w'+this.settings.w+' h'+this.settings.h;
@@ -809,6 +848,8 @@ VizCards.prototype.render = function(stream)
 		thisFrame.append('<div class="template-label">'+tDef.l+'</div><div class="cards" data-ti="'+tI+'"></div>');
 		insert = jQuery('div.cards[data-ti="'+tI+'"]');
 
+		this.tUsed[tI] = true;		// Template is in play
+
 			// Get Feature Attribute ID and def for this Template
 		fAttID = self.vFrame.getSelLegend(tI);
 		fAtt = PData.aByID(fAttID);
@@ -829,6 +870,9 @@ VizCards.prototype.render = function(stream)
 				c = PData.lRecs(datum, fAtt, featSet, false);
 
 				if (c) {
+						// Set Record's bit in bitmap
+					self.rMap[oRec.i >> 4] |= (1 << (oRec.i & 15));
+
 					tDiv = self.settings.lOn ? '<div class="card-title">'+rec.l+'</div>' : '';
 						// Get and add textual content
 					hasC = false; t = '';
@@ -866,6 +910,7 @@ VizCards.prototype.teardown = function()
 
 	// PURPOSE: Rerender Cards of Template <tI> after new Sort order given
 	// NOTES: 	Must clear previous Template cards and show any selected cards
+	//			Do not alter tUsed[] or rMap[] as this just updates Recs already rendered
 	// ASSUMES: Can use sAtts[tI]
 VizCards.prototype.rerender = function(tI)
 {
@@ -1152,6 +1197,8 @@ VizPinboard.prototype.render = function(stream)
 	if (this.recSel.length > 0)
 		this.recSel=[];
 
+	this.preRender();
+
 	var numTmplts = PData.eTNum();
 	var i, aI, tI=0, tRec, tLClr, rec;
 	var fAttID, fAtt, locAtts, featSet, pAttID;
@@ -1203,6 +1250,7 @@ VizPinboard.prototype.render = function(stream)
 				locAtts = null;
 				continue;
 			} // if no featAtts
+			self.tUsed[tI] = true;
 				// Get Feature Attribute ID and def for this Template
 			fAttID = self.vFrame.getSelLegend(tI);
 			fAtt = PData.aByID(fAttID);
@@ -1233,6 +1281,7 @@ VizPinboard.prototype.render = function(stream)
 			if (typeof fData !== 'undefined') {
 				fData = PData.lClr(fData, fAtt, featSet);
 				if (fData) {
+					self.rMap[aI >> 4] |= (1 << (aI & 15));
 					if (sAttID) {
 						sAtt = rec.a[sAttID];
 						if (typeof sAtt === 'number') {
@@ -1917,13 +1966,15 @@ VizTime.prototype.render = function(stream)
 	} // compDesc()
 
 	var self = this;
-	var vI = self.vFrame.getIndex();
+	var vI = this.vFrame.getIndex();
 
 	if (this.recSel.length > 0)
 		this.recSel=[];
 
-	self.events=[];		// All event data
-	self.lgBds=[];		// Date Legend Backgrounds: { s[tart], e[nd], t[top track #], h[eight], d[ata in Legend rec] }
+	this.preRender();
+
+	this.events=[];		// All event data
+	this.lgBds=[];		// Date Legend Backgrounds: { s[tart], e[nd], t[top track #], h[eight], d[ata in Legend rec] }
 
 	var numTracks=0;
 
@@ -1958,6 +2009,8 @@ VizTime.prototype.render = function(stream)
 				tI++;
 				continue;
 			}
+			self.tUsed[tI] = true;
+
 				// Get Feature Attribute ID and def for this Template
 			fAttID = self.vFrame.getSelLegend(tI);
 			fAtt = PData.aByID(fAttID);
@@ -1979,6 +2032,7 @@ VizTime.prototype.render = function(stream)
 					if (fData = PData.lRecs(fData, fAtt, featSet, false)) {
 							// dData will either be object, '?' or undefined
 						if ((dData = rec.a[dAttID]) && (dData !== '?')) {
+							self.rMap[aI >> 4] |= (1 << (aI & 15));
 							f = dData.min.f ? EVENT_F_START : 0;
 							y = dData.min.y;
 							if (typeof dData.min.m === 'undefined') {
@@ -2550,6 +2604,8 @@ VizDirectory.prototype.render = function(stream)
 	if (this.recSel.length > 0)
 		this.recSel=[];
 
+	this.preRender();
+
 		// Save it in case of later rerender
 	this.stream = stream;
 
@@ -2562,6 +2618,7 @@ VizDirectory.prototype.render = function(stream)
 				return;
 			tRec = stream.t[tI];
 		}
+		self.tUsed[tI] = true;
 			// Starting with new Template: Create new table
 		tID = PData.eTByN(tI);
 		tDef = PData.tByID(tID);
@@ -2582,6 +2639,7 @@ VizDirectory.prototype.render = function(stream)
 		order = PData.rTOrder(oAtt, self.stream, tI);
 		order.forEach(function(oRec) {
 			rec = PData.rByN(oRec.i);
+			self.rMap[oRec.i >> 4] |= (1 << (oRec.i & 15));
 			t = '<tr data-id="'+rec.id+'" data-ai='+oRec.i+'>';
 			fAtts.forEach(function(attID) {
 				datum = rec.a[attID];
@@ -2603,6 +2661,7 @@ VizDirectory.prototype.render = function(stream)
 	} // while 
 } // render()
 
+	// NOTES: 	Assumed that we don't need to modify tUsed[] or rMap[] because visual parameters unchanged
 VizDirectory.prototype.rerender = function(tI)
 {
 	var self = this;
@@ -2793,6 +2852,8 @@ VizTextStream.prototype.render = function(stream)
 	if (this.recSel.length > 0)
 		this.recSel=[];
 
+	this.preRender();
+
 	dt = this.settings.max - this.settings.min;
 
 	tRec = stream.t[0];
@@ -2818,6 +2879,8 @@ VizTextStream.prototype.render = function(stream)
 			tI++;
 			continue;
 		}
+		self.tUsed[tI] = true;
+
 			// Which Attribute chosen for Legend?
 		fAttID = self.vFrame.getSelLegend(tI);
 		fAtt = PData.aByID(fAttID);
@@ -2856,6 +2919,7 @@ VizTextStream.prototype.render = function(stream)
 							t = PData.procAttTxt(cAttID, t);
 						if (t)
 						{
+							self.rMap[oRec.i >> 4] |= (1 << (oRec.i & 15));
 							if (szAttID) {
 								s = rec.a[szAttID];
 								if (typeof s === 'number') {
@@ -3321,13 +3385,14 @@ VizNetWheel.prototype.render = function(stream)
 	if (this.recSel.length > 0)
 		this.recSel=[];
 
+	this.preRender();
+
 		// Create nested array of nodes for each Template { ti, children }
 		// or Record { r[ecord], ai, children }
 
 	var head = { children: [] };
 
-	function createNodes()
-	{
+	(function () {
 		var tRec, tI=0;
 		var i=0, rec, datum, aI, clan=[];
 		var featSet=null, fAtt, fAttID;
@@ -3355,6 +3420,9 @@ VizNetWheel.prototype.render = function(stream)
 				fAttID = self.vFrame.getSelLegend(tI);
 				fAtt = PData.aByID(fAttID);
 				featSet = self.vFrame.getSelFeatAtts(tI);
+				if (featSet.length > 0) {
+					self.tUsed[tI] = true;
+				}
 			}
 
 				// Get Record data
@@ -3363,8 +3431,10 @@ VizNetWheel.prototype.render = function(stream)
 			datum = rec.a[fAttID];
 			if (typeof datum !== 'undefined') {
 				fData = PData.lRecs(datum, fAtt, featSet, false);
-				if (fData)
-					clan.push({ r: rec, ai: aI, c: fData.v, children: [] });
+				if (fData) {
+					self.rMap[aI >> 4] |= (1 << (aI & 15));
+					clan.push({ r: rec, ai: aI, c: fData.v, children: [] });					
+				}
 			}
 
 			i++;
@@ -3372,8 +3442,7 @@ VizNetWheel.prototype.render = function(stream)
 		if (clan.length > 0) {
 			head.children.push({ ti: tI, children: clan});
 		}
-	} // createNodes()
-	createNodes();
+	}());
 
 	var cluster = d3.layout.cluster()
 		.size([360, rad])
@@ -6643,6 +6712,11 @@ var PData = (function() {
 			rLoad();
 		}, // init()
 
+		rSize: function()
+		{
+			return rCount;
+		},
+
 			// RETURNS: intersection between a and b (as array)
 			// INPUT: 	a and b are both sorted arrays
 		intersect: function(a, b)
@@ -6728,6 +6802,18 @@ var PData = (function() {
 			return newStream;
 		}, // sNew()
 
+			// RETURNS: The index of first entry in <stream> which belongs to Template <tIndex>
+			//			-1 if the Template has no entries
+			// NOTE: 	This is for effectively "fast-forwarding" to a particular Template section
+			// 			This is tricky because binary-search needs to look for range
+		s1stT: function(stream, tIndex)
+		{
+			var tEntry = stream.t[tIndex];
+			if (tEntry.n == 0)
+				return -1;
+			return tEntry.i;
+		}, // s1stT()
+
 			// RETURNS: Index of Template to which absolute index <absI> belongs
 		n2T: function(absI)
 		{
@@ -6744,20 +6830,6 @@ var PData = (function() {
 			var tEntry = prspdata.t[tIndex];
 			return (tEntry.def.a.findIndex(function(a) { return a == attID; }) != -1);
 		}, // aInT()
-
-
-			// RETURNS: The index of first entry in <datastream> which belongs to Template <tIndex>
-			//			-1 if the Template has no entries
-			// NOTE: 	This is for effectively "fast-forwarding" to a particular Template section
-			// 			This is tricky because binary-search needs to look for range
-		s1stT: function(datastream, tIndex)
-		{
-			var tEntry = datastream.t[tIndex];
-			if (tEntry.n == 0)
-				return -1;
-			return tEntry.i;
-		}, // s1stT()
-
 
 			// RETURNS: Object for Record whose absolute index is <absI>
 		rByN: function(absI)
@@ -8005,8 +8077,7 @@ jQuery(document).ready(function($) {
 
 		// VARIABLES
 		//==========
-	var view0;					// Primary viewFrame
-	var view1=null;				// Secondary
+	var views = [null, null];	// 2 possible viewFrames
 
 	var apTmStr;				// Apply to <template label> for Filters
 	var filters=[];				// Filter Stack: { id, f [PFilterModel], out [stream] }
@@ -8087,9 +8158,11 @@ jQuery(document).ready(function($) {
 				endStream = theF.f.out;
 		}
 		PState.set(PSTATE_BUILD);
-		view0.showStream(endStream);
-		if (view1)
-			view1.showStream(endStream);
+		views.forEach(function(v) {
+			if (v) {
+				v.showStream(endStream);
+			}
+		});
 
 		if (filters.length > 0) {
 			fState = 2;
@@ -8103,9 +8176,11 @@ jQuery(document).ready(function($) {
 	function clickFilter(event)
 	{
 			// Remove any selections first
-		view0.clearSel();
-		if (view1)
-			view1.clearSel();
+		views.forEach(function(v) {
+			if (v) {
+				v.clearSel();
+			}
+		});
 		doRecompute();
 		PState.set(PSTATE_READY);
 		event.preventDefault();
@@ -8139,18 +8214,18 @@ jQuery(document).ready(function($) {
 		// PURPOSE: Add 2nd window if not already there; remove if so
 	function clickTog2nd()
 	{
-		if (view1 !== null) {
-			view1 = null;
+		if (views[1] !== null) {
+			views[1] = null;
 			jQuery('#view-frame-1').remove();
 		} else {
-			view0.flushLgnd();
+			views[0].flushLgnd();
 			PState.set(PSTATE_BUILD);
-			view1 = PViewFrame(1);
-			view1.initDOM(0);
-			view1.showStream(endStream);
+			views[1] = PViewFrame(1);
+			views[1].initDOM(0);
+			views[1].showStream(endStream);
 			PState.set(PSTATE_READY);
 		}
-		view0.resize();
+		views[0].resize();
 	} // clickTog2nd()
 
 
@@ -8210,9 +8285,12 @@ jQuery(document).ready(function($) {
 		note = note.replace(/"/, '');
 
 			// Compile Perspective state from Views & Filter Stack
-		var pState = { f: [], h0: null, h1: null, v0: { l: view0.title(), s: view0.getState() }, v1: null };
-		if (view1)
-			pState.v1 = { l: view1.title(), s: view1.getState() };
+		var pState = { f: [], h0: null, h1: null, v0: null, v1: null };
+		views.forEach(function(v, vI) {
+			if (v) {
+				pState['v'+vI] = { l: v.title(), s: v.getState() }
+			}
+		});
 		filters.forEach(function(theF) {
 			var a=[];
 			var fDiv = jQuery('div.filter-instance[data-id="'+theF.id+'"]');
@@ -8286,7 +8364,7 @@ jQuery(document).ready(function($) {
 		jQuery('#save-prspctv-h1').prop('checked', false);
 			// Dis-/enable if no filter
 		for (var h=0; h<2; h++) {
-			var disable = (hFilters[h] === null || ((h === 1) && view1 === null));
+			var disable = (hFilters[h] === null || views[h] === null);
 			jQuery('#save-prspctv-h'+h).prop('disabled', disable);
 		}
 
@@ -8599,9 +8677,10 @@ jQuery(document).ready(function($) {
 				endStream = topStream;
 			else
 				endStream = filters[fI-1].out;
-			view0.setStream(endStream);
-			if (view1)
-				view1.setStream(endStream);
+			views.forEach(function(v) {
+				if (v)
+					v.setStream(endStream);
+			});
 		} else {
 				// Output must be recomputed from successor on
 			filters[fI].f.isDirty(true);
@@ -8613,9 +8692,10 @@ jQuery(document).ready(function($) {
 		if (filters.length === 0) {
 			jQuery('#btn-toggle-filters').button("disable");
 				// Invalidate selections
-			view0.clearSel();
-			if (view1)
-				view1.clearSel();
+			views.forEach(function(v) {
+				if (v)
+					v.clearSel(endStream);
+			});
 			doRecompute();
 			PState.set(PSTATE_READY);
 		} else {
@@ -8775,12 +8855,12 @@ jQuery(document).ready(function($) {
 	} // clickToggleFilters()
 
 		// PURPOSE: Apply effect of a Highlight filter
-	function doApplyHighlight(v)
+	function doApplyHighlight(vI)
 	{
 		PState.set(PSTATE_PROCESS);
 
 		var list=[];
-		var hFilter=hFilters[v];
+		var hFilter=hFilters[vI];
 		if (endStream !== null) {
 			hFilter.evalPrep();
 			var relI=0, absI, rec;
@@ -8797,23 +8877,22 @@ jQuery(document).ready(function($) {
 
 		PState.set(PSTATE_UPDATE);
 
-		var view = v === 0 ? view0 : view1;
 		if (list.length > 0) {
-			view.setSel(list);			
+			views[vI].setSel(list);
 		} else {
-			view.clearSel();
+			views[vI].clearSel();
 		}
 
 		PState.set(PSTATE_READY);
 	} // doApplyHighlight()
 
 		// PURPOSE: Handle click on "Highlight" button
-		// INPUT: 	v = index of view frame
-	function clickHighlight(v)
+		// INPUT: 	vI = index of view frame
+	function clickHighlight(vI)
 	{
 		var dialog;
 
-		filterDialog = jQuery("#dialog-hilite-"+v).dialog({
+		filterDialog = jQuery("#dialog-hilite-"+vI).dialog({
 			height: 275,
 			width: Math.min(jQuery(window).width() - 20, 675),
 			modal: true,
@@ -8823,8 +8902,8 @@ jQuery(document).ready(function($) {
 					text: dlText.chsatt,
 					click: function() {
 						chooseAttribute(false, true, function(id) {
-							hFilterIDs[v] = id;
-							hFilters[v] = createFilter(id, null, v);
+							hFilterIDs[vI] = id;
+							hFilters[vI] = createFilter(id, null, vI);
 						});
 					}
 				},
@@ -8832,8 +8911,8 @@ jQuery(document).ready(function($) {
 					text: dlText.ok,
 					click: function() {
 						filterDialog.dialog("close");
-						if (hFilters[v] !== null) {
-							doApplyHighlight(v);
+						if (hFilters[vI] !== null) {
+							doApplyHighlight(vI);
 						}
 					}
 				},
@@ -8902,31 +8981,31 @@ jQuery(document).ready(function($) {
 		PState.set(PSTATE_BUILD);
 		vI = vizIndex(p.s.v0.l);
 			// Already exists?
-		if (view0) {
-			view0.setViz(vI, false);
-			view0.selBtns(false);
+		if (views[0]) {
+			views[0].setViz(vI, false);
+			views[0].selBtns(false);
 		} else {
-			view0 = PViewFrame(0);
-			view0.initDOM(vI);
+			views[0] = PViewFrame(0);
+			views[0].initDOM(vI);
 		}
 
 		if (p.s.v1 !== null) {
 			vI = vizIndex(p.s.v1.l);
 				// Already exists?
-			if (view1) {
-				view1.selBtns(false);
-				view1.setViz(vI, false);
-				view1.setState(p.s.v1.s);
+			if (views[1]) {
+				views[1].selBtns(false);
+				views[1].setViz(vI, false);
+				views[1].setState(p.s.v1.s);
 			} else {
-				view0.flushLgnd();
-				view1 = PViewFrame(1);
-				view1.initDOM(vI);
-				view1.setState(p.s.v1.s);
+				views[0].flushLgnd();
+				views[1] = PViewFrame(1);
+				views[1].initDOM(vI);
+				views[1].setState(p.s.v1.s);
 				resize0 = true;
 			}
 		} else {
-			if (view1) {
-				view1 = null;
+			if (views[1]) {
+				views[1] = null;
 				jQuery('#view-frame-1').remove();
 				resize0 = true;
 			}
@@ -8934,8 +9013,8 @@ jQuery(document).ready(function($) {
 
 			// Do left-side last because of resizing with right side
 		if (resize0)
-			view0.resize();
-		view0.setState(p.s.v0.s);
+			views[0].resize();
+		views[0].setState(p.s.v0.s);
 
 		setAnnote(p.n);
 
@@ -9157,17 +9236,17 @@ jQuery(document).ready(function($) {
 
 		// Restore Perspective or create default?
 	if (prspdata.show_prspctv.length == 0 || !doShowPerspective(prspdata.show_prspctv)) {
-		view0 = PViewFrame(0);
-		view0.initDOM(0);
+		views[0] = PViewFrame(0);
+		views[0].initDOM(0);
 		setAnnote('');
 	}
 
 		// Allow ViewFrames to handle changes in size
 	jQuery(window).resize(function() {
-		if (view0)
-			view0.resize();
-		if (view1)
-			view1.resize();
+		views.forEach(function(v) {
+			if (v)
+				v.resize();
+		})
 	});
 
 		// Intercept global signals: data { s[tate] }
