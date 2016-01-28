@@ -618,7 +618,7 @@ class CSVImporterPlugin {
 function csv_admin_menu() {
     require_once ABSPATH . '/wp-admin/admin.php';
     $plugin = new CSVImporterPlugin;
-    add_management_page('edit.php', 'CSV Importer', 'manage_options', __FILE__,
+    add_management_page('edit.php', 'CSV Importer', 'edit_posts', __FILE__,
         array($plugin, 'form'));
 }
 

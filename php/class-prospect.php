@@ -116,7 +116,7 @@ class Prospect {
 		// PURPOSE: Define a new top-level menu -- This hook used by custom post types
 	public function add_menu()
 	{
-		add_menu_page(__('Prospect', 'prsp-menu'), __('Prospect', 'prsp-menu'), 'manage_options', 'prsp-top-level-handle', null, '', 7);
+		add_menu_page(__('Prospect', 'prsp-menu'), __('Prospect', 'prsp-menu'), 'edit_posts', 'prsp-top-level-handle', null, '', 7);
 	} // add_menu()
 
 
