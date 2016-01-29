@@ -1339,29 +1339,22 @@ div.filter-vocab-container {
 	flex-direction: row;
 	justify-content: flex-start;
 
-/*	flex: 1 1 auto; */
-
 	margin-bottom: 2px;
 }
 
-	/* Outer container for Hide/Show All checkbox */
+	/* Container for Hide/Show All checkbox entry */
 div.filter-vocab-hsa {
 	min-width: 80px;
 	margin: 2px;
 }
 
+	/* Vertical container for Vocab parent and any children */
 div.filter-vocab-entry {
-	display: -webkit-box;
-	display: -moz-box;
-	display: -ms-flexbox;
-	display: -webkit-flex;
-	display: flex;
+	display: inline-block;
 
-	flex-direction: column;
-	align-items: flex-start;
-
-/*	flex: 1 1 auto; */
-/*	min-width: 70px; */
+	min-width: -webkit-min-content;
+	min-width: -moz-min-content;
+	min-width: min-content;
 
 	margin: 2px;
 }
