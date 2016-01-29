@@ -291,6 +291,8 @@ function prospect_activate()
 	$role->add_cap('delete_prsp_record');
 	$role->add_cap('delete_prsp_records');
 	$role->add_cap('create_prsp_records');
+	$role->remove_cap('publish_prsp_record');					// Don't allow publishing Records
+	$role->remove_cap('publish_prsp_records');
 	$role->add_cap('read_prsp_exhibit');					// Exhibits
 	$role->add_cap('read_prsp_exhibits');
 
@@ -301,6 +303,7 @@ function prospect_activate()
 	$role->add_cap('read_private_prsp_records');
 	$role->add_cap('edit_prsp_record');
 	$role->add_cap('edit_prsp_records');
+	$role->add_cap('edit_other_prsp_records');
 	$role->add_cap('edit_others_prsp_records');
 	$role->add_cap('edit_published_prsp_records');
 	$role->add_cap('publish_prsp_records');
@@ -317,6 +320,7 @@ function prospect_activate()
 	$role->add_cap('read_private_prsp_prspctvs');
 	$role->add_cap('edit_prsp_prspctv');
 	$role->add_cap('edit_prsp_prspctvs');
+	$role->add_cap('edit_other_prsp_prspctvs');
 	$role->add_cap('edit_others_prsp_prspctvs');
 	$role->add_cap('edit_published_prsp_prspctvs');
 	$role->add_cap('publish_prsp_prspctvs');
@@ -331,6 +335,7 @@ function prospect_activate()
 	$role->add_cap('read_private_prsp_attributes');
 	$role->add_cap('edit_prsp_attribute');
 	$role->add_cap('edit_prsp_attributes');
+	$role->add_cap('edit_other_prsp_attributes');
 	$role->add_cap('edit_others_prsp_attributes');
 	$role->add_cap('edit_published_prsp_attributes');
 	$role->add_cap('publish_prsp_attributes');
@@ -343,6 +348,7 @@ function prospect_activate()
 	$role->add_cap('read_private_prsp_templates');
 	$role->add_cap('edit_prsp_template');
 	$role->add_cap('edit_prsp_templates');
+	$role->add_cap('edit_other_prsp_templates');
 	$role->add_cap('edit_others_prsp_templates');
 	$role->add_cap('edit_published_prsp_templates');
 	$role->add_cap('publish_prsp_templates');
@@ -355,6 +361,7 @@ function prospect_activate()
 	$role->add_cap('read_private_prsp_records');
 	$role->add_cap('edit_prsp_record');
 	$role->add_cap('edit_prsp_records');
+	$role->add_cap('edit_other_prsp_records');
 	$role->add_cap('edit_others_prsp_records');
 	$role->add_cap('edit_published_prsp_records');
 	$role->add_cap('publish_prsp_records');
@@ -368,6 +375,7 @@ function prospect_activate()
 	$role->add_cap('read_private_prsp_exhibits');
 	$role->add_cap('edit_prsp_exhibit');
 	$role->add_cap('edit_prsp_exhibits');
+	$role->add_cap('edit_other_prsp_exhibits');
 	$role->add_cap('edit_others_prsp_exhibits');
 	$role->add_cap('edit_published_prsp_exhibits');
 	$role->add_cap('publish_prsp_exhibits');
@@ -380,6 +388,7 @@ function prospect_activate()
 	$role->add_cap('read_private_prsp_maps');
 	$role->add_cap('edit_prsp_map');
 	$role->add_cap('edit_prsp_maps');
+	$role->add_cap('edit_other_prsp_maps');
 	$role->add_cap('edit_others_prsp_maps');
 	$role->add_cap('edit_published_prsp_maps');
 	$role->add_cap('publish_prsp_maps');
@@ -392,6 +401,7 @@ function prospect_activate()
 	$role->add_cap('read_private_prsp_prspctvs');
 	$role->add_cap('edit_prsp_prspctv');
 	$role->add_cap('edit_prsp_prspctvs');
+	$role->add_cap('edit_other_prsp_prspctvs');
 	$role->add_cap('edit_others_prsp_prspctvs');
 	$role->add_cap('edit_published_prsp_prspctvs');
 	$role->add_cap('publish_prsp_prspctvs');
@@ -405,7 +415,6 @@ function prospect_activate()
 function prospect_deactivate()
 {
 	$role = get_role('contributor');
-	$role->remove_cap('read_prsp_record');
 	$role->remove_cap('read_prsp_record');					// Records
 	$role->remove_cap('edit_prsp_record');
 	$role->remove_cap('edit_prsp_records');
@@ -422,6 +431,7 @@ function prospect_deactivate()
 	$role->remove_cap('read_private_prsp_records');
 	$role->remove_cap('edit_prsp_record');
 	$role->remove_cap('edit_prsp_records');
+	$role->remove_cap('edit_other_prsp_records');
 	$role->remove_cap('edit_others_prsp_records');
 	$role->remove_cap('edit_published_prsp_records');
 	$role->remove_cap('publish_prsp_records');
@@ -438,6 +448,7 @@ function prospect_deactivate()
 	$role->remove_cap('read_private_prsp_prspctvs');
 	$role->remove_cap('edit_prsp_prspctv');
 	$role->remove_cap('edit_prsp_prspctvs');
+	$role->remove_cap('edit_other_prsp_prspctvs');
 	$role->remove_cap('edit_others_prsp_prspctvs');
 	$role->remove_cap('edit_published_prsp_prspctvs');
 	$role->remove_cap('publish_prsp_prspctvs');
@@ -452,6 +463,7 @@ function prospect_deactivate()
 	$role->remove_cap('read_private_prsp_attributes');
 	$role->remove_cap('edit_prsp_attribute');
 	$role->remove_cap('edit_prsp_attributes');
+	$role->remove_cap('edit_other_prsp_attributes');
 	$role->remove_cap('edit_others_prsp_attributes');
 	$role->remove_cap('edit_published_prsp_attributes');
 	$role->remove_cap('publish_prsp_attributes');
@@ -464,6 +476,7 @@ function prospect_deactivate()
 	$role->remove_cap('read_private_prsp_templates');
 	$role->remove_cap('edit_prsp_template');
 	$role->remove_cap('edit_prsp_templates');
+	$role->remove_cap('edit_other_prsp_templates');
 	$role->remove_cap('edit_others_prsp_templates');
 	$role->remove_cap('edit_published_prsp_templates');
 	$role->remove_cap('publish_prsp_templates');
@@ -476,6 +489,7 @@ function prospect_deactivate()
 	$role->remove_cap('read_private_prsp_records');
 	$role->remove_cap('edit_prsp_record');
 	$role->remove_cap('edit_prsp_records');
+	$role->remove_cap('edit_other_prsp_records');
 	$role->remove_cap('edit_others_prsp_records');
 	$role->remove_cap('edit_published_prsp_records');
 	$role->remove_cap('publish_prsp_records');
@@ -489,6 +503,7 @@ function prospect_deactivate()
 	$role->remove_cap('read_private_prsp_exhibits');
 	$role->remove_cap('edit_prsp_exhibit');
 	$role->remove_cap('edit_prsp_exhibits');
+	$role->remove_cap('edit_other_prsp_exhibits');
 	$role->remove_cap('edit_others_prsp_exhibits');
 	$role->remove_cap('edit_published_prsp_exhibits');
 	$role->remove_cap('publish_prsp_exhibits');
@@ -501,6 +516,7 @@ function prospect_deactivate()
 	$role->remove_cap('read_private_prsp_maps');
 	$role->remove_cap('edit_prsp_map');
 	$role->remove_cap('edit_prsp_maps');
+	$role->remove_cap('edit_other_prsp_maps');
 	$role->remove_cap('edit_others_prsp_maps');
 	$role->remove_cap('edit_published_prsp_maps');
 	$role->remove_cap('publish_prsp_maps');
@@ -513,6 +529,7 @@ function prospect_deactivate()
 	$role->remove_cap('read_private_prsp_prspctvs');
 	$role->remove_cap('edit_prsp_prspctv');
 	$role->remove_cap('edit_prsp_prspctvs');
+	$role->remove_cap('edit_other_prsp_prspctvs');
 	$role->remove_cap('edit_others_prsp_prspctvs');
 	$role->remove_cap('edit_published_prsp_prspctvs');
 	$role->remove_cap('publish_prsp_prspctvs');
