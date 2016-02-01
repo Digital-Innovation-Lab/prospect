@@ -5931,36 +5931,38 @@ function PViewFrame(vfIndex)
 				{
 					text: dlText.close,
 					click: function() {
-							// Stop any A/V playing
-						switch(avType) {
-						case 1:
-							if (widgetData.widget != null && widgetData.playing)
-								widgetData.widget.pause();
-							widgetData.playing = false;
-							widgetData.widget = null;
-							break;
-						case 2:
-								// Prevent invoking player if code called after modal closed
-							widgetData.ytCall = null;
-								// Silence YouTube player if modal closed in another way
-							if (widgetData.widget != null && widgetData.playing)
-								widgetData.widget.stopVideo();
-							widgetData.widget = null;
-							widgetData.playing = false;
-							if (widgetData.timer != null) {
-								window.clearInterval(widgetData.timer);
-								widgetData.timer = null;
-							}
-							break;
-						} // switch
-						jQuery('#btn-inspect-left').off("click");
-						jQuery('#btn-inspect-right').off("click");
 						inspector.dialog("close");
-							// turn pulsing back on
-						doSelBtns(true);
 					} // click
 				}
 			]
+		});
+		inspector.on("dialogclose", function(event, ui) {
+				// Stop any A/V playing
+			switch(avType) {
+			case 1:
+				if (widgetData.widget != null && widgetData.playing)
+					widgetData.widget.pause();
+				widgetData.playing = false;
+				widgetData.widget = null;
+				break;
+			case 2:
+					// Prevent invoking player if code called after modal closed
+				widgetData.ytCall = null;
+					// Silence YouTube player if modal closed in another way
+				if (widgetData.widget != null && widgetData.playing)
+					widgetData.widget.stopVideo();
+				widgetData.widget = null;
+				widgetData.playing = false;
+				if (widgetData.timer != null) {
+					window.clearInterval(widgetData.timer);
+					widgetData.timer = null;
+				}
+				break;
+			} // switch
+			jQuery('#btn-inspect-left').off("click");
+			jQuery('#btn-inspect-right').off("click");
+				// turn pulsing back on
+			doSelBtns(true);
 		});
 
 		event.preventDefault();
