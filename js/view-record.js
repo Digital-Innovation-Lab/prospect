@@ -41,6 +41,11 @@ jQuery(document).ready(function($) {
 
 	var parseTC = /(\d\d)\:(\d\d)\:(\d\d)\.(\d\d?)/; 	// precise regular expression for parsing timecodes
 
+	function tTrim(str)
+	{
+		return str.replace(/^[ \f\t\v​]+|[ \f\t\v​]+$/g, '');
+	}
+
 		// PURPOSE: Convert timecode string into # of milliseconds
 		// INPUT:   timecode must be in format [HH:MM:SS] or [HH:MM:SS.ss]
 		// ASSUMES: timecode in correct format, parseTC contains compiled RegEx
@@ -69,20 +74,8 @@ jQuery(document).ready(function($) {
 	function formatXscript2(text, xtbl)
 	{
 		var splitXcript = new String(text);
-		if (widgetData.extract) {
-			var tc1 = splitXcript.indexOf(widgetData.extract[0]);
-			if (tc1 == -1) {
-				throw new Error("Transcript2 excerpt error: Cannot find timestamp "+widgetData.extract[0]);
-				return;
-			}
-			var tc2 = splitXcript.indexOf(widgetData.extract[1]);
-			if (tc2 == -1) {
-				throw new Error("Transcript2 excerpt error: Cannot find timestamp "+widgetData.extract[1]);
-				return;
-			}
-			splitXcript = splitXcript.substring(tc1-1, tc2-1);
-		}
-		splitXcript = splitXcript.trim().split(/\r\n|\r|\n/g);
+			// AJAX server request processes any extract
+		splitXcript = tTrim(splitXcript).split(/\r\n|\r|\n/g);
 
 		var ta = [];
 
@@ -91,7 +84,7 @@ jQuery(document).ready(function($) {
 			var ti = 0;
 			_.each(splitXcript, function(val) {
 					// Skip values with line breaks...basically empty items
-				val = val.trim();
+				val = tTrim(val);
 				if (val.length>0) {
 					if (val.charAt(0) === '[') {
 						if (ti>0) {
@@ -99,6 +92,8 @@ jQuery(document).ready(function($) {
 						}
 						tb='';
 					} else {
+						if (tb.length > 0)
+							tb += '<br/>';
 						tb += val;
 					}
 					ti++;
@@ -120,20 +115,8 @@ jQuery(document).ready(function($) {
 
 			// split transcript text into array by line breaks
 		var splitXcript = new String(text);
-		if (widgetData.extract) {
-			var tc1 = splitXcript.indexOf(widgetData.extract[0]);
-			if (tc1 == -1) {
-				throw new Error("Transcript excerpt error: Cannot find timestamp "+widgetData.extract[0]);
-				return;
-			}
-			var tc2 = splitXcript.indexOf(widgetData.extract[1]);
-			if (tc2 == -1) {
-				throw new Error("Transcript excerpt error: Cannot find timestamp "+widgetData.extract[1]);
-				return;
-			}
-			splitXcript = splitXcript.substring(tc1-1, tc2-1);
-		}
-		splitXcript = splitXcript.trim().split(/\r\n|\r|\n/g);
+			// Server request processes any extract
+		splitXcript = tTrim(splitXcript).split(/\r\n|\r|\n/g);
 
 		if (splitXcript) {
 			var tcI = 0;
@@ -142,7 +125,7 @@ jQuery(document).ready(function($) {
 			var xtbl = jQuery('#xscript-tbl');
 			_.each(splitXcript, function(val) {
 					// Each entry is (1) empty/line break, (2) timestamp, or (3) text
-				val = val.trim();
+				val = tTrim(val);
 					// Skip empty entries, which were line breaks
 				if (val.length>1) {
 						// Encountered timestamp -- compile previous material, if any
@@ -163,6 +146,8 @@ jQuery(document).ready(function($) {
 
 						// Encountered textblock
 					} else {
+						if (tb.length > 0)
+							tb += '<br/>';
 						tb += val;
 					}
 				} // if length
@@ -176,18 +161,26 @@ jQuery(document).ready(function($) {
 			}
 			var t2AttID = prspdata.v.t.t2Att;
 				// Is there is a 2nd transcript? Load it
-			if (t2AttID && t2AttID != '' && t2AttID != 'disable') {
+			if (t2AttID && t2AttID !== '' && t2AttID !== 'disable') {
 				var t2URL = prspdata.d[t2AttID];
 				if (t2URL) {
-						// Load and parse transcript file
-					var xhr = new XMLHttpRequest();
-					xhr.onload = function(e) {
-						formatXscript2(xhr.responseText, xtbl);
-					}
-					xhr.open('GET', t2URL, true);
-					xhr.send();
-				}
-			}
+					jQuery.ajax({
+						type: 'POST',
+						url: prspdata.ajax_url,
+						data: {
+							action: 'prsp_get_transcript',
+							transcript: t2URL,
+							excerpt: widgetData.extract
+						},
+						success: function(data, textStatus, XMLHttpRequest) {
+							formatXscript2(JSON.parse(data), xtbl);
+						},
+						error: function(XMLHttpRequest, textStatus, errorThrown) {
+						   alert(errorThrown);
+						}
+					});
+				} // if t2URL
+			} // if t2AttID
 		} // if (split)
 	} // formatXscript1()
 
@@ -202,8 +195,8 @@ jQuery(document).ready(function($) {
 
 			if (tcAttVal && tcAttVal != '')
 			{
+				widgetData.extract = tcAttVal;
 				var tcs = tcAttVal.split('-');
-				widgetData.extract = tcs;
 				widgetData.sTime = tcToMilliSecs(tcs[0]);
 				widgetData.eTime = tcToMilliSecs(tcs[1]);
 			}
@@ -215,7 +208,7 @@ jQuery(document).ready(function($) {
 		//	transcript parsed
 
 	avAttID = prspdata.v.sc;
-	if (avAttID && avAttID != '' && avAttID != 'disable') {
+	if (avAttID && avAttID !== '' && avAttID !== 'disable') {
 		scAttVal = prspdata.d[avAttID];
 		if (scAttVal) {
 			getSETimes();
@@ -224,7 +217,7 @@ jQuery(document).ready(function($) {
 	}
 	if (avType == 0) {
 		avAttID = prspdata.v.yt;
-		if (avAttID && avAttID != '' && avAttID != 'disable') {
+		if (avAttID && avAttID !== '' && avAttID !== 'disable') {
 			ytAttVal = prspdata.d[avAttID];
 			if (ytAttVal) {
 				getSETimes();
@@ -269,12 +262,21 @@ jQuery(document).ready(function($) {
 			});
 
 				// Load and parse transcript file
-			var xhr = new XMLHttpRequest();
-			xhr.onload = function(e) {
-				formatXscript1(xhr.responseText);
-			}
-			xhr.open('GET', t1URL, true);
-			xhr.send();
+			jQuery.ajax({
+				type: 'POST',
+				url: prspdata.ajax_url,
+				data: {
+					action: 'prsp_get_transcript',
+					transcript: t1URL,
+					excerpt: widgetData.extract
+				},
+				success: function(data, textStatus, XMLHttpRequest) {
+					formatXscript1(JSON.parse(data));
+				},
+				error: function(XMLHttpRequest, textStatus, errorThrown) {
+				   alert(errorThrown);
+				}
+			});
 		} // t1URL
 	} // if tOn
 
@@ -361,11 +363,12 @@ jQuery(document).ready(function($) {
 	} // ytActivate()
 
 		// Process SoundCloud value
-	if (avType == 1 && scAttVal) {
+	if (avType === 1 && scAttVal) {
 		var primeAudio=true;
 			// Add synchronize button if both A/V and Transcript
-		if (widgetData.xscriptOn)
+		if (widgetData.xscriptOn) {
 			container.prepend('<div>'+document.getElementById('dltext-sync-xscript').innerHTML+'</div>');
+		}
 		container.prepend('<iframe id="sc-widget" class="player" width="100%" height="166" src="http://w.soundcloud.com/player/?url='+
 			scAttVal+'"></iframe></p>');
 
@@ -413,8 +416,9 @@ jQuery(document).ready(function($) {
 	if (avType == 2 && ytAttVal) {
 		widgetData.ytCode = ytAttVal;
 			// Add synchronize button if both A/V and Transcript
-		if (widgetData.xscriptOn)
+		if (widgetData.xscriptOn) {
 			container.prepend('<div>'+document.getElementById('dltext-sync-xscript').innerHTML+'</div>');
+		}
 		container.prepend('<div id="yt-widget"></div>');
 
 			// YouTube API is only loaded once
