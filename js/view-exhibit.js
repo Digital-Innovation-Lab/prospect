@@ -5444,19 +5444,7 @@ function PViewFrame(vfIndex)
 		function formatXscript2(text, xtbl)
 		{
 			var splitXcript = new String(text);
-			if (widgetData.extract) {
-				var tc1 = splitXcript.indexOf(widgetData.extract[0]);
-				if (tc1 == -1) {
-					throw new Error("Transcript2 excerpt error: Cannot find timestamp "+widgetData.extract[0]);
-					return;
-				}
-				var tc2 = splitXcript.indexOf(widgetData.extract[1]);
-				if (tc2 == -1) {
-					throw new Error("Transcript2 excerpt error: Cannot find timestamp "+widgetData.extract[1]);
-					return;
-				}
-				splitXcript = splitXcript.substring(tc1-1, tc2-1);
-			}
+				// AJAX server request processes any extract
 			splitXcript = tTrim(splitXcript).split(/\r\n|\r|\n/g);
 
 			var ta = [];
@@ -5499,19 +5487,7 @@ function PViewFrame(vfIndex)
 
 				// split transcript text into array by line breaks
 			var splitXcript = new String(text);
-			if (widgetData.extract) {
-				var tc1 = splitXcript.indexOf(widgetData.extract[0]);
-				if (tc1 == -1) {
-					throw new Error("Transcript excerpt error: Cannot find timestamp "+widgetData.extract[0]);
-					return;
-				}
-				var tc2 = splitXcript.indexOf(widgetData.extract[1]);
-				if (tc2 == -1) {
-					throw new Error("Transcript excerpt error: Cannot find timestamp "+widgetData.extract[1]);
-					return;
-				}
-				splitXcript = splitXcript.substring(tc1-1, tc2-1);
-			}
+				// Server request processes any extract
 			splitXcript = tTrim(splitXcript).split(/\r\n|\r|\n/g);
 
 			if (splitXcript) {
@@ -5555,15 +5531,23 @@ function PViewFrame(vfIndex)
 					xtbl.append('<div class="row"><div class="timecode" data-timecode="'+
 						lastCode+'" data-tcindex="'+tcI+'">'+lastStamp+'</div><div class="xscript">'+tb+'</div></div>');
 				}
-					// Is there is a 2nd transcript? Load it
-				if (typeof t2URL != 'undefined' && t2URL != null) {
-						// Load and parse transcript file
-					var xhr = new XMLHttpRequest();
-					xhr.onload = function(e) {
-						formatXscript2(xhr.responseText, xtbl);
-					}
-					xhr.open('GET', t2URL, true);
-					xhr.send();
+					// Is there is a 2nd transcript? Load it so it is appended to this set
+				if (typeof t2URL !== 'undefined' && t2URL != null) {
+					jQuery.ajax({
+						type: 'POST',
+						url: prspdata.ajax_url,
+						data: {
+							action: 'prsp_get_transcript',
+							transcript: t2URL,
+							excerpt: widgetData.extract
+						},
+						success: function(data, textStatus, XMLHttpRequest) {
+							formatXscript2(JSON.parse(data), xtbl);
+						},
+						error: function(XMLHttpRequest, textStatus, errorThrown) {
+						   alert(errorThrown);
+						}
+					});
 				}
 			} // if (split)
 		} // formatXscript1()
@@ -5672,20 +5656,18 @@ function PViewFrame(vfIndex)
 				// Which template type?
 			var tI = PData.n2T(recAbsI);
 
-				// PURPOSE: Return start and end times for extract if any
+				// PURPOSE: Prepare start and end times for extract if any
 				// ASSUMES: Any timecode given contains both start and end separated by "-"
 			function getSETimes()
 			{
 				widgetData.sTime = widgetData.eTime = null;
 				var tcAttID;
-				if (tcAttID = prspdata.e.i.t.tcAtts[tI])
-				{
+				if (tcAttID = prspdata.e.i.t.tcAtts[tI]) {
 					var tcAttVal = rec.a[tcAttID];
 
-					if (tcAttVal && tcAttVal != '')
-					{
+					if (tcAttVal && tcAttVal !== '') {
+						widgetData.extract = tcAttVal;
 						var tcs = tcAttVal.split('-');
-						widgetData.extract = tcs;
 						widgetData.sTime = tcToMilliSecs(tcs[0]);
 						widgetData.eTime = tcToMilliSecs(tcs[1]);
 					}
@@ -5772,7 +5754,7 @@ function PViewFrame(vfIndex)
 				} // if avAttID
 			} // if scOn
 
-			if (avType == 0 && prspdata.e.i.modal.ytOn) {
+			if (avType === 0 && prspdata.e.i.modal.ytOn) {
 				if (avAttID = prspdata.e.i.yt.atts[tI]) {
 					var ytAttVal = rec.a[avAttID];
 					if (ytAttVal) {
@@ -5805,9 +5787,9 @@ function PViewFrame(vfIndex)
 			if (prspdata.e.i.modal.tOn) {
 				var t1AttID = prspdata.e.i.t.t1Atts[tI];
 					// Is there a 1st transcript Attribute?
-				if (t1AttID && t1AttID !== '' && t1AttID != 'disable') {
+				if (t1AttID && t1AttID !== '' && t1AttID !== 'disable') {
 					var t1URL = rec.a[t1AttID];
-					if (t1URL) {
+					if (typeof t1URL === 'string' && t1URL !== '') {
 							// Add synchronize button if both A/V and Transcript
 						if (avType > 0) {
 							container.append('<div>'+document.getElementById('dltext-sync-xscript').innerHTML+'</div>');
@@ -5846,16 +5828,25 @@ function PViewFrame(vfIndex)
 							// Set up for 1st to load when complete
 						t2URL=null;
 						var t2AttID = prspdata.e.i.t.t2Atts[tI];
-						if (t2AttID && t2AttID !== '' && t2AttID != 'disable') {
+						if (t2AttID && t2AttID !== '' && t2AttID !== 'disable') {
 							t2URL = rec.a[t2AttID];
 						}
-							// Load and parse transcript file
-						var xhr = new XMLHttpRequest();
-						xhr.onload = function(e) {
-							formatXscript1(xhr.responseText);
-						}
-						xhr.open('GET', t1URL, true);
-						xhr.send();
+
+						jQuery.ajax({
+							type: 'POST',
+							url: prspdata.ajax_url,
+							data: {
+								action: 'prsp_get_transcript',
+								transcript: t1URL,
+								excerpt: widgetData.extract
+							},
+							success: function(data, textStatus, XMLHttpRequest) {
+								formatXscript1(JSON.parse(data));
+							},
+							error: function(XMLHttpRequest, textStatus, errorThrown) {
+							   alert(errorThrown);
+							}
+						});
 					} // t1URL
 				} // if t1AttID
 			} // if tOn

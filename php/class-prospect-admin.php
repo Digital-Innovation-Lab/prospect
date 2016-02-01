@@ -2203,6 +2203,47 @@ class ProspectAdmin {
 	} // prsp_save_prspctv()
 
 
+		// PURPOSE: Get text transcript
+		// INPUT:   $_POST['transcript'] = URL to file containing contents of transcript
+		//			$_POST['excerpt'] = timestamp w/ excerpt of transcript to return, or null = full transcript
+		// NOTES: 	It is necessary to use PHP code on server to fetch text file because
+		//				browsers don't allow requests across servers
+	public function prsp_get_transcript()
+	{
+		$transcript_url = $_POST['transcript'];
+		$excerpt = $_POST['excerpt'];
+
+		$content = @file_get_contents($transcript_url);
+		if ($content === false) {
+			trigger_error("Cannot load transcript file at ".$transcript_url);
+			$result = 'Cannot load transcript file';
+		} else {
+				// Extract an excerpt?
+			if ($excerpt != null && $excerpt != 'null') {
+				$ut8_content 	= utf8_encode($content);
+				$clip_array 	= explode("-", $excerpt);
+				$clip_start 	= mb_strpos($ut8_content, $clip_array[0]);
+				$clip_end 		= mb_strpos($ut8_content, $clip_array[1]);
+					// length must include start and end timestamps
+				$clip_length 	= ($clip_end + strlen($clip_array[1]) + 1) - ($clip_start - 1) + 1;
+					// If no errors in finding timestamps
+				if (($clip_start != false) && ($clip_end != false)) {
+					$coded_clip = mb_substr($ut8_content, $clip_start-1, $clip_length, 'UTF-8');
+					$result = utf8_decode($coded_clip);
+
+					// Otherwise error: return array with clipping info
+				} else {
+					$result = array('clipStart'=> $clip_start,'clipEnd'=> $clip_end, 'clipArrayend' => $clip_array[1]);
+				}
+			} else {
+				$result = $content;
+			}
+		}
+
+		die(json_encode($result, JSON_UNESCAPED_UNICODE));
+	} // prsp_get_transcript()
+
+
 	// NEW OBJECT CONSTRUCTOR
 	// ======================
 
