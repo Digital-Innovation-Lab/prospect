@@ -103,23 +103,25 @@ var PState = (function() {
 
 	var state = PSTATE_INIT; // current state of Prospect web app
 	var pSTxts;				// array of PSTATE_ texts
+	var el;					// pstate element
 
 	return {
 		init: function()
 		{
 			var text = document.getElementById('dltext-pstates').innerHTML;
 			pSTxts = text.trim().split('|');
+			el = document.getElementById('pstate');
 		},
 
 		set: function(s)
 		{
 			if (s != state) {
-				var p = jQuery('#pstate');
-				if (state == PSTATE_READY)
-					p.addClass('attn');
-				else if (s == PSTATE_READY)
-					p.removeClass('attn');
-				p.text(pSTxts[s-1]);
+				if (state === PSTATE_READY) {
+					el.classList.add('attn');
+				} else if (s === PSTATE_READY) {
+					el.classList.remove('attn');
+				}
+				el.textContent = pSTxts[s-1];
 				state = s;
 			}
 		} // setState()
