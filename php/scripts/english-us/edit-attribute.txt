@@ -363,7 +363,7 @@
 
 <!-- DYNAMIC TEXT -->
 <script id="dltext-attributes" type='text/ractive'>
-V,Vocabulary|T,Text|N,Number|D,Dates|L,Lat-Lon|X,X-Y|I,Image|l,Link To|S,SoundCloud|Y,YouTube|x,Transcript|t,Timecode|P,Pointer|J,Join
+V,Vocabulary|T,Text|g,Tags|N,Number|D,Dates|L,Lat-Lon|X,X-Y|I,Image|l,Link To|S,SoundCloud|Y,YouTube|x,Transcript|t,Timecode|P,Pointer|J,Join
 </script>
 
 
@@ -449,7 +449,11 @@ One of the Date Legend entries has a start date that is greater than the end dat
 </script>
 
 <script id="errmsg-delim-bad-type" type='text/ractive'>
-You cannot use a delimiter with this type of Attribute (Vocabulary, Lat-Lon and Pointer only).
+You cannot use a delimiter with this type of Attribute (Vocabulary, Tags, Lat-Lon and Pointer only).
+</script>
+
+<script id="errmsg-delim-no-sp" type='text/ractive'>
+You cannot use a space as a delimiter.
 </script>
 
 <script id="errmsg-delim-comma-ll" type='text/ractive'>

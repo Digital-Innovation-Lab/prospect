@@ -243,7 +243,6 @@ jQuery(document).ready(function() {
 		//		attsLL: array of Lat-Lon Atts
 		//		attsXY: array of X-Y Atts
 		//		attsImg: array of Image Atts (w/"disable")
-		//		attsLgnd: array of all Atts that can supply a Legend
 		//		attsLink: array of Link Atts
 		//		attsSC: array of SoundCloud Atts
 		//		attsYT: array of YouTube Atts
@@ -251,8 +250,11 @@ jQuery(document).ready(function() {
 		//		attsTC: array of Timecode Atts
 		//		attsPtr: array of Pointer Atts
 		//		attsDPtr: array of Pointer Atts (w/"disable")
-		//		attsCnt: array of Atts that can display content
-		//		attsFct: array of Atts that can be Facets (discrete values, can be sorted in order)
+		//		attsLgnd: array of all Atts that can supply a Legend
+		//		attsCnt: array of Atts that can display any kind of content
+		//		attsTCnt: array of Atts that can display textual content
+		//		attsOAtt: array of Atts that can be given single sort order (no multiple values!)
+		//		attsFct: array of Atts that can be Facets (discrete values to which Record can be assigned)
 		//	}
 	var iTemplates = [ ];
 		// Array of all (open) Attribute definitions after Joins done
@@ -438,9 +440,9 @@ jQuery(document).ready(function() {
 	_.forEach(defTemplates, function(theTmplt) {
 		if (!theTmplt.def.d) {
 			var attsTxt=[], attsDates=[], attsDNum=['disable'], attsLL=[],
-				attsXY=[], attsImg=['disable'], attsLgnd=[], attsSC=['disable'],
-				attsYT=['disable'], attsTrns=['disable'], attsTC=['disable'],
-				attsPtr=[], attsDPtr=['disable'], attsCnt=[], attsFct=[];
+				attsXY=[], attsImg=['disable'], attsSC=['disable'], attsYT=['disable'],
+				attsTrns=['disable'], attsTC=['disable'], attsPtr=[], attsDPtr=['disable'],
+				attsLgnd=[], attsCnt=[], attsTCnt=[], attsOAtt=[], attsFct=[];
 
 			_.forEach(theTmplt.def.a, function(theAttID) {
 				function saveAttRef(prefix, theAttID, type)
@@ -449,33 +451,47 @@ jQuery(document).ready(function() {
 					case 'V':
 						attsLgnd.push(prefix+theAttID);
 						attsCnt.push(prefix+theAttID);
+						attsTCnt.push(prefix+theAttID);
 						attsFct.push(prefix+theAttID);
 						break;
 					case 'T':
 						attsTxt.push(prefix+theAttID);
 						attsLgnd.push(prefix+theAttID);
 						attsCnt.push(prefix+theAttID);
+						attsTCnt.push(prefix+theAttID);
+						attsOAtt.push(prefix+theAttID);
+						attsFct.push(prefix+theAttID);
+						break;
+					case 'g':
+						attsCnt.push(prefix+theAttID);
+						attsTCnt.push(prefix+theAttID);
 						attsFct.push(prefix+theAttID);
 						break;
 					case 'N':
 						attsDNum.push(prefix+theAttID);
 						attsLgnd.push(prefix+theAttID);
 						attsCnt.push(prefix+theAttID);
+						attsOAtt.push(prefix+theAttID);
+						attsTCnt.push(prefix+theAttID);
 						attsFct.push(prefix+theAttID);
 						break;
 					case 'D':
 						attsLgnd.push(prefix+theAttID);
 						attsDates.push(prefix+theAttID);
 						attsCnt.push(prefix+theAttID);
+						attsTCnt.push(prefix+theAttID);
+						attsOAtt.push(prefix+theAttID);
 						attsFct.push(prefix+theAttID);
 						break;
 					case 'L':
 						attsLL.push(prefix+theAttID);
 						attsCnt.push(prefix+theAttID);
+						attsTCnt.push(prefix+theAttID);
 						break;
 					case 'X':
 						attsXY.push(prefix+theAttID);
 						attsCnt.push(prefix+theAttID);
+						attsTCnt.push(prefix+theAttID);
 						break;
 					case 'I':
 						attsCnt.push(prefix+theAttID);
@@ -483,6 +499,7 @@ jQuery(document).ready(function() {
 						break;
 					case 'l': // Link To
 						attsCnt.push(prefix+theAttID);
+						attsTCnt.push(prefix+theAttID);
 						break;
 					case 'S':
 						attsSC.push(prefix+theAttID);
@@ -500,6 +517,7 @@ jQuery(document).ready(function() {
 						attsPtr.push(prefix+theAttID);
 						attsDPtr.push(prefix+theAttID);
 						attsCnt.push(prefix+theAttID);
+						attsTCnt.push(prefix+theAttID);
 						break;
 					}
 				} // saveAttRef()
@@ -548,10 +566,10 @@ jQuery(document).ready(function() {
 
 			var tmpltEntry = { tid: theTmplt.id, use: isUsed,
 								attsTxt: attsTxt, attsDates: attsDates, attsDNum: attsDNum,
-								attsLL: attsLL, attsXY: attsXY, attsLgnd: attsLgnd, attsImg: attsImg,
-								attsSC: attsSC, attsYT: attsYT, attsTrns: attsTrns, attsTC: attsTC,
-								attsPtr: attsPtr, attsDPtr: attsDPtr, attsCnt: attsCnt,
-								attsFct: attsFct
+								attsLL: attsLL, attsXY: attsXY, attsImg: attsImg, attsSC: attsSC,
+								attsYT: attsYT, attsTrns: attsTrns, attsTC: attsTC, attsPtr: attsPtr,
+								attsDPtr: attsDPtr, attsLgnd: attsLgnd, attsCnt: attsCnt, attsTCnt: attsTCnt,
+								attsOAtt: attsOAtt, attsFct: attsFct
 							};
 			iTemplates.push(tmpltEntry);
 		}
@@ -564,6 +582,7 @@ jQuery(document).ready(function() {
 		switch (theJAtt.def.t) {
 		case 'T':
 		case 'V':
+		case 'g':
 		case 'N':
 		case 'D':
 			defJoinedFacets.push(_.clone(theJAtt));
@@ -696,13 +715,13 @@ jQuery(document).ready(function() {
 						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
-						newCnt.push(_.map(theTmplt.attsFct, function(theCnt) {
+						newCnt.push(_.map(theTmplt.attsTCnt, function(theCnt) {
 								return { attID: theCnt, useAtt: true };
 							}));
 						newIAtts.push(theTmplt.attsImg[0] || 'disable');
 					} else {
 						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
-						newCnt.push(createPaddedAtts(theTmplt.attsFct, theVF.c.cnt[origTIndex]));
+						newCnt.push(createPaddedAtts(theTmplt.attsTCnt, theVF.c.cnt[origTIndex]));
 						newIAtts.push(checkAttID(theVF.c.iAtts[origTIndex], theTmplt.attsImg, 'disable'));
 					}
 				});
@@ -776,15 +795,15 @@ jQuery(document).ready(function() {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
 					if (origTIndex == -1) {
-						newCnt.push(theTmplt.attsCnt[0] || '');
-						newOrder.push(theTmplt.attsFct[0] || '');
+						newCnt.push(theTmplt.attsTCnt[0] || '');
+						newOrder.push(theTmplt.attsOAtt[0] || '');
 						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
 						newSize.push(theTmplt.attsDNum[0] || 'disable');
 					} else {
-						newCnt.push(checkAttID(theVF.c.cnt[origTIndex], theTmplt.attsCnt, ''));
-						newOrder.push(checkAttID(theVF.c.order[origTIndex], theTmplt.attsFct, ''));
+						newCnt.push(checkAttID(theVF.c.cnt[origTIndex], theTmplt.attsTCnt, ''));
+						newOrder.push(checkAttID(theVF.c.order[origTIndex], theTmplt.attsOAtt, ''));
 						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
 						newSize.push(checkAttID(theVF.c.sAtts[origTIndex], theTmplt.attsDNum, 'disable'));
 					}
@@ -964,9 +983,9 @@ jQuery(document).ready(function() {
 				newVFEntry.c.iAtts= _.map(iTemplates, function(theTemplate) {
 					return 'disable';
 				});
-					// Content currently corresponds to Facet values
+					// Textual Content
 				newVFEntry.c.cnt  = _.map(iTemplates, function(theTemplate) {
-					return _.map(theTemplate.attsFct, function(theCntAtt) {
+					return _.map(theTemplate.attsTCnt, function(theCntAtt) {
 						return { attID: theCntAtt, useAtt: true };
 					});
 				});
@@ -1038,10 +1057,10 @@ jQuery(document).ready(function() {
 				newVFEntry.c.min = 8;
 				newVFEntry.c.max = 50;
 				newVFEntry.c.cnt  = _.map(iTemplates, function(theTemplate) {
-					return theTemplate.attsCnt[0] || '';
+					return theTemplate.attsTCnt[0] || '';
 				});
 				newVFEntry.c.order  = _.map(iTemplates, function(theTemplate) {
-					return theTemplate.attsFct[0] || '';
+					return theTemplate.attsOAtt[0] || '';
 				});
 				newVFEntry.c.sAtts  = _.map(iTemplates, function(theTemplate) {
 					return 'disable';
@@ -1054,7 +1073,6 @@ jQuery(document).ready(function() {
 				});
 				break;
 			case 'S': 	// Stacked Chart
-				newVFEntry.c.tlit = false;
 				newVFEntry.c.gr = true;
 				newVFEntry.c.h = 500;
 				newVFEntry.c.oAtt = defJoinedFacets[0].id || '';
@@ -1074,7 +1092,6 @@ jQuery(document).ready(function() {
 				break;
 			case 'F': 	// Flow
 				newVFEntry.c.w    = 1000;
-				newVFEntry.c.tlit = false;
 				newVFEntry.c.gr   = true;
 				newVFEntry.c.fcts = [];
 				break;
@@ -1135,7 +1152,7 @@ jQuery(document).ready(function() {
 		return false;
 	});
 
-		// NOTES: 	For Maps and Pinboards
+		// For Maps and Pinboards
 	rApp.on('setLColor', function(event, vIndex, tIndex) {
 		var keypath='viewSettings['+vIndex+'].c.lClrs['+tIndex+']';
 		chooseColor(keypath);
@@ -1276,6 +1293,24 @@ jQuery(document).ready(function() {
 				});
 			}
 		}
+		return false;
+	});
+
+		// Select all Content for a particular Viz's Template
+	rApp.on('allCntOn', function(event, a, b) {
+		var keypath = 'viewSettings['+a+'].c.cnt['+b+']';
+		var n = rApp.get(keypath+'.length');
+		for (var i=0; i<n; i++)
+			rApp.set(keypath+'['+i+'].useAtt', true);
+		return false;
+	});
+
+		// Deselect all Content for a particular Viz's Template
+	rApp.on('allCntOff', function(event, a, b) {
+		var keypath = 'viewSettings['+a+'].c.cnt['+b+']';
+		var n = rApp.get(keypath+'.length');
+		for (var i=0; i<n; i++)
+			rApp.set(keypath+'['+i+'].useAtt', false);
 		return false;
 	});
 
@@ -1456,7 +1491,6 @@ jQuery(document).ready(function() {
 					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts);
 					break;
 				case 'S': 	// Stacked Chart
-					saveView.c.tlit = viewSettings.c.tlit;
 					saveView.c.gr   = viewSettings.c.gr;
 					saveView.c.h    = viewSettings.c.h;
 					saveView.c.oAtt = viewSettings.c.oAtt;
@@ -1474,14 +1508,12 @@ jQuery(document).ready(function() {
 					break;
 				case 'F': 	// Facet Flow
 					saveView.c.w = viewSettings.c.w;
-					saveView.c.tlit = viewSettings.c.tlit;
 					saveView.c.gr   = viewSettings.c.gr;
 					saveView.c.fcts = viewSettings.c.fcts;
 					break;
 				case 'm': 	// MultiBlockMap
 					saveView.c.w = viewSettings.c.w;
 					saveView.c.h = viewSettings.c.h;
-					saveView.c.tlit = viewSettings.c.tlit;
 					saveView.c.gr   = viewSettings.c.gr;
 					saveView.c.p   = viewSettings.c.p;
 					saveView.c.fcts = viewSettings.c.fcts;

@@ -446,13 +446,19 @@ jQuery(document).ready(function() {
 
 		var attType = rApp.get('theAttribute.t');
 
-		var theDelim = rApp.get('theAttribute.d').trim();
+		var theDelim = rApp.get('theAttribute.d');
 		if (theDelim.length > 1) {
 			displayError('#errmsg-delim-too-long');
 			return false;
 		} else if (theDelim.length == 1) {
+			if (theDelim === ' ') {
+				displayError('#errmsg-delim-no-sp');
+				return false;
+			}
+
 			switch (attType) {
 			case 'V':
+			case 'g':
 			case 'P':
 				break;
 			case 'L':

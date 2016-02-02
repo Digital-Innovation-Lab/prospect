@@ -279,6 +279,7 @@ jQuery(document).ready(function() {
 				attObject.value = defVal || '';
 				break;
 			case 'T':
+			case 'g':
 				attObject.value = defVal || '';
 				break;
 			case 'N':
@@ -639,9 +640,10 @@ jQuery(document).ready(function() {
 			var thisAtt = rApp.get('defRecord['+i+']');
 			var newVal = thisAtt.value;
 
-				// Special processing for Text, Numbers and Dates
+				// Special processing for Text, Tags, Numbers and Dates
 			switch (thisAtt.def.t) {
 			case 'T':
+			case 'g':
 				newVal = newVal.replace(/"/g, '');
 				break;
 			case 'N':
@@ -671,7 +673,7 @@ jQuery(document).ready(function() {
 			case 'D':
 				var newDate = newVal.min.y;
 					// Blank or special undefined character?
-				if (newDate.length == 0 || newDate == '?') {
+				if (newDate.length === 0 || newDate === '?') {
 					newVal = newDate;
 					break;
 				}
@@ -687,12 +689,12 @@ jQuery(document).ready(function() {
 					return false;
 				}
 
-				if (newVal.min.m && newVal.min.m != '') {
+				if (newVal.min.m && newVal.min.m !== '') {
 					newDate += '-'+newVal.min.m;
-					if (newVal.min.d && newVal.min.d != '')
+					if (newVal.min.d && newVal.min.d !== '')
 						newDate += '-'+newVal.min.d;
 				}
-				if (newVal.max.y && newVal.max.y != '') {
+				if (newVal.max.y && newVal.max.y !== '') {
 					newDate += '/'+newVal.max.y;
 
 						// Skip other processing if "open"
@@ -716,9 +718,9 @@ jQuery(document).ready(function() {
 						return false;						
 					}
 
-					if (newVal.max.m && newVal.max.m != '') {
+					if (newVal.max.m && newVal.max.m !== '') {
 						newDate += '-'+newVal.max.m;
-						if (newVal.max.d && newVal.max.d != '')
+						if (newVal.max.d && newVal.max.d !== '')
 							newDate += '-'+newVal.max.d;
 					}
 				}

@@ -31,6 +31,8 @@
 				{{>att-type-Vocabulary}}
 			{{elseif def.t == 'T'}}
 				{{>att-type-Text}}
+			{{elseif def.t == 'g'}}
+				{{>att-type-Tags}}
 			{{elseif def.t == 'N'}}
 				{{>att-type-Number}}
 			{{elseif def.t == 'D'}}
@@ -84,6 +86,10 @@
 
 <script id="att-type-Text" type='text/ractive'>
 	<input type="text" size="48" value="{{value}}"/>
+</script>
+
+<script id="att-type-Tags" type='text/ractive'>
+	<input type="text" size="32" value="{{value}}"/> (delimiter "{{def.d}}")
 </script>
 
 <script id="att-type-Number" type='text/ractive'>

@@ -123,6 +123,7 @@ class ProspectRecord {
 						switch($att_def->t) {
 						case 'V':
 						case 'P':
+						case 'g':
 							if ($att_def->d != '') {
 								$v_set = explode($att_def->d, $val);
 								$this->att_data[$att_to_load] = array();

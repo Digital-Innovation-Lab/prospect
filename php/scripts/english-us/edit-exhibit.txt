@@ -328,6 +328,8 @@
 			</select>
 			<br/>
 			<b>Show content: </b>
+			<button decorator="iconButton:ui-icon-check" on-click="allCntOn:{{vIndex}},{{tIndex}}">All On</button>
+			<button decorator="iconButton:ui-icon-cancel" on-click="allCntOff:{{vIndex}},{{tIndex}}">All Off</button>
 			{{#each c.cnt[tIndex]:cIndex}}
 				<span class="attribute-controls">
 					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
@@ -416,7 +418,6 @@
 </script>
 
 <script id="vfSChart" type='text/ractive'>
-	<input type='checkbox' checked='{{c.tlit}}'/> Retain all unique Text Record values? &nbsp;&nbsp;
 	<input type='checkbox' checked='{{c.gr}}'/> Break Number and Date ranges into graduated scale?
 	<br/>
 	Pixel height of visualization: <input type="number" value="{{c.h}}" min="1" max="1000"/>
@@ -485,6 +486,8 @@
 		{{#each iTemplates:tIndex}}
 		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
 			<b>Show content: </b>
+			<button decorator="iconButton:ui-icon-check" on-click="allCntOn:{{vIndex}},{{tIndex}}">All On</button>
+			<button decorator="iconButton:ui-icon-cancel" on-click="allCntOff:{{vIndex}},{{tIndex}}">All Off</button>
 			{{#each c.cnt[tIndex]:cIndex}}
 				<span class="attribute-controls">
 					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
@@ -512,13 +515,13 @@
 		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
 			<b>Record visible content: </b>
 			<select value='{{c.cnt[tIndex]}}'>
-			{{#each attsFct}}
+			{{#each attsTCnt}}
 				<option>{{this}}</option>
 			{{/each}}
 			</select>
 			<b>Order by: </b>
 			<select value='{{c.order[tIndex]}}'>
-			{{#each attsFct}}
+			{{#each attsOAtt}}
 				<option>{{this}}</option>
 			{{/each}}
 			</select>
@@ -586,7 +589,6 @@
 <script id="vfFlow" type='text/ractive'>
 	Display Width: <input type="number" value="{{c.w}}" min="2" max="9999"/>
 	<br/>
-	<input type='checkbox' checked='{{c.tlit}}'/> Retain all unique Text Record values? &nbsp;&nbsp;
 	<input type='checkbox' checked='{{c.gr}}'/> Break Number and Date ranges into graduated scale?
 	<br/>
 	Attributes (Facets) to Display: <button on-click="addFacet:{{vIndex}}">Add Attribute</button><br/>
@@ -602,7 +604,6 @@
 	Display Width: <input type="number" value="{{c.w}}" min="2" max="9999"/>
 	Height: <input type="number" value="{{c.h}}" min="2" max="9999"/>
 	<br/>
-	<input type='checkbox' checked='{{c.tlit}}'/> Retain all unique Text Record values? &nbsp;&nbsp;
 	<input type='checkbox' checked='{{c.gr}}'/> Break Number and Date ranges into graduated scale?
 	<br/>
 	Primary Grouping Attribute <select value='{{c.p}}'>
