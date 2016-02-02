@@ -2919,17 +2919,18 @@ VizTextStream.prototype.render = function(stream)
 						t = rec.a[cAttID];
 						if (t)
 							t = PData.procAttTxt(cAttID, t);
-						if (t)
-						{
+						if (t) {
 							self.rMap[oRec.i >> 4] |= (1 << (oRec.i & 15));
 							if (szAttID) {
 								s = rec.a[szAttID];
 								if (typeof s === 'number') {
 									s = Math.floor(((s-szAtt.r.min)*dt)/da) + self.settings.min;
-								} else
+								} else {
 									s = self.settings.min;
-							} else
+								}
+							} else {
 								s = self.settings.min;
+							}
 							bC = fData.b ? ';background-color:black' : '';
 							insert.append('<div class="recitem" data-ai='+oRec.i+' style="color:'+fData.v+bC+';font-size:'+s+'px">'+t+'</div>');
 						} // t
@@ -3083,7 +3084,7 @@ VizStackChart.prototype.setup = function()
 	var oAttID = this.settings.oAtt;
 	var oAtt = PData.aByID(oAttID);
 
-	if (oAtt.def.t !== 'T' || !this.settings.tlit) {
+	if (oAtt.def.t !== 'g') {
 		if (this.settings.gr)
 			this.cats = PData.cRNew(oAtt, true, true);
 		else
@@ -3124,11 +3125,11 @@ VizStackChart.prototype.render = function(stream)
 		// Pass 1 -- sort all Records into categories on X-Axis by oAtt
 	if (this.cats == null) {
 		this.cats = [];
-		PData.cFill(this.cats, oAttID, sAttID, stream, true);
+		PData.cFill(this.cats, oAttID, sAttID, stream);
 		this.setup2();
-
-	} else
-		PData.cFill(this.cats, oAttID, sAttID, stream, false);
+	} else {
+		PData.cFill(this.cats, oAttID, sAttID, stream);
+	}
 
 	this.blocks=[];		// { x[rCat index], c[olor], y, h, a[Indices] }
 	var sAtt = PData.aByID(sAttID);
@@ -3650,15 +3651,15 @@ VizFlow.prototype.render = function(stream)
 	self.settings.fcts.forEach(function(attID, aI) {
 		var tCat;
 		var att = PData.aByID(attID);
-		if (att.def.t !== 'T' || !self.settings.tlit) {
+		if (att.def.t !== 'g') {
 			if (self.settings.gr)
 				tCat = PData.cRNew(att, true, true);
 			else
 				tCat = PData.cLNew(att, null, true);
-			PData.cFill(tCat, attID, null, stream, false);
+			PData.cFill(tCat, attID, null, stream);
 		} else {
 			tCat=[];
-			PData.cFill(tCat, attID, null, stream, true);
+			PData.cFill(tCat, attID, null, stream);
 		}
 			// Compile used categories
 		var used=[];
@@ -4123,15 +4124,15 @@ VizMBMap.prototype.render = function(stream)
 		var tCat;
 		var att = PData.aByID(attID);
 		var y=aI * 30;
-		if (att.def.t !== 'T' || !self.settings.tlit) {
+		if (att.def.t !== 'g') {
 			if (self.settings.gr)
 				tCat = PData.cRNew(att, true, true);
 			else
 				tCat = PData.cLNew(att, null, true);
-			PData.cFill(tCat, attID, null, stream, false);
+			PData.cFill(tCat, attID, null, stream);
 		} else {
 			tCat=[];
-			PData.cFill(tCat, attID, null, stream, true);
+			PData.cFill(tCat, attID, null, stream);
 		}
 
 			// Compile used categories
@@ -4182,15 +4183,15 @@ VizMBMap.prototype.render = function(stream)
 	var pAttID = this.settings.p;
 	var pAtt = PData.aByID(pAttID);
 	var pCat;
-	if (pAtt.def.t !== 'T' || !self.settings.tlit) {
+	if (pAtt.def.t !== 'g') {
 		if (self.settings.gr)
 			pCat = PData.cRNew(pAtt, true, true);
 		else
 			pCat = PData.cLNew(pAtt, null, true);
-		PData.cFill(pCat, pAttID, null, stream, false);
+		PData.cFill(pCat, pAttID, null, stream);
 	} else {
 		pCat=[];
-		PData.cFill(pCat, pAttID, null, stream, true);
+		PData.cFill(pCat, pAttID, null, stream);
 	}
 
 	var vI = this.vFrame.getIndex();
@@ -7792,7 +7793,7 @@ var PData = (function() {
 				aI = stream.s[rI];
 				rec = PData.rByN(aI);
 				datum = rec.a[oAttID];
-				if (typeof datum != 'undefined') {
+				if (typeof datum !== 'undefined') {
 					switch (oAtt.def.t) {
 					case 'T':
 						for (cI=0; cI<cats.length; cI++) {
@@ -7813,7 +7814,7 @@ var PData = (function() {
 								}
 							}
 							if (cI === cats.length) {
-								cats.push({ l: d, i: [ aI ] });
+								cats.push({ l: d, i: [ aI ], c: '#777777' });
 							}
 						});
 						break;
@@ -7901,7 +7902,7 @@ var PData = (function() {
 			cat.forEach(function(aI) {
 				rec = PData.rByN(aI);
 				datum = rec.a[id];
-				if (typeof datum != 'undefined') {
+				if (typeof datum !== 'undefined') {
 					switch (sAtt.def.t) {
 					case 'T':
 						for (sI=0; sI<sCats.length; sI++) {
@@ -7922,7 +7923,7 @@ var PData = (function() {
 								}
 							}
 							if (sI === sCats.length) {
-								sCats.push({ l: d, i: [ aI ] });
+								sCats.push({ l: d, i: [ aI ], c: '#777777' });
 							}
 						});
 						break;
