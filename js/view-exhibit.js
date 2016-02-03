@@ -3120,8 +3120,6 @@ VizStackChart.prototype.render = function(stream)
 	var oAttID = this.settings.oAtt;
 	var sAttID = this.settings.sAtt;
 
-	this.svg.selectAll(".block").remove();
-
 		// Pass 1 -- sort all Records into categories on X-Axis by oAtt
 	if (this.cats == null) {
 		this.cats = [];
@@ -3130,6 +3128,8 @@ VizStackChart.prototype.render = function(stream)
 	} else {
 		PData.cFill(this.cats, oAttID, sAttID, stream);
 	}
+
+	this.svg.selectAll(".block").remove();
 
 	this.blocks=[];		// { x[rCat index], c[olor], y, h, a[Indices] }
 	var sAtt = PData.aByID(sAttID);
@@ -4435,6 +4435,80 @@ PFilterText.prototype.getState = function()
 } // getState()
 
 PFilterText.prototype.setState = function(state)
+{
+	var ip = this.insertPt();
+	ip.find('input.filter-text-cs').prop('checked', state.cs);
+	ip.find('input.filter-text').val(state.t);
+} // setState()
+
+
+// ==============================================
+// PFilterTags: Class to filter Tags Attributes
+//				Only slightly different from Text
+
+var PFilterTags = function(id, attRec)
+{
+	PFilterModel.call(this, id, attRec);
+} // PFilterText()
+
+PFilterTags.prototype = Object.create(PFilterModel.prototype);
+
+PFilterTags.prototype.constructor = PFilterTags;
+
+PFilterTags.prototype.evalPrep = function()
+{
+	var ip = this.insertPt();
+	this.cs = ip.find('input.filter-text-cs').prop('checked');
+	this.s = ip.find('input.filter-text').val();
+	if (!this.cs)
+		this.s = this.s.toLocaleLowerCase();
+} // evalPrep()
+
+PFilterTags.prototype.eval = function(rec)
+{
+	var s = this.s;
+
+	if (s == null || s === '')
+		return true;
+
+	var t = rec.a[this.att.id];
+	if (typeof t === 'undefined')
+		return false;
+	for (var i=0; i<t.length; i++) {
+		var d=t[i];
+		if (!this.cs) {
+			d = d.toLocaleLowerCase();
+		}
+		if (d === s) {
+			return true;
+		}
+	}
+	return false;
+} // eval()
+
+PFilterTags.prototype.setup = function()
+{
+	var self = this;
+	var inserted = this.insertPt();
+	var htmlText = document.getElementById('dltext-filter-tags').innerHTML;
+
+	inserted.append(htmlText);
+		// Intercept changes to text
+	inserted.find('input.filter-text').change(function() {
+		self.isDirty(true);
+	});
+	inserted.find('input.filter-text-cs').click(function(event) {
+		self.isDirty(true);
+	});
+} // setup()
+
+PFilterTags.prototype.getState = function()
+{
+	var ip = this.insertPt();
+	return { cs: ip.find('input.filter-text-cs').prop('checked'), t: ip.find('input.filter-text').val() };
+} // getState()
+
+PFilterTags.prototype.setState = function(state)
 {
 	var ip = this.insertPt();
 	ip.find('input.filter-text-cs').prop('checked', state.cs);
@@ -7814,7 +7888,8 @@ var PData = (function() {
 								}
 							}
 							if (cI === cats.length) {
-								cats.push({ l: d, i: [ aI ], c: '#777777' });
+									// Create random color
+								cats.push({ l: d, i: [ aI ], c:'#'+(Math.floor(Math.random()*16777215)).toString(16) });
 							}
 						});
 						break;
@@ -8767,6 +8842,9 @@ jQuery(document).ready(function($) {
 			case 'T':
 				newFilter = new PFilterText(newID, theAtt);
 				break;
+			case 'g':
+				newFilter = new PFilterTags(newID, theAtt);
+				break;
 			case 'N':
 				newFilter = new PFilterNum(newID, theAtt);
 				break;
@@ -9048,36 +9126,38 @@ jQuery(document).ready(function($) {
 			}
 		}
 
-		var vI;
+		var vI, v0=views[0], v1=views[1];
 		var resize0=false;
 
 		PState.set(PSTATE_BUILD);
 		vI = vizIndex(p.s.v0.l);
 			// Already exists?
-		if (views[0]) {
-			views[0].setViz(vI, false);
-			views[0].selBtns(false);
+		if (v0) {
+			v0.setViz(vI, false);
+			v0.selBtns(false);
 		} else {
 			views[0] = PViewFrame(0);
-			views[0].initDOM(vI);
+			v0 = views[0];
+			v0.initDOM(vI);
 		}
 
 		if (p.s.v1 !== null) {
 			vI = vizIndex(p.s.v1.l);
 				// Already exists?
-			if (views[1]) {
-				views[1].selBtns(false);
-				views[1].setViz(vI, false);
-				views[1].setState(p.s.v1.s);
+			if (v1) {
+				v1.selBtns(false);
+				v1.setViz(vI, false);
+				v1.setState(p.s.v1.s);
 			} else {
-				views[0].flushLgnd();
+				v0.flushLgnd();
 				views[1] = PViewFrame(1);
-				views[1].initDOM(vI);
-				views[1].setState(p.s.v1.s);
+				v1 = views[1];
+				v1.initDOM(vI);
+				v1.setState(p.s.v1.s);
 				resize0 = true;
 			}
 		} else {
-			if (views[1]) {
+			if (v1) {
 				views[1] = null;
 				jQuery('#view-frame-1').remove();
 				resize0 = true;
@@ -9086,8 +9166,8 @@ jQuery(document).ready(function($) {
 
 			// Do left-side last because of resizing with right side
 		if (resize0)
-			views[0].resize();
-		views[0].setState(p.s.v0.s);
+			v0.resize();
+		v0.setState(p.s.v0.s);
 
 		setAnnote(p.n);
 
@@ -9299,6 +9379,7 @@ jQuery(document).ready(function($) {
 			switch (theAtt.def.t) {
 			case 'V':
 			case 'T':
+			case 'g':
 			case 'N':
 			case 'D':
 				jQuery('#filter-list').append('<li data-id="'+theAtt.id+'">'+theAtt.def.l+'</li>');

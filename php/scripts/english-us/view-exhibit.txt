@@ -218,6 +218,11 @@ All Records from selected Templates will be removed/hidden.
 	Text must include <input class="filter-text" type="text" size="20"/>
 </script>
 
+<script id="dltext-filter-tags" type='text'>
+	<input type="checkbox" class="filter-text-cs" checked="checked">Case sensitive?&nbsp;&nbsp;
+	Tags must include <input class="filter-text" type="text" size="20"/>
+</script>
+
 <script id="dltext-filter-nums" type='text'>
 	<div class="cntrl-blck">
 		<input type="checkbox" class="allow-undef"> Allow indefinite<br/>
