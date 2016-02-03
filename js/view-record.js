@@ -474,6 +474,7 @@ jQuery(document).ready(function($) {
 
 		switch (att.def.t) {
 		case 'V':
+		case 'g':
 			return a.join(', ');
 		case 'T':
 			return a;
