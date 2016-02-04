@@ -839,17 +839,10 @@ jQuery(document).ready(function() {
 				theVF.c.pAtts = newPAtts;
 				theVF.c.lgnds = newLgnds;
 				break;
-			case 'F': 	// Flow
-				var newFcts=[];
-				theVF.c.fcts.forEach(function(f) {
-					var tF = checkAttID(f, facetAttIDs, '');
-					if (tF != '')
-						newFcts.push(tF);
-				});
-				theVF.c.fcts = newFcts;
-				break;
 			case 'm': 	// MultiBlockMap
 				theVF.c.p = checkAttID(theVF.c.p, facetAttIDs, '');
+			case 'F': 	// Facet Flow
+			case 'B': 	// Facet Browser
 				var newFcts=[];
 				theVF.c.fcts.forEach(function(f) {
 					var tF = checkAttID(f, facetAttIDs, '');
@@ -1090,8 +1083,9 @@ jQuery(document).ready(function() {
 					return [];
 				});
 				break;
-			case 'F': 	// Flow
+			case 'F': 	// Facet Flow
 				newVFEntry.c.w    = 1000;
+			case 'B': 	// Facet Browser
 				newVFEntry.c.gr   = true;
 				newVFEntry.c.fcts = [];
 				break;
@@ -1508,6 +1502,7 @@ jQuery(document).ready(function() {
 					break;
 				case 'F': 	// Facet Flow
 					saveView.c.w = viewSettings.c.w;
+				case 'B': 	// Facet Browser
 					saveView.c.gr   = viewSettings.c.gr;
 					saveView.c.fcts = viewSettings.c.fcts;
 					break;

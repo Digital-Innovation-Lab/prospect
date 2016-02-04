@@ -79,12 +79,12 @@
 						{{>vfSChart}}
 					{{elseif vf === 'N'}}
 						{{>vfNetwork}}
-					{{elseif vf === 'G'}}
-						{{>vfTree}}
 					{{elseif vf === 'F'}}
 						{{>vfFlow}}
 					{{elseif vf === 'm'}}
 						{{>vfMBlockMap}}
+					{{elseif vf === 'B'}}
+						{{>vfBrowser}}
 					{{/if}}
 				</div>
 				{{#if vIndex != (viewSettings.length-1) }}<hr/>{{/if}}
@@ -600,6 +600,18 @@
 	{{/each}}
 </script>
 
+<script id="vfBrowser" type='text/ractive'>
+	<input type='checkbox' checked='{{c.gr}}'/> Break Number and Date ranges into graduated scale?
+	<br/>
+	Attributes (Facets) to Display: <button on-click="addFacet:{{vIndex}}">Add Attribute</button><br/>
+	{{#each c.fcts:cIndex}}
+		Attribute ID: "{{this}}"
+		<button decorator="iconButton:ui-icon-arrowthickstop-1-n" on-click="topFacet:{{vIndex}},{{cIndex}}">Move to Top</button>
+		<button decorator="iconButton:ui-icon-trash" on-click="delFacet:{{vIndex}},{{cIndex}}">Delete</button>
+		<br/>
+	{{/each}}
+</script>
+
 <script id="vfMBlockMap" type='text/ractive'>
 	Display Width: <input type="number" value="{{c.w}}" min="2" max="9999"/>
 	Height: <input type="number" value="{{c.h}}" min="2" max="9999"/>
@@ -717,7 +729,7 @@
 
 <!-- DYNAMIC TEXT -->
 <script id="dltext-visualizations" type='text/ractive'>
-D,Directory|t,TextStream|M,Map|C,Cards|T,Timeline|P,Pinboard|S,Stacked Chart|N,Network Wheel|F,Facet Flow|m,MultiBlock Map
+D,Directory|B,Facet Browser|C,Cards|t,TextStream|M,Map|T,Timeline|P,Pinboard|S,Stacked Chart|N,Network Wheel|F,Facet Flow|m,MultiBlock Map
 </script>
 
 
