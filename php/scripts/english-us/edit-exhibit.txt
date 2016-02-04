@@ -758,6 +758,10 @@ Every Template needs an Attribute which can serve as a label, but at least one o
 All View configurations need a label, but you are missing one.
 </script>
 
+<script id="errmsg-bad-facet" type='text/ractive'>
+You have specified an Attribute that does not exist in the selected Templates for the view named
+</script>
+
 <!-- MESSAGE -->
 <script id="msg-confirm-del-vf" type='text/ractive'>
 Are you sure that you wish to delete this View from your Exhibit?

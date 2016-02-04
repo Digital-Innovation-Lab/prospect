@@ -284,12 +284,16 @@ jQuery(document).ready(function() {
 
 
 		// PURPOSE: Show error message for 4 seconds
-	function displayError(errID)
+	function displayError(errID, append)
 	{
 			// If a clear-error timer is set, cancel it
-		if (errTimer)
+		if (errTimer) {
 			clearTimeout(errTimer);
+		}
 		var newError = getText(errID);
+		if (append) {
+			newError += ' '+append;
+		}
 		rApp.set('errorMsg', newError);
 		errTimer = setTimeout(function() { rApp.set('errorMsg', ''); }, 5000);
 	} // displayError()
@@ -1388,6 +1392,28 @@ jQuery(document).ready(function() {
 			var vCount = rApp.get('viewSettings.length');
 			for (var i=0; i<vCount; i++) {
 				var saveView = {}, viewSettings = rApp.get('viewSettings['+i+']');
+				var abort=false;
+
+					// PURPOSE: Confirm that att is in the list of facets in selected Templates
+					// RETURNS: False if not
+				function validFacet(att)
+				{
+					var valid = iTemplates.find(function(t, tI) {
+						if (rApp.get('iTemplates['+tI+'].use')) {
+							return iTemplates[tI].attsFct.find(function(f) {
+								return att === f;
+							}) != null;
+						} else {
+							return false;
+						}
+					}) != null;
+
+					if (!valid) {
+						displayError('#errmsg-bad-facet', saveView.l);
+					}
+					return valid;
+				} // validFacet
+
 				saveView.l  = viewSettings.l.replace(/"/g, '');
 				saveView.vf = viewSettings.vf;
 				saveView.n = viewSettings.n.replace(/"/g, '');
@@ -1489,6 +1515,9 @@ jQuery(document).ready(function() {
 					saveView.c.h    = viewSettings.c.h;
 					saveView.c.oAtt = viewSettings.c.oAtt;
 					saveView.c.sAtt = viewSettings.c.sAtt;
+					if (!validFacet(saveView.c.oAtt) || !validFacet(saveView.c.sAtt)) {
+						return false;
+					}
 					break;
 				case 'N': 	// Network Wheel
 					saveView.c.lw = viewSettings.c.lw;
@@ -1505,6 +1534,14 @@ jQuery(document).ready(function() {
 				case 'B': 	// Facet Browser
 					saveView.c.gr   = viewSettings.c.gr;
 					saveView.c.fcts = viewSettings.c.fcts;
+					saveView.c.fcts.forEach(function(f) {
+						if (!validFacet(f)) {
+							abort = true;
+						}
+					});
+					if (abort) {
+						return false;
+					}
 					break;
 				case 'm': 	// MultiBlockMap
 					saveView.c.w = viewSettings.c.w;
@@ -1512,6 +1549,14 @@ jQuery(document).ready(function() {
 					saveView.c.gr   = viewSettings.c.gr;
 					saveView.c.p   = viewSettings.c.p;
 					saveView.c.fcts = viewSettings.c.fcts;
+					saveView.c.fcts.forEach(function(f) {
+						if (!validFacet(f)) {
+							abort = true;
+						}
+					});
+					if (abort) {
+						return false;
+					}
 					break;
 
 				case 'G': 	// Tree -- not yet implemented
