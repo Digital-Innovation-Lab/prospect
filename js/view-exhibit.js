@@ -98,12 +98,17 @@ var widgetData = {			// Widget state has to be global because YouTube API calls 
 // PState
 // PURPOSE: Manages state of Prospect and displaying it
 // NOTES: 	Must be a global object because called by VizModels, VizFrames and global app object
+//			Try to force sychronous DOM flush/refresh. See:
+//				https://gist.github.com/paulirish/5d52fb081b3570c81e3a
+//				http://stackoverflow.com/questions/8840580/force-dom-redraw-refresh-on-chrome-mac
+//				http://stackoverflow.com/questions/6955912/can-i-use-javascript-to-force-the-browser-to-flush-any-pending-layout-changes
 
 var PState = (function() {
 
 	var state = PSTATE_INIT; // current state of Prospect web app
 	var pSTxts;				// array of PSTATE_ texts
 	var el;					// pstate element
+	var f;					// dummy variable used to force DOM refresh
 
 	return {
 		init: function()
@@ -123,6 +128,8 @@ var PState = (function() {
 				}
 				el.textContent = pSTxts[s-1];
 				state = s;
+				f = el.offsetWidth;
+				// f = el.innerText;
 			}
 		} // setState()
 	}
@@ -191,16 +198,6 @@ PVizModel.prototype.preRender = function()
 		this.rMap[i] = 0;
 	}
 } // preRender()
-
-// PVizModel.prototype.rendTmplts = function()
-// {
-// 	return this.tUsed;
-// } // rendTmplts()
-
-// PVizModel.prototype.rendRecs = function()
-// {
-// 	return this.rMap;
-// } // rendRecs()
 
 	// RETURNS: True if record ID is in selected list
 PVizModel.prototype.isSel = function(absI)
@@ -3898,6 +3895,7 @@ VizBrowser.prototype.update = function()
 	var self=this;
 	var vI = this.vFrame.getIndex();
 
+	PState.set(PSTATE_UPDATE);
 		// Start intersect array afresh
 	var ia = null, fi, chosen=false;
 	this.fcts.forEach(function(theF) {
@@ -3934,6 +3932,7 @@ VizBrowser.prototype.update = function()
 				}
 			});
 	});
+	PState.set(PSTATE_READY);
 } // update
 
 VizBrowser.prototype.render = function(stream)
@@ -4025,18 +4024,13 @@ VizBrowser.prototype.render = function(stream)
 			.on("click", function(d) {
 				var rThis = this;
 				if (theF.s !== -1) {
-					jQuery('body').addClass('waiting');
-						// Return control to browser briefly to ensure cursor updated
-					window.setTimeout(function() {
-						theF.s = -1;
-							// Make all buttons in this column active
-						var btnSel = self.svg.select(fID).selectAll(".facet-val")
-							.classed('inactive', false);
-							// Make RESET button inactive
-						d3.select(rThis).classed('inactive', true);
-						self.update();
-						jQuery('body').removeClass('waiting');
-					}, 50);
+					theF.s = -1;
+						// Make all buttons in this column active
+					var btnSel = self.svg.select(fID).selectAll(".facet-val")
+						.classed('inactive', false);
+						// Make RESET button inactive
+					d3.select(rThis).classed('inactive', true);
+					self.update();
 				}
 			});
 		facetSel
@@ -4060,26 +4054,21 @@ VizBrowser.prototype.render = function(stream)
 			.attr("transform", function(d, i) { return "translate(0," + (27+((i+1)*22)) +  ")"; } )
 			.attr("class", "facet-val" )
 			.on("click", function(d, i) {
-				jQuery('body').addClass('waiting');
-					// Return control briefly to browser to ensure cursor changed
-				window.setTimeout(function() {
-							// Make all buttons in this column inactive, but this one
-					var resetSel = self.svg.select(fID).select(".facet-reset");
-					if (theF.s !== i) {
-						theF.s = i;
-						var btnSel = self.svg.select(fID).selectAll(".facet-val")
-								.classed('inactive', function(f) { return i !== f.n } );
-						resetSel.classed('inactive', false);
-					} else {
-							// Reset facet selection if click on the currently selected facet
-						self.svg.select(fID).selectAll(".facet-val").classed('inactive', false);
-						theF.s = -1;
-						resetSel.classed('inactive', true);
-					}
-						// Update all values
-					self.update();
-					jQuery('body').removeClass('waiting');
-				}, 50);
+						// Make all buttons in this column inactive, but this one
+				var resetSel = self.svg.select(fID).select(".facet-reset");
+				if (theF.s !== i) {
+					theF.s = i;
+					var btnSel = self.svg.select(fID).selectAll(".facet-val")
+							.classed('inactive', function(f) { return i !== f.n } );
+					resetSel.classed('inactive', false);
+				} else {
+						// Reset facet selection if click on the currently selected facet
+					self.svg.select(fID).selectAll(".facet-val").classed('inactive', false);
+					theF.s = -1;
+					resetSel.classed('inactive', true);
+				}
+					// Update all values
+				self.update();
 			});
 
 		facetSel
