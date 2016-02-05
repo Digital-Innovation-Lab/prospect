@@ -3839,13 +3839,11 @@ VizFlow.prototype.clearSel = function()
 {
 	if (this.bSel.length > 0) {
 		this.bSel = [];
-		this.svg.selectAll(".bar")
-			.classed('obj-sel', false);
+		this.svg.selectAll(".bar").classed('obj-sel', false);
 	}
 	if (this.fSel.length > 0) {
 		this.fSel = [];
-		this.svg.selectAll(".flow")
-			.classed('obj-sel', false);
+		this.svg.selectAll(".flow").classed('obj-sel', false);
 	}
 } // clearSel()
 
@@ -3872,8 +3870,7 @@ var VizBrowser = function(viewFrame, vSettings)
 {
 	PVizModel.call(this, viewFrame, vSettings);
 
-	this.bSel=[];
-	this.fSel=[];
+	this.stream=null;
 } // VizBrowser
 
 VizBrowser.prototype = Object.create(PVizModel.prototype);
@@ -3888,50 +3885,73 @@ VizBrowser.prototype.flags = function()
 VizBrowser.prototype.setup = function()
 {
 		// 5 pix each side
-	var w = this.settings.fcts.length*260;
+	var w = this.settings.fcts.length*250;
 
 		// Height: Attribute Title + Attribute value titles + flow space
 	this.svg = d3.select(this.frameID).append("svg")
 				.attr("width", w);
 } // setup()
 
+	// PURPOSE: Recompute intersection of selected Records
+VizBrowser.prototype.update = function()
+{
+	var self=this;
+	var vI = this.vFrame.getIndex();
+
+		// Start intersect array afresh
+	var ia = null, fi, chosen=false;
+	this.fcts.forEach(function(theF) {
+		if (theF.s != -1) {
+			chosen = true;
+			fi = theF.c[theF.s].i;
+			if (!ia) {
+				ia = fi;
+			} else {
+				ia = PData.intersect(ia, fi);
+			}
+		}
+	});
+	if (chosen) {
+		this.vFrame.selBtns(true);
+	} else {
+		this.vFrame.selBtns(false);
+		ia=this.stream.s;
+	}
+	this.recSel=ia;
+
+		// Now update bars
+	this.fcts.forEach(function(theF) {
+		var fID = "#facet-"+vI+"-"+theF.i;
+		var fSel = self.svg.select(fID).selectAll(".facet-val-bar");
+		fSel.data(theF.c)
+			.transition()
+			.attr("width", function(d) {
+				if (ia.length > 0) {
+					var x=PData.intersect(ia, d.i);
+					return (x.length*242)/ia.length;
+				} else {
+					return 0;
+				}
+			});
+	});
+} // update
+
 VizBrowser.prototype.render = function(stream)
 {
 	var self=this;
 	var vI = this.vFrame.getIndex();
 
-		// PURPOSE: Recompute intersection of selected Records
-	function compInts()
-	{
+	this.recSel=[];
+	this.stream=stream;
 
-	} // compInts()
-
-	function clickBar(d, bI)
-	{
-		var sz = self.bSel.length;
-		var i = _.sortedIndex(self.bSel, bI);
-		if (self.bSel[i] === bI) {
-			d3.select(this).classed('obj-sel', false);
-			self.bSel.splice(i, 1);
-			if (sz > 0 && self.bSel.length === 0 && self.fSel.length === 0)
-				self.vFrame.selBtns(false);
-		} else {
-			d3.select(this).classed('obj-sel', true);
-			self.bSel.splice(i, 0, bI);
-			if (sz === 0 && self.fSel.length === 0 && self.bSel.length > 0)
-				self.vFrame.selBtns(true);
-		}
-	} // clickBar()
-
-		// Remove everything on svg
-	this.svg.selectAll(".facet").remove();
+		// Remove everything on svg -- facet-col entries are roots
+	this.svg.selectAll(".facet-col").remove();
 
 	var maxY=0;
 
 		// Create data about facets
 	this.fcts=[];
 		// Create individual bars for each category item
-	// this.bars=[];
 	this.settings.fcts.forEach(function(attID, aI) {
 		var cat;
 		var att = PData.aByID(attID);
@@ -3947,17 +3967,14 @@ VizBrowser.prototype.render = function(stream)
 		}
 			// Compile used categories
 		var used=[];
-			// Union of used Records -- needed because Records can appear in multiple categories
-		var u=[];
 		var n=0;
 		cat.forEach(function(c) {
 			if (c.i.length > 0) {
 				c.n = n++;			// Need to add index field
 				used.push(c);
-				u = PData.union(u, c.i);
 			}
 		});
-		self.fcts.push({ c: used, x: aI*260, i: aI, l: att.def.l, s: -1, t: total.length });
+		self.fcts.push({ c: used, x: aI*250, i: aI, l: att.def.l, s: -1 });
 
 		maxY = Math.max(maxY, 27+((used.length+1)*22));
 	});
@@ -3978,7 +3995,7 @@ VizBrowser.prototype.render = function(stream)
 	cols.append("rect")
 		.attr("class", "facet-lbl" )
 		.attr("height", 24)
-		.attr("width", 252);
+		.attr("width", 242);
 
 			// Create label text
 	cols.append("text")
@@ -4002,33 +4019,31 @@ VizBrowser.prototype.render = function(stream)
 			.enter()
 			.append("g")
 				// RESET button initially starts out inactive
-			.attr("transform", "translate(0,25)")
+			.attr("transform", "translate(0,26)")
 			.attr("class", "facet-reset inactive")
 			.attr("height", 19)
 			.on("click", function(d) {
+				var rThis = this;
 				if (theF.s !== -1) {
 					jQuery('body').addClass('waiting');
 						// Return control to browser briefly to ensure cursor updated
-					// window.setTimeout(function() {
+					window.setTimeout(function() {
 						theF.s = -1;
-						// computeRestrainedSet();
-						// updateAllValButtons();
 							// Make all buttons in this column active
 						var btnSel = self.svg.select(fID).selectAll(".facet-val")
-							// .data(theF.vals)
 							.classed('inactive', false);
 							// Make RESET button inactive
-						d3.select(this).classed('inactive', true);
-						// populateList();
+						d3.select(rThis).classed('inactive', true);
+						self.update();
 						jQuery('body').removeClass('waiting');
-					// }, 100);
+					}, 50);
 				}
 			});
 		facetSel
 			.append("rect")
 			.attr("class", "facet-reset-btn")
 			.attr("height", 19)
-			.attr("width", 252);
+			.attr("width", 242);
 		facetSel
 			.append("text")
 			.attr("class", "facet-reset-txt")
@@ -4044,80 +4059,63 @@ VizBrowser.prototype.render = function(stream)
 				// Must move down one for RESET button
 			.attr("transform", function(d, i) { return "translate(0," + (27+((i+1)*22)) +  ")"; } )
 			.attr("class", "facet-val" )
-			// .attr("id", function(d, i) { return "facet-"+theFacet.index+"-"+i; } )
 			.on("click", function(d, i) {
 				jQuery('body').addClass('waiting');
-				// 	// Return control briefly to browser to ensure cursor changed
-				// window.setTimeout(function() {
-				// 		// Make all buttons in this column inactive, but this one
-				// 	var resetSel = self.svg.select("#reset-"+theF.i);
-				var resetSel = self.svg.select(fID).select(".facet-reset");
-				var currSel = d3.select(this);
-				// 	var currSel = self.svg.select("#facet-"+theF.i+"-"+d.i);
-
-				// 		// Check if clicked on inactive facet or if no facet is currently selected
-					if (currSel.classed('inactive') || (!currSel.classed('inactive') && theF.s === -1)){
+					// Return control briefly to browser to ensure cursor changed
+				window.setTimeout(function() {
+							// Make all buttons in this column inactive, but this one
+					var resetSel = self.svg.select(fID).select(".facet-reset");
+					if (theF.s !== i) {
 						theF.s = i;
 						var btnSel = self.svg.select(fID).selectAll(".facet-val")
-								// .data(theFacet.vals)
 								.classed('inactive', function(f) { return i !== f.n } );
 						resetSel.classed('inactive', false);
-
 					} else {
 							// Reset facet selection if click on the currently selected facet
-						self.svg.select(fID).selectAll(".facet-val")
-							// .data(theFacet.vals)
-							.classed('inactive', false);
-
+						self.svg.select(fID).selectAll(".facet-val").classed('inactive', false);
 						theF.s = -1;
 						resetSel.classed('inactive', true);
 					}
-
-				// 		// Update all values
-				// 	computeRestrainedSet();
-				// 	updateAllValButtons();
-					
-				// 	populateList();
+						// Update all values
+					self.update();
 					jQuery('body').removeClass('waiting');
-				// }, 100);
+				}, 50);
 			});
 
 		facetSel
 			.append("rect")
 			.attr("class", "facet-val-btn")
 			.attr("height", 21)
-			.attr("width", 252);
+			.attr("width", 242);
 
-			// Create percentage bar
+			// Create percentage bar (initial width)
 		facetSel
 			.append("rect")
 			.attr("class", "facet-val-bar")
 			.attr("height", 21)
 			.attr("width", function(d) {
-				return 10;
-				// if (constrainedSet.length) {
-				// 	return (facetLabelWidth*d.indices.length)/constrainedSet.length;
-				// } else {
-				// 	return 0;
-				// }
+				if (stream.l > 0) {
+					return (d.i.length*242)/stream.l;
+				} else {
+					return 0;
+				}
 			} );
 
-			// Create actual label text
+			// Create label text
 		facetSel
 			.append("text")
 			.attr("class", "facet-val-txt")
 			.attr("x", 3)
 			.attr("y", 16)
-				// Constrain to 32 chars max
 			.text(function(d) {
 				return d.l;
 			});
 
-			// Create percentage text
+			// Create text with number of items
 		facetSel
 			.append("text")
-			.attr("class", "facet-val-perc")
-			.attr("x", 249)
+			.attr("class", "facet-val-num")
+			.attr("x", 239)
 			.attr("y", 16)
 			.text(function(d) { return d.i.length; });
 	});
@@ -4129,12 +4127,21 @@ VizBrowser.prototype.setSel = function(absIArray)
 
 VizBrowser.prototype.clearSel = function()
 {
+	var self=this;
+	var vI = this.vFrame.getIndex();
+	this.fcts.forEach(function(theF) {
+		theF.s = -1;
+		var fID = "#facet-"+vI+"-"+theF.i;
+		self.svg.select(fID).select(".facet-reset").classed('inactive', true);
+		self.svg.select(fID).selectAll(".facet-val").classed('inactive', false);
+	});
+	this.update();
 } // clearSel()
 
 	// RETURNS: Array of absolute IDs of selected records
 VizBrowser.prototype.getSel = function()
 {
-	return [];
+	return this.recSel;
 } // getSel()
 
 
@@ -4347,16 +4354,6 @@ VizMBMap.prototype.renderTree = function(aI)
 		.attr("y", "11")
 		.text(function (d) { return d.l; })
 		.on("click", clickTitle);
-
-		// Changing blocks
-	// cell.transition().duration(500)
-	// 	.attr("width", function(d) { return d.dx; });
-
-		// Removing blocks
-	// cell.exit()
-	// 	.transition().duration(500)
-	// 	.attr("width", "0")
-	// 	.remove();
 } // renderTree()
 
 VizMBMap.prototype.render = function(stream)

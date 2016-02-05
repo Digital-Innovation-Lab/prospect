@@ -1360,7 +1360,7 @@ svg .facet-val-txt {
 	fill: black;
 }
 
-svg .facet-val-perc {
+svg .facet-val-num {
 	cursor: pointer;
 	font-size: 12px;
 	font-family: sans-serif;
