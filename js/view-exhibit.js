@@ -3519,7 +3519,7 @@ VizNetWheel.prototype.render = function(stream)
 	link = this.center.append("g").selectAll(".link")
 		.data(bundle(links))
 		.enter().append("path")
-    	.each(function(d) { d.s = d[0], d.t = d[d.length - 1]; })
+		.each(function(d) { d.s = d[0], d.t = d[d.length - 1]; })
 		.attr("class", "link")
 		.attr("d", line)
 		.attr("stroke", "black");
@@ -3862,6 +3862,279 @@ VizFlow.prototype.getSel = function()
 		u = PData.union(u, self.ints[fI].i);
 	});
 	return u;
+} // getSel()
+
+
+// ================================================================================
+// VizBrowser: Class to visualize multiple Facet values of record data as parallel sets
+
+var VizBrowser = function(viewFrame, vSettings)
+{
+	PVizModel.call(this, viewFrame, vSettings);
+
+	this.bSel=[];
+	this.fSel=[];
+} // VizBrowser
+
+VizBrowser.prototype = Object.create(PVizModel.prototype);
+
+VizBrowser.prototype.constructor = VizBrowser;
+
+VizBrowser.prototype.flags = function()
+{
+	return V_FLAG_VSCRL | V_FLAG_HSCRL;
+} // flags()
+
+VizBrowser.prototype.setup = function()
+{
+		// 5 pix each side
+	var w = this.settings.fcts.length*260;
+
+		// Height: Attribute Title + Attribute value titles + flow space
+	this.svg = d3.select(this.frameID).append("svg")
+				.attr("width", w);
+} // setup()
+
+VizBrowser.prototype.render = function(stream)
+{
+	var self=this;
+	var vI = this.vFrame.getIndex();
+
+		// PURPOSE: Recompute intersection of selected Records
+	function compInts()
+	{
+
+	} // compInts()
+
+	function clickBar(d, bI)
+	{
+		var sz = self.bSel.length;
+		var i = _.sortedIndex(self.bSel, bI);
+		if (self.bSel[i] === bI) {
+			d3.select(this).classed('obj-sel', false);
+			self.bSel.splice(i, 1);
+			if (sz > 0 && self.bSel.length === 0 && self.fSel.length === 0)
+				self.vFrame.selBtns(false);
+		} else {
+			d3.select(this).classed('obj-sel', true);
+			self.bSel.splice(i, 0, bI);
+			if (sz === 0 && self.fSel.length === 0 && self.bSel.length > 0)
+				self.vFrame.selBtns(true);
+		}
+	} // clickBar()
+
+		// Remove everything on svg
+	this.svg.selectAll(".facet").remove();
+
+	var maxY=0;
+
+		// Create data about facets
+	this.fcts=[];
+		// Create individual bars for each category item
+	// this.bars=[];
+	this.settings.fcts.forEach(function(attID, aI) {
+		var cat;
+		var att = PData.aByID(attID);
+		if (att.def.t === 'g') {
+			cat=[];
+			PData.cFill(cat, attID, null, stream);
+		} else {
+			if (self.settings.gr)
+				cat = PData.cRNew(att, true, true);
+			else
+				cat = PData.cLNew(att, null, true);
+			PData.cFill(cat, attID, null, stream);
+		}
+			// Compile used categories
+		var used=[];
+			// Union of used Records -- needed because Records can appear in multiple categories
+		var u=[];
+		var n=0;
+		cat.forEach(function(c) {
+			if (c.i.length > 0) {
+				c.n = n++;			// Need to add index field
+				used.push(c);
+				u = PData.union(u, c.i);
+			}
+		});
+		self.fcts.push({ c: used, x: aI*260, i: aI, l: att.def.l, s: -1, t: total.length });
+
+		maxY = Math.max(maxY, 27+((used.length+1)*22));
+	});
+
+	self.svg.attr("height", maxY);
+
+		// Now create populate Facet Frames with data about facets
+	var cols = self.svg.selectAll(".facet-col")
+		.data(self.fcts)
+		.enter()
+			// Facet Label Grouping
+		.append("g")
+		.attr("transform", function(d) { return "translate(" + d.x +  ", 0)"; } )
+		.attr("class", "facet-col" )
+		.attr("id", function(d) { return "facet-"+vI+"-"+d.i; } );
+
+			// Create background color label
+	cols.append("rect")
+		.attr("class", "facet-lbl" )
+		.attr("height", 24)
+		.attr("width", 252);
+
+			// Create label text
+	cols.append("text")
+		.attr("class", "facet-lbl-txt")
+		.attr("x", 3)
+		.attr("y", 17)
+		.attr("text-anchor", "start")
+		.text(function(d) { return d.l; });
+
+	var facetSel;
+
+		// Now create labels for specific values, column by column
+	self.fcts.forEach(function(theF) {
+		var fID = "#facet-"+vI+"-"+theF.i;
+
+			// Need dummy data to bind to RESET buttons
+		var resetDummy=[1];
+			// Create each column's RESET button
+		facetSel = self.svg.select(fID).selectAll(".facet-reset")
+			.data(resetDummy)
+			.enter()
+			.append("g")
+				// RESET button initially starts out inactive
+			.attr("transform", "translate(0,25)")
+			.attr("class", "facet-reset inactive")
+			.attr("height", 19)
+			.on("click", function(d) {
+				if (theF.s !== -1) {
+					jQuery('body').addClass('waiting');
+						// Return control to browser briefly to ensure cursor updated
+					// window.setTimeout(function() {
+						theF.s = -1;
+						// computeRestrainedSet();
+						// updateAllValButtons();
+							// Make all buttons in this column active
+						var btnSel = self.svg.select(fID).selectAll(".facet-val")
+							// .data(theF.vals)
+							.classed('inactive', false);
+							// Make RESET button inactive
+						d3.select(this).classed('inactive', true);
+						// populateList();
+						jQuery('body').removeClass('waiting');
+					// }, 100);
+				}
+			});
+		facetSel
+			.append("rect")
+			.attr("class", "facet-reset-btn")
+			.attr("height", 19)
+			.attr("width", 252);
+		facetSel
+			.append("text")
+			.attr("class", "facet-reset-txt")
+			.attr("x", 3)
+			.attr("y", 13)
+			.text(dlText.reset);
+
+				// Create button for each facet value
+		facetSel = self.svg.select(fID).selectAll(".facet-val")
+			.data(theF.c)
+			.enter()
+			.append("g")
+				// Must move down one for RESET button
+			.attr("transform", function(d, i) { return "translate(0," + (27+((i+1)*22)) +  ")"; } )
+			.attr("class", "facet-val" )
+			// .attr("id", function(d, i) { return "facet-"+theFacet.index+"-"+i; } )
+			.on("click", function(d, i) {
+				jQuery('body').addClass('waiting');
+				// 	// Return control briefly to browser to ensure cursor changed
+				// window.setTimeout(function() {
+				// 		// Make all buttons in this column inactive, but this one
+				// 	var resetSel = self.svg.select("#reset-"+theF.i);
+				var resetSel = self.svg.select(fID).select(".facet-reset");
+				var currSel = d3.select(this);
+				// 	var currSel = self.svg.select("#facet-"+theF.i+"-"+d.i);
+
+				// 		// Check if clicked on inactive facet or if no facet is currently selected
+					if (currSel.classed('inactive') || (!currSel.classed('inactive') && theF.s === -1)){
+						theF.s = i;
+						var btnSel = self.svg.select(fID).selectAll(".facet-val")
+								// .data(theFacet.vals)
+								.classed('inactive', function(f) { return i !== f.n } );
+						resetSel.classed('inactive', false);
+
+					} else {
+							// Reset facet selection if click on the currently selected facet
+						self.svg.select(fID).selectAll(".facet-val")
+							// .data(theFacet.vals)
+							.classed('inactive', false);
+
+						theF.s = -1;
+						resetSel.classed('inactive', true);
+					}
+
+				// 		// Update all values
+				// 	computeRestrainedSet();
+				// 	updateAllValButtons();
+					
+				// 	populateList();
+					jQuery('body').removeClass('waiting');
+				// }, 100);
+			});
+
+		facetSel
+			.append("rect")
+			.attr("class", "facet-val-btn")
+			.attr("height", 21)
+			.attr("width", 252);
+
+			// Create percentage bar
+		facetSel
+			.append("rect")
+			.attr("class", "facet-val-bar")
+			.attr("height", 21)
+			.attr("width", function(d) {
+				return 10;
+				// if (constrainedSet.length) {
+				// 	return (facetLabelWidth*d.indices.length)/constrainedSet.length;
+				// } else {
+				// 	return 0;
+				// }
+			} );
+
+			// Create actual label text
+		facetSel
+			.append("text")
+			.attr("class", "facet-val-txt")
+			.attr("x", 3)
+			.attr("y", 16)
+				// Constrain to 32 chars max
+			.text(function(d) {
+				return d.l;
+			});
+
+			// Create percentage text
+		facetSel
+			.append("text")
+			.attr("class", "facet-val-perc")
+			.attr("x", 249)
+			.attr("y", 16)
+			.text(function(d) { return d.i.length; });
+	});
+} // render()
+
+VizBrowser.prototype.setSel = function(absIArray)
+{	// Does nothing
+} // setSel()
+
+VizBrowser.prototype.clearSel = function()
+{
+} // clearSel()
+
+	// RETURNS: Array of absolute IDs of selected records
+VizBrowser.prototype.getSel = function()
+{
+	return [];
 } // getSel()
 
 
@@ -6311,6 +6584,9 @@ function PViewFrame(vfIndex)
 		case 'F':
 			newViz = new VizFlow(instance, theView.c);
 			break;
+		case 'B':
+			newViz = new VizBrowser(instance, theView.c);
+			break;
 		case 'm':
 			newViz = new VizMBMap(instance, theView.c);
 			break;
@@ -7257,7 +7533,7 @@ var PData = (function() {
 					// As undefined is first entry (-1), abort now
 				if (val === '?')
 					return null;
-					 			// Just looking for overlap, date doesn't have to be completely contained
+								// Just looking for overlap, date doesn't have to be completely contained
 								// Disqualify for overlap if (1) end of event is before min bound, or
 								//	(2) start of event is after max bound
 				for (; f<lI; f++) {
@@ -8223,27 +8499,27 @@ jQuery(document).ready(function($) {
 				var e=fDiv.find('.apply-tmplt-0').is(':checked');
 					// Must keep absolute indices and template params updated!
 				while (relI < endStream.l) {
- 						// Advance until we get to current Template rec
- 					while (tRec.n == 0 || (tRec.i+tRec.n) == relI) {
- 						newStream.t.push({ i: (newStream.l-tRn), n: tRn });
- 						tRn = 0;
+						// Advance until we get to current Template rec
+					while (tRec.n == 0 || (tRec.i+tRec.n) == relI) {
+						newStream.t.push({ i: (newStream.l-tRn), n: tRn });
+						tRn = 0;
 						tRec = endStream.t[++tI];
 						e=fDiv.find('.apply-tmplt-'+tI).is(':checked');
- 					}
-	 				absI = endStream.s[relI++];
-	 					// Need to evaluate
- 					if (e) {
-	 					rec = PData.rByN(absI);
+					}
+					absI = endStream.s[relI++];
+						// Need to evaluate
+					if (e) {
+						rec = PData.rByN(absI);
 						if (f.eval(rec)) {
 							newStream.s[newStream.l++] = absI;
 							tRn++;
 						}
 						rTotal++;
 						// Pass-through
- 					} else {
+					} else {
 						newStream.s[newStream.l++] = absI;
 						tRn++;
- 					}
+					}
 				}
 					// push out remaining Template recs
 				while (tI++ < PData.eTNum()) {
@@ -9012,10 +9288,10 @@ jQuery(document).ready(function($) {
 					tRec = endStream.t[tI];
 					relI = tRec.i;
 				}
-	 			absI = endStream.s[relI++];
-	 				// Check bitflag if Record rendered
-	 			if (rMap[absI >> 4] & (1 << (absI & 15))) {
-		 			rec = PData.rByN(absI);
+				absI = endStream.s[relI++];
+					// Check bitflag if Record rendered
+				if (rMap[absI >> 4] & (1 << (absI & 15))) {
+					rec = PData.rByN(absI);
 					if (hFilter.eval(rec)) {
 						list.push(absI);
 					}
