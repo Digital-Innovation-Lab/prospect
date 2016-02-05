@@ -4001,7 +4001,7 @@ VizBrowser.prototype.render = function(stream)
 	cols.append("text")
 		.attr("class", "facet-lbl-txt")
 		.attr("x", 3)
-		.attr("y", 17)
+		.attr("y", 18)
 		.attr("text-anchor", "start")
 		.text(function(d) { return d.l; });
 
