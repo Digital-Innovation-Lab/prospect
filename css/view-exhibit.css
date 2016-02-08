@@ -1312,7 +1312,6 @@ svg .mbm-reset-text
 	/* Each has the ID "facet-"+facetIndex */
 svg .facet-lbl {
 	fill:  #0099FF;     /* sky-blue */
-/*	cursor: ew-resize;  /* horizontal resize */
 }
 
 svg .facet-lbl-txt {
@@ -1321,7 +1320,6 @@ svg .facet-lbl-txt {
 	font-weight: bold;
 	fill: black;
 	text-anchor: start;
-	cursor: ew-resize;  /* horizontal resize */
 }
 
 	/* The button+label for a single facet value */
