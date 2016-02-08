@@ -1,7 +1,7 @@
 TECHNICAL NOTES
 
 Non-DIL Code files in /lib
-	CSV Importer 0.3.8 (PHP)
+	CSV Importer 0.4.2 (PHP) from https://github.com/academe/csv-importer-improved/releases
 	Leaflet 1.0.0-beta.2 (JS)
 	D3 3.5.12 (JS)
 	Ractive 0.7.3 (JS)
