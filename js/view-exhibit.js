@@ -3887,6 +3887,9 @@ VizBrowser.prototype.setup = function()
 		// Height: Attribute Title + Attribute value titles + flow space
 	this.svg = d3.select(this.frameID).append("svg")
 				.attr("width", w);
+
+		// Var for holding Perspective data until render
+	this.pState = null;
 } // setup()
 
 	// PURPOSE: Recompute intersection of selected Records
@@ -3974,7 +3977,7 @@ VizBrowser.prototype.render = function(stream)
 				used.push(c);
 			}
 		});
-		self.fcts.push({ c: used, x: aI*250, i: aI, l: att.def.l, s: -1 });
+		self.fcts.push({ c: used, x: aI*250, i: aI, l: att.def.l, n: att.id, s: -1 });
 
 		maxY = Math.max(maxY, 27+((used.length+1)*22));
 	});
@@ -4010,6 +4013,22 @@ VizBrowser.prototype.render = function(stream)
 		// Now create labels for specific values, column by column
 	self.fcts.forEach(function(theF) {
 		var fID = "#facet-"+vI+"-"+theF.i;
+		var pp=null, sI;
+
+			// If there is a saved state to restore, see if there is entry for this facet
+		if (self.pState != null) {
+			self.pState.p.find(function(p) {
+				if (theF.n === p.f) {
+					if ((sI = theF.c.findIndex(function(c) { return p.v === c.l; })) !== -1) {
+						theF.s = sI;
+						pp = p;
+					}
+					return true;
+				} else {
+					return false;
+				}
+			});
+		}
 
 			// Need dummy data to bind to RESET buttons
 		var resetDummy=[1];
@@ -4020,7 +4039,13 @@ VizBrowser.prototype.render = function(stream)
 			.append("g")
 				// RESET button initially starts out inactive
 			.attr("transform", "translate(0,26)")
-			.attr("class", "facet-reset inactive")
+			.attr("class", function(d) {
+				if (pp) {
+					return "facet-reset";
+				} else {
+					return "facet-reset inactive";
+				}
+			})
 			.attr("height", 19)
 			.on("click", function(d) {
 				var rThis = this;
@@ -4053,7 +4078,17 @@ VizBrowser.prototype.render = function(stream)
 			.append("g")
 				// Must move down one for RESET button
 			.attr("transform", function(d, i) { return "translate(0," + (27+((i+1)*22)) +  ")"; } )
-			.attr("class", "facet-val" )
+			.attr("class", function(d, i) {
+				if (pp) {
+					if (i === sI) {
+						return "facet-val";
+					} else {
+						return "facet-val inactive";
+					}
+				} else {
+					return "facet-val";
+				}
+			})
 			.on("click", function(d, i) {
 						// Make all buttons in this column inactive, but this one
 				var resetSel = self.svg.select(fID).select(".facet-reset");
@@ -4109,6 +4144,11 @@ VizBrowser.prototype.render = function(stream)
 			.attr("y", 16)
 			.text(function(d) { return d.i.length; });
 	});
+
+	if (this.pState != null) {
+		this.update();
+		this.pState = null;
+	}
 } // render()
 
 VizBrowser.prototype.setSel = function(absIArray)
@@ -4133,6 +4173,27 @@ VizBrowser.prototype.getSel = function()
 {
 	return this.recSel;
 } // getSel()
+
+VizBrowser.prototype.getState = function()
+{
+	var pairs=[];
+
+	this.fcts.forEach(function(theF) {
+		if (theF.s !== -1) {
+			var c = theF.c[theF.s];
+				// Save pairs of Facet IDs and value labels
+			pairs.push({ f: theF.n, v: c.l });
+		}
+	});
+
+	return { p: pairs };
+} // getState()
+
+VizBrowser.prototype.setState = function(state)
+{
+		// Save data until render done, load then
+	this.pState = state;
+} // setState()
 
 
 // ===============================================================================================
@@ -4223,7 +4284,7 @@ VizMBMap.prototype.renderTree = function(aI)
 		var src = self.sbkSel !== null ? self.sbkSel.i : self.bkSel.i;
 
 		PState.set(PSTATE_UPDATE);
-		self.facets.forEach(function(thisF, fI) {
+		self.fcts.forEach(function(thisF, fI) {
 			var newIs=[];
 			var total=0;
 				// First pass: calculate intersections
@@ -4378,7 +4439,7 @@ VizMBMap.prototype.render = function(stream)
 	this.infoG.select(".mbm-select").remove();
 
 		// Initialize 2ndary Attribute Facet data and corresponding bars
-	this.facets=[];
+	this.fcts=[];
 	this.bars=[];
 	this.settings.fcts.forEach(function(attID, aI) {
 		var tCat;
@@ -4412,12 +4473,12 @@ VizMBMap.prototype.render = function(stream)
 		});
 
 			// Save data about facets
-		self.facets.push({ i: aI, l: att.def.l, y: y+14, c: used });
+		self.fcts.push({ i: aI, l: att.def.l, y: y+14, c: used });
 	});
 
 		// Show Attribute facet labels
 	var facet = this.attsG.selectAll(".mbm-att-title")
-		.data(self.facets)
+		.data(self.fcts)
 		.enter()
 		.append("text")
 		.attr("class", function(d,i) { return i === 0 ? "mbm-att-title obj-sel" : "mbm-att-title" })
@@ -4459,7 +4520,7 @@ VizMBMap.prototype.render = function(stream)
 		// Create BlockMap Tree from primary and 2ndary Attributes
 		// Each entry has elements i[absolute indices], z[children]
 	self.trees = [];
-	self.facets.forEach(function(thisF, fI) {
+	self.fcts.forEach(function(thisF, fI) {
 		var thisTree = { z: [], id: vI+'.'+fI };
 		pCat.forEach(function(p1Cat, pI) {
 			if (p1Cat.i.length > 0) {
