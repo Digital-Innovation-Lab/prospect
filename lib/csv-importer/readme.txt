@@ -1,12 +1,11 @@
-=== CSV Importer ===
-Contributors: dvkob
+=== CSV Importer Improved ===
+Contributors: judgej
 Tags: csv, import, batch, spreadsheet, excel
-Requires at least: 2.0.2
-Tested up to: 3.8
-Stable tag: 0.3.8
+Requires at least: 3.0.0
+Tested up to: 4.4
+Stable tag: 0.4.2
 
 Import posts from CSV files into WordPress.
-
 
 == Description ==
 
@@ -25,6 +24,20 @@ a CSV file and the plugin will take care of the rest.
 *   Columns in the CSV file can be in any order, provided that they have correct
     headings
 *   Multi-language support
+
+This plugin is forked from https://wordpress.org/plugins/csv-importer/ by dvkob
+in order to keep up with changes to the core WordPress.
+
+This importer writes directly to the database. It does not go through the internal
+WordPress objects for creating posts etc. That may be an advantage to you (it will
+be faster for large imports) but do be aware of any data integrity issues that may arrise.
+
+The development repository for this plugin can be found here:
+
+https://github.com/academe/csv-importer-2
+
+Please feel free to raise issues there, and submit pull requests, as well as through
+the normal WordPress channels.
 
 
 == Screenshots ==
@@ -246,6 +259,15 @@ Contributors:
 
 
 == Changelog ==
+
+= 0.4.2 =
+*   Renamed from "CSV Importer 2" to "CSV Importer Improved".
+
+= 0.4.1 =
+*   Fix some function name clashes with other CSV import plugins.
+
+= 0.4.0 =
+*   Fixes to support WordPress 4.4
 
 = 0.3.8 =
 *   Minor bug and security fixes
