@@ -115,23 +115,23 @@
 </script>
 
 <script id="att-type-Image" type='text/ractive'>
-	URL for image: <input type="url" value="{{value}}" pattern="^$|^https?://.+(\.jpg|\.JPG|\.jpeg|\.JPEG|\.png|\.PNG|\.gif|\.GIF)$"/>
+	URL for image: <input type="url" size="40" value="{{value}}" pattern="^$|^https?://.+(\.jpg|\.JPG|\.jpeg|\.JPEG|\.png|\.PNG|\.gif|\.GIF)$"/>
 </script>
 
 <script id="att-type-Link-To" type='text/ractive'>
-	URL to webpage: <input type="url" size="20" value="{{value}}" pattern="^$|^https?://.+$"/>
+	URL to webpage: <input type="url" size="40" value="{{value}}" pattern="^$|^https?://.+$"/>
 </script>
 
 <script id="att-type-SoundCloud" type='text/ractive'>
-	URL to SoundCloud: <input type="url" size="20" value="{{value}}" pattern="^$|^https?://soundcloud.com/.+"/>
+	URL to SoundCloud: <input type="url" size="40" value="{{value}}" pattern="^$|^https?://soundcloud.com/.+"/>
 </script>
 
 <script id="att-type-YouTube" type='text/ractive'>
-	YouTube ID code: <input type="text" size="10" value="{{value}}"/>
+	YouTube ID code: <input type="text" size="12" value="{{value}}"/>
 </script>
 
 <script id="att-type-Transcript" type='text/ractive'>
-	URL to Transcript text file: <input type="url" size="20" value="{{value}}" pattern="^$|^https?://.+\.txt$"/>
+	URL to Transcript text file: <input type="url" size="40" value="{{value}}" pattern="^$|^https?://.+\.txt$"/>
 </script>
 
 <script id="att-type-Timecode" type='text/ractive'>
