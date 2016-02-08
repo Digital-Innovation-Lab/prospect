@@ -3910,7 +3910,8 @@ VizBrowser.prototype.update = function()
 		}
 	});
 	if (chosen) {
-		this.vFrame.selBtns(true);
+			// Make sure result is not empty!
+		this.vFrame.selBtns(ia.length > 0);
 	} else {
 		this.vFrame.selBtns(false);
 		ia=this.stream.s;
