@@ -646,7 +646,10 @@ div.op-layer input {
 }
 
 #inspect-content img {
-	max-width: 250px;
+	width: -moz-fit-content;
+	width: -webkit-fit-content;
+	width: fit-content;
+	max-width: 97%;
 }
 
 #inspect-content .att-label {
