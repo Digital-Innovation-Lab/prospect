@@ -211,6 +211,13 @@ jQuery(document).ready(function() {
 	if (embedData && embedData != 'null' && embedData.length > 4) {
 		defInspect = JSON.parse(embedData);
 	}
+		// Create default override width & height if not defined
+	if (typeof defInspect.w === 'undefined') {
+		defInspect.w = '';
+	}
+	if (typeof defInspect.h === 'undefined') {
+		defInspect.h = '';
+	}
 
 		// Read text labels for visualization types: c[ode], l[abel]
 	var vfTypes=[];
@@ -1591,6 +1598,15 @@ jQuery(document).ready(function() {
 			saveInspect.t.t2Atts = packUsedAttIDs(inspectSettings.t.t2Atts);
 			saveInspect.t.tcAtts = packUsedAttIDs(inspectSettings.t.tcAtts);
 			saveInspect.modal =  {};
+				// W/H overrides?
+			var n = inspectSettings.modal.w;
+			if (n !== '' && n !== ' ' && !isNaN(n)) {
+				saveInspect.modal.w = +n;
+			}
+			var n = inspectSettings.modal.h;
+			if (n !== '' && n !== ' ' && !isNaN(n)) {
+				saveInspect.modal.h = +n;
+			}
 			saveInspect.modal.scOn = inspectSettings.modal.scOn;
 			saveInspect.modal.ytOn = inspectSettings.modal.ytOn;
 			saveInspect.modal.tOn  = inspectSettings.modal.tOn;

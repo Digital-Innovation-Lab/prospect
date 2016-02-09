@@ -100,6 +100,11 @@
 				<input type='checkbox' checked='{{modal.tOn}}'/> Enable Transcripts
 				<input type='checkbox' checked='{{modal.t2On}}'/> Enable Dual Transcripts
 			</div>
+			<div>
+				Admin overrides (leave blank for defaults):
+				Width <input type='text' value='{{modal.w}}' placeholder="Default" size="5"/>
+				Height <input type='text' value='{{modal.h}}' placeholder="Default" size="5"/>
+			</div>
 			<accordion>
 				<h3>Attributes to Display</h3>
 				<div>
