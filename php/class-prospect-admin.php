@@ -107,6 +107,19 @@ class ProspectAdmin {
 		return $mime_types;
 	} // add_mime_types()
 
+		// PURPOSE: Enable use of tags in queries for all post types
+		// NOTES:	See https://premium.wpmudev.org/blog/add-custom-post-types-to-tags-and-categories-in-wordpress/
+	public function add_custom_types_to_tax($query)
+	{
+		if (is_category() || is_tag() && empty($query->query_vars['suppress_filters'])) {
+				// Get all post types
+			$post_types = get_post_types();
+
+			$query->set('post_type', $post_types);
+			return $query;
+		}
+	} // add_custom_types_to_tax()
+
 		// PURPOSE: Restrict Record directory by Template ID
 		// INPUT:	$_GET['post_type'] is set to post type being edited in admin panel
 	public function filter_restrict_rec_by_id()

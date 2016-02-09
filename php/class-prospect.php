@@ -169,6 +169,9 @@ class Prospect {
 		$this->loader->add_action('upload_mimes', $this->admin, 'add_mime_types', null, null);
 		$this->loader->add_filter('query_vars', $this->admin, 'add_query_vars_filter', null, null);
 
+			// Patch taxonomy issue
+		$this->loader->add_filter('pre_get_posts', $this->admin, 'add_custom_types_to_tax', null, null);
+
 			// Add JS to Dashboard editors
 		$this->loader->add_action('admin_enqueue_scripts', $this->admin, 'add_admin_scripts', null, null);
 			// Modify HTML for Dashboard editors
@@ -213,7 +216,6 @@ class Prospect {
 		$this->loader->add_action('wp_ajax_nopriv_prsp_get_transcript', $this->admin, 'prsp_get_transcript', null, null);
 
 		$this->loader->add_action('wp_ajax_prsp_save_prspctv', $this->admin, 'prsp_save_prspctv', null, null);
-		// $this->loader->add_action('wp_ajax_nopriv_prsp_save_prspctv', $this->admin, 'prsp_save_prspctv');
 	} // define_admin_hooks()
 
 
