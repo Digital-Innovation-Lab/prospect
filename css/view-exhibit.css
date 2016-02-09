@@ -649,7 +649,7 @@ div.op-layer input {
 	width: -moz-fit-content;
 	width: -webkit-fit-content;
 	width: fit-content;
-	max-width: 97%;
+	max-width: 100%;
 }
 
 #inspect-content .att-label {
@@ -1495,8 +1495,6 @@ div.filter-vocab-bar {
  **/
 
 #yt-widget {
-	width: 426px;
-	height: 240px;
 	margin: 3px;
 }
 

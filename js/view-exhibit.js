@@ -267,6 +267,7 @@ PVizModel.prototype.getState = function()
 	return {};
 } // PVizModel.getState()
 
+	// NOTE: Can be called to load Perspective data after setup() but before render()
 PVizModel.prototype.setState = function(state)
 {
 } // PVizModel.setState()
@@ -5804,13 +5805,16 @@ function PViewFrame(vfIndex)
 	} // clickShowHideLegend()
 
 
-		// PURPOSE: Open Selection Inspector for current selection
+		// PURPOSE: Open Record Inspector for current selection
 	function clickOpenSelection(event)
 	{
 		var container = jQuery('#inspect-content');
 		var avAttID=null;	// ID of any A/V widget or null
 		var avType=0;		// 0=none, 1=SoundCloud, 2=YouTube
 		var t2URL;			// URL for transcript 2 or null
+			// Set default size -- change acc to widget settings & overrides
+		var w=450;
+		var h=400;
 
 		function tTrim(str)
 		{
@@ -6013,7 +6017,7 @@ function PViewFrame(vfIndex)
 			} // ytStateChange()
 
 			widgetData.widget = new YT.Player('yt-widget', {
-				width: '426', height: '240',
+				width: w-40, height: Math.floor(((w-40)*9)/16),
 				videoId: widgetData.ytCode,
 				events: {
 					onError: function(event) { console.log("YouTube Error: "+event.data); },
@@ -6107,7 +6111,7 @@ function PViewFrame(vfIndex)
 						getSETimes();
 
 						avType=1;
-						container.append('<iframe id="sc-widget" class="player" width="95%" height="150" src="http://w.soundcloud.com/player/?url='+
+						container.append('<iframe id="sc-widget" class="player" width="100%" height="150" src="http://w.soundcloud.com/player/?url='+
 							scAttVal+'"></iframe></p>');
 
 							// Must set these variables after HTML appended above
@@ -6273,15 +6277,6 @@ function PViewFrame(vfIndex)
 			inspectSlide(1);
 		}
 
-			// Show first item & handle scroll buttons
-		inspectShow();
-		jQuery('#btn-inspect-left').click(inspectLeft);
-		jQuery('#btn-inspect-right').click(inspectRight);
-
-			// Set default size -- increase according to widget settings
-		var w=450;
-		var h=400;
-
 		if (prspdata.e.i.modal.scOn)
 		{
 			w=550;
@@ -6303,8 +6298,20 @@ function PViewFrame(vfIndex)
 				w=Math.max(w,550);
 		} // if Transcriptions
 
+		if (typeof prspdata.e.i.modal.w === 'number') {
+			w=prspdata.e.i.modal.w;
+		}
+		if (typeof prspdata.e.i.modal.h === 'number') {
+			h=prspdata.e.i.modal.h;
+		}
+
 			// Stop pulsing while Inspector open
 		doSelBtns(false);
+
+			// Show first item & handle scroll buttons
+		inspectShow();
+		jQuery('#btn-inspect-left').click(inspectLeft);
+		jQuery('#btn-inspect-right').click(inspectRight);
 
 		inspector = jQuery("#dialog-inspector").dialog({
 			width: w,
