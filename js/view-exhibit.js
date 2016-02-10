@@ -6383,7 +6383,7 @@ function PViewFrame(vfIndex)
 	function clickHighlight(event)
 	{
 			// Send signal back to Prospect "main app" to create Highlight filter on this viz
-		jQuery("body").trigger("prospect", { s: PSTATE_HILITE, v: vfIndex, t: vizModel.tUsed, r: vizModel.rMap });
+		jQuery("body").trigger("prospect", { s: PSTATE_HILITE, v: vfIndex, t: vizModel.tUsed });
 		event.preventDefault();
 	} // clickHighlight()
 
@@ -6990,6 +6990,15 @@ function PViewFrame(vfIndex)
 		var frame = jQuery(getFrameID());
 		frame.find('div.lgnd-container').css('left', '10px');
 	} // flushLgnd()
+
+		// PURPOSE: Return the Record bitmap data for this view
+	instance.getBMData = function()
+	{
+		if (vizModel) {
+			return { t: vizModel.tUsed, r: vizModel.rMap };
+		}
+		return null;
+	} // getBMData()
 
 	return instance;
 } // PViewFrame
@@ -9319,10 +9328,13 @@ jQuery(document).ready(function($) {
 	} // clickToggleFilters()
 
 		// PURPOSE: Apply effect of a Highlight filter
-	function doApplyHighlight(vI, tUsed, rMap)
+		// TO DO: 	Get tUsed, rMap from the VizModels themselves!
+	function doApplyHighlight(vI)
 	{
 		PState.set(PSTATE_PROCESS);
 
+		var vf = views[vI];
+		var bm = vf.getBMData();
 		var list=[];
 		var hFilter=hFilters[vI];
 
@@ -9335,7 +9347,7 @@ jQuery(document).ready(function($) {
 			outer:
 			while (relI < endStream.l) {
 					// Advance until we get to current Template rec
-				while (!tUsed[tI] || tRec.n == 0 || (tRec.i+tRec.n) == relI) {
+				while (!bm.t[tI] || tRec.n == 0 || (tRec.i+tRec.n) == relI) {
 						// Fast-forward to next used template set
 					if (++tI === PData.eTNum()) {
 						break outer;
@@ -9345,7 +9357,7 @@ jQuery(document).ready(function($) {
 				}
 				absI = endStream.s[relI++];
 					// Check bitflag if Record rendered
-				if (rMap[absI >> 4] & (1 << (absI & 15))) {
+				if (bm.r[absI >> 4] & (1 << (absI & 15))) {
 					rec = PData.rByN(absI);
 					if (hFilter.eval(rec)) {
 						list.push(absI);
@@ -9358,9 +9370,9 @@ jQuery(document).ready(function($) {
 		PState.set(PSTATE_UPDATE);
 
 		if (list.length > 0) {
-			views[vI].setSel(list);
+			vf.setSel(list);
 		} else {
-			views[vI].clearSel();
+			vf.clearSel();
 		}
 
 		PState.set(PSTATE_READY);
@@ -9368,9 +9380,8 @@ jQuery(document).ready(function($) {
 
 		// PURPOSE: Handle click on "Highlight" button
 		// INPUT: 	vI = index of view frame
-		//			tUsed = array of booleans indicating which Templates rendered
-		//			rMap = bitmap array indicating which Records rendered
-	function clickHighlight(vI, tUsed, rMap)
+	// function clickHighlight(vI, tUsed, rMap)
+	function clickHighlight(vI, tUsed)
 	{
 		var dialog;
 
@@ -9394,7 +9405,7 @@ jQuery(document).ready(function($) {
 					click: function() {
 						dialog.dialog("close");
 						if (hFilters[vI] !== null) {
-							doApplyHighlight(vI, tUsed, rMap);
+							doApplyHighlight(vI);
 						}
 					}
 				},
@@ -9754,7 +9765,7 @@ jQuery(document).ready(function($) {
 			jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
 			break;
 		case PSTATE_HILITE:
-			clickHighlight(data.v, data.t, data.r);
+			clickHighlight(data.v, data.t);
 			break;
 		}
 	});
