@@ -43,6 +43,10 @@
     background: #ccc;
 }
 
+button#prsp-save-data {
+	background-color: #77CCFF;
+}
+
 #prsp_record_box input[type="text"], #prsp_record_box input {
 	padding: 6px 12px;
 	margin: 5px 0;

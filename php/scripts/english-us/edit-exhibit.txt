@@ -52,7 +52,7 @@
 		<h3>Visualizations</h3>
 		<div>
 			<button on-click="addView">Add Visualization</button>
-			<hr/>
+			<hr class="vf-divider"/>
 			{{#each viewSettings:vIndex}}
 				<div>
 					<button decorator="togDiv"></button>
@@ -87,7 +87,7 @@
 						{{>vfBrowser}}
 					{{/if}}
 				</div>
-				{{#if vIndex != (viewSettings.length-1) }}<hr/>{{/if}}
+				{{#if vIndex != (viewSettings.length-1) }}<hr class="vf-divider"/>{{/if}}
 			{{/each}}
 		</div>
 

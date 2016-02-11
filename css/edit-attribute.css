@@ -33,6 +33,10 @@
     background: #ccc;
 }
 
+button#prsp-save-data {
+	background-color: #77CCFF;
+}
+
 #prsp_attribute_box input[type="text"], #prsp_attribute_box input {
 	padding: 6px 12px;
 	margin: 5px 0;

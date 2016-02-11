@@ -40,6 +40,10 @@ input[type=range] {
     background: #ccc;
 }
 
+button#prsp-save-data {
+	background-color: #77CCFF;
+}
+
 #prsp_exhibit_box input[type="text"], #prsp_exhibit_box input {
 	padding: 6px 12px;
 	margin: 5px 0;
@@ -107,6 +111,14 @@ input[type=range] {
 
 .map-layer-div input {
 	vertical-align: middle;
+}
+
+hr.vf-divider {
+      border-top: 1px dashed #0000CC;
+      border-bottom: 2px solid #0000CC;
+      color: #fff;
+      background-color: #fff;
+      height: 4px;
 }
 
 /* ========== jQueryUI components =========== */
