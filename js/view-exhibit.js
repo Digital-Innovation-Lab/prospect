@@ -6076,26 +6076,7 @@ function PViewFrame(vfIndex)
 				}
 			} // getSETimes()
 
-				// Show all Attribute content data
 			container.empty();
-			prspdata.e.i.modal.atts[tI].forEach(function(attID) {
-				var attVal = PData.rAV(recAbsI, attID, false);
-				if (attVal) {
-					var theAtt = PData.aByID(attID);
-					var html;
-						// Special case - Labels that begin with underscore are "invisible"
-					if (theAtt.def.l.charAt(0) == '_')
-						html = '<div>'+attVal+'</div>';
-					else {
-						html = '<div><span class="att-label">'+theAtt.def.l+':</span> ';
-							// Begin images on next line
-						if (theAtt.def.t == 'I')
-							html += '<br/>';
-						html += attVal+'</div>';						
-					}
-					container.append(html);
-				}
-			});
 				// Handle Inspector widgets
 			avAttID=null; avType=0;
 			widgetData.extract=null;
@@ -6111,7 +6092,7 @@ function PViewFrame(vfIndex)
 						getSETimes();
 
 						avType=1;
-						container.append('<iframe id="sc-widget" class="player" width="100%" height="150" src="http://w.soundcloud.com/player/?url='+
+						container.append('<iframe id="sc-widget" class="player" width="100%" height="110" src="http://w.soundcloud.com/player/?url='+
 							scAttVal+'"></iframe></p>');
 
 							// Must set these variables after HTML appended above
@@ -6252,6 +6233,26 @@ function PViewFrame(vfIndex)
 					} // t1URL
 				} // if t1AttID
 			} // if tOn
+
+				// Show all Attribute content data
+			prspdata.e.i.modal.atts[tI].forEach(function(attID) {
+				var attVal = PData.rAV(recAbsI, attID, false);
+				if (attVal) {
+					var theAtt = PData.aByID(attID);
+					var html;
+						// Special case - Labels that begin with underscore are "invisible"
+					if (theAtt.def.l.charAt(0) == '_')
+						html = '<div>'+attVal+'</div>';
+					else {
+						html = '<div><span class="att-label">'+theAtt.def.l+':</span> ';
+							// Begin images on next line
+						if (theAtt.def.t == 'I')
+							html += '<br/>';
+						html += attVal+'</div>';						
+					}
+					container.append(html);
+				}
+			});
 		} // inspectShow()
 
 		function inspectSlide(diff)
