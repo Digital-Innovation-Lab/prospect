@@ -178,6 +178,8 @@ jQuery(document).ready(function() {
 				attObj.j = '';
 			}
 			newAtts.push(attObj);
+		} else {
+			throw new Error("Can't find Attribute "+attID);
 		}
 	} // for atts
 	defTemplate.a = newAtts;
