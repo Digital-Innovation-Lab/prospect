@@ -162,7 +162,7 @@ ul.radio li:hover, ul.radio li.focus {
 	text-align: center;
 	vertical-align: middle;
 	padding: 3px;
-	font-size: .75em;
+	font-size: 10px;
 }
 
 #pstate.attn {
@@ -1535,6 +1535,7 @@ div.filter-vocab-bar {
 }
 
 #xscript-tbl div.xscript {
+	font-size: 12px;
 	display: table-cell;
 	vertical-align: top;
 	line-height: 1.2em;
