@@ -173,11 +173,15 @@ No dependent Templates have been defined yet, so no join is currently possible.
 </script>
 
 <script id="errmsg-no-join-for-dep" type='text/ractive'>
-You are defining a dependent Templates, which cannot have Attributes of type 'Join'.
+You are defining a dependent Template, which cannot have Attributes of type 'Join'.
 </script>
 
 <script id="errmsg-missing-join-tmp" type='text/ractive'>
 You added an Attribute of type 'Join' but have not yet connected it to a Template.
+</script>
+
+<script id="errmsg-missing-dep-tmp" type='text/ractive'>
+Your Template refers to a dependent Template definition, which is missing. You will not be able to proceed editing this Template until the missing dependent Template is loaded or defined.
 </script>
 
 <script id="errmsg-hint-quotes" type='text/ractive'>

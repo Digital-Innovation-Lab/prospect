@@ -167,8 +167,13 @@ jQuery(document).ready(function() {
 			if (attDef.def.t == 'J') {
 					// Find Join entry and add template ID
 				var joinDef = _.find(joins, function(j) { return j.id === attID; });
-				if (joinDef)
+				if (joinDef) {
 					attObj.j = joinDef.t;
+				} else {
+					var es = jQuery("#errmsg-missing-dep-tmp").html().trim();
+					jQuery("#prsp_template_box .inside").prepend(es);
+					throw new Error("Dependent Template for Join Attribute "+attID+" is missing.");
+				}
 			} else {
 				attObj.j = '';
 			}
@@ -194,7 +199,7 @@ jQuery(document).ready(function() {
 	}
 
 
-		// PURPOSE: Show error message for 3 seconds
+		// PURPOSE: Show error message for 5 seconds
 	function displayError(errID)
 	{
 			// If a clear-error timer is set, cancel it
