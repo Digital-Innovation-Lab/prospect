@@ -215,7 +215,7 @@ jQuery(document).ready(function($) {
 			avType=1;
 		}
 	}
-	if (avType == 0) {
+	if (avType === 0) {
 		avAttID = prspdata.v.yt;
 		if (avAttID && avAttID !== '' && avAttID !== 'disable') {
 			ytAttVal = prspdata.d[avAttID];
@@ -413,7 +413,7 @@ jQuery(document).ready(function($) {
 	} // if SoundCloud
 
 		// Process YouTube value
-	if (avType == 2 && ytAttVal) {
+	if (avType === 2 && ytAttVal) {
 		widgetData.ytCode = ytAttVal;
 			// Add synchronize button if both A/V and Transcript
 		if (widgetData.xscriptOn) {
@@ -593,7 +593,7 @@ jQuery(document).ready(function($) {
 		}
 	});
 	if (newText.length > 0)
-		container.prepend(newText);
+		container.append(newText);
 });
 
 
