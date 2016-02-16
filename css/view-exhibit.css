@@ -232,7 +232,7 @@ ul.radio li:hover, ul.radio li.focus {
 	max-height: 300px;
 /*	overflow-y: auto; */
 	overflow: auto;
-	font-size: 12px;
+	font-size: 11px;
 	margin: 0px;
 	padding: 0px;
 }
@@ -241,8 +241,12 @@ ul.radio li:hover, ul.radio li.focus {
 div.filter-instance {
 	max-height: 300px;
 	padding-left: 8px;
-	font-size: 10px;
+	font-size: 9px;
 	margin: 1px;
+}
+
+div.filter-instance input[type=text] {
+	padding: 1px;
 }
 
 	/* Title and control bar for each filter instance */
@@ -279,7 +283,7 @@ div.filter-body div.h-center {
 }
 */
 div.filter-body input[type=text] {
-	font-size: 10px;
+	font-size: 9px;
 	padding: 1px;
 	margin: 1px;
 }
@@ -295,7 +299,7 @@ div.filter-body svg .bar {
 }
 
 div.filter-body svg .axis text {
-	font-size: 10px;
+	font-size: 9px;
 	color: black;
 }
 
