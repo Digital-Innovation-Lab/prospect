@@ -628,6 +628,7 @@ div.scroll-container .selected {
 }
 
 #prspctv-mlist {
+	font-size: 12px;
 	height: 100%;
 }
 
@@ -636,7 +637,8 @@ div.scroll-container .selected {
 }
 
 #prspctv-mlist button {
-	font-size: .7em;
+	font-size: 8px;
+	padding: 2px;
 	margin: 0;
 	float: right;
 }
