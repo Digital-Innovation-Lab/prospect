@@ -74,7 +74,7 @@
 	<h3>Configure Vocabulary Legend</h3>
 	<button id="vocab-add-terms" on-click="addTerms">Add Terms</button>
 	<button on-click="resetLegend">Reset Visuals</button>
-	{{#if others.length > 1}}
+	{{#if others.length > 0}}
 		<button on-click="copyLegend">Copy Legend</button>
 	{{/if}}
 	<br/>
@@ -130,7 +130,7 @@
 	<h3>Configure Text Legend</h3>
 	<button on-click="resetLegend">Reset Visuals</button>
 	<button on-click="addLegend">Add Entry</button>
-	{{#if others.length > 1}}
+	{{#if others.length > 0}}
 		<button on-click="copyLegend">Copy Legend</button>
 	{{/if}}
 	<br/>
@@ -146,7 +146,7 @@
 	<h3>Configure Numeric Legend</h3>
 	<button on-click="resetLegend">Reset Visuals</button>
 	<button on-click="addLegend">Add Entry</button>
-	{{#if others.length > 1}}
+	{{#if others.length > 0}}
 		<button on-click="copyLegend">Copy Legend</button>
 	{{/if}}
 	<br/>
@@ -162,7 +162,7 @@
 	<h3>Configure Date Legend</h3>
 	<button on-click="resetLegend">Reset Visuals</button>
 	<button on-click="addLegend">Add Entry</button>
-	{{#if others.length > 1}}
+	{{#if others.length > 0}}
 		<button on-click="copyLegend">Copy Legend</button>
 	{{/if}}
 	<br/>
