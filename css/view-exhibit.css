@@ -41,7 +41,7 @@ body {
 
 	background-color: gray;
 
-	font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans-serif;
+	font-family:Verdana, Arial, sans-serif;
 	font-size: 14px;
 	font: white;
 
@@ -94,6 +94,7 @@ fieldset.radiogroup legend {
 	margin: 0;
 	padding: 0;
 	font-weight: bold;
+	font-size: 10px;
 	margin-left: .125em;
 	color: black;
 }
@@ -106,6 +107,7 @@ ul.radio  {
 }
 
 ul.radio label  {
+	font-size: 10px;
 }
 
 ul.radio li {
@@ -188,7 +190,9 @@ ul.radio li:hover, ul.radio li.focus {
 	background-color: rgba(255, 255, 255, .8);
 
 	color: #222;
-	font-family: "Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;
+
+	font-family: Times, "Times New Roman", Georgia, serif;
+	font-size: 14px;
 
 	-moz-box-shadow: 0 0 5px 5px rgba(0,0,0,0.3);
 	-webkit-box-shadow: 0 0 5px 5px rgba(0,0,0,0.3);
@@ -210,7 +214,7 @@ ul.radio li:hover, ul.radio li.focus {
 }
 
 #filter-frame button {
-	font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans-serif;
+	font-family:Verdana, Arial, sans-serif;
 }
 
 	/* This is the control bar for filters */
@@ -291,7 +295,7 @@ div.filter-body svg .bar {
 }
 
 div.filter-body svg .axis text {
-	font: 10px sans-serif;
+	font-size: 10px;
 	color: black;
 }
 
@@ -344,7 +348,7 @@ div.filter-body svg .brush .extent {
 }
 
 #viz-frame button {
-	font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans-serif;
+	font-family:Verdana, Arial, sans-serif;
 }
 
 	/* The first visualization display */
@@ -488,7 +492,7 @@ div.lgnd-container {
 	background-color: rgba(255, 255, 255, .8);
 
 	color: #222;
-	font-family: "Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;
+	font-family: Verdana, Arial, sans-serif;
 
 	-moz-box-shadow: 0 0 5px 5px rgba(0,0,0,0.3);
 	-webkit-box-shadow: 0 0 5px 5px rgba(0,0,0,0.3);
@@ -512,7 +516,9 @@ div.lgnd-handle {
 button.lgnd-update {
 	height: 18px;
 	margin: 2px;
+	margin-top: 1px;
 	padding: 1px;
+	padding-top: 0px;
 	background-color: white;
 
 	font-size: 8px;
@@ -532,7 +538,7 @@ div.lgnd-scroll {
 }
 
 div.lgnd-title {
-	font-size: 16px;
+	font-size: 14px;
 	font-weight: bold;
 	border-bottom: 1px dotted #111;
 	margin-bottom: 6px;
@@ -540,7 +546,7 @@ div.lgnd-title {
 
 	/* A selectable entry that has a checkbox */
 div.lgnd-entry {
-	font-size: 12px;
+	font-size: 11px;
 	height: 22px;
 	font-weight: normal;
 	padding: 0;
@@ -582,6 +588,10 @@ div.lgnd-value-title {
 /* MODAL DIALOGS
  * =============
  */
+
+div.ui-dialog-content {
+	font-size: 11px;
+}
 
 div.ui-dialog-content p {
 	margin: 2px;
@@ -627,7 +637,9 @@ div.scroll-container .selected {
 	float: right;
 }
 
+	/* Opacity dialogs */
 div.op-layer {
+	font-size: 11px;
 	vertical-align: middle;
 }
 
@@ -638,7 +650,13 @@ div.op-layer input {
 	/* Inspector Modal
 	 * ===============
 	 */
+
+#dialog-inspector {
+	font-size: 12px;
+}
+
 #dialog-inspector .inspector-header {
+	font-size: 12px;
 	text-align: center;
 	padding-bottom: 3px;
 	margin-bottom: 4px;
@@ -663,7 +681,7 @@ div.op-layer input {
 
 .ui-dialog-title, .ui-dialog-content, .ui-dialog-buttonpane {
 	font-size: small;
-	font-family: "Trebuchet MS", "Arial", "Helvetica", "Verdana", "sans-serif";
+	font-family: Verdana, Arial, sans-serif;
 }
 
 	/* To minimize size of ui buttons */
@@ -823,7 +841,7 @@ div.card.ht {
 
 div.card > div.card-title {
 	height: 14px;
-	font-size: 10px;
+	font-size: 9px;
 	font-weight: bold;
 	vertical-align: middle;
 	overflow: hidden;
@@ -913,9 +931,8 @@ table.viz-directory th {
 	background: -moz-linear-gradient(top,  #ededed,  #ebebeb);
 
 	font-weight: bold;
-	font-size: 12px;
+	font-size: 11px;
 }
-
 
 table.viz-directory th:first-child {
 	text-align: left;
@@ -937,7 +954,7 @@ table.viz-directory tr {
 	text-align: center;
 
 	font-weight: normal;
-	font-size: 12px;
+	font-size: 11px;
 }
 
 table.viz-directory td:first-child {
@@ -994,7 +1011,8 @@ div.viz-result svg {
 }
 
 div.viz-result svg .axis text {
-	font: 10px sans-serif;
+	font-family:Verdana, Arial, sans-serif;
+	font-size: 10px;
 	color: black;
 }
 
@@ -1055,7 +1073,7 @@ svg.tl-vf .chart {
 	/* axis labels */
 svg.tl-vf .axis {
 	fill: #808080;
-	font-family: sans-serif;
+	font-family:Verdana, Arial, sans-serif;
 	font-size: 10px;
 }
 
@@ -1080,7 +1098,7 @@ svg.tl-vf .band {
 
 	/* Legend "Epoch" Background Label */
 svg.tl-vf .lgBdLbl {
-	font: sans-serif;
+	font-family:Verdana, Arial, sans-serif;
 	font-weight: bold;
 }
 
@@ -1108,7 +1126,8 @@ svg.tl-vf .event.obj-sel
 }
 
 svg.tl-vf .instantLbl {
-	font: 10px sans-serif;
+	font-family:Verdana, Arial, sans-serif;
+	font-size: 10px;
 	font-weight: 300;
 	fill: #000000;	/* Pixels must be on/white (#FFFFFF) to create XOR effect */
 	stroke-width: 0;
@@ -1117,7 +1136,8 @@ svg.tl-vf .instantLbl {
 }
 
 svg.tl-vf .rangeLbl {
-	font: 10px sans-serif;
+	font-family:Verdana, Arial, sans-serif;
+	font-size: 10px;
 	font-weight: 300;
 	stroke: none;
 	stroke-width: 0;
@@ -1130,7 +1150,8 @@ svg.tl-vf .bLbl {
 
 svg.tl-vf .bMinMaxLbl {
 	fill: #000066;
-	font: 10px sans-serif;
+	font-family:Verdana, Arial, sans-serif;
+	font-size: 10px;
 	font-weight: bold;
 }
 
@@ -1183,7 +1204,8 @@ svg .node circle.obj-sel {
 }
 
 svg .node text {
-	font: 11px "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-family:Verdana, Arial, sans-serif;
+	font-size: 11px;
 }
 
 svg .link
@@ -1236,7 +1258,8 @@ svg .flow.obj-sel
 
 svg .att-title
 {
-	font: 14px sans-serif;
+	font-family:Verdana, Arial, sans-serif;
+	font-size: 14px;
 	font-weight: bold;
 	fill: black;
 	stroke-width: 0;
@@ -1258,7 +1281,8 @@ svg .mbm-cell.obj-sel {
 
 svg .mbm-title {
 	cursor: pointer;
-	font: 10px sans-serif;
+	font-family:Verdana, Arial, sans-serif;
+	font-size: 10px;
 	font-weight: normal;
 	fill: black;
 	stroke-width: 0;
@@ -1301,7 +1325,8 @@ svg .mbm-reset:hover
 svg .mbm-reset-text
 {
 	cursor: pointer;
-	font: 10px sans-serif;
+	font-family:Verdana, Arial, sans-serif;
+	font-size: 10px;
 	font-weight: bold;
 	fill: black;
 	stroke-width: 0;
@@ -1318,8 +1343,8 @@ svg .facet-lbl {
 }
 
 svg .facet-lbl-txt {
-	font-size: 16px;
-	font-family: sans-serif;
+	font-size: 12px;
+	font-family:Verdana, Arial, sans-serif;
 	font-weight: bold;
 	fill: black;
 	text-anchor: start;
@@ -1354,8 +1379,8 @@ svg .inactive .facet-val-bar {
 
 svg .facet-val-txt {
 	cursor: pointer;
-	font-size: 12px;
-	font-family: sans-serif;
+	font-size: 11px;
+	font-family:Verdana, Arial, sans-serif;
 	font-weight: normal;
 	text-anchor: start;
 	fill: black;
@@ -1363,8 +1388,8 @@ svg .facet-val-txt {
 
 svg .facet-val-num {
 	cursor: pointer;
-	font-size: 12px;
-	font-family: sans-serif;
+	font-size: 11px;
+	font-family:Verdana, Arial, sans-serif;
 	font-weight: normal;
 	text-anchor: end;
 	fill: black; 
@@ -1380,8 +1405,8 @@ svg .facet-reset-btn {
 svg .facet-reset-txt {
 	cursor: pointer;
 	font-weight: bold;
-	font-size: 12px;
-	font-family: sans-serif;
+	font-size: 11px;
+	font-family:Verdana, Arial, sans-serif;
 	fill: black;
 	text-anchor: start;
 }
