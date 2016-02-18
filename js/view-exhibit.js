@@ -5810,7 +5810,7 @@ function PViewFrame(vfIndex)
 	{
 		var container = jQuery('#inspect-content');
 		var avAttID=null;	// ID of any A/V widget or null
-		var avType=0;		// 0=none, 1=SoundCloud, 2=YouTube
+		var avType=0;		// 0=none, 1=SoundCloud, 2=YouTube, 3=Native Audio
 		var t2URL;			// URL for transcript 2 or null
 			// Set default size -- change acc to widget settings & overrides
 		var w=450;
@@ -5997,7 +5997,7 @@ function PViewFrame(vfIndex)
 							curPos = widgetData.widget.getCurrentTime() * 1000;
 								// Keep within bounds of excerpt is done automatically by cue function
 								// If there is a transcript, highlight current section
-							if (widgetData.playing) {
+							if (widgetData.playing && widgetData.xscriptOn) {
 								highlightXscript(curPos);
 							}
 						}, 300);    // .3 second heartbeat
@@ -6035,6 +6035,57 @@ function PViewFrame(vfIndex)
 				}
 			});
 		} // ytActivate()
+
+			// Need to define native audio eventListeners here for add and remove
+			// ==================
+		function naWidgetPlaying()
+		{
+			widgetData.playing = true;
+		}
+		function naWidgetStopped()
+		{
+			widgetData.playing = false;
+		}
+		function naWidgetUpdate()
+		{
+			if (widgetData.playing && widgetData.xscriptOn) {
+				highlightXscript(widgetData.widget.currentTime * 1000);
+			}
+		}
+
+			// Inspector will either close or move to next Record -- remove all listeners, etc
+		function unplugAllWidgets()
+		{
+				// Stop any A/V playing
+			switch(avType) {
+			case 3:
+				if (widgetData.widget != null) {
+					widgetData.widget.removeEventListener("ended", naWidgetStopped);
+					widgetData.widget.removeEventListener("pause", naWidgetStopped);
+					widgetData.widget.removeEventListener("playing", naWidgetPlaying);
+					widgetData.widget.removeEventListener("timeupdate", naWidgetUpdate);
+				}
+			case 1:
+				if (widgetData.widget != null && widgetData.playing)
+					widgetData.widget.pause();
+				widgetData.playing = false;
+				widgetData.widget = null;
+				break;
+			case 2:
+					// Prevent invoking player if code called after modal closed
+				widgetData.ytCall = null;
+					// Silence YouTube player if modal closed in another way
+				if (widgetData.widget != null && widgetData.playing)
+					widgetData.widget.stopVideo();
+				widgetData.widget = null;
+				widgetData.playing = false;
+				if (widgetData.timer != null) {
+					window.clearInterval(widgetData.timer);
+					widgetData.timer = null;
+				}
+				break;
+			} // switch
+		} // unplugAllWidgets()
 
 		var recSel=null;
 
@@ -6083,60 +6134,78 @@ function PViewFrame(vfIndex)
 			widgetData.xscriptOn=false;
 			widgetData.playing=false;
 
-				// Show audio or video widget? (Not both)
-			if (prspdata.e.i.modal.scOn) {
+				// Audio widget?
+			if (prspdata.e.i.modal.scOn || (typeof prspdata.e.i.modal.aOn === 'boolean' && prspdata.e.i.modal.aOn)) {
 				if (avAttID = prspdata.e.i.sc.atts[tI]) {
 					var scAttVal;
 					if (scAttVal = rec.a[avAttID]) {
-						var primeAudio=true;
-						getSETimes();
+							// Is this a URL to SoundCloud?
+						if (scAttVal.match(/soundcloud.com/)) {
+							var primeAudio=true;
+							getSETimes();
 
-						avType=1;
-						container.append('<iframe id="sc-widget" class="player" width="100%" height="110" src="http://w.soundcloud.com/player/?url='+
-							scAttVal+'"></iframe></p>');
+							avType=1;
+							container.append('<iframe id="sc-widget" class="player" width="100%" height="110" src="http://w.soundcloud.com/player/?url='+
+								scAttVal+'"></iframe>');
 
-							// Must set these variables after HTML appended above
-						var playWidget = SC.Widget(document.getElementById('sc-widget'));
-						widgetData.widget = playWidget;
-							// Setup SoundCloud player after entire sound clip loaded
-						playWidget.bind(SC.Widget.Events.READY, function() {
-								// Prime the audio -- must initially play (seekTo won't work until sound loaded and playing)
-							playWidget.play();
-							playWidget.bind(SC.Widget.Events.PLAY, function() {
-								widgetData.playing = true;
-							});
-							playWidget.bind(SC.Widget.Events.PAUSE, function() {
-								widgetData.playing = false;
-							});
-							playWidget.bind(SC.Widget.Events.PLAY_PROGRESS, function(params) {
-									// Pauses audio after it primes so seekTo will work properly
-								if (primeAudio) {
-									playWidget.pause();
-									primeAudio = false;
+								// Must set these variables after HTML appended above
+							var playWidget = SC.Widget(document.getElementById('sc-widget'));
+							widgetData.widget = playWidget;
+								// Setup SoundCloud player after entire sound clip loaded
+							playWidget.bind(SC.Widget.Events.READY, function() {
+									// Prime the audio -- must initially play (seekTo won't work until sound loaded and playing)
+								playWidget.play();
+								playWidget.bind(SC.Widget.Events.PLAY, function() {
+									widgetData.playing = true;
+								});
+								playWidget.bind(SC.Widget.Events.PAUSE, function() {
 									widgetData.playing = false;
-								}
-									// Keep within bounds if only excerpt of longer transcript
-								if (widgetData.extract) {
-									if (params.currentPosition < widgetData.sTime) {
-										playWidget.seekTo(widgetData.sTime);
-									} else if (params.currentPosition > widgetData.eTime) {
+								});
+								playWidget.bind(SC.Widget.Events.PLAY_PROGRESS, function(params) {
+										// Pauses audio after it primes so seekTo will work properly
+									if (primeAudio) {
 										playWidget.pause();
+										primeAudio = false;
 										widgetData.playing = false;
 									}
-								}
-								if (widgetData.playing && widgetData.xscriptOn) {
-									highlightXscript(params.currentPosition);
-								}
+										// Keep within bounds if only excerpt of longer transcript
+									if (widgetData.extract) {
+										if (params.currentPosition < widgetData.sTime) {
+											playWidget.seekTo(widgetData.sTime);
+										} else if (params.currentPosition > widgetData.eTime) {
+											playWidget.pause();
+											widgetData.playing = false;
+										}
+									}
+									if (widgetData.playing && widgetData.xscriptOn) {
+										highlightXscript(params.currentPosition);
+									}
+								});
+									// Can't seek within the SEEK event because it causes infinite recursion
+								playWidget.bind(SC.Widget.Events.FINISH, function() {
+									widgetData.playing = false;
+								});
 							});
-								// Can't seek within the SEEK event because it causes infinite recursion
-							playWidget.bind(SC.Widget.Events.FINISH, function() {
-								widgetData.playing = false;
-							});
-						});
-					}
+						} else {	// Use "native" audio
+							getSETimes();
+								// If there is timecode extract, need to append to URL
+							if (widgetData.extract) {
+								var tcs = widgetData.extract.split('-');
+								scAttVal += '#t='+tcs[0]+','+tcs[1];
+							}
+							avType=3;
+							container.append('<audio id="na-widget" controls src="'+scAttVal+'"></audio>');
+							widgetData.widget = document.getElementById('na-widget');
+							widgetData.widget.addEventListener("ended", naWidgetStopped);
+							widgetData.widget.addEventListener("pause", naWidgetStopped);
+							widgetData.widget.addEventListener("playing", naWidgetPlaying);
+							widgetData.widget.addEventListener("timeupdate", naWidgetUpdate);
+						}
+					} // if scAttVal
 				} // if avAttID
 			} // if scOn
 
+				// YouTube video widget?
 			if (avType === 0 && prspdata.e.i.modal.ytOn) {
 				if (avAttID = prspdata.e.i.yt.atts[tI]) {
 					var ytAttVal = rec.a[avAttID];
@@ -6166,7 +6235,7 @@ function PViewFrame(vfIndex)
 				} // if avAttID
 			} // if ytOn
 
-				// Create transcription widget?
+				// Transcription widget?
 			if (prspdata.e.i.modal.tOn) {
 				var t1AttID = prspdata.e.i.t.t1Atts[tI];
 					// Is there a 1st transcript Attribute?
@@ -6180,12 +6249,10 @@ function PViewFrame(vfIndex)
 						container.find('#xscript-tbl').remove();
 						container.append('<div id="xscript-tbl"><div>');
 						widgetData.xscriptOn=true;
-
 							// Handle clicks on timecodes
 						jQuery('#xscript-tbl').click(function(evt) {
 							if (avType && jQuery(evt.target).hasClass('timecode')) {
 								var seekTo = jQuery(evt.target).data('timecode');
-
 									// seekTo doesn't work unless sound is already playing
 								switch (avType) {
 								case 1:
@@ -6202,6 +6269,13 @@ function PViewFrame(vfIndex)
 									}
 										// YouTube player takes seconds (rather than milliseconds)
 									widgetData.widget.seekTo(seekTo/1000);
+									break;
+								case 3:
+									if (!widgetData.playing) {
+										widgetData.playing = true;
+										widgetData.widget.play();
+									}
+									widgetData.widget.currentTime = seekTo/1000;
 									break;
 								}
 							}
@@ -6265,6 +6339,7 @@ function PViewFrame(vfIndex)
 
 			if (newI != i) {
 				i = newI;
+				unplugAllWidgets();
 				inspectShow();
 			}
 		} // inspectSlide()
@@ -6334,28 +6409,7 @@ function PViewFrame(vfIndex)
 			]
 		});
 		inspector.on("dialogclose", function(event, ui) {
-				// Stop any A/V playing
-			switch(avType) {
-			case 1:
-				if (widgetData.widget != null && widgetData.playing)
-					widgetData.widget.pause();
-				widgetData.playing = false;
-				widgetData.widget = null;
-				break;
-			case 2:
-					// Prevent invoking player if code called after modal closed
-				widgetData.ytCall = null;
-					// Silence YouTube player if modal closed in another way
-				if (widgetData.widget != null && widgetData.playing)
-					widgetData.widget.stopVideo();
-				widgetData.widget = null;
-				widgetData.playing = false;
-				if (widgetData.timer != null) {
-					window.clearInterval(widgetData.timer);
-					widgetData.timer = null;
-				}
-				break;
-			} // switch
+			unplugAllWidgets();
 			jQuery('#btn-inspect-left').off("click");
 			jQuery('#btn-inspect-right').off("click");
 				// turn pulsing back on
