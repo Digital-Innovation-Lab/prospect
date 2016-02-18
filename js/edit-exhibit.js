@@ -206,7 +206,7 @@ jQuery(document).ready(function() {
 	}
 		// Configurations of Inspector
 	var defInspect = { sc: { atts: [] }, yt: { atts: [] }, t: { t1Atts: [], t2Atts: [], tcAtts: [] },
-					modal: { scOn: false, ytOn: false, tOn: false, t2On: false, atts: [] } };
+					modal: { aOn: false, scOn: false, ytOn: false, tOn: false, t2On: false, atts: [] } };
 	embedData = jQuery('textarea[name="prsp_xhbt_inspect"]').val();
 	if (embedData && embedData != 'null' && embedData.length > 4) {
 		defInspect = JSON.parse(embedData);
@@ -218,6 +218,10 @@ jQuery(document).ready(function() {
 	if (typeof defInspect.h === 'undefined') {
 		defInspect.h = '';
 	}
+		// Create native audio setting if missing
+	if (typeof defInspect.modal.aOn === 'undefined') {
+		defInspect.modal.aOn = false;
+	}		
 
 		// Read text labels for visualization types: c[ode], l[abel]
 	var vfTypes=[];
@@ -1607,6 +1611,7 @@ jQuery(document).ready(function() {
 			if (n !== '' && n !== ' ' && !isNaN(n)) {
 				saveInspect.modal.h = +n;
 			}
+			saveInspect.modal.aOn = inspectSettings.modal.aOn;
 			saveInspect.modal.scOn = inspectSettings.modal.scOn;
 			saveInspect.modal.ytOn = inspectSettings.modal.ytOn;
 			saveInspect.modal.tOn  = inspectSettings.modal.tOn;

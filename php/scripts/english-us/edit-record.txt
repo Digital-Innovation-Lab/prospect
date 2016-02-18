@@ -46,7 +46,7 @@
 			{{elseif def.t == 'l'}}
 				{{>att-type-Link-To}}
 			{{elseif def.t == 'S'}}
-				{{>att-type-SoundCloud}}
+				{{>att-type-Audio}}
 			{{elseif def.t == 'Y'}}
 				{{>att-type-YouTube}}
 			{{elseif def.t == 'x'}}
@@ -122,8 +122,8 @@
 	URL to webpage: <input type="url" size="40" value="{{value}}" pattern="^$|^https?://.+$"/>
 </script>
 
-<script id="att-type-SoundCloud" type='text/ractive'>
-	URL to SoundCloud: <input type="url" size="40" value="{{value}}" pattern="^$|^https?://soundcloud.com/.+"/>
+<script id="att-type-Audio" type='text/ractive'>
+	URL to Audio source: <input type="url" size="40" value="{{value}}"/>
 </script>
 
 <script id="att-type-YouTube" type='text/ractive'>

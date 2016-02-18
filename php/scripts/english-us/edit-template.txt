@@ -59,7 +59,7 @@
 	</table>
 
 	<h2>Configure Widgets on Post Page displays</h2>
-	<label for="label-scatt">SoundCloud: </label> <select id="label-scatt" value='{{viewAtts.sc}}'>
+	<label for="label-scatt">Audio: </label> <select id="label-scatt" value='{{viewAtts.sc}}'>
 		{{#each scAtts}}
 			<option>{{this}}</option>
 		{{/each}}
@@ -196,5 +196,5 @@ Are you sure that you wish to delete this Attribute from your Template?
 
 <!-- DYNAMICALLY LOADED TEXT -->
 <script id="att-types" type='text/ractive'>
-V,Vocabulary|T,Text|g,Tags|N,Number|D,Dates|L,Lat-Lon|X,X-Y|I,Image|l,Link To|S,SoundCloud|Y,YouTube|x,Transcript|t,Timecode|P,Pointer|J,Join
+V,Vocabulary|T,Text|g,Tags|N,Number|D,Dates|L,Lat-Lon|X,X-Y|I,Image|l,Link To|S,Audio|Y,YouTube|x,Transcript|t,Timecode|P,Pointer|J,Join
 </script>

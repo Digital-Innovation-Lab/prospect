@@ -94,11 +94,12 @@
 		<h3>Inspector</h3>
 		<div>{{#with inspectSettings}}
 			<div>
-				Widgets to Use: 
-				<input type='checkbox' checked='{{modal.scOn}}'/> Enable SoundCloud
-				<input type='checkbox' checked='{{modal.ytOn}}'/> Enable YouTube
-				<input type='checkbox' checked='{{modal.tOn}}'/> Enable Transcripts
-				<input type='checkbox' checked='{{modal.t2On}}'/> Enable Dual Transcripts
+				Playback Widgets: 
+				<input type='checkbox' checked='{{modal.aOn}}'/> Audio
+				<input type='checkbox' checked='{{modal.scOn}}'/> Load SoundCloud
+				<input type='checkbox' checked='{{modal.ytOn}}'/> YouTube
+				<input type='checkbox' checked='{{modal.tOn}}'/> Transcripts
+				<input type='checkbox' checked='{{modal.t2On}}'/> Dual Transcripts
 			</div>
 			<div>
 				Size overrides (leave blank for default):
@@ -129,9 +130,9 @@
 					</tabs>
 				</div>
 
-				<h3>SoundCloud Widget</h3>
+				<h3>Audio Widget</h3>
 				<div>
-					Choose the SoundCloud Attribute (if any) according to Template type:
+					Choose the Audio Attribute (if any) according to Template type:
 					<tabs>
 						<ul>
 						{{#each iTemplates:tIndex}}
