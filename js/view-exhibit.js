@@ -6139,10 +6139,10 @@ function PViewFrame(vfIndex)
 				if (avAttID = prspdata.e.i.sc.atts[tI]) {
 					var scAttVal;
 					if (scAttVal = rec.a[avAttID]) {
+						getSETimes();
 							// Is this a URL to SoundCloud?
-						if (scAttVal.match(/soundcloud.com/)) {
+						if (scAttVal.match(/soundcloud\.com/)) {
 							var primeAudio=true;
-							getSETimes();
 
 							avType=1;
 							container.append('<iframe id="sc-widget" class="player" width="100%" height="110" src="http://w.soundcloud.com/player/?url='+
@@ -6187,13 +6187,12 @@ function PViewFrame(vfIndex)
 								});
 							});
 						} else {	// Use "native" audio
-							getSETimes();
+							avType=3;
 								// If there is timecode extract, need to append to URL
 							if (widgetData.extract) {
 								var tcs = widgetData.extract.split('-');
 								scAttVal += '#t='+tcs[0]+','+tcs[1];
 							}
-							avType=3;
 							container.append('<audio id="na-widget" controls src="'+scAttVal+'"></audio>');
 							widgetData.widget = document.getElementById('na-widget');
 							widgetData.widget.addEventListener("ended", naWidgetStopped);
