@@ -35,7 +35,7 @@ var widgetData = {			// Widget state has to be global because YouTube API calls 
 jQuery(document).ready(function($) {
 	var container = $('.entry-content');
 
-	var avType=0;		// 0=none, 1=SoundCloud, 2=YouTube
+	var avType=0;		// 0=none, 1=SoundCloud, 2=YouTube, 3=Native Audio
 	var scAttVal;		// SoundCloud URL or null
 	var ytAttVal;		// YouTube code or null
 
@@ -212,7 +212,11 @@ jQuery(document).ready(function($) {
 		scAttVal = prspdata.d[avAttID];
 		if (scAttVal) {
 			getSETimes();
-			avType=1;
+			if (scAttVal.match(/soundcloud\.com/)) {
+				avType=1;
+			} else {
+				avType=3;
+			}
 		}
 	}
 	if (avType === 0) {
@@ -256,6 +260,13 @@ jQuery(document).ready(function($) {
 						}
 							// YouTube player takes seconds (rather than milliseconds)
 						widgetData.widget.seekTo(seekTo/1000);
+						break;
+					case 3:
+						if (!widgetData.playing) {
+							widgetData.playing = true;
+							widgetData.widget.play();
+						}
+						widgetData.widget.currentTime = seekTo/1000;
 						break;
 					}
 				}
@@ -362,8 +373,23 @@ jQuery(document).ready(function($) {
 		});
 	} // ytActivate()
 
+	function naWidgetPlaying()
+	{
+		widgetData.playing = true;
+	}
+	function naWidgetStopped()
+	{
+		widgetData.playing = false;
+	}
+	function naWidgetUpdate()
+	{
+		if (widgetData.playing && widgetData.xscriptOn) {
+			highlightXscript(widgetData.widget.currentTime * 1000);
+		}
+	}
+
 		// Process SoundCloud value
-	if (avType === 1 && scAttVal) {
+	if (avType === 1) {
 		var primeAudio=true;
 			// Add synchronize button if both A/V and Transcript
 		if (widgetData.xscriptOn) {
@@ -413,7 +439,7 @@ jQuery(document).ready(function($) {
 	} // if SoundCloud
 
 		// Process YouTube value
-	if (avType === 2 && ytAttVal) {
+	else if (avType === 2) {
 		widgetData.ytCode = ytAttVal;
 			// Add synchronize button if both A/V and Transcript
 		if (widgetData.xscriptOn) {
@@ -435,6 +461,25 @@ jQuery(document).ready(function($) {
 		} else
 			ytActivate();
 	} // if YouTube
+
+		// Process native audio widget
+	else if (avType === 3) {
+			// Add synchronize button if both A/V and Transcript
+		if (widgetData.xscriptOn) {
+			container.prepend('<div>'+document.getElementById('dltext-sync-xscript').innerHTML+'</div>');
+		}
+			// If there is timecode extract, need to append to URL
+		if (widgetData.extract) {
+			var tcs = widgetData.extract.split('-');
+			scAttVal += '#t='+tcs[0]+','+tcs[1];
+		}
+		container.append('<audio id="na-widget" controls src="'+scAttVal+'"></audio>');
+		widgetData.widget = document.getElementById('na-widget');
+		widgetData.widget.addEventListener("ended", naWidgetStopped);
+		widgetData.widget.addEventListener("pause", naWidgetStopped);
+		widgetData.widget.addEventListener("playing", naWidgetPlaying);
+		widgetData.widget.addEventListener("timeupdate", naWidgetUpdate);
+	} // if native audio
 
 
 	var dltextTo = document.getElementById('dltext-to').innerHTML;

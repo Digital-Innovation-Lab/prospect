@@ -59,9 +59,15 @@ class Prospect {
 
 				wp_enqueue_style('view-record-css', plugins_url('/css/view-record.css', dirname(__FILE__)));
 
-				if ($the_template->view->sc != null && $the_template->view->sc != 'disable')
-					wp_enqueue_script('soundcloud-api', 'http://w.soundcloud.com/player/api.js');
-
+					// Audio Attribute? Check to see if the value contains soundcloud.com pattern
+				if ($the_template->view->sc != null && $the_template->view->sc != 'disable') {
+					if (array_key_exists($the_template->view->sc, $record->att_data)) {
+						$sc_val = $record->att_data[$the_template->view->sc];
+						if (preg_match('/soundcloud\.com/', $sc_val)) {
+							wp_enqueue_script('soundcloud-api', 'http://w.soundcloud.com/player/api.js');
+						}
+					}
+				}
 				wp_enqueue_script('view-record', plugins_url('/js/view-record.js', dirname(__FILE__)),
 								array('jquery', 'underscore'));
 
