@@ -6407,12 +6407,15 @@ function PViewFrame(vfIndex)
 				}
 			]
 		});
+
 		inspector.on("dialogclose", function(event, ui) {
 			unplugAllWidgets();
 			jQuery('#btn-inspect-left').off("click");
 			jQuery('#btn-inspect-right').off("click");
 				// turn pulsing back on
 			doSelBtns(true);
+				// Unbind Inspector from this view -- one off only
+			inspector.off("dialogclose");
 		});
 
 		event.preventDefault();
@@ -6965,9 +6968,12 @@ function PViewFrame(vfIndex)
 	instance.setLgndSels = function(attIDs)
 	{
 		attIDs.forEach(function(attID, i) {
-			var select = jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+i+'"] select.lgnd-select');
-			select.val(attID);
-			setLegendFeatures(i, attID);
+				// IDs for Templates not shown can be null
+			if (attID) {
+				var select = jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+i+'"] select.lgnd-select');
+				select.val(attID);
+				setLegendFeatures(i, attID);
+			}
 		});
 	} // setLgndSels()
 
@@ -7397,7 +7403,10 @@ var PData = (function() {
 					a.forEach(function(onePtr) {
 						var ptrRec = PData.rByID(onePtr);
 						if (ptrRec) {
-							t += '<a href="'+prspdata.site_url+'?p='+ptrRec.wp+'" target="_blank">'+ptrRec.l+'</a> ';
+							if (t.length > 0) {
+								t += ', ';
+							}
+							t += '<a href="'+prspdata.site_url+'?p='+ptrRec.wp+'" target="_blank">'+ptrRec.l+'</a>';
 						}
 					});
 					return t;
@@ -8722,7 +8731,6 @@ jQuery(document).ready(function($) {
 		views[0].resize();
 	} // clickTog2nd()
 
-
 	function clickAbout(event)
 	{
 		var aboutDialog;
@@ -8776,7 +8784,7 @@ jQuery(document).ready(function($) {
 			return null;
 
 		var note = jQuery('#save-prspctv-note').val();
-		note = note.replace(/"/, '');
+		note = note.replace(/"/g, '');
 
 			// Compile Perspective state from Views & Filter Stack
 		var pState = { f: [], h0: null, h1: null, v0: null, v1: null };
@@ -8874,7 +8882,7 @@ jQuery(document).ready(function($) {
 							// Make sure ID correct format
 						var idError = id.match(idExp);
 						var label = jQuery('#save-prspctv-lbl').val().trim();
-						label = label.replace(/"/, '');
+						label = label.replace(/"/g, '');
 
 						if (id.length === 0 || id.length > 20 || idError)
 							idError = '#dialog-prspctv-id-badchars';
@@ -9559,7 +9567,6 @@ jQuery(document).ready(function($) {
 				resize0 = true;
 			}
 		}
-
 			// Do left-side last because of resizing with right side
 		if (resize0)
 			v0.resize();
