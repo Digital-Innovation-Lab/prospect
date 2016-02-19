@@ -152,7 +152,7 @@
 <!-- DYNAMICALLY LOADED TEXT -->
 <script id="dltext-view-controls" type='text'>
 	<div class="view-controls">
-		<select class="view-viz-select">
+		<select class="view-viz-select" title="Select a visualization from this list">
 		</select>
 		<button class="hslgnd">Show/Hide Legend</button>
 		<button class="vopts">View Options</button>
