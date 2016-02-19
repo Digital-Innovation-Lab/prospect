@@ -593,6 +593,10 @@ div.lgnd-value-title {
  * =============
  */
 
+span.ui-dialog-title {
+	font-size: 12px;
+}
+
 div.ui-dialog-content {
 	font-size: 11px;
 }
