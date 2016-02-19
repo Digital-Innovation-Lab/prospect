@@ -107,13 +107,13 @@
 		Label:<br/>
 		<input id="save-prspctv-lbl" type="text" size="42" placeholder="Label"/><br/>
 		<input type="checkbox" name="save-prspctv-h0" id="save-prspctv-h0"/> <label for="save-prspctv-h0">Save Highlight Filter 1</label> <input type="checkbox" name="save-prspctv-h1" id="save-prspctv-h1" disabled="disabled"/> <label for="save-prspctv-h1">Save Highlight Filter 2</label><br/>
-		<textarea id="save-prspctv-note" rows="4" cols="42" placeholder="Add an annotation (cannot use double quotes)" style="margin-top: 4px"></textarea>
+		<textarea id="save-prspctv-note" rows="4" cols="50" placeholder="Add an annotation (cannot use double quotes)" style="margin-top: 4px"></textarea>
 	</div>
 
 	<div id="dialog-edit-prsrctv" title="Edit Perspective">
 		Label:<br/>
 		<input id="edit-prspctv-lbl" type="text" size="42" placeholder="Label"/><br/>
-		<textarea id="edit-prspctv-note" rows="4" cols="42" placeholder="Annotation (cannot use double quotes)" style="margin-top: 4px"></textarea>
+		<textarea id="edit-prspctv-note" rows="5" cols="48" placeholder="Annotation (cannot use double quotes)" style="margin-top: 4px"></textarea>
 	</div>
 
 	<div id="dialog-show-prsrctv" title="Show Perspective">
