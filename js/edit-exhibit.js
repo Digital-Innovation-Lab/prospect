@@ -1364,6 +1364,24 @@ jQuery(document).ready(function() {
 		return false;
 	});
 
+		// Display all Attributes for a particular Viz's Template
+	rApp.on('allDispAttsOn', function(event, a) {
+		var keypath = 'inspectSettings.modal.atts['+a+']';
+		var n = rApp.get(keypath+'.length');
+		for (var i=0; i<n; i++)
+			rApp.set(keypath+'['+i+'].useAtt', true);
+		return false;
+	});
+
+		// Display no Attributes for a particular Viz's Template
+	rApp.on('allDispAttsOff', function(event, a) {
+		var keypath = 'inspectSettings.modal.atts['+a+']';
+		var n = rApp.get(keypath+'.length');
+		for (var i=0; i<n; i++)
+			rApp.set(keypath+'['+i+'].useAtt', false);
+		return false;
+	});
+
 
 		// NOTE: Have to copy settings into fresh objects to prevent corrupting original
 	rApp.on('saveExhibit', function() {

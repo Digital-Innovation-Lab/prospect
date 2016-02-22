@@ -118,6 +118,8 @@
 						</ul>
 						{{#each iTemplates:tIndex}}
 						<div id="inspect-tab-{{tIndex}}">
+							<button decorator="iconButton:ui-icon-check" on-click="allDispAttsOn:{{tIndex}}">All On</button>
+							<button decorator="iconButton:ui-icon-cancel" on-click="allDispAttsOff:{{tIndex}}">All Off</button>
 							{{#each modal.atts[tIndex]:aIndex}}
 								<span class="attribute-controls">
 									<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
