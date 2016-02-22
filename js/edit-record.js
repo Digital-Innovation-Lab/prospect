@@ -248,131 +248,136 @@ jQuery(document).ready(function() {
 
 		_.forEach(theTemplate.def.a, function(attID) {
 			var theAttribute = getAttribute(attID);
-				// get default value from Attributes passed
-			var defVal = attData[attID];
-			if (typeof(defVal) === 'undefined')
-				defVal = null;
+				// Ignore if Attribute not defined
+			if (theAttribute) {
+					// get default value from Attributes passed
+				var defVal = attData[attID];
+				if (typeof(defVal) === 'undefined')
+					defVal = null;
 
-				// Create expanded Attribute info
-			var attObject = { };
-			attObject.id   = attID;
-			attObject.def  = theAttribute.def;
-			attObject.def.r= theAttribute.r;
-				// Create default values
-			switch(theAttribute.def.t) {
-			case 'V':
-					// Create new arrays for selecting Legend values
-				attObject.def.newLgnd = [];
-				_.forEach(theAttribute.lgnd, function(theLegend) {
-					var newItem = { newL: theLegend.l, newV: theLegend.l };
-					attObject.def.newLgnd.push(newItem);
-					if (theLegend.z.length)
-						_.forEach(theLegend.z, function(child) {
-							var newChild = { newL: '> '+child.l, newV: child.l };
-							attObject.def.newLgnd.push(newChild);
-						});
-				});
-				if (attObject.def.newLgnd.length)
-					attObject.lgndSel = attObject.def.newLgnd[0].newV;
-				else
-					attObject.lgndSel = '';
-				attObject.value = defVal || '';
-				break;
-			case 'T':
-			case 'g':
-				attObject.value = defVal || '';
-				break;
-			case 'N':
-				if (defVal && defVal != '')
-					attObject.value = defVal.toString();
-				else if (theAttribute.r.min)
-					attObject.value = theAttribute.r.min.toString();
-				else
-					attObject.value = 0;
-				break;
-			case 'D':
-					// Is there some value given?
-				if (defVal && defVal != '') {
-					function parseDate(dateStr) {
-						var date = { y: '' };
-							// Special undefined character
-						if (dateStr == '?') {
-							date.y = "?";
+					// Create expanded Attribute info
+				var attObject = { };
+				attObject.id   = attID;
+				attObject.def  = theAttribute.def;
+				attObject.def.r= theAttribute.r;
+					// Create default values
+				switch(theAttribute.def.t) {
+				case 'V':
+						// Create new arrays for selecting Legend values
+					attObject.def.newLgnd = [];
+					_.forEach(theAttribute.lgnd, function(theLegend) {
+						var newItem = { newL: theLegend.l, newV: theLegend.l };
+						attObject.def.newLgnd.push(newItem);
+						if (theLegend.z.length)
+							_.forEach(theLegend.z, function(child) {
+								var newChild = { newL: '> '+child.l, newV: child.l };
+								attObject.def.newLgnd.push(newChild);
+							});
+					});
+					if (attObject.def.newLgnd.length)
+						attObject.lgndSel = attObject.def.newLgnd[0].newV;
+					else
+						attObject.lgndSel = '';
+					attObject.value = defVal || '';
+					break;
+				case 'T':
+				case 'g':
+					attObject.value = defVal || '';
+					break;
+				case 'N':
+					if (defVal && defVal != '')
+						attObject.value = defVal.toString();
+					else if (theAttribute.r.min)
+						attObject.value = theAttribute.r.min.toString();
+					else
+						attObject.value = 0;
+					break;
+				case 'D':
+						// Is there some value given?
+					if (defVal && defVal != '') {
+						function parseDate(dateStr) {
+							var date = { y: '' };
+								// Special undefined character
+							if (dateStr == '?') {
+								date.y = "?";
+								return date;
+							}
+							if (dateStr.charAt(0) == '~') {
+								date.y = '~';
+								dateStr = dateStr.substring(1);
+							}
+							if (dateStr.charAt(0) == '-') {
+								date.y += '-';
+								dateStr = dateStr.substring(1);
+							}
+							var yearSegs = dateStr.split('-');
+							date.y += yearSegs[0];
+							date.m = yearSegs[1] || '';
+							date.d = yearSegs[2] || '';
 							return date;
+						} // parseDate()
+						attObject.value = { min: { }, max: { y: '', m: '', d: '' } };
+						var dateSegs = defVal.split('/');
+						if (dateSegs.length == 2) {
+							var parsedSegs = parseDate(dateSegs[0]);
+							attObject.value.min.y = parsedSegs.y;
+							attObject.value.min.m = parsedSegs.m;
+							attObject.value.min.d = parsedSegs.d;
+							parsedSegs = parseDate(dateSegs[1])
+							attObject.value.max.y = parsedSegs.y;
+							attObject.value.max.m = parsedSegs.m;
+							attObject.value.max.d = parsedSegs.d;
+						} else {
+							var parsedSegs = parseDate(defVal);
+							attObject.value.min.y = parsedSegs.y;
+							attObject.value.min.m = parsedSegs.m;
+							attObject.value.min.d = parsedSegs.d;
 						}
-						if (dateStr.charAt(0) == '~') {
-							date.y = '~';
-							dateStr = dateStr.substring(1);
-						}
-						if (dateStr.charAt(0) == '-') {
-							date.y += '-';
-							dateStr = dateStr.substring(1);
-						}
-						var yearSegs = dateStr.split('-');
-						date.y += yearSegs[0];
-						date.m = yearSegs[1] || '';
-						date.d = yearSegs[2] || '';
-						return date;
-					} // parseDate()
-					attObject.value = { min: { }, max: { y: '', m: '', d: '' } };
-					var dateSegs = defVal.split('/');
-					if (dateSegs.length == 2) {
-						var parsedSegs = parseDate(dateSegs[0]);
-						attObject.value.min.y = parsedSegs.y;
-						attObject.value.min.m = parsedSegs.m;
-						attObject.value.min.d = parsedSegs.d;
-						parsedSegs = parseDate(dateSegs[1])
-						attObject.value.max.y = parsedSegs.y;
-						attObject.value.max.m = parsedSegs.m;
-						attObject.value.max.d = parsedSegs.d;
+						// Provide default of start date
 					} else {
-						var parsedSegs = parseDate(defVal);
-						attObject.value.min.y = parsedSegs.y;
-						attObject.value.min.m = parsedSegs.m;
-						attObject.value.min.d = parsedSegs.d;
+						attObject.value = { min: { }, max: { y: '', m: '', d: '' } };
+						attObject.value.min.y = theAttribute.r.min.y + '';		// Convert to string
+						attObject.value.min.m = theAttribute.r.min.m || '';
+						attObject.value.min.d = theAttribute.r.min.d || '';
 					}
-					// Provide default of start date
-				} else {
-					attObject.value = { min: { }, max: { y: '', m: '', d: '' } };
-					attObject.value.min.y = theAttribute.r.min.y + '';		// Convert to string
-					attObject.value.min.m = theAttribute.r.min.m || '';
-					attObject.value.min.d = theAttribute.r.min.d || '';
-				}
-				break;
-			case 'L':
-					// Use a single string in case of multiple pts
-				attObject.value = defVal || '';
-				break;
-			case 'X':
-					// Use a single string in case of multiple pts
-				attObject.value = defVal || '';
-				break;
-			case 'I':
-				attObject.value = defVal || '';
-				break;
-			case 'l': 	// Link To
-				attObject.value = defVal || '';
-				break;
-			case 'S':
-				attObject.value = defVal || '';
-				break;
-			case 'Y':
-				attObject.value = defVal || '';
-				break;
-			case 'x': 	// Transcript
-				attObject.value = defVal || '';
-				break;
-			case 't': 	// Timecode
-				attObject.value = defVal || '';
-				break;
-			case 'P':
-				attObject.value = defVal || '';
-				break;
-			case 'J':
-				attObject.value = defVal || '';
-				break;
-			} // switch
-			rApp.push('defRecord', attObject);
+					break;
+				case 'L':
+						// Use a single string in case of multiple pts
+					attObject.value = defVal || '';
+					break;
+				case 'X':
+						// Use a single string in case of multiple pts
+					attObject.value = defVal || '';
+					break;
+				case 'I':
+					attObject.value = defVal || '';
+					break;
+				case 'l': 	// Link To
+					attObject.value = defVal || '';
+					break;
+				case 'S':
+					attObject.value = defVal || '';
+					break;
+				case 'Y':
+					attObject.value = defVal || '';
+					break;
+				case 'x': 	// Transcript
+					attObject.value = defVal || '';
+					break;
+				case 't': 	// Timecode
+					attObject.value = defVal || '';
+					break;
+				case 'P':
+					attObject.value = defVal || '';
+					break;
+				case 'J':
+					attObject.value = defVal || '';
+					break;
+				} // switch
+				rApp.push('defRecord', attObject);
+			} else {
+				console.log("Attribute ID "+attID+" is not defined and will be ignored");
+			}
 		});
 	} // fillRecordFromTemplate()
 
