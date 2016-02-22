@@ -115,7 +115,7 @@ jQuery(document).ready(function() {
 	embedData = jQuery('textarea[name="prsp_tmp_def"]').val();
 	if (embedData && embedData.length > 2) {
 		defTemplate = JSON.parse(embedData);
-		if (typeof defTemplate.h == 'undefined')
+		if (typeof defTemplate.h === 'undefined')
 			defTemplate.h = '';
 	} else {
 		defTemplate = { l: '', d: false, t: '', a: [], h: '' };
@@ -126,7 +126,7 @@ jQuery(document).ready(function() {
 		viewAtts = JSON.parse(embedData);
 			// Ensure that Attributes still exist
 		function checkAtt(attID) {
-			if (attID == 'disable')
+			if (attID === 'disable')
 				return 'disable';
 			var attDef = _.find(defAtts, function(att) { return att.id == attID; });
 			if (attDef)
@@ -179,7 +179,7 @@ jQuery(document).ready(function() {
 			}
 			newAtts.push(attObj);
 		} else {
-			throw new Error("Can't find Attribute "+attID);
+			console.log("Attribute ID "+attID+" is undefined and will be ignored");
 		}
 	} // for atts
 	defTemplate.a = newAtts;
@@ -554,7 +554,7 @@ jQuery(document).ready(function() {
 			tmpltDef.t = rApp.get('theTemplate.t');
 
 			var atts = rApp.get('theTemplate.a');
-			if (atts.length == 0) {
+			if (atts.length === 0) {
 				displayError('#errmsg-no-atts');
 				return false;
 			}
