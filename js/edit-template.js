@@ -179,7 +179,7 @@ jQuery(document).ready(function() {
 			}
 			newAtts.push(attObj);
 		} else {
-			console.log("Attribute ID "+attID+" is undefined and will be ignored");
+			console.log("Attribute ID "+attID+" is undefined and will be removed from the definition.");
 		}
 	} // for atts
 	defTemplate.a = newAtts;

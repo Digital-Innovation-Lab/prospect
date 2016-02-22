@@ -376,7 +376,7 @@ jQuery(document).ready(function() {
 				} // switch
 				rApp.push('defRecord', attObject);
 			} else {
-				console.log("Attribute ID "+attID+" is not defined and will be ignored");
+				console.log("Attribute ID "+attID+" is not defined and will be ignored. You must, however, update your Template definition.");
 			}
 		});
 	} // fillRecordFromTemplate()
