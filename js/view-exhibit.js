@@ -2564,6 +2564,7 @@ VizDirectory.prototype.setup = function()
 	var self=this;
 
 	jQuery(this.frameID).on("click.vf", function(event) {
+			// Record data?
 		if (event.target.nodeName === 'TD') {
 			var row = jQuery(event.target).closest('tr');
 			var absI = row.data('ai');
@@ -2573,6 +2574,28 @@ VizDirectory.prototype.setup = function()
 					row.addClass("obj-sel");
 				else
 					row.removeClass("obj-sel");
+			}
+			// Clicked on a column header? Sort by!
+		} else if (event.target.nodeName === 'TH') {
+			var th = jQuery(event.target);
+			var attID = th.data('aid');
+			var tI = th.closest('table').data('ti');
+			var sAtt = PData.aByID(attID);
+				// Is it a sortable Attribute?
+			switch (sAtt.def.t) {
+			case 'T':
+			case 'V':
+			case 'N':
+			case 'D':
+					// Deselect all columns
+				th.closest('tr').find('th').removeClass('sel');
+					// Then select this one
+				th.addClass('sel');
+				self.sAtts[tI] = attID;
+				self.rerender(tI);
+					// Update the dialog menu selection
+				jQuery('#dialog-sortby select[data-ti="'+tI+'"]').val(attID);
+				break;
 			}
 		}
 	});
@@ -2585,8 +2608,9 @@ VizDirectory.prototype.setup = function()
 	}
 
 		// Set menu selections to these
-	for (var tI=0; tI<PData.eTNum(); tI++)
+	for (var tI=0; tI<PData.eTNum(); tI++) {
 		jQuery('#dialog-sortby select[data-ti="'+tI+'"]').val(self.sAtts[tI]);
+	}
 } // setup()
 
 VizDirectory.prototype.render = function(stream)
@@ -2626,15 +2650,19 @@ VizDirectory.prototype.render = function(stream)
 			'<table cellspacing="0" class="viz-directory" data-ti='+tI+'></table>');
 		insert = thisFrame.find('table[data-ti="'+tI+'"]');
 		fAtts = self.settings.cnt[tI];
+		oAttID = self.sAtts[tI];
 		t = '<thead><tr>';
 		fAtts.forEach(function(theAtt) {
 			var att = PData.aByID(theAtt);
-			t += '<th>'+att.def.l+'</th>';
-		})
-		insert.append(t+'<tr></thead><tbody></tbody>');
+			t += '<th data-aid="'+theAtt;
+			if (theAtt === oAttID) {
+				t += '" class="sel';
+			}
+			t +='">'+att.def.l+'</th>';
+		});
+		insert.append(t+'</tr></thead><tbody></tbody>');
 		insert = insert.find('tbody');
 
-		oAttID = self.sAtts[tI];
 		oAtt = PData.aByID(oAttID);
 		order = PData.rTOrder(oAtt, self.stream, tI);
 		order.forEach(function(oRec) {
@@ -2708,6 +2736,7 @@ VizDirectory.prototype.teardown = function()
 VizDirectory.prototype.doOptions = function()
 {
 	var self=this;
+
 	var d = jQuery("#dialog-sortby").dialog({
 		height: 220,
 		width: 400,
@@ -2722,6 +2751,10 @@ VizDirectory.prototype.doOptions = function()
 						var sAttID = jQuery('#dialog-sortby select[data-ti="'+tI+'"]').val();
 						if (sAttID !== self.sAtts[tI]) {
 							self.sAtts[tI] = sAttID;
+								// Update column name style
+							var tr = jQuery(self.frameID+' table[data-ti="'+tI+'"] thead tr');
+							tr.find('th').removeClass('sel');
+							tr.find('th[data-aid="'+sAttID+'"]').addClass('sel');
 							self.rerender(tI);
 						}
 					}

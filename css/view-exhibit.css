@@ -944,6 +944,11 @@ table.viz-directory th {
 	font-size: 11px;
 }
 
+
+table.viz-directory th.sel {
+	text-decoration: underline;
+}
+
 table.viz-directory th:first-child {
 	text-align: left;
 }
