@@ -711,7 +711,6 @@ VizMap.prototype.hint = function()
 VizMap.prototype.doOptions = function()
 {
 	var self=this;
-	var fI=this.vFrame.getIndex();
 
 	var d = jQuery("#dialog-opacities").dialog({
 		height: 300,
@@ -978,6 +977,12 @@ VizCards.prototype.rerender = function(tI)
 VizCards.prototype.doOptions = function()
 {
 	var self=this;
+
+		// Set menu selections each time dialog shown as dual views share
+	this.sAtts.forEach(function(att, tI) {
+		jQuery('#dialog-sortby select[data-ti="'+tI+'"]').val(att);
+	});
+
 	var d = jQuery("#dialog-sortby").dialog({
 		height: 220,
 		width: 400,
@@ -1047,10 +1052,6 @@ VizCards.prototype.setState = function(state)
 {
 	this.vFrame.setLgndSels(state.l);
 	this.sAtts = state.s;
-		// Set menu selections to these
-	this.sAtts.forEach(function(att, tI) {
-		jQuery('#dialog-sortby select[data-ti="'+tI+'"]').val(att);
-	});
 } // setState()
 
 
@@ -2593,8 +2594,6 @@ VizDirectory.prototype.setup = function()
 				th.addClass('sel');
 				self.sAtts[tI] = attID;
 				self.rerender(tI);
-					// Update the dialog menu selection
-				jQuery('#dialog-sortby select[data-ti="'+tI+'"]').val(attID);
 				break;
 			}
 		}
@@ -2605,11 +2604,6 @@ VizDirectory.prototype.setup = function()
 	for (var tI=0; tI<PData.eTNum(); tI++) {
 		var attID = jQuery('#dialog-sortby select[data-ti="'+tI+'"] :first').val();
 		self.sAtts.push(attID);
-	}
-
-		// Set menu selections to these
-	for (var tI=0; tI<PData.eTNum(); tI++) {
-		jQuery('#dialog-sortby select[data-ti="'+tI+'"]').val(self.sAtts[tI]);
 	}
 } // setup()
 
@@ -2737,6 +2731,12 @@ VizDirectory.prototype.doOptions = function()
 {
 	var self=this;
 
+		// Since there are two views that can both access the sort-by dialog, we need to reselect options each time
+		// Set menu selections to these
+	for (var tI=0; tI<PData.eTNum(); tI++) {
+		jQuery('#dialog-sortby select[data-ti="'+tI+'"]').val(self.sAtts[tI]);
+	}
+
 	var d = jQuery("#dialog-sortby").dialog({
 		height: 220,
 		width: 400,
@@ -2808,10 +2808,6 @@ VizDirectory.prototype.getState = function()
 VizDirectory.prototype.setState = function(state)
 {
 	this.sAtts = state.s;
-		// Set menu selections to these
-	this.sAtts.forEach(function(att, tI) {
-		jQuery('#dialog-sortby select[data-ti="'+tI+'"]').val(att);
-	});
 } // setState()
 
 
