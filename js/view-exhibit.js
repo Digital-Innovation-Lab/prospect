@@ -353,28 +353,19 @@ VizMap.prototype.setup = function()
 
 		// Create basemap
 	this.baseMap = PMapHub.createMapLayer(this.settings.base, 1, this.lMap, null);
-
-		// Create overlay layers
-	var opacity;
+	this.bOp = 100;		// base map opacity
+	this.lOps = [];		// overlay layers opacities
 	this.mapLayers = [];
 
-		// Set up options dialog
-	var layerPt = jQuery('#dialog-opacities div.layer-list');
-	layerPt.empty();
-
-	var newBit = jQuery('<div class="op-layer" data-i="-1">Base Map <input type=range class="op-slider" min=0 max=100 value=100 step=5></div>');
-	layerPt.append(newBit);
-
 		// Compile map layer data into mapLayers array and create with Leaflet
+	var opacity;
 	_.each(this.settings.lyrs, function(layer, lIndex) {
 		opacity = layer.o || 1;
+		self.lOps.push(opacity*100);
 
 		var newLayer;
 		newLayer = PMapHub.createMapLayer(layer.lid, opacity, self.lMap, null);
 		self.mapLayers.push(newLayer);
-
-		newBit = jQuery('<div class="op-layer" data-i="'+lIndex+'">'+newLayer.options.layerName+' <input type=range class="op-slider" min=0 max=100 value='+(layer.o*100)+' step=5></div>');
-		layerPt.append(newBit);
 	});
 
 	var fh = _.template(document.getElementById('dltext-v-map').innerHTML);
@@ -712,6 +703,20 @@ VizMap.prototype.doOptions = function()
 {
 	var self=this;
 
+		// Since share dialog between dual Maps and Opacities, need to set values each time opened
+	var modalOpCtrls = jQuery('#dialog-opacities div.layer-list');
+	modalOpCtrls.empty();
+
+	var newBit = jQuery('<div class="op-layer" data-i="-1">Base Map <input type=range class="op-slider" min=0 max=100 value='+
+						this.bOp+' step=5></div>');
+	modalOpCtrls.append(newBit);
+
+	_.each(this.settings.lyrs, function(layer, lIndex) {
+		newBit = jQuery('<div class="op-layer" data-i="'+lIndex+'">'+self.mapLayers[lIndex].options.layerName+
+					' <input type=range class="op-slider" min=0 max=100 value='+self.lOps[lIndex]+' step=5></div>');
+		modalOpCtrls.append(newBit);
+	});
+
 	var d = jQuery("#dialog-opacities").dialog({
 		height: 300,
 		width: 500,
@@ -722,11 +727,12 @@ VizMap.prototype.doOptions = function()
 				click: function() {
 					d.dialog("close");
 					var o, numO;
-					o = jQuery('.op-layer[data-i="-1"] .op-slider').val();
+					self.bOp = o = jQuery('.op-layer[data-i="-1"] .op-slider').val();
 					self.baseMap.setOpacity(o/100);
 					numO = self.settings.lyrs.length;
 					for (var oI=0; oI<numO; oI++) {
 						o = jQuery('.op-layer[data-i="'+oI+'"] .op-slider').val();
+						self.lOps[oI] = o;
 						self.mapLayers[oI].setOpacity(o/100);
 					}
 				}
@@ -1095,16 +1101,10 @@ VizPinboard.prototype.setup = function()
 	var self=this;
 	var fI = this.vFrame.getIndex();
 
-		// Set up options dialog
-	var layerPt = jQuery('#dialog-opacities div.layer-list');
-	layerPt.empty();
-
-	var newBit = jQuery('<div class="op-layer" data-i="-1">Base Image <input type=range class="op-slider" min=0 max=100 value=100 step=5></div>');
-	layerPt.append(newBit);
-
+	this.bOp = 100;		// base layer opacity
+	this.lOps = [];		// overlay layers opacities
 	this.settings.lyrs.forEach(function(layer, lIndex) {
-		newBit = jQuery('<div class="op-layer" data-i="'+lIndex+'">Overlay '+(lIndex+1)+' <input type=range class="op-slider" min=0 max=100 value='+(layer.o*100)+' step=5></div>');
-		layerPt.append(newBit);
+		lOps.push(layer.o*100);
 	});
 
 		// Maintain number of Loc Atts per Template type
@@ -1372,6 +1372,20 @@ VizPinboard.prototype.doOptions = function()
 	var self=this;
 	var fI=this.vFrame.getIndex();
 
+		// Have to set up options dialog on each open
+	var layerPt = jQuery('#dialog-opacities div.layer-list');
+	layerPt.empty();
+
+	var newBit = jQuery('<div class="op-layer" data-i="-1">Base Image <input type=range class="op-slider" min=0 max=100 value='+
+		this.bOp+' step=5></div>');
+	layerPt.append(newBit);
+
+	this.lOps.forEach(function(lOp, lIndex) {
+		newBit = jQuery('<div class="op-layer" data-i="'+lIndex+'">Overlay '+(lIndex+1)+
+			' <input type=range class="op-slider" min=0 max=100 value='+lOp+' step=5></div>');
+		layerPt.append(newBit);
+	});
+
 	var d = jQuery("#dialog-opacities").dialog({
 		height: 300,
 		width: 320,
@@ -1382,11 +1396,11 @@ VizPinboard.prototype.doOptions = function()
 				click: function() {
 					d.dialog("close");
 					var o, numO;
-					o = jQuery('.op-layer[data-i="-1"] .op-slider').val();
+					self.bOp = o = jQuery('.op-layer[data-i="-1"] .op-slider').val();
 					d3.select('#base-'+fI).attr('opacity', o/100);
 					numO = self.settings.lyrs.length;
 					for (var oI=0; oI<numO; oI++) {
-						o = jQuery('.op-layer[data-i="'+oI+'"] .op-slider').val();
+						self.lOps[oI] = o = jQuery('.op-layer[data-i="'+oI+'"] .op-slider').val();
 						d3.select('#ol-'+fI+'-'+oI).attr('opacity', o/100);
 					}
 				}
