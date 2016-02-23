@@ -1104,7 +1104,7 @@ VizPinboard.prototype.setup = function()
 	this.bOp = 100;		// base layer opacity
 	this.lOps = [];		// overlay layers opacities
 	this.settings.lyrs.forEach(function(layer, lIndex) {
-		lOps.push(layer.o*100);
+		self.lOps.push(layer.o*100);
 	});
 
 		// Maintain number of Loc Atts per Template type
