@@ -629,17 +629,33 @@ jQuery(document).ready(function() {
 	} // createPaddedAtts
 
 		// PURPOSE: Ensure that attID exists as a potential option
+		// INPUT: 	attID is the Attribute ID previously saved
+		//			possible is the array of valid IDs
+		//			def is the default setting (if any)
 		// NOTES: 	This is guard against case that user has deleted Attribute
+		//			If attID is '' (no previous saved value) and default is '', need to get value from possible
 	function checkAttID(attID, possible, def)
 	{
-		if (typeof attID == 'undefined' || attID == null)
-			return def;
-		if (attID == 'disable')
+			// Was not previously set and no default
+		if (attID == null && def === '' && possible.length > 0) {
+			return possible[0];
+		}
+			// Previously unset
+		if (typeof attID == 'undefined' || attID == null) {
+			return def;			
+		}
+			// Disable
+		if (attID == 'disable') {
 			return attID;
-		if (typeof possible == 'undefined' || possible == null)
+		}
+			// No current options
+		if (typeof possible == 'undefined' || possible == null) {
+			return def;			
+		}
+			// Attribute ID does exist in current list of possible IDs
+		if (possible.indexOf(attID) == -1) {
 			return def;
-		if (possible.indexOf(attID) == -1)
-			return def;
+		}
 		return attID;
 	} // checkAttID()
 
@@ -746,6 +762,7 @@ jQuery(document).ready(function() {
 				break;
 			case 'P': 	// Pinboard
 				var newXY=[], newLgnds=[], newPAtts=[], newSAtts=[], newLClrs=[];
+
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
@@ -765,6 +782,7 @@ jQuery(document).ready(function() {
 						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
 					}
 				});
+
 				theVF.c.cAtts = newXY;
 				theVF.c.pAtts = newPAtts;
 				theVF.c.lClrs = newLClrs;
@@ -1005,7 +1023,6 @@ jQuery(document).ready(function() {
 				newVFEntry.c.dh   = 500;
 				newVFEntry.c.min = 7;
 				newVFEntry.c.max = 7;
-				newVFEntry.c.lclr = '#00CCFF';
 				newVFEntry.c.img  = '';
 					// X,Y Coordinates
 				newVFEntry.c.cAtts= _.map(iTemplates, function(theTemplate) {
@@ -1454,7 +1471,6 @@ jQuery(document).ready(function() {
 					saveView.c.zoom = viewSettings.c.zoom;
 					saveView.c.min  = viewSettings.c.min;
 					saveView.c.max  = viewSettings.c.max;
-					saveView.c.lclr = viewSettings.c.lclr;
 					saveView.c.clstr= viewSettings.c.clstr;
 					var newCAtts=[], newLgnds=[], newLClrs=[];
 					saveTIndices.forEach(function(tIndex) {
@@ -1478,7 +1494,6 @@ jQuery(document).ready(function() {
 					saveView.c.dh   = viewSettings.c.dh;
 					saveView.c.min  = viewSettings.c.min;
 					saveView.c.max  = viewSettings.c.max;
-					saveView.c.lclr = viewSettings.c.lclr;
 					saveView.c.img  = viewSettings.c.img;
 					var newLgnds=[], newLClrs=[];
 					saveTIndices.forEach(function(tIndex) {
