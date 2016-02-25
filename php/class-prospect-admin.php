@@ -2221,6 +2221,8 @@ class ProspectAdmin {
 		//			$_POST['excerpt'] = timestamp w/ excerpt of transcript to return, or null = full transcript
 		// NOTES: 	It is necessary to use PHP code on server to fetch text file because
 		//				browsers don't allow requests across servers
+		//			However, this read request will fail if the WP site read access has been restricted by
+		//				credentials
 	public function prsp_get_transcript()
 	{
 		$transcript_url = $_POST['transcript'];
@@ -2231,9 +2233,14 @@ class ProspectAdmin {
 			trigger_error("Cannot load transcript file at ".$transcript_url);
 			$result = 'Cannot load transcript file';
 		} else {
+				// Remove unwanted prefix chars until first "[" appears
+			$ut8_content	= utf8_encode($content);
+			$paren_start 	= mb_strpos($ut8_content, "[");
+			$ut8_content	= mb_substr($ut8_content, $paren_start,
+									mb_strlen($ut8_content, 'UTF-8')-$paren_start, 'UTF-8');
+
 				// Extract an excerpt?
 			if ($excerpt != null && $excerpt != 'null') {
-				$ut8_content 	= utf8_encode($content);
 				$clip_array 	= explode("-", $excerpt);
 				$clip_start 	= mb_strpos($ut8_content, $clip_array[0]);
 				$clip_end 		= mb_strpos($ut8_content, $clip_array[1]);
@@ -2249,7 +2256,7 @@ class ProspectAdmin {
 					$result = array('clipStart'=> $clip_start,'clipEnd'=> $clip_end, 'clipArrayend' => $clip_array[1]);
 				}
 			} else {
-				$result = $content;
+				$result = utf8_decode($ut8_content);
 			}
 		}
 
