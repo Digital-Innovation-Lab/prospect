@@ -556,7 +556,7 @@ add_action('init', 'prospect_init');
 
 require_once plugin_dir_path(__FILE__).'php/class-prospect.php';
 
-if ( ! class_exists( 'CSVImporterPlugin' ) ) {
+if (!class_exists( 'CSVImporterImprovedPlugin')) {
 	require_once( dirname(__FILE__) . '/lib/csv-importer/csv_importer.php' );
 }
 
