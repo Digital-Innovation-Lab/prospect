@@ -6289,7 +6289,7 @@ function PViewFrame(vfIndex)
 							container.append('<div>'+document.getElementById('dltext-sync-xscript').innerHTML+'</div>');
 						}
 						container.find('#xscript-tbl').remove();
-						container.append('<div id="xscript-tbl"><div>');
+						container.append('<div id="xscript-tbl"></div>');
 						widgetData.xscriptOn=true;
 							// Handle clicks on timecodes
 						jQuery('#xscript-tbl').click(function(evt) {
