@@ -59,12 +59,14 @@ class ProspectAdmin {
 		// PURPOSE: Called to retrieve file content to insert HTML fragments into a particular page
 		// INPUT:   $scriptname = base name of HTML file (not pathname)
 		// RETURNS: Contents of file as string
+		// NOTE: 	Have commented out and disabled language "switchboard" based on options
 	static public function get_script_text($scriptname)
 	{
-		$options = get_option('prsp_base_options');
-		$lang = isset($options['prsp_lang']) ? $options['prsp_lang'] : 'english-us';
+		// $options = get_option('prsp_base_options');
+		// $lang = isset($options['prsp_lang']) ? $options['prsp_lang'] : 'english-us';
+		// $scriptpath = plugin_dir_path(__FILE__).'scripts/'.$lang.'/'.$scriptname;
 
-		$scriptpath = plugin_dir_path(__FILE__).'scripts/'.$lang.'/'.$scriptname;
+		$scriptpath = plugin_dir_path(__FILE__).'scripts/english-us/'.$scriptname;
 
 		if (!file_exists($scriptpath)) {
 			trigger_error("Script file ".$scriptpath." not found");
@@ -1647,13 +1649,14 @@ class ProspectAdmin {
 			'prsp_settings' // Section
 		);
 
-		add_settings_field(
-			'prsp_lang',
-			'Language to use',
-			array($this, 'prsp_lang_callback'),
-			'prsp-settings-page',
-			'prsp_settings'
-		);
+			// Disabled language option; using WP POT mechanism now instead
+		// add_settings_field(
+		// 	'prsp_lang',
+		// 	'Language to use',
+		// 	array($this, 'prsp_lang_callback'),
+		// 	'prsp-settings-page',
+		// 	'prsp_settings'
+		// );
 
 		add_settings_field(
 			'prsp_cb_color',
@@ -1724,14 +1727,15 @@ class ProspectAdmin {
 
 		if (isset($input['prsp_chunks']))
 			$new_input['prsp_chunks'] = sanitize_text_field($input['prsp_chunks']);
-		if (isset($input['prsp_lang']))
-			$new_input['prsp_lang'] = sanitize_text_field($input['prsp_lang']);
 		if (isset($input['prsp_cb_color']))
 			$new_input['prsp_cb_color'] = sanitize_text_field($input['prsp_cb_color']);
 		if (isset($input['prsp_fs_color']))
 			$new_input['prsp_fs_color'] = sanitize_text_field($input['prsp_fs_color']);
 		if (isset($input['prsp_vf_color']))
 			$new_input['prsp_vf_color'] = sanitize_text_field($input['prsp_vf_color']);
+
+		// if (isset($input['prsp_lang']))
+		// 	$new_input['prsp_lang'] = sanitize_text_field($input['prsp_lang']);
 
 		return $new_input;
 	} // sanitize_options()
@@ -1753,34 +1757,35 @@ class ProspectAdmin {
 	} // prsp_chunks_callback()
 
 		// PURPOSE: Get the settings option array and print one of its values
-	public function prsp_lang_callback()
-	{
-		$dirs = array();
-		$scriptpath = plugin_dir_path(__FILE__).'scripts/';
-		$dirIt = new DirectoryIterator($scriptpath);
-		foreach ($dirIt as $fileinfo) {
-			if ($fileinfo->isDir() && !$fileinfo->isDot()) {
-				array_push($dirs, $fileinfo->getFilename());
-			}
-		}
+		// NOTE: 	Disabled as now using WP POT mechanism instead
+	// public function prsp_lang_callback()
+	// {
+	// 	$dirs = array();
+	// 	$scriptpath = plugin_dir_path(__FILE__).'scripts/';
+	// 	$dirIt = new DirectoryIterator($scriptpath);
+	// 	foreach ($dirIt as $fileinfo) {
+	// 		if ($fileinfo->isDir() && !$fileinfo->isDot()) {
+	// 			array_push($dirs, $fileinfo->getFilename());
+	// 		}
+	// 	}
 
-		$current = isset($this->options['prsp_lang']) ? esc_attr($this->options['prsp_lang']) : 'english-us';
+	// 	$current = isset($this->options['prsp_lang']) ? esc_attr($this->options['prsp_lang']) : 'english-us';
 
-		$html = '<select id="prsp_lang" name="prsp_base_options[prsp_lang]">';
+	// 	$html = '<select id="prsp_lang" name="prsp_base_options[prsp_lang]">';
  
-		foreach ($dirs as $this_dir)
-		{
-			$html .= '<option value="'.$this_dir.'"';
+	// 	foreach ($dirs as $this_dir)
+	// 	{
+	// 		$html .= '<option value="'.$this_dir.'"';
 	 
-			if ($this_dir == $this->options['prsp_lang'])
-				$html .= ' selected="selected"';
+	// 		if ($this_dir == $this->options['prsp_lang'])
+	// 			$html .= ' selected="selected"';
 	 
-			$html .= '>'. $this_dir .'</option>';
-		}
-		$html .= '</select>';
+	// 		$html .= '>'. $this_dir .'</option>';
+	// 	}
+	// 	$html .= '</select>';
  
-		echo($html);
-	} // prsp_lang_callback()
+	// 	echo($html);
+	// } // prsp_lang_callback()
 
 		// PURPOSE: Get the Command Bar color option and print its value
 	public function prsp_cb_color_callback()
