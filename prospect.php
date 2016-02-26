@@ -5,14 +5,11 @@
  * Description:       Digital Humanities platform for visualizing curated collections
  * Version:           0.9.19
  * Author:            Michael Newton, Breon Williams, Digital Innovation Lab, UNC-CH
- * Author URI:        
- * Text Domain:       dil-prospect
+ * Text Domain:       prospect
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Domain Path:       /languages
  */
-
-	// TO DO -- get user roles and CPT capabilities to work in conjunction
 
 function prospect_register_post_types()
 {
