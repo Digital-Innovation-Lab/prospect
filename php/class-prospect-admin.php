@@ -60,22 +60,29 @@ class ProspectAdmin {
 		// INPUT:   $scriptname = base name of HTML file (not pathname)
 		// RETURNS: Contents of file as string
 		// NOTE: 	Have commented out and disabled language "switchboard" based on options
-	static public function get_script_text($scriptname)
+	// static public function get_script_text($scriptname)
+	// {
+	// 	$options = get_option('prsp_base_options');
+	// 	$lang = isset($options['prsp_lang']) ? $options['prsp_lang'] : 'english-us';
+	// 	$scriptpath = plugin_dir_path(__FILE__).'scripts/'.$lang.'/'.$scriptname;
+
+	// 	if (!file_exists($scriptpath)) {
+	// 		trigger_error("Script file ".$scriptpath." not found");
+	// 	}
+	// 	$scripthandle = fopen($scriptpath, "r");
+	// 	$scripttext = file_get_contents($scriptpath);
+	// 	fclose($scripthandle);
+	// 	return $scripttext;
+	// } // get_script_text()
+
+
+		// PURPOSE: Called to insert HTML file contents into current page
+		// INPUT:   $scriptname = base name of HTML file (not pathname)
+	static public function insert_html_file($scriptname)
 	{
-		// $options = get_option('prsp_base_options');
-		// $lang = isset($options['prsp_lang']) ? $options['prsp_lang'] : 'english-us';
-		// $scriptpath = plugin_dir_path(__FILE__).'scripts/'.$lang.'/'.$scriptname;
-
 		$scriptpath = plugin_dir_path(__FILE__).'scripts/english-us/'.$scriptname;
-
-		if (!file_exists($scriptpath)) {
-			trigger_error("Script file ".$scriptpath." not found");
-		}
-		$scripthandle = fopen($scriptpath, "r");
-		$scripttext = file_get_contents($scriptpath);
-		fclose($scripthandle);
-		return $scripttext;
-	} // get_script_text()
+		include($scriptpath);
+	} // insert_html_file()
 
 
 		// PURPOSE: Compare two objects by ID for sorting
@@ -272,8 +279,7 @@ class ProspectAdmin {
 		echo '<div id="ractive-output"></div>';
 
 			// Insert Edit Panel's HTML
-		$dashboardscript = self::get_script_text('edit-attribute.txt');
-		echo $dashboardscript;
+		self::insert_html_file('edit-attribute.php');
 	} // show_prsp_attribute_admin_edit()
 
 
@@ -303,8 +309,7 @@ class ProspectAdmin {
 		echo '<div id="ractive-output"></div>';
 
 			// Insert Edit Panel's HTML
-		$dashboardscript = self::get_script_text('edit-template.txt');
-		echo $dashboardscript;
+		self::insert_html_file('edit-template.php');
 	} // show_prsp_template_admin_edit()
 
 
@@ -333,8 +338,7 @@ class ProspectAdmin {
 		echo '<div id="ractive-output"></div>';
 
 			// Insert Edit Panel's HTML
-		$dashboardscript = self::get_script_text('edit-record.txt');
-		echo $dashboardscript;
+		self::insert_html_file('edit-record.php');
 	} // show_prsp_record_admin_edit()
 
 
@@ -363,8 +367,7 @@ class ProspectAdmin {
 		echo '<div id="ractive-output"></div>';
 
 			// Insert Edit Panel's HTML
-		$dashboardscript = self::get_script_text('edit-exhibit.txt');
-		echo $dashboardscript;
+		self::insert_html_file('edit-exhibit.php');
 	} // show_prsp_exhibit_admin_edit()
 
 
@@ -1689,8 +1692,7 @@ class ProspectAdmin {
 	public function show_prsp_archive_page()
 	{
 			// Get first bit of static text
-		$archivepage = self::get_script_text('archive-page-1.txt');
-		echo $archivepage;
+		self::insert_html_file('archive-page-1.php');
 
 			// Generate drop-down list of Template names for archiving Templates w/Attributes
 		$temp_ids = ProspectTemplate::get_all_template_ids(0);
@@ -1698,24 +1700,21 @@ class ProspectAdmin {
 			echo '<option value="'.$tid.'">'.$tid.'</option>';
 		}
 
-		$archivepage = self::get_script_text('archive-page-2.txt');
-		echo $archivepage;
+		self::insert_html_file('archive-page-2.php');
 
 			// Repeat Template names for command to archive all Records of a given Template type
 		foreach ($temp_ids as $tid) {
 			echo '<option value="'.$tid.'">'.$tid.'</option>';
 		}
 
-		$archivepage = self::get_script_text('archive-page-3.txt');
-		echo $archivepage;
+		self::insert_html_file('archive-page-3.php');
 
 		$all_exhibits = ProspectExhibit::get_all_exhibit_defs(true);
 		foreach ($all_exhibits as $xhbt) {
 			echo '<option value="'.$xhbt->id.'">'.$xhbt->gen->l.'</option>';
 		}
 
-		$archivepage = self::get_script_text('archive-page-4.txt');
-		echo $archivepage;
+		self::insert_html_file('archive-page-4.php');
 	} // show_prsp_archive_page()
 
 
@@ -1744,7 +1743,9 @@ class ProspectAdmin {
 		// PURPOSE: Print the Section text
 	public function prsp_settings_info()
 	{
-		echo '<p>Customize Prospect on this website with these settings</p>';
+		echo('<p>');
+		_e('Customize Prospect on this website with these settings', 'prospect');
+		echo('</p>');
 	}
 
 		// PURPOSE: Get the settings option array and print one of its values
@@ -1839,10 +1840,12 @@ class ProspectAdmin {
 		// PURPOSE: Register archive menu and hook to page creation function
 	public function add_prsp_menus()
 	{
-		add_submenu_page('prsp-top-level-handle', 'Archive', 'Archive', 'manage_options', 'prsp-archive-menu', 
-			array($this, 'show_prsp_archive_page'));
-		add_submenu_page('prsp-top-level-handle', 'Settings', 'Settings', 'manage_options', 'prsp-settings-page',
-			array($this, 'show_prsp_settings_page'));
+		add_submenu_page('prsp-top-level-handle', __('Archive', 'prospect'), __('Archive', 'prospect'),
+						'manage_options', 'prsp-archive-menu', 
+						array($this, 'show_prsp_archive_page'));
+		add_submenu_page('prsp-top-level-handle', __('Settings', 'prospect'), __('Settings', 'prospect'),
+						'manage_options', 'prsp-settings-page',
+						array($this, 'show_prsp_settings_page'));
 	} // add_prsp_menus()
 
 

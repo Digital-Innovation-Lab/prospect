@@ -172,7 +172,7 @@
 </script>
 
 <?php
-		echo ProspectAdmin::get_script_text('view-exhibit.txt');
+		ProspectAdmin::insert_html_file('view-exhibit.php');
 ?>
 
 </body>

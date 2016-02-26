@@ -100,8 +100,7 @@ class Prospect {
 					't' => $d_t_array
 				) );
 
-				$dltext = ProspectAdmin::get_script_text('view-record.txt');
-				echo $dltext;
+				ProspectAdmin::insert_html_file('view-record.php');
 			}
 			break;
 
@@ -122,7 +121,7 @@ class Prospect {
 		// PURPOSE: Define a new top-level menu -- This hook used by custom post types
 	public function add_menu()
 	{
-		add_menu_page(__('Prospect', 'prsp-menu'), __('Prospect', 'prsp-menu'), 'edit_posts', 'prsp-top-level-handle', null, '', 7);
+		add_menu_page(__('Prospect', 'prospect'), __('Prospect', 'prospect'), 'edit_posts', 'prsp-top-level-handle', null, '', 7);
 	} // add_menu()
 
 
