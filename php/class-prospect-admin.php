@@ -138,7 +138,7 @@ class ProspectAdmin {
 			$type = $_GET['post_type'];
 		}
 
-		//only add filter to post type you want
+			// Only add filter to post type you want
 		if ($type == 'prsp-record')
 		{
 			$values = ProspectTemplate::get_all_template_ids('');
@@ -175,14 +175,14 @@ class ProspectAdmin {
 		}
 	} // filter_rec_query()
 
-		// PURPOSE: Handle modifying array of columns to show when listing Attributes in admin panel
+		// PURPOSE: Handle modifying array of columns to show when listing Attributes in Dashboard directory
 		// INPUT:	$columns = hash/array of field names and labels for the columns to display
 		// RETURNS:	Hash/array of column names with Project added
 	public function set_attribute_columns($columns)
 	{
 		unset($columns['comments']);
-		$temp = array_merge($columns, array('att-label' => 'Attribute Label'));
-		return array_merge($temp, array('att-id' => 'Attribute ID'));
+		$temp = array_merge($columns, array('att-label' => __('Attribute Label', 'prospect')));
+		return array_merge($temp, array('att-id' => __('Attribute ID', 'prospect')));
 	} // set_attribute_columns()
 
 		// PURPOSE: Output value of custom column for Attribute in admin panel
@@ -195,7 +195,7 @@ class ProspectAdmin {
 		case 'att-label':
 			$att_def_meta = get_post_meta($post_id, 'att-def', true);
 			if ($att_def_meta == '') {
-				$att_label = _e('(unassigned)', 'prospect');
+				$att_label = __('(unassigned)', 'prospect');
 			} else {
 				$att_def = json_decode($att_def_meta, false);
 				$att_label = $att_def->l;
@@ -205,7 +205,7 @@ class ProspectAdmin {
 		case 'att-id':
 			$att_id = get_post_meta($post_id, 'att-id', true);
 			if ($att_id == '') {
-				$att_id = _e('(unassigned)', 'prospect');
+				$att_id = __('(unassigned)', 'prospect');
 			}
 			echo $att_id;
 			break;
@@ -214,14 +214,14 @@ class ProspectAdmin {
 		}
 	} // attribute_custom_column()
 
-		// PURPOSE: Handle modifying array of columns to show when listing Records in admin panel
+		// PURPOSE: Handle modifying array of columns to show when listing Records in Dashboard panel
 		// INPUT:	$columns = hash/array of field names and labels for the columns to display
 		// RETURNS:	Hash/array of column names with Project added
 	public function set_record_columns($columns)
 	{
 		unset($columns['comments']);
-		$temp = array_merge($columns, array('template' => 'Template'));
-		return array_merge($temp, array('recordid' => 'record-id'));
+		$temp = array_merge($columns, array('template' => __('Template', 'prospect')));
+		return array_merge($temp, array('recordid' => __('record-id', 'prospect')));
 	} // set_record_columns()
 
 		// PURPOSE: Output value of custom column for Record in admin panel
@@ -234,14 +234,14 @@ class ProspectAdmin {
 		case 'template':
 			$template_id = get_post_meta($post_id, 'tmplt-id', true);
 			if ($template_id == '') {
-				$template_id = _e('(unassigned)', 'prospect');
+				$template_id = __('(unassigned)', 'prospect');
 			}
 			echo $template_id;
 			break;
 		case 'recordid':
 			$rec_id = get_post_meta($post_id, 'record-id', true);
 			if ($rec_id == '') {
-				$rec_id = _e('(unassigned)', 'prospect');
+				$rec_id = __('(unassigned)', 'prospect');
 			}
 			echo $rec_id;
 			break;
@@ -253,7 +253,7 @@ class ProspectAdmin {
 
 	public function add_prsp_attribute_admin_edit($post_type)
 	{
-		add_meta_box('prsp_attribute_box', 'Configure Attribute', array($this, 'show_prsp_attribute_admin_edit'),
+		add_meta_box('prsp_attribute_box', __('Configure Attribute', 'prospect'), array($this, 'show_prsp_attribute_admin_edit'),
 					'prsp-attribute', 'normal', 'high');
 	} // add_prsp_attribute_admin_edit()
 
@@ -285,7 +285,7 @@ class ProspectAdmin {
 
 	public function add_prsp_template_admin_edit($post_type)
 	{
-		add_meta_box('prsp_template_box', 'Configure Template', array($this, 'show_prsp_template_admin_edit'),
+		add_meta_box('prsp_template_box', __('Configure Template', 'prospect'), array($this, 'show_prsp_template_admin_edit'),
 					'prsp-template', 'normal', 'high');
 	} // add_prsp_template_admin_edit()
 
@@ -315,7 +315,7 @@ class ProspectAdmin {
 
 	public function add_prsp_record_admin_edit($post_type)
 	{
-		add_meta_box('prsp_record_box', 'Edit Record', array($this, 'show_prsp_record_admin_edit'),
+		add_meta_box('prsp_record_box', __('Edit Record', 'prospect'), array($this, 'show_prsp_record_admin_edit'),
 					'prsp-record', 'normal', 'high');
 	} // add_prsp_record_admin_edit()
 
@@ -344,7 +344,7 @@ class ProspectAdmin {
 
 	public function add_prsp_exhibit_admin_edit($post_type)
 	{
-		add_meta_box('prsp_exhibit_box', 'Edit Exhibit', array($this, 'show_prsp_exhibit_admin_edit'),
+		add_meta_box('prsp_exhibit_box', __('Edit Exhibit', 'prospect'), array($this, 'show_prsp_exhibit_admin_edit'),
 					'prsp-exhibit', 'normal', 'high');
 	} // add_prsp_exhibit_admin_edit()
 
@@ -373,7 +373,7 @@ class ProspectAdmin {
 
 	public function add_prsp_map_admin_edit($post_type)
 	{
-		add_meta_box('prsp_map_box', 'Edit Map', array($this, 'show_prsp_map_admin_edit'),
+		add_meta_box('prsp_map_box', __('Edit Map', 'prospect'), array($this, 'show_prsp_map_admin_edit'),
 					'prsp-map', 'normal', 'high');
 	} // add_prsp_map_admin_edit()
 
@@ -389,25 +389,49 @@ class ProspectAdmin {
 
 			// Can all be done in regular input fields
 		echo '<table class="form-table">';
-		echo '<tr><th style="width:20%"><label for="prsp_map_id">Unique ID: </label></th><td><input name="prsp_map_id" id="prsp_map_id" type="text" value="'.$the_map->id.'" size=20/></td></tr>';
-		echo '<tr><th style="width:20%"><label for="prsp_map_sname">Short Name: </label></th><td><input name="prsp_map_sname" id="prsp_map_sname" type="text" value="'.$the_map->meta_data['sname'].'" size=30/></td></tr>';
-		echo '<tr><th style="width:20%"><label for="prsp_map_url">Map URL: </label></th><td><input name="prsp_map_url" id="prsp_map_url" type="url" value="'.$the_map->meta_data['url'].'" size=60/></td></tr>';
-		echo '<tr><th style="width:20%"><label for="prsp_map_inverse_y">Inverse Y? (true or false) </label></th><td><input name="prsp_map_inverse_y" id="prsp_map_inverse_y" type="text" value="'.$the_map->meta_data['inverseY'].'" size=5 pattern="true|false"/></td></tr>';
-		echo '<tr><th style="width:20%"><label for="prsp_map_subd">Subdomain: </label></th><td><input name="prsp_map_subd" id="prsp_map_subd" type="text" value="'.$the_map->meta_data['subd'].'" size=12/></td></tr>';
-		echo '<tr><th style="width:20%"><label for="prsp_map_min_zoom">Min Zoom: </label></th><td><input name="prsp_map_min_zoom" id="prsp_map_min_zoom" type="number" value="'.$the_map->meta_data['minZoom'].'" size=2 min=1 max=20/></td></tr>';
-		echo '<tr><th style="width:20%"><label for="prsp_map_max_zoom">Max Zoom: </label></th><td><input name="prsp_map_max_zoom" id="prsp_map_max_zoom" type="number" value="'.$the_map->meta_data['maxZoom'].'" size=2 min=1 max=20/></td></tr>';
-		echo '<tr><th style="width:20%"><label for="prsp_map_credits">Credits: </label></th><td><input name="prsp_map_credits" id="prsp_map_credits" type="text" value="'.$the_map->meta_data['credits'].'" size=30/></td></tr>';
-		echo '<tr><th style="width:20%"><label for="prsp_map_n_bounds">N Bounds: </label></th><td><input name="prsp_map_n_bounds" id="prsp_map_n_bounds" type="text" value="'.$the_map->meta_data['nBounds'].'" size=10/></td></tr>';
-		echo '<tr><th style="width:20%"><label for="prsp_map_s_bounds">S Bounds: </label></th><td><input name="prsp_map_s_bounds" id="prsp_map_s_bounds" type="text" value="'.$the_map->meta_data['sBounds'].'" size=10/></td></tr>';
-		echo '<tr><th style="width:20%"><label for="prsp_map_e_bounds">E Bounds: </label></th><td><input name="prsp_map_e_bounds" id="prsp_map_e_bounds" type="text" value="'.$the_map->meta_data['eBounds'].'" size=10/></td></tr>';
-		echo '<tr><th style="width:20%"><label for="prsp_map_w_bounds">W Bounds: </label></th><td><input name="prsp_map_w_bounds" id="prsp_map_w_bounds" type="text" value="'.$the_map->meta_data['wBounds'].'" size=10/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_map_id">';
+		_e('Unique ID', 'prospect');
+		echo ': </label></th><td><input name="prsp_map_id" id="prsp_map_id" type="text" value="'.$the_map->id.'" size=20/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_map_sname">';
+		_e('Short Name', 'prospect');
+		echo ': </label></th><td><input name="prsp_map_sname" id="prsp_map_sname" type="text" value="'.$the_map->meta_data['sname'].'" size=30/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_map_url">';
+		_e('Map URL', 'prospect');
+		echo ': </label></th><td><input name="prsp_map_url" id="prsp_map_url" type="url" value="'.$the_map->meta_data['url'].'" size=60/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_map_inverse_y">';
+		_e('Inverse Y? (true or false)', 'prospect');
+		echo ' </label></th><td><input name="prsp_map_inverse_y" id="prsp_map_inverse_y" type="text" value="'.$the_map->meta_data['inverseY'].'" size=5 pattern="true|false"/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_map_subd">';
+		_e('Subdomain', 'prospect');
+		echo ': </label></th><td><input name="prsp_map_subd" id="prsp_map_subd" type="text" value="'.$the_map->meta_data['subd'].'" size=12/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_map_min_zoom">';
+		_e('Min Zoom', 'prospect');
+		echo ': </label></th><td><input name="prsp_map_min_zoom" id="prsp_map_min_zoom" type="number" value="'.$the_map->meta_data['minZoom'].'" size=2 min=1 max=20/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_map_max_zoom">';
+		_e('Max Zoom', 'prospect');
+		echo ': </label></th><td><input name="prsp_map_max_zoom" id="prsp_map_max_zoom" type="number" value="'.$the_map->meta_data['maxZoom'].'" size=2 min=1 max=20/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_map_credits">';
+		_e('Credits', 'prospect');
+		echo ': </label></th><td><input name="prsp_map_credits" id="prsp_map_credits" type="text" value="'.$the_map->meta_data['credits'].'" size=30/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_map_n_bounds">';
+		_e('N Bounds', 'prospect');
+		echo ': </label></th><td><input name="prsp_map_n_bounds" id="prsp_map_n_bounds" type="text" value="'.$the_map->meta_data['nBounds'].'" size=10/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_map_s_bounds">';
+		_e('S Bounds', 'prospect');
+		echo ': </label></th><td><input name="prsp_map_s_bounds" id="prsp_map_s_bounds" type="text" value="'.$the_map->meta_data['sBounds'].'" size=10/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_map_e_bounds">';
+		_e('E Bounds', 'prospect');
+		echo ': </label></th><td><input name="prsp_map_e_bounds" id="prsp_map_e_bounds" type="text" value="'.$the_map->meta_data['eBounds'].'" size=10/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_map_w_bounds">';
+		_e('W Bounds', 'prospect');
+		echo ': </label></th><td><input name="prsp_map_w_bounds" id="prsp_map_w_bounds" type="text" value="'.$the_map->meta_data['wBounds'].'" size=10/></td></tr>';
 		echo '</table>';
 	} // show_prsp_map_admin_edit()
 
 
 	public function add_prsp_prspctv_admin_edit($post_type)
 	{
-		add_meta_box('prsp_prspctv_box', 'Edit Perspective', array($this, 'show_prsp_prspctv_admin_edit'),
+		add_meta_box('prsp_prspctv_box', __('Edit Perspective', 'prospect'), array($this, 'show_prsp_prspctv_admin_edit'),
 					'prsp-prspctv', 'normal', 'high');
 	} // add_prsp_prspctv_admin_edit()
 
@@ -424,11 +448,21 @@ class ProspectAdmin {
 
 			// Can all be done in regular input fields
 		echo '<table class="form-table">';
-		echo '<tr><th style="width:20%"><label for="prsp_prspctv_id">Perspective ID: </label></th><td><input name="prsp_prspctv_id" id="prsp_prspctv_id" type="text" value="'.$the_prspctv->id.'" size=20/></td></tr>';
-		echo '<tr><th style="width:20%"><label for="prsp_prspctv_l">Label: </label></th><td><input name="prsp_prspctv_l" id="prsp_prspctv_l" type="text" value="'.$the_prspctv->l.'" size=30/></td></tr>';
-		echo '<tr><th style="width:20%"><label for="prsp_xbht_id">Exhibit ID: </label></th><td><input name="prsp_xbht_id" id="prsp_xbht_id" type="text" value="'.$the_prspctv->xhbt_id.'" size=20/></td></tr>';
-		echo '<tr><th style="width:20%"><label for="prsp_prspctv_note">Annotation: </label></th><td><textarea name="prsp_prspctv_note" id="prsp_prspctv_note" form="post" rows="4" cols="50">'.$the_prspctv->note.'</textarea></td></tr>';
-		echo '<tr><th style="width:20%"><label for="prsp_prspctv_state">JSON data: </label></th><td><textarea name="prsp_prspctv_state" id="prsp_prspctv_state" form="post" rows="3" cols="50" spellcheck="false">'.$the_prspctv->meta_state.'</textarea></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_prspctv_id">';
+		_e('Perspective ID', 'prospect');
+		echo ': </label></th><td><input name="prsp_prspctv_id" id="prsp_prspctv_id" type="text" value="'.$the_prspctv->id.'" size=20/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_prspctv_l">';
+		_e('Label', 'prospect');
+		echo ': </label></th><td><input name="prsp_prspctv_l" id="prsp_prspctv_l" type="text" value="'.$the_prspctv->l.'" size=30/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_xbht_id">';
+		_e('Exhibit ID', 'prospect');
+		echo ': </label></th><td><input name="prsp_xbht_id" id="prsp_xbht_id" type="text" value="'.$the_prspctv->xhbt_id.'" size=20/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_prspctv_note">';
+		_e('Annotation', 'prospect');
+		echo ': </label></th><td><textarea name="prsp_prspctv_note" id="prsp_prspctv_note" form="post" rows="4" cols="50">'.$the_prspctv->note.'</textarea></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_prspctv_state">';
+		_e('JSON data', 'prospect');
+		echo ': </label></th><td><textarea name="prsp_prspctv_state" id="prsp_prspctv_state" form="post" rows="3" cols="50" spellcheck="false">'.$the_prspctv->meta_state.'</textarea></td></tr>';
 		echo '</table>';
 	} // show_prsp_prspctv_admin_edit()
 
@@ -1454,22 +1488,34 @@ class ProspectAdmin {
 
 		switch ($post->post_type) {
 		case 'prsp-attribute':
-			$actions['Prsp_Att_Export'] = '<a href="admin.php?action=prsp_export_attribute&amp;post='.$post->ID.'" title="Export this Attribute as JSON archive file" rel="permalink">JSON Export</a>';
+			$title = __('Export this Attribute as JSON archive file', 'prospect');
+			$label = __('JSON Export', 'prospect');
+			$actions['Prsp_Att_Export'] = '<a href="admin.php?action=prsp_export_attribute&amp;post='.$post->ID.'" title="'.$title.'" rel="permalink">'.$label.'</a>';
 			break;
 		case 'prsp-template':
-			$actions['Prsp_Temp_Export'] = '<a href="admin.php?action=prsp_export_template&amp;post='.$post->ID.'" title="Export this Template as JSON archive file" rel="permalink">JSON Export</a>';
+			$title = __('Export this Template as JSON archive file', 'prospect');
+			$label = __('JSON Export', 'prospect');
+			$actions['Prsp_Temp_Export'] = '<a href="admin.php?action=prsp_export_template&amp;post='.$post->ID.'" title="'.$title.'" rel="permalink">'.$label.'</a>';
 			break;
 		case 'prsp-record':
-			$actions['Prsp_Rec_Export'] = '<a href="admin.php?action=prsp_export_record&amp;post='.$post->ID.'" title="Export this Record as CSV file" rel="permalink">CSV Export</a>';
+			$title = __('Export this Record as CSV file', 'prospect');
+			$label = __('CSV Export', 'prospect');
+			$actions['Prsp_Rec_Export'] = '<a href="admin.php?action=prsp_export_record&amp;post='.$post->ID.'" title="'.$title.'" rel="permalink">'.$label.'</a>';
 			break;
 		case 'prsp-exhibit':
-			$actions['Prsp_Exh_Export'] = '<a href="admin.php?action=prsp_export_exhibit&amp;post='.$post->ID.'" title="Export this Exhibit as JSON archive file" rel="permalink">JSON Export</a>';
+			$title = __('Export this Exhibit as JSON archive file', 'prospect');
+			$label = __('JSON Export', 'prospect');
+			$actions['Prsp_Exh_Export'] = '<a href="admin.php?action=prsp_export_exhibit&amp;post='.$post->ID.'" title="'.$title.'" rel="permalink">'.$label.'</a>';
 			break;
 		case 'prsp-map':
-			$actions['Prsp_Map_Export'] = '<a href="admin.php?action=prsp_export_map&amp;post='.$post->ID.'" title="Export this Map as JSON archive file" rel="permalink">JSON Export</a>';
+			$title = __('Export this Map as JSON archive file', 'prospect');
+			$label = __('JSON Export', 'prospect');
+			$actions['Prsp_Map_Export'] = '<a href="admin.php?action=prsp_export_map&amp;post='.$post->ID.'" title="'.$title.'" rel="permalink">'.$label.'</a>';
 			break;
 		case 'prsp-prspctv':
-			$actions['Prsp_Prspctv_Export'] = '<a href="admin.php?action=prsp_export_prspctv&amp;post='.$post->ID.'" title="Export this Perspective as JSON archive file" rel="permalink">JSON Export</a>';
+			$title = __('Export this Perspective as JSON archive file', 'prospect');
+			$label = __('JSON Export', 'prospect');
+			$actions['Prsp_Prspctv_Export'] = '<a href="admin.php?action=prsp_export_prspctv&amp;post='.$post->ID.'" title="'.$title.'" rel="permalink">'.$label.'</a>';
 			break;
 		}
 		return $actions;
@@ -1639,14 +1685,14 @@ class ProspectAdmin {
 			// To show settings on Options page
 		add_settings_section(
 			'prsp_settings', // ID
-			'Prospect Customization Settings', // Title
+			__('Prospect Customization Settings', 'prospect'), // Title
 			array($this, 'prsp_settings_info'), // Callback
 			'prsp-settings-page' // Page
 		);
 
 		add_settings_field(
 			'prsp_chunks', // ID
-			'Number of Records per AJAX request', // Title
+			__('Number of Records per AJAX request', 'prospect'), // Title
 			array($this, 'prsp_chunks_callback'), // Callback
 			'prsp-settings-page', // Page
 			'prsp_settings' // Section
@@ -1663,7 +1709,7 @@ class ProspectAdmin {
 
 		add_settings_field(
 			'prsp_cb_color',
-			'Command Bar Background Color',
+			__('Command Bar Background Color', 'prospect'),
 			array($this, 'prsp_cb_color_callback'),
 			'prsp-settings-page',
 			'prsp_settings'
@@ -1671,7 +1717,7 @@ class ProspectAdmin {
 
 		add_settings_field(
 			'prsp_fs_color',
-			'Filter Stack Background Color',
+			__('Filter Stack Background Color', 'prospect'),
 			array($this, 'prsp_fs_color_callback'),
 			'prsp-settings-page',
 			'prsp_settings'
@@ -1679,7 +1725,7 @@ class ProspectAdmin {
 
 		add_settings_field(
 			'prsp_vf_color',
-			'View Frame Background Color',
+			__('View Frame Background Color', 'prospect'),
 			array($this, 'prsp_vf_color_callback'),
 			'prsp-settings-page',
 			'prsp_settings'
@@ -1691,8 +1737,22 @@ class ProspectAdmin {
 		// NOTE: 	Page also invoked after form submit done to process request
 	public function show_prsp_archive_page()
 	{
-			// Get first bit of static text
-		self::insert_html_file('archive-page-1.php');
+	?>
+		<div class="wrap"><div id="icon-tools" class="icon32"></div>
+		<h2><?php _e('Prospect Archives', 'prospect'); ?></h2>
+		</div>
+
+		<h3><?php _e('Attributes', 'prospect'); ?></h3>
+		<?php _e('<a href="admin.php?action=prsp_export_all_attributes" title="Export all Attributes as JSON archive file" rel="permalink">Export all Attributes as JSON file</a>', 'prospect'); ?>
+
+		<h3><?php _e('Templates', 'prospect'); ?></h3>
+		<?php _e('<a href="admin.php?action=prsp_export_all_ts" title="Export all Templates as JSON archive file" rel="permalink">Export all Templates as JSON file</a>', 'prospect'); ?>
+		<br/>
+
+		<p><?php _e('Export this Template type with all Attributes (as JSON archive file)', 'prospect'); ?></p>
+		<form id="prsp-archive-export-t-atts-form" method="post" enctype="multipart/form-data">
+		<select name="export-type">
+	<?php
 
 			// Generate drop-down list of Template names for archiving Templates w/Attributes
 		$temp_ids = ProspectTemplate::get_all_template_ids(0);
@@ -1700,21 +1760,66 @@ class ProspectAdmin {
 			echo '<option value="'.$tid.'">'.$tid.'</option>';
 		}
 
-		self::insert_html_file('archive-page-2.php');
+	?>
+		</select>
+		<?php _e('<input type="submit" id="export_t_atts" name="export_t_atts" value="Export Template and Attributes"/>', 'prospect'); ?>
+		</form>
+
+		<p><?php _e('Export all Records of this Template type (as CSV file)', 'prospect'); ?></p>
+		<form id="prsp-archive-export-t-recs-form" method="post" enctype="multipart/form-data">
+		<select name="export-type">
+	<?php
 
 			// Repeat Template names for command to archive all Records of a given Template type
 		foreach ($temp_ids as $tid) {
 			echo '<option value="'.$tid.'">'.$tid.'</option>';
 		}
+	?>
+		</select>
+		<?php _e('<input type="submit" id="export_t_recs" name="export_t_recs" value="Export Records"/>', 'prospect'); ?>
+		</form>
 
-		self::insert_html_file('archive-page-3.php');
+		<h3><?php _e('Exhibits', 'prospect'); ?></h3>
+		<?php _e('<a href="admin.php?action=prsp_export_all_exhibits" title="Export all Exhibits as JSON archive file" rel="permalink">Export all Exhibits as JSON file</a>', 'prospect'); ?>
+		<br/>
+
+		<p><?php _e('Export all Perspectives of this Exhibit as JSON file', 'prospect'); ?></p>
+		<form id="prsp-archive-export-xhbt-prspctvs" method="post" enctype="multipart/form-data">
+		<select name="export-type">
+	<?php
 
 		$all_exhibits = ProspectExhibit::get_all_exhibit_defs(true);
 		foreach ($all_exhibits as $xhbt) {
 			echo '<option value="'.$xhbt->id.'">'.$xhbt->gen->l.'</option>';
 		}
 
-		self::insert_html_file('archive-page-4.php');
+	?>
+		</select>
+		<?php _e('<input type="submit" id="export_xhbt_prspctvs" name="export_xhbt_prspctvs" value="Export Perspectives"/>', 'prospect'); ?>
+		</form>
+
+		<h3><?php _e('Maps', 'prospect'); ?></h3>
+		<?php _e('<a href="admin.php?action=prsp_export_all_maps" title="Export all Maps as JSON archive file" rel="permalink">Export all Maps as JSON file</a>', 'prospect'); ?>
+		<br/>
+
+		<h3><?php _e('Perspectives', 'prospect'); ?></h3>
+		<?php _e('<a href="admin.php?action=prsp_export_all_prspctvs" title="Export all Perspectives as JSON archive file" rel="permalink">Export all Perspectives as JSON file</a>', 'prospect'); ?>
+		<br/>
+
+		<h3><?php _e('Website Configuration Export', 'prospect'); ?></h3>
+		<p><b><?php _e('IMPORTANT','prospect'); ?>:</b> <?php _e('All Records must still be exported on a Template-by-Template basis; this archive file does not include Maps or Perspectives.', 'prospect'); ?></p>
+		<?php _e('<a href="admin.php?action=prsp_export_all" title="Export all" rel="permalink">Export all Attributes, Templates and Exhibits from this website as a JSON archive file</a>', 'prospect'); ?>
+
+		<h3><?php _e('Import JSON Archive File', 'prospect'); ?></h3>
+		<p><?php _e('You can import a JSON archive file containing Attributes, Templates, Exhibits, Maps and/or Perspectives. You must use other means for importing CSV files containing Records.', 'prospect'); ?></p>
+		<p><b><?php _e('WARNING', 'prospect'); ?>:</b> <?php _e('Data entities whose IDs already exist are ignored, rather than overriding existing definitions.', 'prospect'); ?></p>
+
+		<form id="prsp-archive-import-form" method="post" enctype="multipart/form-data">
+		<label for="archive-import-select"><?php _e('Archive JSON File to Import', 'prospect'); ?></label>
+		<input type="file" size="60" name="archive-import-select" id="archive_import_file"/><br/>
+		<?php _e('<input type="submit" id="import_submit" name="import_submit" value="Upload Archive"/>', 'prospect'); ?>
+		</form>
+	<?php
 	} // show_prsp_archive_page()
 
 
@@ -1823,7 +1928,7 @@ class ProspectAdmin {
 		$this->options = get_option('prsp_base_options');
 		?>
 		<div class="wrap">
-			<h2>Prospect Settings</h2>
+			<h2><?php _e('Prospect Settings', 'prospect'); ?></h2>
 			<form method="post" action="options.php">
 			<?php
 				// This prints out all hidden setting fields
