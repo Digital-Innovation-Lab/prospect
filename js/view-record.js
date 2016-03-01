@@ -486,6 +486,9 @@ jQuery(document).ready(function($) {
 	var dltextApprox = document.getElementById('dltext-approximately').innerHTML;
 	var dltextNow = document.getElementById('dltext-now').innerHTML;
 	var dlTextUndef = document.getElementById('dltext-undef').innerHTML;
+	var dlTextSeeLink = document.getElementById('dltext-see-link').innerHTML;
+	var dlTextGoAudio = document.getElementById('dltext-go-audio').innerHTML;
+	var dlTextGoTranscript = document.getElementById('dltext-go-transcript').innerHTML;
 
 		// RETURNS: Attribute definition with this ID
 		// INPUT:   attID = full Attribute ID (could be in Join dot notation)
@@ -581,13 +584,13 @@ jQuery(document).ready(function($) {
 		case 'I':
 			return '<img src="'+a+'" alt="'+att.def.l+'"/>';
 		case 'l':
-			return '<a href="'+a+'" target="_blank">(See Link)</a>';
+			return '<a href="'+a+'" target="_blank">('+dlTextSeeLink+')</a>';
 		case 'S':
-			return '<a href="'+a+'" target="_blank">(SoundCloud)</a>';
+			return '<a href="'+a+'" target="_blank">('+dlTextGoAudio+')</a>';
 		case 'Y':
 			return '<a href="https://www.youtube.com/watch?v='+a+'" target="_blank">(YouTube)</a>';
 		case 'x':
-			return '<a href="'+a+'" target="_blank">(See Transcript File)</a>';
+			return '<a href="'+a+'" target="_blank">'+dlTextGoTranscript+'</a>';
 		case 't':
 			return a;
 		// case 'P': 	// Can't process this without rest of DB
