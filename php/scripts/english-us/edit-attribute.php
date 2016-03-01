@@ -15,10 +15,10 @@
 <!-- Partial: generic Legend toolbar -->
 <script id='legendBtns' type='text/ractive'>
 	<div class="ui-widget-header ui-corner-all legend-btn-set">
-		<button decorator="iconButton:ui-icon-wrench" on-click="doLegendEdit:{{index}}">Edit Entry</button>
-		<button decorator="iconButton:ui-icon-arrowthick-1-n" on-click="doLegendUp:{{index}}">Move Up</button>
-		<button decorator="iconButton:ui-icon-arrowthick-1-s" on-click="doLegendDown:{{index}}">Move Down</button>
-		<button decorator="iconButton:ui-icon-trash" on-click="doLegendDel:{{index}}">Delete</button>
+		<button decorator="iconButton:ui-icon-wrench" on-click="doLegendEdit:{{index}}"><?php _e('Edit Entry', 'prospect'); ?></button>
+		<button decorator="iconButton:ui-icon-arrowthick-1-n" on-click="doLegendUp:{{index}}"><?php _e('Move Up', 'prospect'); ?></button>
+		<button decorator="iconButton:ui-icon-arrowthick-1-s" on-click="doLegendDown:{{index}}"><?php _e('Move Down', 'prospect'); ?></button>
+		<button decorator="iconButton:ui-icon-trash" on-click="doLegendDel:{{index}}"><?php _e('Delete', 'prospect'); ?></button>
 	</div>
 </script>
 
@@ -26,7 +26,7 @@
 <script id='legendDataEntry' type='text/ractive'>
 	<div class="legend-data-entry">
 		<span class="legend-label">{{l}}</span> <span class="legend-val">{{val}}</span>
-		<span title="Click to select color" class="viz-icon" style="background-color:{{v}}" on-click="doLegendViz:{{index}}"></span>
+		<span title=<?php _e('"Click to select color"', 'prospect'); ?> class="viz-icon" style="background-color:{{v}}" on-click="doLegendViz:{{index}}"></span>
 		{{>legendBtns}}
 	</div>
 </script>
@@ -34,52 +34,60 @@
 
 <!-- Partial: Range for Number -->
 <script id="rangeNum" type='text/ractive'>
-	<h3>Set Valid Number Range</h3>
-	<label for="num-r-min">Minimum number: </label> <input type="text" id="num-r-min" value='{{theRange.min}}' placeholder="Min val" size="8"/>
-	<label for="num-r-max">Maximum number: </label> <input type="text" id="num-r-max" value='{{theRange.max}}' placeholder="Max val" size="8"/>
+	<h3><?php _e('Set Valid Number Range', 'prospect'); ?></h3>
+	<label for="num-r-min"><?php _e('Minimum number', 'prospect'); ?>: </label>
+	<input type="text" id="num-r-min" value='{{theRange.min}}' placeholder="Min val" size="8"/>
+	<label for="num-r-max"><?php _e('Maximum number', 'prospect'); ?>: </label>
+	<input type="text" id="num-r-max" value='{{theRange.max}}' placeholder="Max val" size="8"/>
 	<br/>
-	<label for="num-g">Group values together by </label> <input type="number" id="num-g" value='{{theRange.g}}' min="0" max="4"/> digits
+	<label for="num-g"><?php _e('Group values together by', 'prospect'); ?> </label>
+	<input type="number" id="num-g" value='{{theRange.g}}' min="0" max="4"/> <?php _e('digits', 'prospect'); ?>
 	<br/>
-	Use<input type='checkbox' checked='{{theRange.useU}}'/> color for indefinite Number values <span title="Click to select color" class="viz-icon" style="background-color:{{theRange.u}}" on-click="setUColor"></span>
+	<?php _e('Use', 'prospect'); ?> 
+	<input type='checkbox' checked='{{theRange.useU}}'/> <?php _e('color for indefinite Number values ', 'prospect'); ?> 
+	<span title=<?php _e('"Click to select color"', 'prospect'); ?> class="viz-icon" style="background-color:{{theRange.u}}" on-click="setUColor"></span>
 </script>
 
 <!-- Partial: Range for Dates -->
 <script id="rangeDates" type='text/ractive'>
-	<h3>Set Valid Date Range</h3>
-	Earliest Date: 
-		<label for="date-r-min-y">Year </label> <input type="text" id="date-r-min-y" value='{{theRange.min.y}}' placeholder="YYYY" size="6" pattern="(open|-?\d+)" required>
-		<label for="date-r-min-m">Month </label> <input type="text" id="date-r-min-m" value='{{theRange.min.m}}' placeholder="MM" size="2" pattern="\d{0,2}">
-		<label for="date-r-min-d">Day </label> <input type="text" id="date-r-min-d" value='{{theRange.min.d}}' placeholder="DD" size="2" pattern="\d{0,2}">
+	<h3><?php _e('Set Valid Date Range', 'prospect'); ?></h3>
+	<?php _e('Earliest Date', 'prospect'); ?>:
+		<label for="date-r-min-y"><?php _e('Year', 'prospect'); ?> </label> <input type="text" id="date-r-min-y" value='{{theRange.min.y}}' placeholder="YYYY" size="6" pattern="(open|-?\d+)" required>
+		<label for="date-r-min-m"><?php _e('Month', 'prospect'); ?> </label> <input type="text" id="date-r-min-m" value='{{theRange.min.m}}' placeholder="MM" size="2" pattern="\d{0,2}">
+		<label for="date-r-min-d"><?php _e('Day', 'prospect'); ?> </label> <input type="text" id="date-r-min-d" value='{{theRange.min.d}}' placeholder="DD" size="2" pattern="\d{0,2}">
 		<br/>
-	Latest Date:
-		<label for="date-r-max-y">Year </label> <input type="text" id="date-r-max-y" value='{{theRange.max.y}}' placeholder="YYYY" size="6" pattern="(open|~?-?\d+)">
-		<label for="date-r-max-m">Month </label> <input type="text" id="date-r-max-m" value='{{theRange.max.m}}' placeholder="MM" size="2" pattern="\d{0,2}">
-		<label for="date-r-max-d">Day </label> <input type="text" id="date-r-max-d" value='{{theRange.max.d}}' placeholder="DD" size="2" pattern="\d{0,2}">
+	<?php _e('Latest Date', 'prospect'); ?>:
+		<label for="date-r-max-y"><?php _e('Year', 'prospect'); ?> </label> <input type="text" id="date-r-max-y" value='{{theRange.max.y}}' placeholder="YYYY" size="6" pattern="(open|~?-?\d+)">
+		<label for="date-r-max-m"><?php _e('Month', 'prospect'); ?> </label> <input type="text" id="date-r-max-m" value='{{theRange.max.m}}' placeholder="MM" size="2" pattern="\d{0,2}">
+		<label for="date-r-max-d"><?php _e('Day', 'prospect'); ?> </label> <input type="text" id="date-r-max-d" value='{{theRange.max.d}}' placeholder="DD" size="2" pattern="\d{0,2}">
 		<br/>
-	<label for="date-g">Group Dates together by</label>
+	<label for="date-g"><?php _e('Group Dates together by', 'prospect'); ?></label>
 	<select id="date-g" value='{{theRange.g}}'>
-		<option value="d">Day</option>
-		<option value="m">Month</option>
-		<option value="y">Year</option>
-		<option value="t">Decade</option>
-		<option value="c">Century</option>
+		<option value="d"><?php _e('Day', 'prospect'); ?></option>
+		<option value="m"><?php _e('Month', 'prospect'); ?></option>
+		<option value="y"><?php _e('Year', 'prospect'); ?></option>
+		<option value="t"><?php _e('Decade', 'prospect'); ?></option>
+		<option value="c"><?php _e('Century', 'prospect'); ?></option>
 	</select>
 	<br/>
-	 Use<input type='checkbox' checked='{{theRange.useU}}'/> color for indefinite Date values <span title="Click to select color" class="viz-icon" style="background-color:{{theRange.u}}" on-click="setUColor"></span>
+	<?php _e('Use', 'prospect'); ?> 
+	<input type='checkbox' checked='{{theRange.useU}}'/> <?php _e('color for indefinite Number values ', 'prospect'); ?> 
+	<span title=<?php _e('"Click to select color"', 'prospect'); ?> class="viz-icon" style="background-color:{{theRange.u}}" on-click="setUColor"></span>
 </script>
 
 
 <!-- Partial: Legend for Vocabulary -->
 <script id="legendVocab" type='text/ractive'>
-	<h3>Configure Vocabulary Legend</h3>
-	<button id="vocab-add-terms" on-click="addTerms">Add Terms</button>
-	<button on-click="resetLegend">Reset Visuals</button>
+	<h3><?php _e('Configure Vocabulary Legend', 'prospect'); ?></h3>
+	<button id="vocab-add-terms" on-click="addTerms"><?php _e('Add Terms', 'prospect'); ?></button>
+	<button on-click="resetLegend"><?php _e('Reset Visuals', 'prospect'); ?></button>
 	{{#if others.length > 0}}
-		<button on-click="copyLegend">Copy Legend</button>
+		<button on-click="copyLegend"><?php _e('Copy Legend', 'prospect'); ?></button>
 	{{/if}}
 	<br/>
-	<input type="text" id="vocab-new-term" value='{{newVocab}}' placeholder="New Vocab Term" size="24"/> <label for="vocab-new-term"> New Term</label>
-	<button on-click="addLegend">Add Entry</button>
+	<input type="text" id="vocab-new-term" value='{{newVocab}}' placeholder=<?php _e('"New Vocab Term"', 'prospect'); ?> size="24"/>
+	<label for="vocab-new-term"><?php _e(' New Term', 'prospect'); ?></label>
+	<button on-click="addLegend"><?php _e('Add Entry', 'prospect'); ?></button>
 	<br/>
 	<div class="legend-vocab">
 		{{#if theLegend.length}}
@@ -87,14 +95,14 @@
 			{{#each theLegend:index1}}
 				<li class="legend-data-entry" id="vocab_{{index1}}">
 					<span class="legend-label">{{l}}</span>
-					<span title="Click to select color" class="viz-icon" style="background-color:{{v}}" on-click="doLegendViz:{{index1}}"></span>
+					<span title=<?php _e('"Click to select color"', 'prospect'); ?> class="viz-icon" style="background-color:{{v}}" on-click="doLegendViz:{{index1}}"></span>
 					<div class="ui-widget-header ui-corner-all legend-btn-set">
-						<button decorator="iconButton:ui-icon-transfer-e-w" on-click="doVocabMove:{{index1}}">Move Entries</button>
-						<button decorator="iconButton:ui-icon-arrowthick-1-n" on-click="doLegendUp:{{index1}}">Move Up</button>
-						<button decorator="iconButton:ui-icon-arrowthickstop-1-n" on-click="doLegendTop:{{index1}}">Move To Top</button>
-						<button decorator="iconButton:ui-icon-arrowthick-1-s" on-click="doLegendDown:{{index1}}">Move Down</button>
-						<button decorator="iconButton:ui-icon-arrowthickstop-1-s" on-click="doLegendBottom:{{index1}}">Move To Bottom</button>
-						<button decorator="iconButton:ui-icon-trash" on-click="doLegendDel:{{index1}}">Delete</button>
+						<button decorator="iconButton:ui-icon-transfer-e-w" on-click="doVocabMove:{{index1}}"><?php _e('Move Entries', 'prospect'); ?></button>
+						<button decorator="iconButton:ui-icon-arrowthick-1-n" on-click="doLegendUp:{{index1}}"><?php _e('Move Up', 'prospect'); ?></button>
+						<button decorator="iconButton:ui-icon-arrowthickstop-1-n" on-click="doLegendTop:{{index1}}"><?php _e('Move To Top', 'prospect'); ?></button>
+						<button decorator="iconButton:ui-icon-arrowthick-1-s" on-click="doLegendDown:{{index1}}"><?php _e('Move Down', 'prospect'); ?></button>
+						<button decorator="iconButton:ui-icon-arrowthickstop-1-s" on-click="doLegendBottom:{{index1}}"><?php _e('Move To Bottom', 'prospect'); ?></button>
+						<button decorator="iconButton:ui-icon-trash" on-click="doLegendDel:{{index1}}"><?php _e('Delete', 'prospect'); ?></button>
 					</div>
 					{{#if z.length >= 1}}
 					<ol class='vocab-children'>
@@ -102,17 +110,17 @@
 							<li class="legend-data-entry" id="vocab_{{index1}}_{{index2}}">
 								{{l}}
 								{{#if v.length > 1}}
-								<span title="Click to select color" class="viz-icon" style="background-color:{{v}}" on-click="doLegendViz:{{index1}},{{index2}}"></span>
+								<span title=<?php _e('"Click to select color"', 'prospect'); ?> class="viz-icon" style="background-color:{{v}}" on-click="doLegendViz:{{index1}},{{index2}}"></span>
 								{{else}}
-								<span title="Click to select color" class="viz-icon" on-click="doLegendViz:{{index1}},{{index2}}"></span>
+								<span title=<?php _e('"Click to select color"', 'prospect'); ?> class="viz-icon" on-click="doLegendViz:{{index1}},{{index2}}"></span>
 								{{/if}}
 								<div class="ui-widget-header ui-corner-all legend-btn-set">
-									<button decorator="iconButton:ui-icon-transfer-e-w" on-click="doVocabMove:{{index1}},{{index2}}">Move Entry</button>
-									<button decorator="iconButton:ui-icon-arrowthick-1-n" on-click="doLegendUp:{{index1}},{{index2}}">Move Up</button>
-									<button decorator="iconButton:ui-icon-arrowthickstop-1-n" on-click="doLegendTop:{{index1}},{{index2}}">Move To Top</button>
-									<button decorator="iconButton:ui-icon-arrowthick-1-s" on-click="doLegendDown:{{index1}},{{index2}}">Move Down</button>
-									<button decorator="iconButton:ui-icon-arrowthickstop-1-s" on-click="doLegendBottom:{{index1}},{{index2}}">Move To Bottom</button>
-									<button decorator="iconButton:ui-icon-trash" on-click="doLegendDel:{{index1}},{{index2}}">Delete</button>
+									<button decorator="iconButton:ui-icon-transfer-e-w" on-click="doVocabMove:{{index1}},{{index2}}"><?php _e('Move Entry', 'prospect'); ?></button>
+									<button decorator="iconButton:ui-icon-arrowthick-1-n" on-click="doLegendUp:{{index1}},{{index2}}"><?php _e('Move Up', 'prospect'); ?></button>
+									<button decorator="iconButton:ui-icon-arrowthickstop-1-n" on-click="doLegendTop:{{index1}},{{index2}}"><?php _e('Move To Top', 'prospect'); ?></button>
+									<button decorator="iconButton:ui-icon-arrowthick-1-s" on-click="doLegendDown:{{index1}},{{index2}}"><?php _e('Move Down', 'prospect'); ?></button>
+									<button decorator="iconButton:ui-icon-arrowthickstop-1-s" on-click="doLegendBottom:{{index1}},{{index2}}"><?php _e('Move To Bottom', 'prospect'); ?></button>
+									<button decorator="iconButton:ui-icon-trash" on-click="doLegendDel:{{index1}},{{index2}}"><?php _e('Delete', 'prospect'); ?></button>
 								</div>
 							</li>
 						{{/each}}
@@ -127,11 +135,11 @@
 
 <!-- Partial: Legend for Text -->
 <script id="legendText" type='text/ractive'>
-	<h3>Configure Text Legend</h3>
-	<button on-click="resetLegend">Reset Visuals</button>
-	<button on-click="addLegend">Add Entry</button>
+	<h3><?php _e('Configure Text Legend', 'prospect'); ?></h3>
+	<button on-click="resetLegend"><?php _e('Reset Visuals', 'prospect'); ?></button>
+	<button on-click="addLegend"><?php _e('Add Entry', 'prospect'); ?></button>
 	{{#if others.length > 0}}
-		<button on-click="copyLegend">Copy Legend</button>
+		<button on-click="copyLegend"><?php _e('Copy Legend', 'prospect'); ?></button>
 	{{/if}}
 	<br/>
 	<div class="legend-data">
@@ -143,11 +151,11 @@
 
 <!-- Partial: Legend for Number -->
 <script id="legendNum" type='text/ractive'>
-	<h3>Configure Numeric Legend</h3>
-	<button on-click="resetLegend">Reset Visuals</button>
-	<button on-click="addLegend">Add Entry</button>
+	<h3><?php _e('Configure Numeric Legend', 'prospect'); ?></h3>
+	<button on-click="resetLegend"><?php _e('Reset Visuals', 'prospect'); ?></button>
+	<button on-click="addLegend"><?php _e('Add Entry', 'prospect'); ?></button>
 	{{#if others.length > 0}}
-		<button on-click="copyLegend">Copy Legend</button>
+		<button on-click="copyLegend"><?php _e('Copy Legend', 'prospect'); ?></button>
 	{{/if}}
 	<br/>
 	<div class="legend-data">
@@ -159,11 +167,11 @@
 
 <!-- Partial: Legend for Dates -->
 <script id="legendDates" type='text/ractive'>
-	<h3>Configure Date Legend</h3>
-	<button on-click="resetLegend">Reset Visuals</button>
-	<button on-click="addLegend">Add Entry</button>
+	<h3><?php _e('Configure Date Legend', 'prospect'); ?></h3>
+	<button on-click="resetLegend"><?php _e('Reset Visuals', 'prospect'); ?></button>
+	<button on-click="addLegend"><?php _e('Add Entry', 'prospect'); ?></button>
 	{{#if others.length > 0}}
-		<button on-click="copyLegend">Copy Legend</button>
+		<button on-click="copyLegend"><?php _e('Copy Legend', 'prospect'); ?></button>
 	{{/if}}
 	<br/>
 	<div class="legend-data">
@@ -180,26 +188,27 @@
 	{{#if errorMsg.length > 0}}
 	<div id="error-frame">{{errorMsg}}</div>
 	{{/if}}
-	<button id="prsp-save-data" on-click="saveAttribute">Verify and Save Attribute Definition</button><br/>
-	Attribute's external label: <input value='{{theAttribute.l}}' placeholder="Enter label" size="24" required/>
-	Privacy Setting: <select value='{{privacy}}'>
-		<option value="o">Open (Public)</option>
-		<option value="p">Private</option>
+	<button id="prsp-save-data" on-click="saveAttribute"><?php _e('Verify and Save Attribute Definition', 'prospect'); ?></button><br/>
+	<?php _e('Attribute’s external label', 'prospect'); ?>: <input value='{{theAttribute.l}}' placeholder=<?php _e('"Enter label"', 'prospect'); ?> size="24" required/>
+	<?php _e('Privacy Setting', 'prospect'); ?>: <select value='{{privacy}}'>
+		<option value="o"><?php _e('Open (Public)', 'prospect'); ?></option>
+		<option value="p"><?php _e('Private', 'prospect'); ?></option>
 	</select>
 	<br/>
-	Attribute's unique internal id: <input value='{{attID}}' placeholder="Enter id" size="24" pattern="[\w\-]+" required/>
-	<button decorator="iconButton:ui-icon-info" on-click="idHint">Hint about IDs</button>
+	<?php _e('Attribute’s unique internal id', 'prospect'); ?>: 
+	<input value='{{attID}}' placeholder=<?php _e('"Enter id"', 'prospect'); ?> size="24" pattern="[\w\-]+" required/>
+	<button decorator="iconButton:ui-icon-info" on-click="idHint"><?php _e('Hint about IDs', 'prospect'); ?></button>
 	<select value='{{chosenCF}}'>
 		{{#each cfs}}
 			<option>{{this}}</option>
 		{{/each}}
 	</select>
-	<button on-click="copyCF">Use this Custom Field name</button>
+	<button on-click="copyCF"><?php _e('Use this Custom Field name', 'prospect'); ?></button>
 	<br/>
-	Attribute value delimiter (single character or blank): <input value='{{theAttribute.d}}' size="2"/><br/>
-	Contributor Hint: <br/>
-	<input type="text" size="64" maxlength="128" placeholder="Explain Attribute entry to contributor" value="{{theAttribute.h}}" /><br/>
-	Data type: 
+	<?php _e('Attribute value delimiter (single character or blank)', 'prospect'); ?>: <input value='{{theAttribute.d}}' size="2"/><br/>
+	<?php _e('Contributor Hint', 'prospect'); ?>: <br/>
+	<input type="text" size="64" maxlength="128" placeholder=<?php _e('"Explain Attribute entry to contributor"', 'prospect'); ?> value="{{theAttribute.h}}" /><br/>
+	<?php _e('Data type', 'prospect'); ?>: 
 	<select value='{{theAttribute.t}}'>
 		{{#each dataTypes}}
 			<option value="{{code}}">{{label}}</option>
@@ -211,7 +220,7 @@
 	{{elseif theAttribute.t == 'D'}}
 		{{>rangeDates}}
 	{{else}}
-		(no Range settings for this data type)<br/>
+		<?php _e('(no Range settings for this data type)', 'prospect'); ?><br/>
 	{{/if}}
 
 	{{#if theAttribute.t == 'V'}}
@@ -223,65 +232,65 @@
 	{{elseif theAttribute.t == 'D'}}
 		{{>legendDates}}
 	{{else}}
-		(no Legend available for this data type)<br/>
+		<?php _e('(no Legend available for this data type)', 'prospect'); ?><br/>
 	{{/if}}
 </script>
 
 
 <!-- Create/Edit Text Legend Dialog -->
 <script id="dialog-legend-text" type='text/ractive'>
-	<dialog title="Text Legend Entry" width="300" height="200">
-		Label: <input type="text" size="20" value="{{label}}" placeholder="Enter Label"/><br>
-		Text pattern: <input type="text" size="16" value="{{pattern}}" placeholder="Enter Text Pattern"/><br>
+	<dialog title=<?php _e('"Text Legend Entry"', 'prospect'); ?> width="300" height="200">
+		<?php _e('Label', 'prospect'); ?>: <input type="text" size="20" value="{{label}}" placeholder=<?php _e('"Enter Label"', 'prospect'); ?>/><br>
+		<?php _e('Text pattern', 'prospect'); ?>: <input type="text" size="16" value="{{pattern}}" placeholder=<?php _e('"Enter Text Pattern"', 'prospect'); ?>/><br>
 	</dialog>
 </script>
 
 <!-- Create/Edit Number Legend Dialog -->
 <script id="dialog-legend-number" type='text/ractive'>
-	<dialog title="Number Legend Entry" width="300" height="250">
-		Label for Range: <input type="text" size="12" value="{{label}}" placeholder="Enter Label"/><br>
-		Minimum Value: <input type="text" size="8" value="{{min}}" pattern="\d*"/><br>
-		Maximum Value: <input type="text" size="8" value="{{max}}" pattern="\d*"/>
+	<dialog title=<?php _e('"Number Legend Entry"', 'prospect'); ?> width="300" height="250">
+		<?php _e('Label for Range', 'prospect'); ?>: <input type="text" size="12" value="{{label}}" placeholder=<?php _e('"Enter Label"', 'prospect'); ?>/><br>
+		<?php _e('Minimum Value', 'prospect'); ?>: <input type="text" size="8" value="{{min}}" pattern="\d*"/><br>
+		<?php _e('Maximum Value', 'prospect'); ?>: <input type="text" size="8" value="{{max}}" pattern="\d*"/>
 	</dialog>
 </script>
 
 <!-- Create/Edit Dates Legend Dialog -->
 <script id="dialog-legend-dates" type='text/ractive'>
-	<dialog title="Date Legend Entry" width="400" height="210">
-		Label for Range: <input type="text" size="20" value="{{label}}" required placeholder="Enter Range Label"/><br>
-		Start Date: Year <input type="text" size="5" value="{{min.y}}" placeholder="YYYY" pattern="(open|-?\d+)"/>
-		Month <input type="text" size="2" value="{{min.m}}" placeholder="MM" pattern="\d{0,2}"/>
-		Day <input type="text" size="2" value="{{min.d}}" placeholder="DD" pattern="\d{0,2}"/>
+	<dialog title=<?php _e('"Date Legend Entry"', 'prospect'); ?> width="400" height="210">
+		<?php _e('Label for Range', 'prospect'); ?>: <input type="text" size="20" value="{{label}}" required placeholder=<?php _e('"Enter Range Label"', 'prospect'); ?>/><br>
+		<?php _e('Start Date: Year', 'prospect'); ?> <input type="text" size="5" value="{{min.y}}" placeholder="YYYY" pattern="(open|-?\d+)"/>
+		<?php _e('Month', 'prospect'); ?> <input type="text" size="2" value="{{min.m}}" placeholder="MM" pattern="\d{0,2}"/>
+		<?php _e('Day', 'prospect'); ?> <input type="text" size="2" value="{{min.d}}" placeholder="DD" pattern="\d{0,2}"/>
 		<br>
-		End Date: Year <input type="text" size="5" value="{{max.y}}" placeholder="YYYY" pattern="(open|-?\d+)"/>
-		Month <input type="text" size="2" value="{{max.m}}" placeholder="MM" pattern="\d{0,2}"/>
-		Day <input type="text" size="2" value="{{max.d}}" placeholder="DD" pattern="\d{0,2}"/>
+		<?php _e('End Date: Year', 'prospect'); ?> <input type="text" size="5" value="{{max.y}}" placeholder="YYYY" pattern="(open|-?\d+)"/>
+		<?php _e('Month', 'prospect'); ?> <input type="text" size="2" value="{{max.m}}" placeholder="MM" pattern="\d{0,2}"/>
+		<?php _e('Day', 'prospect'); ?> <input type="text" size="2" value="{{max.d}}" placeholder="DD" pattern="\d{0,2}"/>
 	</dialog>
 </script>
 
 <!-- Move Vocab Dialog for top-level non-child -->
 <script id="dialog-move-vocab-lone" type='text/ractive'>
-	<dialog title="Move Vocabulary Entry" width="400" height="200">
-		Move this Term so it becomes a child of <br/>
+	<dialog title=<?php _e('"Move Vocabulary Entry"', 'prospect'); ?> width="400" height="200">
+		<?php _e('Move this Term so it becomes a child of', 'prospect'); ?> <br/>
 		<select value='{{newParent}}'>
 			{{#each parents}}
 				<option>{{this}}</option>
 			{{/each}}
 		</select>
 		<br/>
-		<input type='radio' name='{{keep}}' value='yes'/> Keep visual config
-		<input type='radio' name='{{keep}}' value='no'/> Clear visual config
+		<input type='radio' name='{{keep}}' value='yes'/> <?php _e('Keep visual config', 'prospect'); ?>
+		<input type='radio' name='{{keep}}' value='no'/> <?php _e('Clear visual config', 'prospect'); ?>
 	</dialog>
 </script>
 
 <!-- Move Vocab Dialog for top-level parent -->
 <script id="dialog-move-vocab-parent" type='text/ractive'>
-	<dialog title="Move Vocabulary Children" width="400" height="200">
-		<input type='radio' name='{{up}}' value='yes'/> Move all children to top (parent) level
+	<dialog title=<?php _e('"Move Vocabulary Children"', 'prospect'); ?> width="400" height="200">
+		<input type='radio' name='{{up}}' value='yes'/> <?php _e('Move all children to top (parent) level', 'prospect'); ?> 
 		<br/>
-		<input type='radio' name='{{up}}' value='no'/> Move all to new parent
+		<input type='radio' name='{{up}}' value='no'/>  <?php _e('Move all to new parent', 'prospect'); ?>
 		<br/>
-		New parent 
+		<?php _e('New parent', 'prospect'); ?> 
 		<select value='{{newParent}}'>
 			{{#each parents}}
 				<option>{{this}}</option>
@@ -292,11 +301,11 @@
 
 <!-- Move Vocab Dialog for child node -->
 <script id="dialog-move-vocab-child" type='text/ractive'>
-	<dialog title="Move Vocabulary Entry" width="400" height="200">
-		<input type='radio' name='{{up}}' value='yes'/> Move to top (parent) level
-		<input type='radio' name='{{up}}' value='no'/> Move to new parent
+	<dialog title=<?php _e('"Move Vocabulary Entry"', 'prospect'); ?> width="400" height="200">
+		<input type='radio' name='{{up}}' value='yes'/> <?php _e('Move to top (parent) level', 'prospect'); ?>
+		<input type='radio' name='{{up}}' value='no'/> <?php _e('Move to new parent', 'prospect'); ?>
 		<br/>
-		New Parent <select value='{{newParent}}'>
+		<?php _e('New Parent', 'prospect'); ?> <select value='{{newParent}}'>
 			{{#each parents}}
 				<option>{{this}}</option>
 			{{/each}}
@@ -306,13 +315,13 @@
 
 <!-- Reset Colors Dialog -->
 <script id="dialog-reset-colors" type='text/ractive'>
-	<dialog title="Reset Colors" width="300" height="200">
-		<input type='radio' name='{{reset}}' value='random'/> Random Colors
+	<dialog title=<?php _e('"Reset Colors"', 'prospect'); ?> width="300" height="200">
+		<input type='radio' name='{{reset}}' value='random'/> <?php _e('Random Colors', 'prospect'); ?>
 		<br/>
-		<input type='radio' name='{{reset}}' value='gradient'/> Create Gradient
+		<input type='radio' name='{{reset}}' value='gradient'/> <?php _e('Create Gradient', 'prospect'); ?>
 		<br/>
-		From <span title="Click to select color" class="viz-icon" style="background-color:{{c0}}" on-click="selectColor:'0'"></span>
-		To <span title="Click to select color" class="viz-icon" style="background-color:{{c1}}" on-click="selectColor:'1'"></span>
+		<?php _e('From', 'prospect'); ?> <span title=<?php _e('"Click to select color"', 'prospect'); ?> class="viz-icon" style="background-color:{{c0}}" on-click="selectColor:'0'"></span>
+		<?php _e('To', 'prospect'); ?> <span title=<?php _e('"Click to select color"', 'prospect'); ?> class="viz-icon" style="background-color:{{c1}}" on-click="selectColor:'1'"></span>
 		<div id="insert-2nd-dialog"></div>
 	</dialog>
 </script>
@@ -320,38 +329,39 @@
 
 <!-- Confirm Dialog -->
 <script id="dialog-confirm" type='text/ractive'>
-	<dialog title="Confirm" width="320" height="300">
+	<dialog title=<?php _e('"Confirm"', 'prospect'); ?> width="320" height="300">
 		{{message}}
 	</dialog>
 </script>
 
 <!-- Hint Dialog -->
 <script id="dialog-message" type='text/ractive'>
-	<dialog title="Display Hint" width="300" height="300" cancel="false">
+	<dialog title=<?php _e('"Display Hint"', 'prospect'); ?> width="300" height="300" cancel="false">
 		{{message}}
 	</dialog>
 </script>
 
 <!-- Color Choice Dialog -->
 <script id="dialog-choose-color" type='text/ractive'>
-	<dialog title="Choose Color" width="250" height="330">
+	<dialog title=<?php _e('"Choose Color"', 'prospect'); ?> width="250" height="330">
 		<iris color="{{color}}"></iris>
 	</dialog>
 </script>
 
 <!-- Color Choice w/Clear Dialog -->
 <script id="dialog-choose-color-clear" type='text/ractive'>
-	<dialog title="Choose Color" width="250" height="355">
-		<input type='checkbox' checked='{{doClear}}'> Remove visuals<br/>
+	<dialog title=<?php _e('"Choose Color"', 'prospect'); ?> width="250" height="355">
+		<input type='checkbox' checked='{{doClear}}'> <?php _e('Remove visuals', 'prospect'); ?><br/>
 		<iris color="{{color}}"></iris>
 	</dialog>
 </script>
 
 <!-- List of peer Attributes with Legends Dialog -->
 <script id="dialog-copy-legend" type='text/ractive'>
-	<dialog title="Choose Attribute" width="400" height="230">
-		Choose the Attribute whose Legend you wish to copy over the current Legend you are editing.<br/>
-		<b>WARNING: No undo.</b><br/>
+	<dialog title=<?php _e('"Choose Attribute"', 'prospect'); ?> width="400" height="230">
+		<?php _e('Choose the Attribute whose Legend you wish to copy over the current Legend you are editing.', 'prospect'); ?>
+		<br/>
+		<b><?php _e('WARNING: No undo.', 'prospect'); ?></b><br/>
 		<label for="choose-att">Attribute </label>
 		<select id="choose-att" value='{{fid}}'>
 		{{#each others}}
@@ -363,109 +373,109 @@
 
 <!-- DYNAMIC TEXT -->
 <script id="dltext-attributes" type='text/ractive'>
-V,Vocabulary|T,Text|g,Tags|N,Number|D,Dates|L,Lat-Lon|X,X-Y|I,Image|l,Link To|S,Audio|Y,YouTube|x,Transcript|t,Timecode|P,Pointer|J,Join
+<?php _e('V,Vocabulary|T,Text|g,Tags|N,Number|D,Dates|L,Lat-Lon|X,X-Y|I,Image|l,Link To|S,Audio|Y,YouTube|x,Transcript|t,Timecode|P,Pointer|J,Join', 'prospect'); ?>
 </script>
 
 
 <!-- ERRORS -->
 <script id="errmsg-no-term-name" type='text/ractive'>
-You must supply a name for the new Term.
+<?php _e('You must supply a name for the new Term.', 'prospect'); ?>
 </script>
 
 <script id="errmsg-no-id" type='text/ractive'>
-You must supply an internal ID for the Attribute.
+<?php _e('You must supply an internal ID for the Attribute.', 'prospect'); ?>
 </script>
 
 <script id="errmsg-id-too-long" type='text/ractive'>
-The Attribute internal ID is too long.
+<?php _e('The Attribute internal ID is too long.', 'prospect'); ?>
 </script>
 
 <script id="errmsg-id-bad-chars" type='text/ractive'>
-An Attribute internal ID must consist of alphabetic characters (in plain ASCII), numbers, underscores and hyphens (it cannot contain spaces, punctuation, Unicode-only characters, etc).
+<?php _e('An Attribute internal ID must consist of alphabetic characters (in plain ASCII), numbers, underscores and hyphens (it cannot contain spaces, punctuation, Unicode-only characters, etc).', 'prospect'); ?>
 </script>
 
 <script id="errmsg-no-label" type='text/ractive'>
-You must supply a label for the Attribute.
+<?php _e('You must supply a label for the Attribute.', 'prospect'); ?>
 </script>
 
 <script id="errmsg-label-too-long" type='text/ractive'>
-The Attribute label is too long.
+<?php _e('The Attribute label is too long.', 'prospect'); ?>
 </script>
 
 <script id="errmsg-no-custom-field" type='text/ractive'>
-You have not specified a custom field.
+<?php _e('You have not specified a custom field.', 'prospect'); ?>
 </script>
 
 <script id="errmsg-delim-too-long" type='text/ractive'>
-The delimiter can only be 1 character, if specified at all.
+<?php _e('The delimiter can only be 1 character, if specified at all.', 'prospect'); ?>
 </script>
 
 <script id="errmsg-id-taken" type='text/ractive'>
-Another Attribute with that ID already exists. Please choose another.
+<?php _e('Another Attribute with that ID already exists. Please choose another.', 'prospect'); ?>
 </script>
 
 <script id="errmsg-term-name-taken" type='text/ractive'>
-A Term with that name already exists in the Vocabulary.
+<?php _e('A Term with that name already exists in the Vocabulary.', 'prospect'); ?>
 </script>
 
 <script id="errmsg-too-few-vocab" type='text/ractive'>
-No Vocabulary movements are possible until you have at least 2 Terms.
+<?php _e('No Vocabulary movements are possible until you have at least 2 Terms.', 'prospect'); ?>
 </script>
 
 <script id="errmsg-num-need-bound" type='text/ractive'>
-You must either have a minimum or maximum Number bound (preferably both).
+<?php _e('You must either have a minimum or maximum Number bound (preferably both).', 'prospect'); ?>
 </script>
 
 <script id="errmsg-range-not-valid" type='text/ractive'>
-One of your Number range boundaries is not a valid integer value.
+<?php _e('One of your Number range boundaries is not a valid integer value.', 'prospect'); ?>
 </script>
 
 <script id="errmsg-num-range-inverted" type='text/ractive'>
-One of the Number Legend entries has a minimum value that is greater than the maximum value.
+<?php _e('One of the Number Legend entries has a minimum value that is greater than the maximum value.', 'prospect'); ?>
 </script>
 
 <script id="errmsg-no-min-date" type='text/ractive'>
-You must provide a valid year for the minimum date range.
+<?php _e('You must provide a valid year for the minimum date range.', 'prospect'); ?>
 </script>
 
 <script id="errmsg-bad-year" type='text/ractive'>
-A year you have given was not formatted as a valid number.
+<?php _e('A year you have given was not formatted as a valid number.', 'prospect'); ?>
 </script>
 
 <script id="errmsg-bad-month" type='text/ractive'>
-A month number you have given is not valid (it must be 1-12).
+<?php _e('A month number you have given is not valid (it must be 1-12).', 'prospect'); ?>
 </script>
 
 <script id="errmsg-bad-day" type='text/ractive'>
-A day number you have given is not valid (it must be 1-31).
+<?php _e('A day number you have given is not valid (it must be 1-31).', 'prospect'); ?>
 </script>
 
 <script id="errmsg-date-no-bound" type='text/ractive'>
-You have a Date Legend without start or end year; you must specify at least one of these.
+<?php _e('You have a Date Legend without start or end year; you must specify at least one of these.', 'prospect'); ?>
 </script>
 
 <script id="errmsg-date-range-inverted" type='text/ractive'>
-One of the Date Legend entries has a start date that is greater than the end date.
+<?php _e('One of the Date Legend entries has a start date that is greater than the end date.', 'prospect'); ?>
 </script>
 
 <script id="errmsg-delim-bad-type" type='text/ractive'>
-You cannot use a delimiter with this type of Attribute (Vocabulary, Tags, Lat-Lon and Pointer only).
+<?php _e('You cannot use a delimiter with this type of Attribute (Vocabulary, Tags, Lat-Lon and Pointer only).', 'prospect'); ?>
 </script>
 
 <script id="errmsg-delim-no-sp" type='text/ractive'>
-You cannot use a space as a delimiter.
+<?php _e('You cannot use a space as a delimiter.', 'prospect'); ?>
 </script>
 
 <script id="errmsg-delim-comma-ll" type='text/ractive'>
-You cannot use a comma as a delimiter with a Lat-Lon Attribute.
+<?php _e('You cannot use a comma as a delimiter with a Lat-Lon Attribute.', 'prospect'); ?>
 </script>
 
 <!-- MESSAGES -->
 
 <script id="msg-confirm-del-vocab" type='text/ractive'>
-Are you sure you wish to delete this Legend entry?
+<?php _e('Are you sure you wish to delete this Legend entry?', 'prospect'); ?>
 </script>
 
 <script id="msg-confirm-add-vocab" type='text/ractive'>
-Vocabulary terms will be added to the current list based on those used by current Records. Are you sure that you provided the correct internal ID and delimiter settings? To ensure unused items are removed from your Vocabulary, delete all current terms.
+<?php _e('Vocabulary terms will be added to the current list based on those used by current Records. Are you sure that you provided the correct internal ID and delimiter settings? To ensure unused items are removed from your Vocabulary, delete all current terms.', 'prospect'); ?>
 </script>

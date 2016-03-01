@@ -13,11 +13,12 @@
 	{{#if errorMsg.length > 0}}
 	<div id="error-frame">{{errorMsg}}</div>
 	{{/if}}
-	<button id="prsp-save-data" on-click="saveRecord">Verify and Save Record</button><br/>
+	<button id="prsp-save-data" on-click="saveRecord"><?php _e('Verify and Save Record', 'prospect'); ?></button><br/>
 	<div>
-		<label for="rec-id">Unique Record ID </label> <input type="text" id="rec-id" size="32" value="{{recID}}" pattern="[\w\-]+" required/>
-		<button decorator="iconButton:ui-icon-info" on-click="idHint">Hint for IDs</button>
-		<label for="rec-type">Template Type </label>
+		<label for="rec-id"><?php _e('Unique Record ID', 'prospect'); ?> </label>
+		<input type="text" id="rec-id" size="32" value="{{recID}}" pattern="[\w\-]+" required/>
+		<button decorator="iconButton:ui-icon-info" on-click="idHint"><?php _e('Hint for IDs', 'prospect'); ?></button>
+		<label for="rec-type"><?php _e('Template Type', 'prospect'); ?> </label>
 		<select id="rec-type" value="{{recType}}">
 		{{#each defTemplates}}
 			<option value="{{this.id}}">{{this.def.l}} ({{this.id}})</option>
@@ -59,7 +60,7 @@
 				{{>att-type-Join}}
 			{{/if}}
 			{{#if def.h.length > 0}}
-				<button decorator="iconButton:ui-icon-info" on-click="giveHint:{{rIndex}}">Hint</button>
+				<button decorator="iconButton:ui-icon-info" on-click="giveHint:{{rIndex}}"><?php _e('Hint', 'prospect'); ?></button>
 			{{/if}}
 			<br/>
 		{{/each}}
@@ -69,7 +70,7 @@
 <!-- PARTIALS -->
 <script id="att-type-Vocabulary" type='text/ractive'>
 	<input type="text" size="32" value="{{value}}"/>
-	{{#if def.d.length > 0}}<button on-click="clearVocab:{{rIndex}}">Clear</button>{{/if}}
+	{{#if def.d.length > 0}}<button on-click="clearVocab:{{rIndex}}"><?php _e('Clear', 'prospect'); ?></button>{{/if}}
 	<select value="{{lgndSel}}">
 	{{#each def.newLgnd}}
 		<option value="{{this.newV}}">{{this.newL}}</option>
@@ -77,9 +78,9 @@
 	</select>
 	<button on-click="addVocab:{{rIndex}}">
 	{{#if def.d.length > 0}}
-	Add
+	<?php _e('Add', 'prospect'); ?>
 	{{else}}
-	Set
+	<?php _e('Set', 'prospect'); ?>
 	{{/if}}
 	</button>
 </script>
@@ -89,77 +90,77 @@
 </script>
 
 <script id="att-type-Tags" type='text/ractive'>
-	<input type="text" size="32" value="{{value}}"/> (delimiter "{{def.d}}")
+	<input type="text" size="32" value="{{value}}"/> (<?php _e('delimiter', 'prospect'); ?> "{{def.d}}")
 </script>
 
 <script id="att-type-Number" type='text/ractive'>
-	<input type="text" size="10" value="{{value}}"/> (Min {{def.r.min}}, Max {{def.r.max}})
+	<input type="text" size="10" value="{{value}}"/> (<?php _e('Min', 'prospect'); ?> {{def.r.min}}, <?php _e('Max', 'prospect'); ?> {{def.r.max}})
 </script>
 
 <script id="att-type-Dates" type='text/ractive'>
-	From <input type="text" size="6" value="{{value.min.y}}" placeholder="YYYY" pattern="(^$|\?|~?-?\d+)"/>
-		<input type="text" size="2" value="{{value.min.m}}" placeholder="MM" pattern="\d{0,2}"/>
-		<input type="text" size="2" value="{{value.min.d}}" placeholder="DD" pattern="\d{0,2}"/>
-	To <input type="text" size="6" value="{{value.max.y}}" placeholder="YYYY" pattern="(^$|open|~?-?\d+)"/>
-		<input type="text" size="2" value="{{value.max.m}}" placeholder="MM" pattern="\d{0,2}"/>
-		<input type="text" size="2" value="{{value.max.d}}" placeholder="DD" pattern="\d{0,2}"/>
+	<?php _e('From', 'prospect'); ?> <input type="text" size="6" value="{{value.min.y}}" placeholder=<?php _e('"YYYY"', 'prospect'); ?> pattern="(^$|\?|~?-?\d+)"/>
+		<input type="text" size="2" value="{{value.min.m}}" placeholder=<?php _e('"MM"', 'prospect'); ?> pattern="\d{0,2}"/>
+		<input type="text" size="2" value="{{value.min.d}}" placeholder=<?php _e('"DD"', 'prospect'); ?> pattern="\d{0,2}"/>
+	<?php _e('To', 'prospect'); ?> <input type="text" size="6" value="{{value.max.y}}" placeholder=<?php _e('"YYYY"', 'prospect'); ?> pattern="(^$|open|~?-?\d+)"/>
+		<input type="text" size="2" value="{{value.max.m}}" placeholder=<?php _e('"MM"', 'prospect'); ?> pattern="\d{0,2}"/>
+		<input type="text" size="2" value="{{value.max.d}}" placeholder=<?php _e('"DD"', 'prospect'); ?> pattern="\d{0,2}"/>
 </script>
 
 <script id="att-type-Lat-Lon" type='text/ractive'>
-	Lat,Long: <input type="text" size="20" value="{{value}}"/>
-	{{#if canGeoLoc}}<button on-click="setHere:{{rIndex}}">Here</button>{{/if}}
+	<?php _e('Lat,Long', 'prospect'); ?>: <input type="text" size="20" value="{{value}}"/>
+	{{#if canGeoLoc}}<button on-click="setHere:{{rIndex}}"><?php _e('Here', 'prospect'); ?></button>{{/if}}
 </script>
 
 <script id="att-type-X-Y" type='text/ractive'>
-	X,Y: <input type="text" size="8" value="{{value}}" pattern="^$|^-?\d{1,4},\s?-?\d{1,4}"/>
+	<?php _e('X,Y', 'prospect'); ?>: <input type="text" size="8" value="{{value}}" pattern="^$|^-?\d{1,4},\s?-?\d{1,4}"/>
 </script>
 
 <script id="att-type-Image" type='text/ractive'>
-	URL for image: <input type="url" size="40" value="{{value}}" pattern="^$|^https?://.+(\.jpg|\.JPG|\.jpeg|\.JPEG|\.png|\.PNG|\.gif|\.GIF)$"/>
+	<?php _e('URL for image', 'prospect'); ?>: <input type="url" size="40" value="{{value}}"/>
 </script>
 
 <script id="att-type-Link-To" type='text/ractive'>
-	URL to webpage: <input type="url" size="40" value="{{value}}" pattern="^$|^https?://.+$"/>
+	<?php _e('URL to webpage', 'prospect'); ?>: <input type="url" size="40" value="{{value}}" pattern="^$|^https?://.+$"/>
 </script>
 
 <script id="att-type-Audio" type='text/ractive'>
-	URL to Audio source: <input type="url" size="40" value="{{value}}"/>
+	<?php _e('URL to Audio source', 'prospect'); ?>: <input type="url" size="40" value="{{value}}"/>
 </script>
 
 <script id="att-type-YouTube" type='text/ractive'>
-	YouTube ID code: <input type="text" size="12" value="{{value}}"/>
+	Y<?php _e('ouTube ID code', 'prospect'); ?>: <input type="text" size="12" value="{{value}}"/>
 </script>
 
 <script id="att-type-Transcript" type='text/ractive'>
-	URL to Transcript text file: <input type="url" size="40" value="{{value}}" pattern="^$|^https?://.+\.txt$"/>
+	<?php _e('URL to Transcript text file', 'prospect'); ?>: <input type="url" size="40" value="{{value}}" pattern="^$|^https?://.+\.txt$"/>
 </script>
 
 <script id="att-type-Timecode" type='text/ractive'>
-	Timestamped extract: <input type="text" size="23" value="{{value}}" placeholder="HH:MM:SS.ms-HH:MM:SS.ms" pattern="^$|\d\d:\d\d:\d\d\.\d{1,2}(-\d\d:\d\d:\d\d\.\d{1,2})*"/>
+	<?php _e('Timestamped extract', 'prospect'); ?>: <input type="text" size="23" value="{{value}}" placeholder=<?php _e('"HH:MM:SS.ms-HH:MM:SS.ms"', 'prospect'); ?> pattern="^$|\d\d:\d\d:\d\d\.\d{1,2}(-\d\d:\d\d:\d\d\.\d{1,2})*"/>
 </script>
 
 <script id="att-type-Pointer" type='text/ractive'>
-	(Record ID or IDs): <input type="text" size="32" value="{{value}}"/>
-	{{#if def.d.length > 0}}<button on-click="clearPtr:{{rIndex}}">Clear</button>{{/if}}
+	<?php _e('(Record ID or IDs)', 'prospect'); ?>: <input type="text" size="32" value="{{value}}"/>
+	{{#if def.d.length > 0}}<button on-click="clearPtr:{{rIndex}}"><?php _e('Clear', 'prospect'); ?></button>{{/if}}
 	<button on-click="addPointerID:{{rIndex}}">
-		{{#if def.d.length > 0}}Add ID
-		{{else}}Set ID
+		{{#if def.d.length > 0}}<?php _e('Add ID', 'prospect'); ?>
+		{{else}}<?php _e('Set ID', 'prospect'); ?>
 		{{/if}}
 	</button>
 </script>
 
 <script id="att-type-Join" type='text/ractive'>
-	ID of Record to Join: <input type="text" size="32" value="{{value}}" pattern="^$|[\w\-]+"/>
-	<button on-click="getJoinIDs:{{rIndex}}">Select ID</button>
+	<?php _e('ID of Record to Join', 'prospect'); ?>: <input type="text" size="32" value="{{value}}" pattern="^$|[\w\-]+"/>
+	<button on-click="getJoinIDs:{{rIndex}}"><?php _e('Select ID', 'prospect'); ?></button>
 </script>
 
 
 <!-- DIALOGS -->
 <!-- Choose Template Dialog -->
 <script id="dialog-choose-list" type='text/ractive'>
-	<dialog title="Choose ID" width="300" height="350">
-		{{#if loading}}<p style="color: red">Please wait while remote data is loaded</p>{{/if}}
-		{{#if !loading && list.length==0}}<p style="color: red">No data available -- select "Cancel"</p>{{/if}}
+	<dialog title=<?php _e('"Choose ID"', 'prospect'); ?> width="300" height="350">
+		{{#if loading}}<p style="color: red"><?php _e('Please wait while remote data is loaded', 'prospect'); ?></p>{{/if}}
+		{{#if !loading && list.length==0}}<p style="color: red"><?php _e('No data available -- select "Cancel"', 'prospect'); ?></p>{{/if}}
 		<div class="scroll-container">
 			{{#each list:index}}
 				{{#if selIndex == index}}
@@ -175,7 +176,7 @@
 
 <!-- Confirm Dialog -->
 <script id="dialog-confirm" type='text/ractive'>
-	<dialog title="Confirm" width="300" height="265">
+	<dialog title=<?php _e('"Confirm"', 'prospect'); ?> width="300" height="265">
 		<div class="scroll-container">
 			{{message}}
 		</div>
@@ -184,7 +185,7 @@
 
 <!-- Hint Dialog -->
 <script id="dialog-message" type='text/ractive'>
-	<dialog title="Display Hint" width="300" height="350" cancel="false">
+	<dialog title=<?php _e('"Display Hint"', 'prospect'); ?> width="300" height="350" cancel="false">
 		<div class="scroll-container">
 			{{message}}
 		</div>
@@ -193,31 +194,31 @@
 
 <!-- ERRORS -->
 <script id="errmsg-id" type='text/ractive'>
-You must supply an internal ID for the Record that is no more than 32 characters in length and consists entirely of alphanumeric characters (in plain ASCII), spaces and underscores (it cannot contain spaces, punctuation, Unicode-only characters, etc).
+<?php _e('You must supply an internal ID for the Record that is no more than 32 characters in length and consists entirely of alphanumeric characters (in plain ASCII), spaces and underscores (it cannot contain spaces, punctuation, Unicode-only characters, etc).', 'prospect'); ?>
 </script>
 
 <script id="errmsg-no-templates" type='text/ractive'>
-<p><b>You cannot create any Records until you have defined Templates.</b></p>
+<p><b><?php _e('You cannot create any Records until you have defined Templates.', 'prospect'); ?></b></p>
 </script>
 
 <script id="errmsg-number" type='text/ractive'>
-You have entered a value into a number field that is not formatted properly.
+<?php _e('You have entered a value into a number field that is not formatted properly.', 'prospect'); ?>
 </script>
 
 <script id="errmsg-number-range" type='text/ractive'>
-A number you entered is below the minimum allowable value or above the allowable maximum.
+<?php _e('A number you entered is below the minimum allowable value or above the allowable maximum.', 'prospect'); ?>
 </script>
 
 <script id="errmsg-date-range" type='text/ractive'>
-A Date you entered is not a valid, or is before the minimum allowable year or past the maximum allowable year.
+<?php _e('A Date you entered is not a valid, or is before the minimum allowable year or past the maximum allowable year.', 'prospect'); ?>
 </script>
 
 <script id="errmsg-date-maxmin" type='text/ractive'>
-The start year is greater than the end year for a Date you have entered.
+<?php _e('The start year is greater than the end year for a Date you have entered.', 'prospect'); ?>
 </script>
 
 
 <!-- MESSAGE -->
 <script id="msg-confirm-del-vf" type='text/ractive'>
-Are you sure that you wish to delete this View/Filter from your Exhibit?
+<?php _e('Are you sure that you wish to delete this View/Filter from your Exhibit?', 'prospect'); ?>
 </script>
