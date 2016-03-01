@@ -30,7 +30,7 @@
 <script src="<?php echo(plugins_url('lib/d3.min.js', dirname(__FILE__))); ?>"></script>
 
 <script src="<?php echo(plugins_url('js/map-hub.js', dirname(__FILE__))); ?>"></script>
-<script src="<?php echo(plugins_url('js/view-exhibit.min.js', dirname(__FILE__))); ?>"></script>
+<script src="<?php echo(plugins_url('js/view-exhibit.js', dirname(__FILE__))); ?>"></script>
 
 <?php
 	$the_xhbt = new ProspectExhibit(true, get_the_ID(), true);
