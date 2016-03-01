@@ -3063,8 +3063,6 @@ VizTextStream.prototype.hint = function()
 var VizStackChart = function(viewFrame, vSettings)
 {
 	PVizModel.call(this, viewFrame, vSettings);
-
-	this.bSel=[];
 } // VizStackChart
 
 VizStackChart.prototype = Object.create(PVizModel.prototype);
@@ -3131,8 +3129,11 @@ VizStackChart.prototype.setup = function()
 		else
 			this.cats = PData.cLNew(oAtt, null, true);
 		this.setup2();
-	} else
+		this.tag1 = false;
+	} else {
 		this.cats = null;
+		this.tag1 = true;	// Primary Attribute is of type Tag
+	}
 } // setup()
 
 VizStackChart.prototype.render = function(stream)
@@ -3167,7 +3168,10 @@ VizStackChart.prototype.render = function(stream)
 		PData.cFill(this.cats, oAttID, sAttID, stream);
 		this.setup2();
 	} else {
-		PData.cFill(this.cats, oAttID, sAttID, stream);
+			// Don't use tags to fill twice!
+		if (!this.tag1) {
+			PData.cFill(this.cats, oAttID, sAttID, stream);
+		}
 	}
 
 	this.svg.selectAll(".block").remove();
@@ -3180,8 +3184,9 @@ VizStackChart.prototype.render = function(stream)
 		// Pass 2 -- create Blocks by processing Records within a single Range Category by sAtt
 	for (var rI=0; rI<this.cats.length; rI++) {
 		if (rI > 0) { // clear previous entries
-			for (var yi=0; yi<yCats.length; yi++)
+			for (var yi=0; yi<yCats.length; yi++) {
 				yCats[yi].i = [];
+			}
 		}
 		PData.cSort(self.cats[rI].i, sAtt, yCats);
 
@@ -3608,9 +3613,6 @@ VizNetWheel.prototype.setState = function(state)
 var VizFlow = function(viewFrame, vSettings)
 {
 	PVizModel.call(this, viewFrame, vSettings);
-
-	this.bSel=[];
-	this.fSel=[];
 } // VizFlow
 
 VizFlow.prototype = Object.create(PVizModel.prototype);
@@ -8289,6 +8291,7 @@ var PData = (function() {
 			//			sAttID = ID of secondary, required Attribute used later (or null)
 			//			stream = datastream
 			// NOTES: 	Puts aIDs from stream into i arrays of rCats
+			// TO DO: 	Optimization tricks noted below
 		cFill: function(cats, oAttID, sAttID, stream)
 		{
 			var numTmplts = PData.eTNum();
@@ -8301,9 +8304,9 @@ var PData = (function() {
 			tRec = stream.t[0];
 			while (rI<stream.l) {
 					// Advance until we get to next used Template rec that has both necessary Attributes
-				while (tRec.n == 0 || (tRec.i+tRec.n) == rI || !PData.aInT(oAttID, tI) || (sAttID && !PData.aInT(sAttID, tI))) {
+				while (tRec.n === 0 || (tRec.i+tRec.n) === rI || !PData.aInT(oAttID, tI) || (sAttID && !PData.aInT(sAttID, tI))) {
 						// Have we run out of Templates?
-					if (++tI == numTmplts)
+					if (++tI === numTmplts)
 						return;
 					tRec = stream.t[tI];
 					rI = tRec.i;
@@ -8324,7 +8327,7 @@ var PData = (function() {
 							}
 						}
 						break;
-					case 'g':	// Mutiple Tags
+					case 'g':	// Mutiple Tags -- TO DO: Used sorted order to speed up?
 						datum.forEach(function(d) {
 							for (cI=0; cI<cats.length; cI++) {
 								cRec = cats[cI];
@@ -8339,7 +8342,7 @@ var PData = (function() {
 							}
 						});
 						break;
-					case 'V':	// Multiple Vocab
+					case 'V':	// Multiple Vocab -- TO DO: Used reverse index to speed up?
 						datum.forEach(function(d) {
 							for (cI=0; cI<cats.length; cI++) {
 								cRec = cats[cI];
@@ -8670,7 +8673,7 @@ jQuery(document).ready(function($) {
 					// Must keep absolute indices and template params updated!
 				while (relI < endStream.l) {
 						// Advance until we get to current Template rec
-					while (tRec.n == 0 || (tRec.i+tRec.n) == relI) {
+					while (tRec.n === 0 || (tRec.i+tRec.n) === relI) {
 						newStream.t.push({ i: (newStream.l-tRn), n: tRn });
 						tRn = 0;
 						tRec = endStream.t[++tI];
