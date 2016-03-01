@@ -214,12 +214,13 @@ All Records from selected Templates will be removed/hidden.
 </script>
 
 <script id="dltext-filter-text" type='text'>
-	<input type="checkbox" class="filter-text-cs" checked="checked">Case sensitive?&nbsp;&nbsp;
+	<input type="checkbox" class="filter-text-cs" checked="checked">Case sensitive&nbsp;&nbsp;
 	Text must include <input class="filter-text" type="text" size="20"/>
 </script>
 
 <script id="dltext-filter-tags" type='text'>
-	<input type="checkbox" class="filter-text-cs" checked="checked">Case sensitive?&nbsp;&nbsp;
+	<input type="checkbox" class="filter-text-cs" checked="checked">Case sensitive&nbsp;&nbsp;
+	<input type="checkbox" class="filter-text-p">Part of tag&nbsp;&nbsp;
 	Tags must include <input class="filter-text" type="text" size="20"/>
 </script>
 

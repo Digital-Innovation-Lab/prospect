@@ -3079,61 +3079,28 @@ VizStackChart.prototype.getFeatureAtts = function(tIndex)
 	return this.settings.sAtt;
 } // getFeatureAtts()
 
-	// PURPOSE: Set up SVG and D3 once cats has been created
-VizStackChart.prototype.setup2 = function()
+VizStackChart.prototype.setup = function()
 {
-	var colW=0;
-	this.cats.forEach(function(c) {
-		colW=Math.max(colW, c.l.length);
-	});
-	colW=Math.max(D3FG_BAR_WIDTH, (colW*8)+4);
-	this.colW = colW;
-
-	var innerW = this.cats.length*colW;
 	var innerH = this.settings.h;
-	this.xScale = d3.scale.linear().domain([0, this.cats.length])
-		.rangeRound([0, innerW]);
+	this.xScale = d3.scale.linear();
 	this.yScale = d3.scale.linear().range([0, innerH-1]);
 
-	this.rScale = d3.scale.ordinal().rangeRoundBands([0, innerW]);
-	this.rScale.domain(this.cats.map(function(rc) { return rc.l; }));
+	this.rScale = d3.scale.ordinal();
 	this.xAxis = d3.svg.axis().scale(this.rScale).orient("top");
 	this.yAxis = d3.svg.axis().scale(this.yScale).orient("left").ticks(10);
 
-	this.svg = d3.select(this.frameID).append("svg")
-		.attr("width", innerW+D3SC_MARGINS.left+D3SC_MARGINS.right)
-		.attr("height", innerH+D3SC_MARGINS.top+D3SC_MARGINS.bottom);
+	this.svg = d3.select(this.frameID).append("svg");
 
-	var chart = this.svg.append("g")
-		.attr("class", "chart")
-		.attr("transform", "translate("+D3SC_MARGINS.left+","+D3SC_MARGINS.top+")");
+	this.chart = this.svg.append("g");
+	this.chart.attr("class", "chart")
+			.attr("transform", "translate("+D3SC_MARGINS.left+","+D3SC_MARGINS.top+")");
 
 	this.svg.append("g")
 		.attr("class", "x axis")
-		.attr("transform", "translate("+D3SC_MARGINS.left+","+D3SC_MARGINS.top+")")
-		.call(this.xAxis);
+		.attr("transform", "translate("+D3SC_MARGINS.left+","+D3SC_MARGINS.top+")");
 	this.svg.append("g")
 		.attr("class", "y axis")
 		.attr("transform", "translate("+D3SC_MARGINS.left+","+D3SC_MARGINS.top+")");
-		// .call(this.yAxis);
-} // setup2()
-
-VizStackChart.prototype.setup = function()
-{
-	var oAttID = this.settings.oAtt;
-	var oAtt = PData.aByID(oAttID);
-
-	if (oAtt.def.t !== 'g') {
-		if (this.settings.gr)
-			this.cats = PData.cRNew(oAtt, true, true);
-		else
-			this.cats = PData.cLNew(oAtt, null, true);
-		this.setup2();
-		this.tag1 = false;
-	} else {
-		this.cats = null;
-		this.tag1 = true;	// Primary Attribute is of type Tag
-	}
 } // setup()
 
 VizStackChart.prototype.render = function(stream)
@@ -3160,19 +3127,37 @@ VizStackChart.prototype.render = function(stream)
 	this.bSel=[];		// Reset selection
 
 	var oAttID = this.settings.oAtt;
+	var oAtt = PData.aByID(oAttID);
 	var sAttID = this.settings.sAtt;
 
 		// Pass 1 -- sort all Records into categories on X-Axis by oAtt
-	if (this.cats == null) {
-		this.cats = [];
-		PData.cFill(this.cats, oAttID, sAttID, stream);
-		this.setup2();
+	if (oAtt.def.t !== 'g') {
+		if (this.settings.gr)
+			this.cats = PData.cRNew(oAtt, true, true);
+		else
+			this.cats = PData.cLNew(oAtt, null, true);
 	} else {
-			// Don't use tags to fill twice!
-		if (!this.tag1) {
-			PData.cFill(this.cats, oAttID, sAttID, stream);
-		}
+		this.cats = [];
 	}
+	PData.cFill(this.cats, oAttID, sAttID, stream);
+
+	var colW=0;
+	this.cats.forEach(function(c) {
+		colW=Math.max(colW, c.l.length);
+	});
+	colW=Math.max(D3FG_BAR_WIDTH, (colW*8)+4);
+	this.colW = colW;
+
+	var innerW = this.cats.length*colW;
+	var innerH = this.settings.h;
+	this.xScale.domain([0, this.cats.length]).rangeRound([0, innerW]);
+
+	this.rScale.rangeRoundBands([0, innerW]);
+	this.rScale.domain(this.cats.map(function(rc) { return rc.l; }));
+
+	this.svg
+		.attr("width", innerW+D3SC_MARGINS.left+D3SC_MARGINS.right)
+		.attr("height", innerH+D3SC_MARGINS.top+D3SC_MARGINS.bottom);
 
 	this.svg.selectAll(".block").remove();
 
@@ -3203,6 +3188,7 @@ VizStackChart.prototype.render = function(stream)
 
 		// Now that we have max Y value, reset yScale domain max
 	self.yScale.domain([0,maxY]);
+	self.svg.select(".x.axis").call(self.xAxis);
 	self.svg.select(".y.axis").call(self.yAxis);
 
 	var bw = self.colW-7;
@@ -4826,9 +4812,11 @@ PFilterTags.prototype.evalPrep = function()
 {
 	var ip = this.insertPt();
 	this.cs = ip.find('input.filter-text-cs').prop('checked');
+	this.p = ip.find('input.filter-text-p').prop('checked');
 	this.s = ip.find('input.filter-text').val();
-	if (!this.cs)
+	if (!this.cs) {
 		this.s = this.s.toLocaleLowerCase();
+	}
 } // evalPrep()
 
 PFilterTags.prototype.eval = function(rec)
@@ -4846,8 +4834,10 @@ PFilterTags.prototype.eval = function(rec)
 		if (!this.cs) {
 			d = d.toLocaleLowerCase();
 		}
-		if (d === s) {
-			return true;
+		if (this.p) {
+			return (d.indexOf(s) !== -1);
+		} else {
+			return (d === s);
 		}
 	}
 	return false;
@@ -4867,18 +4857,24 @@ PFilterTags.prototype.setup = function()
 	inserted.find('input.filter-text-cs').click(function(event) {
 		self.isDirty(true);
 	});
+	inserted.find('input.filter-text-p').click(function(event) {
+		self.isDirty(true);
+	});
 } // setup()
 
 PFilterTags.prototype.getState = function()
 {
 	var ip = this.insertPt();
-	return { cs: ip.find('input.filter-text-cs').prop('checked'), t: ip.find('input.filter-text').val() };
+	return { cs: ip.find('input.filter-text-cs').prop('checked'),
+				p: ip.find('input.filter-text-p').prop('checked'),
+				t: ip.find('input.filter-text').val() };
 } // getState()
 
 PFilterTags.prototype.setState = function(state)
 {
 	var ip = this.insertPt();
 	ip.find('input.filter-text-cs').prop('checked', state.cs);
+	ip.find('input.filter-text-p').prop('checked', state.p);
 	ip.find('input.filter-text').val(state.t);
 } // setState()
 
