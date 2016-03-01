@@ -637,12 +637,12 @@ div.scroll-container .selected {
 }
 
 #prspctv-mlist li {
-	line-height: 1.45em;
+	line-height: 1.5em;
 }
 
 #prspctv-mlist button {
 	font-size: 8px;
-	padding: 2px;
+	padding: 1px;
 	margin: 0;
 	float: right;
 }
