@@ -128,7 +128,7 @@ class Prospect {
 	public function __construct()
 	{
 		$this->plugin_slug = 'prsp-slug';
-		$this->version = '0.9.19';
+		$this->version = '1.0';
 
 		$this->load_dependencies();
 
