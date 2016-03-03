@@ -7804,12 +7804,10 @@ var PData = (function() {
 				return null
 		}, // lClr()
 
-
 			// PURPOSE: Find the visual code for this Attribute's vocabulary item
-			//			-- Not currently used --
 			// RETURNS: pointer to Legend record, or null if failure
 			// ASSUMES: <att> is a complete record for a Vocabulary Attribute
-		// getVLgndVal: function(att, val)
+		// vLVal: function(att, val)
 		// {
 		// 	var lo = 0;
 		// 	var hi = att.x.length-1;
@@ -8338,7 +8336,7 @@ var PData = (function() {
 							}
 						});
 						break;
-					case 'V':	// Multiple Vocab -- TO DO: Used reverse index to speed up?
+					case 'V':	// Multiple Vocab
 						datum.forEach(function(d) {
 							for (cI=0; cI<cats.length; cI++) {
 								cRec = cats[cI];
