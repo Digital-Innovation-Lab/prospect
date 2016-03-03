@@ -7383,7 +7383,7 @@ var PData = (function() {
 					// Range
 				if (a.max) {
 					if (a.min.f)
-						ds = dltextApprox;
+						ds = dltextApprox+' ';
 					ds += a.min.y.toString();
 					if (a.min.m) {
 						ds += '-'+a.min.m.toString();
@@ -7405,7 +7405,7 @@ var PData = (function() {
 					}
 				} else {
 					if (a.min.f)
-						ds = dltextApprox;
+						ds = dltextApprox+' ';
 					else
 						ds = '';
 					ds += a.min.y.toString();
