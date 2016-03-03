@@ -303,7 +303,7 @@ jQuery(document).ready(function() {
 		}
 		var newError = getText(errID);
 		if (append) {
-			newError += ' '+append;
+			newError += ' '+append+'.';
 		}
 		rApp.set('errorMsg', newError);
 		errTimer = setTimeout(function() { rApp.set('errorMsg', ''); }, 5000);
@@ -1460,7 +1460,12 @@ jQuery(document).ready(function() {
 					return valid;
 				} // validFacet
 
+					// All views need labels
 				saveView.l  = viewSettings.l.replace(/"/g, '');
+				if (saveView.l.length === 0) {
+					displayError('#errmsg-no-label', i);
+					return false;
+				}
 				saveView.vf = viewSettings.vf;
 				saveView.n = viewSettings.n.replace(/"/g, '');
 				saveView.c = {};
@@ -1575,6 +1580,21 @@ jQuery(document).ready(function() {
 					break;
 				case 'F': 	// Facet Flow
 					saveView.c.w = viewSettings.c.w;
+					saveView.c.gr   = viewSettings.c.gr;
+					saveView.c.fcts = viewSettings.c.fcts;
+					saveView.c.fcts.forEach(function(f) {
+						if (!validFacet(f)) {
+							abort = true;
+						}
+					});
+					if (abort) {
+						return false;
+					}
+					if (saveView.c.fcts.length < 2) {
+						displayError('#errmsg-few-facets', saveView.l);
+						return false;
+					}
+					break;
 				case 'B': 	// Facet Browser
 					saveView.c.gr   = viewSettings.c.gr;
 					saveView.c.fcts = viewSettings.c.fcts;
@@ -1584,6 +1604,10 @@ jQuery(document).ready(function() {
 						}
 					});
 					if (abort) {
+						return false;
+					}
+					if (saveView.c.fcts.length === 0) {
+						displayError('#errmsg-few-facets', saveView.l);
 						return false;
 					}
 					break;
@@ -1599,6 +1623,10 @@ jQuery(document).ready(function() {
 						}
 					});
 					if (abort) {
+						return false;
+					}
+					if (saveView.c.fcts.length === 0) {
+						displayError('#errmsg-few-facets', saveView.l);
 						return false;
 					}
 					break;

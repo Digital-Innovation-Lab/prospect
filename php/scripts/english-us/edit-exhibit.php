@@ -767,12 +767,16 @@
 <?php _e('Every Template needs an Attribute which can serve as a label, but at least one of your Templates is missing a label Attribute.', 'prospect'); ?>
 </script>
 
-<script id="errmsg-vf-needs-label" type='text/ractive'>
-<?php _e('All View configurations need a label, but you are missing one.', 'prospect'); ?>
-</script>
-
 <script id="errmsg-bad-facet" type='text/ractive'>
 <?php _e('You have specified an Attribute that does not exist in the selected Templates for the view named', 'prospect'); ?>
+</script>
+
+<script id="errmsg-few-facets" type='text/ractive'>
+<?php _e('In order to work, you need more facet Attributes in the view named', 'prospect'); ?>
+</script>
+
+<script id="errmsg-no-label" type='text/ractive'>
+<?php _e('All visualizations need unique, non-empty labels. You have not provided a valid label for view', 'prospect'); ?>
 </script>
 
 <!-- MESSAGE -->
