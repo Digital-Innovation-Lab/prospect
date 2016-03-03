@@ -699,23 +699,46 @@ VizMap.prototype.hint = function()
 	return (h.length > 0) ? h : null;
 } // hint()
 
+	// NOTE: Since the opacities dialog is shared, GUI must be recreated
+	//			by each Viz object and cleaned up afterwards
 VizMap.prototype.doOptions = function()
 {
 	var self=this;
+	var tBOp=this.bOp, tLOps=[];
+	var restore=true;
 
-		// Since share dialog between dual Maps and Opacities, need to set values each time opened
 	var modalOpCtrls = jQuery('#dialog-opacities div.layer-list');
-	modalOpCtrls.empty();
 
 	var newBit = jQuery('<div class="op-layer" data-i="-1">Base Map <input type=range class="op-slider" min=0 max=100 value='+
 						this.bOp+' step=5></div>');
+	newBit.find(".op-slider").on("change", function() {
+		tBOp = jQuery(this).val();
+		self.baseMap.setOpacity(tBOp/100);
+	});
 	modalOpCtrls.append(newBit);
 
-	_.each(this.settings.lyrs, function(layer, lIndex) {
+	this.settings.lyrs.forEach(function(layer, lIndex) {
 		newBit = jQuery('<div class="op-layer" data-i="'+lIndex+'">'+self.mapLayers[lIndex].options.layerName+
 					' <input type=range class="op-slider" min=0 max=100 value='+self.lOps[lIndex]+' step=5></div>');
+		newBit.find(".op-slider").on("change", function() {
+			tLOps[lIndex] = jQuery(this).val();
+			self.mapLayers[lIndex].setOpacity(tLOps[lIndex]/100);
+		});
+		tLOps.push(self.lOps[lIndex]);
 		modalOpCtrls.append(newBit);
 	});
+
+	function cleanUp()
+	{
+		if (restore) {
+				// Reset opacities in case user changed anything
+			self.baseMap.setOpacity(self.bOp/100);
+			self.lOps.forEach(function(op, oI) {
+				self.mapLayers[oI].setOpacity(op/100);
+			});
+		}
+		modalOpCtrls.empty();
+	} // restoreOps()
 
 	var d = jQuery("#dialog-opacities").dialog({
 		height: 300,
@@ -725,16 +748,12 @@ VizMap.prototype.doOptions = function()
 			{
 				text: dlText.ok,
 				click: function() {
+					restore=false;
 					d.dialog("close");
-					var o, numO;
-					self.bOp = o = jQuery('.op-layer[data-i="-1"] .op-slider').val();
-					self.baseMap.setOpacity(o/100);
-					numO = self.settings.lyrs.length;
-					for (var oI=0; oI<numO; oI++) {
-						o = jQuery('.op-layer[data-i="'+oI+'"] .op-slider').val();
-						self.lOps[oI] = o;
-						self.mapLayers[oI].setOpacity(o/100);
-					}
+					self.bOp = tBOp;
+					tLOps.forEach(function(op, oI) {
+						self.lOps[oI] = tLOps[oI];
+					});
 				}
 			},
 			{
@@ -744,6 +763,11 @@ VizMap.prototype.doOptions = function()
 				}				
 			}
 		]
+	});
+	d.on("dialogclose", function(event, ui) {
+		cleanUp();
+			// Unbind Inspector from this view -- one off only
+		d.off("dialogclose");
 	});
 } // doOptions()
 
@@ -1367,24 +1391,48 @@ VizPinboard.prototype.setSel = function(absIArray)
 	});
 } // setSel()
 
+	// NOTE: Since the opacities dialog is shared, GUI must be recreated
+	//			by each Viz object and cleaned up afterwards
 VizPinboard.prototype.doOptions = function()
 {
 	var self=this;
 	var fI=this.vFrame.getIndex();
+	var tBOp=this.bOp, tLOps=[];
+	var restore=true;
 
 		// Have to set up options dialog on each open
 	var layerPt = jQuery('#dialog-opacities div.layer-list');
-	layerPt.empty();
 
 	var newBit = jQuery('<div class="op-layer" data-i="-1">Base Image <input type=range class="op-slider" min=0 max=100 value='+
-		this.bOp+' step=5></div>');
+						this.bOp+' step=5></div>');
+	newBit.find(".op-slider").on("change", function() {
+		tBOp = jQuery(this).val();
+		d3.select('#base-'+fI).attr('opacity', tBOp/100);
+	});
 	layerPt.append(newBit);
 
 	this.lOps.forEach(function(lOp, lIndex) {
 		newBit = jQuery('<div class="op-layer" data-i="'+lIndex+'">Overlay '+(lIndex+1)+
-			' <input type=range class="op-slider" min=0 max=100 value='+lOp+' step=5></div>');
+						' <input type=range class="op-slider" min=0 max=100 value='+lOp+' step=5></div>');
+		newBit.find(".op-slider").on("change", function() {
+			tLOps[lIndex] = jQuery(this).val();
+			d3.select('#ol-'+fI+'-'+lIndex).attr('opacity', tLOps[lIndex]/100);
+		});
+		tLOps.push(lOp);
 		layerPt.append(newBit);
 	});
+
+	function cleanUp()
+	{
+		if (restore) {
+				// Reset opacities in case user changed anything
+			d3.select('#base-'+fI).attr('opacity', self.bOp/100);
+			self.lOps.forEach(function(lOp, lIndex) {
+				d3.select('#ol-'+fI+'-'+lIndex).attr('opacity', lOp/100);
+			});
+		}
+		layerPt.empty();
+	} // restoreOps()
 
 	var d = jQuery("#dialog-opacities").dialog({
 		height: 300,
@@ -1394,15 +1442,12 @@ VizPinboard.prototype.doOptions = function()
 			{
 				text: dlText.ok,
 				click: function() {
+					restore=false;
 					d.dialog("close");
-					var o, numO;
-					self.bOp = o = jQuery('.op-layer[data-i="-1"] .op-slider').val();
-					d3.select('#base-'+fI).attr('opacity', o/100);
-					numO = self.settings.lyrs.length;
-					for (var oI=0; oI<numO; oI++) {
-						self.lOps[oI] = o = jQuery('.op-layer[data-i="'+oI+'"] .op-slider').val();
-						d3.select('#ol-'+fI+'-'+oI).attr('opacity', o/100);
-					}
+					self.bOp = tBOp;
+					tLOps.forEach(function(lOp, lIndex) {
+						self.lOps[lIndex] = lOp;
+					});
 				}
 			},
 			{
@@ -1412,6 +1457,11 @@ VizPinboard.prototype.doOptions = function()
 				}				
 			}
 		]
+	});
+	d.on("dialogclose", function(event, ui) {
+		cleanUp();
+			// Unbind Inspector from this view -- one off only
+		d.off("dialogclose");
 	});
 } // doOptions()
 
