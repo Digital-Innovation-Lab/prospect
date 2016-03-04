@@ -14,7 +14,7 @@ Prospect is a Digital Humanities platform for data collaboration, visualization 
 
 Prospect is a flexible and powerful plugin that allows administrators to create curated Digital
 Humanities projects whose data can be visualized, accessed and analyzed in flexible ways.
-See: prospect.web.unc.edu
+See: prospect.web.unc.edu for documentation, sample data sets, training videos, etc.
 
 Notes on System Requirements:
 * Requires PHP 5.4 or later.
