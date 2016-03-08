@@ -41,6 +41,170 @@ jQuery(document).ready(function($) {
 
 	var parseTC = /(\d\d)\:(\d\d)\:(\d\d)\.(\d\d?)/; 	// precise regular expression for parsing timecodes
 
+
+
+	var dltextTo = document.getElementById('dltext-to').innerHTML;
+	var dltextApprox = document.getElementById('dltext-approximately').innerHTML;
+	var dltextNow = document.getElementById('dltext-now').innerHTML;
+	var dlTextUndef = document.getElementById('dltext-undef').innerHTML;
+	var dlTextSeeLink = document.getElementById('dltext-see-link').innerHTML;
+	var dlTextGoAudio = document.getElementById('dltext-go-audio').innerHTML;
+	var dlTextGoTranscript = document.getElementById('dltext-go-transcript').innerHTML;
+
+		// RETURNS: Attribute definition with this ID
+		// INPUT:   attID = full Attribute ID (could be in Join dot notation)
+	function getAttID(attID)
+	{
+		var lo = 0;
+		var hi = prspdata.a.length-1;
+		var pos, cmp;
+
+		while (lo <= hi) {
+			pos = (lo + hi) >> 1;
+			cmp = prspdata.a[pos].id.localeCompare(attID);
+
+			if (cmp < 0) {
+				lo = pos + 1;
+			} else if (cmp > 0) {
+				hi = pos - 1;
+			} else {
+				return prspdata.a[pos];
+			}
+		}
+		return null;
+	} // getAttID()
+
+		// RETURNS: Attribute value in string format
+	function procAttTxt(attID, att)
+	{
+		var a = prspdata.d[attID];
+		if (typeof a == 'undefined' || a == null)
+			return null;
+
+		switch (att.def.t) {
+		case 'V':
+		case 'g':
+			return a.join(', ');
+		case 'T':
+			return a;
+		case 'N':
+			if (a === '?')
+				return dlTextUndef;
+			return a.toString();
+		case 'D':
+			if (a === '?')
+				return dlTextUndef;
+			var ds;
+				// Range
+			if (a.max) {
+				ds = ' ';
+				if (a.min.f)
+					ds = dltextApprox+' ';
+				ds += a.min.y.toString();
+				if (a.min.m) {
+					ds += '-'+a.min.m.toString();
+					if (a.min.d)
+						ds += '-'+a.min.d.toString();
+				}
+				ds += ' '+dltextTo+' ';
+				if (a.max == 'open') {
+					ds += dltextNow;
+				} else {
+					if (a.max.f)
+						ds += dltextApprox+' ';
+					ds += a.max.y.toString();
+					if (a.max.m) {
+						ds += '-'+a.max.m.toString();
+						if (a.max.d)
+							ds += '-'+a.max.d.toString();
+					}
+				}
+			} else {
+				if (a.min.f)
+					ds = dltextApprox+' ';
+				else
+					ds = '';
+				ds += a.min.y.toString();
+				if (a.min.m) {
+					ds += '-'+a.min.m.toString();
+					if (a.min.d)
+						ds += '-'+a.min.d.toString();
+				}
+			}
+			return ds;
+		case 'L':
+		case 'X':
+			if (att.def.d != null & att.def.d !== '') {
+				if (typeof a[0] === 'number') {
+					return a.join(', ');
+				} else {
+					return a.map(function(p) { return p.join(', '); }).join(att.def.d+' ');
+				}
+			} else
+				return a.join(', ');
+		case 'I':
+			return '<img src="'+a+'" alt="'+att.def.l+'"/>';
+		case 'l':
+			return '<a href="'+a+'" target="_blank">('+dlTextSeeLink+')</a>';
+		case 'S':
+			return '<a href="'+a+'" target="_blank">('+dlTextGoAudio+')</a>';
+		case 'Y':
+			return '<a href="https://www.youtube.com/watch?v='+a+'" target="_blank">(YouTube)</a>';
+		case 'x':
+			return '<a href="'+a+'" target="_blank">'+dlTextGoTranscript+'</a>';
+		case 't':
+			return a;
+		// case 'P': 	// Can't process this without rest of DB
+		// case 'J': 	// Should not appear
+		} // switch
+		return null;
+	} // procAttTxt()
+
+	var newText = '';
+
+		// Output all of the Post view Attributes
+	prspdata.v.cnt.forEach(function(attID) {
+		function appendAttData(id, att, l)
+		{
+			var datum = procAttTxt(id, att);
+			if (datum) {
+				if (l.charAt(0) == '_')
+					newText += '<div>'+datum+'</div>';
+				else if (att.def.t == 'I')
+					newText += '<div><b>'+l+'</b>:<br/>'+datum+'</div>';
+				else
+					newText += '<div><b>'+l+'</b>: '+datum+'</div>';				
+			}
+		} // appendAttData
+
+		var att = getAttID(attID);
+
+			// If a Join Attribute, must apply dependent Template's View table
+		if (att) {
+			if (att.def.t == 'J') {
+					// Look up Attribute name in Join table
+				var join = _.find(prspdata.j, function(theJoin) { return theJoin.id === attID; });
+				if (join) {
+						// Find dependent Template
+					var dTemp = _.find(prspdata.t, function(theDTmplt) { return theDTmplt.id === join.t; });
+					if (dTemp) {
+							// Output all dependent view Attributes
+						dTemp.v.cnt.forEach(function(jAttID) {
+							var jAtt = getAttID(jAttID);
+							if (jAtt) {
+								appendAttData(attID+'.'+jAttID, jAtt, att.def.l+' ('+jAtt.def.l+')');
+							}
+						});
+					}
+				}
+			} else
+				appendAttData(attID, att, att.def.l);
+		}
+	});
+	if (newText.length > 0) {
+		container.prepend(newText);
+	}
+
 	function tTrim(str)
 	{
 		return str.replace(/^[ \f\t\v​]+|[ \f\t\v​]+$/g, '');
@@ -206,7 +370,6 @@ jQuery(document).ready(function($) {
 
 		// Need to determine A/V widget usage and timecode extracts before
 		//	transcript parsed
-
 	avAttID = prspdata.v.sc;
 	if (avAttID && avAttID !== '' && avAttID !== 'disable') {
 		scAttVal = prspdata.d[avAttID];
@@ -236,7 +399,7 @@ jQuery(document).ready(function($) {
 		var t1AttID = prspdata.v.t.t1Att;
 		var t1URL = prspdata.d[t1AttID];
 		if (t1URL) {
-			container.append('<div id="xscript-tbl"><div>');
+			container.prepend('<div id="xscript-tbl"><div>');
 			widgetData.xscriptOn=true;
 
 				// Handle clicks on timecodes
@@ -398,7 +561,7 @@ jQuery(document).ready(function($) {
 		container.prepend('<iframe id="sc-widget" class="player" width="100%" height="166" src="http://w.soundcloud.com/player/?url='+
 			scAttVal+'"></iframe></p>');
 
-			// Must set these variables after HTML appended above
+			// Must set these variables after HTML added above
 		var playWidget = SC.Widget(document.getElementById('sc-widget'));
 		widgetData.widget = playWidget;
 			// Setup SoundCloud player after entire sound clip loaded
@@ -468,180 +631,18 @@ jQuery(document).ready(function($) {
 		if (widgetData.xscriptOn) {
 			container.prepend('<div>'+document.getElementById('dltext-sync-xscript').innerHTML+'</div>');
 		}
-			// If there is timecode extract, need to append to URL
+			// If there is timecode extract, need to add to URL
 		if (widgetData.extract) {
 			var tcs = widgetData.extract.split('-');
 			scAttVal += '#t='+tcs[0]+','+tcs[1];
 		}
-		container.append('<audio id="na-widget" controls src="'+scAttVal+'"></audio>');
+		container.prepend('<audio id="na-widget" controls src="'+scAttVal+'"></audio>');
 		widgetData.widget = document.getElementById('na-widget');
 		widgetData.widget.addEventListener("ended", naWidgetStopped);
 		widgetData.widget.addEventListener("pause", naWidgetStopped);
 		widgetData.widget.addEventListener("playing", naWidgetPlaying);
 		widgetData.widget.addEventListener("timeupdate", naWidgetUpdate);
 	} // if native audio
-
-
-	var dltextTo = document.getElementById('dltext-to').innerHTML;
-	var dltextApprox = document.getElementById('dltext-approximately').innerHTML;
-	var dltextNow = document.getElementById('dltext-now').innerHTML;
-	var dlTextUndef = document.getElementById('dltext-undef').innerHTML;
-	var dlTextSeeLink = document.getElementById('dltext-see-link').innerHTML;
-	var dlTextGoAudio = document.getElementById('dltext-go-audio').innerHTML;
-	var dlTextGoTranscript = document.getElementById('dltext-go-transcript').innerHTML;
-
-		// RETURNS: Attribute definition with this ID
-		// INPUT:   attID = full Attribute ID (could be in Join dot notation)
-	function getAttID(attID)
-	{
-		var lo = 0;
-		var hi = prspdata.a.length-1;
-		var pos, cmp;
-
-		while (lo <= hi) {
-			pos = (lo + hi) >> 1;
-			cmp = prspdata.a[pos].id.localeCompare(attID);
-
-			if (cmp < 0) {
-				lo = pos + 1;
-			} else if (cmp > 0) {
-				hi = pos - 1;
-			} else {
-				return prspdata.a[pos];
-			}
-		}
-		return null;
-	} // getAttID()
-
-		// RETURNS: Attribute value in string format
-	function procAttTxt(attID, att)
-	{
-		var a = prspdata.d[attID];
-		if (typeof a == 'undefined' || a == null)
-			return null;
-
-		switch (att.def.t) {
-		case 'V':
-		case 'g':
-			return a.join(', ');
-		case 'T':
-			return a;
-		case 'N':
-			if (a === '?')
-				return dlTextUndef;
-			return a.toString();
-		case 'D':
-			if (a === '?')
-				return dlTextUndef;
-			var ds;
-				// Range
-			if (a.max) {
-				ds = ' ';
-				if (a.min.f)
-					ds = dltextApprox+' ';
-				ds += a.min.y.toString();
-				if (a.min.m) {
-					ds += '-'+a.min.m.toString();
-					if (a.min.d)
-						ds += '-'+a.min.d.toString();
-				}
-				ds += ' '+dltextTo+' ';
-				if (a.max == 'open') {
-					ds += dltextNow;
-				} else {
-					if (a.max.f)
-						ds += dltextApprox+' ';
-					ds += a.max.y.toString();
-					if (a.max.m) {
-						ds += '-'+a.max.m.toString();
-						if (a.max.d)
-							ds += '-'+a.max.d.toString();
-					}
-				}
-			} else {
-				if (a.min.f)
-					ds = dltextApprox+' ';
-				else
-					ds = '';
-				ds += a.min.y.toString();
-				if (a.min.m) {
-					ds += '-'+a.min.m.toString();
-					if (a.min.d)
-						ds += '-'+a.min.d.toString();
-				}
-			}
-			return ds;
-		case 'L':
-		case 'X':
-			if (att.def.d != null & att.def.d !== '') {
-				if (typeof a[0] === 'number') {
-					return a.join(', ');
-				} else {
-					return a.map(function(p) { return p.join(', '); }).join(att.def.d+' ');
-				}
-			} else
-				return a.join(', ');
-		case 'I':
-			return '<img src="'+a+'" alt="'+att.def.l+'"/>';
-		case 'l':
-			return '<a href="'+a+'" target="_blank">('+dlTextSeeLink+')</a>';
-		case 'S':
-			return '<a href="'+a+'" target="_blank">('+dlTextGoAudio+')</a>';
-		case 'Y':
-			return '<a href="https://www.youtube.com/watch?v='+a+'" target="_blank">(YouTube)</a>';
-		case 'x':
-			return '<a href="'+a+'" target="_blank">'+dlTextGoTranscript+'</a>';
-		case 't':
-			return a;
-		// case 'P': 	// Can't process this without rest of DB
-		// case 'J': 	// Should not appear
-		} // switch
-		return null;
-	} // procAttTxt()
-
-	var newText = '';
-
-		// Output all of the Post view Attributes
-	prspdata.v.cnt.forEach(function(attID) {
-		function appendAttData(id, att, l)
-		{
-			var datum = procAttTxt(id, att);
-			if (datum) {
-				if (l.charAt(0) == '_')
-					newText += '<div>'+datum+'</div>';
-				else if (att.def.t == 'I')
-					newText += '<div><b>'+l+'</b>:<br/>'+datum+'</div>';
-				else
-					newText += '<div><b>'+l+'</b>: '+datum+'</div>';				
-			}
-		} // appendAttData
-
-		var att = getAttID(attID);
-
-			// If a Join Attribute, must apply dependent Template's View table
-		if (att) {
-			if (att.def.t == 'J') {
-					// Look up Attribute name in Join table
-				var join = _.find(prspdata.j, function(theJoin) { return theJoin.id === attID; });
-				if (join) {
-						// Find dependent Template
-					var dTemp = _.find(prspdata.t, function(theDTmplt) { return theDTmplt.id === join.t; });
-					if (dTemp) {
-							// Output all dependent view Attributes
-						dTemp.v.cnt.forEach(function(jAttID) {
-							var jAtt = getAttID(jAttID);
-							if (jAtt) {
-								appendAttData(attID+'.'+jAttID, jAtt, att.def.l+' ('+jAtt.def.l+')');
-							}
-						});
-					}
-				}
-			} else
-				appendAttData(attID, att, att.def.l);
-		}
-	});
-	if (newText.length > 0)
-		container.append(newText);
 });
 
 
