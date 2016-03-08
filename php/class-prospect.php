@@ -105,6 +105,159 @@ class Prospect {
 			break;
 
 		case 'prsp-exhibit':
+				// IMPORTANT: Must keep this list coordinated with code in view-exhibit.php!!
+			wp_enqueue_style('prsp-jquery-ui-style', plugins_url('css/jquery-ui.min.css', dirname(__FILE__)));
+			wp_enqueue_style('prsp-jquery-theme-style', plugins_url('css/jquery-ui.theme.min.css', dirname(__FILE__)));
+			wp_enqueue_style('leaflet-style', plugins_url('lib/leaflet/leaflet.css', dirname(__FILE__)));
+			wp_enqueue_style('prsp-exhibit-style', plugins_url('css/view-exhibit.css', dirname(__FILE__)));
+
+			wp_enqueue_script('jquery');
+			wp_enqueue_script('underscore');
+			wp_enqueue_script('jquery-ui-core');
+			wp_enqueue_script('jquery-ui-widget');
+			wp_enqueue_script('jquery-ui-mouse');
+			wp_enqueue_script('jquery-ui-draggable');
+			wp_enqueue_script('jquery-ui-position');
+			wp_enqueue_script('jquery-ui-resizable');
+			wp_enqueue_script('jquery-ui-button');
+			wp_enqueue_script('jquery-ui-dialog');
+			wp_enqueue_script('jquery-effects-core');
+			wp_enqueue_script('jquery-effects-slide');
+
+			wp_enqueue_script('leaflet', plugins_url('lib/leaflet/leaflet.js', dirname(__FILE__)));
+
+			wp_enqueue_script('d3', plugins_url('lib/d3.min.js', dirname(__FILE__)));
+
+			wp_enqueue_script('prsp-map-hub', plugins_url('js/map-hub.js', dirname(__FILE__)));
+			wp_enqueue_script('prsp-view-exhibit', plugins_url('js/view-exhibit.min.js', dirname(__FILE__)));
+
+				// Get Exhibit definition
+			$the_xhbt = new ProspectExhibit(true, get_the_ID(), true);
+			if ($the_xhbt->inspect->modal->scOn) {
+				wp_enqueue_script('soundcloud', 'http://w.soundcloud.com/player/api.js');
+			}
+
+				// 'Chunk-size' user option
+			$options = get_option('prsp_base_options');
+			$chunk = isset($options['prsp_chunks']) ? (int)$options['prsp_chunks'] : 1000;
+
+				// User-overrides for background colors
+			$cb_color = isset($options['prsp_cb_color']) ? $options['prsp_cb_color'] : null;
+			$fs_color = isset($options['prsp_fs_color']) ? $options['prsp_fs_color'] : null;
+			$vf_color = isset($options['prsp_vf_color']) ? $options['prsp_vf_color'] : null;
+			$b_clrs = array('cb' => $cb_color, 'fs' => $fs_color, 'vf' => $vf_color);
+
+				// Collect Template data
+			$t = array();
+			$all_ts = array();
+			$att_defs = array();
+			foreach ($the_xhbt->gen->ts as $template_id) {
+				$the_template = new ProspectTemplate(false, $template_id, true, true, false);
+					// Get Joined form of Template Attributes
+				$att_defs = array_merge($att_defs, $the_template->get_all_attributes(false));
+				array_push($all_ts, $the_template);
+					// Replace Template's Unjoined Attribute list with Joined
+				$the_template->def->a = $the_template->all_att_ids;
+					// Remove any Record hints
+				unset($the_template->def->h);
+				array_push($t, array(
+					'id' => $the_template->id,
+					'def' => $the_template->def,
+					'n' => $the_template->get_num_records()
+				));
+			}
+
+				// Collect Attribute data
+			$a = array();
+				// Sort definitions of all current Attributes
+			$att_defs = ProspectAttribute::unique_sorted_att_array($att_defs);
+			foreach($att_defs as $the_attribute) {
+					// Ignore Attributes whose Privacy setting protects them
+				if ($the_attribute->privacy == 'o') {
+					$the_attribute->convert_undefined();
+					$att_def = array(
+						'id'	=> $the_attribute->id,
+						'def' 	=> $the_attribute->def,
+						'r'		=> $the_attribute->range,
+						'l'		=> $the_attribute->legend
+					);
+						// In which Templates does this Attribute appear?
+					$appear_in_t = array();
+					foreach($all_ts as $the_template) {
+						array_push($appear_in_t, in_array($the_attribute->id, $the_template->all_att_ids));
+					}
+					$att_def['t'] = $appear_in_t;
+					if ($the_attribute->x != null) {
+						$att_def['x'] = $the_attribute->x;
+					}
+					array_push($a, $att_def);
+				}
+			}
+
+				// Collect Map Library data (only those used by this Exhibit)
+			$m = array();
+			$map_defs = $the_xhbt->get_used_maps();
+			foreach($map_defs as $the_map) {
+				$map_def = array(
+					'id'		=> $the_map->id,
+					'sname'		=> $the_map->meta_data['sname'],
+					'credits'	=> $the_map->meta_data['credits'],
+					'url'		=> $the_map->meta_data['url'],
+					'subd'		=> $the_map->meta_data['subd'],
+					'swBounds'	=> $the_map->meta_data['swBounds'],
+					'neBounds'	=> $the_map->meta_data['neBounds'],
+					'minZoom'	=> $the_map->meta_data['minZoom'],
+					'maxZoom'	=> $the_map->meta_data['maxZoom'],
+					'inverseY'	=> $the_map->meta_data['inverseY']
+				);
+				array_push($m, $map_def);
+			}
+
+				// Collect Perspectives
+			$p = array();
+			$all_prspctvs = ProspectPerspective::get_exhibit_perspectives($the_xhbt->id);
+			foreach($all_prspctvs as $the_prspctv) {
+				$p_def = array(
+					'id'	=> $the_prspctv->id,
+					'l'		=> $the_prspctv->l,
+					'n'		=> $the_prspctv->note,
+					's'		=> $the_prspctv->meta_state
+				);
+				array_push($p, $p_def);
+			}
+
+			wp_localize_script('prsp-view-exhibit', 'prspdata', array(
+				'ajax_url'  	=> get_admin_url(get_current_blog_id() ,'admin-ajax.php'),
+				'site_url'		=> site_url(),
+				'assets'		=> plugins_url('/assets/', dirname(__FILE__)),
+				'add_prspctv'	=> current_user_can('create_prsp_prspctvs') ? 'true' : 'false',
+				'show_prspctv'	=> get_query_var('prspctv'),
+				'chunks'		=> $chunk,
+				'bClrs'			=> $b_clrs,
+				'e'				=> array('id' => $the_xhbt->id, 'g' => $the_xhbt->gen,
+										 'vf' => $the_xhbt->views, 'i' => $the_xhbt->inspect
+									),
+				't'				=> $t,
+				'a'				=> $a,
+				'm'				=> $m,
+				'p'				=> $p
+			));
+
+				// Get rid of WordPress extras
+			wp_dequeue_style('screen');
+			wp_deregister_style('screen');
+			wp_dequeue_style('events-manager');
+
+			wp_dequeue_script('site');
+			wp_deregister_script('site');
+
+				// REMOVE WP EMOJI
+			remove_action('wp_head', 'print_emoji_detection_script', 7);
+			remove_action('wp_print_styles', 'print_emoji_styles');
+
+			remove_action('admin_print_scripts', 'print_emoji_detection_script');
+			remove_action('admin_print_styles', 'print_emoji_styles');
+
 			$page_template = dirname(__FILE__).'/view-exhibit.php';
 			break;
 
@@ -128,7 +281,7 @@ class Prospect {
 	public function __construct()
 	{
 		$this->plugin_slug = 'prsp-slug';
-		$this->version = '1.0.2';
+		$this->version = '1.0';
 
 		$this->load_dependencies();
 
