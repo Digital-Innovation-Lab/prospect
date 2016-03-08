@@ -1,7 +1,9 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
+<html>
 
 <head>
+	<meta charset="UTF-8">
+	<title><?php the_title(); ?></title>
 	<link rel="stylesheet" href="<?php echo(plugins_url('css/jquery-ui.min.css', dirname(__FILE__))); ?>" />
 	<link rel="stylesheet" href="<?php echo(plugins_url('css/jquery-ui.theme.min.css', dirname(__FILE__))); ?>" />
 	<link rel="stylesheet" href="<?php echo(plugins_url('lib/leaflet/leaflet.css', dirname(__FILE__))); ?>" />
