@@ -3318,7 +3318,7 @@ VizNetWheel.prototype.constructor = VizNetWheel;
 
 VizNetWheel.prototype.flags = function()
 {
-	return V_FLAG_LGND | V_FLAG_SEL | V_FLAG_VSCRL | V_FLAG_HSCRL;
+	return V_FLAG_OPT | V_FLAG_LGND | V_FLAG_SEL | V_FLAG_VSCRL | V_FLAG_HSCRL;
 } // flags()
 
 VizNetWheel.prototype.getFeatureAtts = function(tIndex)
@@ -3333,6 +3333,7 @@ VizNetWheel.prototype.setup = function()
 	var self=this;
 
 	this.spin = 0;
+	this.prune = true;		// If true, don't show unconnected nodes
 
 	function rotate()
 	{
@@ -3381,11 +3382,18 @@ VizNetWheel.prototype.setup = function()
 } // setup()
 
 	// PURPOSE: Draw the Records in the given datastream
+	// TO DO: 	Could speed up linking Records with binary search
 VizNetWheel.prototype.render = function(stream)
 {
 	var self = this;
 	var links=[], link;
 	var nodes, node;
+
+	if (stream) {
+		this.stream = stream;
+	} else {
+		stream = this.stream;
+	}
 
 	function clickDot(d)
 	{
@@ -3449,26 +3457,9 @@ VizNetWheel.prototype.render = function(stream)
 	this.svg.selectAll(".node").remove();
 	this.svg.selectAll(".link").remove();
 
-	this.inc = 360/(stream.l+stream.t.length);
-
-		// Compute inner radius based on circumference needed to show all labels
-	var rad = Math.max((stream.l*14 + 20)/(Math.PI*2), 30);
-	var lw = this.settings.lw;
-	if (typeof lw === 'string')
-		lw = parseInt(lw);
-
-	this.cr = lw+12+rad;	// Radius to center
-
-	var diam = this.cr*2;	// Accommodate dot and spacing
-
-		// Set sizes and centers
-	this.svg.attr("width", diam)
-		.attr("height", diam);
-
-	this.center.attr("transform", "translate(" + this.cr + "," + this.cr + ")");
-
-	if (this.recSel.length > 0)
+	if (this.recSel.length > 0) {
 		this.recSel=[];
+	}
 
 	this.preRender();
 
@@ -3521,7 +3512,7 @@ VizNetWheel.prototype.render = function(stream)
 				fData = PData.lRecs(datum, fAtt, featSet, false);
 				if (fData) {
 					self.rMap[aI >> 4] |= (1 << (aI & 15));
-					clan.push({ r: rec, ai: aI, c: fData.v, children: [] });					
+					clan.push({ r: rec, ai: aI, c: fData.v, l: false, children: [] });
 				}
 			}
 
@@ -3531,6 +3522,73 @@ VizNetWheel.prototype.render = function(stream)
 			head.children.push({ ti: tI, children: clan});
 		}
 	}());
+
+		// Compile links between nodes
+		//  { source, target, c[olor] }
+	head.children.forEach(function(theT) {
+		var pAtts = self.settings.pAtts[theT.ti];
+		var q;
+		theT.children.forEach(function(d) {
+			pAtts.forEach(function(p) {
+				q = d.r.a[p.pid];
+				if (typeof q !== 'undefined') {
+						// Array of Rec IDs -- must find each one in head.children.children!
+					q.forEach(function(rID) {
+						var found=false, r2;
+						tLoop: for (var tI=0; tI<head.children.length; tI++) {
+							var tRecs = head.children[tI];
+								// TO DO: binary search
+							for (var rI=0; rI<tRecs.children.length; rI++) {
+								r2 = tRecs.children[rI];
+								if (r2.r.id == rID) {
+									found=true;
+									break tLoop;
+								}
+							}
+						}
+						if (found) {
+							d.l = true; r2.l = true;
+							links.push({ source: d, target: r2, c: p.clr});
+						}
+					}); // for Pointer values
+				}
+			}); // for Pointer entries
+		}); // for Records in Template
+	}); // for Templates
+
+		// Remove unconnected nodes?
+	if (this.prune) {
+		head.children.forEach(function(theT) {
+			for (var rI=theT.children.length-1; rI>0; rI--) {
+				var r=theT.children[rI];
+				if (!r.l) {
+					theT.children.splice(rI, 1);
+				}
+			}
+		});
+	}
+
+		// Now that we know number of nodes, compute sizes
+	var numNodes = 0;
+	head.children.forEach(function(theT) {
+		numNodes +=	theT.children.length;
+	});
+	this.inc = 360/(numNodes+head.children.length);
+
+		// Compute inner radius based on circumference needed to show all labels
+	var rad = Math.max((numNodes*14 + 20)/(Math.PI*2), 30);
+	var lw = this.settings.lw;
+	if (typeof lw === 'string')
+		lw = parseInt(lw);
+
+	this.cr = lw+12+rad;	// Radius to center
+	var diam = this.cr*2;	// Accommodate dot and spacing
+
+		// Set sizes and centers
+	this.svg.attr("width", diam)
+		.attr("height", diam);
+
+	this.center.attr("transform", "translate(" + this.cr + "," + this.cr + ")");
 
 	var cluster = d3.layout.cluster()
 		.size([360, rad])
@@ -3567,37 +3625,6 @@ VizNetWheel.prototype.render = function(stream)
 		.radius(function(d) { return d.y; })
 		.angle(function(d) { return d.x / 180 * Math.PI; });
 
-		// Compile links between nodes
-		//  { source, target, c[olor] }
-	head.children.forEach(function(theT) {
-		var pAtts = self.settings.pAtts[theT.ti];
-		var q;
-		theT.children.forEach(function(d) {
-			pAtts.forEach(function(p) {
-				q = d.r.a[p.pid];
-				if (typeof q !== 'undefined') {
-						// Array of Rec IDs -- must find each one in head.children.children!
-					q.forEach(function(rID) {
-						var found=false, r2;
-						tLoop: for (var tI=0; tI<head.children.length; tI++) {
-							var tRecs = head.children[tI];
-								// TO DO: binary search
-							for (var rI=0; rI<tRecs.children.length; rI++) {
-								r2 = tRecs.children[rI];
-								if (r2.r.id == rID) {
-									found=true;
-									break tLoop;
-								}
-							}
-						}
-						if (found)
-							links.push({ source: d, target: r2, c: p.clr});
-					}); // for Pointer values
-				}
-			}); // for Pointer entries
-		}); // for Records in Template
-	}); // for Templates
-
 	link = this.center.append("g").selectAll(".link")
 		.data(bundle(links))
 		.enter().append("path")
@@ -3631,6 +3658,40 @@ VizNetWheel.prototype.clearSel = function()
 				.attr("class", '');
 	}
 } // clearSel()
+
+VizNetWheel.prototype.doOptions = function()
+{
+	var self=this;
+
+	jQuery('#prune-nodes').prop('checked', this.prune);
+
+	var d = jQuery("#dialog-prune").dialog({
+		height: 150,
+		width: 400,
+		modal: true,
+		buttons: [
+			{
+				text: dlText.ok,
+				click: function() {
+					d.dialog("close");
+					PState.set(PSTATE_BUILD);
+					var prune = jQuery('#prune-nodes').prop('checked');
+					if (self.prune !== prune) {
+						self.prune = prune;
+						self.render(null);
+					}
+					PState.set(PSTATE_READY);
+				}
+			},
+			{
+				text: dlText.cancel,
+				click: function() {
+					d.dialog("close");
+				}				
+			}
+		]
+	});
+} // doOptions()
 
 VizNetWheel.prototype.getState = function()
 {

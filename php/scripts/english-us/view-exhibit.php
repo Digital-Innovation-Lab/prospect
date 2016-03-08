@@ -77,6 +77,10 @@
 		</div>
 	</div>
 
+	<div id="dialog-prune" title=<?php _e('"Network Options"', 'prospect'); ?>>
+		<input type="checkbox" name="prune-nodes" id="prune-nodes"/> Hide unconnected Records?
+	</div>
+
 	<div id="dialog-about" title=<?php _e('"About Prospect&#8482;"', 'prospect'); ?>>
 		<div class="scroll-container">
 			<p>Prospect&#8482; 1.0.1</p>
