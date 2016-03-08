@@ -55,6 +55,11 @@ body.waiting * {
 	cursor: wait !important;
 }
 
+#wpadminbar {
+	display: none;
+	height: 0;
+}
+
 	/* To indicate input errors */
 input[type=text].error {
 	background-color: yellow;
