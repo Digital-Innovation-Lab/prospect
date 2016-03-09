@@ -25,7 +25,7 @@ class ProspectPerspective {
 		$loop = new WP_Query($args);
 		if ($loop->have_posts()) {
 			foreach ($loop->posts as $prspctv) {
-				$new_prspctv = new ProspectPerspective(true, $prspctv->ID, false);
+				$new_prspctv = new ProspectPerspective(true, $prspctv->ID, true);
 					// Ensure minimal data provided
 				if ($new_prspctv->id != null && $new_prspctv->id != '') {
 					array_push($all_prspctvs, $new_prspctv);

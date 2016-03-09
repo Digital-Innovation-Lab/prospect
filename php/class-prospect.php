@@ -221,7 +221,7 @@ class Prospect {
 					'id'	=> $the_prspctv->id,
 					'l'		=> $the_prspctv->l,
 					'n'		=> $the_prspctv->note,
-					's'		=> $the_prspctv->meta_state
+					's'		=> $the_prspctv->state
 				);
 				array_push($p, $p_def);
 			}
