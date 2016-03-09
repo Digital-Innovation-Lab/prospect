@@ -4,7 +4,7 @@
  * Plugin URI:        https://prospect.web.unc.edu/
  * Description:       Digital Humanities platform for visualizing curated collections
  * Version:           1.0.4
- * Author:            Michael Newton, Breon Williams, Digital Innovation Lab, UNC-CH
+ * Author:            msnewton, Breon Williams, Digital Innovation Lab, UNC-CH
  * Text Domain:       prospect
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
