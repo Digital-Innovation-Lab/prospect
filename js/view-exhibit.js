@@ -7501,7 +7501,7 @@ var PData = (function() {
 						if (a.min.d)
 							ds += '-'+a.min.d.toString();
 					}
-					ds += dltextTo;
+					ds += dltextTo+' ';
 					if (a.max == 'open') {
 						ds += dltextNow;
 					} else {
