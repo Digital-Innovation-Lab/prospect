@@ -1,7 +1,7 @@
 # Prospect
 
 * Contributors: Michael Newton, Breon Williams
-* Tags: posts
+* Tags: Data Visualization, Digital Humanities
 * Requires at least: 3.9.0
 * Tested up to: 4.4.2
 * License: GPLv2 or later
