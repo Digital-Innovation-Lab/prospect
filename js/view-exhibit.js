@@ -7324,8 +7324,8 @@ var PData = (function() {
 			dltextApprox = document.getElementById('dltext-approximately').innerHTML;
 			dltextNow = document.getElementById('dltext-now').innerHTML;
 
-			if (typeof prspdata.chunk == 'number' && prspdata.chunk > 0)
-				LOAD_DATA_CHUNK = prspdata.chunk;
+			if (typeof prspdata.x.chunk == 'number' && prspdata.x.chunk > 0)
+				LOAD_DATA_CHUNK = prspdata.x.chunk;
 
 				// For each entry: head entry for Record Data and collect Legends
 			prspdata.t.forEach(function(tmplt) {
@@ -9008,7 +9008,7 @@ jQuery(document).ready(function($) {
 			jQuery('#save-prspctv-d-1').prop('disabled', true);
 		}
 			// If user not logged in, disable server capability
-		if (!prspdata.add_prspctv) {
+		if (!prspdata.x.add_prspctv) {
 			jQuery('#save-prspctv-d-2').prop('disabled', true);
 		}
 

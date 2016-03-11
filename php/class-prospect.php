@@ -226,13 +226,15 @@ class Prospect {
 				array_push($p, $p_def);
 			}
 
+				// Have to put numberic parameters into x or else they are treated as strings!
 			wp_localize_script('prsp-view-exhibit', 'prspdata', array(
 				'ajax_url'  	=> get_admin_url(get_current_blog_id() ,'admin-ajax.php'),
 				'site_url'		=> site_url(),
 				'assets'		=> plugins_url('/assets/', dirname(__FILE__)),
-				'add_prspctv'	=> current_user_can('create_prsp_prspctvs') ? 'true' : 'false',
-				'show_prspctv'	=> get_query_var('prspctv'),
-				'chunks'		=> $chunk,
+				'x'				=> array(
+									'add_prspctv' => current_user_can('create_prsp_prspctvs') ? true : false,
+									'chunks' => $chunk
+									),
 				'bClrs'			=> $b_clrs,
 				'e'				=> array('id' => $the_xhbt->id, 'g' => $the_xhbt->gen,
 										 'vf' => $the_xhbt->views, 'i' => $the_xhbt->inspect
@@ -240,7 +242,8 @@ class Prospect {
 				't'				=> $t,
 				'a'				=> $a,
 				'm'				=> $m,
-				'p'				=> $p
+				'p'				=> $p,
+				'show_prspctv'	=> get_query_var('prspctv')
 			));
 
 				// Get rid of WordPress extras
@@ -281,7 +284,7 @@ class Prospect {
 	public function __construct()
 	{
 		$this->plugin_slug = 'prsp-slug';
-		$this->version = '1.0.4';
+		$this->version = '1.0.5';
 
 		$this->load_dependencies();
 
