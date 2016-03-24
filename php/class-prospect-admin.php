@@ -467,6 +467,35 @@ class ProspectAdmin {
 	} // show_prsp_prspctv_admin_edit()
 
 
+	public function add_prsp_volume_admin_edit($post_type)
+	{
+		add_meta_box('prsp_volume_box', __('Edit Volume', 'prospect'), array($this, 'show_prsp_volume_admin_edit'),
+					'prsp-volume', 'normal', 'high');
+	} // add_prsp_volume_admin_edit()
+
+		// PURPOSE: Insert HTML for Dashboard Exhibit Editor and embed data
+	public function show_prsp_volume_admin_edit()
+	{
+		$postID  = get_the_ID();
+
+			// Use nonce for verification
+		echo wp_nonce_field('prsp_save_volume'.$postID, 'prsp_nonce');
+
+		$the_volume = new ProspectVolume(true, $postID, false);
+
+			// Special hidden fields for custom fields coordinated by JavaScript code
+		echo '<input type="hidden" name="prsp_vol_id" value="'.$the_volume->id.'"/>';
+		echo '<textarea name="prsp_vol_gen" form="post" spellcheck="false" style="display:none">'.$the_volume->meta_gen.'</textarea>';
+		echo '<textarea name="prsp_vol_views" form="post" spellcheck="false" style="display:none">'.$the_volume->meta_views.'</textarea>';
+		echo '<textarea name="prsp_vol_inspect" form="post" spellcheck="false" style="display:none">'.$the_volume->meta_inspect.'</textarea>';
+
+		echo '<div id="ractive-output"></div>';
+
+			// Insert Edit Panel's HTML
+		self::insert_html_file('edit-volume.php');
+	} // show_prsp_volume_admin_edit()
+
+
 		// PURPOSE: Save custom fields about data entity
 	public function save_post($post_id)
 	{
@@ -669,6 +698,29 @@ class ProspectAdmin {
 			if (isset($_POST['prsp_prspctv_state'])) {
 				$data = sanitize_text_field($_POST['prsp_prspctv_state']);
 				update_post_meta($post_id, 'prspctv-state', $data);
+			}
+			break;
+		case 'prsp-volume':
+				// Verify the nonce is valid
+			if (!wp_verify_nonce($nonce, 'prsp_save_volume'.$post_id))
+				return $post_id;
+
+				// Update each value
+			if (isset($_POST['prsp_vol_id'])) {
+				$vol_id = $_POST['prsp_vol_id'];
+				update_post_meta($post_id, 'vol-id', $vol_id);
+			}
+			if (isset($_POST['prsp_vol_gen'])) {
+				$vol_gen = $_POST['prsp_vol_gen'];
+				update_post_meta($post_id, 'vol-gen', $vol_gen);
+			}
+			if (isset($_POST['prsp_vol_views'])) {
+				$vol_views = $_POST['prsp_vol_views'];
+				update_post_meta($post_id, 'vol-views', $vol_views);
+			}
+			if (isset($_POST['prsp_vol_inspect'])) {
+				$vol_inspect = $_POST['prsp_vol_inspect'];
+				update_post_meta($post_id, 'vol-inspect', $vol_inspect);
 			}
 			break;
 		} // switch post_type
@@ -880,6 +932,63 @@ class ProspectAdmin {
 				$map_defs = ProspectMap::get_map_layer_list();
 
 				wp_localize_script('edit-exhibit', 'prspdata', array(
+					'ajax_url' => $dev_url,
+					'post_id' => $postID,
+					'atts' => $att_data,
+					'templates' => $tmp_data,
+					'maps' => $map_defs
+				));
+				break;
+			case 'prsp-volume':
+				wp_enqueue_style('jquery-ui-min-style', plugins_url('/css/jquery-ui.min.css', dirname(__FILE__)));
+				wp_enqueue_style('jquery-ui-theme-style', plugins_url('/css/jquery-ui.theme.min.css', dirname(__FILE__)));
+				wp_enqueue_style('edit-exhibit-style', plugins_url('/css/edit-exhibit.css', dirname(__FILE__)),
+								array('jquery-ui-min-style', 'jquery-ui-theme-style'));
+
+					// Built-in modules
+				wp_enqueue_script('jquery');
+				wp_enqueue_script('underscore');
+				wp_enqueue_script('jquery-ui-button');
+				wp_enqueue_script('jquery-ui-dialog');
+				wp_enqueue_script('jquery-ui-accordion');
+				wp_enqueue_script('jquery-ui-tabs');
+				wp_enqueue_script('iris');
+
+					// Prospect-specific
+				wp_enqueue_script('ractive', plugins_url('/lib/ractive.min.js', dirname(__FILE__)));
+
+				wp_enqueue_script('p-map-hub', plugins_url('/js/map-hub.js', dirname(__FILE__)),
+								array('jquery', 'underscore'));
+				wp_enqueue_script('edit-volume', plugins_url('/js/edit-volume.js', dirname(__FILE__)),
+								array('ractive', 'jquery-ui-button', 'jquery-ui-accordion', 'jquery-ui-tabs', 'underscore', 'p-map-hub'));
+
+					// Get all definitions of all current Attributes
+				$att_defs = ProspectAttribute::get_all_attributes(true, false, false, false);
+					// Compile definition JSON strings into array
+				$att_data = array();
+				foreach($att_defs as $the_attribute) {
+					$an_att = array();
+					$an_att['id'] = $the_attribute->id;
+					$an_att['p'] = $the_attribute->privacy;
+					$an_att['def'] = $the_attribute->def;
+					array_push($att_data, $an_att);
+				}
+
+					// Get all definitions of all current Templates
+				$tmp_defs = ProspectTemplate::get_all_template_defs(0, true, true, false);
+					// Compile into array
+				$tmp_data = array();
+				foreach($tmp_defs as $the_template) {
+					$a_tmp = array();
+					$a_tmp['id'] = $the_template->id;
+					$a_tmp['def'] = $the_template->def;
+					$a_tmp['joins'] = $the_template->joins;
+					array_push($tmp_data, $a_tmp);
+				}
+
+				$map_defs = ProspectMap::get_map_layer_list();
+
+				wp_localize_script('edit-volume', 'prspdata', array(
 					'ajax_url' => $dev_url,
 					'post_id' => $postID,
 					'atts' => $att_data,
@@ -1428,7 +1537,73 @@ class ProspectAdmin {
 	} // prsp_export_all_prspctvs()
 
 
-		// PURPOSE: Export all Attribute, Template and Exhibit definitions as a JSON Archive file
+	public function write_volume_data($fp, $the_volume)
+	{
+			// Create header to indicate Volume record
+		fwrite($fp, '{"type": "Volume", "vol-id": "'.$the_volume->id.'", '."\n");
+		fwrite($fp, '"vol-gen": '.$the_volume->meta_gen.",\n");
+		fwrite($fp, '"vol-views": '.$the_volume->meta_views.",\n");
+		fwrite($fp, '"vol-inspect": '.$the_volume->meta_inspect."\n}");
+	} // write_volume_data()
+
+		// PURPOSE: Export this Volume definition as a JSON Archive file
+	public function prsp_export_volume()
+	{
+			// ensure that this URL has not been faked by non-admin user
+		if (!current_user_can('edit_posts')) {
+			wp_die('Invalid request');
+		}
+
+		if (!(isset($_GET['post']) || isset( $_POST['post']) || (isset($_REQUEST['action']) && 'rd_duplicate_post_as_draft' == $_REQUEST['action']))) {
+			wp_die('No post to export has been supplied!');
+		}
+
+			// Get post ID and associated Project Data
+		$postID = (isset($_GET['post']) ? $_GET['post'] : $_POST['post']);
+		$the_volume = new ProspectVolume(true, $postID, false);
+
+			// Create appropriate filename
+		$fp = $this->createUTFOutput($the_volume->id.".json", true);
+
+		$this->write_volume_data($fp, $the_volume);
+
+			// Close the output buffer
+		fclose($fp);
+		exit();
+	} // prsp_export_volume()
+
+		// PURPOSE: Export all Exhibit definitions as a JSON Archive file
+	public function prsp_export_all_volumes()
+	{
+			// ensure that this URL has not been faked by non-admin user
+		if (!current_user_can('edit_posts')) {
+			wp_die('Invalid request');
+		}
+
+			// Create appropriate filename
+		$fp = $this->createUTFOutput("allvolumes.json", true);
+
+			// Create archive header
+		fwrite($fp, '{"type": "Archive", "items": ['."\n");
+
+			// Get all definitions of all current Volumes
+		$volume_defs = ProspectVolume::get_all_volume_defs(false);
+		$first = true;
+		foreach($volume_defs as $the_volume) {
+			if (!$first)
+				fwrite($fp, ",\n");
+			$first = false;
+			$this->write_volume_data($fp, $the_volume);
+		}
+		fwrite($fp, "\n]}");
+
+			// Close the output buffer
+		fclose($fp);
+		exit();
+	} // prsp_export_all_exhibits()
+
+
+		// PURPOSE: Export all Attribute, Template, Exhibit and Volume definitions as a JSON Archive file
 	public function prsp_export_all()
 	{
 			// ensure that this URL has not been faked by non-admin user
@@ -1469,6 +1644,16 @@ class ProspectAdmin {
 				fwrite($fp, ",\n");
 			$first = false;
 			$this->write_exhibit_data($fp, $the_exhibit);
+		}
+
+
+			// Get all definitions of all current Exhibits
+		$volume_defs = ProspectVolume::get_all_volume_defs(false);
+		foreach($volume_defs as $the_volume) {
+			if (!$first)
+				fwrite($fp, ",\n");
+			$first = false;
+			$this->write_volume_data($fp, $the_volume);
 		}
 
 		fwrite($fp, "\n]}");
@@ -1516,6 +1701,11 @@ class ProspectAdmin {
 			$title = __('Export this Perspective as JSON archive file', 'prospect');
 			$label = __('JSON Export', 'prospect');
 			$actions['Prsp_Prspctv_Export'] = '<a href="admin.php?action=prsp_export_prspctv&amp;post='.$post->ID.'" title="'.$title.'" rel="permalink">'.$label.'</a>';
+			break;
+		case 'prsp-volume':
+			$title = __('Export this Volume as JSON archive file', 'prospect');
+			$label = __('JSON Export', 'prospect');
+			$actions['Prsp_Vol_Export'] = '<a href="admin.php?action=prsp_export_volume&amp;post='.$post->ID.'" title="'.$title.'" rel="permalink">'.$label.'</a>';
 			break;
 		}
 		return $actions;
@@ -1606,6 +1796,14 @@ class ProspectAdmin {
 				update_post_meta($post_id, 'prspctv-state', json_encode($data['prspctv-state'], JSON_UNESCAPED_UNICODE));
 			}
 			break;
+		case 'Volume':
+			$post_id = $this->create_entity('prsp-volume', 'vol-id', $data['vol-id'], $data['vol-gen']['l']);
+			if ($post_id) {
+				update_post_meta($post_id, 'vol-gen', json_encode($data['vol-gen'], JSON_UNESCAPED_UNICODE));
+				update_post_meta($post_id, 'vol-views', json_encode($data['vol-views'], JSON_UNESCAPED_UNICODE));
+				update_post_meta($post_id, 'vol-inspect', json_encode($data['vol-inspect'], JSON_UNESCAPED_UNICODE));
+			}
+			break;
 		} // switch
 	} // parse_import_object()
 
@@ -1653,6 +1851,7 @@ class ProspectAdmin {
 			$this->parse_import_object($data);
 	} // import_archive_file()
 
+
 		// PURPOSE: Initialization (uses 'admin_init' hook)
 		// NOTES: 	Must check POST vars at 'admin_init' as it creates file in output buffer
 		// 			Check to see if POST with parameters sent to program that were generated
@@ -1673,7 +1872,6 @@ class ProspectAdmin {
 		}
 
 			// Get current list of Template IDs and Labels
-
 
 			// To save options in DB
 		register_setting(
@@ -1804,6 +2002,10 @@ class ProspectAdmin {
 
 		<h3><?php _e('Perspectives', 'prospect'); ?></h3>
 		<?php _e('<a href="admin.php?action=prsp_export_all_prspctvs" title="Export all Perspectives as JSON archive file" rel="permalink">Export all Perspectives as JSON file</a>', 'prospect'); ?>
+		<br/>
+
+		<h3><?php _e('Volumes', 'prospect'); ?></h3>
+		<?php _e('<a href="admin.php?action=prsp_export_all_volumes" title="Export all Volumes as JSON archive file" rel="permalink">Export all Volumes as JSON file</a>', 'prospect'); ?>
 		<br/>
 
 		<h3><?php _e('Website Configuration Export', 'prospect'); ?></h3>

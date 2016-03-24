@@ -273,6 +273,48 @@ function prospect_register_post_types()
 		)
 	);
 	register_post_type('prsp-prspctv', $args);
+
+		// Register Volume Custom Post Type
+	$labels = array(
+		'name' => __('Volumes', 'prospect'),
+		'singular_name' => __('Volume', 'prospect'),
+		'add_new' => __('Add Volume', 'prospect'),
+		'add_new_item' => __('Add New Volume', 'prospect'),
+		'edit_item' => __('Edit Volume', 'prospect'),
+		'new_item' => __('New Volume', 'prospect'),
+		'all_items' => __('Volumes', 'prospect'),
+		'view' => __('View', 'prospect'),
+		'view_item' => __('View Volume', 'prospect'),
+		'search_items' => __('Search Volumes', 'prospect'),
+		'not_found' =>  __('No Volumes found', 'prospect'),
+		'not_found_in_trash' => __('No Volumes found in Trash', 'prospect'),
+		'parent_item_colon' => '',
+		'menu_name' => __('Volumes', 'prospect')
+	);
+	$args = array(
+		'labels' => $labels,
+		'public' => true,
+		'show_ui' => true, 
+		'show_in_menu' => 'prsp-top-level-handle',
+		'rewrite' => array('slug' => 'prsp-volume', 'with_front' => FALSE),
+		'has_archive' => false,
+		'hierarchical' => false,
+		'menu_position' => null,
+		'supports' => array('title', 'editor', 'thumbnail', 'revisions'),
+		'capability_type' => array('prsp_volume','prsp_volumes'),
+		'map_meta_cap' => true,
+		'capabilities' => array(
+			'create_posts' => 'edit_prsp_volumes',
+			'edit_post' => 'edit_prsp_volume',
+			'edit_posts' => 'edit_prsp_volumes',
+			'edit_others_posts' => 'edit_other_prsp_volumes',
+			'publish_posts' => 'publish_prsp_volumes',
+			'read_post' => 'read_prsp_volume',
+			'read_private_posts' => 'read_private_prsp_volumes',
+			'delete_post' => 'delete_prsp_volume'
+		)
+	); 
+	register_post_type('prsp-volume', $args);
 } // prospect_register_post_types()
 
 
@@ -292,6 +334,8 @@ function prospect_activate()
 	$role->remove_cap('publish_prsp_records');
 	$role->add_cap('read_prsp_exhibit');					// Exhibits
 	$role->add_cap('read_prsp_exhibits');
+	$role->add_cap('read_prsp_volume');						// Volumes
+	$role->add_cap('read_prsp_volumes');
 
 	$role = get_role('editor');
 	$role->add_cap('read_prsp_attribute');					// Attributes
@@ -326,6 +370,8 @@ function prospect_activate()
 	$role->add_cap('delete_private_prsp_prspctvs');
 	$role->add_cap('delete_published_prsp_prspctvs');
 	$role->add_cap('create_prsp_prspctvs');
+	$role->add_cap('read_prsp_volume');					// Volumes
+	$role->add_cap('read_prsp_volumes');
 
 	$role = get_role('administrator');
 	$role->add_cap('read_prsp_attribute');					// Attributes
@@ -407,6 +453,20 @@ function prospect_activate()
 	$role->add_cap('delete_private_prsp_prspctvs');
 	$role->add_cap('delete_published_prsp_prspctvs');
 	$role->add_cap('create_prsp_prspctvs');
+	$role->add_cap('read_prsp_volume');					// Volumes
+	$role->add_cap('read_prsp_volumes');
+	$role->add_cap('read_private_prsp_volumes');
+	$role->add_cap('edit_prsp_volume');
+	$role->add_cap('edit_prsp_volumes');
+	$role->add_cap('edit_other_prsp_volumes');
+	$role->add_cap('edit_others_prsp_volumes');
+	$role->add_cap('edit_published_prsp_volumes');
+	$role->add_cap('publish_prsp_volumes');
+	$role->add_cap('delete_prsp_volumes');
+	$role->add_cap('delete_others_prsp_volumes');
+	$role->add_cap('delete_private_prsp_volumes');
+	$role->add_cap('delete_published_prsp_volumes');
+	$role->add_cap('create_prsp_volumes');
 } // prospect_activate()
 
 function prospect_deactivate()
@@ -420,6 +480,8 @@ function prospect_deactivate()
 	$role->remove_cap('create_prsp_records');
 	$role->remove_cap('read_prsp_exhibit');					// Exhibits
 	$role->remove_cap('read_prsp_exhibits');
+	$role->remove_cap('read_prsp_volume');					// Volumes
+	$role->remove_cap('read_prsp_volumes');
 
 	$role = get_role('editor');
 	$role->remove_cap('read_prsp_attribute');				// Attributes
@@ -454,6 +516,8 @@ function prospect_deactivate()
 	$role->remove_cap('delete_private_prsp_prspctvs');
 	$role->remove_cap('delete_published_prsp_prspctvs');
 	$role->remove_cap('create_prsp_prspctvs');
+	$role->remove_cap('read_prsp_volume');					// Volumes
+	$role->remove_cap('read_prsp_volumes');
 
 	$role = get_role('administrator');
 	$role->remove_cap('read_prsp_attribute');				// Attributes
@@ -535,6 +599,20 @@ function prospect_deactivate()
 	$role->remove_cap('delete_private_prsp_prspctvs');
 	$role->remove_cap('delete_published_prsp_prspctvs');
 	$role->remove_cap('create_prsp_prspctvs');
+	$role->remove_cap('read_prsp_volume');					// Volumes
+	$role->remove_cap('read_prsp_volumes');
+	$role->remove_cap('read_private_prsp_volumes');
+	$role->remove_cap('edit_prsp_volume');
+	$role->remove_cap('edit_prsp_volumes');
+	$role->remove_cap('edit_other_prsp_volumes');
+	$role->remove_cap('edit_others_prsp_volumes');
+	$role->remove_cap('edit_published_prsp_volumes');
+	$role->remove_cap('publish_prsp_volumes');
+	$role->remove_cap('delete_prsp_volumes');
+	$role->remove_cap('delete_others_prsp_volumes');
+	$role->remove_cap('delete_private_prsp_volumes');
+	$role->remove_cap('delete_published_prsp_volumes');
+	$role->remove_cap('create_prsp_volumes');
 } // prospect_deactivate()
 
 

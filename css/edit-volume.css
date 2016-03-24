@@ -1,0 +1,170 @@
+/******************************************************************
+ ** CSS for Prospect Volume Dashboard Editor
+ **/
+
+	/* Make ranger slider compact */
+input[type=range] {
+	width: 80px;
+	height:12px;
+	cursor: pointer;
+}
+
+	/* Modify all buttons in the Edit Volume Dashboard */
+#prsp_volume_box button {
+	display: inline-block;
+	padding: 6px 10px;
+	margin: 3px;
+	margin-bottom: 0;
+	font-size: 12px;
+	font-weight: 400;
+	line-height: 1.42857143;
+	text-align: center;
+	white-space: nowrap;
+	vertical-align: middle;
+	-ms-touch-action: manipulation;
+	touch-action: manipulation;
+	cursor: pointer;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	background-image: none;
+	border: 1px solid transparent;
+	border-radius: 4px;
+	color: #333;
+	background-color: #eee;
+	border-color: #ccc;
+}
+
+#prsp_volume_box button:active {
+    background: #ccc;
+}
+
+button#prsp-save-data {
+	background-color: #77CCFF;
+}
+
+#prsp_volume_box input[type="text"], #prsp_volume_box input {
+	padding: 6px 12px;
+	margin: 5px 0;
+	font-size: 14px;
+	line-height: 1.42857143;
+	color: #555;
+	background-color: #fff;
+	background-image: none;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	-webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+	box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+	-webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
+	-o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+	transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+}
+
+#prsp_volume_box input[type="checkbox"] {
+    margin: 15px 0 15px 15px;
+}
+
+	/* Error for displaying Error Messages */
+#error-frame {
+	color: red;
+	border: red solid 1px;
+	padding: 3px;
+	margin-top: 3px;
+	margin-bottom: 3px;
+}
+
+.jq-dialog-template {
+	font-size: 12px !important;
+}
+
+	/* To minimize size of ui buttons */
+.ui-button-icon-only {
+	width: 1.4em !important;
+	height: 1.4em !important;
+}
+
+	/* To display Legend entry */
+.viz-icon {
+	cursor: pointer;
+	width: 24px;
+	height: 24px;
+	padding: 0;
+	margin: 0;
+
+	border: black dotted 1px;
+	display: inline-block;
+	vertical-align: middle;
+}
+
+	/*  grouping controls that belong to an Attribute  */
+.attribute-controls {
+	margin: 1px;
+	padding: 2px;
+    display: inline-block;
+    line-height: 1em;
+}
+
+.map-layer-div {
+	vertical-align: middle;
+}
+
+.map-layer-div input {
+	vertical-align: middle;
+}
+
+hr.vf-divider {
+      border-top: 1px dashed #0000CC;
+      border-bottom: 2px solid #0000CC;
+      color: #fff;
+      background-color: #fff;
+      height: 4px;
+}
+
+/* ========== jQueryUI components =========== */
+/* == Overrides to make styling work in WP == */
+
+.ui-draggable, .ui-droppable {
+	background-position: top;
+}
+
+.ui-dialog-title, .ui-dialog-content, .ui-dialog-buttonpane {
+	font-size: 12px;
+	font-family: "Trebuchet MS", "Arial", "Helvetica", "Verdana", "sans-serif";
+}
+
+.ui-accordion, .ui-accordion-header, .ui-accordion-content {
+	font-family: "Trebuchet MS", "Arial", "Helvetica", "Verdana", "sans-serif";  
+}
+
+.ui-accordion-header {
+	font-size: 14px;
+	font-weight: bold;
+}
+
+.ui-accordion-content {
+	font-size: 12px;
+	font-weight: normal;
+}
+
+.ui-accordion .ui-accordion-header {
+	display: block;
+	position: relative;
+}
+
+.ui-accordion .ui-accordion-header .ui-accordion-header-icon {
+	left: 0.5em !important;
+}
+
+.ui-accordion .ui-accordion-icons {
+	padding-left: 2.2em !important;
+}
+
+.ui-icon {
+	display: block;
+	overflow: hidden;
+}
+
+.ui-button {
+	margin: 3px;
+}
