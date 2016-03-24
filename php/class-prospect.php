@@ -397,8 +397,8 @@ class Prospect {
 									'chunks' => $chunk
 									),
 				'bClrs'			=> $b_clrs,
-				'e'				=> array('id' => $the_xhbt->id, 'g' => $the_xhbt->gen,
-										 'vf' => $the_xhbt->views, 'i' => $the_xhbt->inspect
+				'e'				=> array('id' => $the_volume->id, 'g' => $the_volume->gen,
+										 'vf' => $the_volume->views, 'i' => $the_volume->inspect
 									),
 				't'				=> $t,
 				'a'				=> $a,

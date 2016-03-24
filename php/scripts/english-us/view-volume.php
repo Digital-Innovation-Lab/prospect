@@ -2,7 +2,6 @@
 	<span id="title"></span>
 	&nbsp; &nbsp;<button id="btn-about"><?php _e('About Prospect', 'prospect'); ?></button>
 	<button id="btn-hs-bars"><?php _e('Show/Hide Filters', 'prospect'); ?></button>
-	<button id="btn-set-layout"><?php _e('Show/Hide View 2', 'prospect'); ?></button>
 	<button id="btn-show-prspctv"><?php _e('Show Perspective', 'prospect'); ?></button>
 	<button id="btn-save-prspctv"><?php _e('Save Perspective', 'prospect'); ?></button>
 	<button id="btn-annote"><?php _e('Show/Hide Annotation', 'prospect'); ?></button>
@@ -25,6 +24,34 @@
 </div>
 
 <div id="viz-frame">
+	<div id="view-frame-0">
+		<div class="view-controls">
+			<button id="hstoc">Show/Hide Table of Contents</button>
+			<div id="toc-controls" style="display: none;">
+				<input type="checkbox" id="tochcall" name="tochcall" title="On Reading List"/><label for="tochcall">Un/Check All</label> &nbsp;
+				<input type="checkbox" id="tochsall" name="tochsall" title="Currently in Reading Pane"/><label for="tochsall">De/Select All</label> &nbsp;
+				<button id="tocfind">Find</button>
+			</div>
+			<div id="text-controls">
+				&nbsp;<button id="textprev">Previous</button>
+				<button id="textnext">Next</button> &nbsp;
+				<button id="texthilite">Highlight</button>
+				<button id="textxsel">Clear Highlighted</button>
+				<button id="textosel">Show Highlighted</button>
+				<input type="radio" name="selaction" id="selaction-0" value="a-hilite" checked/><label for="selaction-0">All & Highlight</label>
+				<input type="radio" name="selaction" id="selaction-1" value="t-hilite"/><label for="selaction-1">Text & Highlight</label>
+				<input type="radio" name="selaction" id="selaction-2" value="show"/><label for="selaction-2">Display Only</label>
+			</div>
+		</div>
+		<div class="viz-content">
+			<div id="toc-frame" style="display: none;">
+				<ul class="toc-wrapper">
+				</ul>
+			</div>
+			<div id="text-frame">
+			</div>
+		</div>
+	</div>
 </div>
 
 	<!-- Insertion points to ensure proper stacking of multiple dialogs -->

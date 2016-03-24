@@ -76,7 +76,7 @@ var localD3;					// For localizing D3
 var months;						// Array of month names (for localization)
 var dlText={};					// Dynamically-loaded text stored in Object
 								// .sha = "Show/Hide All", .ok, .cancel, .seerec, .close, .add
-var xhbtURL;
+// var xhbtURL;
 
 var widgetData = {			// Widget state has to be global because YouTube API calls global function
 							// Therefore code cannot rely upon closure to know state of widget data
@@ -3107,201 +3107,6 @@ VizTextStream.prototype.hint = function()
 } // hint()
 
 
-// ================================================================================
-// VizStackChart: Class to visualize 2 dimensions of record data as a stacked chart
-
-var VizStackChart = function(viewFrame, vSettings)
-{
-	PVizModel.call(this, viewFrame, vSettings);
-} // VizStackChart
-
-VizStackChart.prototype = Object.create(PVizModel.prototype);
-
-VizStackChart.prototype.constructor = VizStackChart;
-
-VizStackChart.prototype.flags = function()
-{
-	return V_FLAG_LGND | V_FLAG_SLGND | V_FLAG_VSCRL | V_FLAG_HSCRL;
-} // flags()
-
-VizStackChart.prototype.getFeatureAtts = function(tIndex)
-{
-	return this.settings.sAtt;
-} // getFeatureAtts()
-
-VizStackChart.prototype.setup = function()
-{
-	var innerH = this.settings.h;
-	this.xScale = d3.scale.linear();
-	this.yScale = d3.scale.linear().range([0, innerH-1]);
-
-	this.rScale = d3.scale.ordinal();
-	this.xAxis = d3.svg.axis().scale(this.rScale).orient("top");
-	this.yAxis = d3.svg.axis().scale(this.yScale).orient("left").ticks(10);
-
-	this.svg = d3.select(this.frameID).append("svg");
-
-	this.chart = this.svg.append("g");
-	this.chart.attr("class", "chart")
-			.attr("transform", "translate("+D3SC_MARGINS.left+","+D3SC_MARGINS.top+")");
-
-	this.svg.append("g")
-		.attr("class", "x axis")
-		.attr("transform", "translate("+D3SC_MARGINS.left+","+D3SC_MARGINS.top+")");
-	this.svg.append("g")
-		.attr("class", "y axis")
-		.attr("transform", "translate("+D3SC_MARGINS.left+","+D3SC_MARGINS.top+")");
-} // setup()
-
-VizStackChart.prototype.render = function(stream)
-{
-	var self = this;
-
-	function clickEvent(d, bI)
-	{
-		var sz = self.bSel.length;
-		var i = _.sortedIndex(self.bSel, bI);
-		if (self.bSel[i] === bI) {
-			d3.select(this).classed('obj-sel', false);
-			self.bSel.splice(i, 1);
-			if (sz > 0 && self.bSel.length == 0)
-				self.vFrame.selBtns(false);
-		} else {
-			d3.select(this).classed('obj-sel', true);
-			self.bSel.splice(i, 0, bI);
-			if (sz == 0 && self.bSel.length > 0)
-				self.vFrame.selBtns(true);
-		}
-	} // clickEvent()
-
-	this.bSel=[];		// Reset selection
-
-	var oAttID = this.settings.oAtt;
-	var oAtt = PData.aByID(oAttID);
-	var sAttID = this.settings.sAtt;
-
-		// Pass 1 -- sort all Records into categories on X-Axis by oAtt
-	if (oAtt.def.t !== 'g') {
-		if (this.settings.gr)
-			this.cats = PData.cRNew(oAtt, true, true);
-		else
-			this.cats = PData.cLNew(oAtt, null, true);
-	} else {
-		this.cats = [];
-	}
-	PData.cFill(this.cats, oAttID, sAttID, stream);
-
-	var colW=0;
-	this.cats.forEach(function(c) {
-		colW=Math.max(colW, c.l.length);
-	});
-	colW=Math.max(D3FG_BAR_WIDTH, (colW*8)+4);
-	this.colW = colW;
-
-	var innerW = this.cats.length*colW;
-	var innerH = this.settings.h;
-	this.xScale.domain([0, this.cats.length]).rangeRound([0, innerW]);
-
-	this.rScale.rangeRoundBands([0, innerW]);
-	this.rScale.domain(this.cats.map(function(rc) { return rc.l; }));
-
-	this.svg
-		.attr("width", innerW+D3SC_MARGINS.left+D3SC_MARGINS.right)
-		.attr("height", innerH+D3SC_MARGINS.top+D3SC_MARGINS.bottom);
-
-	this.svg.selectAll(".block").remove();
-
-	this.blocks=[];		// { x[rCat index], c[olor], y, h, a[Indices] }
-	var sAtt = PData.aByID(sAttID);
-	var maxY=0, rec;
-	var fSet = self.vFrame.getSelFeatAtts(0);
-	var yCats = PData.cLNew(sAtt, fSet, true);
-		// Pass 2 -- create Blocks by processing Records within a single Range Category by sAtt
-	for (var rI=0; rI<this.cats.length; rI++) {
-		if (rI > 0) { // clear previous entries
-			for (var yi=0; yi<yCats.length; yi++) {
-				yCats[yi].i = [];
-			}
-		}
-		PData.cSort(self.cats[rI].i, sAtt, yCats);
-
-			// Create Blocks entries from yCats
-		var y=0;
-		yCats.forEach(function(yCat) {
-			if (yCat.i.length > 0) {
-				self.blocks.push({ x: rI, c: yCat.c, y: y, h: yCat.i.length, a: yCat.i });
-				y += yCat.i.length;
-			}
-		});
-		maxY = Math.max(maxY, y);
-	}
-
-		// Now that we have max Y value, reset yScale domain max
-	self.yScale.domain([0,maxY]);
-	self.svg.select(".x.axis").call(self.xAxis);
-	self.svg.select(".y.axis").call(self.yAxis);
-
-	var bw = self.colW-7;
-
-	this.svg.selectAll(".block")
-			.data(self.blocks)
-			.enter().append("rect")
-			.attr("class", "block")
-			.attr("x", function(d) { return D3SC_MARGINS.left+5+self.xScale(d.x); })
-			.attr("y", function(d) { return self.yScale(d.y) + D3SC_MARGINS.top; })
-			.attr("fill", function(d) { return d.c; })
-			.attr("height", function(d) { return Math.max(1,self.yScale(d.h)-1); })
-			.attr("width", bw)
-			.on("click", clickEvent);
-} // render()
-
-VizStackChart.prototype.setSel = function(absIArray)
-{	// Does nothing
-} // setSel()
-
-VizStackChart.prototype.clearSel = function()
-{
-	if (this.bSel.length > 0) {
-		this.bSel = [];
-		this.svg.selectAll(".block")
-			.classed('obj-sel', false);
-	}
-} // clearSel()
-
-	// RETURNS: Array of absolute IDs of selected records
-VizStackChart.prototype.getSel = function()
-{
-	var self=this;
-	var u=[];
-
-	this.bSel.forEach(function(bI) {
-		u = PData.union(u, self.blocks[bI].a);
-	});
-
-	return u;
-} // getSel()
-
-VizStackChart.prototype.getState = function()
-{
-	return { l: this.vFrame.getLgndSels() };
-} // getState()
-
-VizStackChart.prototype.setState = function(state)
-{
-	this.vFrame.setLgndSels(state.l);
-} // setState()
-
-VizStackChart.prototype.hint = function()
-{
-	var h=dlText.xaxis+': ';
-	var att = PData.aByID(this.settings.oAtt);
-	h += att.def.l+', '+dlText.yaxis+': ';
-	att = PData.aByID(this.settings.sAtt);
-	h += att.def.l;
-	return h;
-} // hint()
-
-
 // ===============================================================================
 // VizNetWheel: Class to visualize connections between Records as Network on Wheel
 
@@ -3702,1037 +3507,6 @@ VizNetWheel.prototype.setState = function(state)
 {
 	this.vFrame.setLgndSels(state.l);
 } // setState()
-
-
-// ================================================================================
-// VizFlow: Class to visualize multiple Facet values of record data as parallel sets
-
-var VizFlow = function(viewFrame, vSettings)
-{
-	PVizModel.call(this, viewFrame, vSettings);
-} // VizFlow
-
-VizFlow.prototype = Object.create(PVizModel.prototype);
-
-VizFlow.prototype.constructor = VizFlow;
-
-VizFlow.prototype.flags = function()
-{
-	return V_FLAG_VSCRL | V_FLAG_HSCRL;
-} // flags()
-
-VizFlow.prototype.setup = function()
-{
-	var self=this;
-
-		// Compute the height of each inter-Attribute space
-	self.bH = Math.max(120, Math.ceil(this.settings.w/3));
-
-		// Height: Attribute Title + Attribute value titles + flow space
-	var h = 40 + ((this.settings.fcts.length-1) * self.bH);
-	this.svg = d3.select(this.frameID).append("svg")
-				.attr("width", this.settings.w+10)
-				.attr("height", h);
-	this.barG = this.svg.append("g");
-	this.flowG = this.svg.append("g");
-	this.titleG = this.svg.append("g");
-} // setup()
-
-VizFlow.prototype.render = function(stream)
-{
-	var self=this;
-
-	function clickBar(d, bI)
-	{
-		var sz = self.bSel.length;
-		var i = _.sortedIndex(self.bSel, bI);
-		if (self.bSel[i] === bI) {
-			d3.select(this).classed('obj-sel', false);
-			self.bSel.splice(i, 1);
-			if (sz > 0 && self.bSel.length === 0 && self.fSel.length === 0)
-				self.vFrame.selBtns(false);
-		} else {
-			d3.select(this).classed('obj-sel', true);
-			self.bSel.splice(i, 0, bI);
-			if (sz === 0 && self.fSel.length === 0 && self.bSel.length > 0)
-				self.vFrame.selBtns(true);
-		}
-	} // clickBar()
-
-	function clickFlow(d, fI)
-	{
-		var sz = self.fSel.length;
-		var i = _.sortedIndex(self.fSel, fI);
-		if (self.fSel[i] === fI) {
-			d3.select(this).classed('obj-sel', false);
-			self.fSel.splice(i, 1);
-			if (sz > 0 && self.fSel.length === 0 && self.bSel.length === 0)
-				self.vFrame.selBtns(false);
-		} else {
-			d3.select(this).classed('obj-sel', true);
-			self.fSel.splice(i, 0, fI);
-			if (sz === 0 && self.bSel.length === 0 && self.fSel.length > 0)
-				self.vFrame.selBtns(true);
-		}
-	} // clickFlow()
-
-	this.bSel=[];		// Reset selection
-	this.fSel=[];
-
-		// Remove everything on svg
-	this.barG.selectAll(".bar").remove();
-	this.flowG.selectAll(".flow").remove();
-	this.titleG.selectAll(".att-title").remove();
-
-		// Create category buckets for each Attribute
-	var w=this.settings.w;
-	self.bars=[];
-	self.atts=[];
-	self.settings.fcts.forEach(function(attID, aI) {
-		var tCat;
-		var att = PData.aByID(attID);
-		if (att.def.t !== 'g') {
-			if (self.settings.gr)
-				tCat = PData.cRNew(att, true, true);
-			else
-				tCat = PData.cLNew(att, null, true);
-			PData.cFill(tCat, attID, null, stream);
-		} else {
-			tCat=[];
-			PData.cFill(tCat, attID, null, stream);
-		}
-			// Compile used categories
-		var used=[];
-		var total=0;
-		tCat.forEach(function(c) {
-			if (c.i.length > 0) {
-				used.push(c);
-				total += c.i.length;
-			}
-		});
-			// Create bars for category values
-		var x=0;
-		var y = 31+aI*self.bH;
-		used.forEach(function(c) {
-			self.bars.push({ x: 5+((x*w)/total), w: (c.i.length*w)/total, y: y, c: c });
-			x += c.i.length;
-		});
-		self.atts.push({ l: att.def.l, c: used, t: total, y: y });
-	});
-
-		// Show bars
-	var bar = this.barG.selectAll(".bar")
-		.data(self.bars)
-		.enter().append("rect")
-		.attr("class", "bar")
-		.attr("x", function(d) { return d.x; })
-		.attr("y", function(d) { return d.y; })
-		.attr("fill", function(d) { return d.c.c; })
-		.attr("height", "8")
-		.attr("width", function(d) { return d.w; })
-		.on("click", clickBar)
-		.append("title")
-		.text(function(d) {
-			return d.c.l + " ("+d.c.i.length+")";
-		});
-
-		// Compute intersections and create flows
-	self.ints=[];		// { a1 [index of Attribute 1], i[ndices], c1 [index of Att1 category], c2 [index of Att2 category] }
-
-		// NOTE: The following algorithm only works if every Attribute has only a single value
-		//			Prospect enables multiple values, however, for Fixed Vocabulary
-	// self.atts.forEach(function(att, aI) {
-	// 	if (aI != self.atts.length-1) {
-	// 		var att2 = self.atts[aI+1];
-	// 		var f = new Array(att2.c.length);	// maintain # used in c2's categories
-	// 		for (var j=0; j<att2.c.length; j++)
-	// 			f[j]=0;
-	// 		var l1=0, lB1;						// "Left" starting positions on each bar
-	// 		att.c.forEach(function(c1, c1I) {
-	// 			var l2=0;
-	// 			lB1=0;
-	// 			att2.c.forEach(function(c2, c2I) {
-	// 				var i = PData.intersect(c1.i, c2.i);
-	// 				if (i.length > 0) {
-	// 					self.ints.push({ i: i, c: c1.c, l: c1.l+" > "+c2.l,
-	// 						x1: 5+(((l1+lB1)*w)/att.t), x2: 5+(((l2+f[c2I])*w)/att2.t),
-	// 						w1: (i.length*w)/att.t, w2: (i.length*w)/att2.t,
-	// 						y1: att.y+10, y2: att2.y-1 });
-	// 					lB1 += i.length;
-	// 					f[c2I] += i.length;
-	// 				}
-	// 				l2 += c2.i.length;
-	// 			});
-	// 			l1 += c1.i.length;
-	// 		});
-	// 	}
-	// });
-
-		// NOTE: The following algorithm handles the case of multiple Attribute values
-		//			It attempts to float flows on bars according to leftover space and order
-	self.atts.forEach(function(att, aI) {
-		if (aI !== self.atts.length-1) {
-			var att2 = self.atts[aI+1];
-
-				// Create 2-dim array (att1 x att2) to hold intersections
-			var i2 = new Array(att.c.length);
-			for (var x=0; x<att.c.length; x++) {
-				i2[x] = new Array(att2.c.length);
-			}
-				// First pass: Collect all intersections between a1 and a2
-			att.c.forEach(function(c1, c1I) {
-				att2.c.forEach(function(c2, c2I) {
-					i2[c1I][c2I] = PData.intersect(c1.i, c2.i);
-				});
-			});
-				// Second pass: Total number of intersection sets on bottom row
-			var bS = new Array(att2.c.length);
-			for (var y=0; y<att2.c.length; y++) {
-				var t=0;
-				for (var x=0; x<att.c.length; x++)
-					if (i2[x][y].length > 0)
-						t++;
-				bS[y]=t-1;
-			}
-
-				// Create counter for bottom row
-			var bC = new Array(att2.c.length);
-			for (var y=0; y<att2.c.length; y++)
-				bC[y]=0;
-
-				// Third pass: Allocate variable spaced positions
-			var l1=0;
-			att.c.forEach(function(c1, c1I) {
-				var c1Ints = 0;				// how many non-empty sets for c1?
-				for (var y=0; y<att2.c.length; y++)
-					if (i2[c1I][y].length > 0)
-						c1Ints++;
-				c1Ints -= 1;
-				var c1W = (c1.i.length*w)/att.t;	// # pixels in c1 bar
-
-				var bI=0;
-				var l2=0;
-				att2.c.forEach(function(c2, c2I) {
-					var i = i2[c1I][c2I];
-					if (i.length > 0) {
-						var w0=i.length*w;
-						var w1=w0/att.t;
-						var w2=w0/att2.t;
-						var c2W = (c2.i.length*w)/att2.t;
-						// var c2G = c2W/bS[c2I];	// c2 bar pixel gap size
-						var s1 = c1Ints ? ((c1W-w1)*bI)/c1Ints : 0;
-						var s2 = bS[c2I] ? ((c2W-w2)*bC[c2I])/bS[c2I] : 0;
-						self.ints.push({ i: i, c: c1.c, l: c1.l+" > "+c2.l,
-							x1: 5+((l1*w)/att.t) + s1,
-							x2: 5+((l2*w)/att2.t)+ s2,
-							w1: w1, w2: w2, y1: att.y+10, y2: att2.y-1
-						});
-						bI++;
-						bC[c2I]++;
-					}
-					l2+= c2.i.length;
-				});
-				l1+= c1.i.length;
-			});
-		} // if aI not last
-	});
-
-	var flow = this.flowG.selectAll(".flow")
-		.data(self.ints)
-		.enter().append("path")
-		.attr("class", "flow")
-		.attr("d", function(d) { return "M "+d.x1+" "+d.y1+" "+" L "+(d.x1+d.w1)+" "+d.y1+" L "+(d.x2+d.w2)+
-									" "+d.y2+" L "+d.x2+" "+d.y2+" L "+d.x1+" "+d.y1; })
-		.attr("fill", function(d) { return d.c; })
-		.on("click", clickFlow)
-		.on("mouseover",function() {
-			d3.select(this).classed("active", true);
-				// Put at end of render list to ensure it is on top of others
-			this.parentElement.appendChild(this);
-		})
-		.on("mouseout",function() {
-			d3.select(this).classed("active", false);
-		})
-		.append("title")
-		.text(function(d) {
-			return d.l + " ("+d.i.length+")";
-		});
-
-		// Create titles for Attributes and values
-	var title = this.titleG.selectAll(".att-title")
-		.data(self.atts)
-		.enter()
-		.append("text")
-		.attr("class", "att-title")
-		.attr("x", "5")
-		.attr("y", function(d) { return d.y-8; })
-		.text(function (d) {
-			return d.l;
-		});
-} // render()
-
-VizFlow.prototype.setSel = function(absIArray)
-{	// Does nothing
-} // setSel()
-
-VizFlow.prototype.clearSel = function()
-{
-	if (this.bSel.length > 0) {
-		this.bSel = [];
-		this.svg.selectAll(".bar").classed('obj-sel', false);
-	}
-	if (this.fSel.length > 0) {
-		this.fSel = [];
-		this.svg.selectAll(".flow").classed('obj-sel', false);
-	}
-} // clearSel()
-
-	// RETURNS: Array of absolute IDs of selected records
-VizFlow.prototype.getSel = function()
-{
-	var self=this;
-	var u=[];
-
-	this.bSel.forEach(function(bI) {
-		u = PData.union(u, self.bars[bI].c.i);
-	});
-	this.fSel.forEach(function(fI) {
-		u = PData.union(u, self.ints[fI].i);
-	});
-	return u;
-} // getSel()
-
-
-// ================================================================================
-// VizBrowser: Class to visualize multiple Facet values of record data as parallel sets
-
-var VizBrowser = function(viewFrame, vSettings)
-{
-	PVizModel.call(this, viewFrame, vSettings);
-
-	this.stream=null;
-} // VizBrowser
-
-VizBrowser.prototype = Object.create(PVizModel.prototype);
-
-VizBrowser.prototype.constructor = VizBrowser;
-
-VizBrowser.prototype.flags = function()
-{
-	return V_FLAG_VSCRL | V_FLAG_HSCRL;
-} // flags()
-
-VizBrowser.prototype.setup = function()
-{
-		// 5 pix each side
-	var w = this.settings.fcts.length*250;
-
-		// Height: Attribute Title + Attribute value titles + flow space
-	this.svg = d3.select(this.frameID).append("svg")
-				.attr("width", w);
-
-		// Var for holding Perspective data until render
-	this.pState = null;
-} // setup()
-
-	// PURPOSE: Recompute intersection of selected Records
-VizBrowser.prototype.update = function()
-{
-	var self=this;
-	var vI = this.vFrame.getIndex();
-
-	PState.set(PSTATE_UPDATE);
-		// Start intersect array afresh
-	var ia = null, fi, chosen=false;
-	this.fcts.forEach(function(theF) {
-		if (theF.s != -1) {
-			chosen = true;
-			fi = theF.c[theF.s].i;
-			if (!ia) {
-				ia = fi;
-			} else {
-				ia = PData.intersect(ia, fi);
-			}
-		}
-	});
-	if (chosen) {
-			// Make sure result is not empty!
-		this.vFrame.selBtns(ia.length > 0);
-	} else {
-		this.vFrame.selBtns(false);
-		ia=this.stream.s;
-	}
-	this.recSel=ia;
-
-		// Now update bars
-	this.fcts.forEach(function(theF) {
-		var fID = "#facet-"+vI+"-"+theF.i;
-		var fSel = self.svg.select(fID).selectAll(".facet-val-bar");
-		fSel.data(theF.c)
-			.transition()
-			.attr("width", function(d) {
-				if (ia.length > 0) {
-					var x=PData.intersect(ia, d.i);
-					return (x.length*242)/ia.length;
-				} else {
-					return 0;
-				}
-			});
-	});
-	PState.set(PSTATE_READY);
-} // update
-
-VizBrowser.prototype.render = function(stream)
-{
-	var self=this;
-	var vI = this.vFrame.getIndex();
-
-	this.recSel=[];
-	this.stream=stream;
-
-		// Remove everything on svg -- facet-col entries are roots
-	this.svg.selectAll(".facet-col").remove();
-
-	var maxY=0;
-
-		// Create data about facets
-	this.fcts=[];
-		// Create individual bars for each category item
-	this.settings.fcts.forEach(function(attID, aI) {
-		var cat;
-		var att = PData.aByID(attID);
-		if (att.def.t === 'g') {
-			cat=[];
-			PData.cFill(cat, attID, null, stream);
-		} else {
-			if (self.settings.gr)
-				cat = PData.cRNew(att, true, true);
-			else
-				cat = PData.cLNew(att, null, true);
-			PData.cFill(cat, attID, null, stream);
-		}
-			// Compile used categories
-		var used=[];
-		var n=0;
-		cat.forEach(function(c) {
-			if (c.i.length > 0) {
-				c.n = n++;			// Need to add index field
-				used.push(c);
-			}
-		});
-		self.fcts.push({ c: used, x: aI*250, i: aI, l: att.def.l, n: att.id, s: -1 });
-
-		maxY = Math.max(maxY, 27+((used.length+1)*22));
-	});
-
-	self.svg.attr("height", maxY);
-
-		// Now create populate Facet Frames with data about facets
-	var cols = self.svg.selectAll(".facet-col")
-		.data(self.fcts)
-		.enter()
-			// Facet Label Grouping
-		.append("g")
-		.attr("transform", function(d) { return "translate(" + d.x +  ", 0)"; } )
-		.attr("class", "facet-col" )
-		.attr("id", function(d) { return "facet-"+vI+"-"+d.i; } );
-
-			// Create background color label
-	cols.append("rect")
-		.attr("class", "facet-lbl" )
-		.attr("height", 24)
-		.attr("width", 242);
-
-			// Create label text
-	cols.append("text")
-		.attr("class", "facet-lbl-txt")
-		.attr("x", 3)
-		.attr("y", 18)
-		.attr("text-anchor", "start")
-		.text(function(d) { return d.l; });
-
-	var facetSel;
-
-		// Now create labels for specific values, column by column
-	self.fcts.forEach(function(theF) {
-		var fID = "#facet-"+vI+"-"+theF.i;
-		var pp=null, sI;
-
-			// If there is a saved state to restore, see if there is entry for this facet
-		if (self.pState != null) {
-			self.pState.p.find(function(p) {
-				if (theF.n === p.f) {
-					if ((sI = theF.c.findIndex(function(c) { return p.v === c.l; })) !== -1) {
-						theF.s = sI;
-						pp = p;
-					}
-					return true;
-				} else {
-					return false;
-				}
-			});
-		}
-
-			// Need dummy data to bind to RESET buttons
-		var resetDummy=[1];
-			// Create each column's RESET button
-		facetSel = self.svg.select(fID).selectAll(".facet-reset")
-			.data(resetDummy)
-			.enter()
-			.append("g")
-				// RESET button initially starts out inactive
-			.attr("transform", "translate(0,26)")
-			.attr("class", function(d) {
-				if (pp) {
-					return "facet-reset";
-				} else {
-					return "facet-reset inactive";
-				}
-			})
-			.attr("height", 19)
-			.on("click", function(d) {
-				var rThis = this;
-				if (theF.s !== -1) {
-					theF.s = -1;
-						// Make all buttons in this column active
-					var btnSel = self.svg.select(fID).selectAll(".facet-val")
-						.classed('inactive', false);
-						// Make RESET button inactive
-					d3.select(rThis).classed('inactive', true);
-					self.update();
-				}
-			});
-		facetSel
-			.append("rect")
-			.attr("class", "facet-reset-btn")
-			.attr("height", 19)
-			.attr("width", 242);
-		facetSel
-			.append("text")
-			.attr("class", "facet-reset-txt")
-			.attr("x", 3)
-			.attr("y", 13)
-			.text(dlText.reset);
-
-				// Create button for each facet value
-		facetSel = self.svg.select(fID).selectAll(".facet-val")
-			.data(theF.c)
-			.enter()
-			.append("g")
-				// Must move down one for RESET button
-			.attr("transform", function(d, i) { return "translate(0," + (27+((i+1)*22)) +  ")"; } )
-			.attr("class", function(d, i) {
-				if (pp) {
-					if (i === sI) {
-						return "facet-val";
-					} else {
-						return "facet-val inactive";
-					}
-				} else {
-					return "facet-val";
-				}
-			})
-			.on("click", function(d, i) {
-						// Make all buttons in this column inactive, but this one
-				var resetSel = self.svg.select(fID).select(".facet-reset");
-				if (theF.s !== i) {
-					theF.s = i;
-					var btnSel = self.svg.select(fID).selectAll(".facet-val")
-							.classed('inactive', function(f) { return i !== f.n } );
-					resetSel.classed('inactive', false);
-				} else {
-						// Reset facet selection if click on the currently selected facet
-					self.svg.select(fID).selectAll(".facet-val").classed('inactive', false);
-					theF.s = -1;
-					resetSel.classed('inactive', true);
-				}
-					// Update all values
-				self.update();
-			});
-
-		facetSel
-			.append("rect")
-			.attr("class", "facet-val-btn")
-			.attr("height", 21)
-			.attr("width", 242);
-
-			// Create percentage bar (initial width)
-		facetSel
-			.append("rect")
-			.attr("class", "facet-val-bar")
-			.attr("height", 21)
-			.attr("width", function(d) {
-				if (stream.l > 0) {
-					return (d.i.length*242)/stream.l;
-				} else {
-					return 0;
-				}
-			} );
-
-			// Create label text
-		facetSel
-			.append("text")
-			.attr("class", "facet-val-txt")
-			.attr("x", 3)
-			.attr("y", 16)
-			.text(function(d) {
-				return d.l;
-			});
-
-			// Create text with number of items
-		facetSel
-			.append("text")
-			.attr("class", "facet-val-num")
-			.attr("x", 239)
-			.attr("y", 16)
-			.text(function(d) { return d.i.length; });
-	});
-
-	if (this.pState != null) {
-		this.update();
-		this.pState = null;
-	}
-} // render()
-
-VizBrowser.prototype.setSel = function(absIArray)
-{	// Does nothing
-} // setSel()
-
-VizBrowser.prototype.clearSel = function()
-{
-	var self=this;
-	var vI = this.vFrame.getIndex();
-	this.fcts.forEach(function(theF) {
-		theF.s = -1;
-		var fID = "#facet-"+vI+"-"+theF.i;
-		self.svg.select(fID).select(".facet-reset").classed('inactive', true);
-		self.svg.select(fID).selectAll(".facet-val").classed('inactive', false);
-	});
-	this.update();
-} // clearSel()
-
-	// RETURNS: Array of absolute IDs of selected records
-VizBrowser.prototype.getSel = function()
-{
-	return this.recSel;
-} // getSel()
-
-VizBrowser.prototype.getState = function()
-{
-	var pairs=[];
-
-	this.fcts.forEach(function(theF) {
-		if (theF.s !== -1) {
-			var c = theF.c[theF.s];
-				// Save pairs of Facet IDs and value labels
-			pairs.push({ f: theF.n, v: c.l });
-		}
-	});
-
-	return { p: pairs };
-} // getState()
-
-VizBrowser.prototype.setState = function(state)
-{
-		// Save data until render done, load then
-	this.pState = state;
-} // setState()
-
-
-// ===============================================================================================
-// VizMBMap: Class to create TreeMap for primary facet dimension of data; bar graphs for secondary
-
-var VizMBMap = function(viewFrame, vSettings)
-{
-	PVizModel.call(this, viewFrame, vSettings);
-} // VizMBMap
-
-VizMBMap.prototype = Object.create(PVizModel.prototype);
-
-VizMBMap.prototype.constructor = VizMBMap;
-
-VizMBMap.prototype.flags = function()
-{
-	return V_FLAG_VSCRL | V_FLAG_HSCRL;
-} // flags()
-
-VizMBMap.prototype.setup = function()
-{
-	var self=this;
-
-	function clickReset()
-	{
-		if (self.bkSel)
-			self.bkSel.s = false;
-		self.clearSel();
-	}
-		// Height: Margins (10) + select space (30) + Attribute bars (title + graphic)
-	var h = this.settings.h + 40 + (this.settings.fcts.length * 30);
-	this.svg = d3.select(this.frameID).append("svg")
-				.attr("width", this.settings.w+10)
-				.attr("height", h);
-
-		// Area for information about selected item
-	this.infoG = this.svg.append("g");
-	this.infoG.attr("transform", "translate(5," + (3+this.settings.h) + ")");
-
-		// Area for attributes
-	this.attsG = this.svg.append("g");
-	this.attsG.attr("transform", "translate(5," + (40+this.settings.h) + ")");
-
-		// RESET button
-	this.infoG.append("rect")
-		.attr("class", "mbm-reset")
-		.attr("x", "0")
-		.attr("y", "8")
-		.attr("width", "60")
-		.attr("height", "20")
-		.attr("rx", "4")
-		.attr("ry", "4")
-		.on("click", clickReset);
-	this.infoG.append("text")
-		.attr("class", "mbm-reset-text")
-		.attr("x", "30")
-		.attr("y", "23")
-		.text(dlText.reset)
-		.on("click", clickReset);
-} // setup()
-
-	// PURPOSE: Return Attribute bars to default distribution
-VizMBMap.prototype.resetAttBars = function()
-{
-	this.attsG.selectAll(".bar").transition()
-		.attr("x", function(d) { return d.x0; })
-		.attr("width", function(d) { return d.w0; });
-} // resetAttBars()
-
-	// PURPOSE: Return Attribute bars to default distribution
-VizMBMap.prototype.refreshTitles = function()
-{
-	this.svg.selectAll(".mbm-title")
-		.attr('class', function(d) { return d.s ? "mbm-title obj-sel" : "mbm-title"; });
-} // resetAttBars()
-
-	// PURPOSE: Create or update MultiMlockMap tree
-VizMBMap.prototype.renderTree = function(aI)
-{
-	var self=this;
-
-		// PURPOSE: Recalculate width of bars according to current selection
-	function recalcBars()
-	{
-		var bI=0;
-		var w=self.settings.w;
-
-		var src = self.sbkSel !== null ? self.sbkSel.i : self.bkSel.i;
-
-		PState.set(PSTATE_UPDATE);
-		self.fcts.forEach(function(thisF, fI) {
-			var newIs=[];
-			var total=0;
-				// First pass: calculate intersections
-			thisF.c.forEach(function(thisC) {
-				var newI = PData.intersect(src, thisC.i);
-				newIs.push(newI);
-				total += newI.length;
-			});
-				// Second pass: compute x, width
-			var x=0;
-			var theBar;
-			newIs.forEach(function(newI) {
-				theBar = self.bars[bI++];
-				theBar.x = total ? (x*w)/total : 0;
-				theBar.w = total ? (newI.length*w)/total : 0;
-				x += newI.length;
-			});
-		});
-
-		self.attsG.selectAll(".bar").transition()
-			.attr("x", function(d) { return d.x; })
-			.attr("width", function(d) { return d.w; });
-		PState.set(PSTATE_READY);
-	} // recalcBars()
-
-	function clickTitle(d)
-	{
-		if (self.bkSel === d) {
-				// Deselect this item (same as "RESET")
-			self.clearSel();
-		} else {
-				// Deselect others
-			self.svg.selectAll('.mbm-cell').classed('obj-sel', false);
-			if (self.bkSel)
-				self.bkSel.s = false;
-
-			d.s = true;
-			self.bkSel = d;
-			self.sbkSel = null;
-			self.refreshTitles();
-			self.infoG.select(".mbm-select").remove();
-			self.infoG.append("text")
-				.attr("class", "mbm-select")
-				.attr("x", "70")
-				.attr("y", "23")
-				.text(d.l+" ("+d.i.length+")");
-			recalcBars();
-			self.vFrame.selBtns(true);
-		}
-	} // clickTitle()
-
-	function clickBlock(d)
-	{
-		if (d.depth === 2) {
-				// Child sublock
-			if (self.sbkSel === d) {
-					// Deselect this item (same as "RESET")
-				self.clearSel();
-			} else {
-					// Deselect others
-				self.svg.selectAll('.mbm-cell').classed('obj-sel', false);
-				if (self.bkSel)
-					self.bkSel.s = false;
-
-				self.sbkSel = d;
-				d3.select(this).classed('obj-sel', true);
-				self.infoG.select(".mbm-select").remove();
-				self.infoG.append("text")
-					.attr("class", "mbm-select")
-					.attr("x", "70")
-					.attr("y", "23")
-					.text(d.l);
-
-					// Select parent title
-				d.p.s = true;
-				self.bkSel = d.p;
-				self.refreshTitles();
-				recalcBars();
-				self.vFrame.selBtns(true);
-			}
-
-		} else {
-				// Parent block
-			// Not needed, as either title or subblock selected
-		}
-	} // clickBlock()
-
-	this.svg.selectAll(".mbm-g").remove();
-
-		// New Treemap from selection
-	var nodes = this.treemaps[aI];
-
-	var cell = this.svg.selectAll(".mbm-g")
-		.data(nodes, function(d) { return d.id; });
-
-		// New blocks
-	var add = cell.enter()
-		.append("g")
-		.attr("class", "mbm-g")
-		.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
-
-	add.append("rect")
-		.attr("class", "mbm-cell")
-		.attr("width", function(d) { return d.dx-1; })
-		// .attr("width", "0")
-		.attr("height", function(d) { return d.dy-1; })
-		.attr("rx", "3")
-		.attr("ry", "3")
-		.style("fill", function(d) { return d.depth === 2 ? d.c : '#888888'; })
-		.on("click", clickBlock)
-		.append("title")
-		.text(function(d) { return d.l; });
-
-	add.filter(function(d) { return d.depth === 1; })
-		.append("text")
-		.attr("class", "mbm-title")
-		.attr("x", "3")
-		.attr("y", "11")
-		.text(function (d) { return d.l; })
-		.on("click", clickTitle);
-} // renderTree()
-
-VizMBMap.prototype.render = function(stream)
-{
-	var self=this;
-
-	function clickAtt(d, bI)
-	{
-		if (self.attSel != bI) {
-			PState.set(PSTATE_UPDATE);
-			self.attsG.selectAll(".mbm-att-title").classed('obj-sel', false);
-
-			self.clearSel();
-			self.resetAttBars();
-			self.renderTree(bI);
-
-			d3.select(this).classed('obj-sel', true);
-			self.attSel = bI;
-			PState.set(PSTATE_READY);
-		}
-	} // clickAtt()
-
-	this.bkSel=null;		// Empty Block selection -- obj pointer or null
-	this.sbkSel=null;		// Empty Sub-Block selection -- obj pointer or null
-	this.attSel=0;			// First Attribute is default selection
-
-	var w=this.settings.w;
-
-		// Remove everything on svg
-	this.attsG.selectAll(".bar").remove();
-	this.attsG.selectAll(".mbm-att-title").remove();
-	this.infoG.select(".mbm-select").remove();
-
-		// Initialize 2ndary Attribute Facet data and corresponding bars
-	this.fcts=[];
-	this.bars=[];
-	this.settings.fcts.forEach(function(attID, aI) {
-		var tCat;
-		var att = PData.aByID(attID);
-		var y=aI * 30;
-		if (att.def.t !== 'g') {
-			if (self.settings.gr)
-				tCat = PData.cRNew(att, true, true);
-			else
-				tCat = PData.cLNew(att, null, true);
-			PData.cFill(tCat, attID, null, stream);
-		} else {
-			tCat=[];
-			PData.cFill(tCat, attID, null, stream);
-		}
-
-			// Compile used categories
-		var used=[];
-		var total=0;
-		tCat.forEach(function(c) {
-			if (c.i.length > 0) {
-				used.push(c);
-				total += c.i.length;
-			}
-		});
-			// Create bars for category values
-		var x=0;
-		used.forEach(function(c) {
-			self.bars.push({ x0: ((x*w)/total), w0: (c.i.length*w)/total, x:0, w:0, y: y+18, c: c });
-			x += c.i.length;
-		});
-
-			// Save data about facets
-		self.fcts.push({ i: aI, l: att.def.l, y: y+14, c: used });
-	});
-
-		// Show Attribute facet labels
-	var facet = this.attsG.selectAll(".mbm-att-title")
-		.data(self.fcts)
-		.enter()
-		.append("text")
-		.attr("class", function(d,i) { return i === 0 ? "mbm-att-title obj-sel" : "mbm-att-title" })
-		.attr("x", "0")
-		.attr("y", function(d) { return d.y; })
-		.text(function (d) { return d.l; })
-		.on("click", clickAtt);
-
-		// Show facet bars
-	var bar = this.attsG.selectAll(".bar")
-		.data(self.bars)
-		.enter().append("rect")
-		.attr("class", "bar")
-		.attr("x", function(d) { return d.x0; })
-		.attr("y", function(d) { return d.y; })
-		.attr("fill", function(d) { return d.c.c; })
-		.attr("height", "8")
-		.attr("width", function(d) { return d.w0; })
-		.append("title")
-		.text(function(d) { return d.c.l; });
-
-		// Create Category array from primary dimension Facet
-	var pAttID = this.settings.p;
-	var pAtt = PData.aByID(pAttID);
-	var pCat;
-	if (pAtt.def.t !== 'g') {
-		if (self.settings.gr)
-			pCat = PData.cRNew(pAtt, true, true);
-		else
-			pCat = PData.cLNew(pAtt, null, true);
-		PData.cFill(pCat, pAttID, null, stream);
-	} else {
-		pCat=[];
-		PData.cFill(pCat, pAttID, null, stream);
-	}
-
-	var vI = this.vFrame.getIndex();
-
-		// Create BlockMap Tree from primary and 2ndary Attributes
-		// Each entry has elements i[absolute indices], z[children]
-	self.trees = [];
-	self.fcts.forEach(function(thisF, fI) {
-		var thisTree = { z: [], id: vI+'.'+fI };
-		pCat.forEach(function(p1Cat, pI) {
-			if (p1Cat.i.length > 0) {
-				var z2 = [];
-				var pNode = { i: p1Cat.i, l: p1Cat.l, s: false, z: z2, id: vI+'.'+fI+'.'+pI };
-				thisF.c.forEach(function(d2Cat, aI) {
-					var i2=[];
-					i2 = PData.intersect(p1Cat.i, d2Cat.i);
-					if (i2.length > 0)
-						z2.push({ i: i2, p: pNode, c: d2Cat.c, l: p1Cat.l+' + '+d2Cat.l+' ('+i2.length+')', id: vI+'.'+fI+'.'+pI+'.'+aI });
-				});
-				thisTree.z.push(pNode);
-			}
-		});
-		self.trees.push(thisTree);
-	});
-
-	var tm = d3.layout.treemap()
-			.padding([14, 3, 3, 3])
-			.size([w, this.settings.h])
-			.round(true)
-			.children(function(d, depth) {
-				return (depth === 2) ? null : d.z;
-			})
-			.value(function(d) {
-				return d.i.length;
-			});
-	self.treemaps = [];
-	self.trees.forEach(function(theTree) {
-		self.treemaps.push(tm.nodes(theTree));
-	});
-
-	self.renderTree(0);
-} // render()
-
-VizMBMap.prototype.setSel = function(absIArray)
-{	// Does nothing
-} // setSel()
-
-VizMBMap.prototype.clearSel = function()
-{
-		// Set selection flag to false for all trees
-	if (this.bkSel)
-		this.bkSel.s = false;
-	this.infoG.select(".mbm-select").remove();
-	this.bkSel=null;
-	this.sbkSel=null;
-	this.svg.selectAll(".mbm-cell").classed('obj-sel', false);
-	this.svg.selectAll(".mbm-title").classed('obj-sel', false);
-	this.resetAttBars();
-	this.vFrame.selBtns(false);
-} // clearSel()
-
-	// RETURNS: Array of absolute IDs of selected records
-VizMBMap.prototype.getSel = function()
-{
-	if (this.sbkSel !== null)
-		return this.sbkSel.i;
-	else if (this.bkSel !== null)
-		return this.bkSel.i;
-	else
-		return [];
-} // getSel()
-
-VizMBMap.prototype.hint = function()
-{
-	var att = PData.aByID(this.settings.p);
-	return dlText.grpblks+' '+att.def.l;
-} // hint()
 
 
 // ====================================================================
@@ -6839,21 +5613,21 @@ function PViewFrame(vfIndex)
 		case 't':
 			newViz = new VizTextStream(instance, theView.c);
 			break;
-		case 'S':
-			newViz = new VizStackChart(instance, theView.c);
-			break;
+		// case 'S':
+		// 	newViz = new VizStackChart(instance, theView.c);
+		// 	break;
 		case 'N':
 			newViz = new VizNetWheel(instance, theView.c);
 			break;
-		case 'F':
-			newViz = new VizFlow(instance, theView.c);
-			break;
-		case 'B':
-			newViz = new VizBrowser(instance, theView.c);
-			break;
-		case 'm':
-			newViz = new VizMBMap(instance, theView.c);
-			break;
+		// case 'F':
+		// 	newViz = new VizFlow(instance, theView.c);
+		// 	break;
+		// case 'B':
+		// 	newViz = new VizBrowser(instance, theView.c);
+		// 	break;
+		// case 'm':
+		// 	newViz = new VizMBMap(instance, theView.c);
+		// 	break;
 		}
 		vizSelIndex = vIndex;
 		var flags = newViz.flags();
@@ -8748,6 +7522,18 @@ jQuery(document).ready(function($) {
 	var localStore=null;		// Local (Browser) storage (if Browser capable)
 	var localPrspctvs=[];		// locally-stored Perspectives
 
+		// Volume extensions (not in Exhibit)
+	var tocVis = false;			// Current state of Frame 0
+	var volData=[];				// Indices into text stream where chapters and sections begin: { hi, hl, bi, bl }
+								//		header and body x index and length (chars)
+	var tocRL=[];				// Which chapters and sections on reading list
+	var tocSel=[];				// Which chapters and sections are highlighted for reading
+	var tocSelDirty=false;		// Has user changed TOC selection?
+	var txtRecs=[];				// IDs of all Records currently in text frame (in sorted order)
+	var recSel = [];			// Record IDs selected by user from text (in sorted order)
+	var hiliteRecs=true;		// Highlight selected Records, or restrict display to just those?
+
+
 		// FUNCTIONS
 		//==========
 
@@ -8864,24 +7650,6 @@ jQuery(document).ready(function($) {
 		event.preventDefault();
 	} // clickAnnotation()
 
-
-		// PURPOSE: Add 2nd window if not already there; remove if so
-	function clickTog2nd()
-	{
-		if (views[1] !== null) {
-			views[1] = null;
-			jQuery('#view-frame-1').remove();
-		} else {
-			views[0].flushLgnd();
-			PState.set(PSTATE_BUILD);
-			views[1] = PViewFrame(1);
-			views[1].initDOM(0);
-			views[1].showStream(endStream);
-			PState.set(PSTATE_READY);
-		}
-		views[0].resize();
-	} // clickTog2nd()
-
 	function clickAbout(event)
 	{
 		var aboutDialog;
@@ -8904,383 +7672,383 @@ jQuery(document).ready(function($) {
 	} // clickAbout()
 
 		// RETURNS: Record for ID or else null
-	function getPerspective(id)
-	{
-			// Check Perspectives from server
-		var prspctv = _.find(prspdata.p, function(theP) {
-			return id == theP.id;
-		});
-		if (prspctv)
-			return prspctv;
+	// function getPerspective(id)
+	// {
+	// 		// Check Perspectives from server
+	// 	var prspctv = _.find(prspdata.p, function(theP) {
+	// 		return id == theP.id;
+	// 	});
+	// 	if (prspctv)
+	// 		return prspctv;
 
-		if (localStore == null || localPrspctvs.length == 0)
-			return null;
+	// 	if (localStore == null || localPrspctvs.length == 0)
+	// 		return null;
 
-		prspctv = _.find(localPrspctvs, function(theP) {
-			return id == theP.id;
-		});
-		if (prspctv)
-			return prspctv;
+	// 	prspctv = _.find(localPrspctvs, function(theP) {
+	// 		return id == theP.id;
+	// 	});
+	// 	if (prspctv)
+	// 		return prspctv;
 
-		return null;
-	} // getPerspective()
+	// 	return null;
+	// } // getPerspective()
 
 		// PURPOSE: Save current Perspective as <id>
 		// RETURNS: "local" or "server" if save successful, else null
-	function doSavePerspective(id, label)
-	{
-			// Where to save it?
-		var dest = jQuery('input[name=save-prspctv-dest]:checked').val();
-		if (dest == '')
-			return null;
+	// function doSavePerspective(id, label)
+	// {
+	// 		// Where to save it?
+	// 	var dest = jQuery('input[name=save-prspctv-dest]:checked').val();
+	// 	if (dest == '')
+	// 		return null;
 
-		var note = jQuery('#save-prspctv-note').val();
-		note = note.replace(/"/g, '');
+	// 	var note = jQuery('#save-prspctv-note').val();
+	// 	note = note.replace(/"/g, '');
 
-			// Compile Perspective state from Views & Filter Stack
-		var pState = { f: [], h0: null, h1: null, v0: null, v1: null };
-		views.forEach(function(v, vI) {
-			if (v) {
-				pState['v'+vI] = { l: v.title(), s: v.getState() }
-			}
-		});
-		filters.forEach(function(theF) {
-			var a=[];
-			var fDiv = jQuery('div.filter-instance[data-id="'+theF.id+'"]');
-			for (var ti=0; ti<PData.eTNum(); ti++) {
-				a.push(fDiv.find('.apply-tmplt-'+ti).is(':checked'));
-			}
-			pState.f.push({ id: theF.attID, a: a, s: theF.f.getState() });
-		});
+	// 		// Compile Perspective state from Views & Filter Stack
+	// 	var pState = { f: [], h0: null, h1: null, v0: null, v1: null };
+	// 	views.forEach(function(v, vI) {
+	// 		if (v) {
+	// 			pState['v'+vI] = { l: v.title(), s: v.getState() }
+	// 		}
+	// 	});
+	// 	filters.forEach(function(theF) {
+	// 		var a=[];
+	// 		var fDiv = jQuery('div.filter-instance[data-id="'+theF.id+'"]');
+	// 		for (var ti=0; ti<PData.eTNum(); ti++) {
+	// 			a.push(fDiv.find('.apply-tmplt-'+ti).is(':checked'));
+	// 		}
+	// 		pState.f.push({ id: theF.attID, a: a, s: theF.f.getState() });
+	// 	});
 
-			// Save Highlight filters?
-		for (var h=0; h<2; h++) {
-			var hFilter = hFilters[h];
-			if (hFilter !== null && jQuery('#save-prspctv-h'+h).is(':checked')) {
-				pState['h'+h] = { id: hFilterIDs[h], s: hFilter.getState() };
-			}
-		}
-			// Store everything in Perspective object
-		var sPrspctv = { id: id, l: label, n: note, s: pState };
+	// 		// Save Highlight filters?
+	// 	for (var h=0; h<2; h++) {
+	// 		var hFilter = hFilters[h];
+	// 		if (hFilter !== null && jQuery('#save-prspctv-h'+h).is(':checked')) {
+	// 			pState['h'+h] = { id: hFilterIDs[h], s: hFilter.getState() };
+	// 		}
+	// 	}
+	// 		// Store everything in Perspective object
+	// 	var sPrspctv = { id: id, l: label, n: note, s: pState };
 
-		if (dest == 'local') {
-			localPrspctvs.push(sPrspctv);
-			localStore.setItem(prspdata.e.id, JSON.stringify(localPrspctvs));
-		} else if (dest == 'server') {
-				// Send via AJAX -- if successful, add locally
-			jQuery.ajax({
-				type: 'POST',
-				url: prspdata.ajax_url,
-				data: {
-					action: 'prsp_save_prspctv',
-					id: id,
-					l: label,
-					x: prspdata.e.id,
-					n: note,
-					s: JSON.stringify(pState)
-				},
-				success: function(data, textStatus, XMLHttpRequest)
-				{
-					if (data != '0')
-						prspdata.p.push(sPrspctv);
-				},
-				error: function(XMLHttpRequest, textStatus, errorThrown)
-				{
-				   alert(errorThrown);
-				}
-			});
-		}
-		return dest;
-	} // doSavePerspective()
+	// 	if (dest == 'local') {
+	// 		localPrspctvs.push(sPrspctv);
+	// 		localStore.setItem(prspdata.e.id, JSON.stringify(localPrspctvs));
+	// 	} else if (dest == 'server') {
+	// 			// Send via AJAX -- if successful, add locally
+	// 		jQuery.ajax({
+	// 			type: 'POST',
+	// 			url: prspdata.ajax_url,
+	// 			data: {
+	// 				action: 'prsp_save_prspctv',
+	// 				id: id,
+	// 				l: label,
+	// 				x: prspdata.e.id,
+	// 				n: note,
+	// 				s: JSON.stringify(pState)
+	// 			},
+	// 			success: function(data, textStatus, XMLHttpRequest)
+	// 			{
+	// 				if (data != '0')
+	// 					prspdata.p.push(sPrspctv);
+	// 			},
+	// 			error: function(XMLHttpRequest, textStatus, errorThrown)
+	// 			{
+	// 			   alert(errorThrown);
+	// 			}
+	// 		});
+	// 	}
+	// 	return dest;
+	// } // doSavePerspective()
 
-	function clickSavePerspective(event)
-	{
-		var spDialog;
-		var idExp = /[^\w\-]/;
+	// function clickSavePerspective(event)
+	// {
+	// 	var spDialog;
+	// 	var idExp = /[^\w\-]/;
 
-			// Clear any previous input values
-		jQuery('#save-prspctv-id').val('');
-		jQuery('#save-prspctv-lbl').val('');
-		jQuery('#save-prspctv-note').val('');
+	// 		// Clear any previous input values
+	// 	jQuery('#save-prspctv-id').val('');
+	// 	jQuery('#save-prspctv-lbl').val('');
+	// 	jQuery('#save-prspctv-note').val('');
 
-			// Make sure Browser has local storage capability
-		if (!localStore) {
-			jQuery('#save-prspctv-d-1').prop('disabled', true);
-		}
-			// If user not logged in, disable server capability
-		if (!prspdata.x.add_prspctv) {
-			jQuery('#save-prspctv-d-2').prop('disabled', true);
-		}
+	// 		// Make sure Browser has local storage capability
+	// 	if (!localStore) {
+	// 		jQuery('#save-prspctv-d-1').prop('disabled', true);
+	// 	}
+	// 		// If user not logged in, disable server capability
+	// 	if (!prspdata.x.add_prspctv) {
+	// 		jQuery('#save-prspctv-d-2').prop('disabled', true);
+	// 	}
 
-			// Uncheck Highlight filters by default
-		jQuery('#save-prspctv-h0').prop('checked', false);
-		jQuery('#save-prspctv-h1').prop('checked', false);
-			// Dis-/enable if no filter
-		for (var h=0; h<2; h++) {
-			var disable = (hFilters[h] === null || views[h] === null);
-			jQuery('#save-prspctv-h'+h).prop('disabled', disable);
-		}
+	// 		// Uncheck Highlight filters by default
+	// 	jQuery('#save-prspctv-h0').prop('checked', false);
+	// 	jQuery('#save-prspctv-h1').prop('checked', false);
+	// 		// Dis-/enable if no filter
+	// 	for (var h=0; h<2; h++) {
+	// 		var disable = (hFilters[h] === null || views[h] === null);
+	// 		jQuery('#save-prspctv-h'+h).prop('disabled', disable);
+	// 	}
 
-		spDialog = jQuery("#dialog-save-prsrctv").dialog({
-			width: 350,
-			height: 370,
-			modal: true,
-			buttons: [
-				{
-					text: dlText.ok,
-					click: function() {
-						var id = jQuery('#save-prspctv-id').val().trim();
-							// Make sure ID correct format
-						var idError = id.match(idExp);
-						var label = jQuery('#save-prspctv-lbl').val().trim();
-						label = label.replace(/"/g, '');
+	// 	spDialog = jQuery("#dialog-save-prsrctv").dialog({
+	// 		width: 350,
+	// 		height: 370,
+	// 		modal: true,
+	// 		buttons: [
+	// 			{
+	// 				text: dlText.ok,
+	// 				click: function() {
+	// 					var id = jQuery('#save-prspctv-id').val().trim();
+	// 						// Make sure ID correct format
+	// 					var idError = id.match(idExp);
+	// 					var label = jQuery('#save-prspctv-lbl').val().trim();
+	// 					label = label.replace(/"/g, '');
 
-						if (id.length === 0 || id.length > 20 || idError)
-							idError = '#dialog-prspctv-id-badchars';
-							// Make sure ID not already taken
-						else if (getPerspective(id))
-							idError = '#dialog-prspctv-id-used';
-						else if (label.length === 0 || label.length > 32)
-							idError = '#dialog-prspctv-label-bad';
-						if (idError) {
-							var errDialog = jQuery(idError).dialog({
-								width: 320,
-								height: 210,
-								modal: true,
-								buttons: [{
-									text: dlText.ok,
-									click: function() {
-										errDialog.dialog("close");
-									}
-								}]
-							});
-						} else {
-							var saved = doSavePerspective(id, label);
-							spDialog.dialog("close");
+	// 					if (id.length === 0 || id.length > 20 || idError)
+	// 						idError = '#dialog-prspctv-id-badchars';
+	// 						// Make sure ID not already taken
+	// 					else if (getPerspective(id))
+	// 						idError = '#dialog-prspctv-id-used';
+	// 					else if (label.length === 0 || label.length > 32)
+	// 						idError = '#dialog-prspctv-label-bad';
+	// 					if (idError) {
+	// 						var errDialog = jQuery(idError).dialog({
+	// 							width: 320,
+	// 							height: 210,
+	// 							modal: true,
+	// 							buttons: [{
+	// 								text: dlText.ok,
+	// 								click: function() {
+	// 									errDialog.dialog("close");
+	// 								}
+	// 							}]
+	// 						});
+	// 					} else {
+	// 						var saved = doSavePerspective(id, label);
+	// 						spDialog.dialog("close");
 
-							if (saved == 'server') {
-									// Calculate Embed value
-								var embed = xhbtURL + '/?prspctv=' + id;
+	// 						if (saved == 'server') {
+	// 								// Calculate Embed value
+	// 							var embed = xhbtURL + '/?prspctv=' + id;
 
-								jQuery('#save-prspctv-embed').val(embed);
-								var embedDialog = jQuery("#dialog-prspctv-url").dialog({
-									width: 480,
-									height: 230,
-									modal: true,
-									buttons: [{
-										text: dlText.ok,
-										click: function() {
-											embedDialog.dialog("close");
-										}
-									}]
-								});
-							} // saved on server
-						} // no redundancy
-					} // OK
-				},
-				{
-					text: dlText.cancel,
-					click: function() {
-						spDialog.dialog("close");
-					}
-				}
-			]
-		});
-		event.preventDefault();
-	} // clickSavePerspective()
+	// 							jQuery('#save-prspctv-embed').val(embed);
+	// 							var embedDialog = jQuery("#dialog-prspctv-url").dialog({
+	// 								width: 480,
+	// 								height: 230,
+	// 								modal: true,
+	// 								buttons: [{
+	// 									text: dlText.ok,
+	// 									click: function() {
+	// 										embedDialog.dialog("close");
+	// 									}
+	// 								}]
+	// 							});
+	// 						} // saved on server
+	// 					} // no redundancy
+	// 				} // OK
+	// 			},
+	// 			{
+	// 				text: dlText.cancel,
+	// 				click: function() {
+	// 					spDialog.dialog("close");
+	// 				}
+	// 			}
+	// 		]
+	// 	});
+	// 	event.preventDefault();
+	// } // clickSavePerspective()
 
-	function managePerspectives()
-	{
-		var mpDialog;
-		var xData=[];
-		var xDataDirty=false;
+	// function managePerspectives()
+	// {
+	// 	var mpDialog;
+	// 	var xData=[];
+	// 	var xDataDirty=false;
 
-		function createList()
-		{
-				// Clear scroll areas and recreate
-			var pList = jQuery('#prspctv-mlist');
-			pList.empty();
+	// 	function createList()
+	// 	{
+	// 			// Clear scroll areas and recreate
+	// 		var pList = jQuery('#prspctv-mlist');
+	// 		pList.empty();
 
-				// Populate local list
-			localPrspctvs.forEach(function(theP) {
-				pList.append('<li data-type="l" data-id="'+theP.id+'"><span class="label">'+theP.l+'</span> <button class="del">'+dlText.del+
-					'</button> <button class="edit">'+dlText.edit+'</button></li>');
-			});
+	// 			// Populate local list
+	// 		localPrspctvs.forEach(function(theP) {
+	// 			pList.append('<li data-type="l" data-id="'+theP.id+'"><span class="label">'+theP.l+'</span> <button class="del">'+dlText.del+
+	// 				'</button> <button class="edit">'+dlText.edit+'</button></li>');
+	// 		});
 
-				// Get other Perspectives of other Exhibits (on this domain)
-			for (var i=0; i<localStore.length; i++) {
-				var xKey = localStore.key(i);
-				if (xKey != prspdata.e.id) {
-					var xItem = localStore.getItem(xKey);
-					xData.push({ id: xKey, ps: JSON.parse(xItem) });
-				}
-			}
+	// 			// Get other Perspectives of other Exhibits (on this domain)
+	// 		for (var i=0; i<localStore.length; i++) {
+	// 			var xKey = localStore.key(i);
+	// 			if (xKey != prspdata.e.id) {
+	// 				var xItem = localStore.getItem(xKey);
+	// 				xData.push({ id: xKey, ps: JSON.parse(xItem) });
+	// 			}
+	// 		}
 
-			xData.forEach(function(xEl, xI) {
-				xEl.ps.forEach(function(pEl) {
-					pList.append('<li data-type="x" data-xid="'+xEl.id+'" data-xindex="'+xI+'" data-id="'+
-						pEl.id+'"><i class="label">'+pEl.l+'</i> <button class="del">'+dlText.del+
-						'</button> <button class="edit">'+dlText.edit+'</button></li>');
-				});
-			});
-		} // createList()
+	// 		xData.forEach(function(xEl, xI) {
+	// 			xEl.ps.forEach(function(pEl) {
+	// 				pList.append('<li data-type="x" data-xid="'+xEl.id+'" data-xindex="'+xI+'" data-id="'+
+	// 					pEl.id+'"><i class="label">'+pEl.l+'</i> <button class="del">'+dlText.del+
+	// 					'</button> <button class="edit">'+dlText.edit+'</button></li>');
+	// 			});
+	// 		});
+	// 	} // createList()
 
-		createList();
+	// 	createList();
 
-			// Handle selection of item on Manage Perspective list
-		jQuery('#prspctv-mlist').click(function(event) {
-			if (event.target.nodeName == 'BUTTON') {	// Edit or Delete?
-				var del = jQuery(event.target).hasClass('del');
-				var parent = jQuery(event.target).parent();
-				var t = parent.data('type');
-				var id = parent.data('id');
-				var pI;
-				if (del) {
-					switch (t) {
-					case 'l':
-						pI = localPrspctvs.findIndex(function(theP) {
-							return id == theP.id;
-						});
-						if (pI != -1) {
-							localPrspctvs.splice(pI, 1);
-							if (localPrspctvs.length == 0)
-								localStore.removeItem(prspdata.e.id);
-							else
-								localStore.setItem(prspdata.e.id, JSON.stringify(localPrspctvs));
-						}
-						break;
-					case 'x':
-						var xI = parent.data('xindex');
-						var xEntry = xData[xI];
-						pI = xEntry.ps.findIndex(function(theP) {
-							return id == theP.id;
-						});
-						if (pI != -1) {
-							xEntry.ps.splice(pI, 1);
-							xDataDirty = true;
-						}
-						break;
-					} // switch type
-					parent.remove();
-				} else {
-					var pRec;
+	// 		// Handle selection of item on Manage Perspective list
+	// 	jQuery('#prspctv-mlist').click(function(event) {
+	// 		if (event.target.nodeName == 'BUTTON') {	// Edit or Delete?
+	// 			var del = jQuery(event.target).hasClass('del');
+	// 			var parent = jQuery(event.target).parent();
+	// 			var t = parent.data('type');
+	// 			var id = parent.data('id');
+	// 			var pI;
+	// 			if (del) {
+	// 				switch (t) {
+	// 				case 'l':
+	// 					pI = localPrspctvs.findIndex(function(theP) {
+	// 						return id == theP.id;
+	// 					});
+	// 					if (pI != -1) {
+	// 						localPrspctvs.splice(pI, 1);
+	// 						if (localPrspctvs.length == 0)
+	// 							localStore.removeItem(prspdata.e.id);
+	// 						else
+	// 							localStore.setItem(prspdata.e.id, JSON.stringify(localPrspctvs));
+	// 					}
+	// 					break;
+	// 				case 'x':
+	// 					var xI = parent.data('xindex');
+	// 					var xEntry = xData[xI];
+	// 					pI = xEntry.ps.findIndex(function(theP) {
+	// 						return id == theP.id;
+	// 					});
+	// 					if (pI != -1) {
+	// 						xEntry.ps.splice(pI, 1);
+	// 						xDataDirty = true;
+	// 					}
+	// 					break;
+	// 				} // switch type
+	// 				parent.remove();
+	// 			} else {
+	// 				var pRec;
 
-					switch (t) {
-					case 'l':
-						pRec = _.find(localPrspctvs, function(theP) {
-							return id == theP.id;
-						});
-						break;
-					case 'x':
-						var xI = parent.data('xindex');
-						var xEntry = xData[xI];
-						pRec = _.find(xEntry.ps, function(theP) {
-							return id == theP.id;
-						});
-						break;
-					} // switch
-					jQuery('#edit-prspctv-lbl').val(pRec.l);
-					jQuery('#edit-prspctv-note').val(pRec.n);
+	// 				switch (t) {
+	// 				case 'l':
+	// 					pRec = _.find(localPrspctvs, function(theP) {
+	// 						return id == theP.id;
+	// 					});
+	// 					break;
+	// 				case 'x':
+	// 					var xI = parent.data('xindex');
+	// 					var xEntry = xData[xI];
+	// 					pRec = _.find(xEntry.ps, function(theP) {
+	// 						return id == theP.id;
+	// 					});
+	// 					break;
+	// 				} // switch
+	// 				jQuery('#edit-prspctv-lbl').val(pRec.l);
+	// 				jQuery('#edit-prspctv-note').val(pRec.n);
 
-					var epDialog = jQuery("#dialog-edit-prsrctv").dialog({
-						width: 340,
-						height: 270,
-						modal: true,
-						buttons: [
-							{
-								text: dlText.ok,
-								click: function() {
-									pRec.l = jQuery('#edit-prspctv-lbl').val();
-									pRec.n = jQuery('#edit-prspctv-note').val();
-									parent.find('.label').text(pRec.l);
-									if (t == 'x')
-										xDataDirty = true;
-									else
-										localStore.setItem(prspdata.e.id, JSON.stringify(localPrspctvs));
-									epDialog.dialog("close");
-								}
-							}, // OK
-							{
-								text: dlText.cancel,
-								click: function() {
-									epDialog.dialog("close");
-								}
-							}]});
-				} // else edit
-			} // if BUTTON
-		});
+	// 				var epDialog = jQuery("#dialog-edit-prsrctv").dialog({
+	// 					width: 340,
+	// 					height: 270,
+	// 					modal: true,
+	// 					buttons: [
+	// 						{
+	// 							text: dlText.ok,
+	// 							click: function() {
+	// 								pRec.l = jQuery('#edit-prspctv-lbl').val();
+	// 								pRec.n = jQuery('#edit-prspctv-note').val();
+	// 								parent.find('.label').text(pRec.l);
+	// 								if (t == 'x')
+	// 									xDataDirty = true;
+	// 								else
+	// 									localStore.setItem(prspdata.e.id, JSON.stringify(localPrspctvs));
+	// 								epDialog.dialog("close");
+	// 							}
+	// 						}, // OK
+	// 						{
+	// 							text: dlText.cancel,
+	// 							click: function() {
+	// 								epDialog.dialog("close");
+	// 							}
+	// 						}]});
+	// 			} // else edit
+	// 		} // if BUTTON
+	// 	});
 
-		mpDialog = jQuery("#dialog-manage-prsrctv").dialog({
-			width: 450,
-			height: 350,
-			modal: true,
-			buttons: [{
-					text: dlText.ok,
-					click: function() {
-						if (xDataDirty) {
-							xData.forEach(function(xEntry) {
-								if (xEntry.ps.length > 0)
-									localStore.setItem(xEntry.id, JSON.stringify(xEntry.ps));
-								else
-									localStore.removeItem(xEntry.id);
-							});
-						}
-						jQuery('#prspctv-mlist').off("click");
-						mpDialog.dialog("close");
-					} // OK
-				}]
-		});
-	} // managePerspectives()
+	// 	mpDialog = jQuery("#dialog-manage-prsrctv").dialog({
+	// 		width: 450,
+	// 		height: 350,
+	// 		modal: true,
+	// 		buttons: [{
+	// 				text: dlText.ok,
+	// 				click: function() {
+	// 					if (xDataDirty) {
+	// 						xData.forEach(function(xEntry) {
+	// 							if (xEntry.ps.length > 0)
+	// 								localStore.setItem(xEntry.id, JSON.stringify(xEntry.ps));
+	// 							else
+	// 								localStore.removeItem(xEntry.id);
+	// 						});
+	// 					}
+	// 					jQuery('#prspctv-mlist').off("click");
+	// 					mpDialog.dialog("close");
+	// 				} // OK
+	// 			}]
+	// 	});
+	// } // managePerspectives()
 
-	function clickShowPerspective(event)
-	{
-			// Clear scroll areas and recreate
-		var pList = jQuery('#prspctv-slist');
-		pList.empty();
+	// function clickShowPerspective(event)
+	// {
+	// 		// Clear scroll areas and recreate
+	// 	var pList = jQuery('#prspctv-slist');
+	// 	pList.empty();
 
-			// Populate server list
-		prspdata.p.forEach(function(theP) {
-			pList.append('<li data-src="server" data-id="'+theP.id+'">'+theP.l+'</li>');
-		});
+	// 		// Populate server list
+	// 	prspdata.p.forEach(function(theP) {
+	// 		pList.append('<li data-src="server" data-id="'+theP.id+'">'+theP.l+'</li>');
+	// 	});
 
-			// Populate local list
-		localPrspctvs.forEach(function(theP) {
-			pList.append('<li data-src="local" data-id="'+theP.id+'">'+theP.l+'</li>');
-		});
+	// 		// Populate local list
+	// 	localPrspctvs.forEach(function(theP) {
+	// 		pList.append('<li data-src="local" data-id="'+theP.id+'">'+theP.l+'</li>');
+	// 	});
 
-		var bs = [{
-					text: dlText.ok,
-					click: function() {
-						spDialog.dialog("close");
-						var selItem = pList.find('li.selected');
-						if (selItem.length) {
-							var setP = selItem.data('id');
-							doShowPerspective(setP);
-							PState.set(PSTATE_READY);
-						}
-					} // OK
-				},
-				{
-					text: dlText.cancel,
-					click: function() {
-						spDialog.dialog("close");
-					}
-				}];
-		if (localStore)
-			bs.push({text: dlText.manage,
-					click: function() {
-						spDialog.dialog("close");
-						managePerspectives();
-					}});
+	// 	var bs = [{
+	// 				text: dlText.ok,
+	// 				click: function() {
+	// 					spDialog.dialog("close");
+	// 					var selItem = pList.find('li.selected');
+	// 					if (selItem.length) {
+	// 						var setP = selItem.data('id');
+	// 						doShowPerspective(setP);
+	// 						PState.set(PSTATE_READY);
+	// 					}
+	// 				} // OK
+	// 			},
+	// 			{
+	// 				text: dlText.cancel,
+	// 				click: function() {
+	// 					spDialog.dialog("close");
+	// 				}
+	// 			}];
+	// 	if (localStore)
+	// 		bs.push({text: dlText.manage,
+	// 				click: function() {
+	// 					spDialog.dialog("close");
+	// 					managePerspectives();
+	// 				}});
 
-		var spDialog = jQuery("#dialog-show-prsrctv").dialog({
-			width: 350,
-			height: 350,
-			modal: true,
-			buttons: bs
-		});
-		event.preventDefault();
-	} // clickShowPerspective()
+	// 	var spDialog = jQuery("#dialog-show-prsrctv").dialog({
+	// 		width: 350,
+	// 		height: 350,
+	// 		modal: true,
+	// 		buttons: bs
+	// 	});
+	// 	event.preventDefault();
+	// } // clickShowPerspective()
 
 	function clickGoHome(event)
 	{
@@ -9635,108 +8403,607 @@ jQuery(document).ready(function($) {
 
 		// PURPOSE: Attempt to show Perspective pID
 		// RETURN:  false if error
-	function doShowPerspective(pID)
+	// function doShowPerspective(pID)
+	// {
+	// 	function vizIndex(vID)
+	// 	{
+	// 		return prspdata.e.vf.findIndex(function(vf) {
+	// 			return vID == vf.l;
+	// 		});
+	// 	}
+
+	// 	var p = getPerspective(pID);
+	// 	if (p == null)
+	// 		return false;
+
+	// 	PState.set(PSTATE_PROCESS);
+
+	// 		// Minimize filter and selector bars
+	// 	jQuery('#filter-frame').hide();
+
+	// 		// Clear current Filter Stack & Selector Filter
+	// 	filters.forEach(function(theF) {
+	// 		theF.f.teardown();
+	// 	});
+	// 	filters=[];
+	// 	jQuery('#filter-instances').empty();
+
+	// 	p.s.f.forEach(function(fRec) {
+	// 		var newF = createFilter(fRec.id, fRec.a, null);
+	// 		newF.setState(fRec.s);
+	// 	});
+	// 	jQuery('#filter-instances').hide();
+	// 	jQuery('#btn-toggle-filters').button(p.s.f.length == 0 ? "disable" : "enable");
+
+	// 		// Load Highlight filters?
+	// 	for (var h=0; h<2; h++) {
+	// 		if (p.s['h'+h] != null) {	// Want to check for both null and undefined!
+	// 			var hFData = p.s['h'+h];
+	// 			hFilterIDs[h] = hFData.id;
+	// 			var hFilter = createFilter(hFData.id, null, h);
+	// 			hFilters[h] = hFilter;
+	// 			hFilter.setState(hFData.s);
+	// 		} else {
+	// 			hFilters[h] = null;
+	// 			hFilterIDs[h] = null;
+	// 		}
+	// 	}
+
+	// 	var vI, v0=views[0], v1=views[1];
+	// 	var resize0=false;
+
+	// 	PState.set(PSTATE_BUILD);
+	// 	vI = vizIndex(p.s.v0.l);
+	// 		// Already exists?
+	// 	if (v0) {
+	// 		v0.setViz(vI, false);
+	// 		v0.selBtns(false);
+	// 	} else {
+	// 		views[0] = PViewFrame(0);
+	// 		v0 = views[0];
+	// 		v0.initDOM(vI);
+	// 	}
+
+	// 	if (p.s.v1 !== null) {
+	// 		vI = vizIndex(p.s.v1.l);
+	// 			// Already exists?
+	// 		if (v1) {
+	// 			v1.selBtns(false);
+	// 			v1.setViz(vI, false);
+	// 			v1.setState(p.s.v1.s);
+	// 		} else {
+	// 			v0.flushLgnd();
+	// 			views[1] = PViewFrame(1);
+	// 			v1 = views[1];
+	// 			v1.initDOM(vI);
+	// 			v1.setState(p.s.v1.s);
+	// 			resize0 = true;
+	// 		}
+	// 	} else {
+	// 		if (v1) {
+	// 			views[1] = null;
+	// 			jQuery('#view-frame-1').remove();
+	// 			resize0 = true;
+	// 		}
+	// 	}
+	// 		// Do left-side last because of resizing with right side
+	// 	if (resize0)
+	// 		v0.resize();
+	// 	v0.setState(p.s.v0.s);
+
+	// 	setAnnote(p.n);
+
+	// 		// Don't recompute if data not loaded yet
+	// 	if (PData.ready() && topStream) {
+	// 		doRecompute();
+	// 		for (h=0; h<2; h++) {
+	// 			if (hFilterIDs[h] !== null) {
+	// 				doApplyHighlight(h);
+	// 			}
+	// 		}
+	// 	}
+
+	// 	return true;
+	// } // doShowPerspective()
+
+
+		// VOLUME EXTENSIONS
+		//==================
+
+	function buildTOC()
 	{
-		function vizIndex(vID)
-		{
-			return prspdata.e.vf.findIndex(function(vf) {
-				return vID == vf.l;
+		var volC, volS;
+		var txt = document.getElementById('prsp-volume').innerHTML;
+		var str;
+
+		var tf = jQuery('#toc-frame > ul.toc-wrapper');
+		tf.empty();
+		volData.forEach(function(chap, cI) {
+			str = '<li class="toc-chap" data-c='+cI+'><input type="checkbox" class="readlist-c"/> <button class="toccollapse">Collapse</button> ';
+			str += txt.substr(chap.hi+4, chap.hl-9);
+			str += '<ul class="toc-secs" style="display: none;">';
+			chap.s.forEach(function(sec, sI) {
+				str += '<li data-s='+sI+'><input type="checkbox" class="readlist"/>'+txt.substr(sec.hi+4, sec.hl-9)+'</li>';
 			});
-		}
-
-		var p = getPerspective(pID);
-		if (p == null)
-			return false;
-
-		PState.set(PSTATE_PROCESS);
-
-			// Minimize filter and selector bars
-		jQuery('#filter-frame').hide();
-
-			// Clear current Filter Stack & Selector Filter
-		filters.forEach(function(theF) {
-			theF.f.teardown();
+			str += '</ul></li>';
+			tf.append(str);
 		});
-		filters=[];
-		jQuery('#filter-instances').empty();
 
-		p.s.f.forEach(function(fRec) {
-			var newF = createFilter(fRec.id, fRec.a, null);
-			newF.setState(fRec.s);
+			// Bind click on chapters first
+		jQuery('#toc-frame > ul.toc-wrapper > li.toc-chap').click(clickTOCChap);
+			// Then bind clickk on sections
+		jQuery('#toc-frame > ul.toc-wrapper > li.toc-chap > ul.toc-secs li').click(clickTOCSec);
+			// Bind all RL checkbox clicks
+		jQuery('#toc-frame > ul.toc-wrapper > li.toc-chap input[type=checkbox]').click(clickRLCheck);
+			// Bind collapse/expand icon buttons
+		jQuery('#toc-frame .toccollapse').button({icons: { primary: 'ui-icon-plus' }, text: false })
+			.click(clickTOCCollapse);
+	} // buildTOC()
+
+		// PURPOSE: Insert appropriate text into text frame, given tocSel
+		// NOTES: 	Must also highlight references to records in recSel
+		//			Disable prev/next buttons if no RL items before or after
+	function buildTextFrame()
+	{
+		var volC, volS;
+		var txt = document.getElementById('prsp-volume').innerHTML;
+
+		var tf = jQuery('#text-frame');
+		tf.empty();
+		tocSel.forEach(function(chap, cI) {
+			volC = volData[cI];
+			if (chap.c) {
+				tf.append(txt.substr(volC.hi, volC.hl));
+				if (volC.cl > 0) {
+					tf.append(txt.substr(volC.ci, volC.cl));
+				}
+			}
+			chap.s.forEach(function(sec, sI) {
+				if (sec) {
+					volS = volC.s[sI];
+					tf.append(txt.substr(volS.hi, volS.hl));
+					if (volS.cl > 0) {
+						tf.append(txt.substr(volS.ci, volS.cl));
+					}
+				}
+			});
 		});
-		jQuery('#filter-instances').hide();
-		jQuery('#btn-toggle-filters').button(p.s.f.length == 0 ? "disable" : "enable");
 
-			// Load Highlight filters?
-		for (var h=0; h<2; h++) {
-			if (p.s['h'+h] != null) {	// Want to check for both null and undefined!
-				var hFData = p.s['h'+h];
-				hFilterIDs[h] = hFData.id;
-				var hFilter = createFilter(hFData.id, null, h);
-				hFilters[h] = hFilter;
-				hFilter.setState(hFData.s);
-			} else {
-				hFilters[h] = null;
-				hFilterIDs[h] = null;
+			// Find all <a>, create list of recs from data-id
+		txtRecs=[];
+		recSel=[];
+		var recs;
+		recs = jQuery('#text-frame').find('a');
+		recs.each(function(aI) {
+			var thisID = jQuery(this).data('id');
+				// Keep list sorted; don't add if already exists
+			if (thisID) {
+				if (txtRecs.length == 0) {
+					txtRecs.push(thisID);
+				} else {
+					var i = _.sortedIndex(txtRecs, thisID);
+					if (txtRecs[i] !== thisID) {
+						txtRecs.splice(i, 0, thisID);
+					}
+				}
+			}
+		});
+// console.log("Rec IDs on this page: "+JSON.stringify(txtRecs));
+	} // buildTextFrame()
+
+		// PURPOSE: Create all volume data by parsing HTML text representing volume
+		// SIDE-FX: Creates volData, tocRL, tocSel
+		// NOTES: 	Reading List is all on by default; open with first chapter in text pane
+	function parseVol()
+	{
+		var txt = document.getElementById('prsp-volume').innerHTML;
+		var txtLen = txt.length;
+		var tI=0;
+		var i, nH1, si, sl;
+		var cCont, prev;
+
+		while (tI < txtLen) {
+			var cRec={ hi: 0, hl: 0, ci: 0, cl: 0, s: [] };
+				// Next chapter header
+			i = txt.indexOf('<h1>', tI);
+				// No more
+			if (i === -1) {
+				break;
+			}
+			cRec.hi = i;
+			tI = i+4;
+				// Get closing tag
+			i = txt.indexOf('</h1>', tI);
+			if (i === -1) {
+				throw new Error("Can't find closing h1 tag after "+tI);
+			}
+			tI = i+5;
+			cRec.hl = tI-cRec.hi;
+
+				// Content (if any) starts next by default
+			cRec.ci = tI;
+			cCont=true;
+
+				// Check to see position of next <h1> -- all <h2> tags must come before
+			nH1 = txt.indexOf('<h1>', tI);
+
+			do {
+				si = txt.indexOf('<h2>', tI);
+				if (si !== -1 && (nH1 === -1 || si < nH1)) {
+						// Need to set size of chapter's content section?
+					if (cCont) {
+						cRec.cl=si-cRec.ci;
+						cCont=false;
+						// Set size of previous section's content section
+					} else {
+						prev = cRec.s[cRec.s.length-1];
+						prev.cl = si-prev.ci;
+					}
+					tI = si+4;
+					sl = txt.indexOf('</h2>', tI);
+					if (sl === -1) {
+						throw new Error("Can't find closing h2 tag after "+tI);
+					}
+					tI = sl+5;
+					cRec.s.push({ hi: si, hl: (sl+5)-si, ci: tI, cl: 0 });
+				} else {
+						// Move to next chapter or end
+					if (nH1 !== -1) {
+						tI = nH1;
+					} else {
+						tI=txtLen;
+					}
+				}
+			} while ((nH1 === -1 || tI < nH1) && (tI < txtLen));
+
+				// modify content section of final section, if any
+			if (cRec.s.length > 0) {
+				prev = cRec.s[cRec.s.length-1];
+				prev.cl=tI-prev.ci;
+			} else if (cCont) {
+				cRec.cl=tI-cRec.ci;
+			}
+
+			volData.push(cRec);
+		}
+
+			// Create default Reading List and Selection: everything selected on RL
+		volData.forEach(function(chap, cI) {
+			var rlChap={c: true, s: []};
+			var rlSel={c: false, s:[]};
+			chap.s.forEach(function(sec, sI) {
+				rlChap.s.push(true);
+				rlSel.s.push(false);
+			});
+			tocRL.push(rlChap);
+			tocSel.push(rlSel);
+		});
+
+			// Open at very beginning by default
+		tocSel[0].c = true;
+	} // parseVol()
+
+		// PURPOSE: Set tocSel to indicate viewing chap, sec and update everything
+		// INPUT: 	if clear, remove all other flags
+		//			cI (chapter index) = 0..n-1
+		//			sI (section index) = 0..n-1 or -1 if none
+	function setTOCSel(clear, cI, sI)
+	{
+		var chap;
+		if (clear) {
+			for (var i=0; i<tocSel.length; i++) {
+				chap = tocSel[i];
+				chap.c = false;
+				for (var j=0; j<chap.s.length; j++)
+					chap.s[j] = false;
 			}
 		}
 
-		var vI, v0=views[0], v1=views[1];
-		var resize0=false;
-
-		PState.set(PSTATE_BUILD);
-		vI = vizIndex(p.s.v0.l);
-			// Already exists?
-		if (v0) {
-			v0.setViz(vI, false);
-			v0.selBtns(false);
+		chap = tocSel[cI];
+			// Now set new reading material
+		if (sI == -1) {
+			chap.c = true;
 		} else {
-			views[0] = PViewFrame(0);
-			v0 = views[0];
-			v0.initDOM(vI);
+			chap.s[sI] = true;
 		}
 
-		if (p.s.v1 !== null) {
-			vI = vizIndex(p.s.v1.l);
-				// Already exists?
-			if (v1) {
-				v1.selBtns(false);
-				v1.setViz(vI, false);
-				v1.setState(p.s.v1.s);
-			} else {
-				v0.flushLgnd();
-				views[1] = PViewFrame(1);
-				v1 = views[1];
-				v1.initDOM(vI);
-				v1.setState(p.s.v1.s);
-				resize0 = true;
-			}
+		updateTOCSel();
+		buildTextFrame();
+	} // setTOCSel()
+
+		// PURPOSE: Set chapter & section selection based on tocSel
+	function updateTOCSel()
+	{
+		var tf, cDom, sDom;
+
+		tf = jQuery('#toc-frame');
+		tocSel.forEach(function(chap, cI) {
+			cDom = tf.find('ul.toc-wrapper > li.toc-chap[data-c="'+cI+'"]');
+			cDom.toggleClass('sel', chap.c);
+			chap.s.forEach(function(sec, sI) {
+				cDom.find('li[data-s="'+sI+'"]').toggleClass('sel', sec);
+			});
+		});
+	} // updateTOCRL()
+
+		// PURPOSE: Set reading list checkboxes based on tocRL
+	function updateTOCRL()
+	{
+		var tf, cDom, sDom;
+
+		tf = jQuery('#toc-frame');
+		tocRL.forEach(function(chap, cI) {
+			cDom = tf.find('ul.toc-wrapper > li.toc-chap[data-c="'+cI+'"]');
+			cDom.find('.readlist-c').prop('checked', chap.c);
+			chap.s.forEach(function(sec, sI) {
+				cDom.find('li[data-s="'+sI+'"] > .readlist').prop('checked', sec);
+			});
+		});
+	} // updateTOCRL()
+
+		// PURPOSE: Handle toggling between TOC and Text panes
+	function clickHSTOC(event)
+	{
+		tocVis = !tocVis;
+		if (tocVis) {
+			tocSelDirty=false;
+			jQuery('#toc-controls').show();
+			jQuery('#toc-frame').show();
+			jQuery('#text-controls').hide();
+			jQuery('#text-frame').hide();
 		} else {
-			if (v1) {
-				views[1] = null;
-				jQuery('#view-frame-1').remove();
-				resize0 = true;
+			if (tocSelDirty) {
+				buildTextFrame();
+			}
+			jQuery('#toc-controls').hide();
+			jQuery('#toc-frame').hide();
+			jQuery('#text-controls').show();
+			jQuery('#text-frame').show();
+		}
+		event.preventDefault();
+	} // clickHSTOC()
+
+		// PURPOSE: Handle click of chapter open/close toggle
+	function clickTOCCollapse(event)
+	{
+		var btn = jQuery(this);
+		var chap = btn.closest('li.toc-chap');
+		var secs = chap.find('ul.toc-secs');
+		secs.toggle();
+		event.preventDefault();
+	} // clickTOCCollapse()
+
+		// PURPOSE: Handle click of Un/Check All (Reading List) checkbox on TOC
+	function clickTOCHCAll(event)
+	{
+		var c = event.target.checked;
+		for (var i=0; i<tocRL.length; i++) {
+			var chap = tocRL[i];
+			chap.c = c;
+			for (var j=0; j<chap.s.length; j++) {
+				chap.s[j] = c;
 			}
 		}
-			// Do left-side last because of resizing with right side
-		if (resize0)
-			v0.resize();
-		v0.setState(p.s.v0.s);
+		updateTOCRL();
+		// Don't prevent default, as that's what updates HTML Dom
+	} // clickTOCHCAll()
 
-		setAnnote(p.n);
+		// PURPOSE: Handle click of De/Select All (Visible in Text Pane) checkbox on TOC
+	function clickTOCHSAll(event)
+	{
+		tocSelDirty=true;
+		var s = event.target.checked;
+		tocSel.forEach(function(chap, cI) {
+			var cDom = jQuery('#toc-frame > ul.toc-wrapper > li.toc-chap[data-c="'+cI+'"]');
+			chap.c = s;
+			for (i=0; i<chap.s.length; i++) {
+				chap.s[i] = s;
+			}
+			if (s) {
+				cDom.addClass('sel');
+				cDom.find('ul.toc-secs > li').addClass('sel');
+			} else {
+				cDom.removeClass('sel');
+				cDom.find('ul.toc-secs > li').removeClass('sel');
+			}
+		});
+		// Don't prevent default, as that's what updates HTML Dom
+	} // clickTOCHCAll()
 
-			// Don't recompute if data not loaded yet
-		if (PData.ready() && topStream) {
-			doRecompute();
-			for (h=0; h<2; h++) {
-				if (hFilterIDs[h] !== null) {
-					doApplyHighlight(h);
+		// PURPOSE: Handle a click on the text frame
+		// NOTE: 	As there can be multiple refereces to same Record in text frame,
+		//				we need to un/highlight all of them simultaneously!
+	function clickTextFrame(event)
+	{
+		var node = event.target;
+		if (node.nodeName === 'A') {
+			var id = node.dataset.id;
+// console.log("id = "+id);
+			var i = _.sortedIndex(recSel, id);
+				// If it already exists, remove it
+			if (recSel[i] === id) {
+				recSel.splice(i, 1);
+				jQuery('#text-frame a[data-id="'+id+'"]').removeClass('sel');
+			} else {
+				recSel.splice(i, 0, id);
+				jQuery('#text-frame a[data-id="'+id+'"]').addClass('sel');
+			}
+		}
+		event.preventDefault();
+	} // clickTextFrame()
+
+		// PURPOSE: Handle click on a chapter in TOC
+	function clickTOCChap(event)
+	{
+		var cI = event.target.dataset.c;
+		if (typeof cI != 'undefined') {
+			tocSelDirty=true;
+				// De/Select chapter and all of its sections
+			var chap = tocSel[cI];
+			chap.c = !chap.c;
+			var cDom = jQuery('#toc-frame > ul.toc-wrapper > li.toc-chap[data-c="'+cI+'"]');
+			if (chap.c) {
+				cDom.addClass('sel');
+				// cDom.find('ul.toc-secs > li').addClass('sel');
+				// for (i=0; i<chap.s.length; i++) {
+				// 	chap.s[i] = true;
+				// }
+			} else {
+				cDom.removeClass('sel');
+				// cDom.find('ul.toc-secs > li').removeClass('sel');
+				// for (i=0; i<chap.s.length; i++) {
+				// 	chap.s[i] = false;
+				// }
+			}
+			event.preventDefault();
+		}
+	} // clickTOCChap()
+
+		// PURPOSE: Handle click on a section in TOC
+	function clickTOCSec(event)
+	{
+		var sI = event.target.dataset.s;
+		if (typeof sI != 'undefined') {
+			tocSelDirty=true;
+			var cDom = jQuery(event.target).closest('li.toc-chap');
+			var cI = cDom.data('c');
+			var chap = tocSel[cI];
+			var sOn = (chap.s[sI] = !chap.s[sI]);
+			var sDom = cDom.find('ul.toc-secs > li[data-s="'+sI+'"]');
+			if (sOn) {
+				sDom.addClass('sel');
+			} else {
+				sDom.removeClass('sel');
+			}
+			event.preventDefault();
+		}
+	} // clickTOCSec()
+
+		// PURPOSE: Handle click on a RL checkbox in the TOC
+	function clickRLCheck(event)
+	{
+		var on = event.target.checked;
+		var cDom, sDom, cI, sI;
+		if (event.target.className === 'readlist-c') {
+			var cI = jQuery(event.target).closest('li.toc-chap').data('c');
+			tocRL[cI].c = on;
+		} else if (event.target.className === 'readlist') {
+			var sI = jQuery(event.target).closest('li').data('s');
+			var cI = jQuery(event.target).closest('li.toc-chap').data('c');
+			tocRL[cI].s[sI] = on;
+		}
+		// Don't prevent default, as that's what updates HTML Dom
+	} // clickRLCheck()
+
+
+		// PURPOSE: Find previous selection in Reading List and select (and show in text frame)
+		// NOTES: 	Current text in tocSel; look for prev in tocRL
+		//			Does not wrap around to the end!
+	function clickTextPrev(event)
+	{
+		event.preventDefault();
+
+			// Find earliest visible selection, save value before it
+		var ptrC=null, ptrS=null;
+		var chap, cI, sI;
+		search:
+		for (cI=0; cI<tocSel.length; cI++) {
+			chap=tocSel[cI];
+			if (chap.c) {
+				ptrC=cI-1;
+				break;
+			}
+			for (sI=0; sI<chap.s.length; sI++) {
+				if (chap.s[sI]) {
+					ptrC = cI;
+					ptrS = sI-1;
+					break search;
 				}
 			}
 		}
+			// If no selection, ignore
+		if (ptrC == null)
+			return;
 
-		return true;
-	} // doShowPerspective()
+			// Find selection in RL immediately before that
+		while (ptrC > -1) {
+			chap = tocRL[ptrC];
+			if (ptrS == null) {
+				ptrS = chap.s.length-1;
+			}
+				// First check sections inside chapter
+			for (; ptrS > -1; ptrS--) {
+				if (chap.s[ptrS]) {
+					setTOCSel(true, ptrC, ptrS);
+					return;
+				}
+			}
+			ptrS = null;
+				// Then check chapter itself
+			if (chap.c) {
+				setTOCSel(true, ptrC, -1);
+				return;
+			}
+			ptrC--;
+		}
+	} // clickTextPrev()
+
+		// PURPOSE: Find next selection in Reading List and select (and show in text frame)
+		// NOTES: 	Current text in tocSel; look for next in tocRL
+		//			Does not wrap around to the beginning!
+	function clickTextNext(event)
+	{
+		event.preventDefault();
+
+			// Find last visible selection -- save next item
+		var ptrC=null, ptrS=null;
+		var chap, cI, sI;
+		var newStart=false;
+		search:
+		for (cI=tocSel.length-1; cI >= 0; cI--) {
+			chap = tocSel[cI];
+			for (sI=chap.s.length-1; sI >= 0; sI--) {
+				if (chap.s[sI]) {
+					ptrS=sI+1;
+					if (sI == chap.s.length-1) {
+						ptrC=cI+1;
+						ptrS=0;
+						newStart=true;
+					} else {
+						ptrC=cI;						
+					}
+					break search;
+				}
+			}
+			if (chap.c) {
+				ptrC=cI;
+				ptrS=0;
+				break;
+			}
+		}
+			// If no selection, ignore
+		if (ptrC == null)
+			return;
+
+			// Find next item in RL after that
+		while (ptrC < tocRL.length) {
+			chap = tocRL[ptrC];
+			if (newStart && chap.c) {
+				setTOCSel(true, ptrC, -1);
+				return;
+			}
+				// First finish examining sections in this chapter
+			for (; ptrS<chap.s.length; ptrS++) {
+				if (chap.s[ptrS]) {
+					setTOCSel(true, ptrC, ptrS);
+					return;
+				}
+			}
+			ptrS=0;
+			ptrC++;
+			newStart=true;
+		}
+	} // clickTextNext()
 
 
 		// IMMEDIATE EXECUTION
@@ -9812,11 +9079,11 @@ jQuery(document).ready(function($) {
 	}());
 
 		// Remove any Perspective query string and prefix and trailing /
-	xhbtURL = window.location.pathname;
-	xhbtURL = xhbtURL.replace(/\&*prspctv=[\w\-]+/, '');
-	xhbtURL = xhbtURL.replace(/\/$/, '');
-	xhbtURL = xhbtURL.replace(/^\//, '');
-	xhbtURL = "http://" + window.location.host + "/" + xhbtURL;
+	// xhbtURL = window.location.pathname;
+	// xhbtURL = xhbtURL.replace(/\&*prspctv=[\w\-]+/, '');
+	// xhbtURL = xhbtURL.replace(/\/$/, '');
+	// xhbtURL = xhbtURL.replace(/^\//, '');
+	// xhbtURL = "http://" + window.location.host + "/" + xhbtURL;
 
 		// Create string to add to Filter Headers inserting Template IDs & labels
 	(function () {
@@ -9870,19 +9137,32 @@ jQuery(document).ready(function($) {
 		// Command Bar
 	jQuery('#btn-about').button({icons: { primary: 'ui-icon-power' }, text: false })
 			.click(clickAbout);
-	jQuery('#btn-set-layout').button({icons: { primary: 'ui-icon-newwin' }, text: false })
-			.click(clickTog2nd);
 	jQuery('#btn-hs-bars').button({icons: { primary: 'ui-icon-carat-2-n-s' }, text: false })
 			.click(function(event) {
 				jQuery('#filter-frame').slideToggle(400);
 				event.preventDefault();
 			});
-	jQuery('#btn-show-prspctv').button({icons: { primary: 'ui-icon-image' }, text: false })
-			.click(clickShowPerspective);
-	jQuery('#btn-save-prspctv').button({icons: { primary: 'ui-icon-pencil' }, text: false })
-			.click(clickSavePerspective);
-	jQuery('#btn-annote').button({icons: { primary: 'ui-icon-comment' }, text: false })
-			.click(clickAnnotation);
+	jQuery('#btn-show-prspctv').button({icons: { primary: 'ui-icon-image' }, text: false });
+			// .click(clickShowPerspective);
+	jQuery('#btn-save-prspctv').button({icons: { primary: 'ui-icon-pencil' }, text: false });
+			// .click(clickSavePerspective);
+	jQuery('#btn-annote').button({icons: { primary: 'ui-icon-comment' }, text: false });
+			// .click(clickAnnotation);
+
+		// Text Frame icon buttons
+	jQuery('#hstoc').button({icons: { primary: 'ui-icon-bookmark' }, text: false })
+		.click(clickHSTOC);
+	jQuery('#tochcall').click(clickTOCHCAll);
+	jQuery('#tochsall').click(clickTOCHSAll);
+	jQuery('#tocfind').button({icons: { primary: 'ui-icon-star' }, text: false });
+	jQuery('#textprev').button({icons: { primary: 'ui-icon-arrow-1-w' }, text: false })
+		.click(clickTextPrev);
+	jQuery('#textnext').button({icons: { primary: 'ui-icon-arrow-1-e' }, text: false })
+		.click(clickTextNext);
+	jQuery('#texthilite').button({icons: { primary: 'ui-icon-star' }, text: false });
+	jQuery('#textxsel').button({icons: { primary: 'ui-icon-cancel' }, text: false });
+	jQuery('#textosel').button({icons: { primary: 'ui-icon-search' }, text: false });
+	jQuery('#text-frame').click(clickTextFrame);
 
 		// Are there Home settings?
 	if (prspdata.e.g.hbtn.length > 0 && prspdata.e.g.hurl.length > 0) {
@@ -9906,12 +9186,12 @@ jQuery(document).ready(function($) {
 	});
 
 		// Handle selection of item on Show Perspective list
-	jQuery('#prspctv-slist').click(function(event) {
-		if (event.target.nodeName == 'LI') {
-			jQuery("#prspctv-slist li").removeClass("selected");
-			jQuery(event.target).addClass("selected");
-		}
-	});
+	// jQuery('#prspctv-slist').click(function(event) {
+	// 	if (event.target.nodeName == 'LI') {
+	// 		jQuery("#prspctv-slist li").removeClass("selected");
+	// 		jQuery(event.target).addClass("selected");
+	// 	}
+	// });
 
 		// Filter Control Bar
 	jQuery('#btn-new-filter').button({icons: { primary: 'ui-icon-plus' }, text: false })
@@ -9943,19 +9223,25 @@ jQuery(document).ready(function($) {
 	}());
 
 		// Restore Perspective or create default?
-	if (prspdata.show_prspctv.length == 0 || !doShowPerspective(prspdata.show_prspctv)) {
-		views[0] = PViewFrame(0);
-		views[0].initDOM(0);
+	// if (prspdata.show_prspctv.length == 0 || !doShowPerspective(prspdata.show_prspctv)) {
+		views[1] = PViewFrame(1);
+		views[1].initDOM(0);
 		setAnnote('');
-	}
+	// }
 
 		// Allow ViewFrames to handle changes in size
 	jQuery(window).resize(function() {
-		views.forEach(function(v) {
-			if (v)
-				v.resize();
-		})
+		if (views[1]) {
+			views[1].resize();
+		}
 	});
+
+		// Prepare Text Frame first
+	parseVol();
+	buildTOC();
+	updateTOCRL();
+	updateTOCSel();
+	buildTextFrame();
 
 		// Intercept global signals: data { s[tate] }
 	jQuery("body").on("prospect", function(event, data) {
