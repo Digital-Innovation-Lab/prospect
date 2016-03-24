@@ -19,7 +19,7 @@
 				'prsp-jquery-ui-style',
 				'prsp-jquery-theme-style',
 				'leaflet-style',
-				'prsp-exhibit-style'
+				'prsp-volume-style'
 			);
 			$prsp_exhibit_scripts = array(
 				// 'admin-bar',
@@ -38,7 +38,7 @@
 				'leaflet',
 				'd3',
 				'prsp-map-hub',
-				'prsp-view-exhibit',
+				'prsp-view-volume',
 				'soundcloud'
 			);
 
@@ -62,7 +62,11 @@
 <body>
 
 <?php
-		ProspectAdmin::insert_html_file('view-exhibit.php');
+		ProspectAdmin::insert_html_file('view-volume.php');
+		echo('<script id="prsp-volume" type="text">');
+			// TO DO: Not currently working!!
+		echo get_the_content();
+		echo('</script>');
 		wp_footer();
 ?>
 </body>

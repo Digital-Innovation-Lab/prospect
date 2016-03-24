@@ -290,11 +290,11 @@ class Prospect {
 			wp_enqueue_script('d3', plugins_url('lib/d3.min.js', dirname(__FILE__)));
 
 			wp_enqueue_script('prsp-map-hub', plugins_url('js/map-hub.js', dirname(__FILE__)));
-			wp_enqueue_script('prsp-view-volume', plugins_url('js/view-volume.min.js', dirname(__FILE__)));
+			wp_enqueue_script('prsp-view-volume', plugins_url('js/view-volume.js', dirname(__FILE__)));
 
-				// Get Exhibit definition
-			$the_xhbt = new ProspectExhibit(true, get_the_ID(), true);
-			if ($the_xhbt->inspect->modal->scOn) {
+				// Get Volume definition
+			$the_volume = new ProspectVolume(true, get_the_ID(), true);
+			if ($the_volume->inspect->modal->scOn) {
 				wp_enqueue_script('soundcloud', 'http://w.soundcloud.com/player/api.js');
 			}
 
@@ -312,7 +312,7 @@ class Prospect {
 			$t = array();
 			$all_ts = array();
 			$att_defs = array();
-			foreach ($the_xhbt->gen->ts as $template_id) {
+			foreach ($the_volume->gen->ts as $template_id) {
 				$the_template = new ProspectTemplate(false, $template_id, true, true, false);
 					// Get Joined form of Template Attributes
 				$att_defs = array_merge($att_defs, $the_template->get_all_attributes(false));
@@ -355,9 +355,9 @@ class Prospect {
 				}
 			}
 
-				// Collect Map Library data (only those used by this Exhibit)
+				// Collect Map Library data (only those used by this Volume)
 			$m = array();
-			$map_defs = $the_xhbt->get_used_maps();
+			$map_defs = $the_volume->get_used_maps();
 			foreach($map_defs as $the_map) {
 				$map_def = array(
 					'id'		=> $the_map->id,
@@ -375,20 +375,20 @@ class Prospect {
 			}
 
 				// Collect Perspectives
-			$p = array();
-			$all_prspctvs = ProspectPerspective::get_exhibit_perspectives($the_xhbt->id);
-			foreach($all_prspctvs as $the_prspctv) {
-				$p_def = array(
-					'id'	=> $the_prspctv->id,
-					'l'		=> $the_prspctv->l,
-					'n'		=> $the_prspctv->note,
-					's'		=> $the_prspctv->state
-				);
-				array_push($p, $p_def);
-			}
+			// $p = array();
+			// $all_prspctvs = ProspectPerspective::get_exhibit_perspectives($the_xhbt->id);
+			// foreach($all_prspctvs as $the_prspctv) {
+			// 	$p_def = array(
+			// 		'id'	=> $the_prspctv->id,
+			// 		'l'		=> $the_prspctv->l,
+			// 		'n'		=> $the_prspctv->note,
+			// 		's'		=> $the_prspctv->state
+			// 	);
+			// 	array_push($p, $p_def);
+			// }
 
 				// Have to put numberic parameters into x or else they are treated as strings!
-			wp_localize_script('prsp-view-exhibit', 'prspdata', array(
+			wp_localize_script('prsp-view-volume', 'prspdata', array(
 				'ajax_url'  	=> get_admin_url(get_current_blog_id() ,'admin-ajax.php'),
 				'site_url'		=> site_url(),
 				'assets'		=> plugins_url('/assets/', dirname(__FILE__)),
@@ -403,7 +403,7 @@ class Prospect {
 				't'				=> $t,
 				'a'				=> $a,
 				'm'				=> $m,
-				'p'				=> $p,
+				// 'p'				=> $p,
 				'show_prspctv'	=> get_query_var('prspctv')
 			));
 
