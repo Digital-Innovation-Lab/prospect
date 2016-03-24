@@ -64,8 +64,13 @@
 <?php
 		ProspectAdmin::insert_html_file('view-volume.php');
 		echo('<script id="prsp-volume" type="text">');
-			// TO DO: Not currently working!!
-		echo get_the_content();
+
+			// Insert the HTML of the blog content
+		// echo get_the_content();
+			// Not sure why get_the_content doesn't work; this is messier equivalent
+		$this_post = get_post(get_the_ID());
+		echo $this_post->post_content;
+
 		echo('</script>');
 		wp_footer();
 ?>
