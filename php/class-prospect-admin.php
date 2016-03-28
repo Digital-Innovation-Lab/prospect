@@ -942,7 +942,7 @@ class ProspectAdmin {
 			case 'prsp-volume':
 				wp_enqueue_style('jquery-ui-min-style', plugins_url('/css/jquery-ui.min.css', dirname(__FILE__)));
 				wp_enqueue_style('jquery-ui-theme-style', plugins_url('/css/jquery-ui.theme.min.css', dirname(__FILE__)));
-				wp_enqueue_style('edit-exhibit-style', plugins_url('/css/edit-exhibit.css', dirname(__FILE__)),
+				wp_enqueue_style('edit-volume-style', plugins_url('/css/edit-volume.css', dirname(__FILE__)),
 								array('jquery-ui-min-style', 'jquery-ui-theme-style'));
 
 					// Built-in modules

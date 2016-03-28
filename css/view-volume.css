@@ -494,6 +494,9 @@ div#text-frame {
 	margin: 0;
 	padding: 3px;
 	background-color: #eee;
+
+	font-weight: normal;
+	font-size: 11px;
 }
 
 div#text-frame h1 {
@@ -519,6 +522,10 @@ div#text-frame h2 {
 div#text-frame p {
 	font-weight: normal;
 	font-size: 11px;
+}
+
+div#text-frame blockquote {
+	margin-left: 20px;
 }
 
 div#text-frame a {
