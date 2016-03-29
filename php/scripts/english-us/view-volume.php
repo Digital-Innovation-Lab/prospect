@@ -38,9 +38,9 @@
 				<button id="texthilite">Highlight</button>
 				<button id="textxsel">Clear Highlighted</button>
 				<button id="textosel">Show Highlighted</button>
-				<input type="radio" name="selaction" id="selaction-0" value="a-hilite" checked/><label for="selaction-0">All & Highlight</label>
-				<input type="radio" name="selaction" id="selaction-1" value="t-hilite"/><label for="selaction-1">Text & Highlight</label>
-				<input type="radio" name="selaction" id="selaction-2" value="show"/><label for="selaction-2">Display Only</label>
+				<input type="radio" name="vizmode" id="vizmode-0" value="v0" checked/><label for="vizmode-0">All & Highlight</label>
+				<input type="radio" name="vizmode" id="vizmode-1" value="v1"/><label for="vizmode-1">Text & Highlight</label>
+				<input type="radio" name="vizmode" id="vizmode-2" value="v2"/><label for="vizmode-2">Display Only</label>
 			</div>
 		</div>
 		<div class="viz-content">

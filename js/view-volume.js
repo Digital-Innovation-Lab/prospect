@@ -33,7 +33,7 @@ if (!Array.prototype.findIndex) {
 // NOTES: 	prspdata will pass the following information:
 //				a = array of Attribute definitions { id, def, r, l }
 //				t = array of Template definitions (no Joins) and Record numbers: { id, def, n }
-//				e = Exhibit definition { id, g, vf, i }
+//				e = Volume definition { id, g, vf, i }
 //				m = overlay map data
 //				p = array of associated Perspectives { l, s, n }
 
@@ -7523,14 +7523,18 @@ jQuery(document).ready(function($) {
 	var localPrspctvs=[];		// locally-stored Perspectives
 
 		// Volume extensions (not in Exhibit)
-	var tocVis = false;			// Current state of Frame 0
+	var vMode='v0';				// view option: selection from selaction radio buttons: 'v0', 'v1' or 'v2'
+	var tocVis = false;			// Frame 0 has TOC (true) or Text (false)
 	var volData=[];				// Indices into text stream where chapters and sections begin: { hi, hl, bi, bl }
 								//		header and body x index and length (chars)
 	var tocRL=[];				// Which chapters and sections on reading list
 	var tocSel=[];				// Which chapters and sections are highlighted for reading
 	var tocSelDirty=false;		// Has user changed TOC selection?
-	var txtRecs=[];				// IDs of all Records currently in text frame (in sorted order)
-	var recSel = [];			// Record IDs selected by user from text (in sorted order)
+	var txtIDs=[];				// IDs of all Records currently in text frame (in sorted order)
+	var txtIS;					// IndexStream of Records in links in text frame
+	var selIDs=[];				// Record IDs selected by user from text (in sorted order)
+	var selIS;					// IndexStream of Records selected by user
+	var selAbsI;				// Array of absolute indices of Records selected by user
 	var hiliteRecs=true;		// Highlight selected Records, or restrict display to just those?
 
 
@@ -7598,11 +7602,12 @@ jQuery(document).ready(function($) {
 				endStream = theF.f.out;
 		}
 		PState.set(PSTATE_BUILD);
-		views.forEach(function(v) {
-			if (v) {
-				v.showStream(endStream);
-			}
-		});
+		// views.forEach(function(v) {
+		// 	if (v) {
+		// 		v.showStream(endStream);
+		// 	}
+		// });
+		paint();
 
 		if (filters.length > 0) {
 			fState = 2;
@@ -8301,7 +8306,6 @@ jQuery(document).ready(function($) {
 		event.preventDefault();
 	} // clickNewFilter()
 
-
 	function clickToggleFilters(event)
 	{
 		jQuery('#filter-instances').slideToggle(400);
@@ -8510,6 +8514,131 @@ jQuery(document).ready(function($) {
 		// VOLUME EXTENSIONS
 		//==================
 
+		// PURPOSE: Draw visualization in views[1] based on vMode setting
+	function paint()
+	{
+		var v=views[1];
+		if (v) {
+			switch (vMode) {
+			case 'v0': 		// Show all Records, highlight selected
+				v.showStream(endStream);
+				if (selAbsI == null) {
+					selIDs2AbsI();
+				}
+				v.setSel(selAbsI);
+				break;
+			case 'v1': 		// Show Records visible from Text, highlight selected
+				if (txtIS == null) {
+					txtIDs2IS();
+				}
+				v.showStream(txtIS);
+				if (selAbsI == null) {
+					selIDs2AbsI();
+				}
+				v.setSel(selAbsI);
+				break;
+			case 'v2': 		// Only Show selected Records
+				if (selIS == null) {
+					selIDs2IS();
+				}
+				v.showStream(selIS);
+				break;
+			}
+		}
+	} // paint()
+
+
+		// PURPOSE: Convert the Record IDs in txtIDs to IndexStream
+		// NOTES: 	Need to confirm that Record is in endStream before considering it valid
+	function txtIDs2IS()
+	{
+			// NOTE: Need as splice method, use generic arrays (not Uint16Array)
+		txtIS = { s: [], t: [], l: 0 };
+		var a, i, n, t;
+			// Create empty slots for each Template
+		for (i=0, n=PData.eTNum(); i<n; i++) {
+			txtIS.t.push({i: 0, n: 0});
+		}
+		txtIDs.forEach(function(id) {
+				// Convert to absolute index
+			a = PData.nByID(id);
+				// Does it appear in filtered endStream?
+			if (_.sortedIndex(endStream.s, a) !== -1) {
+					// Insert absI in order
+				if (txtIS.s.length === 0) {
+					txtIS.s.push(a);
+				} else {
+					i = _.sortedIndex(txtIS.s, a);
+					txtIS.s.splice(i, 0, a);
+				}
+					// Which Template does it belong to?
+				t=PData.n2T(a);
+					// Increment # Recs for this Template and starting indices for rest
+				txtIS.t[t++].n += 1;
+				while (t < n) {
+					txtIS.t[t++].i += 1;
+				}
+			}
+		});
+	} // txtIDs2Abs()
+
+		// PURPOSE: Convert the Record IDs in selIDs to IndexStream
+		// NOTES: 	Need to confirm that Record is in endStream before considering it valid
+	function selIDs2IS()
+	{
+			// NOTE: Need as splice method, use generic arrays (not Uint16Array)
+		selIS = { s: [], t: [], l: 0 };
+		var a, i, n, t;
+			// Create empty slots for each Template
+		for (i=0, n=PData.eTNum(); i<n; i++) {
+			selIS.t.push({i: 0, n: 0});
+		}
+		txtIDs.forEach(function(id) {
+				// Convert to absolute index
+			a = PData.nByID(id);
+				// Does it appear in filtered endStream?
+			if (_.sortedIndex(endStream.s, a) !== -1) {
+					// Insert absI in order
+				if (selIS.s.length === 0) {
+					selIS.s.push(a);
+				} else {
+					i = _.sortedIndex(selIS.s, a);
+					selIS.s.splice(i, 0, a);
+				}
+					// Which Template does it belong to?
+				t=PData.n2T(a);
+					// Increment # Recs for this Template and starting indices for rest
+				selIS.t[t++].n += 1;
+				while (t < n) {
+					selIS.t[t++].i += 1;
+				}
+			}
+		});
+	} // txtIDs2Abs()
+
+		// PURPOSE: Convert the Record IDs in selIDs to array of absIs
+		// NOTES: 	Need to confirm that Record is in endStream before considering it valid
+	function selIDs2AbsI()
+	{
+		selAbsI = [];
+		var a, i;
+		selIDs.forEach(function(id) {
+				// Convert to absolute index
+			a = PData.nByID(id);
+				// Does it appear in filtered endStream?
+			if (_.sortedIndex(endStream.s, a) !== -1) {
+					// Insert absI in order
+				if (selAbsI.length === 0) {
+					selAbsI.push(a);
+				} else {
+					i = _.sortedIndex(selAbsI, a);
+					selAbsI.splice(i, 0, a);
+				}
+			}
+		});
+	} // selIDs2AbsI()
+
+
 	function buildTOC()
 	{
 		var volC, volS;
@@ -8541,8 +8670,9 @@ jQuery(document).ready(function($) {
 	} // buildTOC()
 
 		// PURPOSE: Insert appropriate text into text frame, given tocSel
-		// NOTES: 	Must also highlight references to records in recSel
-		//			Disable prev/next buttons if no RL items before or after
+		// SIDE-FX:	Compile list of Record IDs in <a> in txtIDs
+		// TO DO:	Disable prev/next buttons if no RL items before or after
+		//			Disable <a> if Record ID not in filtered endStream *after* Records loaded?
 	function buildTextFrame()
 	{
 		var volC, volS;
@@ -8570,26 +8700,27 @@ jQuery(document).ready(function($) {
 		});
 
 			// Find all <a>, create list of recs from data-id
-		txtRecs=[];
-		recSel=[];
+		txtIDs=[]; txtIS=null;
+		selIDs=[]; selIS=null; selAbsI=null;
 		var recs;
 		recs = jQuery('#text-frame').find('a');
 		recs.each(function(aI) {
 			var thisID = jQuery(this).data('id');
 				// Keep list sorted; don't add if already exists
 			if (thisID) {
-				if (txtRecs.length == 0) {
-					txtRecs.push(thisID);
+				if (txtIDs.length == 0) {
+					txtIDs.push(thisID);
 				} else {
-					var i = _.sortedIndex(txtRecs, thisID);
-					if (txtRecs[i] !== thisID) {
-						txtRecs.splice(i, 0, thisID);
+					var i = _.sortedIndex(txtIDs, thisID);
+					if (txtIDs[i] !== thisID) {
+						txtIDs.splice(i, 0, thisID);
 					}
 				}
 			}
 		});
-// console.log("Rec IDs on this page: "+JSON.stringify(txtRecs));
+// console.log("Rec IDs on this page: "+JSON.stringify(txtIDs));
 	} // buildTextFrame()
+
 
 		// PURPOSE: Create all volume data by parsing HTML text representing volume
 		// SIDE-FX: Creates volData, tocRL, tocSel
@@ -8709,6 +8840,7 @@ jQuery(document).ready(function($) {
 
 		updateTOCSel();
 		buildTextFrame();
+		paint();
 	} // setTOCSel()
 
 		// PURPOSE: Set chapter & section selection based on tocSel
@@ -8754,6 +8886,7 @@ jQuery(document).ready(function($) {
 		} else {
 			if (tocSelDirty) {
 				buildTextFrame();
+				paint();
 			}
 			jQuery('#toc-controls').hide();
 			jQuery('#toc-frame').hide();
@@ -8813,21 +8946,77 @@ jQuery(document).ready(function($) {
 		// PURPOSE: Handle a click on the text frame
 		// NOTE: 	As there can be multiple refereces to same Record in text frame,
 		//				we need to un/highlight all of them simultaneously!
+		//			Also need to ensure that this Record exists in filtered endStream
 	function clickTextFrame(event)
 	{
+		var a, i, id, n, t, x, v=views[1];
 		var node = event.target;
 		if (node.nodeName === 'A') {
-			var id = node.dataset.id;
-// console.log("id = "+id);
-			var i = _.sortedIndex(recSel, id);
+			id = node.dataset.id;
+			a = PData.nByID(id);
+			i = _.sortedIndex(selIDs, id);
 				// If it already exists, remove it
-			if (recSel[i] === id) {
-				recSel.splice(i, 1);
+			if (selIDs[i] === id) {
+				selIDs.splice(i, 1);
+				if (vMode === 'v2') {
+					selAbsI=null;	// invalidate
+					i = _.sortedIndex(selIS.s, a);
+					selIS.s.splice(i, 1);
+						// decrease Rec count for Template to which it belongs
+					for (x=0, n=PData.eTNum(); x<n; x++) {
+						t = selIS.t[x];
+						if ((i >= t.i) && (i < (t.i+t.n))) {
+							t.n -= 1;
+							break;
+						}
+					}
+					for (; x<n; x++) {
+						selIS.t[x].i -= 1;
+					}
+				} else {
+					selIS=null;		// invalidate
+					i = _.sortedIndex(selAbsI, a);
+					selAbsI.splice(i, 1);
+				}
 				jQuery('#text-frame a[data-id="'+id+'"]').removeClass('sel');
 			} else {
-				recSel.splice(i, 0, id);
-				jQuery('#text-frame a[data-id="'+id+'"]').addClass('sel');
+					// Convert to absolute index and ensure Record is in filtered endStream
+				if (_.sortedIndex(endStream.s, a) !== -1) {
+					selIDs.splice(i, 0, id);
+					if (vMode === 'v2') {
+						selAbsI=null;	// invalidate
+						i = _.sortedIndex(selIS.s, a);
+						selIS.s.splice(i, 0, a);
+							// increase Rec count for Template to which it belongs
+						for (x=0, n=PData.eTNum(); x<n; x++) {
+							t = selIS.t[x];
+							if ((i >= t.i) && (i <= (t.i+t.n))) {
+								t.n += 1;
+								break;
+							}
+						}
+						for (; x<n; x++) {
+							selIS.t[x].i += 1;
+						}
+					} else {
+						selIS=null;		// invalidate
+						i = _.sortedIndex(selAbsI, a);
+						selAbsI.splice(i, 0, a);
+					}
+					jQuery('#text-frame a[data-id="'+id+'"]').addClass('sel');
+				}
 			}
+		}
+			// Update visualization
+		switch (vMode) {
+		case 'v0': 		// Show all Records, highlight selected
+		case 'v1': 		// Show Records visible from Text, highlight selected
+			v.clearSel();
+			v.setSel(selAbsI);
+			break;
+		case 'v2': 		// Only Show selected Records
+			v.showStream(selIS);
+			break;
 		}
 		event.preventDefault();
 	} // clickTextFrame()
@@ -9163,6 +9352,11 @@ jQuery(document).ready(function($) {
 	jQuery('#textxsel').button({icons: { primary: 'ui-icon-cancel' }, text: false });
 	jQuery('#textosel').button({icons: { primary: 'ui-icon-search' }, text: false });
 	jQuery('#text-frame').click(clickTextFrame);
+	jQuery('input[type=radio][name=vizmode]').change(function() {
+		vMode = this.value;
+		paint();
+	});
+
 
 		// Are there Home settings?
 	if (prspdata.e.g.hbtn.length > 0 && prspdata.e.g.hurl.length > 0) {
@@ -9247,7 +9441,7 @@ jQuery(document).ready(function($) {
 	jQuery("body").on("prospect", function(event, data) {
 		switch (data.s) {
 		case PSTATE_PROCESS:
-				// ASSUMED: This won't be triggered until after Filters & Views set up
+				// ASSUMED: This won't be triggered until after Volume, Filters & Views set up
 			PState.set(PSTATE_PROCESS);
 			doRecompute();
 			for (var h=0; h<2; h++) {
