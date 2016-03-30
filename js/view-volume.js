@@ -5613,21 +5613,21 @@ function PViewFrame(vfIndex)
 		case 't':
 			newViz = new VizTextStream(instance, theView.c);
 			break;
-		// case 'S':
-		// 	newViz = new VizStackChart(instance, theView.c);
-		// 	break;
+		case 'S':
+			newViz = new VizStackChart(instance, theView.c);
+			break;
 		case 'N':
 			newViz = new VizNetWheel(instance, theView.c);
 			break;
-		// case 'F':
-		// 	newViz = new VizFlow(instance, theView.c);
-		// 	break;
-		// case 'B':
-		// 	newViz = new VizBrowser(instance, theView.c);
-		// 	break;
-		// case 'm':
-		// 	newViz = new VizMBMap(instance, theView.c);
-		// 	break;
+		case 'F':
+			newViz = new VizFlow(instance, theView.c);
+			break;
+		case 'B':
+			newViz = new VizBrowser(instance, theView.c);
+			break;
+		case 'm':
+			newViz = new VizMBMap(instance, theView.c);
+			break;
 		}
 		vizSelIndex = vIndex;
 		var flags = newViz.flags();
@@ -7507,9 +7507,9 @@ jQuery(document).ready(function($) {
 		//==========
 	var views = [null, null];	// 2 possible viewFrames
 
-	var apTmStr;				// Apply to <template label> for Filters
-	var filters=[];				// Filter Stack: { id, f [PFilterModel], out [stream] }
-	var fState=0;				// Filter State: 0 = no filter, 1 = filters changed, 2 = filters run
+	// var apTmStr;				// Apply to <template label> for Filters
+	// var filters=[];				// Filter Stack: { id, f [PFilterModel], out [stream] }
+	// var fState=0;				// Filter State: 0 = no filter, 1 = filters changed, 2 = filters run
 
 	var hFilters=[null, null];	// Highlight Filter
 	var hFilterIDs=[null, null]; // Highlight Filter Attribute IDs
@@ -7552,55 +7552,55 @@ jQuery(document).ready(function($) {
 		endStream = topStream;
 
 			// Go through filter stack -- find 1st dirty and recompute from there
-		var started=false, fI, theF;
-		for (fI=0; fI<filters.length; fI++) {
-			theF = filters[fI];
-			fDiv = jQuery('div.filter-instance[data-id="'+theF.id+'"]');
-				// If we've started, evaluate and propagate
-			if (started || theF.f.isDirty(null)) {
-				started = true;
-				var f = theF.f;
-				f.evalPrep();
-				var newStream = PData.sNew(false);
-				var relI=0, absI, rec;
-				var tI=0, tRec=endStream.t[0], tRn=0, rTotal=0;
-				var e=fDiv.find('.apply-tmplt-0').is(':checked');
-					// Must keep absolute indices and template params updated!
-				while (relI < endStream.l) {
-						// Advance until we get to current Template rec
-					while (tRec.n === 0 || (tRec.i+tRec.n) === relI) {
-						newStream.t.push({ i: (newStream.l-tRn), n: tRn });
-						tRn = 0;
-						tRec = endStream.t[++tI];
-						e=fDiv.find('.apply-tmplt-'+tI).is(':checked');
-					}
-					absI = endStream.s[relI++];
-						// Need to evaluate
-					if (e) {
-						rec = PData.rByN(absI);
-						if (f.eval(rec)) {
-							newStream.s[newStream.l++] = absI;
-							tRn++;
-						}
-						rTotal++;
-						// Pass-through
-					} else {
-						newStream.s[newStream.l++] = absI;
-						tRn++;
-					}
-				}
-					// push out remaining Template recs
-				while (tI++ < PData.eTNum()) {
-					newStream.t.push( { i: (newStream.l-tRn), n: tRn } );
-					tRn = 0;
-				}
-				f.isDirty(false);
-				f.out = newStream;
-				f.evalDone(rTotal);
-				endStream = newStream;
-			} else
-				endStream = theF.f.out;
-		}
+		// var started=false, fI, theF;
+		// for (fI=0; fI<filters.length; fI++) {
+		// 	theF = filters[fI];
+		// 	fDiv = jQuery('div.filter-instance[data-id="'+theF.id+'"]');
+		// 		// If we've started, evaluate and propagate
+		// 	if (started || theF.f.isDirty(null)) {
+		// 		started = true;
+		// 		var f = theF.f;
+		// 		f.evalPrep();
+		// 		var newStream = PData.sNew(false);
+		// 		var relI=0, absI, rec;
+		// 		var tI=0, tRec=endStream.t[0], tRn=0, rTotal=0;
+		// 		var e=fDiv.find('.apply-tmplt-0').is(':checked');
+		// 			// Must keep absolute indices and template params updated!
+		// 		while (relI < endStream.l) {
+		// 				// Advance until we get to current Template rec
+		// 			while (tRec.n === 0 || (tRec.i+tRec.n) === relI) {
+		// 				newStream.t.push({ i: (newStream.l-tRn), n: tRn });
+		// 				tRn = 0;
+		// 				tRec = endStream.t[++tI];
+		// 				e=fDiv.find('.apply-tmplt-'+tI).is(':checked');
+		// 			}
+		// 			absI = endStream.s[relI++];
+		// 				// Need to evaluate
+		// 			if (e) {
+		// 				rec = PData.rByN(absI);
+		// 				if (f.eval(rec)) {
+		// 					newStream.s[newStream.l++] = absI;
+		// 					tRn++;
+		// 				}
+		// 				rTotal++;
+		// 				// Pass-through
+		// 			} else {
+		// 				newStream.s[newStream.l++] = absI;
+		// 				tRn++;
+		// 			}
+		// 		}
+		// 			// push out remaining Template recs
+		// 		while (tI++ < PData.eTNum()) {
+		// 			newStream.t.push( { i: (newStream.l-tRn), n: tRn } );
+		// 			tRn = 0;
+		// 		}
+		// 		f.isDirty(false);
+		// 		f.out = newStream;
+		// 		f.evalDone(rTotal);
+		// 		endStream = newStream;
+		// 	} else
+		// 		endStream = theF.f.out;
+		// }
 		PState.set(PSTATE_BUILD);
 		// views.forEach(function(v) {
 		// 	if (v) {
@@ -7609,27 +7609,27 @@ jQuery(document).ready(function($) {
 		// });
 		paint();
 
-		if (filters.length > 0) {
-			fState = 2;
-			jQuery('#btn-f-state').prop('disabled', true).html(dlText.filtered);
-		} else {
-			fState = 0;
-			jQuery('#btn-f-state').prop('disabled', true).html(dlText.nofilter);
-		}
+		// if (filters.length > 0) {
+		// 	fState = 2;
+		// 	jQuery('#btn-f-state').prop('disabled', true).html(dlText.filtered);
+		// } else {
+		// 	fState = 0;
+		// 	jQuery('#btn-f-state').prop('disabled', true).html(dlText.nofilter);
+		// }
 	} // doRecompute()
 
-	function clickFilter(event)
-	{
-			// Remove any selections first
-		views.forEach(function(v) {
-			if (v) {
-				v.clearSel();
-			}
-		});
-		doRecompute();
-		PState.set(PSTATE_READY);
-		event.preventDefault();
-	} // clickFilter()
+	// function clickFilter(event)
+	// {
+	// 		// Remove any selections first
+	// 	views.forEach(function(v) {
+	// 		if (v) {
+	// 			v.clearSel();
+	// 		}
+	// 	});
+	// 	doRecompute();
+	// 	PState.set(PSTATE_READY);
+	// 	event.preventDefault();
+	// } // clickFilter()
 
 		// PURPOSE: Set annotation text to <t>
 	function setAnnote(t)
@@ -8061,76 +8061,76 @@ jQuery(document).ready(function($) {
 		event.preventDefault();
 	} // clickGoHome()
 
-	function clickFilterToggle(event)
-	{
-		jQuery(this).parent().next().slideToggle(400);
-		event.preventDefault();
-	} // clickFilterToggle()
+	// function clickFilterToggle(event)
+	// {
+	// 	jQuery(this).parent().next().slideToggle(400);
+	// 	event.preventDefault();
+	// } // clickFilterToggle()
 
 		// PURPOSE: Handle clicking which Template Filter should apply to
-	function clickFilterApply(event)
-	{
-		var head = jQuery(this).closest('div.filter-instance');
-		if (head) {
-			var fID = head.data('id');
-			if (fID && fID !== '') {
-				var fRec;
-				fRec = filters.find(function(fr) { return fr.id == fID; });
-				if (fRec == null)	{ alert('Bad Filter ID '+fID); return; }
-				fRec.f.isDirty(true);
-			}
-		}
-	} // clickFilterApply()
+	// function clickFilterApply(event)
+	// {
+	// 	var head = jQuery(this).closest('div.filter-instance');
+	// 	if (head) {
+	// 		var fID = head.data('id');
+	// 		if (fID && fID !== '') {
+	// 			var fRec;
+	// 			fRec = filters.find(function(fr) { return fr.id == fID; });
+	// 			if (fRec == null)	{ alert('Bad Filter ID '+fID); return; }
+	// 			fRec.f.isDirty(true);
+	// 		}
+	// 	}
+	// } // clickFilterApply()
 
-	function clickFilterDel(event)
-	{
-		var head = jQuery(this).closest('div.filter-instance');
-		var fID = head.data('id');
+	// function clickFilterDel(event)
+	// {
+	// 	var head = jQuery(this).closest('div.filter-instance');
+	// 	var fID = head.data('id');
 
-		var fI, fRec;
-		fI = filters.findIndex(function(fRec) { return fRec.id == fID; });
-		if (fI === -1)	{ alert('Bad Filter ID '+fID); return; }
+	// 	var fI, fRec;
+	// 	fI = filters.findIndex(function(fRec) { return fRec.id == fID; });
+	// 	if (fI === -1)	{ alert('Bad Filter ID '+fID); return; }
 
-		fRec = filters[fI].f;
-		fRec.teardown();
+	// 	fRec = filters[fI].f;
+	// 	fRec.teardown();
 
-		filters.splice(fI, 1);
-			// Deleted last filter in stack
-		if (fI >= filters.length) {
-			var endStream;
-				// No filters left, reset ViewFrame data source
-			if (filters.length === 0)
-				endStream = topStream;
-			else
-				endStream = filters[fI-1].out;
-			views.forEach(function(v) {
-				if (v)
-					v.setStream(endStream);
-			});
-		} else {
-				// Output must be recomputed from successor on
-			filters[fI].f.isDirty(true);
-		}
+	// 	filters.splice(fI, 1);
+	// 		// Deleted last filter in stack
+	// 	if (fI >= filters.length) {
+	// 		var endStream;
+	// 			// No filters left, reset ViewFrame data source
+	// 		if (filters.length === 0)
+	// 			endStream = topStream;
+	// 		else
+	// 			endStream = filters[fI-1].out;
+	// 		views.forEach(function(v) {
+	// 			if (v)
+	// 				v.setStream(endStream);
+	// 		});
+	// 	} else {
+	// 			// Output must be recomputed from successor on
+	// 		filters[fI].f.isDirty(true);
+	// 	}
 
-			// Remove this DOM element
-		head.remove();
+	// 		// Remove this DOM element
+	// 	head.remove();
 
-		if (filters.length === 0) {
-			jQuery('#btn-toggle-filters').button("disable");
-				// Invalidate selections
-			views.forEach(function(v) {
-				if (v)
-					v.clearSel(endStream);
-			});
-			doRecompute();
-			PState.set(PSTATE_READY);
-		} else {
-			fState = 1;
-			jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
-		}
+	// 	if (filters.length === 0) {
+	// 		jQuery('#btn-toggle-filters').button("disable");
+	// 			// Invalidate selections
+	// 		views.forEach(function(v) {
+	// 			if (v)
+	// 				v.clearSel(endStream);
+	// 		});
+	// 		doRecompute();
+	// 		PState.set(PSTATE_READY);
+	// 	} else {
+	// 		fState = 1;
+	// 		jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
+	// 	}
 
-		event.preventDefault();
-	} // clickFilterDel()
+	// 	event.preventDefault();
+	// } // clickFilterDel()
 
 		// PURPOSE: Add a new filter to the stack
 		// INPUT: 	fID = Attribute ID
@@ -8146,15 +8146,15 @@ jQuery(document).ready(function($) {
 		var theAtt;
 		var insert;
 
-		if (highlight !== null) {
+		// if (highlight !== null) {
 			newID = highlight;
-		} else {
-			do {
-				newID = Math.floor((Math.random() * 1000) + 2);
-				if (filters.findIndex(function(theF) { return theF.id == newID; }) != -1)
-					newID = -1;
-			} while (newID == -1);
-		}
+		// } else {
+		// 	do {
+		// 		newID = Math.floor((Math.random() * 1000) + 2);
+		// 		if (filters.findIndex(function(theF) { return theF.id == newID; }) != -1)
+		// 			newID = -1;
+		// 	} while (newID == -1);
+		// }
 
 		if (fID == '_remove') {
 			newFilter = new PFilterRemove(newID);
@@ -8180,39 +8180,39 @@ jQuery(document).ready(function($) {
 			}
 		}
 
-		if (highlight !== null) {
+		// if (highlight !== null) {
 			insert = jQuery('#dialog-hilite-'+highlight+' span.filter-id').html(theAtt.def.l);
 			insert = jQuery('#hilite-'+highlight);
 			insert.empty();
 
-		} else {
-			var newFRec = { id: newID, attID: fID, f: newFilter, out: null };
-			filters.push(newFRec);
+		// } else {
+		// 	var newFRec = { id: newID, attID: fID, f: newFilter, out: null };
+		// 	filters.push(newFRec);
 
-				// Now create DOM structure and handle clicks
-			var fh = _.template(document.getElementById('dltext-filter-head').innerHTML);
-			jQuery('#filter-instances').append(fh({ newID: newID, title: newFilter.title(), apply: apTmStr }));
+		// 		// Now create DOM structure and handle clicks
+		// 	var fh = _.template(document.getElementById('dltext-filter-head').innerHTML);
+		// 	jQuery('#filter-instances').append(fh({ newID: newID, title: newFilter.title(), apply: apTmStr }));
 
-			var head = jQuery('div.filter-instance[data-id="'+newID+'"]');
+		// 	var head = jQuery('div.filter-instance[data-id="'+newID+'"]');
 
-				// Check each checkbox acoording to default settings, disable acc to Template appearance
-			for (var i=0; i<PData.eTNum(); i++) {
-				var applier = head.find('.apply-tmplt-'+i);
-				applier.prop('disabled', !theAtt.t[i]);
-				applier.prop('checked', apply[i] && theAtt.t[i]);
-				applier.click(clickFilterApply);
-			}
+		// 		// Check each checkbox acoording to default settings, disable acc to Template appearance
+		// 	for (var i=0; i<PData.eTNum(); i++) {
+		// 		var applier = head.find('.apply-tmplt-'+i);
+		// 		applier.prop('disabled', !theAtt.t[i]);
+		// 		applier.prop('checked', apply[i] && theAtt.t[i]);
+		// 		applier.click(clickFilterApply);
+		// 	}
 
-			head.find('button.btn-filter-toggle').button({
-						text: false, icons: { primary: 'ui-icon-carat-2-n-s' }
-					}).click(clickFilterToggle);
-			head.find('button.btn-filter-del').button({
-						text: false, icons: { primary: 'ui-icon-trash' }
-					}).click(clickFilterDel);
+		// 	head.find('button.btn-filter-toggle').button({
+		// 				text: false, icons: { primary: 'ui-icon-carat-2-n-s' }
+		// 			}).click(clickFilterToggle);
+		// 	head.find('button.btn-filter-del').button({
+		// 				text: false, icons: { primary: 'ui-icon-trash' }
+		// 			}).click(clickFilterDel);
 
-			fState = 1;
-			jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
-		}
+		// 	fState = 1;
+		// 	jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
+		// }
 
 			// Allow Filter to insert required HTML
 		newFilter.setup();
@@ -8296,21 +8296,21 @@ jQuery(document).ready(function($) {
 		attDialog = jQuery("#dialog-choose-att").dialog(dialogParams);
 	} // chooseAttribute()
 
-	function clickNewFilter(event)
-	{
-		chooseAttribute(true, false, null, function(id) {
-			jQuery('#filter-instances').show(400);
-			createFilter(id, [true, true, true, true], null);
-			jQuery('#btn-toggle-filters').button("enable");
-		});
-		event.preventDefault();
-	} // clickNewFilter()
+	// function clickNewFilter(event)
+	// {
+	// 	chooseAttribute(true, false, null, function(id) {
+	// 		jQuery('#filter-instances').show(400);
+	// 		createFilter(id, [true, true, true, true], null);
+	// 		jQuery('#btn-toggle-filters').button("enable");
+	// 	});
+	// 	event.preventDefault();
+	// } // clickNewFilter()
 
-	function clickToggleFilters(event)
-	{
-		jQuery('#filter-instances').slideToggle(400);
-		event.preventDefault();
-	} // clickToggleFilters()
+	// function clickToggleFilters(event)
+	// {
+	// 	jQuery('#filter-instances').slideToggle(400);
+	// 	event.preventDefault();
+	// } // clickToggleFilters()
 
 		// PURPOSE: Apply effect of a Highlight filter
 		// TO DO: 	Get tUsed, rMap from the VizModels themselves!
@@ -8525,7 +8525,11 @@ jQuery(document).ready(function($) {
 				if (selAbsI == null) {
 					selIDs2AbsI();
 				}
-				v.setSel(selAbsI);
+				if (selAbsI.length > 0) {
+					v.setSel(selAbsI);
+				} else {
+					v.clearSel();
+				}
 				break;
 			case 'v1': 		// Show Records visible from Text, highlight selected
 				if (txtIS == null) {
@@ -8535,12 +8539,17 @@ jQuery(document).ready(function($) {
 				if (selAbsI == null) {
 					selIDs2AbsI();
 				}
-				v.setSel(selAbsI);
+				if (selAbsI.length > 0) {
+					v.setSel(selAbsI);
+				} else {
+					v.clearSel();
+				}
 				break;
 			case 'v2': 		// Only Show selected Records
 				if (selIS == null) {
 					selIDs2IS();
 				}
+console.log("Display Stream: "+JSON.stringify(selIS));
 				v.showStream(selIS);
 				break;
 			}
@@ -8549,7 +8558,6 @@ jQuery(document).ready(function($) {
 
 
 		// PURPOSE: Convert the Record IDs in txtIDs to IndexStream
-		// NOTES: 	Need to confirm that Record is in endStream before considering it valid
 	function txtIDs2IS()
 	{
 			// NOTE: Need as splice method, use generic arrays (not Uint16Array)
@@ -8562,8 +8570,7 @@ jQuery(document).ready(function($) {
 		txtIDs.forEach(function(id) {
 				// Convert to absolute index
 			a = PData.nByID(id);
-				// Does it appear in filtered endStream?
-			if (_.sortedIndex(endStream.s, a) !== -1) {
+			if (a != null) {
 					// Insert absI in order
 				if (txtIS.s.length === 0) {
 					txtIS.s.push(a);
@@ -8578,12 +8585,12 @@ jQuery(document).ready(function($) {
 				while (t < n) {
 					txtIS.t[t++].i += 1;
 				}
+				txtIS.l += 1;
 			}
 		});
 	} // txtIDs2Abs()
 
 		// PURPOSE: Convert the Record IDs in selIDs to IndexStream
-		// NOTES: 	Need to confirm that Record is in endStream before considering it valid
 	function selIDs2IS()
 	{
 			// NOTE: Need as splice method, use generic arrays (not Uint16Array)
@@ -8593,11 +8600,10 @@ jQuery(document).ready(function($) {
 		for (i=0, n=PData.eTNum(); i<n; i++) {
 			selIS.t.push({i: 0, n: 0});
 		}
-		txtIDs.forEach(function(id) {
+		selIDs.forEach(function(id) {
 				// Convert to absolute index
 			a = PData.nByID(id);
-				// Does it appear in filtered endStream?
-			if (_.sortedIndex(endStream.s, a) !== -1) {
+			if (a != null) {
 					// Insert absI in order
 				if (selIS.s.length === 0) {
 					selIS.s.push(a);
@@ -8612,12 +8618,12 @@ jQuery(document).ready(function($) {
 				while (t < n) {
 					selIS.t[t++].i += 1;
 				}
+				selIS.l += 1;
 			}
 		});
 	} // txtIDs2Abs()
 
 		// PURPOSE: Convert the Record IDs in selIDs to array of absIs
-		// NOTES: 	Need to confirm that Record is in endStream before considering it valid
 	function selIDs2AbsI()
 	{
 		selAbsI = [];
@@ -8625,15 +8631,12 @@ jQuery(document).ready(function($) {
 		selIDs.forEach(function(id) {
 				// Convert to absolute index
 			a = PData.nByID(id);
-				// Does it appear in filtered endStream?
-			if (_.sortedIndex(endStream.s, a) !== -1) {
-					// Insert absI in order
-				if (selAbsI.length === 0) {
-					selAbsI.push(a);
-				} else {
-					i = _.sortedIndex(selAbsI, a);
-					selAbsI.splice(i, 0, a);
-				}
+				// Insert absI in order
+			if (selAbsI.length === 0) {
+				selAbsI.push(a);
+			} else {
+				i = _.sortedIndex(selAbsI, a);
+				selAbsI.splice(i, 0, a);
 			}
 		});
 	} // selIDs2AbsI()
@@ -8672,7 +8675,6 @@ jQuery(document).ready(function($) {
 		// PURPOSE: Insert appropriate text into text frame, given tocSel
 		// SIDE-FX:	Compile list of Record IDs in <a> in txtIDs
 		// TO DO:	Disable prev/next buttons if no RL items before or after
-		//			Disable <a> if Record ID not in filtered endStream *after* Records loaded?
 	function buildTextFrame()
 	{
 		var volC, volS;
@@ -8946,7 +8948,6 @@ jQuery(document).ready(function($) {
 		// PURPOSE: Handle a click on the text frame
 		// NOTE: 	As there can be multiple refereces to same Record in text frame,
 		//				we need to un/highlight all of them simultaneously!
-		//			Also need to ensure that this Record exists in filtered endStream
 	function clickTextFrame(event)
 	{
 		var a, i, id, n, t, x, v=views[1];
@@ -8954,70 +8955,80 @@ jQuery(document).ready(function($) {
 		if (node.nodeName === 'A') {
 			id = node.dataset.id;
 			a = PData.nByID(id);
-			i = _.sortedIndex(selIDs, id);
-				// If it already exists, remove it
-			if (selIDs[i] === id) {
-				selIDs.splice(i, 1);
-				if (vMode === 'v2') {
-					selAbsI=null;	// invalidate
-					i = _.sortedIndex(selIS.s, a);
-					selIS.s.splice(i, 1);
-						// decrease Rec count for Template to which it belongs
-					for (x=0, n=PData.eTNum(); x<n; x++) {
-						t = selIS.t[x];
-						if ((i >= t.i) && (i < (t.i+t.n))) {
-							t.n -= 1;
-							break;
-						}
-					}
-					for (; x<n; x++) {
-						selIS.t[x].i -= 1;
-					}
-				} else {
-					selIS=null;		// invalidate
-					i = _.sortedIndex(selAbsI, a);
-					selAbsI.splice(i, 1);
-				}
-				jQuery('#text-frame a[data-id="'+id+'"]').removeClass('sel');
-			} else {
-					// Convert to absolute index and ensure Record is in filtered endStream
-				if (_.sortedIndex(endStream.s, a) !== -1) {
-					selIDs.splice(i, 0, id);
+			if (a != null) {
+				i = _.sortedIndex(selIDs, id);
+					// If it already exists, remove it
+				if (selIDs[i] === id) {
+					selIDs.splice(i, 1);
 					if (vMode === 'v2') {
 						selAbsI=null;	// invalidate
 						i = _.sortedIndex(selIS.s, a);
-						selIS.s.splice(i, 0, a);
-							// increase Rec count for Template to which it belongs
+						selIS.s.splice(i, 1);
+							// decrease Rec count for Template to which it belongs
 						for (x=0, n=PData.eTNum(); x<n; x++) {
 							t = selIS.t[x];
-							if ((i >= t.i) && (i <= (t.i+t.n))) {
-								t.n += 1;
+							if ((t.n > 0) && (i >= t.i) && (i < (t.i+t.n))) {
+								t.n -= 1;
+								x++;
 								break;
 							}
 						}
+						selIS.l -= 1;
+						for (; x<n; x++) {
+							selIS.t[x].i -= 1;
+						}
+					} else {
+						selIS=null;		// invalidate
+						i = _.sortedIndex(selAbsI, a);
+						selAbsI.splice(i, 1);
+					}
+					jQuery('#text-frame a[data-id="'+id+'"]').removeClass('sel');
+				} else {
+					if (selIDs.length === 0) {
+						selIDs.push(id);
+					} else {
+						selIDs.splice(i, 0, id);
+					}
+					if (vMode === 'v2') {
+						selAbsI=null;	// invalidate
+						if (selIS.s.length === 0) {
+							i = 0;
+							selIS.s.push(a);
+						} else {
+							i = _.sortedIndex(selIS.s, a);
+							selIS.s.splice(i, 0, a);
+						}
+							// increase Rec count for Template to which it belongs
+						x=PData.n2T(a);
+						selIS.t[x++].n += 1;
+						n=PData.eTNum();
+						selIS.l += 1;
 						for (; x<n; x++) {
 							selIS.t[x].i += 1;
 						}
 					} else {
 						selIS=null;		// invalidate
-						i = _.sortedIndex(selAbsI, a);
-						selAbsI.splice(i, 0, a);
+						if (selAbsI.length == 0) {
+							selAbsI.push(a);
+						} else {
+							i = _.sortedIndex(selAbsI, a);
+							selAbsI.splice(i, 0, a);
+						}
 					}
 					jQuery('#text-frame a[data-id="'+id+'"]').addClass('sel');
+				} // add ID
+				switch (vMode) {
+				case 'v0': 		// Show all Records, highlight selected
+				case 'v1': 		// Show Records visible from Text, highlight selected
+					v.setSel(selAbsI);
+					break;
+				case 'v2': 		// Only Show selected Records
+console.log("Click display: "+JSON.stringify(selIS));;
+					v.showStream(selIS);
+					break;
 				}
-			}
-		}
-			// Update visualization
-		switch (vMode) {
-		case 'v0': 		// Show all Records, highlight selected
-		case 'v1': 		// Show Records visible from Text, highlight selected
-			v.clearSel();
-			v.setSel(selAbsI);
-			break;
-		case 'v2': 		// Only Show selected Records
-			v.showStream(selIS);
-			break;
-		}
+			} // ID has absI
+		} // clicked link
 		event.preventDefault();
 	} // clickTextFrame()
 
@@ -9209,7 +9220,7 @@ jQuery(document).ready(function($) {
 		}
 	} // localizeColor()
 	localizeColor('cb', '#command-bar');
-	localizeColor('fs', '#filter-frame');
+	// localizeColor('fs', '#filter-frame');
 
 	PState.init();
 	PMapHub.init(prspdata.m);
@@ -9326,11 +9337,6 @@ jQuery(document).ready(function($) {
 		// Command Bar
 	jQuery('#btn-about').button({icons: { primary: 'ui-icon-power' }, text: false })
 			.click(clickAbout);
-	jQuery('#btn-hs-bars').button({icons: { primary: 'ui-icon-carat-2-n-s' }, text: false })
-			.click(function(event) {
-				jQuery('#filter-frame').slideToggle(400);
-				event.preventDefault();
-			});
 	jQuery('#btn-show-prspctv').button({icons: { primary: 'ui-icon-image' }, text: false });
 			// .click(clickShowPerspective);
 	jQuery('#btn-save-prspctv').button({icons: { primary: 'ui-icon-pencil' }, text: false });
@@ -9388,11 +9394,11 @@ jQuery(document).ready(function($) {
 	// });
 
 		// Filter Control Bar
-	jQuery('#btn-new-filter').button({icons: { primary: 'ui-icon-plus' }, text: false })
-			.click(clickNewFilter);
-	jQuery('#btn-toggle-filters').button({icons: { primary: 'ui-icon-arrow-2-n-s' }, text: false })
-			.click(clickToggleFilters);
-	jQuery('#btn-f-state').click(clickFilter);
+	// jQuery('#btn-new-filter').button({icons: { primary: 'ui-icon-plus' }, text: false })
+	// 		.click(clickNewFilter);
+	// jQuery('#btn-toggle-filters').button({icons: { primary: 'ui-icon-arrow-2-n-s' }, text: false })
+	// 		.click(clickToggleFilters);
+	// jQuery('#btn-f-state').click(clickFilter);
 
 	jQuery('#dialog-about .logo').attr("src", prspdata.assets+"prospectlogo.jpg");
 
@@ -9452,10 +9458,10 @@ jQuery(document).ready(function($) {
 			PState.set(PSTATE_READY);
 			jQuery('body').removeClass('waiting');
 			break;
-		case PSTATE_FDIRTY:
-			fState = 1;
-			jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
-			break;
+		// case PSTATE_FDIRTY:
+		// 	fState = 1;
+		// 	jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
+		// 	break;
 		case PSTATE_HILITE:
 			clickHighlight(data.v, data.t);
 			break;

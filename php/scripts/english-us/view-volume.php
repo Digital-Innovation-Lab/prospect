@@ -1,7 +1,6 @@
 <div id="command-bar">
 	<span id="title"></span>
 	&nbsp; &nbsp;<button id="btn-about"><?php _e('About Prospect', 'prospect'); ?></button>
-	<button id="btn-hs-bars"><?php _e('Show/Hide Filters', 'prospect'); ?></button>
 	<button id="btn-show-prspctv"><?php _e('Show Perspective', 'prospect'); ?></button>
 	<button id="btn-save-prspctv"><?php _e('Save Perspective', 'prospect'); ?></button>
 	<button id="btn-annote"><?php _e('Show/Hide Annotation', 'prospect'); ?></button>
@@ -10,17 +9,6 @@
 </div>
 
 <div id="annote" style="display:none;">
-</div>
-
-<div id="filter-frame">
-	<div id="filter-control-bar">
-		<?php _e('Filters', 'prospect'); ?>
-		<button id="btn-new-filter"><?php _e('New Filter', 'prospect'); ?></button>
-		<button id="btn-toggle-filters" disabled="disabled"><?php _e('Show/Hide Filters', 'prospect'); ?></button>
-		<button id="btn-f-state" disabled="disabled"><?php _e('No Filters', 'prospect'); ?></button>
-	</div>
-	<div id="filter-instances">
-	</div>
 </div>
 
 <div id="viz-frame">

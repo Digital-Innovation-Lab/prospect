@@ -128,7 +128,6 @@ ul.radio li:hover, ul.radio li.focus {
 	/* DOM structure of web page for visualizations:
 	 * #command-bar
 	 * #note
-	 * #filter-frame
 	 * #viz-frame
 	 */
 
@@ -204,43 +203,11 @@ ul.radio li:hover, ul.radio li.focus {
 	box-shadow: 0 0 5px 5px rgba(0,0,0,0.3);
 }
 
-	/* DOM Structure of Filter Frames
-	 * #filter-frame
-	 * 	#filter-control-bar
-	 *	#filter-instances
+	/* DOM Structure for Filters -- only in Highlight dialogs for Volumes
 	 *		.filter-instance data-id (unique random #)
 	 *			.filter-head
 	 *			.filter-body
 	 */
-
-	/* All Filters go into this frame */
-#filter-frame {
-	background-color: #ccc;
-}
-
-#filter-frame button {
-	font-family:Verdana, Arial, sans-serif;
-}
-
-	/* This is the control bar for filters */
-#filter-control-bar {
-	height: 28px;
-	padding: 10px 20px 30px;
-	margin: 0;
-	vertical-align: middle;
-	font-size: 12px;
-}
-
-	/* All Filter instances go into this scrolling area */
-#filter-instances {
-	min-height: 0px;
-	max-height: 300px;
-/*	overflow-y: auto; */
-	overflow: auto;
-	font-size: 11px;
-	margin: 0px;
-	padding: 0px;
-}
 
 	/* Each Filter instance (inc Highlight dialogs) has this class as outer wrapper */
 div.filter-instance {
