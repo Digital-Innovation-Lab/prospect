@@ -334,7 +334,7 @@ div.filter-body svg .brush .extent {
 
 	/* The first visualization display */
 #view-frame-0 {
-	width: 40%;
+	width: 550px;
 
 	flex: 1 1 auto;
 	-webkit-flex: 1 1 auto;
@@ -350,7 +350,7 @@ div.filter-body svg .brush .extent {
 
 	/* The second visualization display */
 #view-frame-1 {
-	width: 60%;
+	width: calc(100% - 550px);
 
 	flex: 1 1 auto;
 	-webkit-flex: 1 1 auto;
@@ -1300,18 +1300,6 @@ div.viz-textstream div.recitem.obj-sel {
 	border: yellow solid 2px;
 }
 
-	/* Stacked Chart styles */
-svg .block
-{
-	cursor: pointer;
-}
-
-svg .block.obj-sel
-{
-	stroke: yellow;
-	stroke-width: 2px;
-}
-
 	/* Network Wheel styles */
 svg .node
 {
@@ -1341,204 +1329,6 @@ svg .link.thick
 	stroke-width: 2px;
 }
 
-	/* Facet Flow styles */
-svg .bar
-{
-	cursor: pointer;
-	stroke: black;
-	stroke-width: 1px;
-}
-
-svg .bar.obj-sel
-{
-	stroke: yellow;
-	stroke-width: 2px;
-}
-
-svg .flow
-{
-	cursor: pointer;
-	fill-opacity: 0.6;
-	stroke-opacity: 0.6;
-	stroke: black;
-	stroke-width: 1px;
-}
-
-svg .flow.active
-{
-	fill-opacity: 1;
-	stroke-opacity: 1;
-}
-
-svg .flow.obj-sel
-{
-	stroke: yellow;
-	stroke-width: 2px;
-}
-
-svg .att-title
-{
-	font-family:Verdana, Arial, sans-serif;
-	font-size: 14px;
-	font-weight: bold;
-	fill: black;
-	stroke-width: 0;
-	stroke: none;
-	shape-rendering: crispEdges;
-}
-
-	/* MultiBlock Map styles */
-svg .mbm-cell {
-	cursor: pointer;
-	stroke: black;
-	stroke-width: 1px;
-}
-
-svg .mbm-cell.obj-sel {
-	stroke: yellow;
-	stroke-width: 2px;
-}
-
-svg .mbm-title {
-	cursor: pointer;
-	font-family:Verdana, Arial, sans-serif;
-	font-size: 10px;
-	font-weight: normal;
-	fill: black;
-	stroke-width: 0;
-	stroke: none;
-	shape-rendering: crispEdges;
-}
-
-svg .mbm-title.obj-sel {
-	cursor: pointer;
-	fill: yellow;
-}
-
-svg .mbm-att-title
-{
-	cursor: pointer;
-	font: 14px sans-serif;
-	font-weight: bold;
-	fill: black;
-	stroke-width: 0;
-	stroke: none;
-	shape-rendering: crispEdges;
-}
-
-svg .mbm-att-title.obj-sel
-{
-	fill: yellow;
-}
-
-svg .mbm-reset
-{
-	cursor: pointer;
-	fill: #FF3333;
-}
-
-svg .mbm-reset:hover
-{
-	fill: red;
-}
-
-svg .mbm-reset-text
-{
-	cursor: pointer;
-	font-family:Verdana, Arial, sans-serif;
-	font-size: 10px;
-	font-weight: bold;
-	fill: black;
-	stroke-width: 0;
-	stroke: none;
-	text-anchor: middle;
-	shape-rendering: crispEdges;
-}
-
-	/* Facet Browser styles */
-	/* The top label for a facet (its background rectangle) */
-	/* Each has the ID "facet-"+facetIndex */
-svg .facet-lbl {
-	fill:  #0099FF;     /* sky-blue */
-}
-
-svg .facet-lbl-txt {
-	font-size: 12px;
-	font-family:Verdana, Arial, sans-serif;
-	font-weight: bold;
-	fill: black;
-	text-anchor: start;
-}
-
-	/* The button+label for a single facet value */
-	/* Each has the ID "facet-"+facetIndex+"-"+facetValueIndex */
-svg .facet-val {
-}
-
-svg .facet-val-btn {
-	cursor: pointer;
-	fill: #00CCFF;      /* light-blue */
-	transition: fill .75s;
-}
-
-	/* the color to show percentage */
-svg .facet-val-bar {
-	cursor: pointer;
-	fill: #0099FF;      /* dark-blue */
-	transition: fill .75s;
-}
-
-svg .inactive .facet-val-btn {
-	fill: #D0D0D0;      /* light-grey */
-}
-
-	/* the color to show percentage */
-svg .inactive .facet-val-bar {
-	fill: #B0B0B0;      /* dark-grey */
-}
-
-svg .facet-val-txt {
-	cursor: pointer;
-	font-size: 11px;
-	font-family:Verdana, Arial, sans-serif;
-	font-weight: normal;
-	text-anchor: start;
-	fill: black;
-}
-
-svg .facet-val-num {
-	cursor: pointer;
-	font-size: 11px;
-	font-family:Verdana, Arial, sans-serif;
-	font-weight: normal;
-	text-anchor: end;
-	fill: black; 
-}
-
-	/* The RESET button for a facet column */
-svg .facet-reset-btn {
-	cursor: pointer;
-	fill: #FF3333;          /* light-red */
-	transition: fill .75s;
-}
-
-svg .facet-reset-txt {
-	cursor: pointer;
-	font-weight: bold;
-	font-size: 11px;
-	font-family:Verdana, Arial, sans-serif;
-	fill: black;
-	text-anchor: start;
-}
-
-	/* Grey out RESET if inactive */
-svg .inactive .facet-reset-btn {
-	fill: #A8A8A8;         /* light-grey */
-}
-
-svg .inactive .facet-reset-txt {
-	fill: #808080;
-}
 
 /* Specific Filter styles
  * ======================

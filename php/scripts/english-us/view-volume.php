@@ -25,7 +25,6 @@
 				<button id="textnext">Next</button> &nbsp;
 				<button id="texthilite">Highlight</button>
 				<button id="textxsel">Clear Highlighted</button>
-				<button id="textosel">Show Highlighted</button>
 				<input type="radio" name="vizmode" id="vizmode-0" value="v0" checked/><label for="vizmode-0">All & Highlight</label>
 				<input type="radio" name="vizmode" id="vizmode-1" value="v1"/><label for="vizmode-1">Text & Highlight</label>
 				<input type="radio" name="vizmode" id="vizmode-2" value="v2"/><label for="vizmode-2">Display Only</label>

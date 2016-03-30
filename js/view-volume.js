@@ -7535,7 +7535,6 @@ jQuery(document).ready(function($) {
 	var selIDs=[];				// Record IDs selected by user from text (in sorted order)
 	var selIS;					// IndexStream of Records selected by user
 	var selAbsI;				// Array of absolute indices of Records selected by user
-	var hiliteRecs=true;		// Highlight selected Records, or restrict display to just those?
 
 
 		// FUNCTIONS
@@ -8313,51 +8312,103 @@ jQuery(document).ready(function($) {
 	// } // clickToggleFilters()
 
 		// PURPOSE: Apply effect of a Highlight filter
-		// TO DO: 	Get tUsed, rMap from the VizModels themselves!
 	function doApplyHighlight(vI)
 	{
+		var hFilter=hFilters[vI];
+		var vf = views[1];
+		var relI=0, absI, rec;
+		var tI=0, tRec;
+
 		PState.set(PSTATE_PROCESS);
 
-		var vf = views[vI];
-		var bm = vf.getBMData();
-		var list=[];
-		var hFilter=hFilters[vI];
+			// Apply to Text Frame?
+		if (vI === 0) {
+			selIDs=[]; selIS=null; selAbsI=[];
+			jQuery('#text-frame a').removeClass('sel');
 
-		if (endStream !== null) {
+			if (txtIS == null) {
+				txtIDs2IS();
+			}
 			hFilter.evalPrep();
 
-			var relI=0, absI, rec;
-			var tI=0, tRec=endStream.t[0];
+			tRec=txtIS.t[0];
 				// Must keep absolute indices and template params updated!
 			outer:
-			while (relI < endStream.l) {
+			while (relI < txtIS.l) {
 					// Advance until we get to current Template rec
-				while (!bm.t[tI] || tRec.n == 0 || (tRec.i+tRec.n) == relI) {
+				while (tRec.n == 0 || (tRec.i+tRec.n) == relI) {
 						// Fast-forward to next used template set
 					if (++tI === PData.eTNum()) {
 						break outer;
 					}
-					tRec = endStream.t[tI];
+					tRec = txtIS.t[tI];
 					relI = tRec.i;
 				}
-				absI = endStream.s[relI++];
-					// Check bitflag if Record rendered
-				if (bm.r[absI >> 4] & (1 << (absI & 15))) {
-					rec = PData.rByN(absI);
-					if (hFilter.eval(rec)) {
-						list.push(absI);
-					}
+				absI = txtIS.s[relI++];
+				rec = PData.rByN(absI);
+				if (hFilter.eval(rec)) {
+					selIDs.push(rec.id);
+					selAbsI.push(absI);
 				}
 			}
-			hFilter.evalDone(endStream.l);
-		}
+			hFilter.evalDone(txtIS.l);
+			selIDs.sort();
+			selIDs.forEach(function(theID) {
+				jQuery('#text-frame a[data-id="'+theID+'"]').addClass('sel');
+			});
+			PState.set(PSTATE_UPDATE);
+			switch (vMode) {
+			case 'v0': 		// Show all Records, highlight selected
+			case 'v1': 		// Show Records visible from Text, highlight selected
+				if (selAbsI.length > 0) {
+					vf.setSel(selAbsI);
+				} else {
+					vf.clearSel();
+				}
+				break;
+			case 'v2': 		// Only Show selected Records
+				selIDs2IS();
+				vf.showStream(selIS);
+				break;
+			}
 
-		PState.set(PSTATE_UPDATE);
+		} else {	// Apply to Viz Frame
+			var bm = vf.getBMData();
+			var list=[];
 
-		if (list.length > 0) {
-			vf.setSel(list);
-		} else {
-			vf.clearSel();
+			if (endStream != null) {
+				hFilter.evalPrep();
+
+				tRec=endStream.t[0];
+					// Must keep absolute indices and template params updated!
+				outer:
+				while (relI < endStream.l) {
+						// Advance until we get to current Template rec
+					while (!bm.t[tI] || tRec.n == 0 || (tRec.i+tRec.n) == relI) {
+							// Fast-forward to next used template set
+						if (++tI === PData.eTNum()) {
+							break outer;
+						}
+						tRec = endStream.t[tI];
+						relI = tRec.i;
+					}
+					absI = endStream.s[relI++];
+						// Check bitflag if Record rendered
+					if (bm.r[absI >> 4] & (1 << (absI & 15))) {
+						rec = PData.rByN(absI);
+						if (hFilter.eval(rec)) {
+							list.push(absI);
+						}
+					}
+				}
+				hFilter.evalDone(endStream.l);
+			}
+			PState.set(PSTATE_UPDATE);
+			if (list.length > 0) {
+				vf.setSel(list);
+			} else {
+				vf.clearSel();
+			}
 		}
 
 		PState.set(PSTATE_READY);
@@ -8365,7 +8416,7 @@ jQuery(document).ready(function($) {
 
 		// PURPOSE: Handle click on "Highlight" button
 		// INPUT: 	vI = index of view frame
-	// function clickHighlight(vI, tUsed, rMap)
+		//			tUsed = null (allow all Attributes) or array of booleans corresponding to Templates
 	function clickHighlight(vI, tUsed)
 	{
 		var dialog;
@@ -8549,7 +8600,6 @@ jQuery(document).ready(function($) {
 				if (selIS == null) {
 					selIDs2IS();
 				}
-console.log("Display Stream: "+JSON.stringify(selIS));
 				v.showStream(selIS);
 				break;
 			}
@@ -9023,7 +9073,7 @@ console.log("Display Stream: "+JSON.stringify(selIS));
 					v.setSel(selAbsI);
 					break;
 				case 'v2': 		// Only Show selected Records
-console.log("Click display: "+JSON.stringify(selIS));;
+					v.clearSel();
 					v.showStream(selIS);
 					break;
 				}
@@ -9205,6 +9255,42 @@ console.log("Click display: "+JSON.stringify(selIS));;
 		}
 	} // clickTextNext()
 
+		// PURPOSE: Handle clicking "Find" icon button in TOC
+	function clickTOCFind(event)
+	{
+		// TO DO
+		event.preventDefault();
+	} // clickTOCFind()
+
+		// PURPOSE: Handle clicking "Find" icon button on Text Frame
+	function clickTextFind(event)
+	{
+		clickHighlight(0, null);
+		event.preventDefault();
+	} // clickTextFind()
+
+		// PURPOSE: Handle clicking "Clear" icon button on Text Frame
+	function clickTextClear(event)
+	{
+		var v=views[1];
+
+		jQuery('#text-frame a').removeClass('sel');
+		selIDs=[]; selAbsI=[]; selIS=null;
+		if (v != null) {
+			switch (vMode) {
+			case 'v0': 		// Show all Records, highlight selected
+			case 'v1': 		// Show Records visible from Text, highlight selected
+				v.clearSel();
+				break;
+			case 'v2': 		// Only Show selected Records (none)
+				selIDs2IS();
+				v.showStream(selIS);
+				break;
+			}
+		}
+		event.preventDefault();
+	} // clickTextClear()
+
 
 		// IMMEDIATE EXECUTION
 		//====================
@@ -9349,14 +9435,18 @@ console.log("Click display: "+JSON.stringify(selIS));;
 		.click(clickHSTOC);
 	jQuery('#tochcall').click(clickTOCHCAll);
 	jQuery('#tochsall').click(clickTOCHSAll);
-	jQuery('#tocfind').button({icons: { primary: 'ui-icon-star' }, text: false });
+	jQuery('#tocfind').button({icons: { primary: 'ui-icon-star' }, text: false })
+		.click(clickTOCFind);
 	jQuery('#textprev').button({icons: { primary: 'ui-icon-arrow-1-w' }, text: false })
 		.click(clickTextPrev);
 	jQuery('#textnext').button({icons: { primary: 'ui-icon-arrow-1-e' }, text: false })
 		.click(clickTextNext);
-	jQuery('#texthilite').button({icons: { primary: 'ui-icon-star' }, text: false });
-	jQuery('#textxsel').button({icons: { primary: 'ui-icon-cancel' }, text: false });
-	jQuery('#textosel').button({icons: { primary: 'ui-icon-search' }, text: false });
+	jQuery('#texthilite').button({icons: { primary: 'ui-icon-star' }, text: false })
+		.click(clickTextFind);
+	jQuery('#textxsel').button({icons: { primary: 'ui-icon-cancel' }, text: false })
+		.click(clickTextClear);
+	// jQuery('#textosel').button({icons: { primary: 'ui-icon-search' }, text: false })
+	// 	.click(clickTextShow);
 	jQuery('#text-frame').click(clickTextFrame);
 	jQuery('input[type=radio][name=vizmode]').change(function() {
 		vMode = this.value;
