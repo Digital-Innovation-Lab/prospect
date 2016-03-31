@@ -8700,16 +8700,29 @@ jQuery(document).ready(function($) {
 
 		var tf = jQuery('#toc-frame > ul.toc-wrapper');
 		tf.empty();
+
 		volData.forEach(function(chap, cI) {
 			str = '<li class="toc-chap" data-c='+cI+'><input type="checkbox" class="readlist-c"/> <button class="toccollapse">Collapse</button> ';
-			str += txt.substr(chap.hi+4, chap.hl-9);
+			str += chap.e.innerHTML;
 			str += '<ul class="toc-secs" style="display: none;">';
+				// Section headers and following DOM elements up to H1 or H2
 			chap.s.forEach(function(sec, sI) {
-				str += '<li data-s='+sI+'><input type="checkbox" class="readlist"/>'+txt.substr(sec.hi+4, sec.hl-9)+'</li>';
+				str += '<li data-s='+sI+'><input type="checkbox" class="readlist"/>'+sec.innerHTML+'</li>';
 			});
 			str += '</ul></li>';
 			tf.append(str);
 		});
+
+		// volData.forEach(function(chap, cI) {
+		// 	str = '<li class="toc-chap" data-c='+cI+'><input type="checkbox" class="readlist-c"/> <button class="toccollapse">Collapse</button> ';
+		// 	str += txt.substr(chap.hi+4, chap.hl-9);
+		// 	str += '<ul class="toc-secs" style="display: none;">';
+		// 	chap.s.forEach(function(sec, sI) {
+		// 		str += '<li data-s='+sI+'><input type="checkbox" class="readlist"/>'+txt.substr(sec.hi+4, sec.hl-9)+'</li>';
+		// 	});
+		// 	str += '</ul></li>';
+		// 	tf.append(str);
+		// });
 
 			// Bind click on chapters first
 		jQuery('#toc-frame > ul.toc-wrapper > li.toc-chap').click(clickTOCChap);
@@ -8727,28 +8740,68 @@ jQuery(document).ready(function($) {
 		// TO DO:	Disable prev/next buttons if no RL items before or after
 	function buildTextFrame()
 	{
-		var volC, volS;
-		var txt = document.getElementById('prsp-volume').innerHTML;
+		var volC, volS, cur;
+		// var txt = document.getElementById('prsp-volume').innerHTML;
 
 		var tf = jQuery('#text-frame');
 		tf.empty();
+
 		tocSel.forEach(function(chap, cI) {
 			volC = volData[cI];
+
+				// Chapter header and following DOM elements up to H1 or H2
 			if (chap.c) {
-				tf.append(txt.substr(volC.hi, volC.hl));
-				if (volC.cl > 0) {
-					tf.append(txt.substr(volC.ci, volC.cl));
-				}
-			}
+				tf.append(jQuery(volC.e).clone());
+				cur = jQuery(volC.e).next();
+				while (cur.length != 0) {
+					switch (cur.prop('tagName').toUpperCase()) {
+					case 'H1':
+					case 'H2':
+						cur=[];
+						break;
+					default:
+						tf.append(cur.clone());
+						cur = cur.next();
+						break;
+					} // switch
+				} // while
+			} // if
+				// Section headers and following DOM elements up to H1 or H2
 			chap.s.forEach(function(sec, sI) {
 				if (sec) {
 					volS = volC.s[sI];
-					tf.append(txt.substr(volS.hi, volS.hl));
-					if (volS.cl > 0) {
-						tf.append(txt.substr(volS.ci, volS.cl));
-					}
-				}
+					tf.append(jQuery(volS).clone());
+					cur = jQuery(volS).next();
+					while (cur.length != 0) {
+						switch (cur.prop('tagName').toUpperCase()) {
+						case 'H1':
+						case 'H2':
+							cur=[];
+							break;
+						default:
+							tf.append(cur.clone());
+							cur = cur.next();
+							break;
+						} // switch
+					} // while
+				} // if
 			});
+
+			// if (chap.c) {
+			// 	tf.append(txt.substr(volC.hi, volC.hl));
+			// 	if (volC.cl > 0) {
+			// 		tf.append(txt.substr(volC.ci, volC.cl));
+			// 	}
+			// }
+			// chap.s.forEach(function(sec, sI) {
+			// 	if (sec) {
+			// 		volS = volC.s[sI];
+			// 		tf.append(txt.substr(volS.hi, volS.hl));
+			// 		if (volS.cl > 0) {
+			// 			tf.append(txt.substr(volS.ci, volS.cl));
+			// 		}
+			// 	}
+			// });
 		});
 
 			// Find all <a>, create list of recs from data-id
@@ -8779,82 +8832,109 @@ jQuery(document).ready(function($) {
 		// NOTES: 	Reading List is all on by default; open with first chapter in text pane
 	function parseVol()
 	{
-		var txt = document.getElementById('prsp-volume').innerHTML;
-		var txtLen = txt.length;
-		var tI=0;
-		var i, nH1, si, sl;
-		var cCont, prev;
+			// Get first child DOM node
+		var cur = jQuery('#prsp-volume').children(':first');
+		var chap=null, sec=null;
 
-		while (tI < txtLen) {
-			var cRec={ hi: 0, hl: 0, ci: 0, cl: 0, s: [] };
-				// Next chapter header
-			i = txt.indexOf('<h1>', tI);
-				// No more
-			if (i === -1) {
+		while (cur.length != 0) {
+			switch (cur.prop('tagName').toUpperCase()) {
+			case 'H1':
+				if (chap != null) {
+					volData.push(chap);
+				}
+				chap = { e: cur.get(0), s: [] };
+				break;
+			case 'H2':
+				if (chap != null) {
+					chap.s.push(cur.get(0));
+				}
+				break;
+			default:
 				break;
 			}
-			cRec.hi = i;
-			tI = i+4;
-				// Get closing tag
-			i = txt.indexOf('</h1>', tI);
-			if (i === -1) {
-				throw new Error("Can't find closing h1 tag after "+tI);
-			}
-			tI = i+5;
-			cRec.hl = tI-cRec.hi;
-
-				// Content (if any) starts next by default
-			cRec.ci = tI;
-			cCont=true;
-
-				// Check to see position of next <h1> -- all <h2> tags must come before
-			nH1 = txt.indexOf('<h1>', tI);
-
-			do {
-				si = txt.indexOf('<h2>', tI);
-				if (si !== -1 && (nH1 === -1 || si < nH1)) {
-						// Need to set size of chapter's content section?
-					if (cCont) {
-						cRec.cl=si-cRec.ci;
-						cCont=false;
-						// Set size of previous section's content section
-					} else {
-						prev = cRec.s[cRec.s.length-1];
-						prev.cl = si-prev.ci;
-					}
-					tI = si+4;
-					sl = txt.indexOf('</h2>', tI);
-					if (sl === -1) {
-						throw new Error("Can't find closing h2 tag after "+tI);
-					}
-					tI = sl+5;
-					cRec.s.push({ hi: si, hl: (sl+5)-si, ci: tI, cl: 0 });
-				} else {
-						// Move to next chapter or end
-					if (nH1 !== -1) {
-						tI = nH1;
-					} else {
-						tI=txtLen;
-					}
-				}
-			} while ((nH1 === -1 || tI < nH1) && (tI < txtLen));
-
-				// modify content section of final section, if any
-			if (cRec.s.length > 0) {
-				prev = cRec.s[cRec.s.length-1];
-				prev.cl=tI-prev.ci;
-			} else if (cCont) {
-				cRec.cl=tI-cRec.ci;
-			}
-
-			volData.push(cRec);
+			cur = cur.next();
+		}
+			// Save any remaining data
+		if (chap != null) {
+			volData.push(chap);
 		}
 
+		// var txt = document.getElementById('prsp-volume').innerHTML;
+		// var txtLen = txt.length;
+		// var tI=0;
+		// var i, nH1, si, sl;
+		// var cCont, prev;
+
+		// while (tI < txtLen) {
+		// 	var cRec={ hi: 0, hl: 0, ci: 0, cl: 0, s: [] };
+		// 		// Next chapter header
+		// 	i = txt.indexOf('<h1>', tI);
+		// 		// No more
+		// 	if (i === -1) {
+		// 		break;
+		// 	}
+		// 	cRec.hi = i;
+		// 	tI = i+4;
+		// 		// Get closing tag
+		// 	i = txt.indexOf('</h1>', tI);
+		// 	if (i === -1) {
+		// 		throw new Error("Can't find closing h1 tag after "+tI);
+		// 	}
+		// 	tI = i+5;
+		// 	cRec.hl = tI-cRec.hi;
+
+		// 		// Content (if any) starts next by default
+		// 	cRec.ci = tI;
+		// 	cCont=true;
+
+		// 		// Check to see position of next <h1> -- all <h2> tags must come before
+		// 	nH1 = txt.indexOf('<h1>', tI);
+
+		// 	do {
+		// 		si = txt.indexOf('<h2>', tI);
+		// 		if (si !== -1 && (nH1 === -1 || si < nH1)) {
+		// 				// Need to set size of chapter's content section?
+		// 			if (cCont) {
+		// 				cRec.cl=si-cRec.ci;
+		// 				cCont=false;
+		// 				// Set size of previous section's content section
+		// 			} else {
+		// 				prev = cRec.s[cRec.s.length-1];
+		// 				prev.cl = si-prev.ci;
+		// 			}
+		// 			tI = si+4;
+		// 			sl = txt.indexOf('</h2>', tI);
+		// 			if (sl === -1) {
+		// 				throw new Error("Can't find closing h2 tag after "+tI);
+		// 			}
+		// 			tI = sl+5;
+		// 			cRec.s.push({ hi: si, hl: (sl+5)-si, ci: tI, cl: 0 });
+		// 		} else {
+		// 				// Move to next chapter or end
+		// 			if (nH1 !== -1) {
+		// 				tI = nH1;
+		// 			} else {
+		// 				tI=txtLen;
+		// 			}
+		// 		}
+		// 	} while ((nH1 === -1 || tI < nH1) && (tI < txtLen));
+
+		// 		// modify content section of final section, if any
+		// 	if (cRec.s.length > 0) {
+		// 		prev = cRec.s[cRec.s.length-1];
+		// 		prev.cl=tI-prev.ci;
+		// 	} else if (cCont) {
+		// 		cRec.cl=tI-cRec.ci;
+		// 	}
+
+		// 	volData.push(cRec);
+		// }
+
 			// Create default Reading List and Selection: everything selected on RL
-		volData.forEach(function(chap, cI) {
+		volData.forEach(function(chap) {
 			var rlChap={c: true, s: []};
 			var rlSel={c: false, s:[]};
-			chap.s.forEach(function(sec, sI) {
+			chap.s.forEach(function(sec) {
 				rlChap.s.push(true);
 				rlSel.s.push(false);
 			});
@@ -9258,7 +9338,87 @@ jQuery(document).ready(function($) {
 		// PURPOSE: Handle clicking "Find" icon button in TOC
 	function clickTOCFind(event)
 	{
-		// TO DO
+		var dialog;
+
+		dialog = jQuery("#dialog-find-toc").dialog({
+			height: 150,
+			width: 250,
+			modal: true,
+			buttons: [
+				{
+					text: dlText.ok,
+					click: function() {
+						var txt = jQuery('#find-toc-txt').val();
+						var fnd, cur;
+						volData.forEach(function(chap, cI) {
+								// Set to false by default
+							fnd=false;
+								// Check first in Chapter header
+							if (chap.e.innerHTML.indexOf(txt) !== -1) {
+								fnd=true;
+							} else {
+									// Check in following text (up to next section)
+								cur = jQuery(chap.e).next();
+								while (cur.length != 0) {
+									switch (cur.prop('tagName').toUpperCase()) {
+									case 'H1':
+									case 'H2':
+										cur=[];
+										break;
+									default:
+										if (jQuery(cur).contents().text().indexOf(txt) !== -1) {
+											fnd=true;
+											cur=[];
+										} else {
+											cur = cur.next();
+										}
+										break;
+									} // switch
+								} // while
+							}
+							tocRL[cI].c = fnd;
+
+							chap.s.forEach(function(sec, sI) {
+								fnd=false;
+									// Check first in Section header
+								if (sec.innerHTML.indexOf(txt) !== -1) {
+									fnd=true;
+								} else {
+										// Check in following text (up to next section)
+									cur = jQuery(sec).next();
+									while (cur.length != 0) {
+										switch (cur.prop('tagName').toUpperCase()) {
+										case 'H1':
+										case 'H2':
+											cur=[];
+											break;
+										default:
+											if (jQuery(cur).contents().text().indexOf(txt) !== -1) {
+												fnd=true;
+												cur=[];
+											} else {
+												cur = cur.next();
+											}
+											break;
+										} // switch
+									} // while
+								}
+								tocRL[cI].s[sI] = fnd;
+							});
+						});
+						updateTOCRL();
+						dialog.dialog("close");
+					}
+				},
+				{
+					text: dlText.cancel,
+					click: function() {
+						dialog.dialog("close");
+					}
+				}
+			]
+		});
+
 		event.preventDefault();
 	} // clickTOCFind()
 

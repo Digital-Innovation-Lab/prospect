@@ -167,6 +167,10 @@
 		<p><?php _e('To show this Perspective after it has been Published on the server, use the following URL', 'prospect'); ?>:</p>
 		<textarea id="save-prspctv-embed" cols="60" rows="3" readonly="readonly"></textarea>
 	</div>
+
+	<div id="dialog-find-toc" title=<?php _e('"Find Text"', 'prospect'); ?>>
+		<input id="find-toc-txt" type="text" size="30" placeholder=<?php _e('"Enter Text To Find"', 'prospect'); ?>/>
+	</div>
 </div> <!-- Hidden content ->
 
 <!-- DYNAMICALLY LOADED TEXT -->
