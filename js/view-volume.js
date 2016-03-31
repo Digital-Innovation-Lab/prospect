@@ -8597,6 +8597,7 @@ jQuery(document).ready(function($) {
 				}
 				break;
 			case 'v2': 		// Only Show selected Records
+				v.clearSel();
 				if (selIS == null) {
 					selIDs2IS();
 				}
