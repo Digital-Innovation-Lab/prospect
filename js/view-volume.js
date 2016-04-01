@@ -968,21 +968,21 @@ function PViewFrame(vfIndex)
 		case 't':
 			newViz = new VizTextStream(instance, theView.c);
 			break;
-		case 'S':
-			newViz = new VizStackChart(instance, theView.c);
-			break;
 		case 'N':
 			newViz = new VizNetWheel(instance, theView.c);
 			break;
-		case 'F':
-			newViz = new VizFlow(instance, theView.c);
-			break;
-		case 'B':
-			newViz = new VizBrowser(instance, theView.c);
-			break;
-		case 'm':
-			newViz = new VizMBMap(instance, theView.c);
-			break;
+		// case 'S':
+		// 	newViz = new VizStackChart(instance, theView.c);
+		// 	break;
+		// case 'F':
+		// 	newViz = new VizFlow(instance, theView.c);
+		// 	break;
+		// case 'B':
+		// 	newViz = new VizBrowser(instance, theView.c);
+		// 	break;
+		// case 'm':
+		// 	newViz = new VizMBMap(instance, theView.c);
+		// 	break;
 		}
 		vizSelIndex = vIndex;
 		var flags = newViz.flags();
@@ -1358,14 +1358,10 @@ jQuery(document).ready(function($) {
 		//==========
 	var views = [null, null];	// 2 possible viewFrames
 
-	// var apTmStr;				// Apply to <template label> for Filters
-	// var filters=[];				// Filter Stack: { id, f [PFilterModel], out [stream] }
-	// var fState=0;				// Filter State: 0 = no filter, 1 = filters changed, 2 = filters run
-
 	var hFilters=[null, null];	// Highlight Filter
 	var hFilterIDs=[null, null]; // Highlight Filter Attribute IDs
 
-	var annote;					// Annotation from current Perspective
+	var annote;					// Annotation from current Reading
 
 	var topStream;				// Top-level IndexStream (before Filters)
 	var endStream;				// Final resulting IndexStream (after Filters)
@@ -1401,85 +1397,9 @@ jQuery(document).ready(function($) {
 			topStream = PData.sNew(true);
 		endStream = topStream;
 
-			// Go through filter stack -- find 1st dirty and recompute from there
-		// var started=false, fI, theF;
-		// for (fI=0; fI<filters.length; fI++) {
-		// 	theF = filters[fI];
-		// 	fDiv = jQuery('div.filter-instance[data-id="'+theF.id+'"]');
-		// 		// If we've started, evaluate and propagate
-		// 	if (started || theF.f.isDirty(null)) {
-		// 		started = true;
-		// 		var f = theF.f;
-		// 		f.evalPrep();
-		// 		var newStream = PData.sNew(false);
-		// 		var relI=0, absI, rec;
-		// 		var tI=0, tRec=endStream.t[0], tRn=0, rTotal=0;
-		// 		var e=fDiv.find('.apply-tmplt-0').is(':checked');
-		// 			// Must keep absolute indices and template params updated!
-		// 		while (relI < endStream.l) {
-		// 				// Advance until we get to current Template rec
-		// 			while (tRec.n === 0 || (tRec.i+tRec.n) === relI) {
-		// 				newStream.t.push({ i: (newStream.l-tRn), n: tRn });
-		// 				tRn = 0;
-		// 				tRec = endStream.t[++tI];
-		// 				e=fDiv.find('.apply-tmplt-'+tI).is(':checked');
-		// 			}
-		// 			absI = endStream.s[relI++];
-		// 				// Need to evaluate
-		// 			if (e) {
-		// 				rec = PData.rByN(absI);
-		// 				if (f.eval(rec)) {
-		// 					newStream.s[newStream.l++] = absI;
-		// 					tRn++;
-		// 				}
-		// 				rTotal++;
-		// 				// Pass-through
-		// 			} else {
-		// 				newStream.s[newStream.l++] = absI;
-		// 				tRn++;
-		// 			}
-		// 		}
-		// 			// push out remaining Template recs
-		// 		while (tI++ < PData.eTNum()) {
-		// 			newStream.t.push( { i: (newStream.l-tRn), n: tRn } );
-		// 			tRn = 0;
-		// 		}
-		// 		f.isDirty(false);
-		// 		f.out = newStream;
-		// 		f.evalDone(rTotal);
-		// 		endStream = newStream;
-		// 	} else
-		// 		endStream = theF.f.out;
-		// }
 		PState.set(PSTATE_BUILD);
-		// views.forEach(function(v) {
-		// 	if (v) {
-		// 		v.showStream(endStream);
-		// 	}
-		// });
 		paint();
-
-		// if (filters.length > 0) {
-		// 	fState = 2;
-		// 	jQuery('#btn-f-state').prop('disabled', true).html(dlText.filtered);
-		// } else {
-		// 	fState = 0;
-		// 	jQuery('#btn-f-state').prop('disabled', true).html(dlText.nofilter);
-		// }
 	} // doRecompute()
-
-	// function clickFilter(event)
-	// {
-	// 		// Remove any selections first
-	// 	views.forEach(function(v) {
-	// 		if (v) {
-	// 			v.clearSel();
-	// 		}
-	// 	});
-	// 	doRecompute();
-	// 	PState.set(PSTATE_READY);
-	// 	event.preventDefault();
-	// } // clickFilter()
 
 		// PURPOSE: Set annotation text to <t>
 	function setAnnote(t)
@@ -1911,77 +1831,6 @@ jQuery(document).ready(function($) {
 		event.preventDefault();
 	} // clickGoHome()
 
-	// function clickFilterToggle(event)
-	// {
-	// 	jQuery(this).parent().next().slideToggle(400);
-	// 	event.preventDefault();
-	// } // clickFilterToggle()
-
-		// PURPOSE: Handle clicking which Template Filter should apply to
-	// function clickFilterApply(event)
-	// {
-	// 	var head = jQuery(this).closest('div.filter-instance');
-	// 	if (head) {
-	// 		var fID = head.data('id');
-	// 		if (fID && fID !== '') {
-	// 			var fRec;
-	// 			fRec = filters.find(function(fr) { return fr.id == fID; });
-	// 			if (fRec == null)	{ alert('Bad Filter ID '+fID); return; }
-	// 			fRec.f.isDirty(true);
-	// 		}
-	// 	}
-	// } // clickFilterApply()
-
-	// function clickFilterDel(event)
-	// {
-	// 	var head = jQuery(this).closest('div.filter-instance');
-	// 	var fID = head.data('id');
-
-	// 	var fI, fRec;
-	// 	fI = filters.findIndex(function(fRec) { return fRec.id == fID; });
-	// 	if (fI === -1)	{ alert('Bad Filter ID '+fID); return; }
-
-	// 	fRec = filters[fI].f;
-	// 	fRec.teardown();
-
-	// 	filters.splice(fI, 1);
-	// 		// Deleted last filter in stack
-	// 	if (fI >= filters.length) {
-	// 		var endStream;
-	// 			// No filters left, reset ViewFrame data source
-	// 		if (filters.length === 0)
-	// 			endStream = topStream;
-	// 		else
-	// 			endStream = filters[fI-1].out;
-	// 		views.forEach(function(v) {
-	// 			if (v)
-	// 				v.setStream(endStream);
-	// 		});
-	// 	} else {
-	// 			// Output must be recomputed from successor on
-	// 		filters[fI].f.isDirty(true);
-	// 	}
-
-	// 		// Remove this DOM element
-	// 	head.remove();
-
-	// 	if (filters.length === 0) {
-	// 		jQuery('#btn-toggle-filters').button("disable");
-	// 			// Invalidate selections
-	// 		views.forEach(function(v) {
-	// 			if (v)
-	// 				v.clearSel(endStream);
-	// 		});
-	// 		doRecompute();
-	// 		PState.set(PSTATE_READY);
-	// 	} else {
-	// 		fState = 1;
-	// 		jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
-	// 	}
-
-	// 	event.preventDefault();
-	// } // clickFilterDel()
-
 		// PURPOSE: Add a new filter to the stack
 		// INPUT: 	fID = Attribute ID
 		//			apply = initial state of apply array (boolean for each Template)
@@ -1996,15 +1845,7 @@ jQuery(document).ready(function($) {
 		var theAtt;
 		var insert;
 
-		// if (highlight !== null) {
-			newID = highlight;
-		// } else {
-		// 	do {
-		// 		newID = Math.floor((Math.random() * 1000) + 2);
-		// 		if (filters.findIndex(function(theF) { return theF.id == newID; }) != -1)
-		// 			newID = -1;
-		// 	} while (newID == -1);
-		// }
+		newID = highlight;
 
 		if (fID == '_remove') {
 			newFilter = new PFilterRemove(newID);
@@ -2030,39 +1871,9 @@ jQuery(document).ready(function($) {
 			}
 		}
 
-		// if (highlight !== null) {
-			insert = jQuery('#dialog-hilite-'+highlight+' span.filter-id').html(theAtt.def.l);
-			insert = jQuery('#hilite-'+highlight);
-			insert.empty();
-
-		// } else {
-		// 	var newFRec = { id: newID, attID: fID, f: newFilter, out: null };
-		// 	filters.push(newFRec);
-
-		// 		// Now create DOM structure and handle clicks
-		// 	var fh = _.template(document.getElementById('dltext-filter-head').innerHTML);
-		// 	jQuery('#filter-instances').append(fh({ newID: newID, title: newFilter.title(), apply: apTmStr }));
-
-		// 	var head = jQuery('div.filter-instance[data-id="'+newID+'"]');
-
-		// 		// Check each checkbox acoording to default settings, disable acc to Template appearance
-		// 	for (var i=0; i<PData.eTNum(); i++) {
-		// 		var applier = head.find('.apply-tmplt-'+i);
-		// 		applier.prop('disabled', !theAtt.t[i]);
-		// 		applier.prop('checked', apply[i] && theAtt.t[i]);
-		// 		applier.click(clickFilterApply);
-		// 	}
-
-		// 	head.find('button.btn-filter-toggle').button({
-		// 				text: false, icons: { primary: 'ui-icon-carat-2-n-s' }
-		// 			}).click(clickFilterToggle);
-		// 	head.find('button.btn-filter-del').button({
-		// 				text: false, icons: { primary: 'ui-icon-trash' }
-		// 			}).click(clickFilterDel);
-
-		// 	fState = 1;
-		// 	jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
-		// }
+		insert = jQuery('#dialog-hilite-'+highlight+' span.filter-id').html(theAtt.def.l);
+		insert = jQuery('#hilite-'+highlight);
+		insert.empty();
 
 			// Allow Filter to insert required HTML
 		newFilter.setup();
@@ -2145,22 +1956,6 @@ jQuery(document).ready(function($) {
 
 		attDialog = jQuery("#dialog-choose-att").dialog(dialogParams);
 	} // chooseAttribute()
-
-	// function clickNewFilter(event)
-	// {
-	// 	chooseAttribute(true, false, null, function(id) {
-	// 		jQuery('#filter-instances').show(400);
-	// 		createFilter(id, [true, true, true, true], null);
-	// 		jQuery('#btn-toggle-filters').button("enable");
-	// 	});
-	// 	event.preventDefault();
-	// } // clickNewFilter()
-
-	// function clickToggleFilters(event)
-	// {
-	// 	jQuery('#filter-instances').slideToggle(400);
-	// 	event.preventDefault();
-	// } // clickToggleFilters()
 
 		// PURPOSE: Apply effect of a Highlight filter
 	function doApplyHighlight(vI)
@@ -3378,9 +3173,9 @@ jQuery(document).ready(function($) {
 		}
 	}());
 
-		// Remove any Perspective query string and prefix and trailing /
+		// Remove any Reading query string and prefix and trailing /
 	volURL = window.location.pathname;
-	volURL = volURL.replace(/\&*prspctv=[\w\-]+/, '');
+	volURL = volURL.replace(/\&*reading=[\w\-]+/, '');
 	volURL = volURL.replace(/\/$/, '');
 	volURL = volURL.replace(/^\//, '');
 	volURL = "http://" + window.location.host + "/" + volURL;
