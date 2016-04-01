@@ -2010,10 +2010,10 @@ class ProspectAdmin {
 
 		<h3><?php _e('Website Configuration Export', 'prospect'); ?></h3>
 		<p><b><?php _e('IMPORTANT','prospect'); ?>:</b> <?php _e('All Records must still be exported on a Template-by-Template basis; this archive file does not include Maps or Perspectives.', 'prospect'); ?></p>
-		<?php _e('<a href="admin.php?action=prsp_export_all" title="Export all" rel="permalink">Export all Attributes, Templates and Exhibits from this website as a JSON archive file</a>', 'prospect'); ?>
+		<?php _e('<a href="admin.php?action=prsp_export_all" title="Export all" rel="permalink">Export all Attributes, Templates, Exhibits and Volumes from this website as a JSON archive file</a>', 'prospect'); ?>
 
 		<h3><?php _e('Import JSON Archive File', 'prospect'); ?></h3>
-		<p><?php _e('You can import a JSON archive file containing Attributes, Templates, Exhibits, Maps and/or Perspectives. You must use other means for importing CSV files containing Records.', 'prospect'); ?></p>
+		<p><?php _e('You can import a JSON archive file containing Attributes, Templates, Exhibits, Maps, Perspectives and/or Volumes. You must use other means for importing CSV files containing Records.', 'prospect'); ?></p>
 		<p><b><?php _e('WARNING', 'prospect'); ?>:</b> <?php _e('Data entities whose IDs already exist are ignored, rather than overriding existing definitions.', 'prospect'); ?></p>
 
 		<form id="prsp-archive-import-form" method="post" enctype="multipart/form-data">
