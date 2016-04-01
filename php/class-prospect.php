@@ -124,17 +124,40 @@ class Prospect {
 			wp_enqueue_script('jquery-effects-core');
 			wp_enqueue_script('jquery-effects-slide');
 
-			wp_enqueue_script('leaflet', plugins_url('lib/leaflet/leaflet.js', dirname(__FILE__)));
-
 			wp_enqueue_script('d3', plugins_url('lib/d3.min.js', dirname(__FILE__)));
 
-			wp_enqueue_script('prsp-map-hub', plugins_url('js/map-hub.js', dirname(__FILE__)));
-			wp_enqueue_script('prsp-view-exhibit', plugins_url('js/view-exhibit.min.js', dirname(__FILE__)));
+			wp_enqueue_script('prsp-view-core', plugins_url('js/view-core.min.js', dirname(__FILE__)));
+			wp_enqueue_script('prsp-view-exhibit', plugins_url('js/view-exhibit.min.js', dirname(__FILE__)), array('prsp-view-core'));
 
 				// Get Exhibit definition
 			$the_xhbt = new ProspectExhibit(true, get_the_ID(), true);
 			if ($the_xhbt->inspect->modal->scOn) {
 				wp_enqueue_script('soundcloud', 'http://w.soundcloud.com/player/api.js');
+			}
+
+				// Check if need view-aggregate, map-dependent modules
+			$use_maps = false;
+			$use_aggregate = false;
+			foreach ($the_xhbt->views as $the_view) {
+				switch ($the_view->vf) {
+				case 'M':
+					$use_maps = true;
+					break;
+				case 'S':
+				case 'F':
+				case 'B':
+				case 'm':
+					$use_aggregate = true;
+					break;
+				}
+
+			}
+			if ($use_maps) {
+				wp_enqueue_script('leaflet', plugins_url('lib/leaflet/leaflet.js', dirname(__FILE__)));
+				wp_enqueue_script('prsp-map-hub', plugins_url('js/map-hub.js', dirname(__FILE__)));
+			}
+			if ($use_aggregate) {
+				wp_enqueue_script('prsp-view-aggregate', plugins_url('js/view-aggregate.min.js', dirname(__FILE__)), array('prsp-view-core'));
 			}
 
 				// 'Chunk-size' user option
@@ -285,17 +308,29 @@ class Prospect {
 			wp_enqueue_script('jquery-effects-core');
 			wp_enqueue_script('jquery-effects-slide');
 
-			wp_enqueue_script('leaflet', plugins_url('lib/leaflet/leaflet.js', dirname(__FILE__)));
-
 			wp_enqueue_script('d3', plugins_url('lib/d3.min.js', dirname(__FILE__)));
 
-			wp_enqueue_script('prsp-map-hub', plugins_url('js/map-hub.js', dirname(__FILE__)));
-			wp_enqueue_script('prsp-view-volume', plugins_url('js/view-volume.js', dirname(__FILE__)));
+			wp_enqueue_script('prsp-view-core', plugins_url('js/view-core.min.js', dirname(__FILE__)));
+			wp_enqueue_script('prsp-view-volume', plugins_url('js/view-volume.js', dirname(__FILE__)), array('prsp-view-core'));
 
 				// Get Volume definition
 			$the_volume = new ProspectVolume(true, get_the_ID(), true);
 			if ($the_volume->inspect->modal->scOn) {
 				wp_enqueue_script('soundcloud', 'http://w.soundcloud.com/player/api.js');
+			}
+
+				// Check if need view-aggregate, map-dependent modules
+			$use_maps = false;
+			foreach ($the_volume->views as $the_view) {
+				switch ($the_view->vf) {
+				case 'M':
+					$use_maps = true;
+					break;
+				}
+			}
+			if ($use_maps) {
+				wp_enqueue_script('leaflet', plugins_url('lib/leaflet/leaflet.js', dirname(__FILE__)));
+				wp_enqueue_script('prsp-map-hub', plugins_url('js/map-hub.js', dirname(__FILE__)));
 			}
 
 				// 'Chunk-size' user option
