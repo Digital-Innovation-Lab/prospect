@@ -11,7 +11,7 @@
 	// GLOBAL CONSTANTS
 
 	// GLOBAL VARS
-// var xhbtURL;
+var volURL;
 
 var widgetData = {			// Widget state has to be global because YouTube API calls global function
 							// Therefore code cannot rely upon closure to know state of widget data
@@ -1683,7 +1683,7 @@ jQuery(document).ready(function($) {
 
 	// 						if (saved == 'server') {
 	// 								// Calculate Embed value
-	// 							var embed = xhbtURL + '/?prspctv=' + id;
+	// 							var embed = volURL + '/?reading=' + id;
 
 	// 							jQuery('#save-prspctv-embed').val(embed);
 	// 							var embedDialog = jQuery("#dialog-prspctv-url").dialog({
@@ -3379,11 +3379,11 @@ jQuery(document).ready(function($) {
 	}());
 
 		// Remove any Perspective query string and prefix and trailing /
-	// xhbtURL = window.location.pathname;
-	// xhbtURL = xhbtURL.replace(/\&*prspctv=[\w\-]+/, '');
-	// xhbtURL = xhbtURL.replace(/\/$/, '');
-	// xhbtURL = xhbtURL.replace(/^\//, '');
-	// xhbtURL = "http://" + window.location.host + "/" + xhbtURL;
+	volURL = window.location.pathname;
+	volURL = volURL.replace(/\&*prspctv=[\w\-]+/, '');
+	volURL = volURL.replace(/\/$/, '');
+	volURL = volURL.replace(/^\//, '');
+	volURL = "http://" + window.location.host + "/" + volURL;
 
 		// Create string to add to Filter Headers inserting Template IDs & labels
 	(function () {

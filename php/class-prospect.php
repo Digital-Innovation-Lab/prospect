@@ -408,18 +408,18 @@ class Prospect {
 				array_push($m, $map_def);
 			}
 
-				// Collect Perspectives
-			// $p = array();
-			// $all_prspctvs = ProspectPerspective::get_exhibit_perspectives($the_xhbt->id);
-			// foreach($all_prspctvs as $the_prspctv) {
-			// 	$p_def = array(
-			// 		'id'	=> $the_prspctv->id,
-			// 		'l'		=> $the_prspctv->l,
-			// 		'n'		=> $the_prspctv->note,
-			// 		's'		=> $the_prspctv->state
-			// 	);
-			// 	array_push($p, $p_def);
-			// }
+				// Collect Readings (uses same structures as Perspectives)
+			$p = array();
+			$all_readings = ProspectReading::get_volume_readings($the_volume->id);
+			foreach($all_readings as $the_reading) {
+				$r_def = array(
+					'id'	=> $the_reading->id,
+					'l'		=> $the_reading->l,
+					'n'		=> $the_reading->note,
+					's'		=> $the_reading->state
+				);
+				array_push($p, $r_def);
+			}
 
 				// Have to put numberic parameters into x or else they are treated as strings!
 			wp_localize_script('prsp-view-volume', 'prspdata', array(
@@ -427,7 +427,7 @@ class Prospect {
 				'site_url'		=> site_url(),
 				'assets'		=> plugins_url('/assets/', dirname(__FILE__)),
 				'x'				=> array(
-									'add_prspctv' => current_user_can('create_prsp_prspctvs') ? true : false,
+									'add_reading' => current_user_can('create_prsp_readings') ? true : false,
 									'chunks' => $chunk
 									),
 				'bClrs'			=> $b_clrs,
@@ -437,8 +437,8 @@ class Prospect {
 				't'				=> $t,
 				'a'				=> $a,
 				'm'				=> $m,
-				// 'p'				=> $p,
-				'show_prspctv'	=> get_query_var('prspctv')
+				'p'				=> $p,
+				'show_reading'	=> get_query_var('reading')
 			));
 
 				// Get rid of WordPress extras
@@ -504,6 +504,7 @@ class Prospect {
 		require_once plugin_dir_path(__FILE__).'class-exhibit.php';
 		require_once plugin_dir_path(__FILE__).'class-perspective.php';
 		require_once plugin_dir_path(__FILE__).'class-volume.php';
+		require_once plugin_dir_path(__FILE__).'class-reading.php';
 
 		require_once plugin_dir_path(__FILE__).'class-prospect-loader.php';
 		$this->loader = new ProspectLoader();

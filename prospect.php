@@ -315,6 +315,48 @@ function prospect_register_post_types()
 		)
 	); 
 	register_post_type('prsp-volume', $args);
+
+		// Register Reading Custom Post Type
+	$labels = array(
+		'name' => __('Readings', 'prospect'),
+		'singular_name' => __('Reading', 'prospect'),
+		'add_new' => __('Add New', 'prospect'),
+		'add_new_item' => __('Add New Reading', 'prospect'),
+		'edit_item' => __('Edit Reading', 'prospect'),
+		'new_item' => __('New Reading', 'prospect'),
+		'all_items' => __('Readings', 'prospect'),
+		'view' => __('View', 'prospect'),
+		'view_item' => __('View Reading', 'prospect'),
+		 'search_items' => __('Search Readings', 'prospect'),
+		'not_found' =>  __('No Readings found', 'prospect'),
+		'not_found_in_trash' => __('No Reading found in Trash', 'prospect'),
+		'parent_item_colon' => '',
+		'menu_name' => __('Readings', 'prospect')
+	);
+	$args = array(
+		'labels' => $labels,
+		'public' => true,
+		'show_ui' => true, 
+		'show_in_menu' => 'prsp-top-level-handle',
+		'rewrite' => array('slug' => 'prsp-reading', 'with_front' => FALSE),
+		'has_archive' => false,
+		'hierarchical' => false,
+		'menu_position' => null,
+		'supports' => array('title', 'thumbnail', 'revisions'),
+		'capability_type' => array('prsp_reading','prsp_readings'),
+		'map_meta_cap' => true,
+		'capabilities' => array(
+			'create_posts' => 'edit_prsp_readings',
+			'edit_post' => 'edit_prsp_reading',
+			'edit_posts' => 'edit_prsp_readings',
+			'edit_others_posts' => 'edit_other_prsp_readings',
+			'publish_posts' => 'publish_prsp_readings',
+			'read_post' => 'read_prsp_reading',
+			'read_private_posts' => 'read_private_prsp_readings',
+			'delete_post' => 'delete_prsp_reading'
+		)
+	);
+	register_post_type('prsp-reading', $args);
 } // prospect_register_post_types()
 
 
@@ -370,8 +412,21 @@ function prospect_activate()
 	$role->add_cap('delete_private_prsp_prspctvs');
 	$role->add_cap('delete_published_prsp_prspctvs');
 	$role->add_cap('create_prsp_prspctvs');
-	$role->add_cap('read_prsp_volume');					// Volumes
+	$role->add_cap('read_prsp_volume');						// Volumes
 	$role->add_cap('read_prsp_volumes');
+	$role->add_cap('read_prsp_prspctv');					// Readings
+	$role->add_cap('read_private_prsp_readings');
+	$role->add_cap('edit_prsp_reading');
+	$role->add_cap('edit_prsp_readings');
+	$role->add_cap('edit_other_prsp_readings');
+	$role->add_cap('edit_others_prsp_readings');
+	$role->add_cap('edit_published_prsp_readings');
+	$role->add_cap('publish_prsp_readings');
+	$role->add_cap('delete_prsp_readings');
+	$role->add_cap('delete_others_prsp_readings');
+	$role->add_cap('delete_private_prsp_readings');
+	$role->add_cap('delete_published_prsp_readings');
+	$role->add_cap('create_prsp_readings');
 
 	$role = get_role('administrator');
 	$role->add_cap('read_prsp_attribute');					// Attributes
@@ -453,7 +508,7 @@ function prospect_activate()
 	$role->add_cap('delete_private_prsp_prspctvs');
 	$role->add_cap('delete_published_prsp_prspctvs');
 	$role->add_cap('create_prsp_prspctvs');
-	$role->add_cap('read_prsp_volume');					// Volumes
+	$role->add_cap('read_prsp_volume');						// Volumes
 	$role->add_cap('read_prsp_volumes');
 	$role->add_cap('read_private_prsp_volumes');
 	$role->add_cap('edit_prsp_volume');
@@ -467,6 +522,19 @@ function prospect_activate()
 	$role->add_cap('delete_private_prsp_volumes');
 	$role->add_cap('delete_published_prsp_volumes');
 	$role->add_cap('create_prsp_volumes');
+	$role->add_cap('read_prsp_prspctv');					// Readings
+	$role->add_cap('read_private_prsp_readings');
+	$role->add_cap('edit_prsp_reading');
+	$role->add_cap('edit_prsp_readings');
+	$role->add_cap('edit_other_prsp_readings');
+	$role->add_cap('edit_others_prsp_readings');
+	$role->add_cap('edit_published_prsp_readings');
+	$role->add_cap('publish_prsp_readings');
+	$role->add_cap('delete_prsp_readings');
+	$role->add_cap('delete_others_prsp_readings');
+	$role->add_cap('delete_private_prsp_readings');
+	$role->add_cap('delete_published_prsp_readings');
+	$role->add_cap('create_prsp_readings');
 } // prospect_activate()
 
 function prospect_deactivate()
@@ -518,6 +586,19 @@ function prospect_deactivate()
 	$role->remove_cap('create_prsp_prspctvs');
 	$role->remove_cap('read_prsp_volume');					// Volumes
 	$role->remove_cap('read_prsp_volumes');
+	$role->remove_cap('read_prsp_reading');					// Perspectives
+	$role->remove_cap('read_private_prsp_readings');
+	$role->remove_cap('edit_prsp_reading');
+	$role->remove_cap('edit_prsp_readings');
+	$role->remove_cap('edit_other_prsp_readings');
+	$role->remove_cap('edit_others_prsp_readings');
+	$role->remove_cap('edit_published_prsp_readings');
+	$role->remove_cap('publish_prsp_readings');
+	$role->remove_cap('delete_prsp_readings');
+	$role->remove_cap('delete_others_prsp_readings');
+	$role->remove_cap('delete_private_prsp_readings');
+	$role->remove_cap('delete_published_prsp_readings');
+	$role->remove_cap('create_prsp_readings');
 
 	$role = get_role('administrator');
 	$role->remove_cap('read_prsp_attribute');				// Attributes
@@ -613,6 +694,19 @@ function prospect_deactivate()
 	$role->remove_cap('delete_private_prsp_volumes');
 	$role->remove_cap('delete_published_prsp_volumes');
 	$role->remove_cap('create_prsp_volumes');
+	$role->remove_cap('read_prsp_reading');					// Perspectives
+	$role->remove_cap('read_private_prsp_readings');
+	$role->remove_cap('edit_prsp_reading');
+	$role->remove_cap('edit_prsp_readings');
+	$role->remove_cap('edit_other_prsp_readings');
+	$role->remove_cap('edit_others_prsp_readings');
+	$role->remove_cap('edit_published_prsp_readings');
+	$role->remove_cap('publish_prsp_readings');
+	$role->remove_cap('delete_prsp_readings');
+	$role->remove_cap('delete_others_prsp_readings');
+	$role->remove_cap('delete_private_prsp_readings');
+	$role->remove_cap('delete_published_prsp_readings');
+	$role->remove_cap('create_prsp_readings');
 } // prospect_deactivate()
 
 

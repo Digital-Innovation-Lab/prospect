@@ -98,10 +98,11 @@ class ProspectAdmin {
 	private $options;
 
 
-		// PURPOSE: Add perspective parameter to URL query variables for use with Prospect
+		// PURPOSE: Add perspective and parameters to URL query variables for use with Prospect
 	public function add_query_vars_filter($vars)
 	{
 		$vars[] = "prspctv";
+		$vars[] = "reading";
 		return $vars;
 	} // add_query_vars_filter()
 
