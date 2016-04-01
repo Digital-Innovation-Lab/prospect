@@ -8705,7 +8705,7 @@ jQuery(document).ready(function($) {
 		volData.forEach(function(chap, cI) {
 			str = '<li class="toc-chap" data-c='+cI+'><input type="checkbox" class="readlist-c"/> <button class="toccollapse">Collapse</button> ';
 			str += chap.e.innerHTML;
-			str += '<ul class="toc-secs" style="display: none;">';
+			str += '<ul class="toc-secs">';
 				// Section headers and following DOM elements up to H1 or H2
 			chap.s.forEach(function(sec, sI) {
 				str += '<li data-s='+sI+'><input type="checkbox" class="readlist"/>'+sec.innerHTML+'</li>';
