@@ -38,6 +38,8 @@
 				'leaflet',
 				'd3',
 				'prsp-map-hub',
+				'prsp-view-core',
+				'prsp-view-aggregate',
 				'prsp-view-exhibit',
 				'soundcloud'
 			);

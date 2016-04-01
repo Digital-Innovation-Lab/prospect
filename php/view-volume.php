@@ -38,6 +38,7 @@
 				'leaflet',
 				'd3',
 				'prsp-map-hub',
+				'prsp-view-core',
 				'prsp-view-volume',
 				'soundcloud'
 			);

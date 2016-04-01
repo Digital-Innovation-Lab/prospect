@@ -339,9 +339,8 @@ class Prospect {
 
 				// User-overrides for background colors
 			$cb_color = isset($options['prsp_cb_color']) ? $options['prsp_cb_color'] : null;
-			$fs_color = isset($options['prsp_fs_color']) ? $options['prsp_fs_color'] : null;
 			$vf_color = isset($options['prsp_vf_color']) ? $options['prsp_vf_color'] : null;
-			$b_clrs = array('cb' => $cb_color, 'fs' => $fs_color, 'vf' => $vf_color);
+			$b_clrs = array('cb' => $cb_color, 'vf' => $vf_color);
 
 				// Collect Template data
 			$t = array();
