@@ -113,59 +113,59 @@
 		</div>
 	</div>
 
-	<div id="dialog-save-prsrctv" title=<?php _e('"Save Perspective"', 'prospect'); ?>>
+	<div id="dialog-save-reading" title=<?php _e('"Save Reading"', 'prospect'); ?>>
 		<fieldset class="radiogroup">
 			<legend><?php _e('Where to save', 'prospect'); ?></legend>
 			<ul class="radio">
-				<li><input type="radio" name="save-prspctv-dest" id="save-prspctv-d-1" value="local" checked/><label for="save-prspctv-d-1"><?php _e('Private (Your Browser)', 'prospect'); ?></label></li>
-				<li><input type="radio" name="save-prspctv-dest" id="save-prspctv-d-2" value="server"/><label for="save-prspctv-d-2"><?php _e('Public (Web Server: Account required)', 'prospect'); ?></label></li>
+				<li><input type="radio" name="save-reading-dest" id="save-reading-d-1" value="local" checked/><label for="save-reading-d-1"><?php _e('Private (Your Browser)', 'prospect'); ?></label></li>
+				<li><input type="radio" name="save-reading-dest" id="save-reading-d-2" value="server"/><label for="save-reading-d-2"><?php _e('Public (Web Server: Account required)', 'prospect'); ?></label></li>
 			</ul>
 		</fieldset>
 		<?php _e('Unique ID', 'prospect'); ?>:<br/>
-		<input id="save-prspctv-id" type="text" size="20" placeholder=<?php _e('"Unique ID"', 'prospect'); ?>/><br/>
+		<input id="save-reading-id" type="text" size="20" placeholder=<?php _e('"Unique ID"', 'prospect'); ?>/><br/>
 		<?php _e('Label', 'prospect'); ?>:<br/>
-		<input id="save-prspctv-lbl" type="text" size="42" placeholder=<?php _e('"Label"', 'prospect'); ?>/><br/>
-		<input type="checkbox" name="save-prspctv-h0" id="save-prspctv-h0"/>
-		<label for="save-prspctv-h0"><?php _e('Save Highlight Filter 1', 'prospect'); ?></label> <input type="checkbox" name="save-prspctv-h1" id="save-prspctv-h1" disabled="disabled"/> <label for="save-prspctv-h1"><?php _e('Save Highlight Filter 2', 'prospect'); ?></label><br/>
-		<textarea id="save-prspctv-note" rows="4" cols="50" placeholder=<?php _e('"Add an annotation (cannot use double quotes)"', 'prospect'); ?> style="margin-top: 4px"></textarea>
+		<input id="save-reading-lbl" type="text" size="42" placeholder=<?php _e('"Label"', 'prospect'); ?>/><br/>
+		<input type="checkbox" name="save-reading-h0" id="save-reading-h0"/>
+		<label for="save-reading-h0"><?php _e('Save Highlight Filter 1', 'prospect'); ?></label> <input type="checkbox" name="save-reading-h1" id="save-reading-h1" disabled="disabled"/> <label for="save-reading-h1"><?php _e('Save Highlight Filter 2', 'prospect'); ?></label><br/>
+		<textarea id="save-reading-note" rows="4" cols="50" placeholder=<?php _e('"Add an annotation (cannot use double quotes)"', 'prospect'); ?> style="margin-top: 4px"></textarea>
 	</div>
 
-	<div id="dialog-edit-prsrctv" title=<?php _e('"Edit Perspective"', 'prospect'); ?>>
+	<div id="dialog-edit-reading" title=<?php _e('"Edit Perspective or Reading"', 'prospect'); ?>>
 		Label:<br/>
-		<input id="edit-prspctv-lbl" type="text" size="42" placeholder=<?php _e('"Label"', 'prospect'); ?>/><br/>
-		<textarea id="edit-prspctv-note" rows="5" cols="48" placeholder=<?php _e('"Annotation (cannot use double quotes)"', 'prospect'); ?> style="margin-top: 4px"></textarea>
+		<input id="edit-reading-lbl" type="text" size="42" placeholder=<?php _e('"Label"', 'prospect'); ?>/><br/>
+		<textarea id="edit-reading-note" rows="5" cols="48" placeholder=<?php _e('"Annotation (cannot use double quotes)"', 'prospect'); ?> style="margin-top: 4px"></textarea>
 	</div>
 
-	<div id="dialog-show-prsrctv" title=<?php _e('"Show Perspective"', 'prospect'); ?>>
+	<div id="dialog-show-reading" title=<?php _e('"Show Reading"', 'prospect'); ?>>
 		<?php _e('Perspectives', 'prospect'); ?>:<br/>
 		<div class="scroll-container">
-			<ul id="prspctv-slist">
+			<ul id="reading-slist">
 			</ul>
 		</div>
 	</div>
 
-	<div id="dialog-manage-prsrctv" title=<?php _e('"Manage Perspectives"', 'prospect'); ?>>
+	<div id="dialog-manage-prsrctv" title=<?php _e('"Manage Perspectives and Readings"', 'prospect'); ?>>
 		<div class="scroll-container">
-			<ul id="prspctv-mlist">
+			<ul id="reading-mlist">
 			</ul>
 		</div>
 	</div>
 
-	<div id="dialog-prspctv-id-used" title=<?php _e('"Perspective ID Error"', 'prospect'); ?>>
-		<p><?php _e('That Perspective ID has already been used. Please create another (alphabetic characters, numbers, hyphens and underscores only), or click the Cancel button.', 'prospect'); ?></p>
+	<div id="dialog-reading-id-used" title=<?php _e('"Reading ID Error"', 'prospect'); ?>>
+		<p><?php _e('That ID has already been used by a Perspective or Reading. Please create another (alphabetic characters, numbers, hyphens and underscores only), or click the Cancel button.', 'prospect'); ?></p>
 	</div>
 
-	<div id="dialog-prspctv-id-badchars" title=<?php _e('"Perspective ID Error"', 'prospect'); ?>>
-		<p><?php _e('That Perspective ID has illegal characters or is too long. Please create another ID of no more than 20 characters (alphabetic characters, numbers, hyphens and underscores only, no spaces), or click the Cancel button.', 'prospect'); ?></p>
+	<div id="dialog-reading-id-badchars" title=<?php _e('"ID Error"', 'prospect'); ?>>
+		<p><?php _e('That ID has illegal characters or is too long. Please create another ID of no more than 20 characters (alphabetic characters, numbers, hyphens and underscores only, no spaces), or click the Cancel button.', 'prospect'); ?></p>
 	</div>
 
-	<div id="dialog-prspctv-label-bad" title=<?php _e('"Perspective ID Error"', 'prospect'); ?>>
-		<p><?php _e('You must enter a label for the Perspective between 1 and 32 characters in length.', 'prospect'); ?></p>
+	<div id="dialog-reading-label-bad" title=<?php _e('"Reading ID Error"', 'prospect'); ?>>
+		<p><?php _e('You must enter a label for the Reading between 1 and 32 characters in length.', 'prospect'); ?></p>
 	</div>
 
-	<div id="dialog-prspctv-url" title=<?php _e('"Perspective URL"', 'prospect'); ?>>
-		<p><?php _e('To show this Perspective after it has been Published on the server, use the following URL', 'prospect'); ?>:</p>
-		<textarea id="save-prspctv-embed" cols="60" rows="3" readonly="readonly"></textarea>
+	<div id="dialog-reading-url" title=<?php _e('"Reading URL"', 'prospect'); ?>>
+		<p><?php _e('To show this Reading after it has been Published on the server, use the following URL', 'prospect'); ?>:</p>
+		<textarea id="save-reading-embed" cols="60" rows="3" readonly="readonly"></textarea>
 	</div>
 
 	<div id="dialog-find-toc" title=<?php _e('"Find Text"', 'prospect'); ?>>

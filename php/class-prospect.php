@@ -541,6 +541,7 @@ class Prospect {
 		$this->loader->add_action('add_meta_boxes_prsp-map', $this->admin, 'add_prsp_map_admin_edit', null, null);
 		$this->loader->add_action('add_meta_boxes_prsp-prspctv', $this->admin, 'add_prsp_prspctv_admin_edit', null, null);
 		$this->loader->add_action('add_meta_boxes_prsp-volume', $this->admin, 'add_prsp_volume_admin_edit', null, null);
+		$this->loader->add_action('add_meta_boxes_prsp-reading', $this->admin, 'add_prsp_reading_admin_edit', null, null);
 			// Hook for saving Dashboard data
 		$this->loader->add_action('save_post', $this->admin, 'save_post', null, null);
 			// Restrict Records to a particular Template type
@@ -568,6 +569,9 @@ class Prospect {
 		$this->loader->add_action('admin_action_prsp_export_all_prspctvs', $this->admin, 'prsp_export_all_prspctvs', null, null);
 		$this->loader->add_action('admin_action_prsp_export_volume', $this->admin, 'prsp_export_volume', null, null);
 		$this->loader->add_action('admin_action_prsp_export_all_volumes', $this->admin, 'prsp_export_all_volumes', null, null);
+		$this->loader->add_action('admin_action_prsp_export_reading', $this->admin, 'prsp_export_reading', null, null);
+		$this->loader->add_action('admin_action_prsp_export_vol_readings', $this->admin, 'prsp_export_vol_readings', null, null);
+		$this->loader->add_action('admin_action_prsp_export_all_readings', $this->admin, 'prsp_export_all_readings', null, null);
 
 			// AJAX calls
 		$this->loader->add_action('wp_ajax_prsp_get_rec_ids', $this->admin, 'prsp_get_rec_ids', null, null);
@@ -578,6 +582,7 @@ class Prospect {
 		$this->loader->add_action('wp_ajax_nopriv_prsp_get_transcript', $this->admin, 'prsp_get_transcript', null, null);
 
 		$this->loader->add_action('wp_ajax_prsp_save_prspctv', $this->admin, 'prsp_save_prspctv', null, null);
+		$this->loader->add_action('wp_ajax_prsp_save_reading', $this->admin, 'prsp_save_reading', null, null);
 	} // define_admin_hooks()
 
 

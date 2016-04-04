@@ -497,6 +497,44 @@ class ProspectAdmin {
 	} // show_prsp_volume_admin_edit()
 
 
+	public function add_prsp_reading_admin_edit($post_type)
+	{
+		add_meta_box('prsp_reading_box', __('Edit Reading', 'prospect'), array($this, 'show_prsp_reading_admin_edit'),
+					'prsp-reading', 'normal', 'high');
+	} // add_prsp_reading_admin_edit()
+
+
+		// PURPOSE: Insert HTML for Reading Editor and embed data
+	public function show_prsp_reading_admin_edit()
+	{
+		$postID  = get_the_ID();
+
+			// Use nonce for verification
+		echo wp_nonce_field('prsp_save_reading'.$postID, 'prsp_nonce');
+
+		$the_reading = new ProspectReading(true, $postID, false);
+
+			// Can all be done in regular input fields
+		echo '<table class="form-table">';
+		echo '<tr><th style="width:20%"><label for="prsp_reading_id">';
+		_e('Reading ID', 'prospect');
+		echo ': </label></th><td><input name="prsp_reading_id" id="prsp_reading_id" type="text" value="'.$the_reading->id.'" size=20/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_reading_l">';
+		_e('Label', 'prospect');
+		echo ': </label></th><td><input name="prsp_reading_l" id="prsp_reading_l" type="text" value="'.$the_reading->l.'" size=30/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_vol_id">';
+		_e('Volume ID', 'prospect');
+		echo ': </label></th><td><input name="prsp_vol_id" id="prsp_vol_id" type="text" value="'.$the_reading->vol_id.'" size=20/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_reading_note">';
+		_e('Annotation', 'prospect');
+		echo ': </label></th><td><textarea name="prsp_reading_note" id="prsp_reading_note" form="post" rows="4" cols="50">'.$the_reading->note.'</textarea></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_reading_state">';
+		_e('JSON data', 'prospect');
+		echo ': </label></th><td><textarea name="prsp_reading_state" id="prsp_reading_state" form="post" rows="3" cols="50" spellcheck="false">'.$the_reading->meta_state.'</textarea></td></tr>';
+		echo '</table>';
+	} // show_prsp_reading_admin_edit()
+
+
 		// PURPOSE: Save custom fields about data entity
 	public function save_post($post_id)
 	{
@@ -722,6 +760,33 @@ class ProspectAdmin {
 			if (isset($_POST['prsp_vol_inspect'])) {
 				$vol_inspect = $_POST['prsp_vol_inspect'];
 				update_post_meta($post_id, 'vol-inspect', $vol_inspect);
+			}
+			break;
+		case 'prsp-reading':
+				// Verify the nonce is valid
+			if (!wp_verify_nonce($nonce, 'prsp_save_reading'.$post_id))
+				return $post_id;
+
+				// Update each value
+			if (isset($_POST['prsp_reading_id'])) {
+				$data = sanitize_text_field($_POST['prsp_reading_id']);
+				update_post_meta($post_id, 'reading-id', $data);
+			}
+			if (isset($_POST['prsp_reading_l'])) {
+				$data = sanitize_text_field($_POST['prsp_reading_l']);
+				update_post_meta($post_id, 'reading-l', $data);
+			}
+			if (isset($_POST['prsp_vol_id'])) {
+				$data = sanitize_text_field($_POST['prsp_vol_id']);
+				update_post_meta($post_id, 'vol-id', $data);
+			}
+			if (isset($_POST['prsp_reading_note'])) {
+				$data = sanitize_text_field($_POST['prsp_reading_note']);
+				update_post_meta($post_id, 'reading-note', $data);
+			}
+			if (isset($_POST['prsp_reading_state'])) {
+				$data = sanitize_text_field($_POST['prsp_reading_state']);
+				update_post_meta($post_id, 'reading-state', $data);
 			}
 			break;
 		} // switch post_type
@@ -1573,7 +1638,8 @@ class ProspectAdmin {
 		exit();
 	} // prsp_export_volume()
 
-		// PURPOSE: Export all Exhibit definitions as a JSON Archive file
+
+		// PURPOSE: Export all Volume definitions as a JSON Archive file
 	public function prsp_export_all_volumes()
 	{
 			// ensure that this URL has not been faked by non-admin user
@@ -1601,7 +1667,115 @@ class ProspectAdmin {
 			// Close the output buffer
 		fclose($fp);
 		exit();
-	} // prsp_export_all_exhibits()
+	} // prsp_export_all_volumes()
+
+
+	public function write_reading_data($fp, $the_reading)
+	{
+			// Create header to indicate Reading record
+		fwrite($fp, '{"type": "Reading", "reading-id": "'.$the_reading->id.'", '."\n");
+		fwrite($fp, '"reading-l": "'.$the_reading->l."\",\n");
+		fwrite($fp, '"vol-id": "'.$the_reading->vol_id."\",\n");
+		fwrite($fp, '"reading-note": "'.$the_reading->note."\",\n");
+		fwrite($fp, '"reading-state": '.$the_reading->meta_state."\n}");
+	} // write_reading_data()
+
+
+		// PURPOSE: Export this Reading definition as a JSON Archive file
+	public function prsp_export_reading()
+	{
+			// ensure that this URL has not been faked by non-admin user
+		if (!current_user_can('edit_posts')) {
+			wp_die('Invalid request');
+		}
+
+		if (!(isset($_GET['post']) || isset( $_POST['post']) || (isset($_REQUEST['action']) && 'rd_duplicate_post_as_draft' == $_REQUEST['action']))) {
+			wp_die('No post to export has been supplied!');
+		}
+
+			// Get post ID and associated Map Data
+		$postID = (isset($_GET['post']) ? $_GET['post'] : $_POST['post']);
+		$the_reading = new ProspectReading(true, $postID, false);
+
+			// Create appropriate filename
+		$fp = $this->createUTFOutput($the_reading->id.".json", true);
+
+		$this->write_reading_data($fp, $the_reading);
+
+			// Close the output buffer
+		fclose($fp);
+		exit();
+	} // prsp_export_reading()
+
+
+	public function prsp_export_vol_readings($vol)
+	{
+		$readings = ProspectReading::get_volume_readings($vol);
+
+			// Create appropriate filename
+		$fp = $this->createUTFOutput($vol."-archive.json", true);
+
+		fwrite($fp, '{"type": "Archive", "items": ['."\n");
+
+			// Fetch and write all Reading definitions
+		$first = true;
+		foreach ($readings as $the_reading) {
+			if (!$first)
+				fwrite($fp, ",\n");
+			$first = false;
+			$this->write_reading_data($fp, $the_reading);
+		}
+
+		fwrite($fp, "\n]}");
+
+			// Close the output buffer
+		fclose($fp);
+		exit();
+	} // prsp_export_vol_readings()
+
+
+		// PURPOSE: Export all Reading definitions as a JSON Archive file
+	public function prsp_export_all_readings()
+	{
+			// ensure that this URL has not been faked by non-admin user
+		if (!current_user_can('edit_posts')) {
+			wp_die('Invalid request');
+		}
+
+		$all_readings = array();
+
+			// Loop through all Perspectives adding to array
+		$args = array('post_type' => 'prsp-reading', 'posts_per_page' => 1);
+		$loop = new WP_Query($args);
+		if ($loop->have_posts()) {
+			foreach ($loop->posts as $reading) {
+				$new_reading = new ProspectReading(true, $reading->ID, false);
+					// Ensure minimal data provided
+				if ($new_reading->id != null && $new_reading->id != '') {
+					array_push($all_readings, $new_reading);
+				}
+			}
+		}
+
+			// Create appropriate filename
+		$fp = $this->createUTFOutput("allreadings.json", true);
+
+			// Create archive header
+		fwrite($fp, '{"type": "Archive", "items": ['."\n");
+
+		$first = true;
+		foreach($all_readings as $the_reading) {
+			if (!$first)
+				fwrite($fp, ",\n");
+			$first = false;
+			$this->write_reading_data($fp, $the_reading);
+		}
+		fwrite($fp, "\n]}");
+
+			// Close the output buffer
+		fclose($fp);
+		exit();
+	} // prsp_export_all_readings()
 
 
 		// PURPOSE: Export all Attribute, Template, Exhibit and Volume definitions as a JSON Archive file
@@ -1646,7 +1820,6 @@ class ProspectAdmin {
 			$first = false;
 			$this->write_exhibit_data($fp, $the_exhibit);
 		}
-
 
 			// Get all definitions of all current Exhibits
 		$volume_defs = ProspectVolume::get_all_volume_defs(false);
@@ -1707,6 +1880,11 @@ class ProspectAdmin {
 			$title = __('Export this Volume as JSON archive file', 'prospect');
 			$label = __('JSON Export', 'prospect');
 			$actions['Prsp_Vol_Export'] = '<a href="admin.php?action=prsp_export_volume&amp;post='.$post->ID.'" title="'.$title.'" rel="permalink">'.$label.'</a>';
+			break;
+		case 'prsp-reading':
+			$title = __('Export this Reading as JSON archive file', 'prospect');
+			$label = __('JSON Export', 'prospect');
+			$actions['Prsp_Reading_Export'] = '<a href="admin.php?action=prsp_export_reading&amp;post='.$post->ID.'" title="'.$title.'" rel="permalink">'.$label.'</a>';
 			break;
 		}
 		return $actions;
@@ -1803,6 +1981,15 @@ class ProspectAdmin {
 				update_post_meta($post_id, 'vol-gen', json_encode($data['vol-gen'], JSON_UNESCAPED_UNICODE));
 				update_post_meta($post_id, 'vol-views', json_encode($data['vol-views'], JSON_UNESCAPED_UNICODE));
 				update_post_meta($post_id, 'vol-inspect', json_encode($data['vol-inspect'], JSON_UNESCAPED_UNICODE));
+			}
+			break;
+		case 'Reading':
+			$post_id = $this->create_entity('prsp-reading', 'reading-id', $data['reading-id'], $data['reading-l']);
+			if ($post_id) {
+				update_post_meta($post_id, 'reading-l', $data['reading-l']);
+				update_post_meta($post_id, 'vol-id', $data['vol-id']);
+				update_post_meta($post_id, 'reading-note', $data['reading-note']);
+				update_post_meta($post_id, 'reading-state', json_encode($data['reading-state'], JSON_UNESCAPED_UNICODE));
 			}
 			break;
 		} // switch
@@ -1991,7 +2178,6 @@ class ProspectAdmin {
 		foreach ($all_exhibits as $xhbt) {
 			echo '<option value="'.$xhbt->id.'">'.$xhbt->gen->l.'</option>';
 		}
-
 	?>
 		</select>
 		<?php _e('<input type="submit" id="export_xhbt_prspctvs" name="export_xhbt_prspctvs" value="Export Perspectives"/>', 'prospect'); ?>
@@ -2008,6 +2194,20 @@ class ProspectAdmin {
 		<h3><?php _e('Volumes', 'prospect'); ?></h3>
 		<?php _e('<a href="admin.php?action=prsp_export_all_volumes" title="Export all Volumes as JSON archive file" rel="permalink">Export all Volumes as JSON file</a>', 'prospect'); ?>
 		<br/>
+
+		<p><?php _e('Export all Readings of this Volume as JSON file', 'prospect'); ?></p>
+		<form id="prsp-archive-export-vol-readings" method="post" enctype="multipart/form-data">
+		<select name="export-type">
+	<?php
+
+		$all_volumes = ProspectVolume::get_all_volume_defs(true);
+		foreach ($all_volumes as $vol) {
+			echo '<option value="'.$vol->id.'">'.$vol->gen->l.'</option>';
+		}
+	?>
+		</select>
+		<?php _e('<input type="submit" id="export_vol_readings" name="export_vol_readings" value="Export Readings"/>', 'prospect'); ?>
+		</form>
 
 		<h3><?php _e('Website Configuration Export', 'prospect'); ?></h3>
 		<p><b><?php _e('IMPORTANT','prospect'); ?>:</b> <?php _e('All Records must still be exported on a Template-by-Template basis; this archive file does not include Maps or Perspectives.', 'prospect'); ?></p>
@@ -2530,6 +2730,39 @@ class ProspectAdmin {
 
 		die($post_id);
 	} // prsp_save_prspctv()
+
+		// PURPOSE: Save Reading data
+		// INPUT:	$_POST['id'] = ID of Reading
+		//			$_POST['l'] = Label
+		//			$_POST['x'] = ID of Exhibit
+		//			$_POST['n'] = Note
+		//			$_POST['s'] = Reading data to save { f: [], s, v0, v1 } }
+	public function prsp_save_reading()
+	{
+			// ensure that this URL has not been faked by non-admin user
+		if (!current_user_can('edit_posts')) {
+			wp_die('Invalid request');
+		}
+
+			// Create new Reading Record
+		$post_data = array(
+			'post_type'		=> 'prsp-reading',
+			'post_status'	=> 'draft',
+			'post_content'	=> 'No content',
+			'post_title'	=> wp_strip_all_tags($_POST['l'])
+		);
+		$post_id = wp_insert_post($post_data);
+		if (!is_wp_error($post_id)) {
+			add_post_meta($post_id, 'reading-id', $_POST['id'], true);
+			add_post_meta($post_id, 'reading-l', $_POST['l'], true);
+			add_post_meta($post_id, 'vol-id', $_POST['x'], true);
+			add_post_meta($post_id, 'reading-note', $_POST['n'], true);
+			add_post_meta($post_id, 'reading-state', $_POST['s'], true);
+		}
+
+		die($post_id);
+	} // prsp_save_reading()
+
 
 
 		// PURPOSE: Get text transcript

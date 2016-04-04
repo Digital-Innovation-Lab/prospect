@@ -1087,10 +1087,10 @@ function PViewFrame(vfIndex)
 			// Enable or disable corresponding Highlight button & Save Perspective checkboxes
 		if (flags & V_FLAG_SEL) {
 			frame.find('.hilite').button('enable');
-			jQuery('#save-prspctv-h'+vfIndex).prop('disabled', false).prop('checked', false);
+			jQuery('#save-reading-h'+vfIndex).prop('disabled', false).prop('checked', false);
 		} else {
 			frame.find('.hilite').button('disable');
-			jQuery('#save-prspctv-h'+vfIndex).prop('disabled', true).prop('checked', false);
+			jQuery('#save-reading-h'+vfIndex).prop('disabled', true).prop('checked', false);
 		}
 
 			// Does Viz have an Options dialog?
@@ -1367,7 +1367,7 @@ jQuery(document).ready(function($) {
 	var endStream;				// Final resulting IndexStream (after Filters)
 
 	var localStore=null;		// Local (Browser) storage (if Browser capable)
-	var localPrspctvs=[];		// locally-stored Perspectives
+	var localReadings=[];		// locally-stored Readings
 
 		// Volume extensions (not in Exhibit)
 	var vMode='v0';				// view option: selection from selaction radio buttons: 'v0', 'v1' or 'v2'
@@ -1447,383 +1447,384 @@ jQuery(document).ready(function($) {
 	} // clickAbout()
 
 		// RETURNS: Record for ID or else null
-	// function getPerspective(id)
-	// {
-	// 		// Check Perspectives from server
-	// 	var prspctv = _.find(prspdata.p, function(theP) {
-	// 		return id == theP.id;
-	// 	});
-	// 	if (prspctv)
-	// 		return prspctv;
+	function getReading(id)
+	{
+			// Check Readings from server
+		var reading = _.find(prspdata.p, function(theP) {
+			return id == theP.id;
+		});
+		if (reading)
+			return reading;
 
-	// 	if (localStore == null || localPrspctvs.length == 0)
-	// 		return null;
+		if (localStore == null || localReadings.length == 0)
+			return null;
 
-	// 	prspctv = _.find(localPrspctvs, function(theP) {
-	// 		return id == theP.id;
-	// 	});
-	// 	if (prspctv)
-	// 		return prspctv;
+		reading = _.find(localReadings, function(theP) {
+			return id == theP.id;
+		});
+		if (reading)
+			return reading;
 
-	// 	return null;
-	// } // getPerspective()
+		return null;
+	} // getReading()
 
-		// PURPOSE: Save current Perspective as <id>
+		// PURPOSE: Save current Reading as <id>
 		// RETURNS: "local" or "server" if save successful, else null
-	// function doSavePerspective(id, label)
-	// {
-	// 		// Where to save it?
-	// 	var dest = jQuery('input[name=save-prspctv-dest]:checked').val();
-	// 	if (dest == '')
-	// 		return null;
+	function doSaveReading(id, label)
+	{
+			// Where to save it?
+		var dest = jQuery('input[name=save-reading-dest]:checked').val();
+		if (dest == '')
+			return null;
 
-	// 	var note = jQuery('#save-prspctv-note').val();
-	// 	note = note.replace(/"/g, '');
+		var note = jQuery('#save-reading-note').val();
+		note = note.replace(/"/g, '');
 
-	// 		// Compile Perspective state from Views & Filter Stack
-	// 	var pState = { f: [], h0: null, h1: null, v0: null, v1: null };
-	// 	views.forEach(function(v, vI) {
-	// 		if (v) {
-	// 			pState['v'+vI] = { l: v.title(), s: v.getState() }
-	// 		}
-	// 	});
-	// 	filters.forEach(function(theF) {
-	// 		var a=[];
-	// 		var fDiv = jQuery('div.filter-instance[data-id="'+theF.id+'"]');
-	// 		for (var ti=0; ti<PData.eTNum(); ti++) {
-	// 			a.push(fDiv.find('.apply-tmplt-'+ti).is(':checked'));
-	// 		}
-	// 		pState.f.push({ id: theF.attID, a: a, s: theF.f.getState() });
-	// 	});
+			// Compile Perspective state from Views & Filter Stack
+		var pState = { f: [], h0: null, h1: null, v0: null, v1: null };
+		views.forEach(function(v, vI) {
+			if (v) {
+				pState['v'+vI] = { l: v.title(), s: v.getState() }
+			}
+		});
+		filters.forEach(function(theF) {
+			var a=[];
+			var fDiv = jQuery('div.filter-instance[data-id="'+theF.id+'"]');
+			for (var ti=0; ti<PData.eTNum(); ti++) {
+				a.push(fDiv.find('.apply-tmplt-'+ti).is(':checked'));
+			}
+			pState.f.push({ id: theF.attID, a: a, s: theF.f.getState() });
+		});
 
-	// 		// Save Highlight filters?
-	// 	for (var h=0; h<2; h++) {
-	// 		var hFilter = hFilters[h];
-	// 		if (hFilter !== null && jQuery('#save-prspctv-h'+h).is(':checked')) {
-	// 			pState['h'+h] = { id: hFilterIDs[h], s: hFilter.getState() };
-	// 		}
-	// 	}
-	// 		// Store everything in Perspective object
-	// 	var sPrspctv = { id: id, l: label, n: note, s: pState };
+			// Save Highlight filters?
+		for (var h=0; h<2; h++) {
+			var hFilter = hFilters[h];
+			if (hFilter !== null && jQuery('#save-reading-h'+h).is(':checked')) {
+				pState['h'+h] = { id: hFilterIDs[h], s: hFilter.getState() };
+			}
+		}
+			// Store everything in Reading object
+		var sReading = { id: id, l: label, n: note, s: pState };
 
-	// 	if (dest == 'local') {
-	// 		localPrspctvs.push(sPrspctv);
-	// 		localStore.setItem(prspdata.e.id, JSON.stringify(localPrspctvs));
-	// 	} else if (dest == 'server') {
-	// 			// Send via AJAX -- if successful, add locally
-	// 		jQuery.ajax({
-	// 			type: 'POST',
-	// 			url: prspdata.ajax_url,
-	// 			data: {
-	// 				action: 'prsp_save_prspctv',
-	// 				id: id,
-	// 				l: label,
-	// 				x: prspdata.e.id,
-	// 				n: note,
-	// 				s: JSON.stringify(pState)
-	// 			},
-	// 			success: function(data, textStatus, XMLHttpRequest)
-	// 			{
-	// 				if (data != '0')
-	// 					prspdata.p.push(sPrspctv);
-	// 			},
-	// 			error: function(XMLHttpRequest, textStatus, errorThrown)
-	// 			{
-	// 			   alert(errorThrown);
-	// 			}
-	// 		});
-	// 	}
-	// 	return dest;
-	// } // doSavePerspective()
+		if (dest == 'local') {
+			localReadings.push(Reading);
+			localStore.setItem(prspdata.e.id, JSON.stringify(localReadings));
+		} else if (dest == 'server') {
+				// Send via AJAX -- if successful, add locally
+			jQuery.ajax({
+				type: 'POST',
+				url: prspdata.ajax_url,
+				data: {
+					action: 'prsp_save_reading',
+					id: id,
+					l: label,
+					x: prspdata.e.id,
+					n: note,
+					s: JSON.stringify(pState)
+				},
+				success: function(data, textStatus, XMLHttpRequest)
+				{
+					if (data != '0')
+						prspdata.p.push(sReading);
+				},
+				error: function(XMLHttpRequest, textStatus, errorThrown)
+				{
+				   alert(errorThrown);
+				}
+			});
+		}
+		return dest;
+	} // doSavePerspective()
 
-	// function clickSavePerspective(event)
-	// {
-	// 	var spDialog;
-	// 	var idExp = /[^\w\-]/;
+	function clickSavePerspective(event)
+	{
+		var spDialog;
+		var idExp = /[^\w\-]/;
 
-	// 		// Clear any previous input values
-	// 	jQuery('#save-prspctv-id').val('');
-	// 	jQuery('#save-prspctv-lbl').val('');
-	// 	jQuery('#save-prspctv-note').val('');
+			// Clear any previous input values
+		jQuery('#save-reading-id').val('');
+		jQuery('#save-reading-lbl').val('');
+		jQuery('#save-reading-note').val('');
 
-	// 		// Make sure Browser has local storage capability
-	// 	if (!localStore) {
-	// 		jQuery('#save-prspctv-d-1').prop('disabled', true);
-	// 	}
-	// 		// If user not logged in, disable server capability
-	// 	if (!prspdata.x.add_prspctv) {
-	// 		jQuery('#save-prspctv-d-2').prop('disabled', true);
-	// 	}
+			// Make sure Browser has local storage capability
+		if (!localStore) {
+			jQuery('#save-reading-d-1').prop('disabled', true);
+		}
+			// If user not logged in, disable server capability
+		if (!prspdata.x.add_reading) {
+			jQuery('#save-reading-d-2').prop('disabled', true);
+		}
 
-	// 		// Uncheck Highlight filters by default
-	// 	jQuery('#save-prspctv-h0').prop('checked', false);
-	// 	jQuery('#save-prspctv-h1').prop('checked', false);
-	// 		// Dis-/enable if no filter
-	// 	for (var h=0; h<2; h++) {
-	// 		var disable = (hFilters[h] === null || views[h] === null);
-	// 		jQuery('#save-prspctv-h'+h).prop('disabled', disable);
-	// 	}
+			// Uncheck Highlight filters by default
+		jQuery('#save-reading-h0').prop('checked', false);
+		jQuery('#save-reading-h1').prop('checked', false);
+			// Dis-/enable if no filter
+		for (var h=0; h<2; h++) {
+			var disable = (hFilters[h] === null || views[h] === null);
+			jQuery('#save-reading-h'+h).prop('disabled', disable);
+		}
 
-	// 	spDialog = jQuery("#dialog-save-prsrctv").dialog({
-	// 		width: 350,
-	// 		height: 370,
-	// 		modal: true,
-	// 		buttons: [
-	// 			{
-	// 				text: dlText.ok,
-	// 				click: function() {
-	// 					var id = jQuery('#save-prspctv-id').val().trim();
-	// 						// Make sure ID correct format
-	// 					var idError = id.match(idExp);
-	// 					var label = jQuery('#save-prspctv-lbl').val().trim();
-	// 					label = label.replace(/"/g, '');
+		spDialog = jQuery("#dialog-save-reading").dialog({
+			width: 350,
+			height: 370,
+			modal: true,
+			buttons: [
+				{
+					text: dlText.ok,
+					click: function() {
+						var id = jQuery('#save-reading-id').val().trim();
+							// Make sure ID correct format
+						var idError = id.match(idExp);
+						var label = jQuery('#save-reading-lbl').val().trim();
+						label = label.replace(/"/g, '');
 
-	// 					if (id.length === 0 || id.length > 20 || idError)
-	// 						idError = '#dialog-prspctv-id-badchars';
-	// 						// Make sure ID not already taken
-	// 					else if (getPerspective(id))
-	// 						idError = '#dialog-prspctv-id-used';
-	// 					else if (label.length === 0 || label.length > 32)
-	// 						idError = '#dialog-prspctv-label-bad';
-	// 					if (idError) {
-	// 						var errDialog = jQuery(idError).dialog({
-	// 							width: 320,
-	// 							height: 210,
-	// 							modal: true,
-	// 							buttons: [{
-	// 								text: dlText.ok,
-	// 								click: function() {
-	// 									errDialog.dialog("close");
-	// 								}
-	// 							}]
-	// 						});
-	// 					} else {
-	// 						var saved = doSavePerspective(id, label);
-	// 						spDialog.dialog("close");
+						if (id.length === 0 || id.length > 20 || idError)
+							idError = '#dialog-reading-id-badchars';
+							// Make sure ID not already taken
+						else if (getPerspective(id))
+							idError = '#dialog-reading-id-used';
+						else if (label.length === 0 || label.length > 32)
+							idError = '#dialog-reading-label-bad';
+						if (idError) {
+							var errDialog = jQuery(idError).dialog({
+								width: 320,
+								height: 210,
+								modal: true,
+								buttons: [{
+									text: dlText.ok,
+									click: function() {
+										errDialog.dialog("close");
+									}
+								}]
+							});
+						} else {
+							var saved = doSavePerspective(id, label);
+							spDialog.dialog("close");
 
-	// 						if (saved == 'server') {
-	// 								// Calculate Embed value
-	// 							var embed = volURL + '/?reading=' + id;
+							if (saved == 'server') {
+									// Calculate Embed value
+								var embed = volURL + '/?reading=' + id;
 
-	// 							jQuery('#save-prspctv-embed').val(embed);
-	// 							var embedDialog = jQuery("#dialog-prspctv-url").dialog({
-	// 								width: 480,
-	// 								height: 230,
-	// 								modal: true,
-	// 								buttons: [{
-	// 									text: dlText.ok,
-	// 									click: function() {
-	// 										embedDialog.dialog("close");
-	// 									}
-	// 								}]
-	// 							});
-	// 						} // saved on server
-	// 					} // no redundancy
-	// 				} // OK
-	// 			},
-	// 			{
-	// 				text: dlText.cancel,
-	// 				click: function() {
-	// 					spDialog.dialog("close");
-	// 				}
-	// 			}
-	// 		]
-	// 	});
-	// 	event.preventDefault();
-	// } // clickSavePerspective()
+								jQuery('#save-reading-embed').val(embed);
+								var embedDialog = jQuery("#dialog-reading-url").dialog({
+									width: 480,
+									height: 230,
+									modal: true,
+									buttons: [{
+										text: dlText.ok,
+										click: function() {
+											embedDialog.dialog("close");
+										}
+									}]
+								});
+							} // saved on server
+						} // no redundancy
+					} // OK
+				},
+				{
+					text: dlText.cancel,
+					click: function() {
+						spDialog.dialog("close");
+					}
+				}
+			]
+		});
+		event.preventDefault();
+	} // clickSavePerspective()
 
-	// function managePerspectives()
-	// {
-	// 	var mpDialog;
-	// 	var xData=[];
-	// 	var xDataDirty=false;
+	function managePerspectives()
+	{
+		var mpDialog;
+		var xData=[];
+		var xDataDirty=false;
 
-	// 	function createList()
-	// 	{
-	// 			// Clear scroll areas and recreate
-	// 		var pList = jQuery('#prspctv-mlist');
-	// 		pList.empty();
+		function createList()
+		{
+				// Clear scroll areas and recreate
+			var pList = jQuery('#reading-mlist');
+			pList.empty();
 
-	// 			// Populate local list
-	// 		localPrspctvs.forEach(function(theP) {
-	// 			pList.append('<li data-type="l" data-id="'+theP.id+'"><span class="label">'+theP.l+'</span> <button class="del">'+dlText.del+
-	// 				'</button> <button class="edit">'+dlText.edit+'</button></li>');
-	// 		});
+				// Populate local list
+			localReadings.forEach(function(theP) {
+				pList.append('<li data-type="l" data-id="'+theP.id+'"><span class="label">'+theP.l+'</span> <button class="del">'+dlText.del+
+					'</button> <button class="edit">'+dlText.edit+'</button></li>');
+			});
 
-	// 			// Get other Perspectives of other Exhibits (on this domain)
-	// 		for (var i=0; i<localStore.length; i++) {
-	// 			var xKey = localStore.key(i);
-	// 			if (xKey != prspdata.e.id) {
-	// 				var xItem = localStore.getItem(xKey);
-	// 				xData.push({ id: xKey, ps: JSON.parse(xItem) });
-	// 			}
-	// 		}
+				// Get other Perspectives of other Exhibits (on this domain)
+			for (var i=0; i<localStore.length; i++) {
+				var xKey = localStore.key(i);
+				if (xKey != prspdata.e.id) {
+					var xItem = localStore.getItem(xKey);
+					xData.push({ id: xKey, ps: JSON.parse(xItem) });
+				}
+			}
 
-	// 		xData.forEach(function(xEl, xI) {
-	// 			xEl.ps.forEach(function(pEl) {
-	// 				pList.append('<li data-type="x" data-xid="'+xEl.id+'" data-xindex="'+xI+'" data-id="'+
-	// 					pEl.id+'"><i class="label">'+pEl.l+'</i> <button class="del">'+dlText.del+
-	// 					'</button> <button class="edit">'+dlText.edit+'</button></li>');
-	// 			});
-	// 		});
-	// 	} // createList()
+			xData.forEach(function(xEl, xI) {
+				xEl.ps.forEach(function(pEl) {
+					pList.append('<li data-type="x" data-xid="'+xEl.id+'" data-xindex="'+xI+'" data-id="'+
+						pEl.id+'"><i class="label">'+pEl.l+'</i> <button class="del">'+dlText.del+
+						'</button> <button class="edit">'+dlText.edit+'</button></li>');
+				});
+			});
+		} // createList()
 
-	// 	createList();
+		createList();
 
-	// 		// Handle selection of item on Manage Perspective list
-	// 	jQuery('#prspctv-mlist').click(function(event) {
-	// 		if (event.target.nodeName == 'BUTTON') {	// Edit or Delete?
-	// 			var del = jQuery(event.target).hasClass('del');
-	// 			var parent = jQuery(event.target).parent();
-	// 			var t = parent.data('type');
-	// 			var id = parent.data('id');
-	// 			var pI;
-	// 			if (del) {
-	// 				switch (t) {
-	// 				case 'l':
-	// 					pI = localPrspctvs.findIndex(function(theP) {
-	// 						return id == theP.id;
-	// 					});
-	// 					if (pI != -1) {
-	// 						localPrspctvs.splice(pI, 1);
-	// 						if (localPrspctvs.length == 0)
-	// 							localStore.removeItem(prspdata.e.id);
-	// 						else
-	// 							localStore.setItem(prspdata.e.id, JSON.stringify(localPrspctvs));
-	// 					}
-	// 					break;
-	// 				case 'x':
-	// 					var xI = parent.data('xindex');
-	// 					var xEntry = xData[xI];
-	// 					pI = xEntry.ps.findIndex(function(theP) {
-	// 						return id == theP.id;
-	// 					});
-	// 					if (pI != -1) {
-	// 						xEntry.ps.splice(pI, 1);
-	// 						xDataDirty = true;
-	// 					}
-	// 					break;
-	// 				} // switch type
-	// 				parent.remove();
-	// 			} else {
-	// 				var pRec;
+			// Handle selection of item on Manage Perspective list
+		jQuery('#reading-mlist').click(function(event) {
+			if (event.target.nodeName == 'BUTTON') {	// Edit or Delete?
+				var del = jQuery(event.target).hasClass('del');
+				var parent = jQuery(event.target).parent();
+				var t = parent.data('type');
+				var id = parent.data('id');
+				var pI;
+				if (del) {
+					switch (t) {
+					case 'l':
+						pI = localReadings.findIndex(function(theP) {
+							return id == theP.id;
+						});
+						if (pI != -1) {
+							localReadings.splice(pI, 1);
+							if (localReadings.length == 0)
+								localStore.removeItem(prspdata.e.id);
+							else
+								localStore.setItem(prspdata.e.id, JSON.stringify(localReadings));
+						}
+						break;
+					case 'x':
+						var xI = parent.data('xindex');
+						var xEntry = xData[xI];
+						pI = xEntry.ps.findIndex(function(theP) {
+							return id == theP.id;
+						});
+						if (pI != -1) {
+							xEntry.ps.splice(pI, 1);
+							xDataDirty = true;
+						}
+						break;
+					} // switch type
+					parent.remove();
+				} else {
+					var pRec;
 
-	// 				switch (t) {
-	// 				case 'l':
-	// 					pRec = _.find(localPrspctvs, function(theP) {
-	// 						return id == theP.id;
-	// 					});
-	// 					break;
-	// 				case 'x':
-	// 					var xI = parent.data('xindex');
-	// 					var xEntry = xData[xI];
-	// 					pRec = _.find(xEntry.ps, function(theP) {
-	// 						return id == theP.id;
-	// 					});
-	// 					break;
-	// 				} // switch
-	// 				jQuery('#edit-prspctv-lbl').val(pRec.l);
-	// 				jQuery('#edit-prspctv-note').val(pRec.n);
+					switch (t) {
+					case 'l':
+						pRec = _.find(localReadings, function(theP) {
+							return id == theP.id;
+						});
+						break;
+					case 'x':
+						var xI = parent.data('xindex');
+						var xEntry = xData[xI];
+						pRec = _.find(xEntry.ps, function(theP) {
+							return id == theP.id;
+						});
+						break;
+					} // switch
+					jQuery('#edit-reading-lbl').val(pRec.l);
+					jQuery('#edit-reading-note').val(pRec.n);
 
-	// 				var epDialog = jQuery("#dialog-edit-prsrctv").dialog({
-	// 					width: 340,
-	// 					height: 270,
-	// 					modal: true,
-	// 					buttons: [
-	// 						{
-	// 							text: dlText.ok,
-	// 							click: function() {
-	// 								pRec.l = jQuery('#edit-prspctv-lbl').val();
-	// 								pRec.n = jQuery('#edit-prspctv-note').val();
-	// 								parent.find('.label').text(pRec.l);
-	// 								if (t == 'x')
-	// 									xDataDirty = true;
-	// 								else
-	// 									localStore.setItem(prspdata.e.id, JSON.stringify(localPrspctvs));
-	// 								epDialog.dialog("close");
-	// 							}
-	// 						}, // OK
-	// 						{
-	// 							text: dlText.cancel,
-	// 							click: function() {
-	// 								epDialog.dialog("close");
-	// 							}
-	// 						}]});
-	// 			} // else edit
-	// 		} // if BUTTON
-	// 	});
+					var epDialog = jQuery("#dialog-edit-prsrctv").dialog({
+						width: 340,
+						height: 270,
+						modal: true,
+						buttons: [
+							{
+								text: dlText.ok,
+								click: function() {
+									pRec.l = jQuery('#edit-reading-lbl').val();
+									pRec.n = jQuery('#edit-reading-note').val();
+									parent.find('.label').text(pRec.l);
+									if (t == 'x')
+										xDataDirty = true;
+									else
+										localStore.setItem(prspdata.e.id, JSON.stringify(localReadings));
+									epDialog.dialog("close");
+								}
+							}, // OK
+							{
+								text: dlText.cancel,
+								click: function() {
+									epDialog.dialog("close");
+								}
+							}]});
+				} // else edit
+			} // if BUTTON
+		});
 
-	// 	mpDialog = jQuery("#dialog-manage-prsrctv").dialog({
-	// 		width: 450,
-	// 		height: 350,
-	// 		modal: true,
-	// 		buttons: [{
-	// 				text: dlText.ok,
-	// 				click: function() {
-	// 					if (xDataDirty) {
-	// 						xData.forEach(function(xEntry) {
-	// 							if (xEntry.ps.length > 0)
-	// 								localStore.setItem(xEntry.id, JSON.stringify(xEntry.ps));
-	// 							else
-	// 								localStore.removeItem(xEntry.id);
-	// 						});
-	// 					}
-	// 					jQuery('#prspctv-mlist').off("click");
-	// 					mpDialog.dialog("close");
-	// 				} // OK
-	// 			}]
-	// 	});
-	// } // managePerspectives()
+		mpDialog = jQuery("#dialog-manage-reading").dialog({
+			width: 450,
+			height: 350,
+			modal: true,
+			buttons: [{
+					text: dlText.ok,
+					click: function() {
+						if (xDataDirty) {
+							xData.forEach(function(xEntry) {
+								if (xEntry.ps.length > 0)
+									localStore.setItem(xEntry.id, JSON.stringify(xEntry.ps));
+								else
+									localStore.removeItem(xEntry.id);
+							});
+						}
+						jQuery('#reading-mlist').off("click");
+						mpDialog.dialog("close");
+					} // OK
+				}]
+		});
+	} // managePerspectives()
 
-	// function clickShowPerspective(event)
-	// {
-	// 		// Clear scroll areas and recreate
-	// 	var pList = jQuery('#prspctv-slist');
-	// 	pList.empty();
+	function clickShowReading(event)
+	{
+			// Clear scroll areas and recreate
+		var pList = jQuery('#reading-slist');
+		pList.empty();
 
-	// 		// Populate server list
-	// 	prspdata.p.forEach(function(theP) {
-	// 		pList.append('<li data-src="server" data-id="'+theP.id+'">'+theP.l+'</li>');
-	// 	});
+			// Populate server list
+		prspdata.p.forEach(function(theP) {
+			pList.append('<li data-src="server" data-id="'+theP.id+'">'+theP.l+'</li>');
+		});
 
-	// 		// Populate local list
-	// 	localPrspctvs.forEach(function(theP) {
-	// 		pList.append('<li data-src="local" data-id="'+theP.id+'">'+theP.l+'</li>');
-	// 	});
+			// Populate local list
+		localReadings.forEach(function(theP) {
+			pList.append('<li data-src="local" data-id="'+theP.id+'">'+theP.l+'</li>');
+		});
 
-	// 	var bs = [{
-	// 				text: dlText.ok,
-	// 				click: function() {
-	// 					spDialog.dialog("close");
-	// 					var selItem = pList.find('li.selected');
-	// 					if (selItem.length) {
-	// 						var setP = selItem.data('id');
-	// 						doShowPerspective(setP);
-	// 						PState.set(PSTATE_READY);
-	// 					}
-	// 				} // OK
-	// 			},
-	// 			{
-	// 				text: dlText.cancel,
-	// 				click: function() {
-	// 					spDialog.dialog("close");
-	// 				}
-	// 			}];
-	// 	if (localStore)
-	// 		bs.push({text: dlText.manage,
-	// 				click: function() {
-	// 					spDialog.dialog("close");
-	// 					managePerspectives();
-	// 				}});
+		var bs = [{
+					text: dlText.ok,
+					click: function() {
+						spDialog.dialog("close");
+						var selItem = pList.find('li.selected');
+						if (selItem.length) {
+							var setP = selItem.data('id');
+							doShowReading(setP);
+							PState.set(PSTATE_READY);
+						}
+					} // OK
+				},
+				{
+					text: dlText.cancel,
+					click: function() {
+						spDialog.dialog("close");
+					}
+				}];
+		if (localStore) {
+			bs.push({text: dlText.manage,
+					click: function() {
+						spDialog.dialog("close");
+						managePerspectives();
+					}});
+		}
 
-	// 	var spDialog = jQuery("#dialog-show-prsrctv").dialog({
-	// 		width: 350,
-	// 		height: 350,
-	// 		modal: true,
-	// 		buttons: bs
-	// 	});
-	// 	event.preventDefault();
-	// } // clickShowPerspective()
+		var spDialog = jQuery("#dialog-show-reading").dialog({
+			width: 350,
+			height: 350,
+			modal: true,
+			buttons: bs
+		});
+		event.preventDefault();
+	} // clickShowReading()
 
 	function clickGoHome(event)
 	{
@@ -2104,108 +2105,108 @@ jQuery(document).ready(function($) {
 
 		// PURPOSE: Attempt to show Perspective pID
 		// RETURN:  false if error
-	// function doShowPerspective(pID)
-	// {
-	// 	function vizIndex(vID)
-	// 	{
-	// 		return prspdata.e.vf.findIndex(function(vf) {
-	// 			return vID == vf.l;
-	// 		});
-	// 	}
+	function doShowReading(pID)
+	{
+		function vizIndex(vID)
+		{
+			return prspdata.e.vf.findIndex(function(vf) {
+				return vID == vf.l;
+			});
+		}
 
-	// 	var p = getPerspective(pID);
-	// 	if (p == null)
-	// 		return false;
+		var p = getReading(pID);
+		if (p == null)
+			return false;
 
-	// 	PState.set(PSTATE_PROCESS);
+		PState.set(PSTATE_PROCESS);
 
-	// 		// Minimize filter and selector bars
-	// 	jQuery('#filter-frame').hide();
+			// Minimize filter and selector bars
+		jQuery('#filter-frame').hide();
 
-	// 		// Clear current Filter Stack & Selector Filter
-	// 	filters.forEach(function(theF) {
-	// 		theF.f.teardown();
-	// 	});
-	// 	filters=[];
-	// 	jQuery('#filter-instances').empty();
+			// Clear current Filter Stack & Selector Filter
+		filters.forEach(function(theF) {
+			theF.f.teardown();
+		});
+		filters=[];
+		jQuery('#filter-instances').empty();
 
-	// 	p.s.f.forEach(function(fRec) {
-	// 		var newF = createFilter(fRec.id, fRec.a, null);
-	// 		newF.setState(fRec.s);
-	// 	});
-	// 	jQuery('#filter-instances').hide();
-	// 	jQuery('#btn-toggle-filters').button(p.s.f.length == 0 ? "disable" : "enable");
+		p.s.f.forEach(function(fRec) {
+			var newF = createFilter(fRec.id, fRec.a, null);
+			newF.setState(fRec.s);
+		});
+		jQuery('#filter-instances').hide();
+		jQuery('#btn-toggle-filters').button(p.s.f.length == 0 ? "disable" : "enable");
 
-	// 		// Load Highlight filters?
-	// 	for (var h=0; h<2; h++) {
-	// 		if (p.s['h'+h] != null) {	// Want to check for both null and undefined!
-	// 			var hFData = p.s['h'+h];
-	// 			hFilterIDs[h] = hFData.id;
-	// 			var hFilter = createFilter(hFData.id, null, h);
-	// 			hFilters[h] = hFilter;
-	// 			hFilter.setState(hFData.s);
-	// 		} else {
-	// 			hFilters[h] = null;
-	// 			hFilterIDs[h] = null;
-	// 		}
-	// 	}
+			// Load Highlight filters?
+		for (var h=0; h<2; h++) {
+			if (p.s['h'+h] != null) {	// Want to check for both null and undefined!
+				var hFData = p.s['h'+h];
+				hFilterIDs[h] = hFData.id;
+				var hFilter = createFilter(hFData.id, null, h);
+				hFilters[h] = hFilter;
+				hFilter.setState(hFData.s);
+			} else {
+				hFilters[h] = null;
+				hFilterIDs[h] = null;
+			}
+		}
 
-	// 	var vI, v0=views[0], v1=views[1];
-	// 	var resize0=false;
+		var vI, v0=views[0], v1=views[1];
+		var resize0=false;
 
-	// 	PState.set(PSTATE_BUILD);
-	// 	vI = vizIndex(p.s.v0.l);
-	// 		// Already exists?
-	// 	if (v0) {
-	// 		v0.setViz(vI, false);
-	// 		v0.selBtns(false);
-	// 	} else {
-	// 		views[0] = PViewFrame(0);
-	// 		v0 = views[0];
-	// 		v0.initDOM(vI);
-	// 	}
+		PState.set(PSTATE_BUILD);
+		vI = vizIndex(p.s.v0.l);
+			// Already exists?
+		if (v0) {
+			v0.setViz(vI, false);
+			v0.selBtns(false);
+		} else {
+			views[0] = PViewFrame(0);
+			v0 = views[0];
+			v0.initDOM(vI);
+		}
 
-	// 	if (p.s.v1 !== null) {
-	// 		vI = vizIndex(p.s.v1.l);
-	// 			// Already exists?
-	// 		if (v1) {
-	// 			v1.selBtns(false);
-	// 			v1.setViz(vI, false);
-	// 			v1.setState(p.s.v1.s);
-	// 		} else {
-	// 			v0.flushLgnd();
-	// 			views[1] = PViewFrame(1);
-	// 			v1 = views[1];
-	// 			v1.initDOM(vI);
-	// 			v1.setState(p.s.v1.s);
-	// 			resize0 = true;
-	// 		}
-	// 	} else {
-	// 		if (v1) {
-	// 			views[1] = null;
-	// 			jQuery('#view-frame-1').remove();
-	// 			resize0 = true;
-	// 		}
-	// 	}
-	// 		// Do left-side last because of resizing with right side
-	// 	if (resize0)
-	// 		v0.resize();
-	// 	v0.setState(p.s.v0.s);
+		if (p.s.v1 !== null) {
+			vI = vizIndex(p.s.v1.l);
+				// Already exists?
+			if (v1) {
+				v1.selBtns(false);
+				v1.setViz(vI, false);
+				v1.setState(p.s.v1.s);
+			} else {
+				v0.flushLgnd();
+				views[1] = PViewFrame(1);
+				v1 = views[1];
+				v1.initDOM(vI);
+				v1.setState(p.s.v1.s);
+				resize0 = true;
+			}
+		} else {
+			if (v1) {
+				views[1] = null;
+				jQuery('#view-frame-1').remove();
+				resize0 = true;
+			}
+		}
+			// Do left-side last because of resizing with right side
+		if (resize0)
+			v0.resize();
+		v0.setState(p.s.v0.s);
 
-	// 	setAnnote(p.n);
+		setAnnote(p.n);
 
-	// 		// Don't recompute if data not loaded yet
-	// 	if (PData.ready() && topStream) {
-	// 		doRecompute();
-	// 		for (h=0; h<2; h++) {
-	// 			if (hFilterIDs[h] !== null) {
-	// 				doApplyHighlight(h);
-	// 			}
-	// 		}
-	// 	}
+			// Don't recompute if data not loaded yet
+		if (PData.ready() && topStream) {
+			doRecompute();
+			for (h=0; h<2; h++) {
+				if (hFilterIDs[h] !== null) {
+					doApplyHighlight(h);
+				}
+			}
+		}
 
-	// 	return true;
-	// } // doShowPerspective()
+		return true;
+	} // doShowPerspective()
 
 
 		// VOLUME EXTENSIONS
@@ -2360,17 +2361,6 @@ jQuery(document).ready(function($) {
 			tf.append(str);
 		});
 
-		// volData.forEach(function(chap, cI) {
-		// 	str = '<li class="toc-chap" data-c='+cI+'><input type="checkbox" class="readlist-c"/> <button class="toccollapse">Collapse</button> ';
-		// 	str += txt.substr(chap.hi+4, chap.hl-9);
-		// 	str += '<ul class="toc-secs" style="display: none;">';
-		// 	chap.s.forEach(function(sec, sI) {
-		// 		str += '<li data-s='+sI+'><input type="checkbox" class="readlist"/>'+txt.substr(sec.hi+4, sec.hl-9)+'</li>';
-		// 	});
-		// 	str += '</ul></li>';
-		// 	tf.append(str);
-		// });
-
 			// Bind click on chapters first
 		jQuery('#toc-frame > ul.toc-wrapper > li.toc-chap').click(clickTOCChap);
 			// Then bind clickk on sections
@@ -2433,22 +2423,6 @@ jQuery(document).ready(function($) {
 					} // while
 				} // if
 			});
-
-			// if (chap.c) {
-			// 	tf.append(txt.substr(volC.hi, volC.hl));
-			// 	if (volC.cl > 0) {
-			// 		tf.append(txt.substr(volC.ci, volC.cl));
-			// 	}
-			// }
-			// chap.s.forEach(function(sec, sI) {
-			// 	if (sec) {
-			// 		volS = volC.s[sI];
-			// 		tf.append(txt.substr(volS.hi, volS.hl));
-			// 		if (volS.cl > 0) {
-			// 			tf.append(txt.substr(volS.ci, volS.cl));
-			// 		}
-			// 	}
-			// });
 		});
 
 			// Find all <a>, create list of recs from data-id
@@ -2505,77 +2479,6 @@ jQuery(document).ready(function($) {
 		if (chap != null) {
 			volData.push(chap);
 		}
-
-		// var txt = document.getElementById('prsp-volume').innerHTML;
-		// var txtLen = txt.length;
-		// var tI=0;
-		// var i, nH1, si, sl;
-		// var cCont, prev;
-
-		// while (tI < txtLen) {
-		// 	var cRec={ hi: 0, hl: 0, ci: 0, cl: 0, s: [] };
-		// 		// Next chapter header
-		// 	i = txt.indexOf('<h1>', tI);
-		// 		// No more
-		// 	if (i === -1) {
-		// 		break;
-		// 	}
-		// 	cRec.hi = i;
-		// 	tI = i+4;
-		// 		// Get closing tag
-		// 	i = txt.indexOf('</h1>', tI);
-		// 	if (i === -1) {
-		// 		throw new Error("Can't find closing h1 tag after "+tI);
-		// 	}
-		// 	tI = i+5;
-		// 	cRec.hl = tI-cRec.hi;
-
-		// 		// Content (if any) starts next by default
-		// 	cRec.ci = tI;
-		// 	cCont=true;
-
-		// 		// Check to see position of next <h1> -- all <h2> tags must come before
-		// 	nH1 = txt.indexOf('<h1>', tI);
-
-		// 	do {
-		// 		si = txt.indexOf('<h2>', tI);
-		// 		if (si !== -1 && (nH1 === -1 || si < nH1)) {
-		// 				// Need to set size of chapter's content section?
-		// 			if (cCont) {
-		// 				cRec.cl=si-cRec.ci;
-		// 				cCont=false;
-		// 				// Set size of previous section's content section
-		// 			} else {
-		// 				prev = cRec.s[cRec.s.length-1];
-		// 				prev.cl = si-prev.ci;
-		// 			}
-		// 			tI = si+4;
-		// 			sl = txt.indexOf('</h2>', tI);
-		// 			if (sl === -1) {
-		// 				throw new Error("Can't find closing h2 tag after "+tI);
-		// 			}
-		// 			tI = sl+5;
-		// 			cRec.s.push({ hi: si, hl: (sl+5)-si, ci: tI, cl: 0 });
-		// 		} else {
-		// 				// Move to next chapter or end
-		// 			if (nH1 !== -1) {
-		// 				tI = nH1;
-		// 			} else {
-		// 				tI=txtLen;
-		// 			}
-		// 		}
-		// 	} while ((nH1 === -1 || tI < nH1) && (tI < txtLen));
-
-		// 		// modify content section of final section, if any
-		// 	if (cRec.s.length > 0) {
-		// 		prev = cRec.s[cRec.s.length-1];
-		// 		prev.cl=tI-prev.ci;
-		// 	} else if (cCont) {
-		// 		cRec.cl=tI-cRec.ci;
-		// 	}
-
-		// 	volData.push(cRec);
-		// }
 
 			// Create default Reading List and Selection: everything selected on RL
 		volData.forEach(function(chap) {
@@ -3113,7 +3016,6 @@ jQuery(document).ready(function($) {
 		}
 	} // localizeColor()
 	localizeColor('cb', '#command-bar');
-	// localizeColor('fs', '#filter-frame');
 
 	PState.init();
 	if (typeof PMapHub !== 'undefined') {
@@ -3225,19 +3127,19 @@ jQuery(document).ready(function($) {
 		var lp = storage.getItem(prspdata.e.id);
 		localStore = storage;
 		if (lp.length > 0)
-			localPrspctvs = JSON.parse(lp);
+			localReadings = JSON.parse(lp);
 	} catch(e) {
 	}
 
 		// Command Bar
 	jQuery('#btn-about').button({icons: { primary: 'ui-icon-power' }, text: false })
 			.click(clickAbout);
-	jQuery('#btn-show-prspctv').button({icons: { primary: 'ui-icon-image' }, text: false });
-			// .click(clickShowPerspective);
-	jQuery('#btn-save-prspctv').button({icons: { primary: 'ui-icon-pencil' }, text: false });
-			// .click(clickSavePerspective);
-	jQuery('#btn-annote').button({icons: { primary: 'ui-icon-comment' }, text: false });
-			// .click(clickAnnotation);
+	jQuery('#btn-show-reading').button({icons: { primary: 'ui-icon-image' }, text: false })
+			.click(clickShowReading);
+	jQuery('#btn-save-reading').button({icons: { primary: 'ui-icon-pencil' }, text: false })
+			.click(clickSaveReading);
+	jQuery('#btn-annote').button({icons: { primary: 'ui-icon-comment' }, text: false })
+			.click(clickAnnotation);
 
 		// Text Frame icon buttons
 	jQuery('#hstoc').button({icons: { primary: 'ui-icon-bookmark' }, text: false })
@@ -3285,19 +3187,12 @@ jQuery(document).ready(function($) {
 	});
 
 		// Handle selection of item on Show Perspective list
-	// jQuery('#prspctv-slist').click(function(event) {
-	// 	if (event.target.nodeName == 'LI') {
-	// 		jQuery("#prspctv-slist li").removeClass("selected");
-	// 		jQuery(event.target).addClass("selected");
-	// 	}
-	// });
-
-		// Filter Control Bar
-	// jQuery('#btn-new-filter').button({icons: { primary: 'ui-icon-plus' }, text: false })
-	// 		.click(clickNewFilter);
-	// jQuery('#btn-toggle-filters').button({icons: { primary: 'ui-icon-arrow-2-n-s' }, text: false })
-	// 		.click(clickToggleFilters);
-	// jQuery('#btn-f-state').click(clickFilter);
+	jQuery('#reading-slist').click(function(event) {
+		if (event.target.nodeName == 'LI') {
+			jQuery("#reading-slist li").removeClass("selected");
+			jQuery(event.target).addClass("selected");
+		}
+	});
 
 	jQuery('#dialog-about .logo').attr("src", prspdata.assets+"prospectlogo.jpg");
 
@@ -3322,11 +3217,11 @@ jQuery(document).ready(function($) {
 	}());
 
 		// Restore Perspective or create default?
-	// if (prspdata.show_prspctv.length == 0 || !doShowPerspective(prspdata.show_prspctv)) {
+	if (prspdata.show_reading.length == 0 || !doShowPerspective(prspdata.show_reading)) {
 		views[1] = PViewFrame(1);
 		views[1].initDOM(0);
 		setAnnote('');
-	// }
+	}
 
 		// Allow ViewFrames to handle changes in size
 	jQuery(window).resize(function() {
