@@ -1,8 +1,8 @@
 <div id="command-bar">
 	<span id="title"></span>
 	&nbsp; &nbsp;<button id="btn-about"><?php _e('About Prospect', 'prospect'); ?></button>
-	<button id="btn-show-prspctv"><?php _e('Show Perspective', 'prospect'); ?></button>
-	<button id="btn-save-prspctv"><?php _e('Save Perspective', 'prospect'); ?></button>
+	<button id="btn-show-reading"><?php _e('Show Reading', 'prospect'); ?></button>
+	<button id="btn-save-reading"><?php _e('Save Reading', 'prospect'); ?></button>
 	<button id="btn-annote"><?php _e('Show/Hide Annotation', 'prospect'); ?></button>
 	&nbsp; <span id="pstate" class="attn"><?php _e('Initializing', 'prospect'); ?></span>
 	<span class="home"><span id="home-title"></span> <button id="btn-home"><?php _e('Home', 'prospect'); ?></button></span>
