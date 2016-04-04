@@ -47,9 +47,40 @@ function PViewFrame(vfIndex)
 	var legendIDs = [];			// Attribute IDs of Legend selections (one per Template)
 	var lDirty = null;			// Legend Dirty (enabled) if true
 	var datastream = null;		// pointer to datastream given to view
+	var selAbsIs = [];			// array of absI's of selected Records from text frame
+	var vizSel = [];			// array of absI's of selected Records that are actually visible
 
 	// PRIVATE FUNCTIONS
 	//==================
+
+		// PURPOSE: Check selAbsI from text frame against Records shown in view, Highlight those shown
+	function computeSel()
+	{
+		vizSel=[];
+
+		if (vizModel == null) {
+			return;
+		}
+
+		if (selAbsIs.length === 0) {
+			vizModel.clearSel();
+			return;
+		}
+
+		var r = vizModel.rMap;
+		selAbsIs.forEach(function(absI) {
+			if (r[absI >> 4] & (1 << (absI & 15))) {
+				vizSel.push(absI);
+			}
+		});
+		if (vizSel.length === 0) {
+			vizModel.clearSel();
+			doSelBtns(false);
+		} else {
+			vizModel.setSel(vizSel);
+			doSelBtns(true);
+		}
+	} // computeSel()
 
 		// PURPOSE: Set Legend Dirty flag to true or false
 	function setLDirty(s)
@@ -73,6 +104,7 @@ function PViewFrame(vfIndex)
 		var newSelIndex   = selector.val();
 		PState.set(PSTATE_BUILD);
 		createViz(newSelIndex, true);
+		computeSel();
 		PState.set(PSTATE_READY)
 	} // selectChangeViz()
 
@@ -80,7 +112,7 @@ function PViewFrame(vfIndex)
 	function clickShowHideLegend(event)
 	{
 		if (vizModel.flags() & V_FLAG_LGND) {
-			jQuery(getFrameID()+' div.lgnd-container').toggle('slide', {direction: "left" });
+			jQuery(getFrameID()+' div.lgnd-container').toggle('slide', { direction: "left" });
 		}
 		event.preventDefault();
 	} // clickShowHideLegend()
@@ -370,8 +402,7 @@ function PViewFrame(vfIndex)
 
 		var recSel=null;
 
-		if (vizModel)
-			recSel = vizModel.getSel();
+		recSel = vizSel;
 		if (recSel == null || recSel.length == 0)
 			return;
 
@@ -728,8 +759,10 @@ function PViewFrame(vfIndex)
 	function clickClearSelection(event)
 	{
 		PState.set(PSTATE_UPDATE);
-		if (vizModel)
+		if (vizModel) {
 			vizModel.clearSel();
+		}
+		vizSel = selAbsIs = [];
 		doSelBtns(false);
 		PState.set(PSTATE_READY);
 		event.preventDefault();
@@ -738,8 +771,9 @@ function PViewFrame(vfIndex)
 		// PURPOSE: Hide/show viz-specific controls on right side
 	function clickVizControls(event)
 	{
-		if (vizModel)
+		if (vizModel) {
 			vizModel.doOptions();
+		}
 		event.preventDefault();
 	} // clickVizControls()
 
@@ -825,8 +859,8 @@ function PViewFrame(vfIndex)
 		case 'lgnd-update':
 			if (vizModel && datastream) {
 				PState.set(PSTATE_BUILD);
-				doSelBtns(false);
 				vizModel.render(datastream);
+				computeSel();
 				setLDirty(false);
 				PState.set(PSTATE_READY);
 			}
@@ -1084,7 +1118,7 @@ function PViewFrame(vfIndex)
 			// As we initially render view, "Update" should be disabled
 		setLDirty(false);
 
-			// Enable or disable corresponding Highlight button & Save Perspective checkboxes
+			// Enable or disable corresponding Highlight button & Save Reading checkboxes
 		if (flags & V_FLAG_SEL) {
 			frame.find('.hilite').button('enable');
 			jQuery('#save-reading-h'+vfIndex).prop('disabled', false).prop('checked', false);
@@ -1121,10 +1155,11 @@ function PViewFrame(vfIndex)
 		newViz.setup();
 
 			// ViewFrames initially created w/o selection
-		doSelBtns(false);
+		// doSelBtns(false);
 
-		if (datastream && refresh)
+		if (datastream && refresh) {
 			newViz.render(datastream);
+		}
 		vizModel = newViz;
 	} // createViz()
 
@@ -1245,7 +1280,7 @@ function PViewFrame(vfIndex)
 	} // getLgndSels()
 
 		// PURPOSE: Set the Feature Attribute selections on the Legends
-		// NOTES: 	Utility function for setting Perspective
+		// NOTES: 	Utility function for setting Reading
 	instance.setLgndSels = function(attIDs)
 	{
 		attIDs.forEach(function(attID, i) {
@@ -1267,16 +1302,18 @@ function PViewFrame(vfIndex)
 		// PURPOSE: Set the state of the current visualization
 	instance.setState = function(state)
 	{
-		if (vizModel)
+		if (vizModel) {
 			vizModel.setState(state);
+		}
 	} // getState()
 
 		// PURPOSE: Called by external agent when new datastream is available for viewing
 	instance.showStream = function(stream)
 	{
 		datastream = stream;
-		if (vizModel)
+		if (vizModel) {
 			vizModel.render(stream);
+		}
 		setLDirty(false);
 	} // showStream()
 
@@ -1293,19 +1330,23 @@ function PViewFrame(vfIndex)
 
 	instance.clearSel = function()
 	{
-		if (vizModel)
-			vizModel.clearSel();
+		selAbsIs = vizSel = [];
 		doSelBtns(false);
+		if (vizModel) {
+			vizModel.clearSel();
+		}
 	} // clearSel()
 
 		// PURPOSE: Attempt to set the Selection List of the VizModel to selList
 		// RETURNS: true if possible, false if not
 	instance.setSel = function(selList)
 	{
+		selAbsIs = selList;
 		if (vizModel) {
 			if (vizModel.flags() & V_FLAG_SEL) {
 				vizModel.setSel(selList);
-				doSelBtns(selList.length > 0);
+				computeSel();
+				// doSelBtns(selList.length > 0);
 				return true;
 			}
 			return false;
@@ -1316,8 +1357,9 @@ function PViewFrame(vfIndex)
 		// PURPOSE: Alert inner visualization that view frame has resized
 	instance.resize = function()
 	{
-		if (vizModel)
+		if (vizModel) {
 			vizModel.resize();
+		}
 	} // resize()
 
 	instance.title = function()
@@ -1480,7 +1522,7 @@ jQuery(document).ready(function($) {
 		var note = jQuery('#save-reading-note').val();
 		note = note.replace(/"/g, '');
 
-			// Compile Perspective state from Views & Filter Stack
+			// Compile Reading state
 		var pState = { f: [], h0: null, h1: null, v0: null, v1: null };
 		views.forEach(function(v, vI) {
 			if (v) {
@@ -1534,9 +1576,9 @@ jQuery(document).ready(function($) {
 			});
 		}
 		return dest;
-	} // doSavePerspective()
+	} // doSaveReading()
 
-	function clickSavePerspective(event)
+	function clickSaveReading(event)
 	{
 		var spDialog;
 		var idExp = /[^\w\-]/;
@@ -1581,7 +1623,7 @@ jQuery(document).ready(function($) {
 						if (id.length === 0 || id.length > 20 || idError)
 							idError = '#dialog-reading-id-badchars';
 							// Make sure ID not already taken
-						else if (getPerspective(id))
+						else if (getReading(id))
 							idError = '#dialog-reading-id-used';
 						else if (label.length === 0 || label.length > 32)
 							idError = '#dialog-reading-label-bad';
@@ -1598,7 +1640,7 @@ jQuery(document).ready(function($) {
 								}]
 							});
 						} else {
-							var saved = doSavePerspective(id, label);
+							var saved = doSaveReading(id, label);
 							spDialog.dialog("close");
 
 							if (saved == 'server') {
@@ -1630,9 +1672,9 @@ jQuery(document).ready(function($) {
 			]
 		});
 		event.preventDefault();
-	} // clickSavePerspective()
+	} // clickSaveReading()
 
-	function managePerspectives()
+	function manageReadings()
 	{
 		var mpDialog;
 		var xData=[];
@@ -1650,7 +1692,7 @@ jQuery(document).ready(function($) {
 					'</button> <button class="edit">'+dlText.edit+'</button></li>');
 			});
 
-				// Get other Perspectives of other Exhibits (on this domain)
+				// Get other Readings/Perspectives of other Volumes/Exhibits (on this domain)
 			for (var i=0; i<localStore.length; i++) {
 				var xKey = localStore.key(i);
 				if (xKey != prspdata.e.id) {
@@ -1670,7 +1712,7 @@ jQuery(document).ready(function($) {
 
 		createList();
 
-			// Handle selection of item on Manage Perspective list
+			// Handle selection of item on Manage Readings list
 		jQuery('#reading-mlist').click(function(event) {
 			if (event.target.nodeName == 'BUTTON') {	// Edit or Delete?
 				var del = jQuery(event.target).hasClass('del');
@@ -1773,7 +1815,7 @@ jQuery(document).ready(function($) {
 					} // OK
 				}]
 		});
-	} // managePerspectives()
+	} // manageReadings()
 
 	function clickShowReading(event)
 	{
@@ -1813,7 +1855,7 @@ jQuery(document).ready(function($) {
 			bs.push({text: dlText.manage,
 					click: function() {
 						spDialog.dialog("close");
-						managePerspectives();
+						manageReadings();
 					}});
 		}
 
@@ -2103,7 +2145,7 @@ jQuery(document).ready(function($) {
 	} // clickHighlight()
 
 
-		// PURPOSE: Attempt to show Perspective pID
+		// PURPOSE: Attempt to show Reading pID
 		// RETURN:  false if error
 	function doShowReading(pID)
 	{
@@ -2206,7 +2248,7 @@ jQuery(document).ready(function($) {
 		}
 
 		return true;
-	} // doShowPerspective()
+	} // doShowReading()
 
 
 		// VOLUME EXTENSIONS
@@ -2700,7 +2742,11 @@ jQuery(document).ready(function($) {
 				switch (vMode) {
 				case 'v0': 		// Show all Records, highlight selected
 				case 'v1': 		// Show Records visible from Text, highlight selected
-					v.setSel(selAbsI);
+					if (selAbsI.length === 0) {
+						v.clearSel();
+					} else {
+						v.setSel(selAbsI);
+					}
 					break;
 				case 'v2': 		// Only Show selected Records
 					v.clearSel();
@@ -3119,7 +3165,7 @@ jQuery(document).ready(function($) {
 	if (prspdata.e.g.l != '')
 		jQuery('#title').text(prspdata.e.g.l);
 
-		// Is there a local storage mechanism? Get local Perspectives if so
+		// Is there a local storage mechanism? Get local Readings if so
 	try {
 		var storage = window['localStorage'], x = '__storage_test__';
 		storage.setItem(x, x);
@@ -3186,7 +3232,7 @@ jQuery(document).ready(function($) {
 		}
 	});
 
-		// Handle selection of item on Show Perspective list
+		// Handle selection of item on Show Readings list
 	jQuery('#reading-slist').click(function(event) {
 		if (event.target.nodeName == 'LI') {
 			jQuery("#reading-slist li").removeClass("selected");
@@ -3216,8 +3262,8 @@ jQuery(document).ready(function($) {
 		});
 	}());
 
-		// Restore Perspective or create default?
-	if (prspdata.show_reading.length == 0 || !doShowPerspective(prspdata.show_reading)) {
+		// Restore Reading or create default?
+	if (prspdata.show_reading.length == 0 || !doShowReading(prspdata.show_reading)) {
 		views[1] = PViewFrame(1);
 		views[1].initDOM(0);
 		setAnnote('');
