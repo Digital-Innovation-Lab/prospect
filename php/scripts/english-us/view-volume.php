@@ -4,7 +4,11 @@
 	<button id="btn-show-reading"><?php _e('Show Reading', 'prospect'); ?></button>
 	<button id="btn-save-reading"><?php _e('Save Reading', 'prospect'); ?></button>
 	<button id="btn-annote"><?php _e('Show/Hide Annotation', 'prospect'); ?></button>
-	&nbsp; <span id="pstate" class="attn"><?php _e('Initializing', 'prospect'); ?></span>
+	&nbsp; <span id="pstate" class="attn"><?php _e('Initializing', 'prospect'); ?></span> &nbsp;
+	<button id="clearsel">Clear Highlighted</button>
+	<input type="radio" name="vizmode" id="vizmode-0" value="v0" checked/><label for="vizmode-0">All & Highlight</label>
+	<input type="radio" name="vizmode" id="vizmode-1" value="v1"/><label for="vizmode-1">Text & Highlight</label>
+	<input type="radio" name="vizmode" id="vizmode-2" value="v2"/><label for="vizmode-2">Display Only</label>
 	<span class="home"><span id="home-title"></span> <button id="btn-home"><?php _e('Home', 'prospect'); ?></button></span>
 </div>
 
@@ -24,10 +28,7 @@
 				&nbsp;<button id="textprev">Previous</button>
 				<button id="textnext">Next</button> &nbsp;
 				<button id="texthilite">Highlight</button>
-				<button id="textxsel">Clear Highlighted</button>
-				<input type="radio" name="vizmode" id="vizmode-0" value="v0" checked/><label for="vizmode-0">All & Highlight</label>
-				<input type="radio" name="vizmode" id="vizmode-1" value="v1"/><label for="vizmode-1">Text & Highlight</label>
-				<input type="radio" name="vizmode" id="vizmode-2" value="v2"/><label for="vizmode-2">Display Only</label>
+				<button id="textosel">Show Highlighted</button>
 			</div>
 		</div>
 		<div class="viz-content">

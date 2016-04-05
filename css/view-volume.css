@@ -157,6 +157,10 @@ ul.radio li:hover, ul.radio li.focus {
 	cursor: pointer;
 }
 
+#command-bar label {
+	font-size: 11px;
+}
+
 #command-bar .home {
 	float: right;
 }

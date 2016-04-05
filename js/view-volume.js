@@ -3025,8 +3025,8 @@ jQuery(document).ready(function($) {
 		event.preventDefault();
 	} // clickTextFind()
 
-		// PURPOSE: Handle clicking "Clear" icon button on Text Frame
-	function clickTextClear(event)
+		// PURPOSE: Handle clicking global "Clear" icon button
+	function clickClear(event)
 	{
 		var v=views[1];
 
@@ -3045,7 +3045,7 @@ jQuery(document).ready(function($) {
 			}
 		}
 		event.preventDefault();
-	} // clickTextClear()
+	} // clickClear()
 
 
 		// IMMEDIATE EXECUTION
@@ -3200,10 +3200,10 @@ jQuery(document).ready(function($) {
 		.click(clickTextNext);
 	jQuery('#texthilite').button({icons: { primary: 'ui-icon-star' }, text: false })
 		.click(clickTextFind);
-	jQuery('#textxsel').button({icons: { primary: 'ui-icon-cancel' }, text: false })
-		.click(clickTextClear);
-	// jQuery('#textosel').button({icons: { primary: 'ui-icon-search' }, text: false })
-	// 	.click(clickTextShow);
+	jQuery('#clearsel').button({icons: { primary: 'ui-icon-cancel' }, text: false })
+		.click(clickClear);
+	jQuery('#textosel').button({icons: { primary: 'ui-icon-search' }, text: false })
+		.click(clickTextShow);
 	jQuery('#text-frame').click(clickTextFrame);
 	jQuery('input[type=radio][name=vizmode]').change(function() {
 		vMode = this.value;
