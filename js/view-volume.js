@@ -29,750 +29,740 @@ var widgetData = {			// Widget state has to be global because YouTube API calls 
 	tcIndex: -1 				// Index of playhead in tcArray
 };
 
-
 // ===================================================================================
-// PViewFrame: Pseudo-object that manages contents of visualization frame
-//				Creates Legend and maintains selection (passed to PVizModel on update)
-// INPUT: 	vfIndex = index for this visualization frame (0 or 1)
+// PViewFrame: An abstract class to subclassed by PTextFrame and PVizFrame
+//			PViewFrame manages internal view and communicates changes
+//
+//			Instance Methods
+//			----------------
+//			getFrameID() = Return ID of Frame's outermost DIV container
+//			setSel(sel) = array of absI of selected Records from external source (ideal)
+//			clearSel() = clear the current selection
+//			computeSel() = check selAbsI against Records shown in view, update view
+//			setSelBtns(enable) = set state of Show Selection button
+//			initDOM = initialize internal DOM
 
-function PViewFrame(vfIndex)
+function PViewFrame(vfIndex, callbacks)
 {
-	var instance = { };			// creates pseudo-instance of Object
+	this.vfIndex	= vfIndex;
+	this.callbacks	= callbacks;	// callback object
+	this.vizSel 	= [];			// array of absI of selected Records that are visible in this frame
+	this.selAbsIs	= [];			// array of absIs of selected Records requested externally
+	this.datastream = null;			// pointer to datastream given to view
+} // PViewFrame()
 
-	// INSTANCE VARIABLES
-	//===================
+PViewFrame.prototype.getFrameID = function()
+{
+	return '#view-frame-'+vfIndex;
+} // getFrameID()
 
-	var vizSelIndex = 0;		// index of currently selected Viz
-	var vizModel = null;		// PVizModel currently in frame
-	var legendIDs = [];			// Attribute IDs of Legend selections (one per Template)
-	var lDirty = null;			// Legend Dirty (enabled) if true
-	var datastream = null;		// pointer to datastream given to view
-	var selAbsIs = [];			// array of absI's of selected Records from text frame
-	var vizSel = [];			// array of absI's of selected Records that are actually visible
+PViewFrame.prototype.setSelBtns = function(enable)
+{
+	var vCnxt = jQuery(getFrameID()+' div.view-controls');
 
-	// PRIVATE FUNCTIONS
-	//==================
+	if (enable) {
+		vCnxt.find('.osel').button("enable");
+		vCnxt.find('.osel').addClass("pulse");
+	} else {
+		vCnxt.find('.osel').button("disable");
+		vCnxt.find('.osel').removeClass("pulse");
+	}
+} // doSelBtns()
 
-		// PURPOSE: Check selAbsI from text frame against Records shown in view, Highlight those shown
-	function computeSel()
+	// PURPOSE: Open Record Inspector for current selection
+PViewFrame.prototype.openSelection = function()
+{
+	var container = jQuery('#inspect-content');
+	var avAttID=null;	// ID of any A/V widget or null
+	var avType=0;		// 0=none, 1=SoundCloud, 2=YouTube, 3=Native Audio
+	var t2URL;			// URL for transcript 2 or null
+		// Set default size -- change acc to widget settings & overrides
+	var w=450;
+	var h=400;
+
+	function tTrim(str)
 	{
-		vizSel=[];
-
-		if (vizModel == null) {
-			return;
-		}
-
-		if (selAbsIs.length === 0) {
-			vizModel.clearSel();
-			return;
-		}
-
-		var r = vizModel.rMap;
-		selAbsIs.forEach(function(absI) {
-			if (r[absI >> 4] & (1 << (absI & 15))) {
-				vizSel.push(absI);
-			}
-		});
-		if (vizSel.length === 0) {
-			vizModel.clearSel();
-			doSelBtns(false);
-		} else {
-			vizModel.setSel(vizSel);
-			doSelBtns(true);
-		}
-	} // computeSel()
-
-		// PURPOSE: Set Legend Dirty flag to true or false
-	function setLDirty(s)
+		return str.replace(/^[ \f\t\v​]+|[ \f\t\v​]+$/g, '');
+	}
+		// PURPOSE: Convert timecode string into # of milliseconds
+		// INPUT:   timecode must be in format [HH:MM:SS] or [HH:MM:SS.ss]
+		// ASSUMES: timecode in correct format, parseTC contains compiled RegEx
+	function tcToMilliSecs(tc)
 	{
-		if (s !== lDirty) {
-			lDirty = s;
-			jQuery(getFrameID()+' div.lgnd-container div.lgnd-handle button.lgnd-update').prop('disabled', !s);
-		}
-	} // setLDirty
-
-		// PURPOSE: Return ID of Frame's outermost DIV container
-	function getFrameID()
-	{
-		return '#view-frame-'+vfIndex;
-	} // getFrameID()
-
-
-	function selectChangeViz(event)
-	{
-		var selector = jQuery(getFrameID()+' div.view-controls select.view-viz-select option:selected');
-		var newSelIndex   = selector.val();
-		PState.set(PSTATE_BUILD);
-		createViz(newSelIndex, true);
-		computeSel();
-		PState.set(PSTATE_READY)
-	} // selectChangeViz()
-
-
-	function clickShowHideLegend(event)
-	{
-		if (vizModel.flags() & V_FLAG_LGND) {
-			jQuery(getFrameID()+' div.lgnd-container').toggle('slide', { direction: "left" });
-		}
-		event.preventDefault();
-	} // clickShowHideLegend()
-
-
-		// PURPOSE: Open Record Inspector for current selection
-	function clickOpenSelection(event)
-	{
-		var container = jQuery('#inspect-content');
-		var avAttID=null;	// ID of any A/V widget or null
-		var avType=0;		// 0=none, 1=SoundCloud, 2=YouTube, 3=Native Audio
-		var t2URL;			// URL for transcript 2 or null
-			// Set default size -- change acc to widget settings & overrides
-		var w=450;
-		var h=400;
-
-		function tTrim(str)
-		{
-			return str.replace(/^[ \f\t\v​]+|[ \f\t\v​]+$/g, '');
-		}
-			// PURPOSE: Convert timecode string into # of milliseconds
-			// INPUT:   timecode must be in format [HH:MM:SS] or [HH:MM:SS.ss]
-			// ASSUMES: timecode in correct format, parseTC contains compiled RegEx
-		function tcToMilliSecs(tc)
-		{
-			var milliSecs = new Number();
-			var match = parseTC.exec(tc);
-			if (match !== null) {
-				milliSecs = (parseInt(match[1])*3600 + parseInt(match[2])*60 + parseFloat(match[3])) * 1000;
-					// The multiplier to use for last digits depends on if it is 1 or 2 digits long
-				if (match[4].length == 1) {
-					milliSecs += parseInt(match[4])*100;
-				} else {
-					milliSecs += parseInt(match[4])*10;
-				}
+		var milliSecs = new Number();
+		var match = parseTC.exec(tc);
+		if (match !== null) {
+			milliSecs = (parseInt(match[1])*3600 + parseInt(match[2])*60 + parseFloat(match[3])) * 1000;
+				// The multiplier to use for last digits depends on if it is 1 or 2 digits long
+			if (match[4].length == 1) {
+				milliSecs += parseInt(match[4])*100;
 			} else {
-				throw new Error("Error in transcript file: Cannot parse " + tc + " as timecode.");
-				milliSecs = 0;
+				milliSecs += parseInt(match[4])*10;
 			}
-			return milliSecs;
-		} // tcToMilliSecs()
+		} else {
+			throw new Error("Error in transcript file: Cannot parse " + tc + " as timecode.");
+			milliSecs = 0;
+		}
+		return milliSecs;
+	} // tcToMilliSecs()
 
-			// PURPOSE: Format the second transcript (use first one's timecodes)
-		function formatXscript2(text, xtbl)
-		{
-			var splitXcript = new String(text);
-				// AJAX server request processes any extract
-			splitXcript = tTrim(splitXcript).split(/\r\n|\r|\n/g);
+		// PURPOSE: Format the second transcript (use first one's timecodes)
+	function formatXscript2(text, xtbl)
+	{
+		var splitXcript = new String(text);
+			// AJAX server request processes any extract
+		splitXcript = tTrim(splitXcript).split(/\r\n|\r|\n/g);
 
-			var ta = [];
+		var ta = [];
 
-			if (splitXcript) {
-				var tb;
-				var ti = 0;
-				_.each(splitXcript, function(val) {
-						// Skip values with line breaks...basically empty items
-					val = tTrim(val);
-					if (val.length>0) {
-						if (val.charAt(0) === '[') {
-							if (ti>0) {
-								ta.push(tb);
-							}
-							tb='';
-						} else {
-							if (tb.length > 0)
-								tb += '<br/>';
-							tb += val;
+		if (splitXcript) {
+			var tb;
+			var ti = 0;
+			_.each(splitXcript, function(val) {
+					// Skip values with line breaks...basically empty items
+				val = tTrim(val);
+				if (val.length>0) {
+					if (val.charAt(0) === '[') {
+						if (ti>0) {
+							ta.push(tb);
 						}
-						ti++;
+						tb='';
+					} else {
+						if (tb.length > 0)
+							tb += '<br/>';
+						tb += val;
+					}
+					ti++;
+				}
+			});
+		}
+
+			// Loop thru HTML for left-side transcript and add right-side text
+		 _.each(ta, function(val, ti) {
+			xtbl.find('div.timecode[data-tcindex="'+ti+'"]').next().after('<div class="xscript">'+val+'</div>');
+		 });
+	} // formatXscript2()
+
+		// PURPOSE: Format the first transcript (with its timecodes)
+	function formatXscript1(text)
+	{
+			// empty time code array -- each entry has start & end
+		widgetData.tcArray = [];
+		widgetData.tcIndex = -1;
+		var tcs = widgetData.tcArray;
+
+			// split transcript text into array by line breaks
+		var splitXcript = new String(text);
+			// Server request processes any extract
+		splitXcript = tTrim(splitXcript).split(/\r\n|\r|\n/g);
+
+		if (splitXcript) {
+			var xtbl = jQuery('#xscript-tbl');
+			var tcI = 0;
+			var timeCode, lastCode=0, lastStamp=0;
+			var tb='';		// Text block being built
+			_.each(splitXcript, function(val) {
+					// Each entry is (1) empty/line break, (2) timestamp, or (3) text
+				val = tTrim(val);
+					// Skip empty entries, which were line breaks
+				if (val.length>1) {
+						// Encountered timestamp -- compile previous material, if any
+					if (val.charAt(0) === '[' && (val.charAt(1) >= '0' && val.charAt(1) <= '9'))
+					{
+						timeCode = tcToMilliSecs(val);
+						if (tb.length > 0) {
+								// Append timecode entry once range is defined
+							if (lastStamp) {
+								tcs.push({ s: lastCode, e: timeCode });
+							}
+							xtbl.append('<div class="row"><div class="timecode" data-timecode="'+
+								lastCode+'" data-tcindex="'+tcI++ +'">'+lastStamp+'</div><div class="xscript">'+tb+'</div></div>');
+							tb = '';
+						}
+						lastStamp = val;
+						lastCode = timeCode;
+
+						// Encountered textblock
+					} else {
+						if (tb.length > 0)
+							tb += '<br/>';
+						tb += val;
+					}
+				} // if length
+			}); // _each
+				// Handle any dangling text
+			if (tb.length > 0) {
+					// Append very large number to ensure can't go past last item! 9 hours * 60 minutes * 60 seconds * 1000 milliseconds
+				tcs.push({ s: lastCode, e: 32400000 });
+				xtbl.append('<div class="row"><div class="timecode" data-timecode="'+
+					lastCode+'" data-tcindex="'+tcI+'">'+lastStamp+'</div><div class="xscript">'+tb+'</div></div>');
+			}
+				// Is there is a 2nd transcript? Load it so it is appended to this set
+			if (typeof t2URL !== 'undefined' && t2URL != null) {
+				jQuery.ajax({
+					type: 'POST',
+					url: prspdata.ajax_url,
+					data: {
+						action: 'prsp_get_transcript',
+						transcript: t2URL,
+						excerpt: widgetData.extract
+					},
+					success: function(data, textStatus, XMLHttpRequest) {
+						formatXscript2(JSON.parse(data), xtbl);
+					},
+					error: function(XMLHttpRequest, textStatus, errorThrown) {
+					   alert(errorThrown);
 					}
 				});
 			}
+		} // if (split)
+	} // formatXscript1()
 
-				// Loop thru HTML for left-side transcript and add right-side text
-			 _.each(ta, function(val, ti) {
-				xtbl.find('div.timecode[data-tcindex="'+ti+'"]').next().after('<div class="xscript">'+val+'</div>');
-			 });
-		} // formatXscript2()
+		// PURPOSE: Update the timecode playhead if changed from last update
+	function highlightXscript(ms)
+	{
+		var match;
+		var oldI = widgetData.tcIndex;
 
-			// PURPOSE: Format the first transcript (with its timecodes)
-		function formatXscript1(text)
-		{
-				// empty time code array -- each entry has start & end
-			widgetData.tcArray = [];
-			widgetData.tcIndex = -1;
-			var tcs = widgetData.tcArray;
-
-				// split transcript text into array by line breaks
-			var splitXcript = new String(text);
-				// Server request processes any extract
-			splitXcript = tTrim(splitXcript).split(/\r\n|\r|\n/g);
-
-			if (splitXcript) {
-				var xtbl = jQuery('#xscript-tbl');
-				var tcI = 0;
-				var timeCode, lastCode=0, lastStamp=0;
-				var tb='';		// Text block being built
-				_.each(splitXcript, function(val) {
-						// Each entry is (1) empty/line break, (2) timestamp, or (3) text
-					val = tTrim(val);
-						// Skip empty entries, which were line breaks
-					if (val.length>1) {
-							// Encountered timestamp -- compile previous material, if any
-						if (val.charAt(0) === '[' && (val.charAt(1) >= '0' && val.charAt(1) <= '9'))
-						{
-							timeCode = tcToMilliSecs(val);
-							if (tb.length > 0) {
-									// Append timecode entry once range is defined
-								if (lastStamp) {
-									tcs.push({ s: lastCode, e: timeCode });
-								}
-								xtbl.append('<div class="row"><div class="timecode" data-timecode="'+
-									lastCode+'" data-tcindex="'+tcI++ +'">'+lastStamp+'</div><div class="xscript">'+tb+'</div></div>');
-								tb = '';
-							}
-							lastStamp = val;
-							lastCode = timeCode;
-
-							// Encountered textblock
-						} else {
-							if (tb.length > 0)
-								tb += '<br/>';
-							tb += val;
-						}
-					} // if length
-				}); // _each
-					// Handle any dangling text
-				if (tb.length > 0) {
-						// Append very large number to ensure can't go past last item! 9 hours * 60 minutes * 60 seconds * 1000 milliseconds
-					tcs.push({ s: lastCode, e: 32400000 });
-					xtbl.append('<div class="row"><div class="timecode" data-timecode="'+
-						lastCode+'" data-tcindex="'+tcI+'">'+lastStamp+'</div><div class="xscript">'+tb+'</div></div>');
+		_.find(widgetData.tcArray, function(tc, tcI) {
+			match = (tc.s <= ms && ms < tc.e);
+			if (match && tcI != oldI) {
+					// Should we synchronize audio and text transcript?
+				var xt = jQuery('#xscript-tbl');
+				if (document.getElementById("sync-xscript").checked) {
+					var tsEntry = xt.find('[data-tcindex="'+tcI+'"]');
+					var topDiff = tsEntry.offset().top - xt.offset().top;
+					var scrollPos = xt.scrollTop() + topDiff;
+					xt.animate({ scrollTop: scrollPos }, 300);
 				}
-					// Is there is a 2nd transcript? Load it so it is appended to this set
-				if (typeof t2URL !== 'undefined' && t2URL != null) {
+				if (oldI != -1)
+					xt.find('[data-tcindex="'+oldI+'"]').removeClass('current');
+				xt.find('[data-tcindex="'+tcI+'"]').addClass('current');
+				widgetData.tcIndex = tcI;
+			}
+			return match;
+		});
+	} // highlightXscript()
+
+		// PURPOSE: Called by global function once YouTube API loaded
+	function ytActivate()
+	{
+		function ytStateChange(event)
+		{
+			var curPos;
+
+			switch (event.data) {
+			case 1: // YT.PlayerState.PLAYING
+				widgetData.playing = true;
+				if (widgetData.timer == null) {
+						// YouTube playback heartbeat
+					widgetData.timer = setInterval(function() {
+							// Need to convert to milliseconds
+						curPos = widgetData.widget.getCurrentTime() * 1000;
+							// Keep within bounds of excerpt is done automatically by cue function
+							// If there is a transcript, highlight current section
+						if (widgetData.playing && widgetData.xscriptOn) {
+							highlightXscript(curPos);
+						}
+					}, 300);    // .3 second heartbeat
+				}
+				break;
+			case 0: // YT.PlayerState.ENDED
+			case 2: // YT.PlayerState.PAUSED
+				widgetData.playing = false;
+				window.clearInterval(widgetData.timer);
+				widgetData.timer = null;
+				break;
+			case 3: // YT.PlayerState.BUFFERING
+			case 5: // YT.PlayerState.CUED
+				widgetData.playing = false;
+				break;
+			} // switch event
+		} // ytStateChange()
+
+		widgetData.widget = new YT.Player('yt-widget', {
+			width: w-40, height: Math.floor(((w-40)*9)/16),
+			videoId: widgetData.ytCode,
+			events: {
+				onError: function(event) { console.log("YouTube Error: "+event.data); },
+				onStateChange: ytStateChange,
+				onReady: function() {
+						// If this is to play an excerpt, specify time bounds now (in seconds)
+					if (widgetData.extract) {
+						widgetData.widget.cueVideoById(
+							{   videoId: widgetData.ytCode,
+								startSeconds: (widgetData.sTime/1000),
+								endSeconds: (widgetData.eTime/1000)
+							});
+					}
+				}
+			}
+		});
+	} // ytActivate()
+
+		// Need to define native audio eventListeners here for add and remove
+		// ==================
+	function naWidgetPlaying()
+	{
+		widgetData.playing = true;
+	}
+	function naWidgetStopped()
+	{
+		widgetData.playing = false;
+	}
+	function naWidgetUpdate()
+	{
+		if (widgetData.playing && widgetData.xscriptOn) {
+			highlightXscript(widgetData.widget.currentTime * 1000);
+		}
+	}
+
+		// Inspector will either close or move to next Record -- remove all listeners, etc
+	function unplugAllWidgets()
+	{
+			// Stop any A/V playing
+		switch(avType) {
+		case 3:
+			if (widgetData.widget != null) {
+				widgetData.widget.removeEventListener("ended", naWidgetStopped);
+				widgetData.widget.removeEventListener("pause", naWidgetStopped);
+				widgetData.widget.removeEventListener("playing", naWidgetPlaying);
+				widgetData.widget.removeEventListener("timeupdate", naWidgetUpdate);
+			}
+		case 1:
+			if (widgetData.widget != null && widgetData.playing)
+				widgetData.widget.pause();
+			widgetData.playing = false;
+			widgetData.widget = null;
+			break;
+		case 2:
+				// Prevent invoking player if code called after modal closed
+			widgetData.ytCall = null;
+				// Silence YouTube player if modal closed in another way
+			if (widgetData.widget != null && widgetData.playing)
+				widgetData.widget.stopVideo();
+			widgetData.widget = null;
+			widgetData.playing = false;
+			if (widgetData.timer != null) {
+				window.clearInterval(widgetData.timer);
+				widgetData.timer = null;
+			}
+			break;
+		} // switch
+	} // unplugAllWidgets()
+
+	var recSel=null;
+
+	recSel = this.vizSel;
+	if (recSel == null || recSel.length == 0)
+		return;
+
+	var inspector;
+	var rec;
+	var i=0;		// Index of item to show in Inspector from selection
+
+	function inspectShow()
+	{
+		var recAbsI = recSel[i];
+		rec = PData.rByN(recAbsI);
+		var title = ' '+rec.l+' ('+(i+1)+'/'+recSel.length+') ';
+		var nameDOM = jQuery('#inspect-name');
+		nameDOM.text(title);
+		nameDOM.prop('title', rec.id);
+			// Which template type?
+		var tI = PData.n2T(recAbsI);
+
+			// PURPOSE: Prepare start and end times for extract if any
+			// ASSUMES: Any timecode given contains both start and end separated by "-"
+		function getSETimes()
+		{
+			widgetData.sTime = widgetData.eTime = null;
+			var tcAttID;
+			if (tcAttID = prspdata.e.i.t.tcAtts[tI]) {
+				var tcAttVal = rec.a[tcAttID];
+
+				if (tcAttVal && tcAttVal !== '') {
+					widgetData.extract = tcAttVal;
+					var tcs = tcAttVal.split('-');
+					widgetData.sTime = tcToMilliSecs(tcs[0]);
+					widgetData.eTime = tcToMilliSecs(tcs[1]);
+				}
+			}
+		} // getSETimes()
+
+		container.empty();
+			// Handle Inspector widgets
+		avAttID=null; avType=0;
+		widgetData.extract=null;
+		widgetData.xscriptOn=false;
+		widgetData.playing=false;
+
+			// Audio widget?
+		if (prspdata.e.i.modal.scOn || (typeof prspdata.e.i.modal.aOn === 'boolean' && prspdata.e.i.modal.aOn)) {
+			if (avAttID = prspdata.e.i.sc.atts[tI]) {
+				var scAttVal;
+				if (scAttVal = rec.a[avAttID]) {
+					getSETimes();
+						// Is this a URL to SoundCloud?
+					if (scAttVal.match(/soundcloud\.com/)) {
+						var primeAudio=true;
+
+						avType=1;
+						container.append('<iframe id="sc-widget" class="player" width="100%" height="110" src="http://w.soundcloud.com/player/?url='+
+							scAttVal+'"></iframe>');
+
+							// Must set these variables after HTML appended above
+						var playWidget = SC.Widget(document.getElementById('sc-widget'));
+						widgetData.widget = playWidget;
+							// Setup SoundCloud player after entire sound clip loaded
+						playWidget.bind(SC.Widget.Events.READY, function() {
+								// Prime the audio -- must initially play (seekTo won't work until sound loaded and playing)
+							playWidget.play();
+							playWidget.bind(SC.Widget.Events.PLAY, function() {
+								widgetData.playing = true;
+							});
+							playWidget.bind(SC.Widget.Events.PAUSE, function() {
+								widgetData.playing = false;
+							});
+							playWidget.bind(SC.Widget.Events.PLAY_PROGRESS, function(params) {
+									// Pauses audio after it primes so seekTo will work properly
+								if (primeAudio) {
+									playWidget.pause();
+									primeAudio = false;
+									widgetData.playing = false;
+								}
+									// Keep within bounds if only excerpt of longer transcript
+								if (widgetData.extract) {
+									if (params.currentPosition < widgetData.sTime) {
+										playWidget.seekTo(widgetData.sTime);
+									} else if (params.currentPosition > widgetData.eTime) {
+										playWidget.pause();
+										widgetData.playing = false;
+									}
+								}
+								if (widgetData.playing && widgetData.xscriptOn) {
+									highlightXscript(params.currentPosition);
+								}
+							});
+								// Can't seek within the SEEK event because it causes infinite recursion
+							playWidget.bind(SC.Widget.Events.FINISH, function() {
+								widgetData.playing = false;
+							});
+						});
+					} else {	// Use "native" audio
+						avType=3;
+							// If there is timecode extract, need to append to URL
+						if (widgetData.extract) {
+							var tcs = widgetData.extract.split('-');
+							scAttVal += '#t='+tcs[0]+','+tcs[1];
+						}
+						container.append('<audio id="na-widget" controls src="'+scAttVal+'"></audio>');
+						widgetData.widget = document.getElementById('na-widget');
+						widgetData.widget.addEventListener("ended", naWidgetStopped);
+						widgetData.widget.addEventListener("pause", naWidgetStopped);
+						widgetData.widget.addEventListener("playing", naWidgetPlaying);
+						widgetData.widget.addEventListener("timeupdate", naWidgetUpdate);
+					}
+				} // if scAttVal
+			} // if avAttID
+		} // if scOn
+
+			// YouTube video widget?
+		if (avType === 0 && prspdata.e.i.modal.ytOn) {
+			if (avAttID = prspdata.e.i.yt.atts[tI]) {
+				var ytAttVal = rec.a[avAttID];
+				if (ytAttVal) {
+					getSETimes();
+					widgetData.ytCode = ytAttVal;
+
+					container.append('<div id="yt-widget"></div>');
+
+						// YouTube API is only loaded once but must handle race condition:
+						//	Inspector modal can be closed before video fully loaded
+					widgetData.ytCall = ytActivate;
+					if (!widgetData.ytLoaded) {
+						widgetData.ytLoaded = true;
+
+							// Create a script DIV that will cause API to be loaded
+						var tag = document.createElement('script');
+						tag.src = "https://www.youtube.com/iframe_api";
+						var scriptTag = document.getElementsByTagName('script')[0];
+						scriptTag.parentNode.insertBefore(tag, scriptTag);
+							// wait for hook invocation to set playWidget and bind handlers
+					} else
+						ytActivate();
+
+					avType=2;
+				}
+			} // if avAttID
+		} // if ytOn
+
+			// Transcription widget?
+		if (prspdata.e.i.modal.tOn) {
+			var t1AttID = prspdata.e.i.t.t1Atts[tI];
+				// Is there a 1st transcript Attribute?
+			if (t1AttID && t1AttID !== '' && t1AttID !== 'disable') {
+				var t1URL = rec.a[t1AttID];
+				if (typeof t1URL === 'string' && t1URL !== '') {
+						// Add synchronize button if both A/V and Transcript
+					if (avType > 0) {
+						container.append('<div>'+document.getElementById('dltext-sync-xscript').innerHTML+'</div>');
+					}
+					container.find('#xscript-tbl').remove();
+					container.append('<div id="xscript-tbl"></div>');
+					widgetData.xscriptOn=true;
+						// Handle clicks on timecodes
+					jQuery('#xscript-tbl').click(function(evt) {
+						if (avType && jQuery(evt.target).hasClass('timecode')) {
+							var seekTo = jQuery(evt.target).data('timecode');
+								// seekTo doesn't work unless sound is already playing
+							switch (avType) {
+							case 1:
+								if (!widgetData.playing) {
+									widgetData.playing = true;
+									widgetData.widget.play();
+								}
+								widgetData.widget.seekTo(seekTo);
+								break;
+							case 2:
+								if (!widgetData.playing) {
+									widgetData.playing = true;
+									widgetData.widget.playVideo();
+								}
+									// YouTube player takes seconds (rather than milliseconds)
+								widgetData.widget.seekTo(seekTo/1000);
+								break;
+							case 3:
+								if (!widgetData.playing) {
+									widgetData.playing = true;
+									widgetData.widget.play();
+								}
+								widgetData.widget.currentTime = seekTo/1000;
+								break;
+							}
+						}
+					});
+
+						// Is there a 2nd transcript Attribute?
+						// Set up for 1st to load when complete
+					t2URL=null;
+					var t2AttID = prspdata.e.i.t.t2Atts[tI];
+					if (t2AttID && t2AttID !== '' && t2AttID !== 'disable') {
+						t2URL = rec.a[t2AttID];
+					}
+
 					jQuery.ajax({
 						type: 'POST',
 						url: prspdata.ajax_url,
 						data: {
 							action: 'prsp_get_transcript',
-							transcript: t2URL,
+							transcript: t1URL,
 							excerpt: widgetData.extract
 						},
 						success: function(data, textStatus, XMLHttpRequest) {
-							formatXscript2(JSON.parse(data), xtbl);
+							formatXscript1(JSON.parse(data));
 						},
 						error: function(XMLHttpRequest, textStatus, errorThrown) {
 						   alert(errorThrown);
 						}
 					});
+				} // t1URL
+			} // if t1AttID
+		} // if tOn
+
+			// Show all Attribute content data
+		prspdata.e.i.modal.atts[tI].forEach(function(attID) {
+			var attVal = PData.rAV(recAbsI, attID, false);
+			if (attVal) {
+				var theAtt = PData.aByID(attID);
+				var html;
+					// Special case - Labels that begin with underscore are "invisible"
+				if (theAtt.def.l.charAt(0) == '_')
+					html = '<div>'+attVal+'</div>';
+				else {
+					html = '<div><span class="att-label">'+theAtt.def.l+':</span> ';
+						// Begin images on next line
+					if (theAtt.def.t == 'I')
+						html += '<br/>';
+					html += attVal+'</div>';						
 				}
-			} // if (split)
-		} // formatXscript1()
-
-			// PURPOSE: Update the timecode playhead if changed from last update
-		function highlightXscript(ms)
-		{
-			var match;
-			var oldI = widgetData.tcIndex;
-
-			_.find(widgetData.tcArray, function(tc, tcI) {
-				match = (tc.s <= ms && ms < tc.e);
-				if (match && tcI != oldI) {
-						// Should we synchronize audio and text transcript?
-					var xt = jQuery('#xscript-tbl');
-					if (document.getElementById("sync-xscript").checked) {
-						var tsEntry = xt.find('[data-tcindex="'+tcI+'"]');
-						var topDiff = tsEntry.offset().top - xt.offset().top;
-						var scrollPos = xt.scrollTop() + topDiff;
-						xt.animate({ scrollTop: scrollPos }, 300);
-					}
-					if (oldI != -1)
-						xt.find('[data-tcindex="'+oldI+'"]').removeClass('current');
-					xt.find('[data-tcindex="'+tcI+'"]').addClass('current');
-					widgetData.tcIndex = tcI;
-				}
-				return match;
-			});
-		} // highlightXscript()
-
-			// PURPOSE: Called by global function once YouTube API loaded
-		function ytActivate()
-		{
-			function ytStateChange(event)
-			{
-				var curPos;
-
-				switch (event.data) {
-				case 1: // YT.PlayerState.PLAYING
-					widgetData.playing = true;
-					if (widgetData.timer == null) {
-							// YouTube playback heartbeat
-						widgetData.timer = setInterval(function() {
-								// Need to convert to milliseconds
-							curPos = widgetData.widget.getCurrentTime() * 1000;
-								// Keep within bounds of excerpt is done automatically by cue function
-								// If there is a transcript, highlight current section
-							if (widgetData.playing && widgetData.xscriptOn) {
-								highlightXscript(curPos);
-							}
-						}, 300);    // .3 second heartbeat
-					}
-					break;
-				case 0: // YT.PlayerState.ENDED
-				case 2: // YT.PlayerState.PAUSED
-					widgetData.playing = false;
-					window.clearInterval(widgetData.timer);
-					widgetData.timer = null;
-					break;
-				case 3: // YT.PlayerState.BUFFERING
-				case 5: // YT.PlayerState.CUED
-					widgetData.playing = false;
-					break;
-				} // switch event
-			} // ytStateChange()
-
-			widgetData.widget = new YT.Player('yt-widget', {
-				width: w-40, height: Math.floor(((w-40)*9)/16),
-				videoId: widgetData.ytCode,
-				events: {
-					onError: function(event) { console.log("YouTube Error: "+event.data); },
-					onStateChange: ytStateChange,
-					onReady: function() {
-							// If this is to play an excerpt, specify time bounds now (in seconds)
-						if (widgetData.extract) {
-							widgetData.widget.cueVideoById(
-								{   videoId: widgetData.ytCode,
-									startSeconds: (widgetData.sTime/1000),
-									endSeconds: (widgetData.eTime/1000)
-								});
-						}
-					}
-				}
-			});
-		} // ytActivate()
-
-			// Need to define native audio eventListeners here for add and remove
-			// ==================
-		function naWidgetPlaying()
-		{
-			widgetData.playing = true;
-		}
-		function naWidgetStopped()
-		{
-			widgetData.playing = false;
-		}
-		function naWidgetUpdate()
-		{
-			if (widgetData.playing && widgetData.xscriptOn) {
-				highlightXscript(widgetData.widget.currentTime * 1000);
+				container.append(html);
 			}
-		}
-
-			// Inspector will either close or move to next Record -- remove all listeners, etc
-		function unplugAllWidgets()
-		{
-				// Stop any A/V playing
-			switch(avType) {
-			case 3:
-				if (widgetData.widget != null) {
-					widgetData.widget.removeEventListener("ended", naWidgetStopped);
-					widgetData.widget.removeEventListener("pause", naWidgetStopped);
-					widgetData.widget.removeEventListener("playing", naWidgetPlaying);
-					widgetData.widget.removeEventListener("timeupdate", naWidgetUpdate);
-				}
-			case 1:
-				if (widgetData.widget != null && widgetData.playing)
-					widgetData.widget.pause();
-				widgetData.playing = false;
-				widgetData.widget = null;
-				break;
-			case 2:
-					// Prevent invoking player if code called after modal closed
-				widgetData.ytCall = null;
-					// Silence YouTube player if modal closed in another way
-				if (widgetData.widget != null && widgetData.playing)
-					widgetData.widget.stopVideo();
-				widgetData.widget = null;
-				widgetData.playing = false;
-				if (widgetData.timer != null) {
-					window.clearInterval(widgetData.timer);
-					widgetData.timer = null;
-				}
-				break;
-			} // switch
-		} // unplugAllWidgets()
-
-		var recSel=null;
-
-		recSel = vizSel;
-		if (recSel == null || recSel.length == 0)
-			return;
-
-		var inspector;
-		var rec;
-		var i=0;		// Index of item to show in Inspector from selection
-
-		function inspectShow()
-		{
-			var recAbsI = recSel[i];
-			rec = PData.rByN(recAbsI);
-			var title = ' '+rec.l+' ('+(i+1)+'/'+recSel.length+') ';
-			var nameDOM = jQuery('#inspect-name');
-			nameDOM.text(title);
-			nameDOM.prop('title', rec.id);
-				// Which template type?
-			var tI = PData.n2T(recAbsI);
-
-				// PURPOSE: Prepare start and end times for extract if any
-				// ASSUMES: Any timecode given contains both start and end separated by "-"
-			function getSETimes()
-			{
-				widgetData.sTime = widgetData.eTime = null;
-				var tcAttID;
-				if (tcAttID = prspdata.e.i.t.tcAtts[tI]) {
-					var tcAttVal = rec.a[tcAttID];
-
-					if (tcAttVal && tcAttVal !== '') {
-						widgetData.extract = tcAttVal;
-						var tcs = tcAttVal.split('-');
-						widgetData.sTime = tcToMilliSecs(tcs[0]);
-						widgetData.eTime = tcToMilliSecs(tcs[1]);
-					}
-				}
-			} // getSETimes()
-
-			container.empty();
-				// Handle Inspector widgets
-			avAttID=null; avType=0;
-			widgetData.extract=null;
-			widgetData.xscriptOn=false;
-			widgetData.playing=false;
-
-				// Audio widget?
-			if (prspdata.e.i.modal.scOn || (typeof prspdata.e.i.modal.aOn === 'boolean' && prspdata.e.i.modal.aOn)) {
-				if (avAttID = prspdata.e.i.sc.atts[tI]) {
-					var scAttVal;
-					if (scAttVal = rec.a[avAttID]) {
-						getSETimes();
-							// Is this a URL to SoundCloud?
-						if (scAttVal.match(/soundcloud\.com/)) {
-							var primeAudio=true;
-
-							avType=1;
-							container.append('<iframe id="sc-widget" class="player" width="100%" height="110" src="http://w.soundcloud.com/player/?url='+
-								scAttVal+'"></iframe>');
-
-								// Must set these variables after HTML appended above
-							var playWidget = SC.Widget(document.getElementById('sc-widget'));
-							widgetData.widget = playWidget;
-								// Setup SoundCloud player after entire sound clip loaded
-							playWidget.bind(SC.Widget.Events.READY, function() {
-									// Prime the audio -- must initially play (seekTo won't work until sound loaded and playing)
-								playWidget.play();
-								playWidget.bind(SC.Widget.Events.PLAY, function() {
-									widgetData.playing = true;
-								});
-								playWidget.bind(SC.Widget.Events.PAUSE, function() {
-									widgetData.playing = false;
-								});
-								playWidget.bind(SC.Widget.Events.PLAY_PROGRESS, function(params) {
-										// Pauses audio after it primes so seekTo will work properly
-									if (primeAudio) {
-										playWidget.pause();
-										primeAudio = false;
-										widgetData.playing = false;
-									}
-										// Keep within bounds if only excerpt of longer transcript
-									if (widgetData.extract) {
-										if (params.currentPosition < widgetData.sTime) {
-											playWidget.seekTo(widgetData.sTime);
-										} else if (params.currentPosition > widgetData.eTime) {
-											playWidget.pause();
-											widgetData.playing = false;
-										}
-									}
-									if (widgetData.playing && widgetData.xscriptOn) {
-										highlightXscript(params.currentPosition);
-									}
-								});
-									// Can't seek within the SEEK event because it causes infinite recursion
-								playWidget.bind(SC.Widget.Events.FINISH, function() {
-									widgetData.playing = false;
-								});
-							});
-						} else {	// Use "native" audio
-							avType=3;
-								// If there is timecode extract, need to append to URL
-							if (widgetData.extract) {
-								var tcs = widgetData.extract.split('-');
-								scAttVal += '#t='+tcs[0]+','+tcs[1];
-							}
-							container.append('<audio id="na-widget" controls src="'+scAttVal+'"></audio>');
-							widgetData.widget = document.getElementById('na-widget');
-							widgetData.widget.addEventListener("ended", naWidgetStopped);
-							widgetData.widget.addEventListener("pause", naWidgetStopped);
-							widgetData.widget.addEventListener("playing", naWidgetPlaying);
-							widgetData.widget.addEventListener("timeupdate", naWidgetUpdate);
-						}
-					} // if scAttVal
-				} // if avAttID
-			} // if scOn
-
-				// YouTube video widget?
-			if (avType === 0 && prspdata.e.i.modal.ytOn) {
-				if (avAttID = prspdata.e.i.yt.atts[tI]) {
-					var ytAttVal = rec.a[avAttID];
-					if (ytAttVal) {
-						getSETimes();
-						widgetData.ytCode = ytAttVal;
-
-						container.append('<div id="yt-widget"></div>');
-
-							// YouTube API is only loaded once but must handle race condition:
-							//	Inspector modal can be closed before video fully loaded
-						widgetData.ytCall = ytActivate;
-						if (!widgetData.ytLoaded) {
-							widgetData.ytLoaded = true;
-
-								// Create a script DIV that will cause API to be loaded
-							var tag = document.createElement('script');
-							tag.src = "https://www.youtube.com/iframe_api";
-							var scriptTag = document.getElementsByTagName('script')[0];
-							scriptTag.parentNode.insertBefore(tag, scriptTag);
-								// wait for hook invocation to set playWidget and bind handlers
-						} else
-							ytActivate();
-
-						avType=2;
-					}
-				} // if avAttID
-			} // if ytOn
-
-				// Transcription widget?
-			if (prspdata.e.i.modal.tOn) {
-				var t1AttID = prspdata.e.i.t.t1Atts[tI];
-					// Is there a 1st transcript Attribute?
-				if (t1AttID && t1AttID !== '' && t1AttID !== 'disable') {
-					var t1URL = rec.a[t1AttID];
-					if (typeof t1URL === 'string' && t1URL !== '') {
-							// Add synchronize button if both A/V and Transcript
-						if (avType > 0) {
-							container.append('<div>'+document.getElementById('dltext-sync-xscript').innerHTML+'</div>');
-						}
-						container.find('#xscript-tbl').remove();
-						container.append('<div id="xscript-tbl"></div>');
-						widgetData.xscriptOn=true;
-							// Handle clicks on timecodes
-						jQuery('#xscript-tbl').click(function(evt) {
-							if (avType && jQuery(evt.target).hasClass('timecode')) {
-								var seekTo = jQuery(evt.target).data('timecode');
-									// seekTo doesn't work unless sound is already playing
-								switch (avType) {
-								case 1:
-									if (!widgetData.playing) {
-										widgetData.playing = true;
-										widgetData.widget.play();
-									}
-									widgetData.widget.seekTo(seekTo);
-									break;
-								case 2:
-									if (!widgetData.playing) {
-										widgetData.playing = true;
-										widgetData.widget.playVideo();
-									}
-										// YouTube player takes seconds (rather than milliseconds)
-									widgetData.widget.seekTo(seekTo/1000);
-									break;
-								case 3:
-									if (!widgetData.playing) {
-										widgetData.playing = true;
-										widgetData.widget.play();
-									}
-									widgetData.widget.currentTime = seekTo/1000;
-									break;
-								}
-							}
-						});
-
-							// Is there a 2nd transcript Attribute?
-							// Set up for 1st to load when complete
-						t2URL=null;
-						var t2AttID = prspdata.e.i.t.t2Atts[tI];
-						if (t2AttID && t2AttID !== '' && t2AttID !== 'disable') {
-							t2URL = rec.a[t2AttID];
-						}
-
-						jQuery.ajax({
-							type: 'POST',
-							url: prspdata.ajax_url,
-							data: {
-								action: 'prsp_get_transcript',
-								transcript: t1URL,
-								excerpt: widgetData.extract
-							},
-							success: function(data, textStatus, XMLHttpRequest) {
-								formatXscript1(JSON.parse(data));
-							},
-							error: function(XMLHttpRequest, textStatus, errorThrown) {
-							   alert(errorThrown);
-							}
-						});
-					} // t1URL
-				} // if t1AttID
-			} // if tOn
-
-				// Show all Attribute content data
-			prspdata.e.i.modal.atts[tI].forEach(function(attID) {
-				var attVal = PData.rAV(recAbsI, attID, false);
-				if (attVal) {
-					var theAtt = PData.aByID(attID);
-					var html;
-						// Special case - Labels that begin with underscore are "invisible"
-					if (theAtt.def.l.charAt(0) == '_')
-						html = '<div>'+attVal+'</div>';
-					else {
-						html = '<div><span class="att-label">'+theAtt.def.l+':</span> ';
-							// Begin images on next line
-						if (theAtt.def.t == 'I')
-							html += '<br/>';
-						html += attVal+'</div>';						
-					}
-					container.append(html);
-				}
-			});
-		} // inspectShow()
-
-		function inspectSlide(diff)
-		{
-			var newI = i+diff;
-			if (newI == -1)
-				newI = recSel.length-1;
-			else if (newI == recSel.length)
-				newI = 0;
-
-			if (newI != i) {
-				i = newI;
-				unplugAllWidgets();
-				inspectShow();
-			}
-		} // inspectSlide()
-
-		function inspectLeft(event)
-		{
-			inspectSlide(-1);
-		}
-		function inspectRight(event)
-		{
-			inspectSlide(1);
-		}
-
-		if (prspdata.e.i.modal.scOn)
-		{
-			w=550;
-		} // if SoundCloud
-
-		if (prspdata.e.i.modal.ytOn)
-		{
-			w=Math.max(w,475);
-			h=500;
-		} // if YouTube
-
-		if (prspdata.e.i.modal.tOn)
-		{
-			h+=100;
-			if (prspdata.e.i.modal.t2On) {
-				w = Math.max(750, Math.floor(jQuery(document).width()*.80));
-				w = Math.min(900, w);
-			} else
-				w=Math.max(w,550);
-		} // if Transcriptions
-
-		if (typeof prspdata.e.i.modal.w === 'number') {
-			w=prspdata.e.i.modal.w;
-		}
-		if (typeof prspdata.e.i.modal.h === 'number') {
-			h=prspdata.e.i.modal.h;
-		}
-
-			// Stop pulsing while Inspector open
-		doSelBtns(false);
-
-			// Show first item & handle scroll buttons
-		inspectShow();
-		jQuery('#btn-inspect-left').click(inspectLeft);
-		jQuery('#btn-inspect-right').click(inspectRight);
-
-		inspector = jQuery("#dialog-inspector").dialog({
-			width: w,
-			height: h,
-			modal: true,
-			buttons: [
-				{
-					text: dlText.seerec,
-					click: function() {
-						window.open(prspdata.site_url+'?p='+rec.wp, '_blank');
-					}
-				},
-				{
-					text: dlText.close,
-					click: function() {
-						inspector.dialog("close");
-					} // click
-				}
-			]
 		});
+	} // inspectShow()
 
-		inspector.on("dialogclose", function(event, ui) {
+	function inspectSlide(diff)
+	{
+		var newI = i+diff;
+		if (newI == -1)
+			newI = recSel.length-1;
+		else if (newI == recSel.length)
+			newI = 0;
+
+		if (newI != i) {
+			i = newI;
 			unplugAllWidgets();
-			jQuery('#btn-inspect-left').off("click");
-			jQuery('#btn-inspect-right').off("click");
-				// turn pulsing back on
-			doSelBtns(true);
-				// Unbind Inspector from this view -- one off only
-			inspector.off("dialogclose");
-		});
-
-		event.preventDefault();
-	} // clickOpenSelection()
-
-		// PURPOSE: Change state Highlight buttons
-	function doSelBtns(enable)
-	{
-		var vCnxt = jQuery(getFrameID()+' div.view-controls');
-
-		if (enable) {
-			vCnxt.find('.osel').button("enable");
-			vCnxt.find('.osel').addClass("pulse");
-			vCnxt.find('.xsel').button("enable");
-		} else {
-			vCnxt.find('.osel').button("disable");
-			vCnxt.find('.osel').removeClass("pulse");
-			vCnxt.find('.xsel').button("disable");
+			inspectShow();
 		}
-	} // doSelBtns()
+	} // inspectSlide()
 
-	function clickHighlight(event)
+	function inspectLeft(event)
 	{
-			// Send signal back to Prospect "main app" to create Highlight filter on this viz
-		jQuery("body").trigger("prospect", { s: PSTATE_HILITE, v: vfIndex, t: vizModel.tUsed });
-		event.preventDefault();
-	} // clickHighlight()
+		inspectSlide(-1);
+	}
+	function inspectRight(event)
+	{
+		inspectSlide(1);
+	}
 
-	function clickClearSelection(event)
+	if (prspdata.e.i.modal.scOn)
 	{
-		PState.set(PSTATE_UPDATE);
-		if (vizModel) {
-			vizModel.clearSel();
+		w=550;
+	} // if SoundCloud
+
+	if (prspdata.e.i.modal.ytOn)
+	{
+		w=Math.max(w,475);
+		h=500;
+	} // if YouTube
+
+	if (prspdata.e.i.modal.tOn)
+	{
+		h+=100;
+		if (prspdata.e.i.modal.t2On) {
+			w = Math.max(750, Math.floor(jQuery(document).width()*.80));
+			w = Math.min(900, w);
+		} else
+			w=Math.max(w,550);
+	} // if Transcriptions
+
+	if (typeof prspdata.e.i.modal.w === 'number') {
+		w=prspdata.e.i.modal.w;
+	}
+	if (typeof prspdata.e.i.modal.h === 'number') {
+		h=prspdata.e.i.modal.h;
+	}
+
+		// Stop pulsing while Inspector open
+	this.setSelBtns(false);
+
+		// Show first item & handle scroll buttons
+	inspectShow();
+	jQuery('#btn-inspect-left').click(inspectLeft);
+	jQuery('#btn-inspect-right').click(inspectRight);
+
+	inspector = jQuery("#dialog-inspector").dialog({
+		width: w,
+		height: h,
+		modal: true,
+		buttons: [
+			{
+				text: dlText.seerec,
+				click: function() {
+					window.open(prspdata.site_url+'?p='+rec.wp, '_blank');
+				}
+			},
+			{
+				text: dlText.close,
+				click: function() {
+					inspector.dialog("close");
+				} // click
+			}
+		]
+	});
+
+	inspector.on("dialogclose", function(event, ui) {
+		unplugAllWidgets();
+		jQuery('#btn-inspect-left').off("click");
+		jQuery('#btn-inspect-right').off("click");
+			// turn pulsing back on
+		doSelBtns(true);
+			// Unbind Inspector from this view -- one off only
+		inspector.off("dialogclose");
+	});
+} // openSelection()
+
+// ===================================================================================
+// PVizFrame: Object that manages contents of visualization frame (always view-frame-1)
+
+function PVizFrame(vfIndex, callbacks)
+{
+	this.lDirty = null;			// Legend Dirty (enabled) if true
+	this.vizSelIndex = 0;		// index of currently selected Viz
+	this.vizModel = null;		// PVizModel currently in frame
+	this.legendIDs = [];		// Attribute IDs of Legend selections (one per Template)
+
+	PViewFrame.call(this, vfIndex, callbacks);
+} // PVizFrame()
+
+	// PURPOSE: Set Legend Dirty flag to true or false
+PVizFrame.prototype.setLDirty = function(s)
+{
+	if (s !== this.lDirty) {
+		this.lDirty = s;
+		jQuery('#view-frame-1 div.lgnd-container div.lgnd-handle button.lgnd-update').prop('disabled', !s);
+	}
+} // setLDirty
+
+PVizFrame.prototype.selectChangeViz = function()
+{
+	var selector = jQuery('#view-frame-1 div.view-controls select.view-viz-select option:selected');
+	var newSelIndex   = selector.val();
+	PState.set(PSTATE_BUILD);
+	this.createViz(newSelIndex, true);
+	this.computeSel();
+	PState.set(PSTATE_READY)
+} // selectChangeViz()
+
+	// PURPOSE: Check selAbsI against Records shown in view, update view
+PVizFrame.prototype.computeSel = function()
+{
+	this.vizSel=[];
+
+	if (this.vizModel == null) {
+		return;
+	}
+
+	if (this.selAbsIs.length === 0) {
+		this.vizModel.clearSel();
+		return;
+	}
+
+	var vizSel=[];
+	var r = this.vizModel.rMap;
+	this.selAbsIs.forEach(function(absI) {
+		if (r[absI >> 4] & (1 << (absI & 15))) {
+			vizSel.push(absI);
 		}
-		vizSel = selAbsIs = [];
-		doSelBtns(false);
-		PState.set(PSTATE_READY);
+	});
+	this.vizSel = vizSel;
+
+	if (vizSel.length === 0) {
+		this.vizModel.clearSel();
+		this.setSelBtns(false);
+	} else {
+		this.vizModel.setSel(vizSel);
+		this.setSelBtns(true);
+	}
+} // computeSel()
+
+PVizFrame.prototype.initDOM = function()
+{
+	var self=this;
+
+	function clickShowHideLegend(event)
+	{
+		if (self.vizModel.flags() & V_FLAG_LGND) {
+			jQuery('#view-frame-1 div.lgnd-container').toggle('slide', { direction: "left" });
+		}
 		event.preventDefault();
-	} // clickClearSelection()
+	} // clickShowHideLegend()
 
 		// PURPOSE: Hide/show viz-specific controls on right side
 	function clickVizControls(event)
 	{
-		if (vizModel) {
-			vizModel.doOptions();
+		if (self.vizModel) {
+			self.vizModel.doOptions();
 		}
 		event.preventDefault();
 	} // clickVizControls()
@@ -795,12 +785,20 @@ function PViewFrame(vfIndex)
 		event.preventDefault();
 	} // clickVizNotes()
 
+	function clickHighlight(event)
+	{
+			// Send signal back to Prospect "main app" to create Highlight filter on this viz
+		jQuery("body").trigger("prospect", { s: PSTATE_HILITE, v: vfIndex, t: vizModel.tUsed });
+		event.preventDefault();
+	} // clickHighlight()
+
+
 		// PURPOSE: Turn on or off all feature Attributes for tmpltIndex
 	function doShowHideAll(tmpltIndex, show)
 	{
-		jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
+		jQuery('#view-frame-1 div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
 								tmpltIndex+'"] div.lgnd-group input.lgnd-entry-check').prop('checked', show);
-		setLDirty(true);
+		self.setLDirty(true);
 	} // doShowHideAll()
 
 
@@ -808,7 +806,7 @@ function PViewFrame(vfIndex)
 		// NOTE: 	GUI already updated
 	function doLocateSelect(tmpltIndex, lID, show)
 	{
-		setLDirty(true);
+		self.setLDirty(true);
 	} // doLocateSelect()
 
 
@@ -817,20 +815,19 @@ function PViewFrame(vfIndex)
 	function doLocateSelectOnly(tmpltIndex, lID)
 	{
 			// Deselect everything
-		jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
+		jQuery('#view-frame-1 div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
 								tmpltIndex+'"] div.lgnd-locate input.lgnd-entry-check').prop('checked', false);
 			// Just reselect this one
-		jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
+		jQuery('#view-frame-1 div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
 								tmpltIndex+'"] div.lgnd-locate[data-id="'+lID+'"] input.lgnd-entry-check').prop('checked', true);
-		setLDirty(true);
+		self.setLDirty(true);
 	} // doLocateSelect()
-
 
 		// PURPOSE: Set state of feature attribute vIndex within Legend tmpltIndex to show
 		// NOTE: 	GUI already updated
 	function doFeatureSelect(tmpltIndex, vIndex, show)
 	{
-		setLDirty(true);
+		self.setLDirty(true);
 	} // doFeatureSelect()
 
 
@@ -848,7 +845,6 @@ function PViewFrame(vfIndex)
 		setLDirty(true);
 	} // doFeatureSelectOnly()
 
-
 		// PURPOSE: Handle click anywhere on Legend
 	function clickInLegend(event)
 	{
@@ -857,11 +853,11 @@ function PViewFrame(vfIndex)
 		var clickClass = event.target.className;
 		switch (clickClass) {
 		case 'lgnd-update':
-			if (vizModel && datastream) {
+			if (self.vizModel && self.datastream) {
 				PState.set(PSTATE_BUILD);
-				vizModel.render(datastream);
-				computeSel();
-				setLDirty(false);
+				self.vizModel.render(self.datastream);
+				self.computeSel();
+				self.setLDirty(false);
 				PState.set(PSTATE_READY);
 			}
 			break;
@@ -909,6 +905,100 @@ function PViewFrame(vfIndex)
 		}
 	} // clickInLegend()
 
+		// Can assume in right view frame
+	var frame = jQuery('#view-frame-1');
+
+		// Localize color scheme?
+	var clr = prspdata.bClrs.vf;
+	if (clr && clr.length > 0)
+		frame.find('div.view-controls').css('background-color', clr);
+
+		// Activate drag handle on Legend
+	frame.find('div.lgnd-container').draggable({ handle: frame.find('div.lgnd-handle'), containment: "parent" });
+
+	var select = frame.find('div.view-controls select.view-viz-select');
+		// Set Dropdown to View names
+	prspdata.e.vf.forEach(function(theVF, i) {
+		var optionStr = '<option value="'+i+'">'+theVF.l+'</option>';
+		select.append(optionStr);
+	});
+	select.val(vI);
+	select.change(selectChangeViz);
+
+		// Hook control bar Icon buttons
+	frame.find('div.view-controls button:first')
+			.button({icons: { primary: 'ui-icon-bookmark' }, text: false })
+			.click(clickShowHideLegend).next()
+			.button({icons: { primary: 'ui-icon-wrench' }, text: false })
+			.click(clickVizControls).next()
+			.button({icons: { primary: 'ui-icon-info' }, text: false })
+			.click(clickVizNotes).next()
+			.button({icons: { primary: 'ui-icon-star' }, text: false })
+			.click(clickHighlight).next()
+			.button({icons: { primary: 'ui-icon-search' }, text: false })
+			.click(function(event) { 
+				event.preventDefault();
+				self.openSelection();
+			 });
+
+	frame.find('div.lgnd-container')
+		.click(clickInLegend);
+
+	self.createViz(vI, false);
+} // initDOM()
+
+	// PURPOSE: Set feature attributes in Legend
+	// INPUT: 	lIndex = index of the Legend to change (0..numTemplates-1)
+	//			attID = ID of feature Attribute in the Legend set
+	// NOTES: 	Does not affect menu selection itself
+PVizFrame.prototype.setLegendFeatures = function(lIndex, attID)
+{
+	var element;
+
+	var group = jQuery('#view-frame-1 div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
+					lIndex+'"] div.lgnd-group');
+		// Clear any previous entries
+	group.empty();
+	legendIDs[lIndex] = attID;
+		// Insert new items
+	var attDef = PData.aByID(attID);
+		// Create pseudo-entry for undefined value
+	if (typeof attDef.r.u !== 'undefined') {
+		element = '<div class="lgnd-value lgnd-entry" data-index="-1"><input type="checkbox" checked="checked" class="lgnd-entry-check"/>'+
+					'<div class="lgnd-viz" style="background-color: '+attDef.r.u.v+'"> </div> <span class="lgnd-value-title">'+dlText.undef+'</span></div>';
+		group.append(element);
+	}
+	attDef.l.forEach(function(legEntry, lgIndex) {
+		element = '<div class="lgnd-value lgnd-entry" data-index="'+lgIndex+'"><input type="checkbox" checked="checked" class="lgnd-entry-check"/>'+
+					'<div class="lgnd-viz" style="background-color: '+legEntry.v+'"> </div> <span class="lgnd-value-title">'+legEntry.l+'</span></div>';
+		group.append(element);
+		if (legEntry.z && legEntry.z.length > 0) {
+			legEntry.z.forEach(function(zEntry, zIndex) {
+				element = '<div class="lgnd-value lgnd-entry" data-index="'+lgIndex+','+zIndex+
+							'"><input type="checkbox" checked="checked" class="lgnd-entry-check"/>';
+				if (zEntry.v && zEntry.v !== '') {
+					element += '<div class="lgnd-viz" style="background-color: '+zEntry.v+'"></div>';
+				} else {
+					element += '<div class="lgnd-viz lgnd-viz-empty"></div>';
+				}
+				element += ' <span class="lgnd-value-title">&raquo; '+zEntry.l+'</span></div>';
+				group.append(element);
+			});
+		}
+	});
+		// Turn on Show/Hide All by default
+	jQuery('#view-frame-1 div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
+					lIndex+'"] div.lgnd-sh input').prop('checked', true);
+} // setLegendFeatures()
+
+	// PURPOSE: Create appropriate VizModel within frame
+	// INPUT: 	vIndex is index in Exhibit array
+	//			if refresh, then immediately redraw
+PVizFrame.prototype.createViz = function(vIndex, refresh)
+{
+	var self=this;
+
+	var theView = PData.vByN(vIndex);
 
 		// PURPOSE: Handle selecting a feature Attribute for a Template from menu
 	function selectTmpltAtt(event)
@@ -916,475 +1006,1055 @@ function PViewFrame(vfIndex)
 			// Determine Template to which this refers
 		var tmpltIndex = jQuery(event.target).closest('div.lgnd-template').data('index');
 		var attID = jQuery(event.target).val();
-		setLegendFeatures(tmpltIndex, attID);
-		setLDirty(true);
+		self.setLegendFeatures(tmpltIndex, attID);
+		self.setLDirty(true);
 	} // selectTmpltAtt()
 
+		// Remove current viz content
+	if (this.vizModel) {
+		this.vizModel.teardown();
+		this.vizModel = null;
+	}
+	var frame = jQuery('#view-frame-1');
 
-		// PURPOSE: Set feature attributes in Legend
-		// INPUT: 	lIndex = index of the Legend to change (0..numTemplates-1)
-		//			attID = ID of feature Attribute in the Legend set
-		// NOTES: 	Does not affect menu selection itself
-	function setLegendFeatures(lIndex, attID)
-	{
-		var element;
+	frame.find('div.viz-content div.viz-result').empty();
 
-		var group = jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
-						lIndex+'"] div.lgnd-group');
-			// Clear any previous entries
-		group.empty();
-		legendIDs[lIndex] = attID;
-			// Insert new items
-		var attDef = PData.aByID(attID);
-			// Create pseudo-entry for undefined value
-		if (typeof attDef.r.u !== 'undefined') {
-			element = '<div class="lgnd-value lgnd-entry" data-index="-1"><input type="checkbox" checked="checked" class="lgnd-entry-check"/>'+
-						'<div class="lgnd-viz" style="background-color: '+attDef.r.u.v+'"> </div> <span class="lgnd-value-title">'+dlText.undef+'</span></div>';
-			group.append(element);
-		}
-		attDef.l.forEach(function(legEntry, lgIndex) {
-			element = '<div class="lgnd-value lgnd-entry" data-index="'+lgIndex+'"><input type="checkbox" checked="checked" class="lgnd-entry-check"/>'+
-						'<div class="lgnd-viz" style="background-color: '+legEntry.v+'"> </div> <span class="lgnd-value-title">'+legEntry.l+'</span></div>';
-			group.append(element);
-			if (legEntry.z && legEntry.z.length > 0) {
-				legEntry.z.forEach(function(zEntry, zIndex) {
-					element = '<div class="lgnd-value lgnd-entry" data-index="'+lgIndex+','+zIndex+
-								'"><input type="checkbox" checked="checked" class="lgnd-entry-check"/>';
-					if (zEntry.v && zEntry.v !== '') {
-						element += '<div class="lgnd-viz" style="background-color: '+zEntry.v+'"></div>';
-					} else {
-						element += '<div class="lgnd-viz lgnd-viz-empty"></div>';
-					}
-					element += ' <span class="lgnd-value-title">&raquo; '+zEntry.l+'</span></div>';
-					group.append(element);
-				});
-			}
-		});
-			// Turn on Show/Hide All by default
-		jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
-						lIndex+'"] div.lgnd-sh input').prop('checked', true);
-	} // setLegendFeatures()
+	var newViz;
+	switch (theView.vf) {
+	case 'M':
+		newViz = new VizMap(this, theView.c);
+		break;
+	case 'C':
+		newViz = new VizCards(this, theView.c);
+		break;
+	case 'P':
+		newViz = new VizPinboard(this, theView.c);
+		break;
+	case 'T':
+		newViz = new VizTime(this, theView.c);
+		break;
+	case 'D':
+		newViz = new VizDirectory(this, theView.c);
+		break;
+	case 't':
+		newViz = new VizTextStream(this, theView.c);
+		break;
+	case 'N':
+		newViz = new VizNetWheel(this, theView.c);
+		break;
+	// case 'S':
+	// 	newViz = new VizStackChart(this, theView.c);
+	// 	break;
+	// case 'F':
+	// 	newViz = new VizFlow(this, theView.c);
+	// 	break;
+	// case 'B':
+	// 	newViz = new VizBrowser(this, theView.c);
+	// 	break;
+	// case 'm':
+	// 	newViz = new VizMBMap(this, theView.c);
+	// 	break;
+	}
+	vizSelIndex = vIndex;
+	var flags = newViz.flags();
 
-
-		// PURPOSE: Create appropriate VizModel within frame
-		// INPUT: 	vIndex is index in Exhibit array
-		//			if refresh, then immediately redraw
-	function createViz(vIndex, refresh)
-	{
-		var theView = PData.vByN(vIndex);
-
-			// Remove current viz content
-		if (vizModel) {
-			vizModel.teardown();
-			vizModel = null;
-		}
-		var frame = jQuery(getFrameID());
-
-		frame.find('div.viz-content div.viz-result').empty();
-
-		var newViz;
-		switch (theView.vf) {
-		case 'M':
-			newViz = new VizMap(instance, theView.c);
-			break;
-		case 'C':
-			newViz = new VizCards(instance, theView.c);
-			break;
-		case 'P':
-			newViz = new VizPinboard(instance, theView.c);
-			break;
-		case 'T':
-			newViz = new VizTime(instance, theView.c);
-			break;
-		case 'D':
-			newViz = new VizDirectory(instance, theView.c);
-			break;
-		case 't':
-			newViz = new VizTextStream(instance, theView.c);
-			break;
-		case 'N':
-			newViz = new VizNetWheel(instance, theView.c);
-			break;
-		// case 'S':
-		// 	newViz = new VizStackChart(instance, theView.c);
-		// 	break;
-		// case 'F':
-		// 	newViz = new VizFlow(instance, theView.c);
-		// 	break;
-		// case 'B':
-		// 	newViz = new VizBrowser(instance, theView.c);
-		// 	break;
-		// case 'm':
-		// 	newViz = new VizMBMap(instance, theView.c);
-		// 	break;
-		}
-		vizSelIndex = vIndex;
-		var flags = newViz.flags();
-
-			// Either add scroll bars to viz-content and make viz-result fit content
-			//	or else give max-size to viz-result
-		if (flags & V_FLAG_HSCRL) {
-			frame.find('div.viz-content').addClass('h-scroll');
-			frame.find('div.viz-result').addClass('viz-fit-w');
-			frame.find('div.viz-result').removeClass('viz-max-w');
-		} else {
-			frame.find('div.viz-content').removeClass('h-scroll');
-			frame.find('div.viz-result').removeClass('viz-fit-w');
-			frame.find('div.viz-result').addClass('viz-max-w');
-		}
-		if (flags & V_FLAG_VSCRL) {
-			frame.find('div.viz-content').addClass('v-scroll');
-			frame.find('div.viz-result').addClass('viz-fit-h');
-			frame.find('div.viz-result').removeClass('viz-max-h');
-		} else {
-			frame.find('div.viz-content').removeClass('v-scroll');
-			frame.find('div.viz-result').removeClass('viz-fit-h');
-			frame.find('div.viz-result').addClass('viz-max-h');
-		}
-
-		legendIDs=[];
-
-			// Does Viz support Legend at all?
-		if (flags & V_FLAG_LGND) {
-			frame.find('.hslgnd').button('enable');
-				// Clear out previous Legend
-				// remove all previous locate Attributes
-			var lgndCntr = frame.find('div.lgnd-container div.lgnd-scroll');
-			lgndCntr.empty();
-
-				// Is it just a single Legend for all Records?
-			if (flags & V_FLAG_SLGND) {
-				var fAttID = newViz.getFeatureAtts();
-				var fAtt = PData.aByID(fAttID);
-				lgndCntr.append('<div class="lgnd-template" data-index="0"><div class="lgnd-title">'+fAtt.def.l+
-					'</div><div class="lgnd-entry lgnd-sh"><input type="checkbox" checked="checked" class="lgnd-entry-check"/><i>'+
-					dlText.sha+'</i></div><div class="lgnd-group"></div></div>');
-					// Only a single Attribute available
-				legendIDs.push(fAttID);
-				setLegendFeatures(0, fAttID);
-			} else {
-					// Create Legend sections for each Template
-				var prev=false;
-				prspdata.e.g.ts.forEach(function(tID, tIndex) {
-					var tmpltDef = PData.tByID(tID);
-						// Insert locate attributes into Legends
-					var locAtts = newViz.getLocAtts(tIndex);
-					if ((locAtts && locAtts.length > 0) || !(flags & V_FLAG_LOC)) {
-							// Create dropdown menu of visual feature Attributes
-						var fAtts = newViz.getFeatureAtts(tIndex);
-							// Don't show this Template at all if no feature Atts!
-						if (fAtts.length > 0) {
-							if (prev)
-								lgndCntr.append('<hr/>');
-
-								// Create DIV structure for Template's Legend entry
-							var newTLegend = jQuery('<div class="lgnd-template" data-index="'+tIndex+
-											'"><div class="lgnd-title">'+tmpltDef.l+'</div></div>');
-							if (locAtts)
-								locAtts.forEach(function(attID, aIndex) {
-									var attDef = PData.aByID(attID);
-									newTLegend.append('<div class="lgnd-entry lgnd-locate" data-id="'+attID+
-										'"><input type="checkbox" checked="checked" class="lgnd-entry-check"/><span class="lgnd-value-title">'+
-										attDef.def.l+'</span></div>');
-								});
-							var newStr = '<select class="lgnd-select">';
-							fAtts.forEach(function(attID, aIndex) {
-								var attDef = PData.aByID(attID);
-								newStr += '<option value="'+attID+'">'+attDef.def.l+'</option>';
-							});
-							newStr += '</select>';
-							var newSelect = jQuery(newStr);
-							newSelect.change(selectTmpltAtt);
-							jQuery(newTLegend).append(newSelect);
-								// Create Hide/Show all checkbox
-							jQuery(newTLegend).append('<div class="lgnd-entry lgnd-sh"><input type="checkbox" checked="checked" class="lgnd-entry-check"/><i>'+
-								dlText.sha+'</i></div><div class="lgnd-group"></div>');
-							lgndCntr.append(newTLegend);
-								// Default feature selection is first Attribute
-							var fAttID = fAtts[0];
-							legendIDs.push(fAttID);
-							setLegendFeatures(tIndex, fAttID);
-							prev=true;
-						}
-					}
-				});
-			}
-			frame.find('div.lgnd-container').show();
-		} else {
-			frame.find('button.hslgnd').button('disable');
-				// Just hide Legend
-			frame.find('div.lgnd-container').hide();
-		}
-			// As we initially render view, "Update" should be disabled
-		setLDirty(false);
-
-			// Enable or disable corresponding Highlight button & Save Reading checkboxes
-		if (flags & V_FLAG_SEL) {
-			frame.find('.hilite').button('enable');
-			jQuery('#save-reading-h'+vfIndex).prop('disabled', false).prop('checked', false);
-		} else {
-			frame.find('.hilite').button('disable');
-			jQuery('#save-reading-h'+vfIndex).prop('disabled', true).prop('checked', false);
-		}
-
-			// Does Viz have an Options dialog?
-		if (flags & V_FLAG_OPT) {
-			frame.find('.vopts').button('enable');
-		} else {
-			frame.find('.vopts').button('disable');
-		}
-
-			// Does Viz have annotation?
-		var hint = newViz.hint();
-		if (hint || typeof theView.n === 'string' && theView.n !== '')
-		{
-			frame.find('.vnote').button('enable');
-			if (hint) {
-				if (typeof theView.n === 'string' && theView.n !== '')
-					hint += '.<br/>'+theView.n;
-				else
-					hint += '.';
-			} else {
-				hint = theView.n;
-			}
-			jQuery('#vnotes-txt').empty().append(hint);
-		} else {
-			frame.find('.vnote').button("disable");
-		}
-
-		newViz.setup();
-
-			// ViewFrames initially created w/o selection
-		// doSelBtns(false);
-
-		if (datastream && refresh) {
-			newViz.render(datastream);
-		}
-		vizModel = newViz;
-	} // createViz()
-
-
-	// INSTANCE METHODS
-	//=================
-
-	instance.getFrameID = getFrameID;
-
-	instance.getIndex = function()
-	{
-		return vfIndex;
+		// Either add scroll bars to viz-content and make viz-result fit content
+		//	or else give max-size to viz-result
+	if (flags & V_FLAG_HSCRL) {
+		frame.find('div.viz-content').addClass('h-scroll');
+		frame.find('div.viz-result').addClass('viz-fit-w');
+		frame.find('div.viz-result').removeClass('viz-max-w');
+	} else {
+		frame.find('div.viz-content').removeClass('h-scroll');
+		frame.find('div.viz-result').removeClass('viz-fit-w');
+		frame.find('div.viz-result').addClass('viz-max-w');
+	}
+	if (flags & V_FLAG_VSCRL) {
+		frame.find('div.viz-content').addClass('v-scroll');
+		frame.find('div.viz-result').addClass('viz-fit-h');
+		frame.find('div.viz-result').removeClass('viz-max-h');
+	} else {
+		frame.find('div.viz-content').removeClass('v-scroll');
+		frame.find('div.viz-result').removeClass('viz-fit-h');
+		frame.find('div.viz-result').addClass('viz-max-h');
 	}
 
-	instance.setViz = function(vI, refresh)
-	{
-		if (vI != vizSelIndex) {
-			var select = jQuery(getFrameID()+' div.view-controls select.view-viz-select');
-			select.val(vI);
-			createViz(vI, refresh);
+	this.legendIDs=[];
+
+		// Does Viz support Legend at all?
+	if (flags & V_FLAG_LGND) {
+		frame.find('.hslgnd').button('enable');
+			// Clear out previous Legend
+			// remove all previous locate Attributes
+		var lgndCntr = frame.find('div.lgnd-container div.lgnd-scroll');
+		lgndCntr.empty();
+
+			// Is it just a single Legend for all Records?
+		if (flags & V_FLAG_SLGND) {
+			var fAttID = newViz.getFeatureAtts();
+			var fAtt = PData.aByID(fAttID);
+			lgndCntr.append('<div class="lgnd-template" data-index="0"><div class="lgnd-title">'+fAtt.def.l+
+				'</div><div class="lgnd-entry lgnd-sh"><input type="checkbox" checked="checked" class="lgnd-entry-check"/><i>'+
+				dlText.sha+'</i></div><div class="lgnd-group"></div></div>');
+				// Only a single Attribute available
+			this.legendIDs.push(fAttID);
+			this.setLegendFeatures(0, fAttID);
+		} else {
+				// Create Legend sections for each Template
+			var prev=false;
+			prspdata.e.g.ts.forEach(function(tID, tIndex) {
+				var tmpltDef = PData.tByID(tID);
+					// Insert locate attributes into Legends
+				var locAtts = newViz.getLocAtts(tIndex);
+				if ((locAtts && locAtts.length > 0) || !(flags & V_FLAG_LOC)) {
+						// Create dropdown menu of visual feature Attributes
+					var fAtts = newViz.getFeatureAtts(tIndex);
+						// Don't show this Template at all if no feature Atts!
+					if (fAtts.length > 0) {
+						if (prev)
+							lgndCntr.append('<hr/>');
+
+							// Create DIV structure for Template's Legend entry
+						var newTLegend = jQuery('<div class="lgnd-template" data-index="'+tIndex+
+										'"><div class="lgnd-title">'+tmpltDef.l+'</div></div>');
+						if (locAtts)
+							locAtts.forEach(function(attID, aIndex) {
+								var attDef = PData.aByID(attID);
+								newTLegend.append('<div class="lgnd-entry lgnd-locate" data-id="'+attID+
+									'"><input type="checkbox" checked="checked" class="lgnd-entry-check"/><span class="lgnd-value-title">'+
+									attDef.def.l+'</span></div>');
+							});
+						var newStr = '<select class="lgnd-select">';
+						fAtts.forEach(function(attID, aIndex) {
+							var attDef = PData.aByID(attID);
+							newStr += '<option value="'+attID+'">'+attDef.def.l+'</option>';
+						});
+						newStr += '</select>';
+						var newSelect = jQuery(newStr);
+						newSelect.change(selectTmpltAtt);
+						jQuery(newTLegend).append(newSelect);
+							// Create Hide/Show all checkbox
+						jQuery(newTLegend).append('<div class="lgnd-entry lgnd-sh"><input type="checkbox" checked="checked" class="lgnd-entry-check"/><i>'+
+							dlText.sha+'</i></div><div class="lgnd-group"></div>');
+						lgndCntr.append(newTLegend);
+							// Default feature selection is first Attribute
+						var fAttID = fAtts[0];
+						self.legendIDs.push(fAttID);
+						self.setLegendFeatures(tIndex, fAttID);
+						prev=true;
+					}
+				}
+			});
 		}
-	} // setViz()
+		frame.find('div.lgnd-container').show();
+	} else {
+		frame.find('button.hslgnd').button('disable');
+			// Just hide Legend
+		frame.find('div.lgnd-container').hide();
+	}
+		// As we initially render view, "Update" should be disabled
+	this.setLDirty(false);
 
-		// PURPOSE: Initialize basic DOM structure for ViewFrame
-	instance.initDOM = function(vI)
+		// Enable or disable corresponding Highlight button & Save Reading checkboxes
+	if (flags & V_FLAG_SEL) {
+		frame.find('.hilite').button('enable');
+		jQuery('#save-reading-h'+vfIndex).prop('disabled', false).prop('checked', false);
+	} else {
+		frame.find('.hilite').button('disable');
+		jQuery('#save-reading-h'+vfIndex).prop('disabled', true).prop('checked', false);
+	}
+
+		// Does Viz have an Options dialog?
+	if (flags & V_FLAG_OPT) {
+		frame.find('.vopts').button('enable');
+	} else {
+		frame.find('.vopts').button('disable');
+	}
+
+		// Does Viz have annotation?
+	var hint = newViz.hint();
+	if (hint || typeof theView.n === 'string' && theView.n !== '')
 	{
-		var viewDOM = document.getElementById('dltext-view-controls').innerHTML;
-		jQuery('#viz-frame').append('<div id="view-frame-'+vfIndex+'">'+viewDOM+'</div>');
+		frame.find('.vnote').button('enable');
+		if (hint) {
+			if (typeof theView.n === 'string' && theView.n !== '')
+				hint += '.<br/>'+theView.n;
+			else
+				hint += '.';
+		} else {
+			hint = theView.n;
+		}
+		jQuery('#vnotes-txt').empty().append(hint);
+	} else {
+		frame.find('.vnote').button("disable");
+	}
 
-		var frame = jQuery(getFrameID());
+	newViz.setup();
 
-			// Localize color scheme?
-		var clr = prspdata.bClrs.vf;
-		if (clr && clr.length > 0)
-			frame.find('div.view-controls').css('background-color', clr);
+		// ViewFrames initially created w/o selection
+	// doSelBtns(false);
 
-			// Activate drag handle on Legend
-		frame.find('div.lgnd-container').draggable({ handle: frame.find('div.lgnd-handle'), containment: "parent" });
+	if (this.datastream && refresh) {
+		this.newViz.render(datastream);
+	}
+	this.vizModel = newViz;
+} // createViz()
 
-		var select = frame.find('div.view-controls select.view-viz-select');
-			// Set Dropdown to View names
-		prspdata.e.vf.forEach(function(theVF, i) {
-			var optionStr = '<option value="'+i+'">'+theVF.l+'</option>';
-			select.append(optionStr);
-		});
+PVizFrame.prototype.setViz = function(vI, refresh)
+{
+	if (vI != this.vizSelIndex) {
+		var select = jQuery('#view-frame-1 div.view-controls select.view-viz-select');
 		select.val(vI);
-		select.change(selectChangeViz);
+		this.createViz(vI, refresh);
+	}
+} // setViz()
 
-			// Hook control bar Icon buttons
-		frame.find('div.view-controls button:first')
-				.button({icons: { primary: 'ui-icon-bookmark' }, text: false })
-				.click(clickShowHideLegend).next()
-				.button({icons: { primary: 'ui-icon-wrench' }, text: false })
-				.click(clickVizControls).next()
-				.button({icons: { primary: 'ui-icon-info' }, text: false })
-				.click(clickVizNotes).next()
-				.button({icons: { primary: 'ui-icon-star' }, text: false })
-				.click(clickHighlight).next()
-				.button({icons: { primary: 'ui-icon-cancel' }, text: false })
-				.click(clickClearSelection).next()
-				.button({icons: { primary: 'ui-icon-search' }, text: false })
-				.click(clickOpenSelection).next();
+	// RETURNS: Array of currently selected locate Attribute IDs for tIndex
+PVizFrame.prototype.getSelLocAtts = function(tIndex)
+{
+	var attIDs = [];
+	var boxes = jQuery('#view-frame-1 div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
+						tIndex+'"] div.lgnd-locate input:checked');
+	boxes.each(function() {
+		var attID = jQuery(this).parent().data('id');
+		attIDs.push(attID);
+	});
+	return attIDs;
+} // getSelLocAtts()
 
-		frame.find('div.lgnd-container')
-			.click(clickInLegend);
-
-		createViz(vI, false);
-	} // initDOM()
-
-
-		// RETURNS: Array of currently selected locate Attribute IDs for tIndex
-	instance.getSelLocAtts = function(tIndex)
-	{
-		var attIDs = [];
-		var boxes = jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
-							tIndex+'"] div.lgnd-locate input:checked');
-		boxes.each(function() {
-			var attID = jQuery(this).parent().data('id');
-			attIDs.push(attID);
-		});
-		return attIDs;
-	} // getSelLocAtts()
-
-
-		// RETURNS: Array of indices of currently selected feature Attribute IDs for tIndex
-		// NOTES: 	Indices are in dot notation for 2ndary-level (x.y)
-		//			Array must be in numeric order
-	instance.getSelFeatAtts = function(tIndex)
-	{
-		var attIndices = [], attIndex, i;
-		var boxes = jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
-							tIndex+'"] div.lgnd-group div.lgnd-value input:checked');
-		boxes.each(function() {
-			attIndex = jQuery(this).parent().data('index');
-			if (typeof attIndex == 'number') {
-				attIndices.push(attIndex);
-			} else {
-				if ((i=attIndex.indexOf(',')) != -1) {
-					attIndices.push([parseInt(attIndex.substring(0,i),10), parseInt(attIndex.substring(i+1),10)]);
-				} else
-					attIndices.push(parseInt(attIndex,10));
-			}
-		});
-		return attIndices;
-	} // getSelFeatAtts()
-
-
-		// RETURNS: Attribute ID selected on Legend for tIndex
-	instance.getSelLegend = function(tIndex)
-	{
-		return legendIDs[tIndex];
-	} // getSelLegend()
-
-		// RETURNS: Array of Attribute IDs chosen for all Templates on Legend
-	instance.getLgndSels = function()
-	{
-		return legendIDs.slice(0);
-	} // getLgndSels()
-
-		// PURPOSE: Set the Feature Attribute selections on the Legends
-		// NOTES: 	Utility function for setting Reading
-	instance.setLgndSels = function(attIDs)
-	{
-		attIDs.forEach(function(attID, i) {
-				// IDs for Templates not shown can be null
-			if (attID) {
-				var select = jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+i+'"] select.lgnd-select');
-				select.val(attID);
-				setLegendFeatures(i, attID);
-			}
-		});
-	} // setLgndSels()
-
-		// RETURNS: The state of the current visualization
-	instance.getState = function()
-	{
-		return vizModel ? vizModel.getState() : null;
-	} // getState()
-
-		// PURPOSE: Set the state of the current visualization
-	instance.setState = function(state)
-	{
-		if (vizModel) {
-			vizModel.setState(state);
+	// RETURNS: Array of indices of currently selected feature Attribute IDs for tIndex
+	// NOTES: 	Indices are in dot notation for 2ndary-level (x.y)
+	//			Array must be in numeric order
+PVizFrame.prototype.getSelFeatAtts = function(tIndex)
+{
+	var attIndices = [], attIndex, i;
+	var boxes = jQuery('#view-frame-1 div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
+						tIndex+'"] div.lgnd-group div.lgnd-value input:checked');
+	boxes.each(function() {
+		attIndex = jQuery(this).parent().data('index');
+		if (typeof attIndex == 'number') {
+			attIndices.push(attIndex);
+		} else {
+			if ((i=attIndex.indexOf(',')) != -1) {
+				attIndices.push([parseInt(attIndex.substring(0,i),10), parseInt(attIndex.substring(i+1),10)]);
+			} else
+				attIndices.push(parseInt(attIndex,10));
 		}
-	} // getState()
+	});
+	return attIndices;
+} // getSelFeatAtts()
 
-		// PURPOSE: Called by external agent when new datastream is available for viewing
-	instance.showStream = function(stream)
-	{
-		datastream = stream;
-		if (vizModel) {
-			vizModel.render(stream);
+	// RETURNS: Attribute ID selected on Legend for tIndex
+PVizFrame.prototype.getSelLegend = function(tIndex)
+{
+	return this.legendIDs[tIndex];
+} // getSelLegend()
+
+	// RETURNS: Array of Attribute IDs chosen for all Templates on Legend
+PVizFrame.prototype.getLgndSels = function()
+{
+	return legendIDs.slice(0);
+} // getLgndSels()
+
+	// PURPOSE: Set the Feature Attribute selections on the Legends
+	// NOTES: 	Utility function for setting Reading
+PVizFrame.prototype.setLgndSels = function(attIDs)
+{
+	var self=this;
+	attIDs.forEach(function(attID, i) {
+			// IDs for Templates not shown can be null
+		if (attID) {
+			var select = jQuery('#view-frame-1 div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+i+'"] select.lgnd-select');
+			select.val(attID);
+			self.setLegendFeatures(i, attID);
 		}
-		setLDirty(false);
-	} // showStream()
+	});
+} // setLgndSels()
 
-	instance.setStream = function(stream)
-	{
-		datastream = stream;
-	} // setStream()
+	// RETURNS: The state of the current visualization
+PVizFrame.prototype.getState = function()
+{
+	return this.vizModel ? this.vizModel.getState() : null;
+} // getState()
 
-		// PURPOSE: Either enable or disable selection buttons for this ViewFrame
-	instance.selBtns = function(enable)
-	{
-		doSelBtns(enable);
-	} // selBtns()
+	// PURPOSE: Set the state of the current visualization
+PVizFrame.prototype.setState = function(state)
+{
+	if (this.vizModel) {
+		this.vizModel.setState(state);
+	}
+} // setState()
 
-	instance.clearSel = function()
-	{
-		selAbsIs = vizSel = [];
-		doSelBtns(false);
-		if (vizModel) {
-			vizModel.clearSel();
-		}
-	} // clearSel()
+	// PURPOSE: Called by external agent when new datastream is available for viewing
+PVizFrame.prototype.showStream = function(stream)
+{
+	this.datastream = stream;
+	if (this.vizModel) {
+		this.vizModel.render(stream);
+	}
+	this.setLDirty(false);
+} // showStream()
 
-		// PURPOSE: Attempt to set the Selection List of the VizModel to selList
-		// RETURNS: true if possible, false if not
-	instance.setSel = function(selList)
-	{
-		selAbsIs = selList;
-		if (vizModel) {
-			if (vizModel.flags() & V_FLAG_SEL) {
-				vizModel.setSel(selList);
-				computeSel();
-				// doSelBtns(selList.length > 0);
-				return true;
-			}
-			return false;
+PVizFrame.prototype.setStream = function(stream)
+{
+	datastream = stream;
+} // setStream()
+
+	// PURPOSE: Either enable or disable selection buttons for this ViewFrame
+PVizFrame.prototype.selBtns = function(enable)
+{
+	this.setSelBtns(enable);
+} // selBtns()
+
+PVizFrame.prototype.clearSel = function()
+{
+	this.selAbsIs = this.vizSel = [];
+	this.setSelBtns(false);
+	if (this.vizModel) {
+		this.vizModel.clearSel();
+	}
+} // clearSel()
+
+	// PURPOSE: Attempt to set the Selection List of the VizModel to selList
+	// RETURNS: true if possible, false if not
+PVizFrame.prototype.setSel = function(selList)
+{
+	this.selAbsIs = selList;
+	if (this.vizModel) {
+		if (this.vizModel.flags() & V_FLAG_SEL) {
+			this.vizModel.setSel(selList);
+			this.computeSel();
+			// doSelBtns(selList.length > 0);
+			return true;
 		}
 		return false;
-	} // selSel()
+	}
+	return false;
+} // selSel()
 
-		// PURPOSE: Alert inner visualization that view frame has resized
-	instance.resize = function()
+	// PURPOSE: Alert inner visualization that view frame has resized
+PVizFrame.prototype.resize = function()
+{
+	if (this.vizModel) {
+		this.vizModel.resize();
+	}
+} // resize()
+
+PVizFrame.prototype.title = function()
+{
+	var v = PData.vByN(this.vizSelIndex);
+	return v.l;
+} // title()
+
+PVizFrame.prototype.flushLgnd = function()
+{
+	jQuery('#view-frame-1 div.lgnd-container').css('left', '10px');
+} // flushLgnd()
+
+	// PURPOSE: Return the Record bitmap data for this view
+PVizFrame.prototype.getBMData = function()
+{
+	if (this.vizModel) {
+		return { t: this.vizModel.tUsed, r: this.vizModel.rMap };
+	}
+	return null;
+} // getBMData()
+
+
+// ===================================================================================
+// PTextFrame: Object that manages contents of text frame
+
+function PTextFrame(vfIndex, callbacks)
+{
+	this.tocVis=false;			// Frame has TOC (true) or Text (false)
+	this.volData=[];			// Indices into text stream where chapters and sections begin: { hi, hl, bi, bl }
+								//		header and body x index and length (chars)
+	this.tocRL=[];				// Which chapters and sections on reading list
+	this.tocSel=[];				// Which chapters and sections are highlighted for reading
+	this.tocSelDirty=false;		// Has user changed TOC selection?
+	this.txtIDs=[];				// IDs of all Records currently in text frame (in sorted order)
+	this.txtIS;					// IndexStream of Records in links in text frame
+
+	PViewFrame.call(this, vfIndex, callbacks);
+} // PTextFrame()
+
+PTextFrame.prototype.initDOM = function()
+{
+	var self=this;
+
+	var frame = jQuery('#view-frame-1');
+
+		// PURPOSE: Handle click of Un/Check All (Reading List) checkbox on TOC
+	function clickTOCHCAll(event)
 	{
-		if (vizModel) {
-			vizModel.resize();
+		var c = event.target.checked;
+		for (var i=0; i<tocRL.length; i++) {
+			var chap = self.tocRL[i];
+			chap.c = c;
+			for (var j=0; j<chap.s.length; j++) {
+				chap.s[j] = c;
+			}
 		}
-	} // resize()
+		updateTOCRL();
+		// Don't prevent default, as that's what updates HTML Dom
+	} // clickTOCHCAll()
 
-	instance.title = function()
+		// PURPOSE: Handle click of De/Select All (Visible in Text Pane) checkbox on TOC
+	function clickTOCHSAll(event)
 	{
-		var v = PData.vByN(vizSelIndex);
-		return v.l;
-	} // title()
+		self.tocSelDirty=true;
+		var s = event.target.checked;
+		self.tocSel.forEach(function(chap, cI) {
+			var cDom = jQuery('#toc-frame > ul.toc-wrapper > li.toc-chap[data-c="'+cI+'"]');
+			chap.c = s;
+			for (i=0; i<chap.s.length; i++) {
+				chap.s[i] = s;
+			}
+			if (s) {
+				cDom.addClass('sel');
+				cDom.find('ul.toc-secs > li').addClass('sel');
+			} else {
+				cDom.removeClass('sel');
+				cDom.find('ul.toc-secs > li').removeClass('sel');
+			}
+		});
+		// Don't prevent default, as that's what updates HTML Dom
+	} // clickTOCHCAll()
 
-	instance.flushLgnd = function()
+		// PURPOSE: Set chapter & section selection based on tocSel
+	function updateTOCSel()
 	{
-		var frame = jQuery(getFrameID());
-		frame.find('div.lgnd-container').css('left', '10px');
-	} // flushLgnd()
+		var tf, cDom, sDom;
 
-		// PURPOSE: Return the Record bitmap data for this view
-	instance.getBMData = function()
+		tf = jQuery('#toc-frame');
+		self.tocSel.forEach(function(chap, cI) {
+			cDom = tf.find('ul.toc-wrapper > li.toc-chap[data-c="'+cI+'"]');
+			cDom.toggleClass('sel', chap.c);
+			chap.s.forEach(function(sec, sI) {
+				cDom.find('li[data-s="'+sI+'"]').toggleClass('sel', sec);
+			});
+		});
+	} // updateTOCRL()
+
+		// PURPOSE: Set reading list checkboxes based on tocRL
+	function updateTOCRL()
 	{
-		if (vizModel) {
-			return { t: vizModel.tUsed, r: vizModel.rMap };
+		var tf, cDom, sDom;
+
+		tf = jQuery('#toc-frame');
+		self.tocRL.forEach(function(chap, cI) {
+			cDom = tf.find('ul.toc-wrapper > li.toc-chap[data-c="'+cI+'"]');
+			cDom.find('.readlist-c').prop('checked', chap.c);
+			chap.s.forEach(function(sec, sI) {
+				cDom.find('li[data-s="'+sI+'"] > .readlist').prop('checked', sec);
+			});
+		});
+	} // updateTOCRL()
+
+		// PURPOSE: Insert appropriate text into text frame, given tocSel
+		// SIDE-FX:	Compile list of Record IDs in <a> in txtIDs
+		// TO DO:	Disable prev/next buttons if no RL items before or after
+	function buildTextFrame()
+	{
+		var volC, volS, cur;
+		// var txt = document.getElementById('prsp-volume').innerHTML;
+
+		var tf = jQuery('#text-frame');
+		tf.empty();
+
+		self.tocSel.forEach(function(chap, cI) {
+			volC = self.volData[cI];
+
+				// Chapter header and following DOM elements up to H1 or H2
+			if (chap.c) {
+				tf.append(jQuery(volC.e).clone());
+				cur = jQuery(volC.e).next();
+				while (cur.length != 0) {
+					switch (cur.prop('tagName').toUpperCase()) {
+					case 'H1':
+					case 'H2':
+						cur=[];
+						break;
+					default:
+						tf.append(cur.clone());
+						cur = cur.next();
+						break;
+					} // switch
+				} // while
+			} // if
+				// Section headers and following DOM elements up to H1 or H2
+			chap.s.forEach(function(sec, sI) {
+				if (sec) {
+					volS = volC.s[sI];
+					tf.append(jQuery(volS).clone());
+					cur = jQuery(volS).next();
+					while (cur.length != 0) {
+						switch (cur.prop('tagName').toUpperCase()) {
+						case 'H1':
+						case 'H2':
+							cur=[];
+							break;
+						default:
+							tf.append(cur.clone());
+							cur = cur.next();
+							break;
+						} // switch
+					} // while
+				} // if
+			});
+		});
+
+			// Find all <a>, create list of recs from data-id
+		self.txtIDs=[]; self.txtIS=null;
+		self.selIDs=[]; self.selIS=null; self.selAbsI=null;
+		var recs;
+		recs = jQuery('#text-frame').find('a');
+		recs.each(function(aI) {
+			var thisID = jQuery(this).data('id');
+				// Keep list sorted; don't add if already exists
+			if (thisID) {
+				if (self.txtIDs.length == 0) {
+					self.txtIDs.push(thisID);
+				} else {
+					var i = _.sortedIndex(self.txtIDs, thisID);
+					if (self.txtIDs[i] !== thisID) {
+						self.txtIDs.splice(i, 0, thisID);
+					}
+				}
+			}
+		});
+// console.log("Rec IDs on this page: "+JSON.stringify(txtIDs));
+	} // buildTextFrame()
+
+		// PURPOSE: Set tocSel to indicate viewing chap, sec and update everything
+		// INPUT: 	if clear, remove all other flags
+		//			cI (chapter index) = 0..n-1
+		//			sI (section index) = 0..n-1 or -1 if none
+	function setTOCSel(clear, cI, sI)
+	{
+		var chap;
+		if (clear) {
+			for (var i=0; i<self.tocSel.length; i++) {
+				chap = self.tocSel[i];
+				chap.c = false;
+				for (var j=0; j<chap.s.length; j++)
+					chap.s[j] = false;
+			}
 		}
-		return null;
-	} // getBMData()
 
-	return instance;
-} // PViewFrame
+		chap = self.tocSel[cI];
+			// Now set new reading material
+		if (sI == -1) {
+			chap.c = true;
+		} else {
+			chap.s[sI] = true;
+		}
+
+		updateTOCSel();
+		buildTextFrame();
+		// paint();
+	} // setTOCSel()
+
+		// PURPOSE: Handle toggling between TOC and Text panes
+	function clickHSTOC(event)
+	{
+		self.tocVis = !self.tocVis;
+		if (self.tocVis) {
+			self.tocSelDirty=false;
+			jQuery('#toc-controls').show();
+			jQuery('#toc-frame').show();
+			jQuery('#text-controls').hide();
+			jQuery('#text-frame').hide();
+		} else {
+			if (self.tocSelDirty) {
+				buildTextFrame();
+				// paint();
+			}
+			jQuery('#toc-controls').hide();
+			jQuery('#toc-frame').hide();
+			jQuery('#text-controls').show();
+			jQuery('#text-frame').show();
+		}
+		event.preventDefault();
+	} // clickHSTOC()
+
+		// PURPOSE: Handle click of chapter open/close toggle
+	function clickTOCCollapse(event)
+	{
+		var btn = jQuery(this);
+		var chap = btn.closest('li.toc-chap');
+		var secs = chap.find('ul.toc-secs');
+		secs.toggle();
+		event.preventDefault();
+	} // clickTOCCollapse()
+
+	function buildTOC()
+	{
+		var volC, volS;
+		var txt = document.getElementById('prsp-volume').innerHTML;
+		var str;
+
+		var tf = jQuery('#toc-frame > ul.toc-wrapper');
+		tf.empty();
+
+		volData.forEach(function(chap, cI) {
+			str = '<li class="toc-chap" data-c='+cI+'><input type="checkbox" class="readlist-c"/> <button class="toccollapse">Collapse</button> ';
+			str += chap.e.innerHTML;
+			str += '<ul class="toc-secs">';
+				// Section headers and following DOM elements up to H1 or H2
+			chap.s.forEach(function(sec, sI) {
+				str += '<li data-s='+sI+'><input type="checkbox" class="readlist"/>'+sec.innerHTML+'</li>';
+			});
+			str += '</ul></li>';
+			tf.append(str);
+		});
+
+			// Bind click on chapters first
+		jQuery('#toc-frame > ul.toc-wrapper > li.toc-chap').click(clickTOCChap);
+			// Then bind clickk on sections
+		jQuery('#toc-frame > ul.toc-wrapper > li.toc-chap > ul.toc-secs li').click(clickTOCSec);
+			// Bind all RL checkbox clicks
+		jQuery('#toc-frame > ul.toc-wrapper > li.toc-chap input[type=checkbox]').click(clickRLCheck);
+			// Bind collapse/expand icon buttons
+		jQuery('#toc-frame .toccollapse').button({icons: { primary: 'ui-icon-plus' }, text: false })
+			.click(clickTOCCollapse);
+	} // buildTOC()
+
+		// PURPOSE: Handle a click on the text frame
+		// NOTE: 	As there can be multiple refereces to same Record in text frame,
+		//				we need to un/highlight all of them simultaneously!
+	function clickTextFrame(event)
+	{
+		var a, i, id, n, t, x, v=views[1];
+		var node = event.target;
+		if (node.nodeName === 'A') {
+			id = node.dataset.id;
+			a = PData.nByID(id);
+			if (a != null) {
+				i = _.sortedIndex(selIDs, id);
+					// If it already exists, remove it
+				if (selIDs[i] === id) {
+					selIDs.splice(i, 1);
+					if (vMode === 'v2') {
+						selAbsI=null;	// invalidate
+						i = _.sortedIndex(selIS.s, a);
+						selIS.s.splice(i, 1);
+							// decrease Rec count for Template to which it belongs
+						for (x=0, n=PData.eTNum(); x<n; x++) {
+							t = selIS.t[x];
+							if ((t.n > 0) && (i >= t.i) && (i < (t.i+t.n))) {
+								t.n -= 1;
+								x++;
+								break;
+							}
+						}
+						selIS.l -= 1;
+						for (; x<n; x++) {
+							selIS.t[x].i -= 1;
+						}
+					} else {
+						selIS=null;		// invalidate
+						i = _.sortedIndex(selAbsI, a);
+						selAbsI.splice(i, 1);
+					}
+					jQuery('#text-frame a[data-id="'+id+'"]').removeClass('sel');
+				} else {
+					if (selIDs.length === 0) {
+						selIDs.push(id);
+					} else {
+						selIDs.splice(i, 0, id);
+					}
+					if (vMode === 'v2') {
+						selAbsI=null;	// invalidate
+						if (selIS.s.length === 0) {
+							i = 0;
+							selIS.s.push(a);
+						} else {
+							i = _.sortedIndex(selIS.s, a);
+							selIS.s.splice(i, 0, a);
+						}
+							// increase Rec count for Template to which it belongs
+						x=PData.n2T(a);
+						selIS.t[x++].n += 1;
+						n=PData.eTNum();
+						selIS.l += 1;
+						for (; x<n; x++) {
+							selIS.t[x].i += 1;
+						}
+					} else {
+						selIS=null;		// invalidate
+						if (selAbsI.length == 0) {
+							selAbsI.push(a);
+						} else {
+							i = _.sortedIndex(selAbsI, a);
+							selAbsI.splice(i, 0, a);
+						}
+					}
+					jQuery('#text-frame a[data-id="'+id+'"]').addClass('sel');
+				} // add ID
+				switch (vMode) {
+				case 'v0': 		// Show all Records, highlight selected
+				case 'v1': 		// Show Records visible from Text, highlight selected
+					if (selAbsI.length === 0) {
+						v.clearSel();
+					} else {
+						v.setSel(selAbsI);
+					}
+					break;
+				case 'v2': 		// Only Show selected Records
+					v.clearSel();
+					v.showStream(selIS);
+					break;
+				}
+			} // ID has absI
+		} // clicked link
+		event.preventDefault();
+	} // clickTextFrame()
+
+		// PURPOSE: Handle click on a chapter in TOC
+	function clickTOCChap(event)
+	{
+		var cI = event.target.dataset.c;
+		if (typeof cI != 'undefined') {
+			self.tocSelDirty=true;
+				// De/Select chapter and all of its sections
+			var chap = self.tocSel[cI];
+			chap.c = !chap.c;
+			var cDom = jQuery('#toc-frame > ul.toc-wrapper > li.toc-chap[data-c="'+cI+'"]');
+			if (chap.c) {
+				cDom.addClass('sel');
+				// cDom.find('ul.toc-secs > li').addClass('sel');
+				// for (i=0; i<chap.s.length; i++) {
+				// 	chap.s[i] = true;
+				// }
+			} else {
+				cDom.removeClass('sel');
+				// cDom.find('ul.toc-secs > li').removeClass('sel');
+				// for (i=0; i<chap.s.length; i++) {
+				// 	chap.s[i] = false;
+				// }
+			}
+			event.preventDefault();
+		}
+	} // clickTOCChap()
+
+		// PURPOSE: Handle click on a section in TOC
+	function clickTOCSec(event)
+	{
+		var sI = event.target.dataset.s;
+		if (typeof sI != 'undefined') {
+			self.tocSelDirty=true;
+			var cDom = jQuery(event.target).closest('li.toc-chap');
+			var cI = cDom.data('c');
+			var chap = self.tocSel[cI];
+			var sOn = (chap.s[sI] = !chap.s[sI]);
+			var sDom = cDom.find('ul.toc-secs > li[data-s="'+sI+'"]');
+			if (sOn) {
+				sDom.addClass('sel');
+			} else {
+				sDom.removeClass('sel');
+			}
+			event.preventDefault();
+		}
+	} // clickTOCSec()
+
+		// PURPOSE: Handle click on a RL checkbox in the TOC
+	function clickRLCheck(event)
+	{
+		var on = event.target.checked;
+		var cDom, sDom, cI, sI;
+		if (event.target.className === 'readlist-c') {
+			var cI = jQuery(event.target).closest('li.toc-chap').data('c');
+			self.tocRL[cI].c = on;
+		} else if (event.target.className === 'readlist') {
+			var sI = jQuery(event.target).closest('li').data('s');
+			var cI = jQuery(event.target).closest('li.toc-chap').data('c');
+			self.tocRL[cI].s[sI] = on;
+		}
+		// Don't prevent default, as that's what updates HTML Dom
+	} // clickRLCheck()
+
+
+		// PURPOSE: Find previous selection in Reading List and select (and show in text frame)
+		// NOTES: 	Current text in tocSel; look for prev in tocRL
+		//			Does not wrap around to the end!
+	function clickTextPrev(event)
+	{
+		event.preventDefault();
+
+			// Find earliest visible selection, save value before it
+		var ptrC=null, ptrS=null;
+		var chap, cI, sI;
+		search:
+		for (cI=0; cI<self.tocSel.length; cI++) {
+			chap=self.tocSel[cI];
+			if (chap.c) {
+				ptrC=cI-1;
+				break;
+			}
+			for (sI=0; sI<chap.s.length; sI++) {
+				if (chap.s[sI]) {
+					ptrC = cI;
+					ptrS = sI-1;
+					break search;
+				}
+			}
+		}
+			// If no selection, ignore
+		if (ptrC == null)
+			return;
+
+			// Find selection in RL immediately before that
+		while (ptrC > -1) {
+			chap = self.tocRL[ptrC];
+			if (ptrS == null) {
+				ptrS = chap.s.length-1;
+			}
+				// First check sections inside chapter
+			for (; ptrS > -1; ptrS--) {
+				if (chap.s[ptrS]) {
+					setTOCSel(true, ptrC, ptrS);
+					return;
+				}
+			}
+			ptrS = null;
+				// Then check chapter itself
+			if (chap.c) {
+				setTOCSel(true, ptrC, -1);
+				return;
+			}
+			ptrC--;
+		}
+	} // clickTextPrev()
+
+		// PURPOSE: Find next selection in Reading List and select (and show in text frame)
+		// NOTES: 	Current text in tocSel; look for next in tocRL
+		//			Does not wrap around to the beginning!
+	function clickTextNext(event)
+	{
+		event.preventDefault();
+
+			// Find last visible selection -- save next item
+		var ptrC=null, ptrS=null;
+		var chap, cI, sI;
+		var newStart=false;
+		search:
+		for (cI=tocSel.length-1; cI >= 0; cI--) {
+			chap = tocSel[cI];
+			for (sI=chap.s.length-1; sI >= 0; sI--) {
+				if (chap.s[sI]) {
+					ptrS=sI+1;
+					if (sI == chap.s.length-1) {
+						ptrC=cI+1;
+						ptrS=0;
+						newStart=true;
+					} else {
+						ptrC=cI;						
+					}
+					break search;
+				}
+			}
+			if (chap.c) {
+				ptrC=cI;
+				ptrS=0;
+				break;
+			}
+		}
+			// If no selection, ignore
+		if (ptrC == null)
+			return;
+
+			// Find next item in RL after that
+		while (ptrC < tocRL.length) {
+			chap = tocRL[ptrC];
+			if (newStart && chap.c) {
+				setTOCSel(true, ptrC, -1);
+				return;
+			}
+				// First finish examining sections in this chapter
+			for (; ptrS<chap.s.length; ptrS++) {
+				if (chap.s[ptrS]) {
+					setTOCSel(true, ptrC, ptrS);
+					return;
+				}
+			}
+			ptrS=0;
+			ptrC++;
+			newStart=true;
+		}
+	} // clickTextNext()
+
+		// PURPOSE: Handle clicking "Find" icon button in TOC
+	function clickTOCFind(event)
+	{
+		var dialog;
+
+		dialog = jQuery("#dialog-find-toc").dialog({
+			height: 150,
+			width: 250,
+			modal: true,
+			buttons: [
+				{
+					text: dlText.ok,
+					click: function() {
+						var txt = jQuery('#find-toc-txt').val();
+						var fnd, cur;
+						volData.forEach(function(chap, cI) {
+								// Set to false by default
+							fnd=false;
+								// Check first in Chapter header
+							if (chap.e.innerHTML.indexOf(txt) !== -1) {
+								fnd=true;
+							} else {
+									// Check in following text (up to next section)
+								cur = jQuery(chap.e).next();
+								while (cur.length != 0) {
+									switch (cur.prop('tagName').toUpperCase()) {
+									case 'H1':
+									case 'H2':
+										cur=[];
+										break;
+									default:
+										if (jQuery(cur).contents().text().indexOf(txt) !== -1) {
+											fnd=true;
+											cur=[];
+										} else {
+											cur = cur.next();
+										}
+										break;
+									} // switch
+								} // while
+							}
+							tocRL[cI].c = fnd;
+
+							chap.s.forEach(function(sec, sI) {
+								fnd=false;
+									// Check first in Section header
+								if (sec.innerHTML.indexOf(txt) !== -1) {
+									fnd=true;
+								} else {
+										// Check in following text (up to next section)
+									cur = jQuery(sec).next();
+									while (cur.length != 0) {
+										switch (cur.prop('tagName').toUpperCase()) {
+										case 'H1':
+										case 'H2':
+											cur=[];
+											break;
+										default:
+											if (jQuery(cur).contents().text().indexOf(txt) !== -1) {
+												fnd=true;
+												cur=[];
+											} else {
+												cur = cur.next();
+											}
+											break;
+										} // switch
+									} // while
+								}
+								tocRL[cI].s[sI] = fnd;
+							});
+						});
+						updateTOCRL();
+						dialog.dialog("close");
+					}
+				},
+				{
+					text: dlText.cancel,
+					click: function() {
+						dialog.dialog("close");
+					}
+				}
+			]
+		});
+
+		event.preventDefault();
+	} // clickTOCFind()
+
+		// PURPOSE: Handle clicking "Find" icon button on Text Frame
+	function clickTextFind(event)
+	{
+		clickHighlight(0, null);
+		event.preventDefault();
+	} // clickTextFind()
+
+		// PURPOSE: Handle click on "Show Highlighted" icon button
+	function clickTextShow(event)
+	{
+		self.openSelection();
+		event.preventDefault();
+	} // clickTextShow()
+
+
+		// PURPOSE: Create all volume data by parsing HTML text representing volume
+		// SIDE-FX: Creates volData, tocRL, tocSel
+		// NOTES: 	Reading List is all on by default; open with first chapter in text pane
+	(function() {
+			// Get first child DOM node
+		var cur = jQuery('#prsp-volume').children(':first');
+		var chap=null, sec=null;
+
+		while (cur.length != 0) {
+			switch (cur.prop('tagName').toUpperCase()) {
+			case 'H1':
+				if (chap != null) {
+					this.volData.push(chap);
+				}
+				chap = { e: cur.get(0), s: [] };
+				break;
+			case 'H2':
+				if (chap != null) {
+					chap.s.push(cur.get(0));
+				}
+				break;
+			default:
+				break;
+			}
+			cur = cur.next();
+		}
+			// Save any remaining data
+		if (chap != null) {
+			this.volData.push(chap);
+		}
+
+			// Create default Reading List and Selection: everything selected on RL
+		this.volData.forEach(function(chap) {
+			var rlChap={c: true, s: []};
+			var rlSel={c: false, s:[]};
+			chap.s.forEach(function(sec) {
+				rlChap.s.push(true);
+				rlSel.s.push(false);
+			});
+			this.tocRL.push(rlChap);
+			this.tocSel.push(rlSel);
+		});
+			// Open at very beginning by default
+		this.tocSel[0].c = true;
+	})();
+
+		// Text Frame icon buttons
+	jQuery('#hstoc').button({icons: { primary: 'ui-icon-bookmark' }, text: false })
+		.click(clickHSTOC);
+	jQuery('#tochcall').click(clickTOCHCAll);
+	jQuery('#tochsall').click(clickTOCHSAll);
+	jQuery('#tocfind').button({icons: { primary: 'ui-icon-star' }, text: false })
+		.click(clickTOCFind);
+	jQuery('#textprev').button({icons: { primary: 'ui-icon-arrow-1-w' }, text: false })
+		.click(clickTextPrev);
+	jQuery('#textnext').button({icons: { primary: 'ui-icon-arrow-1-e' }, text: false })
+		.click(clickTextNext);
+	jQuery('#texthilite').button({icons: { primary: 'ui-icon-star' }, text: false })
+		.click(clickTextFind);
+	jQuery('#textosel').button({icons: { primary: 'ui-icon-search' }, text: false })
+		.click(clickTextShow);
+	jQuery('#text-frame').click(clickTextFrame);
+
+	buildTOC();
+	updateTOCRL();
+	updateTOCSel();
+	buildTextFrame();
+} // initDOM()
+
 
 
 // Immediately Invoked Function Expression -- Bootstrap for Prospect Volume Client
@@ -1413,12 +2083,6 @@ jQuery(document).ready(function($) {
 
 		// Volume extensions (not in Exhibit)
 	var vMode='v0';				// view option: selection from selaction radio buttons: 'v0', 'v1' or 'v2'
-	var tocVis = false;			// Frame 0 has TOC (true) or Text (false)
-	var volData=[];				// Indices into text stream where chapters and sections begin: { hi, hl, bi, bl }
-								//		header and body x index and length (chars)
-	var tocRL=[];				// Which chapters and sections on reading list
-	var tocSel=[];				// Which chapters and sections are highlighted for reading
-	var tocSelDirty=false;		// Has user changed TOC selection?
 	var txtIDs=[];				// IDs of all Records currently in text frame (in sorted order)
 	var txtIS;					// IndexStream of Records in links in text frame
 	var selIDs=[];				// Record IDs selected by user from text (in sorted order)
@@ -2250,7 +2914,6 @@ jQuery(document).ready(function($) {
 		return true;
 	} // doShowReading()
 
-
 		// VOLUME EXTENSIONS
 		//==================
 
@@ -2381,650 +3044,6 @@ jQuery(document).ready(function($) {
 		});
 	} // selIDs2AbsI()
 
-
-	function buildTOC()
-	{
-		var volC, volS;
-		var txt = document.getElementById('prsp-volume').innerHTML;
-		var str;
-
-		var tf = jQuery('#toc-frame > ul.toc-wrapper');
-		tf.empty();
-
-		volData.forEach(function(chap, cI) {
-			str = '<li class="toc-chap" data-c='+cI+'><input type="checkbox" class="readlist-c"/> <button class="toccollapse">Collapse</button> ';
-			str += chap.e.innerHTML;
-			str += '<ul class="toc-secs">';
-				// Section headers and following DOM elements up to H1 or H2
-			chap.s.forEach(function(sec, sI) {
-				str += '<li data-s='+sI+'><input type="checkbox" class="readlist"/>'+sec.innerHTML+'</li>';
-			});
-			str += '</ul></li>';
-			tf.append(str);
-		});
-
-			// Bind click on chapters first
-		jQuery('#toc-frame > ul.toc-wrapper > li.toc-chap').click(clickTOCChap);
-			// Then bind clickk on sections
-		jQuery('#toc-frame > ul.toc-wrapper > li.toc-chap > ul.toc-secs li').click(clickTOCSec);
-			// Bind all RL checkbox clicks
-		jQuery('#toc-frame > ul.toc-wrapper > li.toc-chap input[type=checkbox]').click(clickRLCheck);
-			// Bind collapse/expand icon buttons
-		jQuery('#toc-frame .toccollapse').button({icons: { primary: 'ui-icon-plus' }, text: false })
-			.click(clickTOCCollapse);
-	} // buildTOC()
-
-		// PURPOSE: Insert appropriate text into text frame, given tocSel
-		// SIDE-FX:	Compile list of Record IDs in <a> in txtIDs
-		// TO DO:	Disable prev/next buttons if no RL items before or after
-	function buildTextFrame()
-	{
-		var volC, volS, cur;
-		// var txt = document.getElementById('prsp-volume').innerHTML;
-
-		var tf = jQuery('#text-frame');
-		tf.empty();
-
-		tocSel.forEach(function(chap, cI) {
-			volC = volData[cI];
-
-				// Chapter header and following DOM elements up to H1 or H2
-			if (chap.c) {
-				tf.append(jQuery(volC.e).clone());
-				cur = jQuery(volC.e).next();
-				while (cur.length != 0) {
-					switch (cur.prop('tagName').toUpperCase()) {
-					case 'H1':
-					case 'H2':
-						cur=[];
-						break;
-					default:
-						tf.append(cur.clone());
-						cur = cur.next();
-						break;
-					} // switch
-				} // while
-			} // if
-				// Section headers and following DOM elements up to H1 or H2
-			chap.s.forEach(function(sec, sI) {
-				if (sec) {
-					volS = volC.s[sI];
-					tf.append(jQuery(volS).clone());
-					cur = jQuery(volS).next();
-					while (cur.length != 0) {
-						switch (cur.prop('tagName').toUpperCase()) {
-						case 'H1':
-						case 'H2':
-							cur=[];
-							break;
-						default:
-							tf.append(cur.clone());
-							cur = cur.next();
-							break;
-						} // switch
-					} // while
-				} // if
-			});
-		});
-
-			// Find all <a>, create list of recs from data-id
-		txtIDs=[]; txtIS=null;
-		selIDs=[]; selIS=null; selAbsI=null;
-		var recs;
-		recs = jQuery('#text-frame').find('a');
-		recs.each(function(aI) {
-			var thisID = jQuery(this).data('id');
-				// Keep list sorted; don't add if already exists
-			if (thisID) {
-				if (txtIDs.length == 0) {
-					txtIDs.push(thisID);
-				} else {
-					var i = _.sortedIndex(txtIDs, thisID);
-					if (txtIDs[i] !== thisID) {
-						txtIDs.splice(i, 0, thisID);
-					}
-				}
-			}
-		});
-// console.log("Rec IDs on this page: "+JSON.stringify(txtIDs));
-	} // buildTextFrame()
-
-
-		// PURPOSE: Create all volume data by parsing HTML text representing volume
-		// SIDE-FX: Creates volData, tocRL, tocSel
-		// NOTES: 	Reading List is all on by default; open with first chapter in text pane
-	function parseVol()
-	{
-			// Get first child DOM node
-		var cur = jQuery('#prsp-volume').children(':first');
-		var chap=null, sec=null;
-
-		while (cur.length != 0) {
-			switch (cur.prop('tagName').toUpperCase()) {
-			case 'H1':
-				if (chap != null) {
-					volData.push(chap);
-				}
-				chap = { e: cur.get(0), s: [] };
-				break;
-			case 'H2':
-				if (chap != null) {
-					chap.s.push(cur.get(0));
-				}
-				break;
-			default:
-				break;
-			}
-			cur = cur.next();
-		}
-			// Save any remaining data
-		if (chap != null) {
-			volData.push(chap);
-		}
-
-			// Create default Reading List and Selection: everything selected on RL
-		volData.forEach(function(chap) {
-			var rlChap={c: true, s: []};
-			var rlSel={c: false, s:[]};
-			chap.s.forEach(function(sec) {
-				rlChap.s.push(true);
-				rlSel.s.push(false);
-			});
-			tocRL.push(rlChap);
-			tocSel.push(rlSel);
-		});
-
-			// Open at very beginning by default
-		tocSel[0].c = true;
-	} // parseVol()
-
-		// PURPOSE: Set tocSel to indicate viewing chap, sec and update everything
-		// INPUT: 	if clear, remove all other flags
-		//			cI (chapter index) = 0..n-1
-		//			sI (section index) = 0..n-1 or -1 if none
-	function setTOCSel(clear, cI, sI)
-	{
-		var chap;
-		if (clear) {
-			for (var i=0; i<tocSel.length; i++) {
-				chap = tocSel[i];
-				chap.c = false;
-				for (var j=0; j<chap.s.length; j++)
-					chap.s[j] = false;
-			}
-		}
-
-		chap = tocSel[cI];
-			// Now set new reading material
-		if (sI == -1) {
-			chap.c = true;
-		} else {
-			chap.s[sI] = true;
-		}
-
-		updateTOCSel();
-		buildTextFrame();
-		paint();
-	} // setTOCSel()
-
-		// PURPOSE: Set chapter & section selection based on tocSel
-	function updateTOCSel()
-	{
-		var tf, cDom, sDom;
-
-		tf = jQuery('#toc-frame');
-		tocSel.forEach(function(chap, cI) {
-			cDom = tf.find('ul.toc-wrapper > li.toc-chap[data-c="'+cI+'"]');
-			cDom.toggleClass('sel', chap.c);
-			chap.s.forEach(function(sec, sI) {
-				cDom.find('li[data-s="'+sI+'"]').toggleClass('sel', sec);
-			});
-		});
-	} // updateTOCRL()
-
-		// PURPOSE: Set reading list checkboxes based on tocRL
-	function updateTOCRL()
-	{
-		var tf, cDom, sDom;
-
-		tf = jQuery('#toc-frame');
-		tocRL.forEach(function(chap, cI) {
-			cDom = tf.find('ul.toc-wrapper > li.toc-chap[data-c="'+cI+'"]');
-			cDom.find('.readlist-c').prop('checked', chap.c);
-			chap.s.forEach(function(sec, sI) {
-				cDom.find('li[data-s="'+sI+'"] > .readlist').prop('checked', sec);
-			});
-		});
-	} // updateTOCRL()
-
-		// PURPOSE: Handle toggling between TOC and Text panes
-	function clickHSTOC(event)
-	{
-		tocVis = !tocVis;
-		if (tocVis) {
-			tocSelDirty=false;
-			jQuery('#toc-controls').show();
-			jQuery('#toc-frame').show();
-			jQuery('#text-controls').hide();
-			jQuery('#text-frame').hide();
-		} else {
-			if (tocSelDirty) {
-				buildTextFrame();
-				paint();
-			}
-			jQuery('#toc-controls').hide();
-			jQuery('#toc-frame').hide();
-			jQuery('#text-controls').show();
-			jQuery('#text-frame').show();
-		}
-		event.preventDefault();
-	} // clickHSTOC()
-
-		// PURPOSE: Handle click of chapter open/close toggle
-	function clickTOCCollapse(event)
-	{
-		var btn = jQuery(this);
-		var chap = btn.closest('li.toc-chap');
-		var secs = chap.find('ul.toc-secs');
-		secs.toggle();
-		event.preventDefault();
-	} // clickTOCCollapse()
-
-		// PURPOSE: Handle click of Un/Check All (Reading List) checkbox on TOC
-	function clickTOCHCAll(event)
-	{
-		var c = event.target.checked;
-		for (var i=0; i<tocRL.length; i++) {
-			var chap = tocRL[i];
-			chap.c = c;
-			for (var j=0; j<chap.s.length; j++) {
-				chap.s[j] = c;
-			}
-		}
-		updateTOCRL();
-		// Don't prevent default, as that's what updates HTML Dom
-	} // clickTOCHCAll()
-
-		// PURPOSE: Handle click of De/Select All (Visible in Text Pane) checkbox on TOC
-	function clickTOCHSAll(event)
-	{
-		tocSelDirty=true;
-		var s = event.target.checked;
-		tocSel.forEach(function(chap, cI) {
-			var cDom = jQuery('#toc-frame > ul.toc-wrapper > li.toc-chap[data-c="'+cI+'"]');
-			chap.c = s;
-			for (i=0; i<chap.s.length; i++) {
-				chap.s[i] = s;
-			}
-			if (s) {
-				cDom.addClass('sel');
-				cDom.find('ul.toc-secs > li').addClass('sel');
-			} else {
-				cDom.removeClass('sel');
-				cDom.find('ul.toc-secs > li').removeClass('sel');
-			}
-		});
-		// Don't prevent default, as that's what updates HTML Dom
-	} // clickTOCHCAll()
-
-		// PURPOSE: Handle a click on the text frame
-		// NOTE: 	As there can be multiple refereces to same Record in text frame,
-		//				we need to un/highlight all of them simultaneously!
-	function clickTextFrame(event)
-	{
-		var a, i, id, n, t, x, v=views[1];
-		var node = event.target;
-		if (node.nodeName === 'A') {
-			id = node.dataset.id;
-			a = PData.nByID(id);
-			if (a != null) {
-				i = _.sortedIndex(selIDs, id);
-					// If it already exists, remove it
-				if (selIDs[i] === id) {
-					selIDs.splice(i, 1);
-					if (vMode === 'v2') {
-						selAbsI=null;	// invalidate
-						i = _.sortedIndex(selIS.s, a);
-						selIS.s.splice(i, 1);
-							// decrease Rec count for Template to which it belongs
-						for (x=0, n=PData.eTNum(); x<n; x++) {
-							t = selIS.t[x];
-							if ((t.n > 0) && (i >= t.i) && (i < (t.i+t.n))) {
-								t.n -= 1;
-								x++;
-								break;
-							}
-						}
-						selIS.l -= 1;
-						for (; x<n; x++) {
-							selIS.t[x].i -= 1;
-						}
-					} else {
-						selIS=null;		// invalidate
-						i = _.sortedIndex(selAbsI, a);
-						selAbsI.splice(i, 1);
-					}
-					jQuery('#text-frame a[data-id="'+id+'"]').removeClass('sel');
-				} else {
-					if (selIDs.length === 0) {
-						selIDs.push(id);
-					} else {
-						selIDs.splice(i, 0, id);
-					}
-					if (vMode === 'v2') {
-						selAbsI=null;	// invalidate
-						if (selIS.s.length === 0) {
-							i = 0;
-							selIS.s.push(a);
-						} else {
-							i = _.sortedIndex(selIS.s, a);
-							selIS.s.splice(i, 0, a);
-						}
-							// increase Rec count for Template to which it belongs
-						x=PData.n2T(a);
-						selIS.t[x++].n += 1;
-						n=PData.eTNum();
-						selIS.l += 1;
-						for (; x<n; x++) {
-							selIS.t[x].i += 1;
-						}
-					} else {
-						selIS=null;		// invalidate
-						if (selAbsI.length == 0) {
-							selAbsI.push(a);
-						} else {
-							i = _.sortedIndex(selAbsI, a);
-							selAbsI.splice(i, 0, a);
-						}
-					}
-					jQuery('#text-frame a[data-id="'+id+'"]').addClass('sel');
-				} // add ID
-				switch (vMode) {
-				case 'v0': 		// Show all Records, highlight selected
-				case 'v1': 		// Show Records visible from Text, highlight selected
-					if (selAbsI.length === 0) {
-						v.clearSel();
-					} else {
-						v.setSel(selAbsI);
-					}
-					break;
-				case 'v2': 		// Only Show selected Records
-					v.clearSel();
-					v.showStream(selIS);
-					break;
-				}
-			} // ID has absI
-		} // clicked link
-		event.preventDefault();
-	} // clickTextFrame()
-
-		// PURPOSE: Handle click on a chapter in TOC
-	function clickTOCChap(event)
-	{
-		var cI = event.target.dataset.c;
-		if (typeof cI != 'undefined') {
-			tocSelDirty=true;
-				// De/Select chapter and all of its sections
-			var chap = tocSel[cI];
-			chap.c = !chap.c;
-			var cDom = jQuery('#toc-frame > ul.toc-wrapper > li.toc-chap[data-c="'+cI+'"]');
-			if (chap.c) {
-				cDom.addClass('sel');
-				// cDom.find('ul.toc-secs > li').addClass('sel');
-				// for (i=0; i<chap.s.length; i++) {
-				// 	chap.s[i] = true;
-				// }
-			} else {
-				cDom.removeClass('sel');
-				// cDom.find('ul.toc-secs > li').removeClass('sel');
-				// for (i=0; i<chap.s.length; i++) {
-				// 	chap.s[i] = false;
-				// }
-			}
-			event.preventDefault();
-		}
-	} // clickTOCChap()
-
-		// PURPOSE: Handle click on a section in TOC
-	function clickTOCSec(event)
-	{
-		var sI = event.target.dataset.s;
-		if (typeof sI != 'undefined') {
-			tocSelDirty=true;
-			var cDom = jQuery(event.target).closest('li.toc-chap');
-			var cI = cDom.data('c');
-			var chap = tocSel[cI];
-			var sOn = (chap.s[sI] = !chap.s[sI]);
-			var sDom = cDom.find('ul.toc-secs > li[data-s="'+sI+'"]');
-			if (sOn) {
-				sDom.addClass('sel');
-			} else {
-				sDom.removeClass('sel');
-			}
-			event.preventDefault();
-		}
-	} // clickTOCSec()
-
-		// PURPOSE: Handle click on a RL checkbox in the TOC
-	function clickRLCheck(event)
-	{
-		var on = event.target.checked;
-		var cDom, sDom, cI, sI;
-		if (event.target.className === 'readlist-c') {
-			var cI = jQuery(event.target).closest('li.toc-chap').data('c');
-			tocRL[cI].c = on;
-		} else if (event.target.className === 'readlist') {
-			var sI = jQuery(event.target).closest('li').data('s');
-			var cI = jQuery(event.target).closest('li.toc-chap').data('c');
-			tocRL[cI].s[sI] = on;
-		}
-		// Don't prevent default, as that's what updates HTML Dom
-	} // clickRLCheck()
-
-
-		// PURPOSE: Find previous selection in Reading List and select (and show in text frame)
-		// NOTES: 	Current text in tocSel; look for prev in tocRL
-		//			Does not wrap around to the end!
-	function clickTextPrev(event)
-	{
-		event.preventDefault();
-
-			// Find earliest visible selection, save value before it
-		var ptrC=null, ptrS=null;
-		var chap, cI, sI;
-		search:
-		for (cI=0; cI<tocSel.length; cI++) {
-			chap=tocSel[cI];
-			if (chap.c) {
-				ptrC=cI-1;
-				break;
-			}
-			for (sI=0; sI<chap.s.length; sI++) {
-				if (chap.s[sI]) {
-					ptrC = cI;
-					ptrS = sI-1;
-					break search;
-				}
-			}
-		}
-			// If no selection, ignore
-		if (ptrC == null)
-			return;
-
-			// Find selection in RL immediately before that
-		while (ptrC > -1) {
-			chap = tocRL[ptrC];
-			if (ptrS == null) {
-				ptrS = chap.s.length-1;
-			}
-				// First check sections inside chapter
-			for (; ptrS > -1; ptrS--) {
-				if (chap.s[ptrS]) {
-					setTOCSel(true, ptrC, ptrS);
-					return;
-				}
-			}
-			ptrS = null;
-				// Then check chapter itself
-			if (chap.c) {
-				setTOCSel(true, ptrC, -1);
-				return;
-			}
-			ptrC--;
-		}
-	} // clickTextPrev()
-
-		// PURPOSE: Find next selection in Reading List and select (and show in text frame)
-		// NOTES: 	Current text in tocSel; look for next in tocRL
-		//			Does not wrap around to the beginning!
-	function clickTextNext(event)
-	{
-		event.preventDefault();
-
-			// Find last visible selection -- save next item
-		var ptrC=null, ptrS=null;
-		var chap, cI, sI;
-		var newStart=false;
-		search:
-		for (cI=tocSel.length-1; cI >= 0; cI--) {
-			chap = tocSel[cI];
-			for (sI=chap.s.length-1; sI >= 0; sI--) {
-				if (chap.s[sI]) {
-					ptrS=sI+1;
-					if (sI == chap.s.length-1) {
-						ptrC=cI+1;
-						ptrS=0;
-						newStart=true;
-					} else {
-						ptrC=cI;						
-					}
-					break search;
-				}
-			}
-			if (chap.c) {
-				ptrC=cI;
-				ptrS=0;
-				break;
-			}
-		}
-			// If no selection, ignore
-		if (ptrC == null)
-			return;
-
-			// Find next item in RL after that
-		while (ptrC < tocRL.length) {
-			chap = tocRL[ptrC];
-			if (newStart && chap.c) {
-				setTOCSel(true, ptrC, -1);
-				return;
-			}
-				// First finish examining sections in this chapter
-			for (; ptrS<chap.s.length; ptrS++) {
-				if (chap.s[ptrS]) {
-					setTOCSel(true, ptrC, ptrS);
-					return;
-				}
-			}
-			ptrS=0;
-			ptrC++;
-			newStart=true;
-		}
-	} // clickTextNext()
-
-		// PURPOSE: Handle clicking "Find" icon button in TOC
-	function clickTOCFind(event)
-	{
-		var dialog;
-
-		dialog = jQuery("#dialog-find-toc").dialog({
-			height: 150,
-			width: 250,
-			modal: true,
-			buttons: [
-				{
-					text: dlText.ok,
-					click: function() {
-						var txt = jQuery('#find-toc-txt').val();
-						var fnd, cur;
-						volData.forEach(function(chap, cI) {
-								// Set to false by default
-							fnd=false;
-								// Check first in Chapter header
-							if (chap.e.innerHTML.indexOf(txt) !== -1) {
-								fnd=true;
-							} else {
-									// Check in following text (up to next section)
-								cur = jQuery(chap.e).next();
-								while (cur.length != 0) {
-									switch (cur.prop('tagName').toUpperCase()) {
-									case 'H1':
-									case 'H2':
-										cur=[];
-										break;
-									default:
-										if (jQuery(cur).contents().text().indexOf(txt) !== -1) {
-											fnd=true;
-											cur=[];
-										} else {
-											cur = cur.next();
-										}
-										break;
-									} // switch
-								} // while
-							}
-							tocRL[cI].c = fnd;
-
-							chap.s.forEach(function(sec, sI) {
-								fnd=false;
-									// Check first in Section header
-								if (sec.innerHTML.indexOf(txt) !== -1) {
-									fnd=true;
-								} else {
-										// Check in following text (up to next section)
-									cur = jQuery(sec).next();
-									while (cur.length != 0) {
-										switch (cur.prop('tagName').toUpperCase()) {
-										case 'H1':
-										case 'H2':
-											cur=[];
-											break;
-										default:
-											if (jQuery(cur).contents().text().indexOf(txt) !== -1) {
-												fnd=true;
-												cur=[];
-											} else {
-												cur = cur.next();
-											}
-											break;
-										} // switch
-									} // while
-								}
-								tocRL[cI].s[sI] = fnd;
-							});
-						});
-						updateTOCRL();
-						dialog.dialog("close");
-					}
-				},
-				{
-					text: dlText.cancel,
-					click: function() {
-						dialog.dialog("close");
-					}
-				}
-			]
-		});
-
-		event.preventDefault();
-	} // clickTOCFind()
-
-		// PURPOSE: Handle clicking "Find" icon button on Text Frame
-	function clickTextFind(event)
-	{
-		clickHighlight(0, null);
-		event.preventDefault();
-	} // clickTextFind()
-
 		// PURPOSE: Handle clicking global "Clear" icon button
 	function clickClear(event)
 	{
@@ -3046,6 +3065,19 @@ jQuery(document).ready(function($) {
 		}
 		event.preventDefault();
 	} // clickClear()
+
+		// NOTE: Old code from PViewFrame
+	function clickClearSelection(event)
+	{
+		PState.set(PSTATE_UPDATE);
+		if (vizModel) {
+			vizModel.clearSel();
+		}
+		vizSel = selAbsIs = [];
+		doSelBtns(false);
+		PState.set(PSTATE_READY);
+		event.preventDefault();
+	} // clickClearSelection()
 
 
 		// IMMEDIATE EXECUTION
@@ -3186,30 +3218,12 @@ jQuery(document).ready(function($) {
 			.click(clickSaveReading);
 	jQuery('#btn-annote').button({icons: { primary: 'ui-icon-comment' }, text: false })
 			.click(clickAnnotation);
-
-		// Text Frame icon buttons
-	jQuery('#hstoc').button({icons: { primary: 'ui-icon-bookmark' }, text: false })
-		.click(clickHSTOC);
-	jQuery('#tochcall').click(clickTOCHCAll);
-	jQuery('#tochsall').click(clickTOCHSAll);
-	jQuery('#tocfind').button({icons: { primary: 'ui-icon-star' }, text: false })
-		.click(clickTOCFind);
-	jQuery('#textprev').button({icons: { primary: 'ui-icon-arrow-1-w' }, text: false })
-		.click(clickTextPrev);
-	jQuery('#textnext').button({icons: { primary: 'ui-icon-arrow-1-e' }, text: false })
-		.click(clickTextNext);
-	jQuery('#texthilite').button({icons: { primary: 'ui-icon-star' }, text: false })
-		.click(clickTextFind);
 	jQuery('#clearsel').button({icons: { primary: 'ui-icon-cancel' }, text: false })
 		.click(clickClear);
-	jQuery('#textosel').button({icons: { primary: 'ui-icon-search' }, text: false })
-		.click(clickTextShow);
-	jQuery('#text-frame').click(clickTextFrame);
 	jQuery('input[type=radio][name=vizmode]').change(function() {
 		vMode = this.value;
 		paint();
 	});
-
 
 		// Are there Home settings?
 	if (prspdata.e.g.hbtn.length > 0 && prspdata.e.g.hurl.length > 0) {
@@ -3262,9 +3276,13 @@ jQuery(document).ready(function($) {
 		});
 	}());
 
+		// Always create and initialize Text Frame first
+	views[0] = new PTextFrame(0, null);
+	views[0].initDOM();
+
 		// Restore Reading or create default?
 	if (prspdata.show_reading.length == 0 || !doShowReading(prspdata.show_reading)) {
-		views[1] = PViewFrame(1);
+		views[1] = new PVizFrame(1, null);
 		views[1].initDOM(0);
 		setAnnote('');
 	}
@@ -3275,13 +3293,6 @@ jQuery(document).ready(function($) {
 			views[1].resize();
 		}
 	});
-
-		// Prepare Text Frame first
-	parseVol();
-	buildTOC();
-	updateTOCRL();
-	updateTOCSel();
-	buildTextFrame();
 
 		// Intercept global signals: data { s[tate] }
 	jQuery("body").on("prospect", function(event, data) {

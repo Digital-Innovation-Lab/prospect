@@ -28,7 +28,7 @@
 				&nbsp;<button id="textprev">Previous</button>
 				<button id="textnext">Next</button> &nbsp;
 				<button id="texthilite">Highlight</button>
-				<button id="textosel">Show Highlighted</button>
+				<button class="osel">Show Highlighted</button>
 			</div>
 		</div>
 		<div class="viz-content">
@@ -37,6 +37,28 @@
 				</ul>
 			</div>
 			<div id="text-frame">
+			</div>
+		</div>
+	</div>
+	<div id="view-frame-1">
+		<div class="view-controls">
+			<select class="view-viz-select" title=<?php _e('"Select a visualization from this list"', 'prospect'); ?>>
+			</select>
+			<button class="hslgnd"><?php _e('Show/Hide Legend', 'prospect'); ?></button>
+			<button class="vopts"><?php _e('View Options', 'prospect'); ?></button>
+			<button class="vnote"><?php _e('Visualization Notes', 'prospect'); ?></button>
+			<button class="hilite"><?php _e('Highlight', 'prospect'); ?></button>
+			<button class="osel"><?php _e('Show Highlighted', 'prospect'); ?></button>
+		</div>
+		<div class="lgnd-container">
+			<div class="lgnd-handle">
+				<button class="lgnd-update"><?php _e('Update', 'prospect'); ?></button>
+			</div>
+			<div class="lgnd-scroll">
+			</div>
+		</div>
+		<div class="viz-content">
+			<div class="viz-result">
 			</div>
 		</div>
 	</div>
@@ -175,30 +197,6 @@
 </div> <!-- Hidden content ->
 
 <!-- DYNAMICALLY LOADED TEXT -->
-<script id="dltext-view-controls" type='text'>
-	<div class="view-controls">
-		<select class="view-viz-select" title=<?php _e('"Select a visualization from this list"', 'prospect'); ?>>
-		</select>
-		<button class="hslgnd"><?php _e('Show/Hide Legend', 'prospect'); ?></button>
-		<button class="vopts"><?php _e('View Options', 'prospect'); ?></button>
-		<button class="vnote"><?php _e('Visualization Notes', 'prospect'); ?></button>
-		<button class="hilite"><?php _e('Highlight', 'prospect'); ?></button>
-		<button class="xsel"><?php _e('Clear Highlighted', 'prospect'); ?></button>
-		<button class="osel"><?php _e('Show Highlighted', 'prospect'); ?></button>
-	</div>
-	<div class="lgnd-container">
-		<div class="lgnd-handle">
-			<button class="lgnd-update"><?php _e('Update', 'prospect'); ?></button>
-		</div>
-		<div class="lgnd-scroll">
-		</div>
-	</div>
-	<div class="viz-content">
-		<div class="viz-result">
-		</div>
-	</div>
-</script>
-
 <script id="dltext-v-map" type='text'>
 	<div class="ui-widget-header ui-corner-all iconbar">
 		<button id="map-zoom-<%= vi %>"><?php _e('Zoom', 'prospect'); ?></button>

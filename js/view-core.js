@@ -118,7 +118,6 @@ var PState = (function() {
 //			indicating visual attributes & tracking used Templates & Records
 
 	// INPUT: 	viewFrame = instance variable returned from ViewModel pseudo-constructor
-	//			frameID = base ID for frame DIV
 	//			vizSettings = c section of VF entry
 function PVizModel(viewFrame, vizSettings)
 {
