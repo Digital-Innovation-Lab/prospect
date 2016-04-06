@@ -114,8 +114,11 @@ var PState = (function() {
 
 // ==============================================================================
 // PVizModel: An abstract class to be subclassed by specific visualizations
-//			VizModels are responsible for rendering Records, handling selections,
-//			indicating visual attributes & tracking used Templates & Records
+//		VizModels are responsible for rendering Records, handling selections,
+//				indicating visual attributes & tracking used Templates & Records
+//		They must call their ViewFrame when individual Records are de-/selected (not aggregates)
+//			vizAddSel(id, absI)
+//			vizDelSel(id, absI)
 
 	// INPUT: 	viewFrame = instance variable returned from ViewModel pseudo-constructor
 	//			vizSettings = c section of VF entry
@@ -196,13 +199,17 @@ PVizModel.prototype.toggleSel = function(absI)
 	var i = _.sortedIndex(this.recSel, absI);
 	if (this.recSel[i] == absI) {
 		this.recSel.splice(i, 1);
-		if (sz > 0 && this.recSel.length == 0)
+		if (sz > 0 && this.recSel.length == 0) {
 			this.vFrame.selBtns(false);
+		}
+		this.vFrame.vizDelSel(absI);
 		return false;
 	} else {
 		this.recSel.splice(i, 0, absI);
-		if (sz == 0 && this.recSel.length > 0)
+		if (sz == 0 && this.recSel.length > 0) {
 			this.vFrame.selBtns(true);
+		}
+		this.vFrame.vizAddSel(absI);
 		return true;
 	}
 } // toggleSel()

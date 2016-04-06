@@ -38,27 +38,28 @@ var widgetData = {			// Widget state has to be global because YouTube API calls 
 //			getFrameID() = Return ID of Frame's outermost DIV container
 //			setSel(sel) = array of absI of selected Records from external source (ideal)
 //			clearSel() = clear the current selection
-//			computeSel() = check selAbsI against Records shown in view, update view
+//			addSel(absI) = external request to add to selected Record in the frame
+//			delSel(absI) = external request to remove from selected Record in the frame
 //			setSelBtns(enable) = set state of Show Selection button
 //			initDOM = initialize internal DOM
+//			openSelection()
 
 function PViewFrame(vfIndex, callbacks)
 {
 	this.vfIndex	= vfIndex;
-	this.callbacks	= callbacks;	// callback object
-	this.vizSel 	= [];			// array of absI of selected Records that are visible in this frame
+	this.callbacks	= callbacks;	// callback functions { addSel, delSel, newText }
+	this.vizSel 	= [];			// array of absIs of selected Records that are visible in this frame
 	this.selAbsIs	= [];			// array of absIs of selected Records requested externally
-	this.datastream = null;			// pointer to datastream given to view
 } // PViewFrame()
 
 PViewFrame.prototype.getFrameID = function()
 {
-	return '#view-frame-'+vfIndex;
+	return '#view-frame-'+this.vfIndex;
 } // getFrameID()
 
 PViewFrame.prototype.setSelBtns = function(enable)
 {
-	var vCnxt = jQuery(getFrameID()+' div.view-controls');
+	var vCnxt = jQuery(this.getFrameID()+' div.view-controls');
 
 	if (enable) {
 		vCnxt.find('.osel').button("enable");
@@ -682,18 +683,53 @@ PViewFrame.prototype.openSelection = function()
 	});
 } // openSelection()
 
+
 // ===================================================================================
 // PVizFrame: Object that manages contents of visualization frame (always view-frame-1)
+//
+//			Instance Methods
+//			----------------
+//			setLDirty(s)
+//			selectChangeViz()
+//			computeSel()
+//			createViz(selIndex, refresh)
+//			setLegendFeatures(lIndex, attID)
+//			setViz(vI, refresh)
+//			getSelLocAtts(tIndex)
+//			getSelFeatAtts(tIndex)
+//			getSelLegend(tIndex)
+//			getLgndSels()
+//			setLgndSels(attIDs)
+//			getState()
+//			setState(state)
+//			showStream(stream)
+//			setStream(stream)
+//			selBtns(enable)
+//			clearSel()
+//			setSel(selList)
+//			addSel(absI)
+//			delSel(absI)
+//			vizAddSel(absI)
+//			vizDelSel(absI)
+//			resize()
+//			title()
+//			flushLgnd()
+//			getBMData()
 
-function PVizFrame(vfIndex, callbacks)
+var PVizFrame = function(vfIndex, callbacks)
 {
 	this.lDirty = null;			// Legend Dirty (enabled) if true
 	this.vizSelIndex = 0;		// index of currently selected Viz
 	this.vizModel = null;		// PVizModel currently in frame
 	this.legendIDs = [];		// Attribute IDs of Legend selections (one per Template)
+	this.datastream = null;		// pointer to datastream given to view
 
 	PViewFrame.call(this, vfIndex, callbacks);
 } // PVizFrame()
+
+PVizFrame.prototype = Object.create(PViewFrame.prototype);
+
+PVizFrame.prototype.constructor = PViewFrame;
 
 	// PURPOSE: Set Legend Dirty flag to true or false
 PVizFrame.prototype.setLDirty = function(s)
@@ -746,7 +782,7 @@ PVizFrame.prototype.computeSel = function()
 	}
 } // computeSel()
 
-PVizFrame.prototype.initDOM = function()
+PVizFrame.prototype.initDOM = function(vI)
 {
 	var self=this;
 
@@ -788,7 +824,7 @@ PVizFrame.prototype.initDOM = function()
 	function clickHighlight(event)
 	{
 			// Send signal back to Prospect "main app" to create Highlight filter on this viz
-		jQuery("body").trigger("prospect", { s: PSTATE_HILITE, v: vfIndex, t: vizModel.tUsed });
+		jQuery("body").trigger("prospect", { s: PSTATE_HILITE, v: self.vfIndex, t: vizModel.tUsed });
 		event.preventDefault();
 	} // clickHighlight()
 
@@ -842,7 +878,7 @@ PVizFrame.prototype.initDOM = function()
 		jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
 								tmpltIndex+'"] div.lgnd-group div.lgnd-value[data-index="'+vIndex+
 								'"] input.lgnd-entry-check').prop('checked', true);
-		setLDirty(true);
+		self.setLDirty(true);
 	} // doFeatureSelectOnly()
 
 		// PURPOSE: Handle click anywhere on Legend
@@ -910,8 +946,9 @@ PVizFrame.prototype.initDOM = function()
 
 		// Localize color scheme?
 	var clr = prspdata.bClrs.vf;
-	if (clr && clr.length > 0)
+	if (clr && clr.length > 0) {
 		frame.find('div.view-controls').css('background-color', clr);
+	}
 
 		// Activate drag handle on Legend
 	frame.find('div.lgnd-container').draggable({ handle: frame.find('div.lgnd-handle'), containment: "parent" });
@@ -923,7 +960,7 @@ PVizFrame.prototype.initDOM = function()
 		select.append(optionStr);
 	});
 	select.val(vI);
-	select.change(selectChangeViz);
+	select.change(function() { self.selectChangeViz(); } );
 
 		// Hook control bar Icon buttons
 	frame.find('div.view-controls button:first')
@@ -940,7 +977,6 @@ PVizFrame.prototype.initDOM = function()
 				event.preventDefault();
 				self.openSelection();
 			 });
-
 	frame.find('div.lgnd-container')
 		.click(clickInLegend);
 
@@ -1158,10 +1194,10 @@ PVizFrame.prototype.createViz = function(vIndex, refresh)
 		// Enable or disable corresponding Highlight button & Save Reading checkboxes
 	if (flags & V_FLAG_SEL) {
 		frame.find('.hilite').button('enable');
-		jQuery('#save-reading-h'+vfIndex).prop('disabled', false).prop('checked', false);
+		jQuery('#save-reading-h1').prop('disabled', false).prop('checked', false);
 	} else {
 		frame.find('.hilite').button('disable');
-		jQuery('#save-reading-h'+vfIndex).prop('disabled', true).prop('checked', false);
+		jQuery('#save-reading-h1').prop('disabled', true).prop('checked', false);
 	}
 
 		// Does Viz have an Options dialog?
@@ -1286,8 +1322,10 @@ PVizFrame.prototype.setState = function(state)
 } // setState()
 
 	// PURPOSE: Called by external agent when new datastream is available for viewing
+	// NOTES: 	Assumes that this clears out selection
 PVizFrame.prototype.showStream = function(stream)
 {
+	this.vizSel = this.selAbsIs = [];
 	this.datastream = stream;
 	if (this.vizModel) {
 		this.vizModel.render(stream);
@@ -1297,7 +1335,7 @@ PVizFrame.prototype.showStream = function(stream)
 
 PVizFrame.prototype.setStream = function(stream)
 {
-	datastream = stream;
+	this.datastream = stream;
 } // setStream()
 
 	// PURPOSE: Either enable or disable selection buttons for this ViewFrame
@@ -1321,16 +1359,57 @@ PVizFrame.prototype.setSel = function(selList)
 {
 	this.selAbsIs = selList;
 	if (this.vizModel) {
-		if (this.vizModel.flags() & V_FLAG_SEL) {
-			this.vizModel.setSel(selList);
-			this.computeSel();
-			// doSelBtns(selList.length > 0);
-			return true;
-		}
-		return false;
+		this.computeSel();
 	}
 	return false;
 } // selSel()
+
+	// PURPOSE: Handle external request to add to selection
+	// INPUT: 	absI = absolute index of Record
+PVizFrame.prototype.addSel = function(absI)
+{
+	var i;
+		// Always store in requested IDs
+	i = _.sortedIndex(this.selAbsIs, absI);
+	this.selAbsIs.splice(i, 0, absI);
+	this.computeSel();
+} // addSel()
+
+	// PURPOSE: Handle external request to remove from selection
+	// INPUT: 	id = Record ID
+	//			absI = absolute index of Record
+PVizFrame.prototype.delSel = function(absI)
+{
+	var i;
+		// Always remove from requested IDs
+	i = _.sortedIndex(this.selAbsIs, absI);
+	this.selAbsIs.splice(i, 1);
+	this.computeSel();
+} // delSel()
+
+	// PURPOSE: VizModel notifies frame that Record selected
+PVizFrame.prototype.vizAddSel = function(absI)
+{
+	var i;
+		// Always store in requested IDs
+	i = _.sortedIndex(this.selAbsIs, absI);
+	this.selAbsIs.splice(i, 0, absI);
+	i = _.sortedIndex(this.vizSel, absI);
+	this.vizSel.splice(i, 0, absI);
+	this.callbacks.addSel(1, absI);
+} // vizAddSel()
+
+	// PURPOSE: VizModel notifies frame that Record deselected
+PVizFrame.prototype.vizDelSel = function(absI)
+{
+	var i;
+		// Always remove from requested IDs
+	i = _.sortedIndex(this.selAbsIs, absI);
+	this.selAbsIs.splice(i, 1);
+	i = _.sortedIndex(this.vizSel, absI);
+	this.vizSel.splice(i, 1);
+	this.callbacks.delSel(1, absI);
+} // vizDelSel()
 
 	// PURPOSE: Alert inner visualization that view frame has resized
 PVizFrame.prototype.resize = function()
@@ -1363,8 +1442,17 @@ PVizFrame.prototype.getBMData = function()
 
 // ===================================================================================
 // PTextFrame: Object that manages contents of text frame
+//
+//			Instance Methods
+//			----------------
+//			initDOM()
+//			txtIDs2IS() = IndexStream of all Records appearing in text
+//			clearSel()
+//			setSel(selList)
+//			addSel(absI)
+//			delSel(absI)
 
-function PTextFrame(vfIndex, callbacks)
+var PTextFrame = function(vfIndex, callbacks)
 {
 	this.tocVis=false;			// Frame has TOC (true) or Text (false)
 	this.volData=[];			// Indices into text stream where chapters and sections begin: { hi, hl, bi, bl }
@@ -1373,10 +1461,13 @@ function PTextFrame(vfIndex, callbacks)
 	this.tocSel=[];				// Which chapters and sections are highlighted for reading
 	this.tocSelDirty=false;		// Has user changed TOC selection?
 	this.txtIDs=[];				// IDs of all Records currently in text frame (in sorted order)
-	this.txtIS;					// IndexStream of Records in links in text frame
 
 	PViewFrame.call(this, vfIndex, callbacks);
 } // PTextFrame()
+
+PTextFrame.prototype = Object.create(PViewFrame.prototype);
+
+PTextFrame.prototype.constructor = PViewFrame;
 
 PTextFrame.prototype.initDOM = function()
 {
@@ -1453,6 +1544,7 @@ PTextFrame.prototype.initDOM = function()
 
 		// PURPOSE: Insert appropriate text into text frame, given tocSel
 		// SIDE-FX:	Compile list of Record IDs in <a> in txtIDs
+		// ASSUMES: Scroll to next text section deselects previous selections
 		// TO DO:	Disable prev/next buttons if no RL items before or after
 	function buildTextFrame()
 	{
@@ -1505,24 +1597,28 @@ PTextFrame.prototype.initDOM = function()
 		});
 
 			// Find all <a>, create list of recs from data-id
-		self.txtIDs=[]; self.txtIS=null;
-		self.selIDs=[]; self.selIS=null; self.selAbsI=null;
+		self.selAbsI=[]; // self.selIDs=[]; self.selIS=null;
+		self.vizSel=[];
+		self.txtIDs=[];
+		var txtIDs=[]; // self.txtIS=null;
 		var recs;
 		recs = jQuery('#text-frame').find('a');
 		recs.each(function(aI) {
 			var thisID = jQuery(this).data('id');
 				// Keep list sorted; don't add if already exists
 			if (thisID) {
-				if (self.txtIDs.length == 0) {
-					self.txtIDs.push(thisID);
+				if (txtIDs.length == 0) {
+					txtIDs.push(thisID);
 				} else {
-					var i = _.sortedIndex(self.txtIDs, thisID);
-					if (self.txtIDs[i] !== thisID) {
-						self.txtIDs.splice(i, 0, thisID);
+					var i = _.sortedIndex(txtIDs, thisID);
+					if (txtIDs[i] !== thisID) {
+						txtIDs.splice(i, 0, thisID);
 					}
 				}
 			}
 		});
+		self.txtIDs=txtIDs;
+		self.callbacks.newText();
 // console.log("Rec IDs on this page: "+JSON.stringify(txtIDs));
 	} // buildTextFrame()
 
@@ -1552,7 +1648,6 @@ PTextFrame.prototype.initDOM = function()
 
 		updateTOCSel();
 		buildTextFrame();
-		// paint();
 	} // setTOCSel()
 
 		// PURPOSE: Handle toggling between TOC and Text panes
@@ -1568,7 +1663,6 @@ PTextFrame.prototype.initDOM = function()
 		} else {
 			if (self.tocSelDirty) {
 				buildTextFrame();
-				// paint();
 			}
 			jQuery('#toc-controls').hide();
 			jQuery('#toc-frame').hide();
@@ -1597,7 +1691,7 @@ PTextFrame.prototype.initDOM = function()
 		var tf = jQuery('#toc-frame > ul.toc-wrapper');
 		tf.empty();
 
-		volData.forEach(function(chap, cI) {
+		self.volData.forEach(function(chap, cI) {
 			str = '<li class="toc-chap" data-c='+cI+'><input type="checkbox" class="readlist-c"/> <button class="toccollapse">Collapse</button> ';
 			str += chap.e.innerHTML;
 			str += '<ul class="toc-secs">';
@@ -1625,87 +1719,28 @@ PTextFrame.prototype.initDOM = function()
 		//				we need to un/highlight all of them simultaneously!
 	function clickTextFrame(event)
 	{
-		var a, i, id, n, t, x, v=views[1];
+		var a, i, id, n, t, x;
+		var vizSel=self.vizSel;
 		var node = event.target;
 		if (node.nodeName === 'A') {
 			id = node.dataset.id;
 			a = PData.nByID(id);
 			if (a != null) {
-				i = _.sortedIndex(selIDs, id);
+				i = _.sortedIndex(vizSel, a);
 					// If it already exists, remove it
-				if (selIDs[i] === id) {
-					selIDs.splice(i, 1);
-					if (vMode === 'v2') {
-						selAbsI=null;	// invalidate
-						i = _.sortedIndex(selIS.s, a);
-						selIS.s.splice(i, 1);
-							// decrease Rec count for Template to which it belongs
-						for (x=0, n=PData.eTNum(); x<n; x++) {
-							t = selIS.t[x];
-							if ((t.n > 0) && (i >= t.i) && (i < (t.i+t.n))) {
-								t.n -= 1;
-								x++;
-								break;
-							}
-						}
-						selIS.l -= 1;
-						for (; x<n; x++) {
-							selIS.t[x].i -= 1;
-						}
-					} else {
-						selIS=null;		// invalidate
-						i = _.sortedIndex(selAbsI, a);
-						selAbsI.splice(i, 1);
-					}
+				if (vizSel[i] === a) {
+					vizSel.splice(i, 1);
+					self.callbacks.delSel(0, a);
 					jQuery('#text-frame a[data-id="'+id+'"]').removeClass('sel');
-				} else {
-					if (selIDs.length === 0) {
-						selIDs.push(id);
+				} else {	// add selected absID
+					if (vizSel.length === 0) {
+						vizSel.push(a);
 					} else {
-						selIDs.splice(i, 0, id);
+						vizSel.splice(i, 0, a);
 					}
-					if (vMode === 'v2') {
-						selAbsI=null;	// invalidate
-						if (selIS.s.length === 0) {
-							i = 0;
-							selIS.s.push(a);
-						} else {
-							i = _.sortedIndex(selIS.s, a);
-							selIS.s.splice(i, 0, a);
-						}
-							// increase Rec count for Template to which it belongs
-						x=PData.n2T(a);
-						selIS.t[x++].n += 1;
-						n=PData.eTNum();
-						selIS.l += 1;
-						for (; x<n; x++) {
-							selIS.t[x].i += 1;
-						}
-					} else {
-						selIS=null;		// invalidate
-						if (selAbsI.length == 0) {
-							selAbsI.push(a);
-						} else {
-							i = _.sortedIndex(selAbsI, a);
-							selAbsI.splice(i, 0, a);
-						}
-					}
+					self.callbacks.addSel(0, a);
 					jQuery('#text-frame a[data-id="'+id+'"]').addClass('sel');
 				} // add ID
-				switch (vMode) {
-				case 'v0': 		// Show all Records, highlight selected
-				case 'v1': 		// Show Records visible from Text, highlight selected
-					if (selAbsI.length === 0) {
-						v.clearSel();
-					} else {
-						v.setSel(selAbsI);
-					}
-					break;
-				case 'v2': 		// Only Show selected Records
-					v.clearSel();
-					v.showStream(selIS);
-					break;
-				}
 			} // ID has absI
 		} // clicked link
 		event.preventDefault();
@@ -1774,7 +1809,6 @@ PTextFrame.prototype.initDOM = function()
 		// Don't prevent default, as that's what updates HTML Dom
 	} // clickRLCheck()
 
-
 		// PURPOSE: Find previous selection in Reading List and select (and show in text frame)
 		// NOTES: 	Current text in tocSel; look for prev in tocRL
 		//			Does not wrap around to the end!
@@ -1839,8 +1873,8 @@ PTextFrame.prototype.initDOM = function()
 		var chap, cI, sI;
 		var newStart=false;
 		search:
-		for (cI=tocSel.length-1; cI >= 0; cI--) {
-			chap = tocSel[cI];
+		for (cI=self.tocSel.length-1; cI >= 0; cI--) {
+			chap = self.tocSel[cI];
 			for (sI=chap.s.length-1; sI >= 0; sI--) {
 				if (chap.s[sI]) {
 					ptrS=sI+1;
@@ -1865,8 +1899,8 @@ PTextFrame.prototype.initDOM = function()
 			return;
 
 			// Find next item in RL after that
-		while (ptrC < tocRL.length) {
-			chap = tocRL[ptrC];
+		while (ptrC < self.tocRL.length) {
+			chap = self.tocRL[ptrC];
 			if (newStart && chap.c) {
 				setTOCSel(true, ptrC, -1);
 				return;
@@ -1899,7 +1933,7 @@ PTextFrame.prototype.initDOM = function()
 					click: function() {
 						var txt = jQuery('#find-toc-txt').val();
 						var fnd, cur;
-						volData.forEach(function(chap, cI) {
+						self.volData.forEach(function(chap, cI) {
 								// Set to false by default
 							fnd=false;
 								// Check first in Chapter header
@@ -1925,7 +1959,7 @@ PTextFrame.prototype.initDOM = function()
 									} // switch
 								} // while
 							}
-							tocRL[cI].c = fnd;
+							self.tocRL[cI].c = fnd;
 
 							chap.s.forEach(function(sec, sI) {
 								fnd=false;
@@ -1952,7 +1986,7 @@ PTextFrame.prototype.initDOM = function()
 										} // switch
 									} // while
 								}
-								tocRL[cI].s[sI] = fnd;
+								self.tocRL[cI].s[sI] = fnd;
 							});
 						});
 						updateTOCRL();
@@ -1974,6 +2008,7 @@ PTextFrame.prototype.initDOM = function()
 		// PURPOSE: Handle clicking "Find" icon button on Text Frame
 	function clickTextFind(event)
 	{
+			// TO DO!!
 		clickHighlight(0, null);
 		event.preventDefault();
 	} // clickTextFind()
@@ -1998,7 +2033,7 @@ PTextFrame.prototype.initDOM = function()
 			switch (cur.prop('tagName').toUpperCase()) {
 			case 'H1':
 				if (chap != null) {
-					this.volData.push(chap);
+					self.volData.push(chap);
 				}
 				chap = { e: cur.get(0), s: [] };
 				break;
@@ -2014,22 +2049,22 @@ PTextFrame.prototype.initDOM = function()
 		}
 			// Save any remaining data
 		if (chap != null) {
-			this.volData.push(chap);
+			self.volData.push(chap);
 		}
 
 			// Create default Reading List and Selection: everything selected on RL
-		this.volData.forEach(function(chap) {
+		self.volData.forEach(function(chap) {
 			var rlChap={c: true, s: []};
 			var rlSel={c: false, s:[]};
 			chap.s.forEach(function(sec) {
 				rlChap.s.push(true);
 				rlSel.s.push(false);
 			});
-			this.tocRL.push(rlChap);
-			this.tocSel.push(rlSel);
+			self.tocRL.push(rlChap);
+			self.tocSel.push(rlSel);
 		});
 			// Open at very beginning by default
-		this.tocSel[0].c = true;
+		self.tocSel[0].c = true;
 	})();
 
 		// Text Frame icon buttons
@@ -2043,9 +2078,9 @@ PTextFrame.prototype.initDOM = function()
 		.click(clickTextPrev);
 	jQuery('#textnext').button({icons: { primary: 'ui-icon-arrow-1-e' }, text: false })
 		.click(clickTextNext);
-	jQuery('#texthilite').button({icons: { primary: 'ui-icon-star' }, text: false })
+	jQuery('#view-frame-0 .hilite').button({icons: { primary: 'ui-icon-star' }, text: false })
 		.click(clickTextFind);
-	jQuery('#textosel').button({icons: { primary: 'ui-icon-search' }, text: false })
+	jQuery('#view-frame-0 .osel').button({icons: { primary: 'ui-icon-search' }, text: false })
 		.click(clickTextShow);
 	jQuery('#text-frame').click(clickTextFrame);
 
@@ -2055,11 +2090,109 @@ PTextFrame.prototype.initDOM = function()
 	buildTextFrame();
 } // initDOM()
 
+	// PURPOSE: Convert the IDs of all Records in text frame to IndexStream
+PTextFrame.prototype.txtIDs2IS = function()
+{
+		// NOTE: Need splice method, so use generic arrays (not Uint16Array)
+	var txtIS = { s: [], t: [], l: 0 };
+	var a, i, n, t;
+		// Create empty slots for each Template
+	for (i=0, n=PData.eTNum(); i<n; i++) {
+		txtIS.t.push({i: 0, n: 0});
+	}
+	this.txtIDs.forEach(function(id) {
+			// Convert to absolute index
+		a = PData.nByID(id);
+		if (a != null) {
+				// Insert absI in order
+			if (txtIS.s.length === 0) {
+				txtIS.s.push(a);
+			} else {
+				i = _.sortedIndex(txtIS.s, a);
+				txtIS.s.splice(i, 0, a);
+			}
+				// Which Template does it belong to?
+			t=PData.n2T(a);
+				// Increment # Recs for this Template and starting indices for rest
+			txtIS.t[t++].n += 1;
+			while (t < n) {
+				txtIS.t[t++].i += 1;
+			}
+			txtIS.l += 1;
+		}
+	});
+	return txtIS;
+} // txtIDs2IS()
+
+PTextFrame.prototype.clearSel = function()
+{
+	this.selAbsIs = this.vizSel = [];
+	this.setSelBtns(false);
+	jQuery('#text-frame a').removeClass('sel');
+} // clearSel()
+
+	// PURPOSE: Attempt to set the Selection List of the VizModel to selList
+	// RETURNS: true if possible, false if not
+PTextFrame.prototype.setSel = function(selList)
+{
+		// First clear everything
+	jQuery('#text-frame a').removeClass('sel');
+
+	this.selAbsIs = selList;
+	var r, t, vizSel=[];
+	selList.forEach(function(absI) {
+		r = PData.rByN(absI);
+		if (r) {
+			t = jQuery('#text-frame a[data-id="'+r.id+'"]');
+			if (t.length > 0) {
+				t.addClass('sel');
+				vizSel.push(absI);
+			}
+		}
+	});
+	this.vizSel = vizSel;
+	return true;
+} // selSel()
+
+	// PURPOSE: Handle external request to add to selection
+	// INPUT: 	absI = absolute index of Record
+PTextFrame.prototype.addSel = function(absI)
+{
+	var i, r, t;
+		// Always store in requested IDs
+	i = _.sortedIndex(this.selAbsIs, absI);
+	this.selAbsIs.splice(i, 0, absI);
+		// Check and see if visible
+	r = PData.rByN(absI);
+	t = jQuery('#text-frame a[data-id="'+r.id+'"]');
+	if (t.length > 1) {
+		t.addClass('sel');
+		i = _.sortedIndex(this.vizSel, absI);
+		this.vizSel.splice(i, 0, absI);
+	}
+} // addSel()
+
+	// PURPOSE: Handle external request to remove from selection
+	// INPUT: 	absI = absolute index of Record
+PTextFrame.prototype.delSel = function(absI)
+{
+	var i, r, t;
+		// Always remove from requested IDs
+	i = _.sortedIndex(this.selAbsIs, absI);
+	this.selAbsIs.splice(i, 1);
+		// Check to see if on visible list
+	i = _.sortedIndex(this.vizSel, absI);
+	if (this.vizSel[i] == absI) {
+		this.vizSel.splice(i, 1);
+		r = PData.rByN(absI);
+		jQuery('#text-frame a[data-id="'+r.id+'"]').removeClass('sel');
+	}
+} // delSel()
 
 
 // Immediately Invoked Function Expression -- Bootstrap for Prospect Volume Client
+// ===============================================================================
 // PURPOSE: Create DOM structure, initiate services, manage filters, …
-
 // USES: 	jQuery, jQueryUI, view-core
 // ASSUMES: prspdata is fully loaded
 
@@ -2075,24 +2208,26 @@ jQuery(document).ready(function($) {
 
 	var annote;					// Annotation from current Reading
 
-	var topStream;				// Top-level IndexStream (before Filters)
-	var endStream;				// Final resulting IndexStream (after Filters)
+	var topStream=null;			// Top-level IndexStream (before Filters)
+	var endStream=null;			// Final resulting IndexStream (after Filters)
 
 	var localStore=null;		// Local (Browser) storage (if Browser capable)
 	var localReadings=[];		// locally-stored Readings
 
 		// Volume extensions (not in Exhibit)
 	var vMode='v0';				// view option: selection from selaction radio buttons: 'v0', 'v1' or 'v2'
-	var txtIDs=[];				// IDs of all Records currently in text frame (in sorted order)
+	var render0=true;			// if true, render Viz from scratch
+	// var txtIDs=[];				// IDs of all Records currently in text frame (in sorted order)
 	var txtIS;					// IndexStream of Records in links in text frame
-	var selIDs=[];				// Record IDs selected by user from text (in sorted order)
-	var selIS;					// IndexStream of Records selected by user
-	var selAbsI;				// Array of absolute indices of Records selected by user
-
+	// var selIDs=[];				// Record IDs selected by user from text (in sorted order)
+	var selIS;					// IndexStream of Records selected in Text Frame
+	var selAbsI;				// Array of all absolute indices of Records selected by user in both frames
+	var callbacks;				// callbacks used by ViewFrames: { addSel, delSel, newText }
 
 		// FUNCTIONS
 		//==========
 
+		// PURPOSE: Called after data has been loaded and viz can be rendered
 	function doRecompute()
 	{
 		var fDiv;
@@ -2104,8 +2239,9 @@ jQuery(document).ready(function($) {
 		endStream = topStream;
 
 		PState.set(PSTATE_BUILD);
-		paint();
+		render();
 	} // doRecompute()
+
 
 		// PURPOSE: Set annotation text to <t>
 	function setAnnote(t)
@@ -2914,171 +3050,147 @@ jQuery(document).ready(function($) {
 		return true;
 	} // doShowReading()
 
+
 		// VOLUME EXTENSIONS
 		//==================
-
-		// PURPOSE: Draw visualization in views[1] based on vMode setting
-	function paint()
-	{
-		var v=views[1];
-		if (v) {
-			switch (vMode) {
-			case 'v0': 		// Show all Records, highlight selected
-				v.showStream(endStream);
-				if (selAbsI == null) {
-					selIDs2AbsI();
-				}
-				if (selAbsI.length > 0) {
-					v.setSel(selAbsI);
-				} else {
-					v.clearSel();
-				}
-				break;
-			case 'v1': 		// Show Records visible from Text, highlight selected
-				if (txtIS == null) {
-					txtIDs2IS();
-				}
-				v.showStream(txtIS);
-				if (selAbsI == null) {
-					selIDs2AbsI();
-				}
-				if (selAbsI.length > 0) {
-					v.setSel(selAbsI);
-				} else {
-					v.clearSel();
-				}
-				break;
-			case 'v2': 		// Only Show selected Records
-				v.clearSel();
-				if (selIS == null) {
-					selIDs2IS();
-				}
-				v.showStream(selIS);
-				break;
-			}
-		}
-	} // paint()
-
-
-		// PURPOSE: Convert the Record IDs in txtIDs to IndexStream
-	function txtIDs2IS()
-	{
-			// NOTE: Need as splice method, use generic arrays (not Uint16Array)
-		txtIS = { s: [], t: [], l: 0 };
-		var a, i, n, t;
-			// Create empty slots for each Template
-		for (i=0, n=PData.eTNum(); i<n; i++) {
-			txtIS.t.push({i: 0, n: 0});
-		}
-		txtIDs.forEach(function(id) {
-				// Convert to absolute index
-			a = PData.nByID(id);
-			if (a != null) {
-					// Insert absI in order
-				if (txtIS.s.length === 0) {
-					txtIS.s.push(a);
-				} else {
-					i = _.sortedIndex(txtIS.s, a);
-					txtIS.s.splice(i, 0, a);
-				}
-					// Which Template does it belong to?
-				t=PData.n2T(a);
-					// Increment # Recs for this Template and starting indices for rest
-				txtIS.t[t++].n += 1;
-				while (t < n) {
-					txtIS.t[t++].i += 1;
-				}
-				txtIS.l += 1;
-			}
-		});
-	} // txtIDs2Abs()
-
-		// PURPOSE: Convert the Record IDs in selIDs to IndexStream
-	function selIDs2IS()
-	{
-			// NOTE: Need as splice method, use generic arrays (not Uint16Array)
-		selIS = { s: [], t: [], l: 0 };
-		var a, i, n, t;
-			// Create empty slots for each Template
-		for (i=0, n=PData.eTNum(); i<n; i++) {
-			selIS.t.push({i: 0, n: 0});
-		}
-		selIDs.forEach(function(id) {
-				// Convert to absolute index
-			a = PData.nByID(id);
-			if (a != null) {
-					// Insert absI in order
-				if (selIS.s.length === 0) {
-					selIS.s.push(a);
-				} else {
-					i = _.sortedIndex(selIS.s, a);
-					selIS.s.splice(i, 0, a);
-				}
-					// Which Template does it belong to?
-				t=PData.n2T(a);
-					// Increment # Recs for this Template and starting indices for rest
-				selIS.t[t++].n += 1;
-				while (t < n) {
-					selIS.t[t++].i += 1;
-				}
-				selIS.l += 1;
-			}
-		});
-	} // txtIDs2Abs()
-
-		// PURPOSE: Convert the Record IDs in selIDs to array of absIs
-	function selIDs2AbsI()
-	{
-		selAbsI = [];
-		var a, i;
-		selIDs.forEach(function(id) {
-				// Convert to absolute index
-			a = PData.nByID(id);
-				// Insert absI in order
-			if (selAbsI.length === 0) {
-				selAbsI.push(a);
-			} else {
-				i = _.sortedIndex(selAbsI, a);
-				selAbsI.splice(i, 0, a);
-			}
-		});
-	} // selIDs2AbsI()
 
 		// PURPOSE: Handle clicking global "Clear" icon button
 	function clickClear(event)
 	{
-		var v=views[1];
+		var v0=views[0], v1=views[1];
 
-		jQuery('#text-frame a').removeClass('sel');
-		selIDs=[]; selAbsI=[]; selIS=null;
-		if (v != null) {
-			switch (vMode) {
-			case 'v0': 		// Show all Records, highlight selected
-			case 'v1': 		// Show Records visible from Text, highlight selected
-				v.clearSel();
-				break;
-			case 'v2': 		// Only Show selected Records (none)
-				selIDs2IS();
-				v.showStream(selIS);
-				break;
-			}
+		PState.set(PSTATE_UPDATE);
+		v0.clearSel();
+		switch (vMode) {
+		case 'v0': 		// Show all Records, highlight selected
+		case 'v1': 		// Show Records visible from Text, highlight selected
+			v1.clearSel();
+			break;
+		case 'v2': 		// Only Show selected Records (none)
+			endStream = absIs2IS([]);
+			v1.showStream(selIS);
+			break;
 		}
+		PState.set(PSTATE_READY);
 		event.preventDefault();
 	} // clickClear()
 
-		// NOTE: Old code from PViewFrame
-	function clickClearSelection(event)
+		// PURPOSE: Called by ViewFrame when a Record is selected
+		// INPUT: 	vI = 0 if called by TextFrame, 1 by VizFrame
+		//			absI = the absolute index of the Record that has been selected
+	function doAddSel(vI, absI)
 	{
-		PState.set(PSTATE_UPDATE);
-		if (vizModel) {
-			vizModel.clearSel();
+		var vTo=views[vI^1];
+		switch (vMode) {
+		case 'v0': 		// Show all Records, highlight selected
+		case 'v1': 		// Show Records visible from Text, highlight selected
+			vTo.addSel(absI);
+			break;
+		case 'v2': 		// Only Show selected Records
+				// Don't affect Text if selected in Viz
+			if (vI === 0) {
+				render();
+			}
+			break;
 		}
-		vizSel = selAbsIs = [];
-		doSelBtns(false);
-		PState.set(PSTATE_READY);
-		event.preventDefault();
-	} // clickClearSelection()
+	} // doAddSel()
 
+		// PURPOSE: Called by ViewFrame when a Record is deselected
+		// INPUT: 	vI = 0 for TextFrame, 1 for VizFrame
+		//			absI = the absolute index of the Record that has been deselected
+	function doDelSel(vI, absI)
+	{
+		var vTo=views[vI^1];
+		switch (vMode) {
+		case 'v0': 		// Show all Records, highlight selected
+		case 'v1': 		// Show Records visible from Text, highlight selected
+			vTo.delSel(absI);
+			break;
+		case 'v2': 		// Only Show selected Records
+				// Don't affect Text if selected in Viz
+			if (vI === 0) {
+				render();
+			}
+			break;
+		}
+	} // doDelSel()
+
+		// PURPOSE: Convert absolute IDs to IndexStream
+		// INPUT: 	absIs = array of absolute IDs
+	function absIs2IS(absIs)
+	{
+			// NOTE: Need splice method, use generic arrays (not Uint16Array)
+		var is = { s: [], t: [], l: 0 };
+		var i, n, t;
+			// Create empty slots for each Template
+		for (i=0, n=PData.eTNum(); i<n; i++) {
+			is.t.push({i: 0, n: 0});
+		}
+		absIs.forEach(function(a) {
+				// Insert absI in order
+			if (is.s.length === 0) {
+				is.s.push(a);
+			} else {
+				i = _.sortedIndex(is.s, a);
+				is.s.splice(i, 0, a);
+			}
+				// Which Template does it belong to?
+			t=PData.n2T(a);
+				// Increment # Recs for this Template and starting indices for rest
+			is.t[t++].n += 1;
+			while (t < n) {
+				is.t[t++].i += 1;
+			}
+			is.l += 1;
+		});
+		return is;
+	} // absIs2IS()
+
+		// PURPOSE: Text Frame has rendered itself, requests that Viz build itself
+		// NOTES: 	Record data may not yet be loaded -- may have to save text data for later use
+	function doNewText()
+	{
+		render();
+	} // doNewText()
+
+		// PURPOSE: Called to request VizFrame be rendered
+		// NOTES: 	Called after Record data loaded, Text Frame renders itself or vMode changed
+	function render()
+	{
+		var v0=views[0], v1=views[1];
+		var sel;
+
+			// Is data available yet?
+		if (topStream == null) {
+			return;
+		}
+
+		switch (vMode) {
+		case 'v0': 		// Show all Records, highlight selected
+			v1.showStream(topStream);
+			sel = v0.vizSel;
+			if (sel.length > 0) {
+				v1.setSel(sel.slice(0));
+			} else {
+				v1.clearSel();
+			}
+			break;
+		case 'v1': 		// Show Records visible from Text, highlight selected
+			endStream = v0.txtIDs2IS();
+			v1.showStream(endStream);
+			sel = v0.vizSel;
+			if (sel.length > 0) {
+				v1.setSel(sel.slice(0));
+			} else {
+				v1.clearSel();
+			}
+			break;
+		case 'v2': 		// Only Show selected Records
+			endStream = absIs2IS(v0.vizSel);
+			v1.showStream(endStream);
+			break;
+		}
+	} // render()
 
 		// IMMEDIATE EXECUTION
 		//====================
@@ -3222,7 +3334,10 @@ jQuery(document).ready(function($) {
 		.click(clickClear);
 	jQuery('input[type=radio][name=vizmode]').change(function() {
 		vMode = this.value;
-		paint();
+			// Only try viz update if Record data loaded
+		if (topStream != null) {
+			render();
+		}
 	});
 
 		// Are there Home settings?
@@ -3276,13 +3391,15 @@ jQuery(document).ready(function($) {
 		});
 	}());
 
+	callbacks = { addSel: doAddSel, delSel: doDelSel, newText: doNewText };
+
 		// Always create and initialize Text Frame first
-	views[0] = new PTextFrame(0, null);
+	views[0] = new PTextFrame(0, callbacks);
 	views[0].initDOM();
 
-		// Restore Reading or create default?
+		// Not restoring Reading: create default
 	if (prspdata.show_reading.length == 0 || !doShowReading(prspdata.show_reading)) {
-		views[1] = new PVizFrame(1, null);
+		views[1] = new PVizFrame(1, callbacks);
 		views[1].initDOM(0);
 		setAnnote('');
 	}
