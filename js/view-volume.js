@@ -689,6 +689,7 @@ PViewFrame.prototype.openSelection = function()
 //
 //			Instance Methods
 //			----------------
+//			getIndex()
 //			setLDirty(s)
 //			selectChangeViz()
 //			computeSel()
@@ -730,6 +731,11 @@ var PVizFrame = function(vfIndex, callbacks)
 PVizFrame.prototype = Object.create(PViewFrame.prototype);
 
 PVizFrame.prototype.constructor = PViewFrame;
+
+PVizFrame.prototype.getIndex = function()
+{
+	return 1;
+} // getIndex()
 
 	// PURPOSE: Set Legend Dirty flag to true or false
 PVizFrame.prototype.setLDirty = function(s)
@@ -995,7 +1001,7 @@ PVizFrame.prototype.setLegendFeatures = function(lIndex, attID)
 					lIndex+'"] div.lgnd-group');
 		// Clear any previous entries
 	group.empty();
-	legendIDs[lIndex] = attID;
+	this.legendIDs[lIndex] = attID;
 		// Insert new items
 	var attDef = PData.aByID(attID);
 		// Create pseudo-entry for undefined value
@@ -1231,7 +1237,7 @@ PVizFrame.prototype.createViz = function(vIndex, refresh)
 	// doSelBtns(false);
 
 	if (this.datastream && refresh) {
-		this.newViz.render(datastream);
+		newViz.render(this.datastream);
 	}
 	this.vizModel = newViz;
 } // createViz()
