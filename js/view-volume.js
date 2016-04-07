@@ -836,7 +836,7 @@ PVizFrame.prototype.initDOM = function(vI)
 	function clickHighlight(event)
 	{
 			// Send signal back to Prospect "main app" to create Highlight filter on this viz
-		jQuery("body").trigger("prospect", { s: PSTATE_HILITE, v: self.vfIndex, t: vizModel.tUsed });
+		jQuery("body").trigger("prospect", { s: PSTATE_HILITE, v: 1, t: self.vizModel.tUsed });
 		event.preventDefault();
 	} // clickHighlight()
 
@@ -2035,8 +2035,8 @@ PTextFrame.prototype.initDOM = function()
 		// PURPOSE: Handle clicking "Find" icon button on Text Frame
 	function clickTextFind(event)
 	{
-			// TO DO!!
-		clickHighlight(0, null);
+			// Send signal back to Prospect "main app" to create Highlight filter on this viz
+		jQuery("body").trigger("prospect", { s: PSTATE_HILITE, v: 0, t: null });
 		event.preventDefault();
 	} // clickTextFind()
 
@@ -2179,6 +2179,9 @@ PTextFrame.prototype.setSel = function(selList)
 		}
 	});
 	this.vizSel = vizSel;
+	if (vizSel.length > 0) {
+		this.selBtns(true);
+	}
 	return true;
 } // selSel()
 
@@ -2254,10 +2257,6 @@ jQuery(document).ready(function($) {
 
 		// Volume extensions (not in Exhibit)
 	var vMode='v0';				// view option: selection from selaction radio buttons: 'v0', 'v1' or 'v2'
-	var render0=true;			// if true, render Viz from scratch
-	var txtIS;					// IndexStream of Records in links in text frame
-	var selIS;					// IndexStream of Records selected in Text Frame
-	var selAbsI;				// Array of all absolute indices of Records selected by user in both frames
 	var callbacks;				// callbacks used by ViewFrames: { addSel, delSel, newText }
 
 		// FUNCTIONS
@@ -2834,10 +2833,11 @@ jQuery(document).ready(function($) {
 					attDef.t.forEach(function(u, uI) {
 						on = on || (u && usedTs[uI]);
 					});
-					if (on)
+					if (on) {
 						li.show();
-					else
+					} else {
 						li.hide();
+					}
 				} else {
 					li.show();
 				}
@@ -2882,20 +2882,17 @@ jQuery(document).ready(function($) {
 	function doApplyHighlight(vI)
 	{
 		var hFilter=hFilters[vI];
-		var vf = views[1];
+		var v0=views[0], v1=views[1];
 		var relI=0, absI, rec;
 		var tI=0, tRec;
+		var list=[];
 
 		PState.set(PSTATE_PROCESS);
 
 			// Apply to Text Frame?
 		if (vI === 0) {
-			selIDs=[]; selIS=null; selAbsI=[];
+			var txtIS = v0.txtIDs2IS();
 			jQuery('#text-frame a').removeClass('sel');
-
-			if (txtIS == null) {
-				txtIDs2IS();
-			}
 			hFilter.evalPrep();
 
 			tRec=txtIS.t[0];
@@ -2914,34 +2911,37 @@ jQuery(document).ready(function($) {
 				absI = txtIS.s[relI++];
 				rec = PData.rByN(absI);
 				if (hFilter.eval(rec)) {
-					selIDs.push(rec.id);
-					selAbsI.push(absI);
+					list.push(absI);
 				}
 			}
 			hFilter.evalDone(txtIS.l);
-			selIDs.sort();
-			selIDs.forEach(function(theID) {
-				jQuery('#text-frame a[data-id="'+theID+'"]').addClass('sel');
-			});
+
 			PState.set(PSTATE_UPDATE);
 			switch (vMode) {
 			case 'v0': 		// Show all Records, highlight selected
 			case 'v1': 		// Show Records visible from Text, highlight selected
-				if (selAbsI.length > 0) {
-					vf.setSel(selAbsI);
+				if (list.length > 0) {
+					v0.setSel(list);
+					v1.setSel(list);
 				} else {
-					vf.clearSel();
+					v0.clearSel();
+					v1.clearSel();
 				}
 				break;
 			case 'v2': 		// Only Show selected Records
-				selIDs2IS();
-				vf.showStream(selIS);
+				if (list.length > 0) {
+					v0.setSel(list);
+				} else {
+					v0.clearSel();
+				}
+				v1.clearSel();
+				endStream = absIs2IS(list);
+				v1.showStream(endStream);
 				break;
-			}
+			} // switch
 
 		} else {	// Apply to Viz Frame
-			var bm = vf.getBMData();
-			var list=[];
+			var bm = v1.getBMData();
 
 			if (endStream != null) {
 				hFilter.evalPrep();
@@ -2971,12 +2971,15 @@ jQuery(document).ready(function($) {
 				hFilter.evalDone(endStream.l);
 			}
 			PState.set(PSTATE_UPDATE);
+				// Just set or clear selection if done from Viz
 			if (list.length > 0) {
-				vf.setSel(list);
+				v0.setSel(list);
+				v1.setSel(list);
 			} else {
-				vf.clearSel();
+				v0.clearSel();
+				v1.clearSel();
 			}
-		}
+		} // if VizFrame
 
 		PState.set(PSTATE_READY);
 	} // doApplyHighlight()
