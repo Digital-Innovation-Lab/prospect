@@ -1,10 +1,10 @@
 <div id="command-bar">
 	<span id="title"></span>
 	&nbsp; <button id="btn-about"><?php _e('About Prospect', 'prospect'); ?></button>
-	<button id="clearsel">Clear Highlighted</button>
-	<input type="radio" name="vizmode" id="vizmode-0" value="v0" checked/><label for="vizmode-0">All & Highlight</label>
-	<input type="radio" name="vizmode" id="vizmode-1" value="v1"/><label for="vizmode-1">Text & Highlight</label>
-	<input type="radio" name="vizmode" id="vizmode-2" value="v2"/><label for="vizmode-2">Display Only</label>
+	<button id="clearsel"><?php _e('Clear Highlighted', 'prospect'); ?></button>
+	<input type="radio" name="vizmode" id="vizmode-0" value="v0" checked/><label for="vizmode-0"><?php _e('All &amp; Highlight', 'prospect'); ?></label>
+	<input type="radio" name="vizmode" id="vizmode-1" value="v1"/><label for="vizmode-1"><?php _e('Text &amp; Highlight', 'prospect'); ?></label>
+	<input type="radio" name="vizmode" id="vizmode-2" value="v2"/><label for="vizmode-2"><?php _e('Display Only', 'prospect'); ?></label>
 	<button id="btn-show-reading"><?php _e('Show Reading', 'prospect'); ?></button>
 	<button id="btn-save-reading"><?php _e('Save Reading', 'prospect'); ?></button>
 	<button id="btn-annote"><?php _e('Show/Hide Annotation', 'prospect'); ?></button>
@@ -18,17 +18,17 @@
 <div id="viz-frame">
 	<div id="view-frame-0">
 		<div class="view-controls">
-			<button id="hstoc">Show/Hide Table of Contents</button>
+			<button id="hstoc"><?php _e('Show/Hide Table of Contents', 'prospect'); ?></button>
 			<div id="toc-controls" style="display: none;">
-				<input type="checkbox" id="tochcall" name="tochcall" title="On Reading List"/><label for="tochcall">Un/Check All</label> &nbsp;
-				<input type="checkbox" id="tochsall" name="tochsall" title="Currently in Reading Pane"/><label for="tochsall">De/Select All</label> &nbsp;
-				<button id="tocfind">Find</button>
+				<input type="checkbox" id="tochcall" name="tochcall" title=<?php _e('"On Reading List"', 'prospect'); ?>/><label for="tochcall"><?php _e('Un/Check All', 'prospect'); ?></label> &nbsp;
+				<input type="checkbox" id="tochsall" name="tochsall" title=<?php _e('"Currently in Reading Pane"', 'prospect'); ?>/><label for="tochsall"><?php _e('De/Select All', 'prospect'); ?></label> &nbsp;
+				<button id="tocfind"><?php _e('Find', 'prospect'); ?></button>
 			</div>
 			<div id="text-controls">
-				&nbsp;<button id="textprev">Previous</button>
-				<button id="textnext">Next</button> &nbsp;
-				<button class="hilite">Highlight</button>
-				<button class="osel">Show Highlighted</button>
+				&nbsp;<button id="textprev"><?php _e('Previous', 'prospect'); ?></button>
+				<button id="textnext"><?php _e('Next', 'prospect'); ?></button> &nbsp;
+			<button class="hilite"><?php _e('Highlight', 'prospect'); ?></button>
+			<button class="osel"><?php _e('Show Highlighted', 'prospect'); ?></button>
 			</div>
 		</div>
 		<div class="viz-content">
