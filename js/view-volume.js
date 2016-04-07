@@ -361,7 +361,7 @@ PViewFrame.prototype.openSelection = function()
 	var recSel=null;
 
 	recSel = this.vizSel;
-	if (recSel == null || recSel.length == 0)
+	if (recSel == null || recSel.length === 0)
 		return;
 
 	var inspector;
@@ -1337,7 +1337,8 @@ PVizFrame.prototype.setState = function(state)
 	// NOTES: 	Assumes that this clears out selection
 PVizFrame.prototype.showStream = function(stream)
 {
-	this.vizSel = this.selAbsIs = [];
+	this.vizSel = [];
+	this.selAbsIs = [];
 	this.datastream = stream;
 	if (this.vizModel) {
 		this.vizModel.render(stream);
@@ -1352,11 +1353,13 @@ PVizFrame.prototype.setStream = function(stream)
 
 PVizFrame.prototype.clearSel = function()
 {
-	this.selAbsIs = this.vizSel = [];
 	this.selBtns(false);
 	if (this.vizModel) {
 		this.vizModel.clearSel();
 	}
+		// Clear vizSel last in case shared by VizModel
+	this.selAbsIs = [];
+	this.vizSel = [];
 } // clearSel()
 
 	// PURPOSE: Attempt to set the Selection List of the VizModel to selList
@@ -1397,26 +1400,36 @@ PVizFrame.prototype.delSel = function(absI)
 } // delSel()
 
 	// PURPOSE: VizModel notifies frame that Record selected
+	// NOTES: 	Need to keep vizSel updated as used by openSelection, but
+	//				shared with VizModel itself, so need to double-check actions
 PVizFrame.prototype.vizAddSel = function(absI)
 {
 	var i;
 		// Always store in requested IDs
 	i = _.sortedIndex(this.selAbsIs, absI);
 	this.selAbsIs.splice(i, 0, absI);
+		// Need to keep vizSel updated as used by openSelection
 	i = _.sortedIndex(this.vizSel, absI);
-	this.vizSel.splice(i, 0, absI);
+	if (this.vizSel[i] !== absI) {
+		this.vizSel.splice(i, 0, absI);
+	}
 	this.callbacks.addSel(1, absI);
 } // vizAddSel()
 
 	// PURPOSE: VizModel notifies frame that Record deselected
+	// NOTES: 	Need to keep vizSel updated as used by openSelection, but
+	//				shared with VizModel itself, so need to double-check actions
 PVizFrame.prototype.vizDelSel = function(absI)
 {
 	var i;
 		// Always remove from requested IDs
 	i = _.sortedIndex(this.selAbsIs, absI);
 	this.selAbsIs.splice(i, 1);
+		// Need to keep vizSel updated as used by openSelection
 	i = _.sortedIndex(this.vizSel, absI);
-	this.vizSel.splice(i, 1);
+	if (this.vizSel[i] === absI) {
+		this.vizSel.splice(i, 1);
+	}
 	this.callbacks.delSel(1, absI);
 } // vizDelSel()
 
@@ -1558,7 +1571,6 @@ PTextFrame.prototype.initDOM = function()
 	function buildTextFrame()
 	{
 		var volC, volS, cur;
-		// var txt = document.getElementById('prsp-volume').innerHTML;
 
 		var tf = jQuery('#text-frame');
 		tf.empty();
@@ -1606,9 +1618,11 @@ PTextFrame.prototype.initDOM = function()
 		});
 
 			// Find all <a>, create list of recs from data-id
-		self.selAbsI=[]; // self.selIDs=[]; self.selIS=null;
+		self.selAbsI=[];
 		self.vizSel=[];
 		self.txtIDs=[];
+		self.selBtns(false);
+
 		var txtIDs=[]; // self.txtIS=null;
 		var recs;
 		recs = jQuery('#text-frame').find('a');
@@ -1628,7 +1642,6 @@ PTextFrame.prototype.initDOM = function()
 		});
 		self.txtIDs=txtIDs;
 		self.callbacks.newText();
-// console.log("Rec IDs on this page: "+JSON.stringify(txtIDs));
 	} // buildTextFrame()
 
 		// PURPOSE: Set tocSel to indicate viewing chap, sec and update everything
@@ -2140,7 +2153,8 @@ PTextFrame.prototype.txtIDs2IS = function()
 
 PTextFrame.prototype.clearSel = function()
 {
-	this.selAbsIs = this.vizSel = [];
+	this.selAbsIs = [];
+	this.vizSel = [];
 	this.selBtns(false);
 	jQuery('#text-frame a').removeClass('sel');
 } // clearSel()
@@ -2179,15 +2193,16 @@ PTextFrame.prototype.addSel = function(absI)
 		// Check and see if visible
 	r = PData.rByN(absI);
 	t = jQuery('#text-frame a[data-id="'+r.id+'"]');
-console.log("Request to TextFrame to add "+absI+" (id: "+r.id+") ");
 	if (t.length > 0) {
 		t.addClass('sel');
 			// First item?
 		if (this.vizSel.length === 0) {
 			this.selBtns(true);
+			this.vizSel.push(absI);
+		} else {
+			i = _.sortedIndex(this.vizSel, absI);
+			this.vizSel.splice(i, 0, absI);
 		}
-		i = _.sortedIndex(this.vizSel, absI);
-		this.vizSel.splice(i, 0, absI);
 	}
 } // addSel()
 
@@ -2240,9 +2255,7 @@ jQuery(document).ready(function($) {
 		// Volume extensions (not in Exhibit)
 	var vMode='v0';				// view option: selection from selaction radio buttons: 'v0', 'v1' or 'v2'
 	var render0=true;			// if true, render Viz from scratch
-	// var txtIDs=[];				// IDs of all Records currently in text frame (in sorted order)
 	var txtIS;					// IndexStream of Records in links in text frame
-	// var selIDs=[];				// Record IDs selected by user from text (in sorted order)
 	var selIS;					// IndexStream of Records selected in Text Frame
 	var selAbsI;				// Array of all absolute indices of Records selected by user in both frames
 	var callbacks;				// callbacks used by ViewFrames: { addSel, delSel, newText }
@@ -3128,8 +3141,9 @@ jQuery(document).ready(function($) {
 			v1.clearSel();
 			break;
 		case 'v2': 		// Only Show selected Records (none)
+			v1.selBtns(false);
 			endStream = absIs2IS([]);
-			v1.showStream(selIS);
+			v1.showStream(endStream);
 			break;
 		}
 		PState.set(PSTATE_READY);
@@ -3141,7 +3155,6 @@ jQuery(document).ready(function($) {
 		//			absI = the absolute index of the Record that has been selected
 	function doAddSel(vI, absI)
 	{
-console.log("Request from "+vI+" to add "+absI);
 		var vTo=views[vI^1];
 		switch (vMode) {
 		case 'v0': 		// Show all Records, highlight selected
@@ -3162,7 +3175,6 @@ console.log("Request from "+vI+" to add "+absI);
 		//			absI = the absolute index of the Record that has been deselected
 	function doDelSel(vI, absI)
 	{
-console.log("Request from "+vI+" to remove "+absI);
 		var vTo=views[vI^1];
 		switch (vMode) {
 		case 'v0': 		// Show all Records, highlight selected
@@ -3180,8 +3192,13 @@ console.log("Request from "+vI+" to remove "+absI);
 
 		// PURPOSE: Text Frame has rendered itself, requests that Viz build itself
 		// NOTES: 	Record data may not yet be loaded -- may have to save text data for later use
+		//			Assumed that we can clear selection when new text frame created
 	function doNewText()
 	{
+		var v1=views[1];
+		if (v1 != null) {
+			v1.clearSel();
+		}
 		render();
 	} // doNewText()
 
@@ -3366,6 +3383,8 @@ console.log("Request from "+vI+" to remove "+absI);
 		.click(clickClear);
 	jQuery('input[type=radio][name=vizmode]').change(function() {
 		vMode = this.value;
+		views[0].clearSel();
+		views[1].clearSel();
 			// Only try viz update if Record data loaded
 		if (topStream != null) {
 			render();
