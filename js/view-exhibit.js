@@ -1314,6 +1314,16 @@ function PViewFrame(vfIndex)
 		return false;
 	} // selSel()
 
+		// PURPOSE: Handle VizModel reporting back -- but only used for Volumes, so don't pass on
+	instance.vizAddSel = function(absI)
+	{
+	} // vizAddSel()
+
+		// PURPOSE: Handle VizModel reporting back -- but only used for Volumes, so don't pass on
+	instance.vizDelSel = function(absI)
+	{
+	} // vizDelSel()
+
 		// PURPOSE: Alert inner visualization that view frame has resized
 	instance.resize = function()
 	{
