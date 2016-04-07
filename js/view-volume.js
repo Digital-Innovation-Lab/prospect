@@ -37,12 +37,16 @@ var widgetData = {			// Widget state has to be global because YouTube API calls 
 //			----------------
 //			getFrameID() = Return ID of Frame's outermost DIV container
 //			setSel(sel) = array of absI of selected Records from external source (ideal)
+//			selBtns(enable) = set state of Show Selection button
+//			initDOM = initialize internal DOM
+//			openSelection()
+//
+//			Subclasses must implement
+//			-------------------------
 //			clearSel() = clear the current selection
 //			addSel(absI) = external request to add to selected Record in the frame
 //			delSel(absI) = external request to remove from selected Record in the frame
-//			setSelBtns(enable) = set state of Show Selection button
-//			initDOM = initialize internal DOM
-//			openSelection()
+
 
 function PViewFrame(vfIndex, callbacks)
 {
@@ -57,7 +61,7 @@ PViewFrame.prototype.getFrameID = function()
 	return '#view-frame-'+this.vfIndex;
 } // getFrameID()
 
-PViewFrame.prototype.setSelBtns = function(enable)
+PViewFrame.prototype.selBtns = function(enable)
 {
 	var vCnxt = jQuery(this.getFrameID()+' div.view-controls');
 
@@ -68,11 +72,13 @@ PViewFrame.prototype.setSelBtns = function(enable)
 		vCnxt.find('.osel').button("disable");
 		vCnxt.find('.osel').removeClass("pulse");
 	}
-} // doSelBtns()
+} // selBtns()
 
 	// PURPOSE: Open Record Inspector for current selection
 PViewFrame.prototype.openSelection = function()
 {
+	var self=this;
+
 	var container = jQuery('#inspect-content');
 	var avAttID=null;	// ID of any A/V widget or null
 	var avType=0;		// 0=none, 1=SoundCloud, 2=YouTube, 3=Native Audio
@@ -645,7 +651,7 @@ PViewFrame.prototype.openSelection = function()
 	}
 
 		// Stop pulsing while Inspector open
-	this.setSelBtns(false);
+	this.selBtns(false);
 
 		// Show first item & handle scroll buttons
 	inspectShow();
@@ -677,7 +683,7 @@ PViewFrame.prototype.openSelection = function()
 		jQuery('#btn-inspect-left').off("click");
 		jQuery('#btn-inspect-right').off("click");
 			// turn pulsing back on
-		doSelBtns(true);
+		self.selBtns(true);
 			// Unbind Inspector from this view -- one off only
 		inspector.off("dialogclose");
 	});
@@ -705,7 +711,6 @@ PViewFrame.prototype.openSelection = function()
 //			setState(state)
 //			showStream(stream)
 //			setStream(stream)
-//			selBtns(enable)
 //			clearSel()
 //			setSel(selList)
 //			addSel(absI)
@@ -766,6 +771,7 @@ PVizFrame.prototype.computeSel = function()
 	}
 
 	if (this.selAbsIs.length === 0) {
+		this.selBtns(false);
 		this.vizModel.clearSel();
 		return;
 	}
@@ -781,10 +787,10 @@ PVizFrame.prototype.computeSel = function()
 
 	if (vizSel.length === 0) {
 		this.vizModel.clearSel();
-		this.setSelBtns(false);
+		this.selBtns(false);
 	} else {
 		this.vizModel.setSel(vizSel);
-		this.setSelBtns(true);
+		this.selBtns(true);
 	}
 } // computeSel()
 
@@ -1234,7 +1240,7 @@ PVizFrame.prototype.createViz = function(vIndex, refresh)
 	newViz.setup();
 
 		// ViewFrames initially created w/o selection
-	// doSelBtns(false);
+	// selBtns(false);
 
 	if (this.datastream && refresh) {
 		newViz.render(this.datastream);
@@ -1344,16 +1350,10 @@ PVizFrame.prototype.setStream = function(stream)
 	this.datastream = stream;
 } // setStream()
 
-	// PURPOSE: Either enable or disable selection buttons for this ViewFrame
-PVizFrame.prototype.selBtns = function(enable)
-{
-	this.setSelBtns(enable);
-} // selBtns()
-
 PVizFrame.prototype.clearSel = function()
 {
 	this.selAbsIs = this.vizSel = [];
-	this.setSelBtns(false);
+	this.selBtns(false);
 	if (this.vizModel) {
 		this.vizModel.clearSel();
 	}
@@ -1377,8 +1377,11 @@ PVizFrame.prototype.addSel = function(absI)
 	var i;
 		// Always store in requested IDs
 	i = _.sortedIndex(this.selAbsIs, absI);
-	this.selAbsIs.splice(i, 0, absI);
-	this.computeSel();
+		// Check to see if it already exists
+	if (this.selAbsIs[i] !== absI) {
+		this.selAbsIs.splice(i, 0, absI);
+		this.computeSel();
+	}
 } // addSel()
 
 	// PURPOSE: Handle external request to remove from selection
@@ -1736,10 +1739,15 @@ PTextFrame.prototype.initDOM = function()
 					// If it already exists, remove it
 				if (vizSel[i] === a) {
 					vizSel.splice(i, 1);
+						// Empty now?
+					if (vizSel.length === 0) {
+						self.selBtns(false);
+					}
 					self.callbacks.delSel(0, a);
 					jQuery('#text-frame a[data-id="'+id+'"]').removeClass('sel');
 				} else {	// add selected absID
 					if (vizSel.length === 0) {
+						self.selBtns(true);
 						vizSel.push(a);
 					} else {
 						vizSel.splice(i, 0, a);
@@ -2133,7 +2141,7 @@ PTextFrame.prototype.txtIDs2IS = function()
 PTextFrame.prototype.clearSel = function()
 {
 	this.selAbsIs = this.vizSel = [];
-	this.setSelBtns(false);
+	this.selBtns(false);
 	jQuery('#text-frame a').removeClass('sel');
 } // clearSel()
 
@@ -2171,8 +2179,13 @@ PTextFrame.prototype.addSel = function(absI)
 		// Check and see if visible
 	r = PData.rByN(absI);
 	t = jQuery('#text-frame a[data-id="'+r.id+'"]');
-	if (t.length > 1) {
+console.log("Request to TextFrame to add "+absI+" (id: "+r.id+") ");
+	if (t.length > 0) {
 		t.addClass('sel');
+			// First item?
+		if (this.vizSel.length === 0) {
+			this.selBtns(true);
+		}
 		i = _.sortedIndex(this.vizSel, absI);
 		this.vizSel.splice(i, 0, absI);
 	}
@@ -2188,8 +2201,12 @@ PTextFrame.prototype.delSel = function(absI)
 	this.selAbsIs.splice(i, 1);
 		// Check to see if on visible list
 	i = _.sortedIndex(this.vizSel, absI);
-	if (this.vizSel[i] == absI) {
+	if (this.vizSel[i] === absI) {
 		this.vizSel.splice(i, 1);
+			// Last item removed?
+		if (this.vizSel.length === 0) {
+			this.selBtns(false);
+		}
 		r = PData.rByN(absI);
 		jQuery('#text-frame a[data-id="'+r.id+'"]').removeClass('sel');
 	}
@@ -2232,6 +2249,48 @@ jQuery(document).ready(function($) {
 
 		// FUNCTIONS
 		//==========
+
+		// PURPOSE: Convert array of absolute indices to Record IDs
+	function absIs2IDs(absIs)
+	{
+		// TO DO -- for saving Reading
+	} // absIs2IDs()
+
+	function ids2absIs(IDs)
+	{
+		// TO DO -- for loading Reading
+	} // ids2absIs()
+
+		// PURPOSE: Convert absolute IDs to IndexStream
+		// INPUT: 	absIs = array of absolute IDs
+	function absIs2IS(absIs)
+	{
+			// NOTE: Need splice method, use generic arrays (not Uint16Array)
+		var is = { s: [], t: [], l: 0 };
+		var i, n, t;
+			// Create empty slots for each Template
+		for (i=0, n=PData.eTNum(); i<n; i++) {
+			is.t.push({i: 0, n: 0});
+		}
+		absIs.forEach(function(a) {
+				// Insert absI in order
+			if (is.s.length === 0) {
+				is.s.push(a);
+			} else {
+				i = _.sortedIndex(is.s, a);
+				is.s.splice(i, 0, a);
+			}
+				// Which Template does it belong to?
+			t=PData.n2T(a);
+				// Increment # Recs for this Template and starting indices for rest
+			is.t[t++].n += 1;
+			while (t < n) {
+				is.t[t++].i += 1;
+			}
+			is.l += 1;
+		});
+		return is;
+	} // absIs2IS()
 
 		// PURPOSE: Called after data has been loaded and viz can be rendered
 	function doRecompute()
@@ -3056,10 +3115,6 @@ jQuery(document).ready(function($) {
 		return true;
 	} // doShowReading()
 
-
-		// VOLUME EXTENSIONS
-		//==================
-
 		// PURPOSE: Handle clicking global "Clear" icon button
 	function clickClear(event)
 	{
@@ -3086,6 +3141,7 @@ jQuery(document).ready(function($) {
 		//			absI = the absolute index of the Record that has been selected
 	function doAddSel(vI, absI)
 	{
+console.log("Request from "+vI+" to add "+absI);
 		var vTo=views[vI^1];
 		switch (vMode) {
 		case 'v0': 		// Show all Records, highlight selected
@@ -3106,6 +3162,7 @@ jQuery(document).ready(function($) {
 		//			absI = the absolute index of the Record that has been deselected
 	function doDelSel(vI, absI)
 	{
+console.log("Request from "+vI+" to remove "+absI);
 		var vTo=views[vI^1];
 		switch (vMode) {
 		case 'v0': 		// Show all Records, highlight selected
@@ -3120,37 +3177,6 @@ jQuery(document).ready(function($) {
 			break;
 		}
 	} // doDelSel()
-
-		// PURPOSE: Convert absolute IDs to IndexStream
-		// INPUT: 	absIs = array of absolute IDs
-	function absIs2IS(absIs)
-	{
-			// NOTE: Need splice method, use generic arrays (not Uint16Array)
-		var is = { s: [], t: [], l: 0 };
-		var i, n, t;
-			// Create empty slots for each Template
-		for (i=0, n=PData.eTNum(); i<n; i++) {
-			is.t.push({i: 0, n: 0});
-		}
-		absIs.forEach(function(a) {
-				// Insert absI in order
-			if (is.s.length === 0) {
-				is.s.push(a);
-			} else {
-				i = _.sortedIndex(is.s, a);
-				is.s.splice(i, 0, a);
-			}
-				// Which Template does it belong to?
-			t=PData.n2T(a);
-				// Increment # Recs for this Template and starting indices for rest
-			is.t[t++].n += 1;
-			while (t < n) {
-				is.t[t++].i += 1;
-			}
-			is.l += 1;
-		});
-		return is;
-	} // absIs2IS()
 
 		// PURPOSE: Text Frame has rendered itself, requests that Viz build itself
 		// NOTES: 	Record data may not yet be loaded -- may have to save text data for later use

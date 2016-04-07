@@ -197,7 +197,7 @@ PVizModel.prototype.toggleSel = function(absI)
 {
 	var sz = this.recSel.length;
 	var i = _.sortedIndex(this.recSel, absI);
-	if (this.recSel[i] == absI) {
+	if (this.recSel[i] === absI) {
 		this.recSel.splice(i, 1);
 		if (sz > 0 && this.recSel.length == 0) {
 			this.vFrame.selBtns(false);
