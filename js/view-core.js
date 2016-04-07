@@ -421,8 +421,9 @@ VizMap.prototype.render = function(stream)
 		}
 	} // markerClick()
 
-	if (this.recSel.length > 0)
+	if (this.recSel.length > 0) {
 		this.recSel=[];
+	}
 
 	this.preRender();
 
@@ -827,8 +828,9 @@ VizCards.prototype.render = function(stream)
 	var thisFrame = jQuery(this.frameID);
 	thisFrame.empty();
 
-	if (this.recSel.length > 0)
+	if (this.recSel.length > 0) {
 		this.recSel=[];
+	}
 
 	this.preRender();
 
@@ -1201,8 +1203,9 @@ VizPinboard.prototype.render = function(stream)
 	this.gRecs.selectAll('.recobj').remove();
 	this.gRecs.selectAll('.recline').remove();
 
-	if (this.recSel.length > 0)
+	if (this.recSel.length > 0) {
 		this.recSel=[];
+	}
 
 	this.preRender();
 
@@ -2015,8 +2018,9 @@ VizTime.prototype.render = function(stream)
 	var self = this;
 	var vI = this.vFrame.getIndex();
 
-	if (this.recSel.length > 0)
+	if (this.recSel.length > 0) {
 		this.recSel=[];
+	}
 
 	this.preRender();
 
@@ -2665,8 +2669,9 @@ VizDirectory.prototype.render = function(stream)
 	var thisFrame = jQuery(this.frameID);
 	thisFrame.empty();
 
-	if (this.recSel.length > 0)
+	if (this.recSel.length > 0) {
 		this.recSel=[];
+	}
 
 	this.preRender();
 
@@ -2924,8 +2929,9 @@ VizTextStream.prototype.render = function(stream)
 	var vizDiv = jQuery(this.frameID);
 	vizDiv.empty();
 
-	if (this.recSel.length > 0)
+	if (this.recSel.length > 0) {
 		this.recSel=[];
+	}
 
 	this.preRender();
 
@@ -5749,8 +5755,9 @@ var PData = (function() {
 
 				while (curDate <= maxDate) {
 					var rCat={};
-					if (addItems)
+					if (addItems) {
 						rCat.i = [];
+					}
 
 					switch (inc) {
 					case 'd':
