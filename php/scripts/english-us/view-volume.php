@@ -22,7 +22,7 @@
 			<div id="toc-controls" style="display: none;">
 				<input type="checkbox" id="tochcall" name="tochcall" title=<?php _e('"On Reading List"', 'prospect'); ?>/><label for="tochcall"><?php _e('Un/Check All', 'prospect'); ?></label> &nbsp;
 				<input type="checkbox" id="tochsall" name="tochsall" title=<?php _e('"Currently in Reading Pane"', 'prospect'); ?>/><label for="tochsall"><?php _e('De/Select All', 'prospect'); ?></label> &nbsp;
-				<button id="tocfind"><?php _e('Find', 'prospect'); ?></button>
+				<button id="tocfind"><?php _e('Find Text', 'prospect'); ?></button>
 			</div>
 			<div id="text-controls">
 				&nbsp;<button id="textprev"><?php _e('Previous', 'prospect'); ?></button>
@@ -376,6 +376,10 @@
 
 <script id="dltext-filtered" type="text">
 <?php _e('Filtered', 'prospect'); ?>
+</script>
+
+<script id="dltext-findintext" type="text">
+<?php _e('Find In Text', 'prospect'); ?>
 </script>
 
 <script id="dltext-sync-xscript" type="text">

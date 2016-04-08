@@ -664,6 +664,12 @@ PViewFrame.prototype.openSelection = function()
 		modal: true,
 		buttons: [
 			{
+				text: dlText.findintext,
+				click: function() {
+					self.callbacks.textFrame.findRec(rec.id);
+				}
+			},
+			{
 				text: dlText.seerec,
 				click: function() {
 					window.open(prspdata.site_url+'?p='+rec.wp, '_blank');
@@ -1491,6 +1497,108 @@ PTextFrame.prototype = Object.create(PViewFrame.prototype);
 
 PTextFrame.prototype.constructor = PViewFrame;
 
+	// PURPOSE: Search through elements of text, marking sections for which evalFunc returns true
+	// INPUT: 	evalFunc = function(element, header)
+	// SIDE FX: 
+PTextFrame.prototype.searchFunc = function(evalFunc)
+{
+	var self=this;
+	var fnd, cur;
+	this.volData.forEach(function(chap, cI) {
+			// Set to false by default
+		fnd=false;
+			// Check first in Chapter header
+		if (evalFunc(chap.e, true)) {
+			fnd=true;
+		} else {
+				// Check in following text (up to next section)
+			cur = jQuery(chap.e).next();
+			while (cur.length != 0) {
+				switch (cur.prop('tagName').toUpperCase()) {
+				case 'H1':
+				case 'H2':
+					cur=[];
+					break;
+				default:
+					if (evalFunc(cur, false)) {
+						fnd=true;
+						cur=[];
+					} else {
+						cur = cur.next();
+					}
+					break;
+				} // switch
+			} // while
+		}
+		self.tocRL[cI].c = fnd;
+
+		chap.s.forEach(function(sec, sI) {
+			fnd=false;
+				// Check first in Section header
+			if (evalFunc(sec, true)) {
+				fnd=true;
+			} else {
+					// Check in following text (up to next section)
+				cur = jQuery(sec).next();
+				while (cur.length != 0) {
+					switch (cur.prop('tagName').toUpperCase()) {
+					case 'H1':
+					case 'H2':
+						cur=[];
+						break;
+					default:
+						if (evalFunc(cur, false)) {
+							fnd=true;
+							cur=[];
+						} else {
+							cur = cur.next();
+						}
+						break;
+					} // switch
+				} // while
+			}
+			self.tocRL[cI].s[sI] = fnd;
+		});
+	});
+	this.updateTOCRL();
+} // searchFunc()
+
+	// PURPOSE: Mark Reading List for all references to Record id in <a> links
+PTextFrame.prototype.findRec = function(id)
+{
+	function evalRecID(e, header)
+	{
+		var clan, i, d, f=false;
+		if (!header) {
+			clan = jQuery(e).children("a");
+			for (i=0; i<clan.length; i++) {
+				d = jQuery(clan[i]).data('id');
+				if (d && d === id) {
+					f=true;
+					break;
+				}
+			}
+		}
+		return f;
+	} // evalRecID
+	this.searchFunc(evalRecID);
+} // findRec()
+
+	// PURPOSE: Set reading list checkboxes based on tocRL
+PTextFrame.prototype.updateTOCRL = function()
+{
+	var tf, cDom, sDom;
+
+	tf = jQuery('#toc-frame');
+	this.tocRL.forEach(function(chap, cI) {
+		cDom = tf.find('ul.toc-wrapper > li.toc-chap[data-c="'+cI+'"]');
+		cDom.find('.readlist-c').prop('checked', chap.c);
+		chap.s.forEach(function(sec, sI) {
+			cDom.find('li[data-s="'+sI+'"] > .readlist').prop('checked', sec);
+		});
+	});
+} // updateTOCRL()
+
 PTextFrame.prototype.initDOM = function()
 {
 	var self=this;
@@ -1508,7 +1616,7 @@ PTextFrame.prototype.initDOM = function()
 				chap.s[j] = c;
 			}
 		}
-		updateTOCRL();
+		self.updateTOCRL();
 		// Don't prevent default, as that's what updates HTML Dom
 	} // clickTOCHCAll()
 
@@ -1547,22 +1655,7 @@ PTextFrame.prototype.initDOM = function()
 				cDom.find('li[data-s="'+sI+'"]').toggleClass('sel', sec);
 			});
 		});
-	} // updateTOCRL()
-
-		// PURPOSE: Set reading list checkboxes based on tocRL
-	function updateTOCRL()
-	{
-		var tf, cDom, sDom;
-
-		tf = jQuery('#toc-frame');
-		self.tocRL.forEach(function(chap, cI) {
-			cDom = tf.find('ul.toc-wrapper > li.toc-chap[data-c="'+cI+'"]');
-			cDom.find('.readlist-c').prop('checked', chap.c);
-			chap.s.forEach(function(sec, sI) {
-				cDom.find('li[data-s="'+sI+'"] > .readlist').prop('checked', sec);
-			});
-		});
-	} // updateTOCRL()
+	} // updateTOCSel()
 
 		// PURPOSE: Insert appropriate text into text frame, given tocSel
 		// SIDE-FX:	Compile list of Record IDs in <a> in txtIDs
@@ -1959,64 +2052,16 @@ PTextFrame.prototype.initDOM = function()
 					text: dlText.ok,
 					click: function() {
 						var txt = jQuery('#find-toc-txt').val();
-						var fnd, cur;
-						self.volData.forEach(function(chap, cI) {
-								// Set to false by default
-							fnd=false;
-								// Check first in Chapter header
-							if (chap.e.innerHTML.indexOf(txt) !== -1) {
-								fnd=true;
-							} else {
-									// Check in following text (up to next section)
-								cur = jQuery(chap.e).next();
-								while (cur.length != 0) {
-									switch (cur.prop('tagName').toUpperCase()) {
-									case 'H1':
-									case 'H2':
-										cur=[];
-										break;
-									default:
-										if (jQuery(cur).contents().text().indexOf(txt) !== -1) {
-											fnd=true;
-											cur=[];
-										} else {
-											cur = cur.next();
-										}
-										break;
-									} // switch
-								} // while
-							}
-							self.tocRL[cI].c = fnd;
 
-							chap.s.forEach(function(sec, sI) {
-								fnd=false;
-									// Check first in Section header
-								if (sec.innerHTML.indexOf(txt) !== -1) {
-									fnd=true;
-								} else {
-										// Check in following text (up to next section)
-									cur = jQuery(sec).next();
-									while (cur.length != 0) {
-										switch (cur.prop('tagName').toUpperCase()) {
-										case 'H1':
-										case 'H2':
-											cur=[];
-											break;
-										default:
-											if (jQuery(cur).contents().text().indexOf(txt) !== -1) {
-												fnd=true;
-												cur=[];
-											} else {
-												cur = cur.next();
-											}
-											break;
-										} // switch
-									} // while
-								}
-								self.tocRL[cI].s[sI] = fnd;
-							});
-						});
-						updateTOCRL();
+						function evalTxtFind(e, header) {
+							if (header) {
+								return e.innerHTML.indexOf(txt) !== -1;
+							} else {
+								return jQuery(e).contents().text().indexOf(txt) !== -1;
+							}
+						} // evalTxtFind()
+
+						self.searchFunc(evalTxtFind);
 						dialog.dialog("close");
 					}
 				},
@@ -2112,7 +2157,7 @@ PTextFrame.prototype.initDOM = function()
 	jQuery('#text-frame').click(clickTextFrame);
 
 	buildTOC();
-	updateTOCRL();
+	this.updateTOCRL();
 	updateTOCSel();
 	buildTextFrame();
 } // initDOM()
@@ -2265,12 +2310,27 @@ jQuery(document).ready(function($) {
 		// PURPOSE: Convert array of absolute indices to Record IDs
 	function absIs2IDs(absIs)
 	{
-		// TO DO -- for saving Reading
+		var ids=[], r;
+
+		absIs.forEach(function(absI) {
+			r = PData.rByN(absI);
+			if (r != null) {
+				ids.push(r.id);
+			}
+		});
+		return ids;
 	} // absIs2IDs()
 
-	function ids2absIs(IDs)
+	function ids2absIs(ids)
 	{
-		// TO DO -- for loading Reading
+		var absIs=[], absI;
+		ids.forEach(function(id) {
+			absI = PData.nByID(id);
+			if (absI != null) {
+				absIs.push(absI);
+			}
+		});
+		return absIs;
 	} // ids2absIs()
 
 		// PURPOSE: Convert absolute IDs to IndexStream
@@ -3296,6 +3356,7 @@ jQuery(document).ready(function($) {
 		loadFrag('dltext-nofilter', 'nofilter');
 		loadFrag('dltext-dofilters', 'dofilters');
 		loadFrag('dltext-filtered', 'filtered');
+		loadFrag('dltext-findintext', 'findintext');
 
 		text = document.getElementById('dltext-month-names').innerHTML;
 		months = text.trim().split('|');
@@ -3445,11 +3506,12 @@ jQuery(document).ready(function($) {
 		});
 	}());
 
-	callbacks = { addSel: doAddSel, delSel: doDelSel, newText: doNewText };
+	callbacks = { addSel: doAddSel, delSel: doDelSel, newText: doNewText, textFrame: null };
 
 		// Always create and initialize Text Frame first
 	views[0] = new PTextFrame(0, callbacks);
 	views[0].initDOM();
+	callbacks.textFrame = views[0];		// Set it retroactively after PTextFrame created
 
 		// Not restoring Reading: create default
 	if (prspdata.show_reading.length == 0 || !doShowReading(prspdata.show_reading)) {
