@@ -1587,7 +1587,7 @@ PTextFrame.prototype.findRec = function(id)
 	// PURPOSE: Set reading list checkboxes based on tocRL
 PTextFrame.prototype.updateTOCRL = function()
 {
-	var tf, cDom, sDom;
+	var tf, cDom;
 
 	tf = jQuery('#toc-frame');
 	this.tocRL.forEach(function(chap, cI) {
@@ -1609,7 +1609,7 @@ PTextFrame.prototype.initDOM = function()
 	function clickTOCHCAll(event)
 	{
 		var c = event.target.checked;
-		for (var i=0; i<tocRL.length; i++) {
+		for (var i=0; i<self.tocRL.length; i++) {
 			var chap = self.tocRL[i];
 			chap.c = c;
 			for (var j=0; j<chap.s.length; j++) {
