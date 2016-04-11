@@ -20,8 +20,8 @@
 		<div class="view-controls">
 			<button id="hstoc"><?php _e('Show/Hide Table of Contents', 'prospect'); ?></button>
 			<div id="toc-controls" style="display: none;">
-				<input type="checkbox" id="tochcall" name="tochcall" title=<?php _e('"On Reading List"', 'prospect'); ?>/><label for="tochcall"><?php _e('Un/Check All', 'prospect'); ?></label> &nbsp;
-				<input type="checkbox" id="tochsall" name="tochsall" title=<?php _e('"Currently in Reading Pane"', 'prospect'); ?>/><label for="tochsall"><?php _e('De/Select All', 'prospect'); ?></label> &nbsp;
+				<input type="checkbox" id="tochcall" name="tochcall" title=<?php _e('"On Reading List"', 'prospect'); ?>/><label for="tochcall"><?php _e('Un/Check Reading List', 'prospect'); ?></label> &nbsp;
+				<input type="checkbox" id="tochsall" name="tochsall" title=<?php _e('"Currently in Reading Pane"', 'prospect'); ?>/><label for="tochsall"><?php _e('Show/Hide All Selections', 'prospect'); ?></label> &nbsp;
 				<button id="tocfind"><?php _e('Find Text', 'prospect'); ?></button>
 			</div>
 			<div id="text-controls">
@@ -37,6 +37,10 @@
 				</ul>
 			</div>
 			<div id="text-frame">
+<!--				<div id="bookmark">
+				</div> -->
+				<div id="read-pane">
+				</div>
 			</div>
 		</div>
 	</div>
@@ -148,8 +152,16 @@
 		<input id="save-reading-id" type="text" size="20" placeholder=<?php _e('"Unique ID"', 'prospect'); ?>/><br/>
 		<?php _e('Label', 'prospect'); ?>:<br/>
 		<input id="save-reading-lbl" type="text" size="42" placeholder=<?php _e('"Label"', 'prospect'); ?>/><br/>
-		<input type="checkbox" name="save-reading-h0" id="save-reading-h0"/>
-		<label for="save-reading-h0"><?php _e('Save Highlight Filter 1', 'prospect'); ?></label> <input type="checkbox" name="save-reading-h1" id="save-reading-h1" disabled="disabled"/> <label for="save-reading-h1"><?php _e('Save Highlight Filter 2', 'prospect'); ?></label><br/>
+
+		<fieldset class="radiogroup">
+			<legend><?php _e('Select Records By', 'prospect'); ?></legend>
+			<ul class="radio">
+				<li><input type="radio" name="select-read-by" id="read-by-recs" value="recs" checked/><label for="read-by-recs"><?php _e('Restoring Exact Current Selection', 'prospect'); ?></label></li>
+				<li><input type="radio" name="select-read-by" id="read-by-h0" value="h0"/><label for="read-by-h0"><?php _e('Applying Text Frame Highlight Filter', 'prospect'); ?></label></li>
+				<li><input type="radio" name="select-read-by" id="read-by-h1" value="h1"/><label for="read-by-h1"><?php _e('Applying Visualization Frame Highlight Filter', 'prospect'); ?></label></li>
+			</ul>
+		</fieldset>
+
 		<textarea id="save-reading-note" rows="4" cols="50" placeholder=<?php _e('"Add an annotation (cannot use double quotes)"', 'prospect'); ?> style="margin-top: 4px"></textarea>
 	</div>
 
@@ -167,7 +179,7 @@
 		</div>
 	</div>
 
-	<div id="dialog-manage-prsrctv" title=<?php _e('"Manage Perspectives and Readings"', 'prospect'); ?>>
+	<div id="dialog-manage-reading" title=<?php _e('"Manage Perspectives and Readings"', 'prospect'); ?>>
 		<div class="scroll-container">
 			<ul id="reading-mlist">
 			</ul>

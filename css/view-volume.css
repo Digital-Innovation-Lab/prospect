@@ -396,119 +396,6 @@ div#text-controls {
 	display: inline-block;
 }
 
-div#toc-frame {
-	margin: 0;
-	padding: 3px;
-	overflow: auto;
-	margin: 1px auto 1px auto;
-}
-
-div#toc-frame button.ui-widget {
-	font-size: 10px;
-}
-
-div#toc-frame ul.toc-wrapper {
-	list-style: none;
-	list-style-position: inside; 
-	margin: 0px;
-	padding: 0px;
-	font-size: 12px;
-	text-align: left;
-}
-
-div#toc-frame ul.toc-wrapper li {
-	margin: 0px;
-	margin-top: 3px;
-	padding: 2px;
-	border: 2px solid black;
-	-webkit-border-radius: 6px;
-	-moz-border-radius: 6px;
-	border-radius: 6px;
-	background-color: #56A0D3;
-}
-
-/*
-div#toc-frame ul.toc-wrapper li:hover {
-	color: yellow;
-} */
-
-div#toc-frame ul.toc-wrapper li.sel {
-	border-color: yellow;
-}
-
-div#toc-frame ul.toc-wrapper ul {
-	list-style: none;
-	margin: 0;
-	padding: 0;
-	padding-left: 9px;
-}
-
-div#toc-frame ul.toc-wrapper ul li {
-	padding: 2px;
-	border: 2px solid black;
-	-webkit-border-radius: 4px;
-	-moz-border-radius: 4px;
-	border-radius: 4px;
-	background-color: #ccc;
-}
-
-/*
-div#toc-frame ul.toc-wrapper ul li:hover {
-	color: yellow;
-} */
-
-div#toc-frame ul.toc-wrapper ul li.sel {
-	border: 2px yellow solid;
-}
-
-div#text-frame {
-	margin: 0;
-	padding: 3px;
-	background-color: #eee;
-
-	font-weight: normal;
-	font-size: 11px;
-}
-
-div#text-frame h1 {
-	margin-top: 3px;
-	padding: 2px;
-	border: 2px solid black;
-	-webkit-border-radius: 6px;
-	-moz-border-radius: 6px;
-	border-radius: 6px;
-	background-color: #56A0D3;
-	font-weight: bold;
-	font-size: 18px;
-}
-
-div#text-frame h2 {
-	margin-top: 3px;
-	padding: 0px;
-	border-bottom: 2px solid black;
-	font-weight: bold;
-	font-size: 14px;
-}
-
-div#text-frame p {
-	font-weight: normal;
-	font-size: 11px;
-}
-
-div#text-frame blockquote {
-	margin-left: 20px;
-}
-
-div#text-frame a {
-	color: #00008B;
-	font-weight: bold;
-}
-
-div#text-frame a.sel {
-	color: #FF8C00;
-	border: 1px solid #FF8C00;
-}
-
 	/* Right-justified (optional) toolbar */
 div.view-controls div.iconbar
 {
@@ -569,6 +456,126 @@ div.viz-result.viz-max-h {
 }
 div.viz-result.viz-max-w {
 	width: 100%;
+}
+
+div#toc-frame {
+	margin: 0;
+	padding: 3px;
+	overflow-y: scroll;
+	margin: 1px auto 1px auto;
+}
+
+div#toc-frame button.ui-widget {
+	font-size: 10px;
+}
+
+div#toc-frame ul.toc-wrapper {
+	list-style: none;
+	list-style-position: inside; 
+	margin: 0px;
+	padding: 0px;
+	font-size: 12px;
+	text-align: left;
+}
+
+div#toc-frame ul.toc-wrapper li {
+	margin: 0px;
+	margin-top: 3px;
+	padding: 2px;
+	border: 2px solid black;
+	-webkit-border-radius: 6px;
+	-moz-border-radius: 6px;
+	border-radius: 6px;
+	background-color: #56A0D3;
+}
+
+div#toc-frame ul.toc-wrapper li.sel {
+	border-color: yellow;
+}
+
+div#toc-frame ul.toc-wrapper ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	padding-left: 9px;
+}
+
+div#toc-frame ul.toc-wrapper ul li {
+	padding: 2px;
+	border: 2px solid black;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
+	background-color: #ccc;
+}
+
+/*
+div#toc-frame ul.toc-wrapper ul li:hover {
+	color: yellow;
+} */
+
+div#toc-frame ul.toc-wrapper ul li.sel {
+	border: 2px yellow solid;
+}
+
+div#bookmark {
+	padding: 3px;
+	height: 40px;
+	width: 100%;
+	overflow-x: scroll;
+	white-space: nowrap;	/* don't allow controls to wrap to new line */
+}
+
+div#read-pane {
+	margin: 0;
+	padding: 3px;
+	background-color: #eee;
+/*	overflow-y: auto; */
+
+/*	height: 100%;
+	width: 100%;
+*/
+	font-weight: normal;
+	font-size: 11px;
+}
+
+div#read-pane h1 {
+	margin-top: 3px;
+	padding: 2px;
+	border: 2px solid black;
+	-webkit-border-radius: 6px;
+	-moz-border-radius: 6px;
+	border-radius: 6px;
+	background-color: #56A0D3;
+	font-weight: bold;
+	font-size: 18px;
+}
+
+div#read-pane h2 {
+	margin-top: 3px;
+	padding: 0px;
+	border-bottom: 2px solid black;
+	font-weight: bold;
+	font-size: 14px;
+}
+
+div#read-pane p {
+	font-weight: normal;
+	font-size: 11px;
+}
+
+div#read-pane blockquote {
+	margin-left: 20px;
+}
+
+div#read-pane a {
+	color: #00008B;
+	font-weight: bold;
+}
+
+div#read-pane a.sel {
+	color: #FF8C00;
+	border: 1px solid #FF8C00;
 }
 
 	/* Legends are semi-opaque overlays on content in top-left corner (z = 1000)

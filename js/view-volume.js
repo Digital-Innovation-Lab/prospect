@@ -1256,7 +1256,7 @@ PVizFrame.prototype.createViz = function(vIndex, refresh)
 
 PVizFrame.prototype.setViz = function(vI, refresh)
 {
-	if (vI != this.vizSelIndex) {
+	if (vI !== this.vizSelIndex) {
 		var select = jQuery('#view-frame-1 div.view-controls select.view-viz-select');
 		select.val(vI);
 		this.createViz(vI, refresh);
@@ -1372,7 +1372,7 @@ PVizFrame.prototype.clearSel = function()
 	// RETURNS: true if possible, false if not
 PVizFrame.prototype.setSel = function(selList)
 {
-	this.selAbsIs = selList;
+	this.selAbsIs = selList.slice(0);	// clone
 	if (this.vizModel) {
 		this.computeSel();
 	}
@@ -1479,6 +1479,8 @@ PVizFrame.prototype.getBMData = function()
 //			setSel(selList)
 //			addSel(absI)
 //			delSel(absI)
+//			newBookMark()
+//			updateBookMark()
 
 var PTextFrame = function(vfIndex, callbacks)
 {
@@ -1488,6 +1490,7 @@ var PTextFrame = function(vfIndex, callbacks)
 	this.tocRL=[];				// Which chapters and sections on reading list
 	this.tocSel=[];				// Which chapters and sections are highlighted for reading
 	this.tocSelDirty=false;		// Has user changed TOC selection?
+	this.bm=[];					// Bookmark: { i, cI, sI, sel, rl }
 	this.txtIDs=[];				// IDs of all Records currently in text frame (in sorted order)
 
 	PViewFrame.call(this, vfIndex, callbacks);
@@ -1599,6 +1602,21 @@ PTextFrame.prototype.updateTOCRL = function()
 	});
 } // updateTOCRL()
 
+	// PURPOSE: Set chapter & section selection based on tocSel
+PTextFrame.prototype.updateTOCSel = function()
+{
+	var tf, cDom, sDom;
+
+	tf = jQuery('#toc-frame');
+	this.tocSel.forEach(function(chap, cI) {
+		cDom = tf.find('ul.toc-wrapper > li.toc-chap[data-c="'+cI+'"]');
+		cDom.toggleClass('sel', chap.c);
+		chap.s.forEach(function(sec, sI) {
+			cDom.find('li[data-s="'+sI+'"]').toggleClass('sel', sec);
+		});
+	});
+} // updateTOCSel()
+
 PTextFrame.prototype.initDOM = function()
 {
 	var self=this;
@@ -1642,21 +1660,6 @@ PTextFrame.prototype.initDOM = function()
 		// Don't prevent default, as that's what updates HTML Dom
 	} // clickTOCHCAll()
 
-		// PURPOSE: Set chapter & section selection based on tocSel
-	function updateTOCSel()
-	{
-		var tf, cDom, sDom;
-
-		tf = jQuery('#toc-frame');
-		self.tocSel.forEach(function(chap, cI) {
-			cDom = tf.find('ul.toc-wrapper > li.toc-chap[data-c="'+cI+'"]');
-			cDom.toggleClass('sel', chap.c);
-			chap.s.forEach(function(sec, sI) {
-				cDom.find('li[data-s="'+sI+'"]').toggleClass('sel', sec);
-			});
-		});
-	} // updateTOCSel()
-
 		// PURPOSE: Insert appropriate text into text frame, given tocSel
 		// SIDE-FX:	Compile list of Record IDs in <a> in txtIDs
 		// ASSUMES: Scroll to next text section deselects previous selections
@@ -1665,7 +1668,7 @@ PTextFrame.prototype.initDOM = function()
 	{
 		var volC, volS, cur;
 
-		var tf = jQuery('#text-frame');
+		var tf = jQuery('#read-pane');
 		tf.empty();
 
 		self.tocSel.forEach(function(chap, cI) {
@@ -1718,7 +1721,7 @@ PTextFrame.prototype.initDOM = function()
 
 		var txtIDs=[]; // self.txtIS=null;
 		var recs;
-		recs = jQuery('#text-frame').find('a');
+		recs = jQuery('#read-pane').find('a');
 		recs.each(function(aI) {
 			var thisID = jQuery(this).data('id');
 				// Keep list sorted; don't add if already exists
@@ -1755,13 +1758,13 @@ PTextFrame.prototype.initDOM = function()
 
 		chap = self.tocSel[cI];
 			// Now set new reading material
-		if (sI == -1) {
+		if (sI === -1) {
 			chap.c = true;
 		} else {
 			chap.s[sI] = true;
 		}
 
-		updateTOCSel();
+		self.updateTOCSel();
 		buildTextFrame();
 	} // setTOCSel()
 
@@ -1829,10 +1832,10 @@ PTextFrame.prototype.initDOM = function()
 			.click(clickTOCCollapse);
 	} // buildTOC()
 
-		// PURPOSE: Handle a click on the text frame
+		// PURPOSE: Handle a click on the reading pane
 		// NOTE: 	As there can be multiple refereces to same Record in text frame,
 		//				we need to un/highlight all of them simultaneously!
-	function clickTextFrame(event)
+	function clickReadPane(event)
 	{
 		var a, i, id, n, t, x;
 		var vizSel=self.vizSel;
@@ -1849,8 +1852,10 @@ PTextFrame.prototype.initDOM = function()
 					if (vizSel.length === 0) {
 						self.selBtns(false);
 					}
+						// Also remove from selAbsIs
+					self.selAbsIs.splice(_.sortedIndex(self.selAbsIs, a), 1);
 					self.callbacks.delSel(0, a);
-					jQuery('#text-frame a[data-id="'+id+'"]').removeClass('sel');
+					jQuery('#read-pane a[data-id="'+id+'"]').removeClass('sel');
 				} else {	// add selected absID
 					if (vizSel.length === 0) {
 						self.selBtns(true);
@@ -1858,13 +1863,15 @@ PTextFrame.prototype.initDOM = function()
 					} else {
 						vizSel.splice(i, 0, a);
 					}
+						// Also add to selAbsIs
+					self.selAbsIs.splice(_.sortedIndex(self.selAbsIs, a), 0, a);
 					self.callbacks.addSel(0, a);
-					jQuery('#text-frame a[data-id="'+id+'"]').addClass('sel');
+					jQuery('#read-pane a[data-id="'+id+'"]').addClass('sel');
 				} // add ID
 			} // ID has absI
 		} // clicked link
 		event.preventDefault();
-	} // clickTextFrame()
+	} // clickReadPane()
 
 		// PURPOSE: Handle click on a chapter in TOC
 	function clickTOCChap(event)
@@ -2154,11 +2161,11 @@ PTextFrame.prototype.initDOM = function()
 		.click(clickTextFind);
 	jQuery('#view-frame-0 .osel').button({icons: { primary: 'ui-icon-search' }, text: false })
 		.click(clickTextShow);
-	jQuery('#text-frame').click(clickTextFrame);
+	jQuery('#read-pane').click(clickReadPane);
 
 	buildTOC();
 	this.updateTOCRL();
-	updateTOCSel();
+	this.updateTOCSel();
 	buildTextFrame();
 } // initDOM()
 
@@ -2201,7 +2208,7 @@ PTextFrame.prototype.clearSel = function()
 	this.selAbsIs = [];
 	this.vizSel = [];
 	this.selBtns(false);
-	jQuery('#text-frame a').removeClass('sel');
+	jQuery('#read-pane a').removeClass('sel');
 } // clearSel()
 
 	// PURPOSE: Attempt to set the Selection List of the VizModel to selList
@@ -2209,14 +2216,14 @@ PTextFrame.prototype.clearSel = function()
 PTextFrame.prototype.setSel = function(selList)
 {
 		// First clear everything
-	jQuery('#text-frame a').removeClass('sel');
+	jQuery('#read-pane a').removeClass('sel');
 
-	this.selAbsIs = selList;
+	this.selAbsIs = selList.slice(0);	// clone
 	var r, t, vizSel=[];
 	selList.forEach(function(absI) {
 		r = PData.rByN(absI);
 		if (r) {
-			t = jQuery('#text-frame a[data-id="'+r.id+'"]');
+			t = jQuery('#read-pane a[data-id="'+r.id+'"]');
 			if (t.length > 0) {
 				t.addClass('sel');
 				vizSel.push(absI);
@@ -2240,7 +2247,7 @@ PTextFrame.prototype.addSel = function(absI)
 	this.selAbsIs.splice(i, 0, absI);
 		// Check and see if visible
 	r = PData.rByN(absI);
-	t = jQuery('#text-frame a[data-id="'+r.id+'"]');
+	t = jQuery('#read-pane a[data-id="'+r.id+'"]');
 	if (t.length > 0) {
 		t.addClass('sel');
 			// First item?
@@ -2271,9 +2278,21 @@ PTextFrame.prototype.delSel = function(absI)
 			this.selBtns(false);
 		}
 		r = PData.rByN(absI);
-		jQuery('#text-frame a[data-id="'+r.id+'"]').removeClass('sel');
+		jQuery('#read-pane a[data-id="'+r.id+'"]').removeClass('sel');
 	}
 } // delSel()
+
+	// PURPOSE: Create book mark after TOC and RL created
+PTextFrame.prototype.newBookMark = function(absI)
+{
+} // newBookMark()
+
+	// PURPOSE: Update book mark after any changes
+PTextFrame.prototype.updateBookMark = function(absI)
+{
+} // newBookMark()
+
+
 
 
 // Immediately Invoked Function Expression -- Bootstrap for Prospect Volume Client
@@ -2302,7 +2321,8 @@ jQuery(document).ready(function($) {
 
 		// Volume extensions (not in Exhibit)
 	var vMode='v0';				// view option: selection from selaction radio buttons: 'v0', 'v1' or 'v2'
-	var callbacks;				// callbacks used by ViewFrames: { addSel, delSel, newText }
+	var callbacks;				// callbacks used by ViewFrames: { addSel, delSel, newText, textFrame }
+	var v1Sel=null;				// Array of RecIDs to select in VizFrame after data ready
 
 		// FUNCTIONS
 		//==========
@@ -2364,7 +2384,7 @@ jQuery(document).ready(function($) {
 		return is;
 	} // absIs2IS()
 
-		// PURPOSE: Called after data has been loaded and viz can be rendered
+		// PURPOSE: Called after data has been loaded to prepare dataStreams for rendering
 	function doRecompute()
 	{
 		var fDiv;
@@ -2376,9 +2396,7 @@ jQuery(document).ready(function($) {
 		endStream = topStream;
 
 		PState.set(PSTATE_BUILD);
-		render();
 	} // doRecompute()
-
 
 		// PURPOSE: Set annotation text to <t>
 	function setAnnote(t)
@@ -2441,8 +2459,9 @@ jQuery(document).ready(function($) {
 		reading = _.find(localReadings, function(theP) {
 			return id == theP.id;
 		});
-		if (reading)
+		if (reading) {
 			return reading;
+		}
 
 		return null;
 	} // getReading()
@@ -2451,6 +2470,8 @@ jQuery(document).ready(function($) {
 		// RETURNS: "local" or "server" if save successful, else null
 	function doSaveReading(id, label)
 	{
+		var v0=views[0], v1=views[1];
+
 			// Where to save it?
 		var dest = jQuery('input[name=save-reading-dest]:checked').val();
 		if (dest == '')
@@ -2460,28 +2481,25 @@ jQuery(document).ready(function($) {
 		note = note.replace(/"/g, '');
 
 			// Compile Reading state
-		var pState = { f: [], h0: null, h1: null, v0: null, v1: null };
-		views.forEach(function(v, vI) {
-			if (v) {
-				pState['v'+vI] = { l: v.title(), s: v.getState() }
-			}
-		});
-		filters.forEach(function(theF) {
-			var a=[];
-			var fDiv = jQuery('div.filter-instance[data-id="'+theF.id+'"]');
-			for (var ti=0; ti<PData.eTNum(); ti++) {
-				a.push(fDiv.find('.apply-tmplt-'+ti).is(':checked'));
-			}
-			pState.f.push({ id: theF.attID, a: a, s: theF.f.getState() });
-		});
+		var pState = { rl: v0.tocRL.slice(0), sel: v0.tocSel.slice(0), vm: vMode, h0: null, h1: null, recs: null, v1: null };
 
-			// Save Highlight filters?
-		for (var h=0; h<2; h++) {
-			var hFilter = hFilters[h];
-			if (hFilter !== null && jQuery('#save-reading-h'+h).is(':checked')) {
-				pState['h'+h] = { id: hFilterIDs[h], s: hFilter.getState() };
-			}
+		if (v1) {
+			pState.v1 = { l: v1.title(), s: v1.getState() }
 		}
+
+			// Save Highlight filters or Record selection IDs?
+		switch(jQuery('input[name=select-read-by]:checked').val()) {
+		case 'recs':
+			pState.recs = [absIs2IDs(v0.vizSel), absIs2IDs(v1.vizSel)];
+			break;
+		case 'h0':
+			pState.h0 = { id: hFilterIDs[0], s: hFilters[0].getState() };
+			break;
+		case 'h1':
+			pState.h1 = { id: hFilterIDs[1], s: hFilters[1].getState() };
+			break;
+		} // switch
+
 			// Store everything in Reading object
 		var sReading = { id: id, l: label, n: note, s: pState };
 
@@ -2503,8 +2521,9 @@ jQuery(document).ready(function($) {
 				},
 				success: function(data, textStatus, XMLHttpRequest)
 				{
-					if (data != '0')
+					if (data != '0') {
 						prspdata.p.push(sReading);
+					}
 				},
 				error: function(XMLHttpRequest, textStatus, errorThrown)
 				{
@@ -2535,17 +2554,12 @@ jQuery(document).ready(function($) {
 		}
 
 			// Uncheck Highlight filters by default
-		jQuery('#save-reading-h0').prop('checked', false);
-		jQuery('#save-reading-h1').prop('checked', false);
-			// Dis-/enable if no filter
-		for (var h=0; h<2; h++) {
-			var disable = (hFilters[h] === null || views[h] === null);
-			jQuery('#save-reading-h'+h).prop('disabled', disable);
-		}
+		jQuery('#read-by-h0').prop('disabled', hFilters[0] == null);
+		jQuery('#read-by-h1').prop('disabled', hFilters[1] == null);
 
 		spDialog = jQuery("#dialog-save-reading").dialog({
 			width: 350,
-			height: 370,
+			height: 400,
 			modal: true,
 			buttons: [
 				{
@@ -2557,13 +2571,14 @@ jQuery(document).ready(function($) {
 						var label = jQuery('#save-reading-lbl').val().trim();
 						label = label.replace(/"/g, '');
 
-						if (id.length === 0 || id.length > 20 || idError)
+						if (id.length === 0 || id.length > 20 || idError) {
 							idError = '#dialog-reading-id-badchars';
 							// Make sure ID not already taken
-						else if (getReading(id))
+						} else if (getReading(id)) {
 							idError = '#dialog-reading-id-used';
-						else if (label.length === 0 || label.length > 32)
+						} else if (label.length === 0 || label.length > 32) {
 							idError = '#dialog-reading-label-bad';
+						}
 						if (idError) {
 							var errDialog = jQuery(idError).dialog({
 								width: 320,
@@ -2704,7 +2719,7 @@ jQuery(document).ready(function($) {
 					jQuery('#edit-reading-lbl').val(pRec.l);
 					jQuery('#edit-reading-note').val(pRec.n);
 
-					var epDialog = jQuery("#dialog-edit-prsrctv").dialog({
+					var epDialog = jQuery("#dialog-edit-reading").dialog({
 						width: 340,
 						height: 270,
 						modal: true,
@@ -2715,10 +2730,11 @@ jQuery(document).ready(function($) {
 									pRec.l = jQuery('#edit-reading-lbl').val();
 									pRec.n = jQuery('#edit-reading-note').val();
 									parent.find('.label').text(pRec.l);
-									if (t == 'x')
+									if (t == 'x') {
 										xDataDirty = true;
-									else
+									} else {
 										localStore.setItem(prspdata.e.id, JSON.stringify(localReadings));
+									}
 									epDialog.dialog("close");
 								}
 							}, // OK
@@ -2741,10 +2757,11 @@ jQuery(document).ready(function($) {
 					click: function() {
 						if (xDataDirty) {
 							xData.forEach(function(xEntry) {
-								if (xEntry.ps.length > 0)
+								if (xEntry.ps.length > 0) {
 									localStore.setItem(xEntry.id, JSON.stringify(xEntry.ps));
-								else
+								} else {
 									localStore.removeItem(xEntry.id);
+								}
 							});
 						}
 						jQuery('#reading-mlist').off("click");
@@ -2952,7 +2969,7 @@ jQuery(document).ready(function($) {
 			// Apply to Text Frame?
 		if (vI === 0) {
 			var txtIS = v0.txtIDs2IS();
-			jQuery('#text-frame a').removeClass('sel');
+			jQuery('#read-pane a').removeClass('sel');
 			hFilter.evalPrep();
 
 			tRec=txtIS.t[0];
@@ -3090,101 +3107,88 @@ jQuery(document).ready(function($) {
 		// RETURN:  false if error
 	function doShowReading(pID)
 	{
+		var v0=views[0], v1=views[1];
+
 		function vizIndex(vID)
 		{
 			return prspdata.e.vf.findIndex(function(vf) {
-				return vID == vf.l;
+				return vID === vf.l;
 			});
 		}
 
 		var p = getReading(pID);
-		if (p == null)
+		if (p == null) {
 			return false;
+		}
 
 		PState.set(PSTATE_PROCESS);
 
-			// Minimize filter and selector bars
-		jQuery('#filter-frame').hide();
-
-			// Clear current Filter Stack & Selector Filter
-		filters.forEach(function(theF) {
-			theF.f.teardown();
-		});
-		filters=[];
-		jQuery('#filter-instances').empty();
-
-		p.s.f.forEach(function(fRec) {
-			var newF = createFilter(fRec.id, fRec.a, null);
-			newF.setState(fRec.s);
-		});
-		jQuery('#filter-instances').hide();
-		jQuery('#btn-toggle-filters').button(p.s.f.length == 0 ? "disable" : "enable");
-
-			// Load Highlight filters?
-		for (var h=0; h<2; h++) {
-			if (p.s['h'+h] != null) {	// Want to check for both null and undefined!
-				var hFData = p.s['h'+h];
-				hFilterIDs[h] = hFData.id;
-				var hFilter = createFilter(hFData.id, null, h);
-				hFilters[h] = hFilter;
-				hFilter.setState(hFData.s);
-			} else {
-				hFilters[h] = null;
-				hFilterIDs[h] = null;
-			}
-		}
-
-		var vI, v0=views[0], v1=views[1];
-		var resize0=false;
+			// Set Reading List, Reading Selection and vMode
+		v0.tocRL = p.s.rl.slice(0);
+		v0.tocSel = p.s.sel.slice(0);
+		vMode = p.s.vm;
 
 		PState.set(PSTATE_BUILD);
-		vI = vizIndex(p.s.v0.l);
-			// Already exists?
-		if (v0) {
-			v0.setViz(vI, false);
-			v0.selBtns(false);
-		} else {
-			views[0] = PViewFrame(0);
-			v0 = views[0];
-			v0.initDOM(vI);
-		}
 
-		if (p.s.v1 !== null) {
-			vI = vizIndex(p.s.v1.l);
-				// Already exists?
-			if (v1) {
-				v1.selBtns(false);
-				v1.setViz(vI, false);
-				v1.setState(p.s.v1.s);
-			} else {
-				v0.flushLgnd();
-				views[1] = PViewFrame(1);
-				v1 = views[1];
-				v1.initDOM(vI);
-				v1.setState(p.s.v1.s);
-				resize0 = true;
-			}
+		v0.updateTOCRL();
+		v0.updateTOCSel();
+		vI = vizIndex(p.s.v1.l);
+
+			// Does viz already exist?
+		if (v1) {
+			v1.setViz(vI, false);
+			v1.selBtns(false);
 		} else {
-			if (v1) {
-				views[1] = null;
-				jQuery('#view-frame-1').remove();
-				resize0 = true;
-			}
+			views[1] = PViewFrame(0);
+			v1 = views[0];
+			v1.initDOM(vI);
 		}
-			// Do left-side last because of resizing with right side
-		if (resize0)
-			v0.resize();
-		v0.setState(p.s.v0.s);
+		v1.setState(p.s.v1.s);
 
 		setAnnote(p.n);
+
+			// ASSUMES: hI is either 0 or 1
+		function setHFilter(hI, f)
+		{
+			var hFilter = createFilter(f.id, null, hI);
+			var other = hI ^ 1;
+			hFilterIDs[hI] = f.id;
+			hFilters[h] = hFilter;
+			hFilter.setState(f.s);
+
+			hFilterIDs[other] = null;
+			hFilters[other] = null;
+		} // setHFilter()
+
+			// Load Highlight filters?
+		if (p.s.h0 != null) {
+			setHFilter(0, p.s.h0);
+		} else if (p.s.h1 != null) {
+			setHFilter(1, p.s.h1);
+			v0.clearSel();
+		} else {
+			hFilterIDs[0] = hFilterIDs[1] = hFilters[0] = hFilters[1] = null;
+			v0.setSel(ids2absIs(p.s.recs[0]));
+			if (vMode !== 'v2') {
+				v1.setSel(ids2absIs(p.s.recs[1]));
+				v1Sel = null;
+			} else {
+				v1Sel = p.s.recs[1];
+			}
+		}
 
 			// Don't recompute if data not loaded yet
 		if (PData.ready() && topStream) {
 			doRecompute();
-			for (h=0; h<2; h++) {
-				if (hFilterIDs[h] !== null) {
-					doApplyHighlight(h);
-				}
+			if (hFilterIDs[0] != null) {
+				doApplyHighlight(0);
+			}
+			render();
+			if (hFilterIDs[1] != null) {
+				doApplyHighlight(1);
+			} else if (v1Sel != null) {		// Has a RecID selection been saved?
+				v1.setSel(ids2absIs(v1Sel));
+				v1Sel = null;
 			}
 		}
 
@@ -3282,7 +3286,7 @@ jQuery(document).ready(function($) {
 			v1.showStream(topStream);
 			sel = v0.vizSel;
 			if (sel.length > 0) {
-				v1.setSel(sel.slice(0));
+				v1.setSel(sel.slice(0));	// slice(0) clones the array
 			} else {
 				v1.clearSel();
 			}
@@ -3292,7 +3296,7 @@ jQuery(document).ready(function($) {
 			v1.showStream(endStream);
 			sel = v0.vizSel;
 			if (sel.length > 0) {
-				v1.setSel(sel.slice(0));
+				v1.setSel(sel.slice(0));	// slice(0) clones the array
 			} else {
 				v1.clearSel();
 			}
@@ -3416,12 +3420,13 @@ jQuery(document).ready(function($) {
 	}());
 
 		// Ensure proper ending for creating URLs
-	if (prspdata.site_url.charAt(prspdata.site_url.length-1) != '/')
+	if (prspdata.site_url.charAt(prspdata.site_url.length-1) != '/') {
 		prspdata.site_url += '/';
+	}
 
-	if (prspdata.e.g.l != '')
+	if (prspdata.e.g.l != '') {
 		jQuery('#title').text(prspdata.e.g.l);
-
+	}
 		// Is there a local storage mechanism? Get local Readings if so
 	try {
 		var storage = window['localStorage'], x = '__storage_test__';
@@ -3514,7 +3519,7 @@ jQuery(document).ready(function($) {
 	callbacks.textFrame = views[0];		// Set it retroactively after PTextFrame created
 
 		// Not restoring Reading: create default
-	if (prspdata.show_reading.length == 0 || !doShowReading(prspdata.show_reading)) {
+	if (prspdata.show_reading.length === 0 || !doShowReading(prspdata.show_reading)) {
 		views[1] = new PVizFrame(1, callbacks);
 		views[1].initDOM(0);
 		setAnnote('');
@@ -3534,18 +3539,19 @@ jQuery(document).ready(function($) {
 				// ASSUMED: This won't be triggered until after Volume, Filters & Views set up
 			PState.set(PSTATE_PROCESS);
 			doRecompute();
-			for (var h=0; h<2; h++) {
-				if (hFilters[h] !== null) {
-					doApplyHighlight(h);
-				}
+			if (hFilterIDs[0] != null) {
+				doApplyHighlight(0);
+			}
+			render();
+			if (hFilterIDs[1] != null) {
+				doApplyHighlight(1);
+			} else if (v1Sel != null) {		// Has a RecID selection been saved?
+				v1.setSel(ids2absIs(v1Sel));
+				v1Sel = null;
 			}
 			PState.set(PSTATE_READY);
 			jQuery('body').removeClass('waiting');
 			break;
-		// case PSTATE_FDIRTY:
-		// 	fState = 1;
-		// 	jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
-		// 	break;
 		case PSTATE_HILITE:
 			clickHighlight(data.v, data.t);
 			break;
@@ -3562,6 +3568,7 @@ jQuery(document).ready(function($) {
 function onYouTubeIframeAPIReady()
 {
 		// Call saved function call
-	if (widgetData.ytCall)
+	if (widgetData.ytCall) {
 		widgetData.ytCall();
+	}
 } // onYouTubeIframeAPIReady()
