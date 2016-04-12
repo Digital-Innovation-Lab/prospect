@@ -461,10 +461,10 @@ div.viz-result.viz-max-w {
 
 div#toc-frame {
 	margin: 0;
-	padding: 3px;
+	padding: 2px;
 	margin: 1px auto 1px auto;
 
-	overflow-y: scroll;		/* Probably not working correctly */
+	overflow-y: scroll;		/* Check if working correctly */
 
 	position: absolute;
 	height: 100%;
@@ -520,7 +520,7 @@ div#toc-frame ul.toc-wrapper ul li.sel {
 }
 
 div#bookmark {
-	padding: 3px;
+	padding: 2px;
 	height: 38px;
 	width: 100%;
 	background: white;
@@ -547,7 +547,7 @@ div#read-pane {
 
 	overflow-y: scroll;
 	position: absolute;
-	height: 100%;
+	height: calc(100% - 38px);
 	width: 100%;
 }
 
