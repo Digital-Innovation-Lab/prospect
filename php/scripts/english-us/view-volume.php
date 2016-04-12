@@ -37,8 +37,8 @@
 				</ul>
 			</div>
 			<div id="text-frame">
-<!--				<div id="bookmark">
-				</div> -->
+				<div id="bookmark">
+				</div>
 				<div id="read-pane">
 				</div>
 			</div>

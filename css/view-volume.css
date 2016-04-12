@@ -134,7 +134,7 @@ ul.radio li:hover, ul.radio li.focus {
 	/* Command Bar always along top row of window */
 #command-bar {
 	height: 28px;
-	background-color: #56A0D3;
+	background-color: #56A0D3;		/* blue */
 	color: #222;
 	font-size: 14px;
 	margin: 0px;
@@ -348,10 +348,6 @@ div.filter-body svg .brush .extent {
 	position: relative;
 }
 
-#view-frame-0 div.viz-content {
-	overflow-y: scroll;
-}
-
 	/* The second visualization display */
 #view-frame-1 {
 	width: calc(100% - 550px);
@@ -413,6 +409,11 @@ div.viz-content {
 	width: 100%;
 }
 
+	/* This works but will cause bookmark to scroll rather than be fixed */
+/* #view-frame-0 div.viz-content {
+	overflow-y: scroll;
+} */
+
 	/* All visualization results rendered here */
 	/* Styles are added to this DIV depending on whether visualization needs fixed size or content-wrapping size */
 div.viz-result {
@@ -461,8 +462,13 @@ div.viz-result.viz-max-w {
 div#toc-frame {
 	margin: 0;
 	padding: 3px;
-	overflow-y: scroll;
 	margin: 1px auto 1px auto;
+
+	overflow-y: scroll;		/* Probably not working correctly */
+
+	position: absolute;
+	height: 100%;
+	width: 100%;
 }
 
 div#toc-frame button.ui-widget {
@@ -509,34 +515,40 @@ div#toc-frame ul.toc-wrapper ul li {
 	background-color: #ccc;
 }
 
-/*
-div#toc-frame ul.toc-wrapper ul li:hover {
-	color: yellow;
-} */
-
 div#toc-frame ul.toc-wrapper ul li.sel {
 	border: 2px yellow solid;
 }
 
 div#bookmark {
 	padding: 3px;
-	height: 40px;
+	height: 38px;
 	width: 100%;
+	background: white;
 	overflow-x: scroll;
-	white-space: nowrap;	/* don't allow controls to wrap to new line */
+	white-space: nowrap;	/* don't allow elements to wrap to new line */
+}
+
+div#bookmark .bm {
+	stroke-width: 1;
+	stroke: none;
+}
+
+div#bookmark .bm.sel {
+	stroke: yellow;
 }
 
 div#read-pane {
 	margin: 0;
 	padding: 3px;
 	background-color: #eee;
-/*	overflow-y: auto; */
 
-/*	height: 100%;
-	width: 100%;
-*/
 	font-weight: normal;
 	font-size: 11px;
+
+	overflow-y: scroll;
+	position: absolute;
+	height: 100%;
+	width: 100%;
 }
 
 div#read-pane h1 {

@@ -1485,13 +1485,13 @@ PVizFrame.prototype.getBMData = function()
 var PTextFrame = function(vfIndex, callbacks)
 {
 	this.tocVis=false;			// Frame has TOC (true) or Text (false)
-	this.volData=[];			// Indices into text stream where chapters and sections begin: { hi, hl, bi, bl }
-								//		header and body x index and length (chars)
+	this.volData=[];			// { e[lement for chapter], s[ections], z[size] }
 	this.tocRL=[];				// Which chapters and sections on reading list
 	this.tocSel=[];				// Which chapters and sections are highlighted for reading
 	this.tocSelDirty=false;		// Has user changed TOC selection?
-	this.bm=[];					// Bookmark: { i, cI, sI, sel, rl }
+	this.bm=[];					// Bookmark: { i, cI, sI, l, sel, rl }
 	this.txtIDs=[];				// IDs of all Records currently in text frame (in sorted order)
+	this.svg;					// SVG for bookmark
 
 	PViewFrame.call(this, vfIndex, callbacks);
 } // PTextFrame()
@@ -1499,6 +1499,32 @@ var PTextFrame = function(vfIndex, callbacks)
 PTextFrame.prototype = Object.create(PViewFrame.prototype);
 
 PTextFrame.prototype.constructor = PViewFrame;
+
+	// PURPOSE: Update book mark after any changes
+PTextFrame.prototype.updateBookMark = function()
+{
+	var i=0, chap1, chap2, bm;
+
+		// Update All Data
+	for (var cI=0; cI<this.tocSel.length; cI++) {
+		chap1=this.tocSel[cI];
+		chap2=this.tocRL[cI];
+		bm = this.bm[i++];
+		bm.sel = chap1.c;
+		bm.rl  = chap2.c;
+
+		for (var sI=0; sI<chap1.s.length; sI++) {
+			bm = this.bm[i++];
+			bm.sel = chap1.s[sI];
+			bm.rl  = chap2.s[sI];
+		} // for
+	} // for
+
+		// Update Viz
+	this.svg.selectAll(".bm")
+			.attr("class", function(d) { return d.sel ? 'bm sel' : 'bm'; })
+			.attr("fill", function(d) { return d.rl ? '#56A0D3' : 'black'; });
+} // updateBookMark()
 
 	// PURPOSE: Search through elements of text, marking sections for which evalFunc returns true
 	// INPUT: 	evalFunc = function(element, header)
@@ -1538,11 +1564,11 @@ PTextFrame.prototype.searchFunc = function(evalFunc)
 		chap.s.forEach(function(sec, sI) {
 			fnd=false;
 				// Check first in Section header
-			if (evalFunc(sec, true)) {
+			if (evalFunc(sec.e, true)) {
 				fnd=true;
 			} else {
 					// Check in following text (up to next section)
-				cur = jQuery(sec).next();
+				cur = jQuery(sec.e).next();
 				while (cur.length != 0) {
 					switch (cur.prop('tagName').toUpperCase()) {
 					case 'H1':
@@ -1564,6 +1590,7 @@ PTextFrame.prototype.searchFunc = function(evalFunc)
 		});
 	});
 	this.updateTOCRL();
+	this.updateBookMark();
 } // searchFunc()
 
 	// PURPOSE: Mark Reading List for all references to Record id in <a> links
@@ -1620,7 +1647,7 @@ PTextFrame.prototype.updateTOCSel = function()
 PTextFrame.prototype.initDOM = function()
 {
 	var self=this;
-
+	var maxL=0;		// maximum length of a H1/H2 section
 	var frame = jQuery('#view-frame-1');
 
 		// PURPOSE: Handle click of Un/Check All (Reading List) checkbox on TOC
@@ -1635,6 +1662,7 @@ PTextFrame.prototype.initDOM = function()
 			}
 		}
 		self.updateTOCRL();
+		self.updateBookMark();
 		// Don't prevent default, as that's what updates HTML Dom
 	} // clickTOCHCAll()
 
@@ -1657,6 +1685,7 @@ PTextFrame.prototype.initDOM = function()
 				cDom.find('ul.toc-secs > li').removeClass('sel');
 			}
 		});
+		self.updateBookMark();
 		// Don't prevent default, as that's what updates HTML Dom
 	} // clickTOCHCAll()
 
@@ -1695,8 +1724,8 @@ PTextFrame.prototype.initDOM = function()
 			chap.s.forEach(function(sec, sI) {
 				if (sec) {
 					volS = volC.s[sI];
-					tf.append(jQuery(volS).clone());
-					cur = jQuery(volS).next();
+					tf.append(jQuery(volS.e).clone());
+					cur = jQuery(volS.e).next();
 					while (cur.length != 0) {
 						switch (cur.prop('tagName').toUpperCase()) {
 						case 'H1':
@@ -1765,6 +1794,7 @@ PTextFrame.prototype.initDOM = function()
 		}
 
 		self.updateTOCSel();
+		self.updateBookMark();
 		buildTextFrame();
 	} // setTOCSel()
 
@@ -1815,7 +1845,7 @@ PTextFrame.prototype.initDOM = function()
 			str += '<ul class="toc-secs">';
 				// Section headers and following DOM elements up to H1 or H2
 			chap.s.forEach(function(sec, sI) {
-				str += '<li data-s='+sI+'><input type="checkbox" class="readlist"/>'+sec.innerHTML+'</li>';
+				str += '<li data-s='+sI+'><input type="checkbox" class="readlist"/>'+sec.e.innerHTML+'</li>';
 			});
 			str += '</ul></li>';
 			tf.append(str);
@@ -1831,6 +1861,37 @@ PTextFrame.prototype.initDOM = function()
 		jQuery('#toc-frame .toccollapse').button({icons: { primary: 'ui-icon-plus' }, text: false })
 			.click(clickTOCCollapse);
 	} // buildTOC()
+
+		// PURPOSE: Create book mark after TOC and RL created
+		// NOTES: 	Bookmark: { i, cI, sI, sel, rl }
+	function buildBookMark()
+	{
+		var i=0, chap1, chap2, v;
+		var bm=[];
+
+		for (var cI=0; cI<self.tocSel.length; cI++) {
+			chap1=self.tocSel[cI];
+			chap2=self.tocRL[cI];
+			v=self.volData[cI];
+			bm.push({ i: i++, cI: cI, sI: -1, l: Math.floor((12*v.l)/maxL), sel: chap1.c, rl: chap2.c });
+			for (var sI=0; sI<chap1.s.length; sI++) {
+				bm.push({ i: i++, cI: cI, sI: sI, l: Math.floor((12*v.s[sI].l)/maxL), sel: chap1.s[sI], rl: chap2.s[sI] });
+			} // for
+		} // for
+		self.bm = bm;
+
+		self.svg = d3.select("#bookmark").append("svg");
+		var bms = self.svg.selectAll(".bm")
+				.data(bm)
+				.enter()
+				.append("rect")
+				.attr("class", function(d) { return d.sel ? 'bm sel' : 'bm'; })
+				.attr("x", function(d) { return 1+(d.i*4); })
+				.attr("y", function (d) { return 12-d.l; })
+				.attr("width", "3")
+				.attr("height", function(d) { return 2+d.l; })
+				.attr("fill", function(d) { return d.rl ? '#56A0D3' : 'black'; });
+	} // buildBookMark()
 
 		// PURPOSE: Handle a click on the reading pane
 		// NOTE: 	As there can be multiple refereces to same Record in text frame,
@@ -1896,6 +1957,7 @@ PTextFrame.prototype.initDOM = function()
 				// 	chap.s[i] = false;
 				// }
 			}
+			self.updateBookMark();
 			event.preventDefault();
 		}
 	} // clickTOCChap()
@@ -1916,6 +1978,7 @@ PTextFrame.prototype.initDOM = function()
 			} else {
 				sDom.removeClass('sel');
 			}
+			self.updateBookMark();
 			event.preventDefault();
 		}
 	} // clickTOCSec()
@@ -1933,6 +1996,7 @@ PTextFrame.prototype.initDOM = function()
 			var cI = jQuery(event.target).closest('li.toc-chap').data('c');
 			self.tocRL[cI].s[sI] = on;
 		}
+		self.updateBookMark();
 		// Don't prevent default, as that's what updates HTML Dom
 	} // clickRLCheck()
 
@@ -2099,49 +2163,75 @@ PTextFrame.prototype.initDOM = function()
 		event.preventDefault();
 	} // clickTextShow()
 
-
 		// PURPOSE: Create all volume data by parsing HTML text representing volume
 		// SIDE-FX: Creates volData, tocRL, tocSel
 		// NOTES: 	Reading List is all on by default; open with first chapter in text pane
 	(function() {
 			// Get first child DOM node
 		var cur = jQuery('#prsp-volume').children(':first');
-		var chap=null, sec=null;
+		var chap=null, sec=null, size=0;
 
 		while (cur.length != 0) {
 			switch (cur.prop('tagName').toUpperCase()) {
 			case 'H1':
+					// Previous H2 to save?
+				if (sec != null) {
+					if (chap != null) {
+						chap.s.push(sec);
+					}
+					sec = null;
+				}
+					// Previous H1 to save?
 				if (chap != null) {
 					self.volData.push(chap);
 				}
-				chap = { e: cur.get(0), s: [] };
+				chap = { e: cur.get(0), s: [], l: 0 };
 				break;
 			case 'H2':
-				if (chap != null) {
-					chap.s.push(cur.get(0));
+					// Previous H2 to save?
+				if (sec != null) {
+					if (chap != null) {
+						chap.s.push(sec);
+					}
+					sec = null;
 				}
+				sec = { e: cur.get(0), l: 0 };
 				break;
 			default:
+					// Add size of content to whatever node is open
+				size = jQuery(cur).contents().text().length;
+				if (sec != null) {
+					sec.l += size;
+				} else if (chap != null) {
+					chap.l += size;
+				}
 				break;
 			}
 			cur = cur.next();
 		}
-			// Save any remaining data
+			// Flush any unsaved sections
+		if (sec != null) {
+			chap.s.push(sec);
+		}
+			// Flush any unsaved chapters
 		if (chap != null) {
 			self.volData.push(chap);
 		}
 
 			// Create default Reading List and Selection: everything selected on RL
 		self.volData.forEach(function(chap) {
+			maxL = Math.max(maxL, chap.l);
 			var rlChap={c: true, s: []};
 			var rlSel={c: false, s:[]};
 			chap.s.forEach(function(sec) {
+				maxL = Math.max(maxL, sec.l);
 				rlChap.s.push(true);
 				rlSel.s.push(false);
 			});
 			self.tocRL.push(rlChap);
 			self.tocSel.push(rlSel);
 		});
+
 			// Open at very beginning by default
 		self.tocSel[0].c = true;
 	})();
@@ -2167,6 +2257,7 @@ PTextFrame.prototype.initDOM = function()
 	this.updateTOCRL();
 	this.updateTOCSel();
 	buildTextFrame();
+	buildBookMark();
 } // initDOM()
 
 	// PURPOSE: Convert the IDs of all Records in text frame to IndexStream
@@ -2282,18 +2373,6 @@ PTextFrame.prototype.delSel = function(absI)
 	}
 } // delSel()
 
-	// PURPOSE: Create book mark after TOC and RL created
-PTextFrame.prototype.newBookMark = function(absI)
-{
-} // newBookMark()
-
-	// PURPOSE: Update book mark after any changes
-PTextFrame.prototype.updateBookMark = function(absI)
-{
-} // newBookMark()
-
-
-
 
 // Immediately Invoked Function Expression -- Bootstrap for Prospect Volume Client
 // ===============================================================================
@@ -2387,8 +2466,6 @@ jQuery(document).ready(function($) {
 		// PURPOSE: Called after data has been loaded to prepare dataStreams for rendering
 	function doRecompute()
 	{
-		var fDiv;
-
 		PState.set(PSTATE_PROCESS);
 
 		if (topStream == null)
@@ -3048,13 +3125,17 @@ jQuery(document).ready(function($) {
 				hFilter.evalDone(endStream.l);
 			}
 			PState.set(PSTATE_UPDATE);
-				// Just set or clear selection if done from Viz
+
 			if (list.length > 0) {
-				v0.setSel(list);
 				v1.setSel(list);
+				if (vMode !== 'v2') {
+					v0.setSel(list);
+				}
 			} else {
-				v0.clearSel();
 				v1.clearSel();
+				if (vMode !== 'v2') {
+					v0.clearSel();
+				}
 			}
 		} // if VizFrame
 
@@ -3283,6 +3364,7 @@ jQuery(document).ready(function($) {
 
 		switch (vMode) {
 		case 'v0': 		// Show all Records, highlight selected
+			endStream = topStream;
 			v1.showStream(topStream);
 			sel = v0.vizSel;
 			if (sel.length > 0) {
