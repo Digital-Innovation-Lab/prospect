@@ -311,7 +311,7 @@ class Prospect {
 			wp_enqueue_script('d3', plugins_url('lib/d3.min.js', dirname(__FILE__)));
 
 			wp_enqueue_script('prsp-view-core', plugins_url('js/view-core.min.js', dirname(__FILE__)));
-			wp_enqueue_script('prsp-view-volume', plugins_url('js/view-volume.js', dirname(__FILE__)), array('prsp-view-core'));
+			wp_enqueue_script('prsp-view-volume', plugins_url('js/view-volume.min.js', dirname(__FILE__)), array('prsp-view-core'));
 
 				// Get Volume definition
 			$the_volume = new ProspectVolume(true, get_the_ID(), true);
