@@ -1109,7 +1109,7 @@ PVizFrame.prototype.createViz = function(vIndex, refresh)
 	// 	newViz = new VizMBMap(this, theView.c);
 	// 	break;
 	}
-	vizSelIndex = vIndex;
+	this.vizSelIndex = vIndex;
 	var flags = newViz.flags();
 
 		// Either add scroll bars to viz-content and make viz-result fit content
@@ -1486,8 +1486,8 @@ var PTextFrame = function(vfIndex, callbacks)
 {
 	this.tocVis=false;			// Frame has TOC (true) or Text (false)
 	this.volData=[];			// { e[lement for chapter], s[ections], z[size] }
-	this.tocRL=[];				// Which chapters and sections on reading list
-	this.tocSel=[];				// Which chapters and sections are highlighted for reading
+	this.tocRL=[];				// Which chapters and sections on reading list { c, s:[] }
+	this.tocSel=[];				// Which chapters and sections are highlighted for reading { c, s:[] }
 	this.tocSelDirty=false;		// Has user changed TOC selection?
 	this.bm=[];					// Bookmark: { i, cI, sI, l, sel, rl }
 	this.txtIDs=[];				// IDs of all Records currently in text frame (in sorted order)
@@ -1644,6 +1644,88 @@ PTextFrame.prototype.updateTOCSel = function()
 	});
 } // updateTOCSel()
 
+
+	// PURPOSE: Insert appropriate text into text frame, given tocSel
+	// SIDE-FX:	Compile list of Record IDs in <a> in txtIDs
+	// ASSUMES: Scroll to next text section deselects previous selections
+	// TO DO:	Disable prev/next buttons if no RL items before or after
+PTextFrame.prototype.buildTextFrame = function()
+{
+	var self=this;
+	var volC, volS, cur;
+
+	var tf = jQuery('#read-pane');
+	tf.empty();
+
+	this.tocSel.forEach(function(chap, cI) {
+		volC = self.volData[cI];
+
+			// Chapter header and following DOM elements up to H1 or H2
+		if (chap.c) {
+			tf.append(jQuery(volC.e).clone());
+			cur = jQuery(volC.e).next();
+			while (cur.length != 0) {
+				switch (cur.prop('tagName').toUpperCase()) {
+				case 'H1':
+				case 'H2':
+					cur=[];
+					break;
+				default:
+					tf.append(cur.clone());
+					cur = cur.next();
+					break;
+				} // switch
+			} // while
+		} // if
+			// Section headers and following DOM elements up to H1 or H2
+		chap.s.forEach(function(sec, sI) {
+			if (sec) {
+				volS = volC.s[sI];
+				tf.append(jQuery(volS.e).clone());
+				cur = jQuery(volS.e).next();
+				while (cur.length != 0) {
+					switch (cur.prop('tagName').toUpperCase()) {
+					case 'H1':
+					case 'H2':
+						cur=[];
+						break;
+					default:
+						tf.append(cur.clone());
+						cur = cur.next();
+						break;
+					} // switch
+				} // while
+			} // if
+		});
+	});
+
+		// Find all <a>, create list of recs from data-id
+	this.selAbsI=[];
+	this.vizSel=[];
+	this.txtIDs=[];
+	this.selBtns(false);
+
+	var txtIDs=[]; // self.txtIS=null;
+	var recs;
+	recs = jQuery('#read-pane').find('a');
+	recs.each(function(aI) {
+		var thisID = jQuery(this).data('id');
+			// Keep list sorted; don't add if already exists
+		if (thisID) {
+			if (txtIDs.length == 0) {
+				txtIDs.push(thisID);
+			} else {
+				var i = _.sortedIndex(txtIDs, thisID);
+				if (txtIDs[i] !== thisID) {
+					txtIDs.splice(i, 0, thisID);
+				}
+			}
+		}
+	});
+	this.txtIDs=txtIDs;
+	this.callbacks.newText();
+} // buildTextFrame()
+
 PTextFrame.prototype.initDOM = function()
 {
 	var self=this;
@@ -1689,86 +1771,6 @@ PTextFrame.prototype.initDOM = function()
 		// Don't prevent default, as that's what updates HTML Dom
 	} // clickTOCHCAll()
 
-		// PURPOSE: Insert appropriate text into text frame, given tocSel
-		// SIDE-FX:	Compile list of Record IDs in <a> in txtIDs
-		// ASSUMES: Scroll to next text section deselects previous selections
-		// TO DO:	Disable prev/next buttons if no RL items before or after
-	function buildTextFrame()
-	{
-		var volC, volS, cur;
-
-		var tf = jQuery('#read-pane');
-		tf.empty();
-
-		self.tocSel.forEach(function(chap, cI) {
-			volC = self.volData[cI];
-
-				// Chapter header and following DOM elements up to H1 or H2
-			if (chap.c) {
-				tf.append(jQuery(volC.e).clone());
-				cur = jQuery(volC.e).next();
-				while (cur.length != 0) {
-					switch (cur.prop('tagName').toUpperCase()) {
-					case 'H1':
-					case 'H2':
-						cur=[];
-						break;
-					default:
-						tf.append(cur.clone());
-						cur = cur.next();
-						break;
-					} // switch
-				} // while
-			} // if
-				// Section headers and following DOM elements up to H1 or H2
-			chap.s.forEach(function(sec, sI) {
-				if (sec) {
-					volS = volC.s[sI];
-					tf.append(jQuery(volS.e).clone());
-					cur = jQuery(volS.e).next();
-					while (cur.length != 0) {
-						switch (cur.prop('tagName').toUpperCase()) {
-						case 'H1':
-						case 'H2':
-							cur=[];
-							break;
-						default:
-							tf.append(cur.clone());
-							cur = cur.next();
-							break;
-						} // switch
-					} // while
-				} // if
-			});
-		});
-
-			// Find all <a>, create list of recs from data-id
-		self.selAbsI=[];
-		self.vizSel=[];
-		self.txtIDs=[];
-		self.selBtns(false);
-
-		var txtIDs=[]; // self.txtIS=null;
-		var recs;
-		recs = jQuery('#read-pane').find('a');
-		recs.each(function(aI) {
-			var thisID = jQuery(this).data('id');
-				// Keep list sorted; don't add if already exists
-			if (thisID) {
-				if (txtIDs.length == 0) {
-					txtIDs.push(thisID);
-				} else {
-					var i = _.sortedIndex(txtIDs, thisID);
-					if (txtIDs[i] !== thisID) {
-						txtIDs.splice(i, 0, thisID);
-					}
-				}
-			}
-		});
-		self.txtIDs=txtIDs;
-		self.callbacks.newText();
-	} // buildTextFrame()
-
 		// PURPOSE: Set tocSel to indicate viewing chap, sec and update everything
 		// INPUT: 	if clear, remove all other flags
 		//			cI (chapter index) = 0..n-1
@@ -1795,7 +1797,7 @@ PTextFrame.prototype.initDOM = function()
 
 		self.updateTOCSel();
 		self.updateBookMark();
-		buildTextFrame();
+		self.buildTextFrame();
 	} // setTOCSel()
 
 		// PURPOSE: Handle toggling between TOC and Text panes
@@ -1810,7 +1812,7 @@ PTextFrame.prototype.initDOM = function()
 			jQuery('#text-frame').hide();
 		} else {
 			if (self.tocSelDirty) {
-				buildTextFrame();
+				self.buildTextFrame();
 			}
 			jQuery('#toc-controls').hide();
 			jQuery('#toc-frame').hide();
@@ -1886,9 +1888,9 @@ PTextFrame.prototype.initDOM = function()
 				.enter()
 				.append("rect")
 				.attr("class", function(d) { return d.sel ? 'bm sel' : 'bm'; })
-				.attr("x", function(d) { return 1+(d.i*4); })
+				.attr("x", function(d) { return d.i*5; })
 				.attr("y", function (d) { return 12-d.l; })
-				.attr("width", "3")
+				.attr("width", "4")
 				.attr("height", function(d) { return 2+d.l; })
 				.attr("fill", function(d) { return d.rl ? '#56A0D3' : 'black'; });
 	} // buildBookMark()
@@ -2256,7 +2258,7 @@ PTextFrame.prototype.initDOM = function()
 	buildTOC();
 	this.updateTOCRL();
 	this.updateTOCSel();
-	buildTextFrame();
+	this.buildTextFrame();
 	buildBookMark();
 } // initDOM()
 
@@ -2405,6 +2407,16 @@ jQuery(document).ready(function($) {
 
 		// FUNCTIONS
 		//==========
+
+		// PURPOSE: Return "clone" of 2-dimensional TOC booleam array (for Text Frame)
+	function cloneTOCArray(orig)
+	{
+		var n=[];
+		orig.forEach(function(c) {
+			n.push({ c: c.c, s: c.s.slice(0) });
+		});
+		return n;
+	} // cloneTOCArray()
 
 		// PURPOSE: Convert array of absolute indices to Record IDs
 	function absIs2IDs(absIs)
@@ -2558,7 +2570,7 @@ jQuery(document).ready(function($) {
 		note = note.replace(/"/g, '');
 
 			// Compile Reading state
-		var pState = { rl: v0.tocRL.slice(0), sel: v0.tocSel.slice(0), vm: vMode, h0: null, h1: null, recs: null, v1: null };
+		var pState = { rl: cloneTOCArray(v0.tocRL), sel: cloneTOCArray(v0.tocSel), vm: vMode, h0: null, h1: null, recs: null, v1: null };
 
 		if (v1) {
 			pState.v1 = { l: v1.title(), s: v1.getState() }
@@ -2581,7 +2593,7 @@ jQuery(document).ready(function($) {
 		var sReading = { id: id, l: label, n: note, s: pState };
 
 		if (dest == 'local') {
-			localReadings.push(Reading);
+			localReadings.push(sReading);
 			localStore.setItem(prspdata.e.id, JSON.stringify(localReadings));
 		} else if (dest == 'server') {
 				// Send via AJAX -- if successful, add locally
@@ -2636,7 +2648,7 @@ jQuery(document).ready(function($) {
 
 		spDialog = jQuery("#dialog-save-reading").dialog({
 			width: 350,
-			height: 400,
+			height: 420,
 			modal: true,
 			buttons: [
 				{
@@ -3205,19 +3217,24 @@ jQuery(document).ready(function($) {
 		PState.set(PSTATE_PROCESS);
 
 			// Set Reading List, Reading Selection and vMode
-		v0.tocRL = p.s.rl.slice(0);
-		v0.tocSel = p.s.sel.slice(0);
+		v0.tocRL = cloneTOCArray(p.s.rl);
+		v0.tocSel = cloneTOCArray(p.s.sel);
+
 		vMode = p.s.vm;
+		jQuery('#command-bar input[type=radio][name=vizmode]').val([vMode]);
 
 		PState.set(PSTATE_BUILD);
 
 		v0.updateTOCRL();
 		v0.updateTOCSel();
+		v0.updateBookMark();
+		v0.buildTextFrame();
+
 		vI = vizIndex(p.s.v1.l);
 
 			// Does viz already exist?
 		if (v1) {
-			v1.setViz(vI, false);
+			v1.setViz(vI, true);
 			v1.selBtns(false);
 		} else {
 			views[1] = PViewFrame(0);
@@ -3234,7 +3251,7 @@ jQuery(document).ready(function($) {
 			var hFilter = createFilter(f.id, null, hI);
 			var other = hI ^ 1;
 			hFilterIDs[hI] = f.id;
-			hFilters[h] = hFilter;
+			hFilters[hI] = hFilter;
 			hFilter.setState(f.s);
 
 			hFilterIDs[other] = null;
@@ -3532,7 +3549,7 @@ jQuery(document).ready(function($) {
 			.click(clickAnnotation);
 	jQuery('#clearsel').button({icons: { primary: 'ui-icon-cancel' }, text: false })
 		.click(clickClear);
-	jQuery('input[type=radio][name=vizmode]').change(function() {
+	jQuery('#command-bar input[type=radio][name=vizmode]').change(function() {
 		vMode = this.value;
 		views[0].clearSel();
 		views[1].clearSel();

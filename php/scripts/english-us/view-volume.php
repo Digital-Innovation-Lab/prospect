@@ -172,7 +172,7 @@
 	</div>
 
 	<div id="dialog-show-reading" title=<?php _e('"Show Reading"', 'prospect'); ?>>
-		<?php _e('Perspectives', 'prospect'); ?>:<br/>
+		<?php _e('Readings', 'prospect'); ?>:<br/>
 		<div class="scroll-container">
 			<ul id="reading-slist">
 			</ul>
