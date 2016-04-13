@@ -130,7 +130,7 @@
 		</div>
 	</div>
 
-	<div id="dialog-manage-prsrctv" title=<?php _e('"Manage Perspectives"', 'prospect'); ?>>
+	<div id="dialog-manage-prsrctv" title=<?php _e('"Manage Perspectives and Readings"', 'prospect'); ?>>
 		<div class="scroll-container">
 			<ul id="prspctv-mlist">
 			</ul>
