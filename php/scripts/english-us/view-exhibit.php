@@ -83,7 +83,7 @@
 
 	<div id="dialog-about" title=<?php _e('"About Prospect&#8482;"', 'prospect'); ?>>
 		<div class="scroll-container">
-			<p>Prospect&#8482; 1.0.5</p>
+			<p>Prospect&#8482; 1.2</p>
 			<img class="logo"/>
 			<p><?php _e('From the', 'prospect'); ?>
 			<a href="http://digitalinnovation.unc.edu" target="_blank">Digital Innovation Lab</a> <?php _e('of the', 'prospect'); ?> <a href="http://www.unc.edu" target="_blank">University of North Carolina, Chapel Hill</a>.</p>
