@@ -1523,12 +1523,12 @@ PTextFrame.prototype.updateBookMark = function()
 		// Update Viz
 	this.svg.selectAll(".bm")
 			.attr("class", function(d) { return d.sel ? 'bm sel' : 'bm'; })
-			.attr("fill", function(d) { return d.rl ? '#56A0D3' : 'black'; });
+			.attr("fill", function(d) { return d.rl ? '#0099FF' : '#C0C0C0'; });
 } // updateBookMark()
 
 	// PURPOSE: Search through elements of text, marking sections for which evalFunc returns true
 	// INPUT: 	evalFunc = function(element, header)
-	// SIDE FX: 
+	// SIDE FX: sets tocRL array values
 PTextFrame.prototype.searchFunc = function(evalFunc)
 {
 	var self=this;
@@ -1892,7 +1892,7 @@ PTextFrame.prototype.initDOM = function()
 				.attr("y", function (d) { return 12-d.l; })
 				.attr("width", "4")
 				.attr("height", function(d) { return 2+d.l; })
-				.attr("fill", function(d) { return d.rl ? '#56A0D3' : 'black'; });
+				.attr("fill", function(d) { return d.rl ? '#0099FF' : '#C0C0C0'; });
 	} // buildBookMark()
 
 		// PURPOSE: Handle a click on the reading pane
@@ -3401,6 +3401,7 @@ jQuery(document).ready(function($) {
 			}
 			break;
 		case 'v2': 		// Only Show selected Records
+			v1.clearSel();	// Clear any previous selection
 			endStream = absIs2IS(v0.vizSel);
 			v1.showStream(endStream);
 			break;
