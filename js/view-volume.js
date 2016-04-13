@@ -1307,7 +1307,7 @@ PVizFrame.prototype.getSelLegend = function(tIndex)
 	// RETURNS: Array of Attribute IDs chosen for all Templates on Legend
 PVizFrame.prototype.getLgndSels = function()
 {
-	return legendIDs.slice(0);
+	return this.legendIDs.slice(0);
 } // getLgndSels()
 
 	// PURPOSE: Set the Feature Attribute selections on the Legends
@@ -3237,8 +3237,8 @@ jQuery(document).ready(function($) {
 			v1.setViz(vI, true);
 			v1.selBtns(false);
 		} else {
-			views[1] = PViewFrame(0);
-			v1 = views[0];
+			views[1] = new PVizFrame(1, callbacks);
+			v1 = views[1];
 			v1.initDOM(vI);
 		}
 		v1.setState(p.s.v1.s);
