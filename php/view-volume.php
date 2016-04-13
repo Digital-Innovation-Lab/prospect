@@ -64,7 +64,6 @@
 
 <?php
 		ProspectAdmin::insert_html_file('view-volume.php');
-		// echo('<script id="prsp-volume" type="text">');
 		echo('<div id="prsp-volume" style="display:none">');
 
 			// Insert the HTML of the blog content
@@ -73,7 +72,6 @@
 		$this_post = get_post(get_the_ID());
 		echo $this_post->post_content;
 
-		// echo('</script>');
 		echo('</div>');
 		wp_footer();
 ?>
