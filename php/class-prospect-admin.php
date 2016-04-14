@@ -2209,6 +2209,10 @@ class ProspectAdmin {
 		<?php _e('<input type="submit" id="export_vol_readings" name="export_vol_readings" value="Export Readings"/>', 'prospect'); ?>
 		</form>
 
+		<h3><?php _e('Readings', 'prospect'); ?></h3>
+		<?php _e('<a href="admin.php?action=prsp_export_all_readings" title="Export all Readings as JSON archive file" rel="permalink">Export all Readings as JSON file</a>', 'prospect'); ?>
+		<br/>
+
 		<h3><?php _e('Website Configuration Export', 'prospect'); ?></h3>
 		<p><b><?php _e('IMPORTANT','prospect'); ?>:</b> <?php _e('All Records must still be exported on a Template-by-Template basis; this archive file does not include Maps or Perspectives.', 'prospect'); ?></p>
 		<?php _e('<a href="admin.php?action=prsp_export_all" title="Export all" rel="permalink">Export all Attributes, Templates, Exhibits and Volumes from this website as a JSON archive file</a>', 'prospect'); ?>
