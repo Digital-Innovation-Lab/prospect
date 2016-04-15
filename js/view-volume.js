@@ -2401,7 +2401,7 @@ jQuery(document).ready(function($) {
 	var localReadings=[];		// locally-stored Readings
 
 		// Volume extensions (not in Exhibit)
-	var vMode='v0';				// view option: selection from selaction radio buttons: 'v0', 'v1' or 'v2'
+	var vMode='v1';				// view option: selection from selaction radio buttons: 'v0', 'v1' or 'v2'
 	var callbacks;				// callbacks used by ViewFrames: { addSel, delSel, newText, textFrame }
 	var v1Sel=null;				// Array of RecIDs to select in VizFrame after data ready
 

@@ -2,8 +2,8 @@
 	<span id="title"></span>
 	&nbsp; <button id="btn-about"><?php _e('About Prospect', 'prospect'); ?></button>
 	<button id="clearsel"><?php _e('Clear Highlighted', 'prospect'); ?></button>
-	<input type="radio" name="vizmode" id="vizmode-0" value="v0" checked/><label for="vizmode-0"><?php _e('All &amp; Highlight', 'prospect'); ?></label>
-	<input type="radio" name="vizmode" id="vizmode-1" value="v1"/><label for="vizmode-1"><?php _e('Text &amp; Highlight', 'prospect'); ?></label>
+	<input type="radio" name="vizmode" id="vizmode-0" value="v0"/><label for="vizmode-0"><?php _e('All &amp; Highlight', 'prospect'); ?></label>
+	<input type="radio" name="vizmode" id="vizmode-1" value="v1" checked/><label for="vizmode-1"><?php _e('Text &amp; Highlight', 'prospect'); ?></label>
 	<input type="radio" name="vizmode" id="vizmode-2" value="v2"/><label for="vizmode-2"><?php _e('Display Only', 'prospect'); ?></label>
 	<button id="btn-show-reading"><?php _e('Show Reading', 'prospect'); ?></button>
 	<button id="btn-save-reading"><?php _e('Save Reading', 'prospect'); ?></button>

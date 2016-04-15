@@ -534,7 +534,7 @@ div#bookmark .bm {
 }
 
 div#bookmark .bm.sel {
-	stroke: orange;
+	stroke: #FF9900;
 }
 
 div#read-pane {
