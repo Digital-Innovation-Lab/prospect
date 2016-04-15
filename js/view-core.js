@@ -3352,7 +3352,7 @@ VizNetWheel.prototype.render = function(stream)
 		// Remove unconnected nodes?
 	if (this.prune) {
 		head.children.forEach(function(theT) {
-			for (var rI=theT.children.length-1; rI>0; rI--) {
+			for (var rI=theT.children.length-1; rI>=0; rI--) {
 				var r=theT.children[rI];
 				if (!r.l) {
 					theT.children.splice(rI, 1);
