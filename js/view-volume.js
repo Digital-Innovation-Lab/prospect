@@ -1931,9 +1931,10 @@ PTextFrame.prototype.initDOM = function()
 					self.callbacks.addSel(0, a);
 					jQuery('#read-pane a[data-id="'+id+'"]').addClass('sel');
 				} // add ID
+					// Only prevent default if we can handle the "link"
+				event.preventDefault();
 			} // ID has absI
 		} // clicked link
-		event.preventDefault();
 	} // clickReadPane()
 
 		// PURPOSE: Handle click on a chapter in TOC

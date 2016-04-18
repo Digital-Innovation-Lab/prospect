@@ -580,9 +580,19 @@ div#read-pane blockquote {
 	margin-left: 20px;
 }
 
+div#read-pane img {
+	margin: 3px;
+	border: 1px solid #cccccc;
+	max-width: 510px;
+}
+
 div#read-pane a {
 	color: #00008B;
 	font-weight: bold;
+}
+
+div#read-pane a.no-data {
+	color: #0099FF;
 }
 
 div#read-pane a.sel {
