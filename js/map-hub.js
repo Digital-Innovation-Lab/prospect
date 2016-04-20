@@ -21,8 +21,13 @@
 
 var PMapHub = (function () {
 		// Built-in Base Layers
+		// ASSUMES! That Maps are in sorted order by id!!
 	var baseLayers	= [
 		{ id: '.blank', sname: 'Blank', url: '', subd: '', credits: '', desc: 'Blank Base Map' },
+		{	id: '.esri-natgeoworld', sname: 'Esri, Nat Geo Landscape',
+			url: "http://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}",
+			subd: '', credits: 'Tiles &copy; Esri &mdash; National Geographic, Esri, DeLorme, NAVTEQ, UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC', desc: 'Esri, National Geographic Landscape'
+		},
 		{	id: '.mq-aerial', sname: 'MQ OpenAerial',
 			url: 'http://{s}.mqcdn.com/tiles/1.0.0/sat/{z}/{x}/{y}.jpg',
 			subd: 'otile1|otile2|otile3|otile4', credits: 'MapQuest', desc: 'MapQuest Open Aerial Base Map'
@@ -33,7 +38,19 @@ var PMapHub = (function () {
 		},
 		{	id: '.osm-base', sname: 'OSM Base',
 			url: 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
-			subd: '', credits: 'OpenStreetMap', desc: 'OpenStreetMap Base Map'
+			subd: 'a|b|c', credits: 'OpenStreetMap', desc: 'OpenStreetMap Base Map'
+		},
+		{	id: '.osm-bw', sname: 'OpenStreetMap B/W',
+			url: 'http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png',
+			subd: '', credits: 'OpenStreetMap', desc: 'OpenStreetMap B/W Base Map'
+		},
+		{	id: '.stamen-watercolor', sname: 'Stamen Watercolor',
+			url: 'http://tile.stamen.com/watercolor/{z}/{x}/{y}.jpg',
+			subd: '', credits: 'Stamen Design', desc: 'Stamen Watercolor Base Map'
+		},
+		{	id: '.thunder-land', sname: 'Thunderforest Landscape',
+			url: 'http://{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png',
+			subd: '', credits: 'Thunderforest', desc: 'Thunderforest Landscape Base Map'
 		}
 	];
 	var overLayers	= [];
