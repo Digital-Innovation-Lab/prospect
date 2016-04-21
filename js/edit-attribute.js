@@ -176,6 +176,22 @@ jQuery(document).ready(function() {
 	}
 	defAttribute.id = attID;
 
+		// Define f[ilter] flag if left undefined -- only relevant for some Attribute types
+	if (typeof defAttribute.f === 'undefined') {
+		switch (defAttribute.t) {
+		case 'V':
+		case 'T':
+		case 'g':
+		case 'N':
+		case 'D':
+			defAttribute.f = true;
+			break;
+		default:
+			defAttribute.f = false;
+			break;
+		} // switch
+	}
+
 	embedData = jQuery('textarea[name="prsp_att_r"]').val();
 	if (embedData && embedData.length > 2) {
 		defRange = JSON.parse(embedData);
@@ -445,6 +461,7 @@ jQuery(document).ready(function() {
 		}
 
 		var attType = rApp.get('theAttribute.t');
+		var canFilter = rApp.get('theAttribute.f');
 
 		var theDelim = rApp.get('theAttribute.d');
 		if (theDelim.length > 1) {
@@ -476,7 +493,7 @@ jQuery(document).ready(function() {
 		theHint = theHint.replace(/"/g, '');
 
 		return { l: theLabel, t: attType,
-				 d: theDelim, h: theHint };
+				 d: theDelim, h: theHint, f: canFilter };
 	} // doErrorCheck()
 
 		// PURPOSE: Find pre-defined Attributes of this type that have Legends
@@ -1332,8 +1349,9 @@ jQuery(document).ready(function() {
 					}
 				}
 
-				if (rApp.get('theRange.useU') == true)
+				if (rApp.get('theRange.useU') == true) {
 					attR.u = rApp.get('theRange.u');
+				}
 
 					// Compile Date Legend
 				var legend = rApp.get('theLegend');

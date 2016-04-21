@@ -205,7 +205,9 @@
 	</select>
 	<button on-click="copyCF"><?php _e('Use this Custom Field name', 'prospect'); ?></button>
 	<br/>
-	<?php _e('Attribute value delimiter (single character or blank)', 'prospect'); ?>: <input value='{{theAttribute.d}}' size="2"/><br/>
+	<?php _e('Attribute value delimiter (single character or blank)', 'prospect'); ?>: <input value='{{theAttribute.d}}' size="2"/> &nbsp; 
+	<?php _e('Available as Filter in Exhibit', 'prospect'); ?> <input type='checkbox' checked='{{theAttribute.f}}'/>
+	<br/>
 	<?php _e('Contributor Hint', 'prospect'); ?>: <br/>
 	<input type="text" size="64" maxlength="128" placeholder=<?php _e('"Explain Attribute entry to contributor"', 'prospect'); ?> value="{{theAttribute.h}}" /><br/>
 	<?php _e('Data type', 'prospect'); ?>: 
