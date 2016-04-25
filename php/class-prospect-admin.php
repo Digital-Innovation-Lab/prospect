@@ -397,6 +397,9 @@ class ProspectAdmin {
 		_e('Short Name', 'prospect');
 		echo ': </label></th><td><input name="prsp_map_sname" id="prsp_map_sname" type="text" value="'.$the_map->meta_data['sname'].'" size=30/></td></tr>';
 		echo '<tr><th style="width:20%"><label for="prsp_map_url">';
+		_e('Map Group IDs', 'prospect');
+		echo ': </label></th><td><input name="prsp_map_group_id" id="prsp_map_group_id" type="text" value="'.$the_map->meta_data['groupID'].'" size=30/></td></tr>';
+		echo '<tr><th style="width:20%"><label for="prsp_map_group_id">';
 		_e('Map URL', 'prospect');
 		echo ': </label></th><td><input name="prsp_map_url" id="prsp_map_url" type="url" value="'.$the_map->meta_data['url'].'" size=60/></td></tr>';
 		echo '<tr><th style="width:20%"><label for="prsp_map_inverse_y">';
@@ -669,6 +672,10 @@ class ProspectAdmin {
 			if (isset($_POST['prsp_map_url'])) {
 				$data = sanitize_text_field($_POST['prsp_map_url']);
 				update_post_meta($post_id, 'map_url', $data);
+			}
+			if (isset($_POST['prsp_map_group_id'])) {
+				$data = sanitize_text_field($_POST['prsp_map_group_id']);
+				update_post_meta($post_id, 'map_group_id', $data);
 			}
 
 			if (isset($_POST['prsp_map_inverse_y']))
@@ -996,15 +1003,18 @@ class ProspectAdmin {
 				}
 
 				$map_defs = ProspectMap::get_map_layer_list();
+				$map_groups = ProspectMap::get_all_map_group_ids();
 
 				wp_localize_script('edit-exhibit', 'prspdata', array(
 					'ajax_url' => $dev_url,
 					'post_id' => $postID,
 					'atts' => $att_data,
 					'templates' => $tmp_data,
-					'maps' => $map_defs
+					'maps' => $map_defs,
+					'map_groups' => $map_groups
 				));
 				break;
+
 			case 'prsp-volume':
 				wp_enqueue_style('jquery-ui-min-style', plugins_url('/css/jquery-ui.min.css', dirname(__FILE__)));
 				wp_enqueue_style('jquery-ui-theme-style', plugins_url('/css/jquery-ui.theme.min.css', dirname(__FILE__)));
@@ -1053,13 +1063,15 @@ class ProspectAdmin {
 				}
 
 				$map_defs = ProspectMap::get_map_layer_list();
+				$map_groups = ProspectMap::get_all_map_group_ids();
 
 				wp_localize_script('edit-volume', 'prspdata', array(
 					'ajax_url' => $dev_url,
 					'post_id' => $postID,
 					'atts' => $att_data,
 					'templates' => $tmp_data,
-					'maps' => $map_defs
+					'maps' => $map_defs,
+					'map_groups' => $map_groups
 				));
 				break;
 			} // switch
@@ -1425,6 +1437,7 @@ class ProspectAdmin {
 		fwrite($fp, '{"type": "Map", "map-id": "'.$the_map->id.'", '."\n");
 		fwrite($fp, '"map_sname": "'.$the_map->meta_data['sname']."\",\n");
 		fwrite($fp, '"map_url": "'.$the_map->meta_data['url']."\",\n");
+		fwrite($fp, '"map_group_id": "'.$the_map->meta_data['groupID']."\",\n");
 		fwrite($fp, '"map_inverse_y": "'.$the_map->meta_data['inverseY']."\",\n");
 		fwrite($fp, '"map_subdomains": "'.$the_map->meta_data['subd']."\",\n");
 		fwrite($fp, '"map_min_zoom": '.$the_map->meta_data['minZoom'].",\n");
@@ -1955,6 +1968,7 @@ class ProspectAdmin {
 			if ($post_id) {
 				update_post_meta($post_id, 'map_sname', $data['map_sname']);
 				update_post_meta($post_id, 'map_url', $data['map_url']);
+				update_post_meta($post_id, 'map_group_id', $data['map_group_id']);
 				update_post_meta($post_id, 'map_inverse_y', $data['map_inverse_y']);
 				update_post_meta($post_id, 'map_subdomains', $data['map_subdomains']);
 				update_post_meta($post_id, 'map_min_zoom', $data['map_min_zoom']);

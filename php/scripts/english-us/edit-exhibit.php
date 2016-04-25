@@ -69,6 +69,8 @@
 				<div id="vf-div-{{vIndex}}">
 					{{#if vf === 'M'}}
 						{{>vfMap}}
+					{{elseif vf === 'p'}}
+						{{>vfMap2}}
 					{{elseif vf === 'C'}}
 						{{>vfCards}}
 					{{elseif vf === 'P'}}
@@ -293,7 +295,7 @@
 	</select>
 	<?php _e('Map Overlay Layers', 'prospect'); ?>:
 	{{#if layerMaps.length > 0 }}
-	<button on-click="addMapLayer:{{vIndex}}"><?php _e('Add Layer', 'prospect'); ?></button><br/>
+		<button on-click="addMapLayer:{{vIndex}}"><?php _e('Add Layer', 'prospect'); ?></button><br/>
 	{{/if}}
 	{{#each c.lyrs:lIndex}}
 		<div class="map-layer-div">
@@ -304,6 +306,82 @@
 			</select>
 			<?php _e('Opacity', 'prospect'); ?>: <input type="range" min="0" max="1" value="{{o}}" step="0.1"/>
 			<button decorator="iconButton:ui-icon-trash" on-click="delMapLayer:{{vIndex}},{{lIndex}}"><?php _e('Delete', 'prospect'); ?></button>
+		</div>
+	{{/each}}
+</script>
+
+<script id="vfMap2" type='text/ractive'>
+	<?php _e('Center Latitude', 'prospect'); ?>: <input type="text" value="{{c.clat}}" size="10" pattern="^-?\d{1,3}(\.\d*)*" required/>
+	<?php _e('Longitude', 'prospect'); ?>: <input type="text" value="{{c.clon}}" size="10" pattern="^-?\d{1,3}(\.\d*)*" required/>
+	<?php _e('Initial Zoom', 'prospect'); ?>: <input type="number" value="{{c.zoom}}" min="1" max="20" required/>
+	<br/>
+	<?php _e('Min Radius', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="20" required/>
+	<?php _e('Max Radius', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="20" required/>
+	<br/>
+	<?php _e('Choose the Attribute(s) to visualize each Template type', 'prospect'); ?>
+	<tabs>
+		<ul>
+		{{#each iTemplates:tIndex}}
+			<li><a href="#tmpt-vf-tab-{{incID}}-{{tIndex}}">{{tid}}</a></li>
+		{{/each}}
+		</ul>
+		{{#each iTemplates:tIndex}}
+		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
+			<b><?php _e('Locate Object by', 'prospect'); ?>:</b>
+			<select value='{{c.cAtts[tIndex]}}'>
+			{{#each attsLL}}
+				<option>{{this}}</option>
+			{{/each}}
+			</select>
+			<b><?php _e('Label Marker', 'prospect'); ?>:</b>
+			<select value='{{c.lbls[tIndex]}}'>
+				<option value="n"><?php _e('None', 'prospect'); ?></option>
+				<option value="a"><?php _e('Above', 'prospect'); ?></option>
+				<option value="r"><?php _e('Right', 'prospect'); ?></option>
+				<option value="b"><?php _e('Below', 'prospect'); ?></option>
+				<option value="l"><?php _e('Left', 'prospect'); ?></option>
+			</select>
+			<br/>
+			<b><?php _e('Marker Radius Size', 'prospect'); ?>: </b>
+			<select value='{{c.sAtts[tIndex]}}'>
+			{{#each attsDNum}}
+				<option>{{this}}</option>
+			{{/each}}
+			</select>
+			<?php _e('Link Line Color', 'prospect'); ?>: <input type="text" value="{{c.lClrs[tIndex]}}" size="10"/>
+			<span title=<?php _e('"Click to select color"', 'prospect'); ?> class="viz-icon" style="background-color:{{c.lClrs[tIndex]}}" on-click="setLColor:{{vIndex}},{{tIndex}}"></span>
+			<br/>
+			<b><?php _e('Provide Legends', 'prospect'); ?>:</b>
+			<button decorator="iconButton:ui-icon-check" on-click="allLgndsOn:{{vIndex}},{{tIndex}}"><?php _e('All On', 'prospect'); ?></button>
+			<button decorator="iconButton:ui-icon-cancel" on-click="allLgndsOff:{{vIndex}},{{tIndex}}"><?php _e('All Off', 'prospect'); ?></button>
+			{{#each c.lgnds[tIndex]:lIndex}}
+				<span class="attribute-controls">
+					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Left', 'prospect'); ?></button>
+					<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Right', 'prospect'); ?></button>
+				</span>
+			{{/each}}
+		</div>
+		{{/each}}
+	</tabs>
+	<?php _e('Map Base Layer', 'prospect'); ?>: <select value="{{c.base}}">
+	{{#each baseMaps}}
+		<option value="{{id}}">{{sname}}</option>
+	{{/each}}
+	</select>
+	<?php _e('Map Overlay Groups', 'prospect'); ?>:
+	{{#if mapGroups.length > 0 }}
+		<button on-click="addMapGroup:{{vIndex}}"><?php _e('Add Map Group', 'prospect'); ?></button><br/>
+	{{/if}}
+	{{#each c.lyrs:lIndex}}
+		<div class="map-layer-div">
+			<?php _e('Map Group ID', 'prospect'); ?>: <select value="{{gid}}">
+			{{#each mapGroups}}
+				<option value="{{this}}">{{this}}</option>
+			{{/each}}
+			</select>
+			<?php _e('Opacity', 'prospect'); ?>: <input type="range" min="0" max="1" value="{{o}}" step="0.1"/>
+			<button decorator="iconButton:ui-icon-trash" on-click="delMapGroup:{{vIndex}},{{lIndex}}"><?php _e('Delete', 'prospect'); ?></button>
 		</div>
 	{{/each}}
 </script>
@@ -742,7 +820,7 @@
 
 <!-- DYNAMIC TEXT -->
 <script id="dltext-visualizations" type='text/ractive'>
-<?php _e('D,Directory|B,Facet Browser|C,Cards|t,TextStream|M,Map|T,Timeline|P,Pinboard|S,Stacked Chart|N,Network Wheel|F,Facet Flow|m,MultiBlock Map', 'prospect'); ?>
+<?php _e('D,Directory|B,Facet Browser|C,Cards|t,TextStream|M,Map|p,Map 2|T,Timeline|P,Pinboard|S,Stacked Chart|N,Network Wheel|F,Facet Flow|m,MultiBlock Map', 'prospect'); ?>
 </script>
 
 

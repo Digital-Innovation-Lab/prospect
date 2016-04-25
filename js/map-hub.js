@@ -54,6 +54,7 @@ var PMapHub = (function () {
 		}
 	];
 	var overLayers	= [];
+	var groupIDs = [];
 
 
 	function doGetBaseByID(id)
@@ -76,9 +77,11 @@ var PMapHub = (function () {
 	return {
 			// PURPOSE: Initialize Map Services
 			// INPUT:   overlay = array of overlay map data
-		init: function(overlayArray)
+			//			groupIDArray = array of currently defined map group IDs
+		init: function(overlayArray, groupIDArray)
 		{
-			overLayers = overlayArray;
+			overLayers	= overlayArray;
+			groupIDs	= groupIDArray;
 		}, // init()
 
 
@@ -113,11 +116,18 @@ var PMapHub = (function () {
 			// PURPOSE: Return map object by id
 		getMapByID: function(id)
 		{
-			if (id.charAt(0) === '.')
+			if (id.charAt(0) === '.') {
 				return doGetBaseByID(id);
-			else
+			} else {
 				return doGetOverlayByID(id);
+			}
 		}, // getMapByID()
+
+			// PURPOSE: Return array of maps which have groupID in their groupID array
+		getGroupByID: function(groupID)
+		{
+			// TO DO
+		}, // getGroupByID()
 
 
 			// PURPOSE: Create a Leaflet map layer, add to Leaflet control

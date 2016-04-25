@@ -150,7 +150,6 @@ class Prospect {
 					$use_aggregate = true;
 					break;
 				}
-
 			}
 			if ($use_maps) {
 				wp_enqueue_script('leaflet', plugins_url('lib/leaflet/leaflet.js', dirname(__FILE__)));
@@ -217,9 +216,15 @@ class Prospect {
 				}
 			}
 
+				// Collect map group ID data
+			$map_groups = $the_xhbt->get_used_map_groups();
+			$map_ids = ProspectMap::get_mapids_from_groups($map_groups);
+			$map_ids = array_merge($map_ids, $the_xhbt->get_used_map_ids());
+			$map_ids = array_unique($map_ids);
+			$map_defs = ProspectMap::map_ids_to_objects($map_ids);
+
 				// Collect Map Library data (only those used by this Exhibit)
 			$m = array();
-			$map_defs = $the_xhbt->get_used_maps();
 			foreach($map_defs as $the_map) {
 				$map_def = array(
 					'id'		=> $the_map->id,
@@ -265,6 +270,7 @@ class Prospect {
 				't'				=> $t,
 				'a'				=> $a,
 				'm'				=> $m,
+				'mg'			=> $map_groups,
 				'p'				=> $p,
 				'show_prspctv'	=> get_query_var('prspctv')
 			));
@@ -389,9 +395,17 @@ class Prospect {
 				}
 			}
 
+			// $map_defs = $the_volume->get_used_maps();
+
+				// Collect map group ID data
+			$map_groups = $the_xhbt->get_used_map_groups();
+			$map_ids = ProspectMap::get_mapids_from_groups($map_groups);
+			$map_ids = array_merge($map_ids, $the_xhbt->get_used_map_ids());
+			$map_ids = array_unique($map_ids);
+			$map_defs = ProspectMap::map_ids_to_objects($map_ids);
+
 				// Collect Map Library data (only those used by this Volume)
 			$m = array();
-			$map_defs = $the_volume->get_used_maps();
 			foreach($map_defs as $the_map) {
 				$map_def = array(
 					'id'		=> $the_map->id,
@@ -437,6 +451,7 @@ class Prospect {
 				't'				=> $t,
 				'a'				=> $a,
 				'm'				=> $m,
+				'mg'			=> $map_groups,
 				'p'				=> $p,
 				'show_reading'	=> get_query_var('reading')
 			));

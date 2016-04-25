@@ -4,6 +4,12 @@ class ProspectExhibit {
 		// CLASS METHODS
 		// =============
 
+		// PURPOSE: Compare map group IDs for sort function
+	static public function cmp_map_group_ids($a, $b)
+	{
+		return strcmp($a["gid"], $b["gid"]);
+	} // cmp_map_group_ids()
+
 
 		// RETURNS: An array of all Exhibit definitions (except $except_post_id)
 	static public function get_all_exhibit_defs($unpack)
@@ -99,24 +105,103 @@ class ProspectExhibit {
 		} // if post_id
 	} // _construct()
 
-		// RETURNS: An array of all Map definitions used by this Exhibit
+		// RETURNS: An array of all Map IDs used by this Exhibit
 		// ASSUMES: That Exhibit view data has been unpacked
-	public function get_used_maps()
+	public function get_used_map_ids()
 	{
-		$map_array = array();
+		$map_id_array = array();
 
 			// Find Map views and compile maps
 		foreach ($this->views as $the_view) {
 			if ($the_view->vf == 'M') {
 				foreach ($the_view->c->lyrs as $the_layer) {
-					$new_map = new ProspectMap(false, $the_layer->lid);
-					array_push($map_array, $new_map);
+					array_push($map_id_array, $the_layer->lid);
 				}
 			}
 		}
 			// Sort array according to map IDs
-		usort($map_array, array('ProspectMap', 'cmp_map_obj_ids'));
+		sort($map_id_array);
 
-		return $map_array;
-	} // get_used_maps()
+		return $map_id_array;
+	} // get_used_map_ids()
+
+
+		// RETURNS: An array of all Map Group IDs (and their map IDs) used by this Exhibit
+		// NOTES:	[ { gid, mapids: [ ] } ]
+		// ASSUMES: That Exhibit view data has been unpacked
+	public function get_used_map_groups()
+	{
+		$map_group_ids = array();
+
+			// Find Map views and compile maps
+		foreach ($this->views as $the_view) {
+			if ($the_view->vf == 'p') {
+				foreach ($the_view->c->lyrs as $the_layer) {
+					array_push($map_group_ids, $the_layer->gid);
+				}
+			}
+		}
+
+			// Sort array according to map group IDs and ensure unique
+		array_unique($map_group_ids);
+		$map_groups = array();
+		foreach ($map_group_ids as $group_id) {
+			array_push($map_groups, array('gid' => $group_id, 'mapids' => array()));
+		}
+
+			// Now go through all Published maps to find out which have this in their group ID
+		$args = array('post_type' => 'prsp-map', 'posts_per_page' => -1, 'post_status' => 'publish');
+		$loop = new WP_Query($args);
+		if ($loop->have_posts()) {
+			foreach ($loop->posts as $rec) {
+				$map_id = get_post_meta($rec->ID, 'map-id', true);
+					// Valid map ID?
+				if ($map_id && $map_id != '') {
+					$group_data = get_post_meta($rec->ID, 'map_group_id', true);
+						// Valid map group ID?
+					if ($group_data && $group_data != '') {
+							// Get all map group IDs for current map
+						$ids = explode("|", $group_data);
+						foreach ($ids as $group_id) {
+								// Add this map to all groups it belongs to
+							$count = count($map_groups);
+							for ($i=0; $i<$count; $i++) {
+								$map_group = $map_groups[$i];
+								if ($map_group['gid'] == $group_id) {
+									array_push($map_group['mapids'], $map_id);
+									$map_group['mapids'] = array_unique($map_group['mapids']);
+									sort($map_group['mapids']);
+									break;
+								}
+							} // for map_groups
+						} // foreach
+					} // if group_data
+				} // map_id
+			} // foreach
+		} // have_posts
+
+		return $map_groups;
+	} // get_used_map_groups()
+
+
+		// RETURNS: An array of all Map definitions used by this Exhibit
+		// ASSUMES: That Exhibit view data has been unpacked
+	// public function get_used_maps()
+	// {
+	// 	$map_array = array();
+
+	// 		// Find Map views and compile maps
+	// 	foreach ($this->views as $the_view) {
+	// 		if ($the_view->vf == 'M') {
+	// 			foreach ($the_view->c->lyrs as $the_layer) {
+	// 				$new_map = new ProspectMap(false, $the_layer->lid);
+	// 				array_push($map_array, $new_map);
+	// 			}
+	// 		}
+	// 	}
+	// 		// Sort array according to map IDs
+	// 	usort($map_array, array('ProspectMap', 'cmp_map_obj_ids'));
+
+	// 	return $map_array;
+	// } // get_used_maps()
 } // class ProspectExhibit
