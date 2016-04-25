@@ -138,7 +138,9 @@ class ProspectVolume {
 		}
 
 			// Sort array according to map group IDs and ensure unique
-		array_unique($map_group_ids);
+		$map_group_ids = array_unique($map_group_ids);
+		sort($map_group_ids);
+
 		$map_groups = array();
 		foreach ($map_group_ids as $group_id) {
 			array_push($map_groups, array('gid' => $group_id, 'mapids' => array()));
@@ -162,8 +164,10 @@ class ProspectVolume {
 							$count = count($map_groups);
 							for ($i=0; $i<$count; $i++) {
 								$map_group = $map_groups[$i];
-								if ($map_group['gid'] == $group_id) {
-									$map_group['mapids'] = array_unique(array_push($map_group['mapids'], $map_id));
+								if ($map_group['gid'] == $group_id) {									
+									array_push($map_groups[$i]['mapids'], $map_id);
+									$map_groups[$i]['mapids'] = array_unique($map_groups[$i]['mapids'], SORT_STRING);
+									sort($map_groups[$i]['mapids']);
 									break;
 								}
 							} // for map_groups
