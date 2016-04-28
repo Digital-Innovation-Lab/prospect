@@ -954,6 +954,9 @@ function PViewFrame(vfIndex)
 		case 'M':
 			newViz = new VizMap(instance, theView.c);
 			break;
+		case 'p':
+			newViz = new VizMap2(instance, theView.c);
+			break;
 		case 'C':
 			newViz = new VizCards(instance, theView.c);
 			break;
@@ -2393,7 +2396,7 @@ jQuery(document).ready(function($) {
 
 	PState.init();
 	if (typeof PMapHub !== 'undefined') {
-		PMapHub.init(prspdata.m);
+		PMapHub.init(prspdata.m, prspdata.mg);
 	}
 
 		// PURPOSE: Load all dynamic, language-independent resources

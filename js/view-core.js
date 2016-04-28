@@ -119,6 +119,13 @@ var PState = (function() {
 //		They must call their ViewFrame when individual Records are de-/selected (not aggregates)
 //			vizAddSel(id, absI)
 //			vizDelSel(id, absI)
+//		Instance Variables:
+//			vFrame = points to viewFrame
+//			frameID = selector string for DIV
+//			settings = config params for this visualization
+//			recSel = array containing absIndex of selected Records
+//			tUsed = boolean array, 1/Template, indicating if any Records of this Template type rendered
+//			rMap = bitmap indicating if each Record was rendered on the view
 
 	// INPUT: 	viewFrame = instance variable returned from ViewModel pseudo-constructor
 	//			vizSettings = c section of VF entry
@@ -262,6 +269,16 @@ PVizModel.prototype.hint = function()
 
 // ===================================
 // VizMap: Class to visualize GIS maps
+//
+// Instance Variables:
+//		lMap = Leaflet map object
+//		baseMap = basemap layer object
+//		bOp = opacity of basemap
+//		mapLayers = group map objects
+//		lOps = opacities of each overlay map group
+//		markerLayer = Leaflet layer for Markers
+//		lineLayer = Leaflet layer for connecting lines
+//		tLCnt = count of Markers for each Template type
 
 var VizMap = function(viewFrame, vSettings)
 {
@@ -405,18 +422,20 @@ VizMap.prototype.render = function(stream)
 				PState.set(PSTATE_UPDATE);
 				mLayer.eachLayer(function(marker) {
 					if (marker.options._aid === aid) {
-						if (added)
+						if (added) {
 							marker.setStyle({ color: "yellow", weight: 2 });
-						else
+						} else {
 							marker.setStyle({ color: "#000", weight: 1 });
+						}
 					}
 				});
 				PState.set(PSTATE_READY);
 			} else {
-				if (added)
+				if (added) {
 					this.setStyle({ color: "yellow", weight: 2 });
-				else
+				} else {
 					this.setStyle({ color: "#000", weight: 1 });
+				}
 			}
 		}
 	} // markerClick()
@@ -441,25 +460,29 @@ VizMap.prototype.render = function(stream)
 	var sAttID, sAtt, minR, maxR, dR, minS, dS;
 
 	minR = this.settings.min;
-	if (typeof minR === 'string')
+	if (typeof minR === 'string') {
 		minR = parseInt(minR);
+	}
 	maxR = this.settings.max;
-	if (typeof maxR === 'string')
+	if (typeof maxR === 'string') {
 		maxR = parseInt(maxR);
+	}
 	dR = maxR - minR;
 
 		// Clear out marker counts
-	for (i=0; i<numTmplts; i++)
+	for (i=0; i<numTmplts; i++) {
 		this.tLCnt[i] = 0;
+	}
 
 		// If Pointers used, need to cach marker data need to construct links
 		//		{ id, c(oordinates)[], p(ointers)[] }
 	var mCache;
-	for (i=0; i<numTmplts; i++)
+	for (i=0; i<numTmplts; i++) {
 		if (this.settings.pAtts[i] !== 'disable') {
 			mCache=[];
 			break;
 		}
+	}
 
 	i=0; tI=-1;
 	doStream:
@@ -571,8 +594,9 @@ VizMap.prototype.render = function(stream)
 			}
 		}); // for locAtts
 
-		if (cEntry && cEntry.c.length > 0)
+		if (cEntry && cEntry.c.length > 0) {
 			mCache.push(cEntry);
+		}
 			// Increment stream index -- check if going into new Template
 		if (++i == (tRec.i + tRec.n)) {
 			locAtts = null;
@@ -717,6 +741,461 @@ VizMap.prototype.doOptions = function()
 				// Reset opacities in case user changed anything
 			self.baseMap.setOpacity(self.bOp/100);
 			self.lOps.forEach(function(op, oI) {
+				self.mapLayers[oI].setOpacity(op/100);
+			});
+		}
+		modalOpCtrls.empty();
+	} // restoreOps()
+
+	var d = jQuery("#dialog-opacities").dialog({
+		height: 300,
+		width: 500,
+		modal: true,
+		buttons: [
+			{
+				text: dlText.ok,
+				click: function() {
+					restore=false;
+					d.dialog("close");
+					self.bOp = tBOp;
+					tLOps.forEach(function(op, oI) {
+						self.lOps[oI] = tLOps[oI];
+					});
+				}
+			},
+			{
+				text: dlText.cancel,
+				click: function() {
+					d.dialog("close");
+				}				
+			}
+		]
+	});
+	d.on("dialogclose", function(event, ui) {
+		cleanUp();
+			// Unbind Inspector from this view -- one off only
+		d.off("dialogclose");
+	});
+} // doOptions()
+
+
+// ================================================
+// VizMap2: Class to visualize GIS maps (alternate)
+//
+// Instance Variables:
+//		lMap = Leaflet map object
+//		baseMap = basemap layer object
+//		bOp = opacity of basemap
+//		mapLayers = group map objects
+//		lOps = opacities of each overlay map group
+//		markerLayer = Leaflet layer for Markers
+//		lineLayer = Leaflet layer for drawing lines between markers
+
+var VizMap2 = function(viewFrame, vSettings)
+{
+	PVizModel.call(this, viewFrame, vSettings);
+} // ViewMap2
+
+VizMap2.prototype = Object.create(PVizModel.prototype);
+
+VizMap2.prototype.constructor = VizMap2;
+
+VizMap2.prototype.flags = function()
+{
+	return V_FLAG_LGND | V_FLAG_SEL | V_FLAG_LOC | V_FLAG_OPT;
+} // flags()
+
+	// PURPOSE: Return IDs of locate Attributes as array
+VizMap2.prototype.getLocAtts = function(tIndex)
+{
+	if (tIndex != null) {
+		var atts = this.settings.cAtts[tIndex];
+		return atts == null ? null : [atts];
+	}
+	return [this.settings.cAtts];
+} // getLocAtts()
+
+VizMap2.prototype.getFeatureAtts = function(tIndex)
+{
+	if (tIndex != null) {
+		return this.settings.lgnds[tIndex];
+	}
+	return this.settings.lgnds;
+} // getFeatureAtts()
+
+VizMap2.prototype.setup = function()
+{
+	var self=this;
+
+	var centerLat = parseFloat(this.settings.clat);
+	var centerLon = parseFloat(this.settings.clon);
+	var zoom;
+	if (typeof(this.settings.zoom) === 'string') {
+		zoom = parseInt(this.settings.zoom);
+	} else {
+		zoom = this.settings.zoom;
+	}
+
+	function zoomMap()
+	{
+		self.lMap.zoomIn();
+	} // zoomMap()
+	function unzoomMap()
+	{
+		self.lMap.zoomOut();
+	} // unzoomMap()
+	function resetMap()
+	{
+		self.lMap.setView([centerLat, centerLon], zoom);
+	} // resetMap()
+	function curLoc()
+	{
+		function setHere(pos) {
+			self.lMap.setView([pos.coords.latitude, pos.coords.longitude]);
+		}
+		navigator.geolocation.getCurrentPosition(setHere);
+	} // curLoc()
+
+	var vI = this.vFrame.getIndex();
+
+		// Leaflet requires a DIV ID to startup: create and insert one
+	jQuery(this.frameID).append('<div id="l-map-'+vI+'" class="max-size"></div>');
+
+	this.lMap = L.map("l-map-"+vI, { zoomControl: false }).setView([centerLat, centerLon], zoom);
+
+		// Create basemap
+	this.baseMap = PMapHub.createMapLayer(this.settings.base, 1, this.lMap, null);
+	this.bOp = 100;		// base map opacity
+	this.lOps = [];		// overlay map group layers opacities
+	this.mapLayers = [];
+
+		// Compile map layer data into mapLayers array and create with Leaflet
+	var opacity;
+	_.each(this.settings.lyrs, function(layer, lIndex) {
+		opacity = layer.o || 1;
+		self.lOps.push(opacity*100);
+
+		var newLayer;
+		newLayer = PMapHub.createMapGroup(layer.gid, opacity, self.lMap);
+		self.mapLayers.push(newLayer);
+	});
+
+	var fh = _.template(document.getElementById('dltext-v-map').innerHTML);
+	jQuery('#view-frame-'+vI+' div.view-controls').append(fh({ vi: vI }));
+
+	jQuery('#map-zoom-'+vI).button({ text: false, icons: { primary: "ui-icon-plus" }})
+		.click(zoomMap);
+	jQuery('#map-unzoom-'+vI).button({ text: false, icons: { primary: "ui-icon-minus" }})
+		.click(unzoomMap);
+	jQuery('#map-reset-'+vI).button({ text: false, icons: { primary: "ui-icon-arrowrefresh-1-w" }})
+		.click(resetMap);
+	jQuery('#map-cloc-'+vI).button({ text: false, icons: { primary: "ui-icon-pin-s" }})
+		.click(curLoc);
+
+	var markers = L.featureGroup();            
+	this.markerLayer = markers;
+
+		// Create options properties if they don't already exist
+	markers.options = markers.options || { };
+	markers.options.layerName = dlText.markers;
+
+	markers.addTo(this.lMap);
+
+	var lines = L.featureGroup();
+	this.lineLayer = lines;
+	lines.addTo(this.lMap);
+
+		// Maintain number of Loc Atts per Template type
+	// var numT = PData.eTNum();
+	// this.tLCnt = new Uint16Array(numT);
+} // setup()
+
+
+	// PURPOSE: Draw the Records in the given datastream
+	// NOTES: 	absolute index of Record is saved in <id> field of map marker
+VizMap2.prototype.render = function(stream)
+{
+	var self = this;
+	var mLayer = this.markerLayer;
+
+		// PURPOSE: Handle click on feature
+		// NOTES: 	_aid is absolute index of record, but there can be multiple instances of same record!
+		//			This function being within render closure makes it inefficient,
+		//				but need access to vFrame!
+	function markerClick(e)
+	{
+		if (e.target && e.target.options) {
+			var aid = e.target.options._aid;
+			var added = self.toggleSel(aid);
+				// Check to see if this Record's coordinate has multiple points
+			var tI = PData.n2T(aid);
+			var locAtt = self.vFrame.getSelLocAtts(tI);
+			locAtt = locAtt[0];
+			var rec=PData.rByN(aid);
+			var locData = rec.a[locAtt];
+
+				// If so, go through all markers looking for fellows of same _aid and setStyle accordingly
+			if (locData.length > 1) {
+				PState.set(PSTATE_UPDATE);
+				mLayer.eachLayer(function(marker) {
+					if (marker.options._aid === aid) {
+						if (added) {
+							marker.setStyle({ color: "yellow", weight: 2 });
+						} else {
+							marker.setStyle({ color: "#000", weight: 1 });
+						}
+					}
+				});
+				PState.set(PSTATE_READY);
+			} else {
+				if (added) {
+					this.setStyle({ color: "yellow", weight: 2 });
+				} else {
+					this.setStyle({ color: "#000", weight: 1 });
+				}
+			}
+		}
+	} // markerClick()
+
+	if (this.recSel.length > 0) {
+		this.recSel=[];
+	}
+
+	this.preRender();
+
+		// Remove previous Markers
+	mLayer.clearLayers();
+
+		// Remove any previous lines
+	var lines = this.lineLayer;
+	lines.clearLayers();
+
+	var numTmplts = PData.eTNum();
+	var i=0, aI, tI=0, tRec, tLClr, rec;
+	var fAttID, fAtt, locAtt, featSet, lbl;
+	var locData, fData, newMarker;
+
+	var sAttID, sAtt, minR, maxR, dR, minS, dS;
+
+	minR = this.settings.min;
+	if (typeof minR === 'string') {
+		minR = parseInt(minR);
+	}
+	maxR = this.settings.max;
+	if (typeof maxR === 'string') {
+		maxR = parseInt(maxR);
+	}
+	dR = maxR - minR;
+
+	i=0; tI=-1;
+	doStream:
+	while (i<stream.l) {
+			// Starting with new Template?
+		if (locAtt == null) {
+			do {
+				if (++tI == numTmplts)
+					break doStream;
+				tRec = stream.t[tI];
+			} while (tRec.n === 0 || (tRec.i+tRec.n) === i);
+
+			locAtt = this.vFrame.getSelLocAtts(tI);
+				// Skip Template if no locate Atts
+			if (locAtt.length === 0) {
+				locAtt = null;
+				continue;
+			} // if no locAtt
+				// Can only be 1 Attribute
+			locAtt = locAtt[0];
+
+			featSet = self.vFrame.getSelFeatAtts(tI);
+				// Skip Templates if no feature Atts
+			if (featSet.length === 0) {
+				locAtt = null;
+				continue;
+			} // if no featAtts
+
+			self.tUsed[tI] = true;
+
+				// Get Feature Attribute ID and def for this Template
+			fAttID = self.vFrame.getSelLegend(tI);
+			fAtt = PData.aByID(fAttID);
+
+			tLClr = self.settings.lClrs[tI];
+			sAttID = self.settings.sAtts[tI];
+			if (sAttID) {
+				sAtt = PData.aByID(sAttID);
+				if (typeof sAtt.r.min === 'number' && typeof sAtt.r.max === 'number') {
+					minS = sAtt.r.min;
+					dS = sAtt.r.max - minS;
+				} else {
+					sAttID = null;
+				}
+			}
+			lbl = self.settings.lbls[tI];
+		} // if new Template
+
+			// Get Record data and create cache entry
+		aI = stream.s[i];
+		rec = PData.rByN(aI);
+		locData = rec.a[locAtt];
+		if (locData) {
+			fData = rec.a[fAttID];
+			if (typeof fData !== 'undefined') {
+				fData = PData.lClr(fData, fAtt, featSet);
+				if (fData) {
+						// Set bit in rMap corresponding to absIndex
+					self.rMap[aI >> 4] |= (1 << (aI & 15));
+					if (typeof locData[0] === 'number') {
+						if (sAttID) {
+							sAtt = rec.a[sAttID];
+							if (typeof sAtt === 'number') {
+								sAtt = Math.floor(((sAtt-minS)*dR)/dS) + minR;
+							} else {
+								sAtt = minR;
+							}
+						} else {
+							sAtt = minR;
+						}
+						newMarker = L.circleMarker(locData,
+							{	_aid: aI, weight: 1, radius: sAtt,
+								fillColor: fData, color: "#000",
+								opacity: 1, fillOpacity: 1
+							});
+					} else {
+						// Handle multiple points
+// TO DO
+					}
+					newMarker.on('click', markerClick);
+					mLayer.addLayer(newMarker);
+						// Create label?
+					switch (lbl) {
+					case 't':
+					case 'r':
+					case 'b':
+					case 'l':
+					case 'n':
+						break;
+					}
+				}
+			}
+		}
+
+			// Increment stream index -- check if going into new Template
+		if (++i == (tRec.i + tRec.n)) {
+			locAtt = null;
+		}
+	} // while
+} // render()
+
+VizMap2.prototype.teardown = function()
+{
+	var vi = this.vFrame.getIndex();
+	jQuery('#view-frame-'+vi+' div.view-controls div.iconbar').remove();
+} // teardown()
+
+VizMap2.prototype.resize = function()
+{
+	this.lMap.invalidateSize(false);
+} // PVizModel.resize()
+
+VizMap2.prototype.clearSel = function()
+{
+	if (this.recSel.length > 0) {
+		this.recSel = [];
+		if (this.markerLayer) {
+			this.markerLayer.eachLayer(function(marker) {
+				marker.setStyle({ color: "#000", weight: 1 });
+			});
+		}
+	}
+} // clearSel()
+
+VizMap2.prototype.setSel = function(absIArray)
+{
+	var self=this;
+
+	this.recSel = absIArray;
+	if (this.markerLayer) {
+		this.markerLayer.eachLayer(function(marker) {
+			if (self.isSel(marker.options._aid)) {
+				marker.setStyle({ color: "yellow", weight: 2 });
+			} else {
+				marker.setStyle({ color: "#000", weight: 1 });
+			}
+		});
+	}
+} // setSel()
+
+VizMap2.prototype.getState = function()
+{
+	return { c: this.lMap.getCenter(), z: this.lMap.getZoom(), l: this.vFrame.getLgndSels() };
+} // getState()
+
+VizMap2.prototype.setState = function(state)
+{
+	this.lMap.setView(state.c, state.z);
+	this.vFrame.setLgndSels(state.l);
+} // setState()
+
+VizMap2.prototype.hint = function()
+{
+	var h='';
+	var numT = PData.eTNum();
+
+	for (var tI=0; tI<numT; tI++) {
+		var sAttID = this.settings.sAtts[tI];
+		if (sAttID) {
+			if (h.length === 0) {
+				h = dlText.markersize;
+			} else {
+				h += ',';
+			}
+			var sAtt = PData.aByID(sAttID);
+			var tID = PData.eTByN(tI);
+			var tDef = PData.tByID(tID);
+			h += ' '+sAtt.def.l+' ('+tDef.l+')';
+		}
+	}
+	return (h.length > 0) ? h : null;
+} // hint()
+
+	// NOTE: Since the opacities dialog is shared, GUI must be recreated
+	//			by each Viz object and cleaned up afterwards
+VizMap2.prototype.doOptions = function()
+{
+	var self=this;
+	var tBOp=this.bOp, tLOps=[];
+	var restore=true;
+
+	var modalOpCtrls = jQuery('#dialog-opacities div.layer-list');
+
+	var newBit = jQuery('<div class="op-layer" data-i="-1">Base Map <input type=range class="op-slider" min=0 max=100 value='+
+						this.bOp+' step=5></div>');
+	newBit.find(".op-slider").on("change", function() {
+		tBOp = jQuery(this).val();
+		self.baseMap.setOpacity(tBOp/100);
+	});
+	modalOpCtrls.append(newBit);
+
+	this.settings.lyrs.forEach(function(layer, lIndex) {
+		newBit = jQuery('<div class="op-layer" data-i="'+lIndex+'">'+self.mapLayers[lIndex].options.layerName+
+					' <input type=range class="op-slider" min=0 max=100 value='+self.lOps[lIndex]+' step=5></div>');
+		newBit.find(".op-slider").on("change", function() {
+			tLOps[lIndex] = jQuery(this).val();
+				// NOTE: May have to use eachLayer() to iterate through layers to setOpacity
+			self.mapLayers[lIndex].setOpacity(tLOps[lIndex]/100);
+		});
+		tLOps.push(self.lOps[lIndex]);
+		modalOpCtrls.append(newBit);
+	});
+
+	function cleanUp()
+	{
+		if (restore) {
+				// Reset opacities in case user changed anything
+			self.baseMap.setOpacity(self.bOp/100);
+			self.lOps.forEach(function(op, oI) {
+					// NOTE: May have to use eachLayer() to iterate through layers to setOpacity
 				self.mapLayers[oI].setOpacity(op/100);
 			});
 		}

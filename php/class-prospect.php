@@ -126,8 +126,8 @@ class Prospect {
 
 			wp_enqueue_script('d3', plugins_url('lib/d3.min.js', dirname(__FILE__)));
 
-			wp_enqueue_script('prsp-view-core', plugins_url('js/view-core.min.js', dirname(__FILE__)));
-			wp_enqueue_script('prsp-view-exhibit', plugins_url('js/view-exhibit.min.js', dirname(__FILE__)), array('prsp-view-core'));
+			wp_enqueue_script('prsp-view-core', plugins_url('js/view-core.js', dirname(__FILE__)));
+			wp_enqueue_script('prsp-view-exhibit', plugins_url('js/view-exhibit.js', dirname(__FILE__)), array('prsp-view-core'));
 
 				// Get Exhibit definition
 			$the_xhbt = new ProspectExhibit(true, get_the_ID(), true);
@@ -141,6 +141,7 @@ class Prospect {
 			foreach ($the_xhbt->views as $the_view) {
 				switch ($the_view->vf) {
 				case 'M':
+				case 'p':
 					$use_maps = true;
 					break;
 				case 'S':

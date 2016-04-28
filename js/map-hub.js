@@ -54,34 +54,40 @@ var PMapHub = (function () {
 		}
 	];
 	var overLayers	= [];
-	var groupIDs = [];
+	var groups = [];
 
 
-	function doGetBaseByID(id)
+	function baseByID(id)
 	{
 		var index = _.sortedIndex(baseLayers, { id: id }, 'id');
 		var item = baseLayers[index];
 		return item.id === id ? item : null;
-	}; // doGetBaseByID()
+	}; // baseByID()
 
 
-	function doGetOverlayByID(id)
+	function overlayByID(id)
 	{
 		var index = _.sortedIndex(overLayers, { id: id }, 'id');
 		var item = overLayers[index];
 		return item.id === id ? item : null;
-	}; // doGetOverlayByID()
+	}; // overlayByID()
 
+	function groupByID(id)
+	{
+		var index = _.sortedIndex(groups, { gid: id }, 'gid');
+		var item = groups[index];
+		return item.gid === id ? item : null;
+	}; // groupByID
 
 		// The Interface return object
 	return {
 			// PURPOSE: Initialize Map Services
 			// INPUT:   overlay = array of overlay map data
-			//			groupIDArray = array of currently defined map group IDs
-		init: function(overlayArray, groupIDArray)
+			//			groupData = array of map group data [ { gid, mapids: [ ] } ]
+		init: function(overlayArray, groupData)
 		{
 			overLayers	= overlayArray;
-			groupIDs	= groupIDArray;
+			groups 		= groupData;
 		}, // init()
 
 
@@ -102,14 +108,14 @@ var PMapHub = (function () {
 			// PURPOSE: Return base map object by id
 		getBaseByID: function(id)
 		{
-			return doGetBaseByID(id);
+			return baseByID(id);
 		}, // getBaseByID()
 
 
 			// PURPOSE: Return overlay map object by id
 		getOverlayByID: function(id)
 		{
-			return doGetOverlayByID(id);
+			return overlayByID(id);
 		}, // getOverlayByID()
 
 
@@ -117,16 +123,16 @@ var PMapHub = (function () {
 		getMapByID: function(id)
 		{
 			if (id.charAt(0) === '.') {
-				return doGetBaseByID(id);
+				return baseByID(id);
 			} else {
-				return doGetOverlayByID(id);
+				return overlayByID(id);
 			}
 		}, // getMapByID()
 
 			// PURPOSE: Return array of maps which have groupID in their groupID array
 		getGroupByID: function(groupID)
 		{
-			// TO DO
+			return groupByID(groupID);
 		}, // getGroupByID()
 
 
@@ -143,7 +149,7 @@ var PMapHub = (function () {
 			//				isBaseLayer [true|false]
 		createMapLayer: function(id, opacity, leafMap, control)
 		{
-			var layerDef, newLeafLayer, subDomains;
+			var layerDef, newLeafLayer, subDomains, inverseY, options;
 
 				// Prepare return layer data
 
@@ -159,65 +165,103 @@ var PMapHub = (function () {
 				}
 
 			} else if (id.charAt(0) === '.') {
-				layerDef = doGetBaseByID(id);
-
-				subDomains = (layerDef.subd && layerDef.subd !== '') ? layerDef.subd.split('|') : [];
+				layerDef = baseByID(id);
+				options = {
+						attribution: layerDef.credits,
+						maxZoom: 20,
+						opacity: opacity
+					};
+				subDomains = layerDef.subd !== '' ? layerDef.subd.split('|') : [];
 				if (subDomains.length>1) {
-					newLeafLayer = L.tileLayer(layerDef.url, {
-						subdomains: subDomains,
-						attribution: layerDef.credits,
-						maxZoom: 20,
-						opacity: opacity
-					});
-				} else {
-					newLeafLayer = L.tileLayer(layerDef.url, {
-						attribution: layerDef.credits,
-						maxZoom: 20,
-						opacity: opacity
-					});
+					options.subdomains = subDomains;
 				}
+				newLeafLayer = L.tileLayer(layerDef.url, options);
 				newLeafLayer.options.isBaseLayer = true;
 				newLeafLayer.options.layerName = layerDef.sname;
-				if (leafMap)
+				if (leafMap) {
 					newLeafLayer.addTo(leafMap);
-				if (control)
-					control.addBaseLayer(newLeafLayer, layerDef.sname);
-			} else {
-				layerDef = doGetOverlayByID(id);
-
-				subDomains = (layerDef.subd && layerDef.subd !== '') ? layerDef.subd.split('|') : [];
-				layerDef.inverseY = (layerDef.inverseY === 'true' || layerDef.inverseY === 'TRUE');
-				if (subDomains.length>1) {
-					newLeafLayer = L.tileLayer(layerDef.url, {
-						subdomains: subDomains,
-						attribution: layerDef.credits,
-						minZoom: layerDef.minZoom,
-						maxZoom: layerDef.maxZoom,
-						tms: layerDef.inverseY,
-						opacity: opacity,
-						bounds: L.latLngBounds(layerDef.swBounds, layerDef.neBounds)
-					});
-				} else {
-					newLeafLayer = L.tileLayer(layerDef.url, {
-						attribution: layerDef.credits,
-						minZoom: layerDef.minZoom,
-						maxZoom: layerDef.maxZoom,
-						tms: layerDef.inverseY,
-						opacity: opacity,
-						bounds: L.latLngBounds(layerDef.swBounds, layerDef.neBounds)
-					});
 				}
+				if (control) {
+					control.addBaseLayer(newLeafLayer, layerDef.sname);
+				}
+			} else {
+				layerDef = overlayByID(id);
+
+				inverseY = (layerDef.inverseY === true || layerDef.inverseY === 'true' || layerDef.inverseY === 'TRUE');
+				options = {
+						attribution: layerDef.credits,
+						minZoom: layerDef.minZoom,
+						maxZoom: layerDef.maxZoom,
+						tms: inverseY,
+						opacity: opacity,
+						bounds: L.latLngBounds(layerDef.swBounds, layerDef.neBounds)
+					};
+				subDomains = layerDef.subd !== '' ? layerDef.subd.split('|') : [];
+				if (subDomains.length>1) {
+					options.subdomains=subDomains;
+				}
+				newLeafLayer = L.tileLayer(layerDef.url, options);
 				newLeafLayer.options.isBaseLayer = false;
 				newLeafLayer.options.layerName = layerDef.sname;
 
-				if (leafMap)
+				if (leafMap) {
 					newLeafLayer.addTo(leafMap);
-				if (control)
+				}
+				if (control) {
 					control.addOverlay(newLeafLayer, layerDef.sname);
+				}
 			}
 			newLeafLayer.options.id = id;
 			return newLeafLayer;
+		}, // createMapLayer()
+
+			// PURPOSE: Create a Leaflet layerGroup to handle a set of overlay layers
+			// INPUT: 	id = unique ID of map group
+			//			opacity = initial opacity of layer
+			//			leafMap = Leaflet map to which to add the layer, or null if none
+			// RETURNS: Object representing Leaflet layer with fields
+			//				leafletLayer
+			//				options
+			//				opacity
+			//				layerName
+			//				isBaseLayer [true|false]
+		createMapGroup: function(id, opacity, leafMap)
+		{
+			var groupDef, layerGroup=null, layerDef, oneOverlay, subDomains, inverseY, options;
+
+			groupDef = groupByID(id);
+			if (groupDef) {
+				layerGroup = L.layerGroup();
+				layerGroup.options.id = id;
+				groupDef.mapids.forEach(function(mapid) {
+					layerDef = overlayByID(mapid);
+					if (layerDef) {
+						inverseY = (layerDef.inverseY === true || layerDef.inverseY === 'true' || layerDef.inverseY === 'TRUE');
+						options = {
+								attribution: layerDef.credits,
+								minZoom: layerDef.minZoom,
+								maxZoom: layerDef.maxZoom,
+								tms: inverseY,
+								opacity: opacity,
+								bounds: L.latLngBounds(layerDef.swBounds, layerDef.neBounds)
+							};
+						subDomains = layerDef.subd !== '' ? layerDef.subd.split('|') : [];
+						if (subDomains.length>1) {
+							options.subdomains = subDomains;
+						}
+						oneOverlay = L.tileLayer(layerDef.url, options);
+						oneOverlay.options.id = mapid;
+						oneOverlay.options.isBaseLayer = false;
+						oneOverlay.options.layerName = mapid;
+						layerGroup.addLayer(oneOverlay);
+					} // if layerDef
+				}); // forEach mapids
+
+				if (leafMap) {
+					layerGroup.addTo(leafMap);
+				}
+			}
+			return layerGroup;
 		} // createMapLayer()
 	} // return
-
 })();
