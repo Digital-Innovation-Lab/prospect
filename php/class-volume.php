@@ -159,6 +159,7 @@ class ProspectVolume {
 					if ($group_data && $group_data != '') {
 							// Get all map group IDs for current map
 						$ids = explode("|", $group_data);
+						$ids = array_map('trim', $ids);
 						foreach ($ids as $group_id) {
 								// Add this map to all groups it belongs to
 							$count = count($map_groups);
@@ -179,26 +180,4 @@ class ProspectVolume {
 
 		return $map_groups;
 	} // get_used_map_groups()
-
-
-		// RETURNS: An array of all Map definitions used by this Volume
-		// ASSUMES: That Volume view data has been unpacked
-	// public function get_used_maps()
-	// {
-	// 	$map_array = array();
-
-	// 		// Find Map views and compile maps
-	// 	foreach ($this->views as $the_view) {
-	// 		if ($the_view->vf == 'M') {
-	// 			foreach ($the_view->c->lyrs as $the_layer) {
-	// 				$new_map = new ProspectMap(false, $the_layer->lid);
-	// 				array_push($map_array, $new_map);
-	// 			}
-	// 		}
-	// 	}
-	// 		// Sort array according to map IDs
-	// 	usort($map_array, array('ProspectMap', 'cmp_map_obj_ids'));
-
-	// 	return $map_array;
-	// } // get_used_maps()
 } // class ProspectVolume

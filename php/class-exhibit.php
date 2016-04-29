@@ -185,26 +185,4 @@ class ProspectExhibit {
 
 		return $map_groups;
 	} // get_used_map_groups()
-
-
-		// RETURNS: An array of all Map definitions used by this Exhibit
-		// ASSUMES: That Exhibit view data has been unpacked
-	// public function get_used_maps()
-	// {
-	// 	$map_array = array();
-
-	// 		// Find Map views and compile maps
-	// 	foreach ($this->views as $the_view) {
-	// 		if ($the_view->vf == 'M') {
-	// 			foreach ($the_view->c->lyrs as $the_layer) {
-	// 				$new_map = new ProspectMap(false, $the_layer->lid);
-	// 				array_push($map_array, $new_map);
-	// 			}
-	// 		}
-	// 	}
-	// 		// Sort array according to map IDs
-	// 	usort($map_array, array('ProspectMap', 'cmp_map_obj_ids'));
-
-	// 	return $map_array;
-	// } // get_used_maps()
 } // class ProspectExhibit

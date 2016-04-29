@@ -337,9 +337,6 @@
 			<select value='{{c.lbls[tIndex]}}'>
 				<option value="n"><?php _e('None', 'prospect'); ?></option>
 				<option value="a"><?php _e('Above', 'prospect'); ?></option>
-				<option value="r"><?php _e('Right', 'prospect'); ?></option>
-				<option value="b"><?php _e('Below', 'prospect'); ?></option>
-				<option value="l"><?php _e('Left', 'prospect'); ?></option>
 			</select>
 			<br/>
 			<b><?php _e('Marker Radius Size', 'prospect'); ?>: </b>

@@ -317,8 +317,8 @@ class Prospect {
 
 			wp_enqueue_script('d3', plugins_url('lib/d3.min.js', dirname(__FILE__)));
 
-			wp_enqueue_script('prsp-view-core', plugins_url('js/view-core.min.js', dirname(__FILE__)));
-			wp_enqueue_script('prsp-view-volume', plugins_url('js/view-volume.min.js', dirname(__FILE__)), array('prsp-view-core'));
+			wp_enqueue_script('prsp-view-core', plugins_url('js/view-core.js', dirname(__FILE__)));
+			wp_enqueue_script('prsp-view-volume', plugins_url('js/view-volume.js', dirname(__FILE__)), array('prsp-view-core'));
 
 				// Get Volume definition
 			$the_volume = new ProspectVolume(true, get_the_ID(), true);
@@ -331,6 +331,7 @@ class Prospect {
 			foreach ($the_volume->views as $the_view) {
 				switch ($the_view->vf) {
 				case 'M':
+				case 'p':
 					$use_maps = true;
 					break;
 				}
@@ -399,9 +400,9 @@ class Prospect {
 			// $map_defs = $the_volume->get_used_maps();
 
 				// Collect map group ID data
-			$map_groups = $the_xhbt->get_used_map_groups();
+			$map_groups = $the_volume->get_used_map_groups();
 			$map_ids = ProspectMap::get_mapids_from_groups($map_groups);
-			$map_ids = array_merge($map_ids, $the_xhbt->get_used_map_ids());
+			$map_ids = array_merge($map_ids, $the_volume->get_used_map_ids());
 			$map_ids = array_unique($map_ids);
 			$map_defs = ProspectMap::map_ids_to_objects($map_ids);
 

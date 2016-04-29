@@ -1078,6 +1078,9 @@ PVizFrame.prototype.createViz = function(vIndex, refresh)
 	case 'M':
 		newViz = new VizMap(this, theView.c);
 		break;
+	case 'p':
+		newViz = new VizMap2(this, theView.c);
+		break;
 	case 'C':
 		newViz = new VizCards(this, theView.c);
 		break;

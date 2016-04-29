@@ -737,6 +737,33 @@ jQuery(document).ready(function() {
 				theVF.c.sAtts = newSAtts;
 				theVF.c.lgnds = newLgnds;
 				break;
+			case 'p': 	// Map2
+				var newLL=[], newLgnds=[], newSAtts=[], newLClrs=[], newLbls=[];
+				iTemplates.forEach(function(theTmplt) {
+					var origTIndex = getTemplateIndex(theTmplt.tid);
+						// Was this Template absent in original config?
+					if (origTIndex == -1) {
+						newLL.push(theTmplt.attsLL[0] || '');
+						newLClrs.push('#FFD700');
+						newSAtts.push(theTmplt.attsDNum[0] || 'disable');
+						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
+								return { attID: theLgndAtt, useAtt: true };
+							}));
+						newLbls.push('n');
+					} else {
+						newLL.push(checkAttID(theVF.c.cAtts[origTIndex], theTmplt.attsLL, ''));
+						newLClrs.push(theVF.c.lClrs[origTIndex]);
+						newSAtts.push(checkAttID(theVF.c.sAtts[origTIndex], theTmplt.attsDNum, 'disable'));
+						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
+						newLbls.push(theVF.c.lbls[origTIndex]);
+					}
+				});
+				theVF.c.cAtts = newLL;
+				theVF.c.lClrs = newLClrs;
+				theVF.c.sAtts = newSAtts;
+				theVF.c.lgnds = newLgnds;
+				theVF.c.lbls  = newLbls;
+				break;
 			case 'C': 	// Cards
 				var newLgnds=[], newIAtts=[], newCnt=[];
 				iTemplates.forEach(function(theTmplt) {
@@ -888,7 +915,8 @@ jQuery(document).ready(function() {
 			facets: defJoinedFacets,
 			errorMsg: errorString,
 			baseMaps: PMapHub.getBaseLayers(),
-			layerMaps: PMapHub.getOverlays()
+			layerMaps: PMapHub.getOverlays(),
+			mapGroups: prspdata.map_groups
 		},
 		components: {
 			accordion: RJAccordionComponent,
@@ -957,6 +985,39 @@ jQuery(document).ready(function() {
 				newVFEntry.c.base= '.blank';
 				newVFEntry.c.lyrs= [];
 				break;
+
+			case 'p': 	// Map2
+				newVFEntry.c.clat = '';
+				newVFEntry.c.clon = '';
+				newVFEntry.c.zoom = 10;
+				newVFEntry.c.min = 7;
+				newVFEntry.c.max = 7;
+					// Lat-Long Coordinates
+				newVFEntry.c.cAtts= _.map(iTemplates, function(theTemplate) {
+					return theTemplate.attsLL[0] || '';
+				});
+					// Connection colors
+				newVFEntry.c.lClrs= _.map(iTemplates, function(theTemplate) {
+					return '#FFD700';
+				});
+					// Potential Size
+				newVFEntry.c.sAtts= _.map(iTemplates, function(theTemplate) {
+					return 'disable';
+				});
+					// Potential Legends
+				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
+					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
+						return { attID: theLgndAtt, useAtt: true };
+					});
+				});
+					// Default Label settings
+				newVFEntry.c.lbls= _.map(iTemplates, function(theTemplate) {
+					return 'n';
+				});
+				newVFEntry.c.base= '.blank';
+				newVFEntry.c.lyrs= [];
+				break;
+
 			case 'C': 	// Cards
 				newVFEntry.c.lOn  = true;
 				newVFEntry.c.w    = 'm';
@@ -1098,6 +1159,17 @@ jQuery(document).ready(function() {
 		return false;
 	});
 
+	rApp.on('addMapGroup', function(event, vIndex) {
+		var gid0 = prspdata.map_groups.length > 0 ? prspdata.map_groups[0] : '';
+		rApp.push('viewSettings['+vIndex+'].c.lyrs', { gid: gid0, o: 1 });
+		return false;
+	});
+
+	rApp.on('delMapGroup', function(event, vIndex, fIndex) {
+		rApp.splice('viewSettings['+vIndex+'].c.lyrs', fIndex, 1);
+		return false;
+	});
+
 		// For Maps and Pinboards
 	rApp.on('setLColor', function(event, vIndex, tIndex) {
 		var keypath='viewSettings['+vIndex+'].c.lClrs['+tIndex+']';
@@ -1105,6 +1177,7 @@ jQuery(document).ready(function() {
 		return false;
 	});
 
+		// For Pinboards
 	rApp.on('addSVGLayer', function(event, vIndex) {
 		rApp.push('viewSettings['+vIndex+'].c.lyrs', { url: '', o: 1 });
 		return false;
@@ -1368,6 +1441,27 @@ jQuery(document).ready(function() {
 					saveView.c.lgnds = newLgnds;
 					saveView.c.lClrs = newLClrs;
 					saveView.c.pAtts = packUsedAttIDs(viewSettings.c.pAtts);
+					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts);
+						// Don't need to modify map layer settings
+					saveView.c.base = viewSettings.c.base;
+					saveView.c.lyrs = viewSettings.c.lyrs;
+					break;
+				case 'p': 	// Map2
+					saveView.c.clat = viewSettings.c.clat;
+					saveView.c.clon = viewSettings.c.clon;
+					saveView.c.zoom = viewSettings.c.zoom;
+					saveView.c.min  = viewSettings.c.min;
+					saveView.c.max  = viewSettings.c.max;
+					var newLgnds=[], newLClrs=[], newLbls=[];
+					saveTIndices.forEach(function(tIndex) {
+						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
+						newLClrs.push(viewSettings.c.lClrs[tIndex]);
+						newLbls.push(viewSettings.c.lbls[tIndex]);
+					});
+					saveView.c.lgnds = newLgnds;
+					saveView.c.lClrs = newLClrs;
+					saveView.c.lbls = newLbls;
+					saveView.c.cAtts = packUsedAttIDs(viewSettings.c.cAtts);
 					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts);
 						// Don't need to modify map layer settings
 					saveView.c.base = viewSettings.c.base;
