@@ -58,6 +58,7 @@ class ProspectMap {
 				$group_data = get_post_meta($rec->ID, 'map_group_id', true);
 				if ($group_data && $group_data != '') {
 					$ids = explode("|", $group_data);
+					$ids = array_map('trim', $ids);
 					$group_ids = array_merge($group_ids, $ids);
 				}
 			}

@@ -232,7 +232,7 @@ var PMapHub = (function () {
 			groupDef = groupByID(id);
 			if (groupDef) {
 				layerGroup = L.layerGroup();
-				layerGroup.options.id = id;
+				layerGroup.options.id = layerGroup.options.layerName = id;
 				groupDef.mapids.forEach(function(mapid) {
 					layerDef = overlayByID(mapid);
 					if (layerDef) {

@@ -164,6 +164,7 @@ class ProspectExhibit {
 					if ($group_data && $group_data != '') {
 							// Get all map group IDs for current map
 						$ids = explode("|", $group_data);
+						$ids = array_map('trim', $ids);
 						foreach ($ids as $group_id) {
 								// Add this map to all groups it belongs to
 							$count = count($map_groups);

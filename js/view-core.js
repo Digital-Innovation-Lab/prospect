@@ -789,6 +789,7 @@ VizMap.prototype.doOptions = function()
 //		mapLayers = group map objects
 //		lOps = opacities of each overlay map group
 //		markerLayer = Leaflet layer for Markers
+//		lblLayer = Leaflet layer for Marker labels
 //		lineLayer = Leaflet layer for drawing lines between markers
 
 var VizMap2 = function(viewFrame, vSettings)
@@ -892,22 +893,24 @@ VizMap2.prototype.setup = function()
 	jQuery('#map-cloc-'+vI).button({ text: false, icons: { primary: "ui-icon-pin-s" }})
 		.click(curLoc);
 
+		// Create layer for Markers
 	var markers = L.featureGroup();            
 	this.markerLayer = markers;
 
 		// Create options properties if they don't already exist
 	markers.options = markers.options || { };
 	markers.options.layerName = dlText.markers;
-
 	markers.addTo(this.lMap);
 
+		// Create layer for Marker labels
+	var labels = L.featureGroup();
+	this.lblLayer = labels;
+	labels.addTo(this.lMap);
+
+		// Create layer for connecting lines
 	var lines = L.featureGroup();
 	this.lineLayer = lines;
 	lines.addTo(this.lMap);
-
-		// Maintain number of Loc Atts per Template type
-	// var numT = PData.eTNum();
-	// this.tLCnt = new Uint16Array(numT);
 } // setup()
 
 
@@ -938,7 +941,7 @@ VizMap2.prototype.render = function(stream)
 			if (locData.length > 1) {
 				PState.set(PSTATE_UPDATE);
 				mLayer.eachLayer(function(marker) {
-					if (marker.options._aid === aid) {
+					if (marker.options._aid === aid) {	// ignore labels
 						if (added) {
 							marker.setStyle({ color: "yellow", weight: 2 });
 						} else {
@@ -966,7 +969,10 @@ VizMap2.prototype.render = function(stream)
 		// Remove previous Markers
 	mLayer.clearLayers();
 
-		// Remove any previous lines
+		// Remove previous labels
+	this.lblLayer.clearLayers();
+
+		// Remove previous lines
 	var lines = this.lineLayer;
 	lines.clearLayers();
 
@@ -975,7 +981,7 @@ VizMap2.prototype.render = function(stream)
 	var fAttID, fAtt, locAtt, featSet, lbl;
 	var locData, fData, newMarker;
 
-	var sAttID, sAtt, minR, maxR, dR, minS, dS;
+	var sAttID, sAtt, minR, maxR, dR, minS, dS, p0;
 
 	minR = this.settings.min;
 	if (typeof minR === 'string') {
@@ -1034,6 +1040,40 @@ VizMap2.prototype.render = function(stream)
 			lbl = self.settings.lbls[tI];
 		} // if new Template
 
+			// PURPOSE: Add a single marker to marker layer
+			// INPUT: 	ll = LatLon point
+			// ASSUMES: Key variables are set: fData, 
+		function addMarker(ll, label)
+		{
+			if (sAttID) {
+				sAtt = rec.a[sAttID];
+				if (typeof sAtt === 'number') {
+					sAtt = Math.floor(((sAtt-minS)*dR)/dS) + minR;
+				} else {
+					sAtt = minR;
+				}
+			} else {
+				sAtt = minR;
+			}
+			newMarker = L.circleMarker(ll,
+				{	_aid: aI, weight: 1, radius: sAtt,
+					fillColor: fData, color: "#000",
+					opacity: 1, fillOpacity: 1
+				});
+			newMarker.on('click', markerClick);
+			mLayer.addLayer(newMarker);
+				// Create label? Currently just one style, at the top
+			if (label && lbl != 'n') {
+				self.lblLayer.addLayer(L.marker(ll, {
+					icon: L.divIcon({
+						iconSize: null,
+						className: 'maplbl',
+						html: '<div>' + rec.l + '</div>'
+					})
+				}));
+			} // if
+		} // addMarker()
+
 			// Get Record data and create cache entry
 		aI = stream.s[i];
 		rec = PData.rByN(aI);
@@ -1046,39 +1086,20 @@ VizMap2.prototype.render = function(stream)
 						// Set bit in rMap corresponding to absIndex
 					self.rMap[aI >> 4] |= (1 << (aI & 15));
 					if (typeof locData[0] === 'number') {
-						if (sAttID) {
-							sAtt = rec.a[sAttID];
-							if (typeof sAtt === 'number') {
-								sAtt = Math.floor(((sAtt-minS)*dR)/dS) + minR;
-							} else {
-								sAtt = minR;
-							}
-						} else {
-							sAtt = minR;
-						}
-						newMarker = L.circleMarker(locData,
-							{	_aid: aI, weight: 1, radius: sAtt,
-								fillColor: fData, color: "#000",
-								opacity: 1, fillOpacity: 1
-							});
+						addMarker(locData, true);
 					} else {
-						// Handle multiple points
-// TO DO
-					}
-					newMarker.on('click', markerClick);
-					mLayer.addLayer(newMarker);
-						// Create label?
-					switch (lbl) {
-					case 't':
-					case 'r':
-					case 'b':
-					case 'l':
-					case 'n':
-						break;
-					}
-				}
-			}
-		}
+						locData.forEach(function(pt, pI) {
+							addMarker(pt, pI === 0);
+							if (pI === 0) {
+								p0 = pt;
+							} else {
+								lines.addLayer(L.polyline([p0, pt], {color: tLClr}));
+							}
+						});
+					} // locData is array
+				} // if fData
+			} // if fData
+		} // if locData
 
 			// Increment stream index -- check if going into new Template
 		if (++i == (tRec.i + tRec.n)) {
@@ -1181,9 +1202,12 @@ VizMap2.prototype.doOptions = function()
 		newBit = jQuery('<div class="op-layer" data-i="'+lIndex+'">'+self.mapLayers[lIndex].options.layerName+
 					' <input type=range class="op-slider" min=0 max=100 value='+self.lOps[lIndex]+' step=5></div>');
 		newBit.find(".op-slider").on("change", function() {
-			tLOps[lIndex] = jQuery(this).val();
-				// NOTE: May have to use eachLayer() to iterate through layers to setOpacity
-			self.mapLayers[lIndex].setOpacity(tLOps[lIndex]/100);
+			var newO = jQuery(this).val();
+			tLOps[lIndex] = newO;
+			newO /= 100;
+			self.mapLayers[lIndex].eachLayer(function(l) {
+				l.setOpacity(newO);
+			});
 		});
 		tLOps.push(self.lOps[lIndex]);
 		modalOpCtrls.append(newBit);
@@ -1195,8 +1219,9 @@ VizMap2.prototype.doOptions = function()
 				// Reset opacities in case user changed anything
 			self.baseMap.setOpacity(self.bOp/100);
 			self.lOps.forEach(function(op, oI) {
-					// NOTE: May have to use eachLayer() to iterate through layers to setOpacity
-				self.mapLayers[oI].setOpacity(op/100);
+				self.mapLayers[oI].eachLayer(function(l) {
+					l.setOpacity(op/100);
+				});
 			});
 		}
 		modalOpCtrls.empty();

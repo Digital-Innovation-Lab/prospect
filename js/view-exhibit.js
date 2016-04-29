@@ -2490,11 +2490,13 @@ jQuery(document).ready(function($) {
 	}());
 
 		// Ensure proper ending for creating URLs
-	if (prspdata.site_url.charAt(prspdata.site_url.length-1) != '/')
+	if (prspdata.site_url.charAt(prspdata.site_url.length-1) != '/') {
 		prspdata.site_url += '/';
+	}
 
-	if (prspdata.e.g.l != '')
+	if (prspdata.e.g.l != '') {
 		jQuery('#title').text(prspdata.e.g.l);
+	}
 
 		// Is there a local storage mechanism? Get local Perspectives if so
 	try {
