@@ -686,7 +686,7 @@
 
 <!-- DYNAMIC TEXT -->
 <script id="dltext-visualizations" type='text/ractive'>
-<?php _e('D,Directory|C,Cards|t,TextStream|M,Map|p,Map 2|T,Timeline|P,Pinboard|N,Network Wheel', 'prospect'); ?>
+<?php _e('D,Directory|C,Cards|t,TextStream|M,Map 1|p,Map 2|T,Timeline|P,Pinboard|N,Network Wheel', 'prospect'); ?>
 </script>
 
 
