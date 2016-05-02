@@ -19,7 +19,8 @@
 				'prsp-jquery-ui-style',
 				'prsp-jquery-theme-style',
 				'leaflet-style',
-				'prsp-volume-style'
+				'prsp-volume-style',
+				'crimon-text'
 			);
 			$prsp_exhibit_scripts = array(
 				// 'admin-bar',

@@ -542,8 +542,9 @@ div#read-pane {
 	padding: 3px;
 	background-color: #eee;
 
+	font-family: "Crimson Text",Georgia,"Times New Roman",Times,serif;
+	font-size: 14px;
 	font-weight: normal;
-	font-size: 11px;
 
 	overflow-y: scroll;
 	position: absolute;
@@ -568,15 +569,20 @@ div#read-pane h2 {
 	padding: 0px;
 	border-bottom: 2px solid black;
 	font-weight: bold;
-	font-size: 14px;
+	font-size: 16px;
 }
 
 div#read-pane p {
 	font-weight: normal;
-	font-size: 11px;
+	font-size: 14px;
+	line-height: 1.3em;
 }
 
 div#read-pane blockquote {
+	font-family: "Crimson Text",Georgia,"Times New Roman",Times,serif;
+	font-size: 14px;
+	font-weight: normal;
+	line-height: 1.2em;
 	margin-left: 20px;
 }
 

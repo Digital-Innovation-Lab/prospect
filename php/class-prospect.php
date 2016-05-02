@@ -301,6 +301,7 @@ class Prospect {
 			wp_enqueue_style('prsp-jquery-theme-style', plugins_url('css/jquery-ui.theme.min.css', dirname(__FILE__)));
 			wp_enqueue_style('leaflet-style', plugins_url('lib/leaflet/leaflet.css', dirname(__FILE__)));
 			wp_enqueue_style('prsp-volume-style', plugins_url('css/view-volume.css', dirname(__FILE__)));
+			wp_enqueue_style('crimon-text', "https://fontlibrary.org/face/crimson");
 
 			wp_enqueue_script('jquery');
 			wp_enqueue_script('underscore');
