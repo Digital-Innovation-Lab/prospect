@@ -909,8 +909,21 @@ div.template-label {
 }
 
 	/* Map Styles */
-div.leaflet-control-layers.leaflet-control-layers-expanded {
-	width: 150px;
+.maplbl {
+	text-align: center;
+	margin-top: -1.5em;
+
+	width: 160px;
+/*	Below did not work for some reason
+	width: -moz-fit-content;
+	width: -webkit-fit-content;
+	width: fit-content; */
+}
+
+.maplbl div {
+	position: relative;
+	font-size: 10px;
+	left: -50%;
 }
 
 	/* Cards styles */
