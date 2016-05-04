@@ -771,7 +771,7 @@ div.template-label {
 	/* Map Styles */
 .maplbl {
 	text-align: center;
-	margin-top: -1.5em;
+	margin-top: -21px;
 
 	width: 160px;
 /*	Below did not work for some reason

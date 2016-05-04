@@ -359,7 +359,7 @@ VizMap.prototype.setup = function()
 		// Compile map layer data into mapLayers array and create with Leaflet
 	var opacity;
 	_.each(this.settings.lyrs, function(layer, lIndex) {
-		opacity = layer.o || 1;
+		opacity = layer.o;
 		self.lOps.push(opacity*100);
 
 		var newLayer;
@@ -725,13 +725,14 @@ VizMap.prototype.doOptions = function()
 	modalOpCtrls.append(newBit);
 
 	this.settings.lyrs.forEach(function(layer, lIndex) {
+		var oldO=self.lOps[lIndex];
 		newBit = jQuery('<div class="op-layer" data-i="'+lIndex+'">'+self.mapLayers[lIndex].options.layerName+
-					' <input type=range class="op-slider" min=0 max=100 value='+self.lOps[lIndex]+' step=5></div>');
+					' <input type=range class="op-slider" min=0 max=100 value='+oldO+' step=5></div>');
 		newBit.find(".op-slider").on("change", function() {
 			tLOps[lIndex] = jQuery(this).val();
 			self.mapLayers[lIndex].setOpacity(tLOps[lIndex]/100);
 		});
-		tLOps.push(self.lOps[lIndex]);
+		tLOps.push(oldO);
 		modalOpCtrls.append(newBit);
 	});
 
@@ -872,8 +873,8 @@ VizMap2.prototype.setup = function()
 
 		// Compile map layer data into mapLayers array and create with Leaflet
 	var opacity;
-	_.each(this.settings.lyrs, function(layer, lIndex) {
-		opacity = layer.o || 1;
+	this.settings.lyrs.forEach(function(layer, lIndex) {
+		opacity = layer.o;
 		self.lOps.push(opacity*100);
 
 		var newLayer;
@@ -1042,7 +1043,7 @@ VizMap2.prototype.render = function(stream)
 
 			// PURPOSE: Add a single marker to marker layer
 			// INPUT: 	ll = LatLon point
-			// ASSUMES: Key variables are set: fData, 
+			// ASSUMES: Key variables are set: rec, fData, sAttID, aI
 		function addMarker(ll, label)
 		{
 			if (sAttID) {
@@ -1199,8 +1200,9 @@ VizMap2.prototype.doOptions = function()
 	modalOpCtrls.append(newBit);
 
 	this.settings.lyrs.forEach(function(layer, lIndex) {
-		newBit = jQuery('<div class="op-layer" data-i="'+lIndex+'">'+self.mapLayers[lIndex].options.layerName+
-					' <input type=range class="op-slider" min=0 max=100 value='+self.lOps[lIndex]+' step=5></div>');
+		var initO = self.lOps[lIndex];
+		newBit = jQuery('<div class="op-layer" data-i="'+lIndex+'">'+layer.gid+
+					' <input type=range class="op-slider" min=0 max=100 value='+initO+' step=5></div>');
 		newBit.find(".op-slider").on("change", function() {
 			var newO = jQuery(this).val();
 			tLOps[lIndex] = newO;
@@ -1209,7 +1211,7 @@ VizMap2.prototype.doOptions = function()
 				l.setOpacity(newO);
 			});
 		});
-		tLOps.push(self.lOps[lIndex]);
+		tLOps.push(initO);
 		modalOpCtrls.append(newBit);
 	});
 
