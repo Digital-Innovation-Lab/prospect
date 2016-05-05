@@ -767,28 +767,32 @@ div.scroll-container .selected {
 	color: #56A0D3;
 }
 
-	/* In Dialogs for showing and managing Perspectives */
-#prspctv-slist {
+	/* In Dialogs for showing and managing Readings */
+#reading-slist {
 	height: 100%;
 }
 
-#prspctv-slist li {
-	line-height: 1.15em;
+#reading-slist li {
+	line-height: 1.2em;
 }
 
-#prspctv-mlist {
+#reading-mlist {
 	font-size: 12px;
 	height: 100%;
 }
 
-#prspctv-mlist li {
+#reading-mlist li {
 	line-height: 1.5em;
 }
 
-#prspctv-mlist button {
-	font-size: 8px;
-	padding: 1px;
+#reading-mlist button {
+	font-size: 7px;
+	padding: 0;
+	padding-left: 2px;
+	padding-right: 2px;
 	margin: 0;
+	margin-left: 2px;
+	margin-right: 2px;
 	float: right;
 }
 

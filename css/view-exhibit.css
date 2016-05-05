@@ -633,7 +633,7 @@ div.scroll-container .selected {
 }
 
 #prspctv-slist li {
-	line-height: 1.15em;
+	line-height: 1.2em;
 }
 
 #prspctv-mlist {
@@ -646,9 +646,13 @@ div.scroll-container .selected {
 }
 
 #prspctv-mlist button {
-	font-size: 8px;
-	padding: 1px;
+	font-size: 7px;
+	padding: 0;
+	padding-left: 2px;
+	padding-right: 2px;
 	margin: 0;
+	margin-left: 2px;
+	margin-right: 2px;
 	float: right;
 }
 
