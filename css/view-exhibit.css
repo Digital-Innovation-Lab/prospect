@@ -1564,6 +1564,7 @@ div.filter-vocab-bar {
 	margin-top: 4px;
 	max-height: 220px;
 	overflow-y: scroll;
+	table-layout: fixed;
 }
 
 #xscript-tbl div.row {
@@ -1582,7 +1583,7 @@ div.filter-vocab-bar {
 	line-height: 1.2em;
 	padding: 2px;
 	cursor: pointer;
-	width: 84px;
+	width: 86px;
 }
 
 	/* playhead */
@@ -1602,9 +1603,5 @@ div.filter-vocab-bar {
 	vertical-align: top;
 	line-height: 1.2em;
 	padding: 2px;
-
-	width: 40%;
-	min-width: -webkit-min-content;
-	min-width: -moz-min-content;
-	min-width: min-content;
+	width: auto;
 }
