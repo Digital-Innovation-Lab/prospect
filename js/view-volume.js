@@ -3552,7 +3552,7 @@ jQuery(document).ready(function($) {
 			.click(clickSaveReading);
 	jQuery('#btn-annote').button({icons: { primary: 'ui-icon-comment' }, text: false })
 			.click(clickAnnotation);
-	jQuery('#clearsel').button({icons: { primary: 'ui-icon-cancel' }, text: false })
+	jQuery('#clearsel') //.button({icons: { primary: 'ui-icon-cancel' }, text: false })
 		.click(clickClear);
 	jQuery('#command-bar input[type=radio][name=vizmode]').change(function() {
 		vMode = this.value;

@@ -148,6 +148,14 @@ ul.radio li:hover, ul.radio li.focus {
 	margin-top: 2px;
 }
 
+#command-bar button.plain {
+	padding-top: 2px;
+	padding-bottom: 3px;
+	padding-right: 3px;
+	padding-left: 3px;
+	margin-bottom: 3px;
+}
+
 #command-bar button.ui-button {
 	margin-left: 4px;
 	margin-right: 4px;
