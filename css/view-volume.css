@@ -417,7 +417,7 @@ div.viz-content {
 	width: 100%;
 }
 
-	/* This works but will cause bookmark to scroll rather than be fixed */
+	/* This works but will cause bookmark to scroll with text content rather than be fixed */
 /* #view-frame-0 div.viz-content {
 	overflow-y: scroll;
 } */
@@ -542,7 +542,8 @@ div#bookmark .bm {
 }
 
 div#bookmark .bm.sel {
-	stroke: #FF9900;
+	fill: #FF6633;
+/*	stroke: #FF6633; */
 }
 
 div#read-pane {
