@@ -3762,6 +3762,14 @@ VizNetWheel.prototype.render = function(stream)
 
 	this.preRender();
 
+		// Abort if no Records
+	if (stream.l === 0) {
+			// Set sizes and centers to minimum
+		this.svg.attr("width", "10")
+			.attr("height", "10");
+		return;
+	}
+
 		// Create nested array of nodes for each Template { ti, children }
 		// or Record { r[ecord], ai, children }
 
@@ -3873,6 +3881,14 @@ VizNetWheel.prototype.render = function(stream)
 		numNodes +=	theT.children.length;
 	});
 	this.inc = 360/(numNodes+head.children.length);
+
+		// Abort if no Records
+	if (numNodes === 0) {
+			// Set sizes and centers to minimum
+		this.svg.attr("width", "10")
+			.attr("height", "10");
+		return;
+	}
 
 		// Compute inner radius based on circumference needed to show all labels
 	var rad = Math.max((numNodes*14 + 20)/(Math.PI*2), 30);
