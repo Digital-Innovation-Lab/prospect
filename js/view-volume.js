@@ -1845,7 +1845,10 @@ PTextFrame.prototype.initDOM = function()
 		tf.empty();
 
 		self.volData.forEach(function(chap, cI) {
-			str = '<li class="toc-chap" data-c='+cI+'><input type="checkbox" class="readlist-c"/> <button class="toccollapse">Collapse</button> ';
+			str = '<li class="toc-chap" data-c='+cI+'><input type="checkbox" class="readlist-c"/> ';
+			if (chap.s.length > 0) {
+				str += '<button class="toccollapse">Collapse</button> ';
+			}
 			str += chap.e.innerHTML;
 			str += '<ul class="toc-secs">';
 				// Section headers and following DOM elements up to H1 or H2
@@ -2139,6 +2142,22 @@ PTextFrame.prototype.initDOM = function()
 						} // evalTxtFind()
 
 						self.searchFunc(evalTxtFind);
+							// Put first (sub)section found in reading pane, if any
+						search:
+						for (var i=0; i<self.tocRL.length; i++) {
+							var chap = self.tocRL[i];
+							if (chap.c) {
+								setTOCSel(true, i, -1);
+								break;
+							}
+							for (var j=0; j<chap.s.length; j++) {
+								if (chap.s[j]) {
+									setTOCSel(true, i, j);
+									break search;
+								}
+							}
+						}
+
 						dialog.dialog("close");
 					}
 				},
