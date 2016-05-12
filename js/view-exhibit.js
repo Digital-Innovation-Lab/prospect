@@ -1387,6 +1387,8 @@ jQuery(document).ready(function($) {
 	var localStore=null;		// Local (Browser) storage (if Browser capable)
 	var localPrspctvs=[];		// locally-stored Perspectives
 
+	var tour;
+
 		// FUNCTIONS
 		//==========
 
@@ -2412,6 +2414,8 @@ jQuery(document).ready(function($) {
 		loadFrag('dltext-showhideall', 'sha');
 		loadFrag('dltext-ok', 'ok');
 		loadFrag('dltext-cancel', 'cancel');
+		loadFrag('dltext-next', 'next');
+		loadFrag('dltext-prev', 'prev');
 		loadFrag('dltext-choose-att', 'chsatt');
 		loadFrag('dltext-seerec', 'seerec');
 		loadFrag('dltext-close', 'close');
@@ -2598,8 +2602,9 @@ jQuery(document).ready(function($) {
 		// Allow ViewFrames to handle changes in size
 	jQuery(window).resize(function() {
 		views.forEach(function(v) {
-			if (v)
+			if (v) {
 				v.resize();
+			}
 		})
 	});
 
@@ -2631,6 +2636,43 @@ jQuery(document).ready(function($) {
 		// Init hub using config settings
 	PState.set(PSTATE_LOAD);
 	PData.init();
+
+		// Set up Help Tour?
+	if (prspdata.x.tour) {
+		tour = {
+			id: "ProspectTour",
+			showPrevButton: true,
+			i18n: {
+				nextBtn: dlText.next,
+				prevBtn: dlText.prev,
+				doneBtn: dlText.close
+			},
+			steps: [
+				{
+				target: "btn-hs-bars",
+				placement: "bottom", xOffset: -22,
+				title: "Hide/Show Filters",
+				content: "Click this button to either hide or show the Filter panel"
+				},
+				{
+				target: "btn-set-layout",
+				placement: "bottom", xOffset: -22,
+				title: "Toggle Second View",
+				content: "Click this to open the second view, or hide it"
+				},
+				{
+				target: "btn-show-prspctv",
+				placement: "bottom", xOffset: -22,
+				title: "Show Perspective",
+				content: "Click this to see which Perspectives are available for current Exhibit"
+				}
+			]
+			};
+		jQuery('#command-bar .help').button({icons: { primary: 'ui-icon-info' }, text: false })
+				.click(function() { hopscotch.startTour(tour); });
+	} else {
+		jQuery('#command-bar .help').hide();
+	}
 });
 
 	// Interface between embedded YouTube player and code that uses it

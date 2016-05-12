@@ -2098,6 +2098,14 @@ class ProspectAdmin {
 			'prsp_settings' // Section
 		);
 
+		add_settings_field(
+			'prsp_tour', // ID
+			__('Enable Help Tour', 'prospect'), // Title
+			array($this, 'prsp_tour_callback'), // Callback
+			'prsp-settings-page', // Page
+			'prsp_settings' // Section
+		);
+
 			// Disabled language option; using WP POT mechanism now instead
 		// add_settings_field(
 		// 	'prsp_lang',
@@ -2252,6 +2260,8 @@ class ProspectAdmin {
 
 		if (isset($input['prsp_chunks']))
 			$new_input['prsp_chunks'] = sanitize_text_field($input['prsp_chunks']);
+		if (isset($input['prsp_tour']))
+			$new_input['prsp_tour'] = sanitize_text_field($input['prsp_tour']);
 		if (isset($input['prsp_cb_color']))
 			$new_input['prsp_cb_color'] = sanitize_text_field($input['prsp_cb_color']);
 		if (isset($input['prsp_fs_color']))
@@ -2272,7 +2282,7 @@ class ProspectAdmin {
 		echo('<p>');
 		_e('Customize Prospect on this website with these settings', 'prospect');
 		echo('</p>');
-	}
+	} // prsp_settings_info()
 
 		// PURPOSE: Get the settings option array and print one of its values
 	public function prsp_chunks_callback()
@@ -2282,6 +2292,15 @@ class ProspectAdmin {
 			isset($this->options['prsp_chunks']) ? esc_attr($this->options['prsp_chunks']) : 1000
 		);
 	} // prsp_chunks_callback()
+
+		// PURPOSE: Get the settings option array and print one of its values
+	public function prsp_tour_callback()
+	{
+		printf(
+			'<input type="text" size="8" id="prsp_tour" name="prsp_base_options[prsp_tour]" value="%s" />',
+			isset($this->options['prsp_tour']) ? esc_attr($this->options['prsp_tour']) : 'false'
+		);
+	} // prsp_tour_callback()
 
 		// PURPOSE: Get the settings option array and print one of its values
 		// NOTE: 	Disabled as now using WP POT mechanism instead

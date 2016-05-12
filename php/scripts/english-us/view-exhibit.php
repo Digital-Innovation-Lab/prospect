@@ -7,7 +7,10 @@
 	<button id="btn-save-prspctv"><?php _e('Save Perspective', 'prospect'); ?></button>
 	<button id="btn-annote"><?php _e('Show/Hide Annotation', 'prospect'); ?></button>
 	&nbsp; <span id="pstate" class="attn"><?php _e('Initializing', 'prospect'); ?></span>
-	<span class="home"><span id="home-title"></span> <button id="btn-home"><?php _e('Home', 'prospect'); ?></button></span>
+	<span class="home">
+		<span id="home-title"></span> <button id="btn-home"><?php _e('Home', 'prospect'); ?></button>
+		<button class="help"><?php _e('Help', 'prospect'); ?></button>
+	</span>
 </div>
 
 <div id="annote" style="display:none;">
@@ -153,6 +156,11 @@
 		<p><?php _e('To show this Perspective after it has been Published on the server, use the following URL', 'prospect'); ?>:</p>
 		<textarea id="save-prspctv-embed" cols="60" rows="3" readonly="readonly"></textarea>
 	</div>
+
+	<ol id="help-tour">
+		<li></li>
+		<li></li>
+	</ol>
 </div> <!-- Hidden content ->
 
 <!-- DYNAMICALLY LOADED TEXT -->
@@ -271,6 +279,14 @@
 
 <script id="dltext-cancel" type="text">
 <?php _e('Cancel', 'prospect'); ?>
+</script>
+
+<script id="dltext-next" type="text">
+<?php _e('Next', 'prospect'); ?>
+</script>
+
+<script id="dltext-prev" type="text">
+<?php _e('Prev', 'prospect'); ?>
 </script>
 
 <script id="dltext-seerec" type="text">

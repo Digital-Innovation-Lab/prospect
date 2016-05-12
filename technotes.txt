@@ -7,3 +7,4 @@ Non-DIL Code files in /lib
 	Ractive 0.7.3 (JS)
 	RainbowVis-JS (JS)
 	RandomColor (JS)
+	Hopscotch 0.2.5 (JS)

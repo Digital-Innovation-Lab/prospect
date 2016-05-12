@@ -51,7 +51,7 @@
 			<label for="home-btn"><?php _e('Home button label', 'prospect'); ?>: </label>
 			<input type='text' id="home-btn" value='{{genSettings.hbtn}}' placeholder=<?php _e('"Enter label"', 'prospect'); ?> size="12"/>
 			<label for="home-url"><?php _e('Home URL', 'prospect'); ?>: </label>
-			<input type='url' id="home-url" value='{{genSettings.hurl}}' placeholder=<?php _e('"Enter label"', 'prospect'); ?> size="32" pattern="^https?://.+"/>
+			<input type='url' id="home-url" value='{{genSettings.hurl}}' placeholder=<?php _e('"Enter URL"', 'prospect'); ?> size="32" pattern="^https?://.+"/>
 		</div>
 		<h3><?php _e('Visualizations', 'prospect'); ?></h3>
 		<div>

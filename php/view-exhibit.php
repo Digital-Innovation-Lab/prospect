@@ -6,7 +6,7 @@
 
 	<?php 
 		add_action('wp_enqueue_scripts', 'prspct_dequeue_scripts');
-		
+
 			// PURPOSE: Dequeues all scripts and styles except those used by Prospect Exhibit
 			// IMPORTANT: Must keep this list coordinated with prsp_page_template() in class-prospect.php
 		function prspct_dequeue_scripts()
@@ -19,7 +19,8 @@
 				'prsp-jquery-ui-style',
 				'prsp-jquery-theme-style',
 				'leaflet-style',
-				'prsp-exhibit-style'
+				'prsp-exhibit-style',
+				'jquery-help-css'
 			);
 			$prsp_exhibit_scripts = array(
 				// 'admin-bar',
@@ -41,7 +42,8 @@
 				'prsp-view-core',
 				'prsp-view-aggregate',
 				'prsp-view-exhibit',
-				'soundcloud'
+				'soundcloud',
+				'jquery-help'
 			);
 
 			foreach ($wp_styles->queue as $style) {
@@ -65,6 +67,7 @@
 
 <?php
 		ProspectAdmin::insert_html_file('view-exhibit.php');
+
 		wp_footer();
 ?>
 </body>
