@@ -2647,29 +2647,25 @@ jQuery(document).ready(function($) {
 				prevBtn: dlText.prev,
 				doneBtn: dlText.close
 			},
-			steps: [
-				{
-				target: "btn-hs-bars",
-				placement: "bottom", xOffset: -22,
-				title: "Hide/Show Filters",
-				content: "Click this button to either hide or show the Filter panel"
-				},
-				{
-				target: "btn-set-layout",
-				placement: "bottom", xOffset: -22,
-				title: "Toggle Second View",
-				content: "Click this to open the second view, or hide it"
-				},
-				{
-				target: "btn-show-prspctv",
-				placement: "bottom", xOffset: -22,
-				title: "Show Perspective",
-				content: "Click this to see which Perspectives are available for current Exhibit"
-				}
-			]
-			};
-		jQuery('#command-bar .help').button({icons: { primary: 'ui-icon-info' }, text: false })
-				.click(function() { hopscotch.startTour(tour); });
+			steps: []
+		};
+		var cur = jQuery('#help-tour').children(':first');
+		while (cur.length != 0) {
+			var nextStep = {	target: jQuery(cur).data('t'),
+								placement: jQuery(cur).data('p'),
+								title: jQuery(cur).data('l'),
+								xOffset: jQuery(cur).data('x'),
+								yOffset: jQuery(cur).data('y'),
+								content: jQuery(cur).contents().text() };
+			tour.steps.push(nextStep);
+			cur = cur.next();
+		}
+		jQuery('#command-bar .help') // .button({icons: { primary: 'ui-icon-info' }, text: false })
+				.click(function() {
+						// Ensure Filter section open
+					jQuery('#filter-frame').slideDown(200);
+					hopscotch.startTour(tour);
+				});
 	} else {
 		jQuery('#command-bar .help').hide();
 	}

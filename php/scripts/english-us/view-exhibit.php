@@ -158,8 +158,22 @@
 	</div>
 
 	<ol id="help-tour">
-		<li></li>
-		<li></li>
+		<li data-t="#pstate" data-l="Current State" data-p="bottom" data-x=-22 data-y=0>Indicates the current state of Prospect (whether or not it is busy, etc)</li>
+		<li data-t="#btn-hs-bars" data-l="Hide/Show Filters" data-p="bottom" data-x=-22 data-y=0>Click this to either hide or show the Filter panel</li>
+		<li data-t="#btn-set-layout" data-l="Toggle Second View" data-p="bottom" data-x=-22 data-y=0>Click this to open the second view, or hide it</li>
+		<li data-t="#btn-show-prspctv" data-l="Show Perspective" data-p="bottom" data-x=-22 data-y=0>Click this to see which Perspectives are available for current Exhibit</li>
+		<li data-t="#btn-save-prspctv" data-l="Save Perspective" data-p="bottom" data-x=-22 data-y=0>Click this to save the current state of your activity as a Perspective</li>
+		<li data-t="#btn-annote" data-l="Hide/Show Annotation" data-p="bottom" data-x=-22 data-y=0>Click this to hide or show the annotation of the last Perspective opened</li>
+		<li data-t="#btn-new-filter" data-l="New Filter" data-p="bottom" data-x=-22 data-y=0>Click this to create a new Filter</li>
+		<li data-t="#btn-toggle-filters" data-l="Hide/Show Filters" data-p="bottom" data-x=-22 data-y=0>Click this to hide or show the panel containing all of your Filters</li>
+		<li data-t="#btn-f-state" data-l="Filter State" data-p="bottom" data-x=-22 data-y=0>A button that either indicates the current state of your Filters or allows you to run data through them by clicking it</li>
+		<li data-t="#view-frame-0 .view-viz-select" data-l="Select Visualization" data-p="right" data-x=0 data-y=-22>Choose which visualization you wish to see in this Exhibit</li>
+		<li data-t="#view-frame-0 .hslgnd" data-l="Hide/Show Legend" data-p="right" data-x=0 data-y=-22>Click this to hide or show the Legend panel</li>
+		<li data-t="#view-frame-0 .vopts" data-l="Visualization Options" data-p="right" data-x=0 data-y=-22>Click this to show the configuration options available for this visualization</li>
+		<li data-t="#view-frame-0 .vnote" data-l="Visualization Notes" data-p="right" data-x=0 data-y=-22>Click this to show notes providing extra explanation about this visualization</li>
+		<li data-t="#view-frame-0 .hilite" data-l="Highlight Filter" data-p="right" data-x=0 data-y=-22>Click this to show or apply Filters that select Records programatically on the current visualization</li>
+		<li data-t="#view-frame-0 .xsel" data-l="Clear Highlighted" data-p="right" data-x=0 data-y=-22>Click this to clear out the currently highlighted selection on the current visualization</li>
+		<li data-t="#view-frame-0 .osel" data-l="Show Highlighted" data-p="right" data-x=0 data-y=-22>Click this when it is pulsing to show all of the currently highlighted selection of Records (one at a time) in the Record Inspector modal dialog window</li>
 	</ol>
 </div> <!-- Hidden content ->
 
