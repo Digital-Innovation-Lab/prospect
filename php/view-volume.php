@@ -20,7 +20,8 @@
 				'prsp-jquery-theme-style',
 				'leaflet-style',
 				'prsp-volume-style',
-				'crimon-text'
+				'crimon-text',
+				'jquery-help-css'
 			);
 			$prsp_exhibit_scripts = array(
 				// 'admin-bar',
@@ -41,7 +42,8 @@
 				'prsp-map-hub',
 				'prsp-view-core',
 				'prsp-view-volume',
-				'soundcloud'
+				'soundcloud',
+				'jquery-help'
 			);
 
 			foreach ($wp_styles->queue as $style) {

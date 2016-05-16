@@ -9,7 +9,10 @@
 	<button id="btn-save-reading"><?php _e('Save Reading', 'prospect'); ?></button>
 	<button id="btn-annote"><?php _e('Show/Hide Annotation', 'prospect'); ?></button>
 	&nbsp; <span id="pstate" class="attn"><?php _e('Initializing', 'prospect'); ?></span>
-	<span class="home"><span id="home-title"></span> <button id="btn-home"><?php _e('Home', 'prospect'); ?></button></span>
+	<span class="home">
+		<span id="home-title"></span> <button id="btn-home"><?php _e('Home', 'prospect'); ?></button>
+		<button class="help"><?php _e('Help', 'prospect'); ?></button>
+	</span>
 </div>
 
 <div id="annote" style="display:none;">
@@ -206,6 +209,36 @@
 	<div id="dialog-find-toc" title=<?php _e('"Find Text"', 'prospect'); ?>>
 		<input id="find-toc-txt" type="text" size="30" placeholder=<?php _e('"Enter Text To Find"', 'prospect'); ?>/>
 	</div>
+
+	<ol id="help-txt-tour">
+		<li data-t="#pstate" data-l=<?php _e('"Current State"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Indicates the current state of Prospect (whether or not it is loading data, etc)', 'prospect'); ?></li>
+		<li data-t="#vizmode-0" data-l=<?php _e('"Show All Data"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this option if you want all Record data to be shown in the visualization on the right', 'prospect'); ?></li>
+		<li data-t="#vizmode-1" data-l=<?php _e('"Show Data in Text"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this option if you want the visualization on the right to only show Records that are embedded in the text on the left', 'prospect'); ?></li>
+		<li data-t="#vizmode-2" data-l=<?php _e('"Only Show Selected Records"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this option if you want the visualization on the right to only show Records that have been selected in the text on the left', 'prospect'); ?></li>
+		<li data-t="#clearsel" data-l=<?php _e('"Clear Highlighted"', 'prospect'); ?> data-p="bottom" data-x=0 data-y=0><?php _e('Click this to clear out the currently highlighted selection on the current visualization', 'prospect'); ?></li>
+		<li data-t="#btn-show-reading" data-l=<?php _e('"Show Reading"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this to see which Readings are available for current Volume', 'prospect'); ?></li>
+		<li data-t="#btn-save-reading" data-l=<?php _e('"Save Reading"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this to save the current state of your activity as a Reading', 'prospect'); ?></li>
+		<li data-t="#btn-annote" data-l=<?php _e('"Hide/Show Annotation"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this to hide or show the annotation of the last Perspective opened', 'prospect'); ?></li>
+		<li data-t="#hstoc" data-l=<?php _e('"Toggle TOC/Text"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this to toggle between the Table of Contents and the Reading Pane', 'prospect'); ?></li>
+		<li data-t="#textprev" data-l=<?php _e('"Previous Section"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this to show the previous section of the Reading List on the Reading Pane', 'prospect'); ?></li>
+		<li data-t="#textnext" data-l=<?php _e('"Next Section"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this to show the next section of the Reading List on the Reading Pane', 'prospect'); ?></li>
+		<li data-t="#text-controls .hilite" data-l=<?php _e('"Highlight Filter"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this to show or apply Filters that select Records programatically on the Reading Pane', 'prospect'); ?></li>
+		<li data-t="#text-controls .osel" data-l=<?php _e('"Show Highlighted"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this when it is pulsing to show all of the currently highlighted selection of Records (one at a time) in the Record Inspector modal dialog window', 'prospect'); ?></li>
+		<li data-t="#bookmark" data-l=<?php _e('"Bookmark"', 'prospect'); ?> data-p="bottom" data-x=0 data-y=-22><?php _e('Shows the relative size of each section of the Volume; sections that are currently displayed are orange; sections not in the Reading List are greyed out', 'prospect'); ?></li>
+		<li data-t="#view-frame-1 .view-viz-select" data-l=<?php _e('"Select Visualization"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Choose which visualization you wish to see in this Exhibit', 'prospect'); ?></li>
+		<li data-t="#view-frame-1 .hslgnd" data-l=<?php _e('"Hide/Show Legend"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this to hide or show the Legend panel', 'prospect'); ?></li>
+		<li data-t="#view-frame-1 .vopts" data-l=<?php _e('"Visualization Options"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this to show the configuration options available for this visualization', 'prospect'); ?></li>
+		<li data-t="#view-frame-1 .vnote" data-l=<?php _e('"Visualization Notes"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this to show notes providing extra explanation about this visualization', 'prospect'); ?></li>
+		<li data-t="#view-frame-1 .hilite" data-l=<?php _e('"Highlight Filter"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this to show or apply Filters that select Records programatically on the current visualization', 'prospect'); ?></li>
+		<li data-t="#view-frame-1 .osel" data-l=<?php _e('"Show Highlighted"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this when it is pulsing to show all of the currently highlighted selection of Records (one at a time) in the Record Inspector modal dialog window', 'prospect'); ?></li>
+	</ol>
+
+	<ol id="help-toc-tour">
+		<li data-t="#tochcall" data-l=<?php _e('"Un/Check All"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Adds all possible sections to, or removes them all from, the current Reading List', 'prospect'); ?></li>
+		<li data-t="#tochsall" data-l=<?php _e('"Show/Hide All Selections"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Adds all possible sections to, or removes them all from, the current Reading Pane', 'prospect'); ?></li>
+		<li data-t="#tocfind" data-l=<?php _e('"Find Text"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click to bring up a dialog box that allows you to search for text; only sections in which that text appears will be on the resulting Reading List', 'prospect'); ?></li>
+		<li data-t="#toc-frame" data-l=<?php _e('"Table of Contents"', 'prospect'); ?> data-p="right" data-x=-10 data-y=10><?php _e('The Table of Contents showing all of the sections in the Volume; checkboxes indicate which sections are on the Reading List', 'prospect'); ?></li>
+	</ol>
 </div> <!-- Hidden content ->
 
 <!-- DYNAMICALLY LOADED TEXT -->
@@ -300,6 +333,14 @@
 
 <script id="dltext-cancel" type="text">
 <?php _e('Cancel', 'prospect'); ?>
+</script>
+
+<script id="dltext-next" type="text">
+<?php _e('Next', 'prospect'); ?>
+</script>
+
+<script id="dltext-prev" type="text">
+<?php _e('Prev', 'prospect'); ?>
 </script>
 
 <script id="dltext-seerec" type="text">

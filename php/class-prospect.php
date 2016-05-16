@@ -127,7 +127,7 @@ class Prospect {
 			wp_enqueue_script('d3', plugins_url('lib/d3.min.js', dirname(__FILE__)));
 
 			wp_enqueue_script('prsp-view-core', plugins_url('js/view-core.min.js', dirname(__FILE__)), array('underscore'));
-			wp_enqueue_script('prsp-view-exhibit', plugins_url('js/view-exhibit.js', dirname(__FILE__)), array('prsp-view-core'));
+			wp_enqueue_script('prsp-view-exhibit', plugins_url('js/view-exhibit.min.js', dirname(__FILE__)), array('prsp-view-core'));
 
 				// Get Exhibit definition
 			$the_xhbt = new ProspectExhibit(true, get_the_ID(), true);
@@ -352,8 +352,16 @@ class Prospect {
 				wp_enqueue_script('prsp-map-hub', plugins_url('js/map-hub.min.js', dirname(__FILE__)));
 			}
 
-				// 'Chunk-size' user option
+				// Check user options
 			$options = get_option('prsp_base_options');
+
+				// Insert Help Tour?
+			$tour = isset($options['prsp_tour']) && ($options['prsp_tour'] == 'true' || $options['prsp_tour'] == 'TRUE');
+			if ($tour) {
+				wp_enqueue_style('jquery-help-css', plugins_url('lib/hopscotch/css/hopscotch.min.css', dirname(__FILE__)), array('prsp-jquery-ui-style', 'prsp-jquery-theme-style'));
+				wp_enqueue_script('jquery-help', plugins_url('lib/hopscotch/js/hopscotch.min.js', dirname(__FILE__)), array('jquery', 'prsp-view-volume'));
+			}
+
 			$chunk = isset($options['prsp_chunks']) ? (int)$options['prsp_chunks'] : 1000;
 
 				// User-overrides for background colors
@@ -408,8 +416,6 @@ class Prospect {
 				}
 			}
 
-			// $map_defs = $the_volume->get_used_maps();
-
 				// Collect map group ID data
 			$map_groups = $the_volume->get_used_map_groups();
 			$map_ids = ProspectMap::get_mapids_from_groups($map_groups);
@@ -455,7 +461,8 @@ class Prospect {
 				'assets'		=> plugins_url('/assets/', dirname(__FILE__)),
 				'x'				=> array(
 									'add_reading' => current_user_can('create_prsp_readings') ? true : false,
-									'chunks' => $chunk
+									'chunks' => $chunk,
+									'tour' => $tour
 									),
 				'bClrs'			=> $b_clrs,
 				'e'				=> array('id' => $the_volume->id, 'g' => $the_volume->gen,

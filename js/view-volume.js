@@ -13,6 +13,8 @@
 	// GLOBAL VARS
 var volURL;
 
+var tour, tourTxt, tourTOC;
+
 var widgetData = {			// Widget state has to be global because YouTube API calls global function
 							// Therefore code cannot rely upon closure to know state of widget data
 	ytLoaded: false,			// YouTube not initially loaded
@@ -1213,13 +1215,13 @@ PVizFrame.prototype.createViz = function(vIndex, refresh)
 	this.setLDirty(false);
 
 		// Enable or disable corresponding Highlight button & Save Reading checkboxes
-	if (flags & V_FLAG_SEL) {
+	// if (flags & V_FLAG_SEL) {
 		frame.find('.hilite').button('enable');
-		jQuery('#save-reading-h1').prop('disabled', false).prop('checked', false);
-	} else {
-		frame.find('.hilite').button('disable');
-		jQuery('#save-reading-h1').prop('disabled', true).prop('checked', false);
-	}
+		// jQuery('#save-reading-h1').prop('disabled', false).prop('checked', false);
+	// } else {
+	// 	frame.find('.hilite').button('disable');
+	// 	jQuery('#save-reading-h1').prop('disabled', true).prop('checked', false);
+	// }
 
 		// Does Viz have an Options dialog?
 	if (flags & V_FLAG_OPT) {
@@ -1808,12 +1810,14 @@ PTextFrame.prototype.initDOM = function()
 	{
 		self.tocVis = !self.tocVis;
 		if (self.tocVis) {
+			tour = tourTOC;
 			self.tocSelDirty=false;
 			jQuery('#toc-controls').show();
 			jQuery('#toc-frame').show();
 			jQuery('#text-controls').hide();
 			jQuery('#text-frame').hide();
 		} else {
+			tour = tourTxt;
 			if (self.tocSelDirty) {
 				self.buildTextFrame();
 			}
@@ -3464,6 +3468,8 @@ jQuery(document).ready(function($) {
 		loadFrag('dltext-showhideall', 'sha');
 		loadFrag('dltext-ok', 'ok');
 		loadFrag('dltext-cancel', 'cancel');
+		loadFrag('dltext-next', 'next');
+		loadFrag('dltext-prev', 'prev');
 		loadFrag('dltext-choose-att', 'chsatt');
 		loadFrag('dltext-seerec', 'seerec');
 		loadFrag('dltext-close', 'close');
@@ -3684,6 +3690,43 @@ jQuery(document).ready(function($) {
 		// Init hub using config settings
 	PState.set(PSTATE_LOAD);
 	PData.init();
+
+		// Set up Help Tour?
+	if (prspdata.x.tour) {
+		function makeTour(domID, tourID) {
+			var thisTour = {
+				id: tourID,
+				showPrevButton: true,
+				i18n: {
+					nextBtn: dlText.next,
+					prevBtn: dlText.prev,
+					doneBtn: dlText.close
+				},
+				steps: []
+			};
+			var cur = jQuery(domID).children(':first');
+			while (cur.length != 0) {
+				var nextStep = {	target: jQuery(cur).data('t'),
+									placement: jQuery(cur).data('p'),
+									title: jQuery(cur).data('l'),
+									xOffset: jQuery(cur).data('x'),
+									yOffset: jQuery(cur).data('y'),
+									content: jQuery(cur).contents().text() };
+				thisTour.steps.push(nextStep);
+				cur = cur.next();
+			}
+			return thisTour;
+		} // makeTour()
+		tourTxt = makeTour('#help-txt-tour', 'helpTxt');
+		tourTOC = makeTour('#help-toc-tour', 'helpTOC');
+		tour = tourTxt;
+		jQuery('#command-bar .help') // .button({icons: { primary: 'ui-icon-info' }, text: false })
+				.click(function() {
+					hopscotch.startTour(tour);
+				});
+	} else {
+		jQuery('#command-bar .help').hide();
+	}
 });
 
 	// Interface between embedded YouTube player and code that uses it
