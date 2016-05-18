@@ -3758,6 +3758,7 @@ VizNetWheel.prototype.render = function(stream)
 
 	if (this.recSel.length > 0) {
 		this.recSel=[];
+		this.vFrame.selBtns(false);
 	}
 
 	this.preRender();
@@ -5187,6 +5188,82 @@ PFilterDates.prototype.setState = function(state)
 } // setState()
 
 
+// ==============================================
+// PFilterPtr: Class to filter Pointer Attributes
+
+var PFilterPtr = function(id, attRec)
+{
+	PFilterModel.call(this, id, attRec);
+} // PFilterPtr()
+
+PFilterPtr.prototype = Object.create(PFilterModel.prototype);
+
+PFilterPtr.prototype.constructor = PFilterPtr;
+
+PFilterPtr.prototype.evalPrep = function()
+{
+	var ip = this.insertPt();
+	this.cs = ip.find('input.filter-text-cs').prop('checked');
+	this.s = ip.find('input.filter-text').val();
+	if (!this.cs)
+		this.s = this.s.toLocaleLowerCase();
+} // evalPrep()
+
+PFilterPtr.prototype.eval = function(rec)
+{
+	var s = this.s;
+	var l, r;
+
+	if (s == null || s === '')
+		return true;
+
+	var p = rec.a[this.att.id];
+	if (typeof p === 'undefined' || p.length === 0)
+		return false;
+
+	for (var i=0; i<p.length; i++) {
+		r = PData.rByID(p[i]);
+		l = r.l;
+		if (!this.cs) {
+			l = l.toLocaleLowerCase();
+		}
+		if (l.indexOf(s) !== -1) {
+			return true;
+		}
+	}
+	return false;
+} // eval()
+
+PFilterPtr.prototype.setup = function()
+{
+	var self = this;
+	var inserted = this.insertPt();
+	var htmlText = document.getElementById('dltext-filter-ptr').innerHTML;
+
+	inserted.append(htmlText);
+		// Intercept changes to text
+	inserted.find('input.filter-text').change(function() {
+		self.isDirty(true);
+	});
+	inserted.find('input.filter-text-cs').click(function(event) {
+		self.isDirty(true);
+	});
+} // setup()
+
+PFilterPtr.prototype.getState = function()
+{
+	var ip = this.insertPt();
+	return { cs: ip.find('input.filter-text-cs').prop('checked'), t: ip.find('input.filter-text').val() };
+} // getState()
+
+PFilterPtr.prototype.setState = function(state)
+{
+	var ip = this.insertPt();
+	ip.find('input.filter-text-cs').prop('checked', state.cs);
+	ip.find('input.filter-text').val(state.t);
+} // setState()
+
+
 // ==========================================================
 // PData
 // PURPOSE: Manages all data, orchestrates data streams, etc.
@@ -5415,7 +5492,7 @@ var PData = (function() {
 		{
 			for (var i=0; i<recs.length; i++) {
 				var tData = recs[i];
-				if (tData.i <= absI  && absI < (tData.i+tData.n))
+				if (tData.i <= absI && absI < (tData.i+tData.n))
 					return i;
 			}
 		}, // n2T()
