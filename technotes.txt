@@ -8,3 +8,8 @@ Non-DIL Code files in /lib
 	RainbowVis-JS (JS)
 	RandomColor (JS)
 	Hopscotch 0.2.5 (JS)
+
+Unresolved Issues
+	* Proper and full treatment of UTF-8 strings in JavaScript, esp. sorting in PData.strcmp()
+	* Add CORS header to Exhibit & Volume HTML to prevent complaints of cross-server loads with SoundCloud
+	* Handle changing properties of SVG elements on NetworkWheel on spin
