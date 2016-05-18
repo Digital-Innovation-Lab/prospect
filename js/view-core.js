@@ -3869,6 +3869,8 @@ VizNetWheel.prototype.render = function(stream)
 			for (var rI=theT.children.length-1; rI>=0; rI--) {
 				var r=theT.children[rI];
 				if (!r.l) {
+						// Clear bit from bitmap
+					self.rMap[r.ai >> 4] &= ((1 << (r.ai & 15)) ^ 0xFFFF);
 					theT.children.splice(rI, 1);
 				}
 			}
