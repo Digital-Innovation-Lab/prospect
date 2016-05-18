@@ -279,6 +279,11 @@
 	</div>
 </script>
 
+<script id="dltext-filter-ptr" type='text'>
+	<input type="checkbox" class="filter-text-cs" checked="checked"><?php _e('Case sensitive', 'prospect'); ?>&nbsp;&nbsp;
+	<?php _e('Must point to a Record whose label includes', 'prospect'); ?> <input class="filter-text" type="text" size="20"/>
+</script>
+
 <script id="dltext-removehideall" type="text">
 <?php _e('Remove/Hide All', 'prospect'); ?>
 </script>
@@ -402,6 +407,7 @@
 <!-- Localization data for D3JS: see https://github.com/mbostock/d3/wiki/Localization -->
 <!-- Leave empty if no localization needed (English default) -->
 <script id="dltext-d3-local" type="text">
+no-d3-local
 </script>
 
 <script id="dltext-pstates" type="text">

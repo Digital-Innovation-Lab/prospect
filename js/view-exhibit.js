@@ -2045,6 +2045,9 @@ jQuery(document).ready(function($) {
 			case 'D':
 				newFilter = new PFilterDates(newID, theAtt);
 				break;
+			case 'P':
+				newFilter = new PFilterPtr(newID, theAtt);
+				break;
 			}
 		}
 
@@ -2441,7 +2444,7 @@ jQuery(document).ready(function($) {
 
 			// Do we need to localize D3?
 		if (text = document.getElementById('dltext-d3-local')) {
-			if ((text = text.innerHTML) && (text.length > 1))
+			if ((text = text.innerHTML.trim()) && (text !== 'no-d3-local'))
 			{
 				var locale = d3.locale(JSON.parse(text));
 				localD3 = locale.timeFormat.multi([
@@ -2585,6 +2588,7 @@ jQuery(document).ready(function($) {
 				case 'g':
 				case 'N':
 				case 'D':
+				case 'P':
 					jQuery('#filter-list').append('<li data-id="'+theAtt.id+'">'+theAtt.def.l+'</li>');
 					break;
 				}
