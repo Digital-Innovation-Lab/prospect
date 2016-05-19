@@ -203,6 +203,10 @@
 <?php _e('Are you sure that you wish to delete this Attribute from your Template?', 'prospect'); ?>
 </script>
 
+<script id="msg-saved" type='text/ractive'>
+<?php _e('Template was verified and prepared to be saved: now click the Publish or Update button on the right.', 'prospect'); ?>
+</script>
+
 <!-- DYNAMICALLY LOADED TEXT -->
 <script id="att-types" type='text/ractive'>
 <?php _e('V,Vocabulary|T,Text|g,Tags|N,Number|D,Dates|L,Lat-Lon|X,X-Y|I,Image|l,Link To|S,Audio|Y,YouTube|x,Transcript|t,Timecode|P,Pointer|J,Join', 'prospect'); ?>

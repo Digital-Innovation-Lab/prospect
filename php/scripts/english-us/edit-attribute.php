@@ -481,3 +481,7 @@
 <script id="msg-confirm-add-vocab" type='text/ractive'>
 <?php _e('Vocabulary terms will be added to the current list based on those used by current Records. Are you sure that you provided the correct internal ID and delimiter settings? To ensure unused items are removed from your Vocabulary, delete all current terms.', 'prospect'); ?>
 </script>
+
+<script id="msg-saved" type='text/ractive'>
+<?php _e('Attribute was verified and prepared to be saved: now click the Publish or Update button on the right.', 'prospect'); ?>
+</script>

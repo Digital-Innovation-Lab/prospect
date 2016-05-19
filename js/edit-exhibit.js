@@ -294,19 +294,23 @@ jQuery(document).ready(function() {
 	// } // compileText()
 
 
-		// PURPOSE: Show error message for 4 seconds
-	function displayError(errID, append)
+		// PURPOSE: Show error message for 5 seconds
+	function displayError(errID, append, ok)
 	{
 			// If a clear-error timer is set, cancel it
 		if (errTimer) {
 			clearTimeout(errTimer);
+			jQuery('#error-frame').removeClass('ok');
 		}
 		var newError = getText(errID);
 		if (append) {
 			newError += ' '+append+'.';
 		}
 		rApp.set('errorMsg', newError);
-		errTimer = setTimeout(function() { rApp.set('errorMsg', ''); }, 5000);
+		if (ok === true) {
+			jQuery('#error-frame').addClass('ok');
+		}
+		errTimer = setTimeout(function() { rApp.set('errorMsg', ''); jQuery('#error-frame').removeClass('ok'); }, 5000);
 	} // displayError()
 
 
@@ -1786,6 +1790,8 @@ jQuery(document).ready(function() {
 			jQuery('textarea[name="prsp_xhbt_gen"]').val(JSON.stringify(saveGen));
 			jQuery('textarea[name="prsp_xhbt_views"]').val(JSON.stringify(saveViews));
 			jQuery('textarea[name="prsp_xhbt_inspect"]').val(JSON.stringify(saveInspect));
+				// Confirm to user that Exhibit was successfully saved
+			displayError('#msg-saved', null, true);
 		} // if saveGe
 		return false;
 	});

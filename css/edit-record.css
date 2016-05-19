@@ -12,6 +12,10 @@
 	margin-bottom: 3px;
 }
 
+#error-frame.ok {
+	color: green;
+	border-color: green;
+}
 
 	/* Modify all buttons in the Edit Record Dashboard */
 #prsp_record_box button {

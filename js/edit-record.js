@@ -168,18 +168,21 @@ jQuery(document).ready(function() {
 		return jQuery(scriptName).html().trim();
 	}
 
-
-		// PURPOSE: Show error message for 3 seconds
-	function displayError(errID)
+		// PURPOSE: Show message for 5 seconds
+	function displayError(errID, ok)
 	{
 			// If a clear-error timer is set, cancel it
-		if (errTimer)
+		if (errTimer) {
 			clearTimeout(errTimer);
+			jQuery('#error-frame').removeClass('ok');
+		}
 		var newError = getText(errID);
 		rApp.set('errorMsg', newError);
-		errTimer = setTimeout(function() { rApp.set('errorMsg', ''); }, 5000);
+		if (ok === true) {
+			jQuery('#error-frame').addClass('ok');
+		}
+		errTimer = setTimeout(function() { rApp.set('errorMsg', ''); jQuery('#error-frame').removeClass('ok'); }, 5000);
 	} // displayError()
-
 
 		// RETURNS: Attribute definition from ID
 	function getAttribute(attID)
@@ -735,14 +738,17 @@ jQuery(document).ready(function() {
 			newAttVals[thisAtt.id] = newVal;
 		}
 
+// console.log("RecAtts: "+encodedVals);
+// console.log("size: "+encodedVals.length);
+
 			// Insert values into hidden fields if no problems
 		jQuery('input[name="prsp_rec_id"]').val(newRecID);
 		jQuery('input[name="prsp_tmplt_id"]').val(rApp.get('recType'));
 		var encodedVals = JSON.stringify(newAttVals);
 		jQuery('textarea[name="prsp_rec_atts"]').val(encodedVals);
+			// Confirm to user that Record saved successfully
+		displayError('#msg-saved', true);
 
-// console.log("RecAtts: "+encodedVals);
-// console.log("size: "+encodedVals.length);
 		return false;
 	});
 }); // ready

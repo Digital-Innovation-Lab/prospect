@@ -201,15 +201,20 @@ jQuery(document).ready(function() {
 	}
 
 
-		// PURPOSE: Show error message for 5 seconds
-	function displayError(errID)
+		// PURPOSE: Show message for 5 seconds
+	function displayError(errID, ok)
 	{
 			// If a clear-error timer is set, cancel it
-		if (errTimer)
+		if (errTimer) {
 			clearTimeout(errTimer);
+			jQuery('#error-frame').removeClass('ok');
+		}
 		var newError = getText(errID);
 		rApp.set('errorMsg', newError);
-		errTimer = setTimeout(function() { rApp.set('errorMsg', ''); }, 5000);
+		if (ok === true) {
+			jQuery('#error-frame').addClass('ok');
+		}
+		errTimer = setTimeout(function() { rApp.set('errorMsg', ''); jQuery('#error-frame').removeClass('ok'); }, 5000);
 	} // displayError()
 
 
@@ -600,6 +605,8 @@ jQuery(document).ready(function() {
 			jQuery('textarea[name="prsp_tmp_def"]').val(JSON.stringify(tmpltDef));
 			jQuery('textarea[name="prsp_tmp_joins"]').val(JSON.stringify(tmpJoins));
 			jQuery('textarea[name="prsp_tmp_view"]').val(JSON.stringify(tmpView));
+				// Confirm to user that Template saved
+			displayError('#msg-saved', true);
 		}
 		return false;
 	});

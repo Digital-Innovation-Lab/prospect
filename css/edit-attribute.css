@@ -62,13 +62,18 @@ button#prsp-save-data {
 	font-size: 12px;
 }
 
-	/* Error for displaying Error Messages */
+	/* Error for displaying Messages */
 #error-frame {
 	color: red;
 	border: red solid 1px;
 	padding: 3px;
 	margin-top: 3px;
 	margin-bottom: 3px;
+}
+
+#error-frame.ok {
+	color: green;
+	border-color: green;
 }
 
 	/* To display Legend entry */

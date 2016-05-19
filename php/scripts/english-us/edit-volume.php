@@ -727,3 +727,7 @@
 <script id="msg-confirm-del-vf" type='text/ractive'>
 <?php _e('Are you sure that you wish to delete this View from your Volume?', 'prospect'); ?>
 </script>
+
+<script id="msg-saved" type='text/ractive'>
+<?php _e('Volume was verified and prepared to be saved: now click the Publish or Update button on the right.', 'prospect'); ?>
+</script>

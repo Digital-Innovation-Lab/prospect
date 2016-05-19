@@ -75,6 +75,11 @@ button#prsp-save-data {
 	margin-bottom: 3px;
 }
 
+#error-frame.ok {
+	color: green;
+	border-color: green;
+}
+
 	/* To minimize size of ui buttons */
 .ui-button-icon-only {
 	width: 1.4em !important;
