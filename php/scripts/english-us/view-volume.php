@@ -234,10 +234,11 @@
 	</ol>
 
 	<ol id="help-toc-tour">
+		<li data-t="#hstoc" data-l=<?php _e('"Toggle TOC/Text"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this to toggle between the Table of Contents and the Reading Pane', 'prospect'); ?></li>
 		<li data-t="#tochcall" data-l=<?php _e('"Un/Check All"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Adds all possible sections to, or removes them all from, the current Reading List', 'prospect'); ?></li>
 		<li data-t="#tochsall" data-l=<?php _e('"Show/Hide All Selections"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Adds all possible sections to, or removes them all from, the current Reading Pane', 'prospect'); ?></li>
 		<li data-t="#tocfind" data-l=<?php _e('"Find Text"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click to bring up a dialog box that allows you to search for text; only sections in which that text appears will be on the resulting Reading List', 'prospect'); ?></li>
-		<li data-t="#toc-frame" data-l=<?php _e('"Table of Contents"', 'prospect'); ?> data-p="right" data-x=-10 data-y=10><?php _e('The Table of Contents showing all of the sections in the Volume; checkboxes indicate which sections are on the Reading List', 'prospect'); ?></li>
+		<li data-t="#toc-frame" data-l=<?php _e('"Table of Contents"', 'prospect'); ?> data-p="right" data-x=-10 data-y=10><?php _e('The Table of Contents showing all of the sections in the Volume; checkboxes indicate which sections are on the Reading List; sections outlined in yellow are shown in the Reading Pane', 'prospect'); ?></li>
 	</ol>
 </div> <!-- Hidden content ->
 
