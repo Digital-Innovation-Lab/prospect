@@ -1486,6 +1486,10 @@ PVizFrame.prototype.getBMData = function()
 //			delSel(absI)
 //			newBookMark()
 //			updateBookMark()
+//
+//		if a href contains "#" it is assumed to be a record-id; otherwise, a real URL
+//			When HTML is parsed by buildTextFrame(), href is rewritten, data-id added,
+//				no-data class added if not record-id
 
 var PTextFrame = function(vfIndex, callbacks)
 {
@@ -1651,6 +1655,7 @@ PTextFrame.prototype.updateTOCSel = function()
 
 
 	// PURPOSE: Insert appropriate text into text frame, given tocSel
+	//				parse and modify links
 	// SIDE-FX:	Compile list of Record IDs in <a> in txtIDs
 	// ASSUMES: Scroll to next text section deselects previous selections
 	// TO DO:	Disable prev/next buttons if no RL items before or after
@@ -1710,21 +1715,29 @@ PTextFrame.prototype.buildTextFrame = function()
 	this.txtIDs=[];
 	this.selBtns(false);
 
-	var txtIDs=[]; // self.txtIS=null;
+	var txtIDs=[];
 	var recs;
+	var pos;
 	recs = jQuery('#read-pane').find('a');
 	recs.each(function(aI) {
-		var thisID = jQuery(this).data('id');
-			// Keep list sorted; don't add if already exists
-		if (thisID) {
-			if (txtIDs.length == 0) {
-				txtIDs.push(thisID);
+			// Need to get raw DOM element, as prop('href') via jQuery prefixes current URL
+		var link = jQuery(this).prop('href');
+			// Is this a record-id?
+		if ((pos=link.indexOf('#')) !== -1) {
+			link = link.substr(pos+1);
+			jQuery(this).prop('href', '#');
+			jQuery(this).attr('data-id', link);
+				// Keep list sorted; don't add if already exists
+			if (txtIDs.length === 0) {
+				txtIDs.push(link);
 			} else {
-				var i = _.sortedIndex(txtIDs, thisID);
-				if (txtIDs[i] !== thisID) {
-					txtIDs.splice(i, 0, thisID);
+				var i = _.sortedIndex(txtIDs, link);
+				if (txtIDs[i] !== link) {
+					txtIDs.splice(i, 0, link);
 				}
 			}
+		} else {
+			jQuery(this).addClass('no-data');
 		}
 	});
 	this.txtIDs=txtIDs;
