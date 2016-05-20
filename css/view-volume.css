@@ -1394,6 +1394,70 @@ svg .link.thick
 	stroke-width: 2px;
 }
 
+/* Specific Filter styles
+ * ======================
+ */
+
+div.filter-num-slider {
+	display: inline-block;
+}
+
+div.filter-num-slider.ui-slider {
+	height: 6px;
+	width: 100px;
+}
+
+div.filter-num-slider.ui-slider .ui-slider-handle {
+	height: 10px;
+	width: 5px;
+}
+
+div.filter-num-slider.ui-slider .ui-slider-range {
+}
+
+	/* Outer container for Vocabulary filters */
+div.filter-vocab-container {
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -webkit-flex;
+	display: flex;
+
+	flex-direction: row;
+	justify-content: flex-start;
+
+	margin-bottom: 2px;
+}
+
+	/* Container for Hide/Show All checkbox entry */
+div.filter-vocab-hsa {
+	min-width: 80px;
+	margin: 2px;
+}
+
+	/* Vertical container for Vocab parent and any children */
+div.filter-vocab-entry {
+	display: inline-block;
+
+	min-width: -webkit-min-content;
+	min-width: -moz-min-content;
+	min-width: min-content;
+
+	margin: 2px;
+}
+
+div.filter-vocab-row {
+	display: inline-block;
+}
+
+div.filter-vocab-bar {
+	height: 4px;
+	width: 50px;
+	margin: 0px;
+	margin-left: 18px;
+	padding: 0px;
+	border: 1px black dotted;
+}
 
 /** ABOUT dialog
  **/
