@@ -1,0 +1,28 @@
+module.exports = function(grunt) {
+
+  // Project configuration.
+  grunt.initConfig({
+    pkg: grunt.file.readJSON('package.json'),
+    uglify: {
+      options: {
+        banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n',
+		screwIE8: true
+      },
+	  static_mappings: {
+		  files: [
+			  { src: 'js/map-hub.js', dest: 'js/map-hub.min.js' },
+			  { src: 'js/view-aggregate.js', dest: 'js/view-aggregate.min.js' },
+			  { src: 'js/view-core.js', dest: 'js/view-core.min.js' },
+			  { src: 'js/view-exhibit.js', dest: 'js/view-exhibit.min.js' },
+			  { src: 'js/view-volume.js', dest: 'js/view-volume.min.js' }
+		  ]
+	  }
+    }
+  });
+
+  // Load the plugin that provides the "uglify" task.
+  grunt.loadNpmTasks('grunt-contrib-uglify');
+
+  // Default task(s).
+  grunt.registerTask('default', ['uglify']);
+};
