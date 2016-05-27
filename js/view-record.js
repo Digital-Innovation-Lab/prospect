@@ -173,7 +173,7 @@ jQuery(document).ready(function($) {
 				else if (att.def.t == 'I')
 					newText += '<div><b>'+l+'</b>:<br/>'+datum+'</div>';
 				else
-					newText += '<div><b>'+l+'</b>: '+datum+'</div>';				
+					newText += '<div><b>'+l+'</b>: '+datum+'</div>';
 			}
 		} // appendAttData
 
@@ -407,14 +407,12 @@ jQuery(document).ready(function($) {
 				if (avType && jQuery(evt.target).hasClass('timecode')) {
 					var seekTo = jQuery(evt.target).data('timecode');
 
-						// seekTo doesn't work unless sound is already playing
 					switch (avType) {
 					case 1:
+						widgetData.widget.seekTo(seekTo);
 						if (!widgetData.playing) {
-							widgetData.playing = true;
 							widgetData.widget.play();
 						}
-						widgetData.widget.seekTo(seekTo);
 						break;
 					case 2:
 						if (!widgetData.playing) {
@@ -553,7 +551,6 @@ jQuery(document).ready(function($) {
 
 		// Process SoundCloud value
 	if (avType === 1) {
-		var primeAudio=true;
 			// Add synchronize button if both A/V and Transcript
 		if (widgetData.xscriptOn) {
 			container.prepend('<div>'+document.getElementById('dltext-sync-xscript').innerHTML+'</div>');
@@ -567,7 +564,6 @@ jQuery(document).ready(function($) {
 			// Setup SoundCloud player after entire sound clip loaded
 		playWidget.bind(SC.Widget.Events.READY, function() {
 				// Prime the audio -- must initially play (seekTo won't work until sound loaded and playing)
-			playWidget.play();
 			playWidget.bind(SC.Widget.Events.PLAY, function() {
 				widgetData.playing = true;
 			});
@@ -575,12 +571,6 @@ jQuery(document).ready(function($) {
 				widgetData.playing = false;
 			});
 			playWidget.bind(SC.Widget.Events.PLAY_PROGRESS, function(params) {
-					// Pauses audio after it primes so seekTo will work properly
-				if (primeAudio) {
-					playWidget.pause();
-					primeAudio = false;
-					widgetData.playing = false;
-				}
 					// Keep within bounds if only excerpt of longer transcript
 				if (widgetData.extract) {
 					if (params.currentPosition < widgetData.sTime) {

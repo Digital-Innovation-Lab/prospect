@@ -414,8 +414,6 @@ PViewFrame.prototype.openSelection = function()
 					getSETimes();
 						// Is this a URL to SoundCloud?
 					if (scAttVal.match(/soundcloud\.com/)) {
-						var primeAudio=true;
-
 						avType=1;
 						container.append('<iframe id="sc-widget" class="player" width="100%" height="110" src="http://w.soundcloud.com/player/?url='+
 							scAttVal+'"></iframe>');
@@ -425,8 +423,6 @@ PViewFrame.prototype.openSelection = function()
 						widgetData.widget = playWidget;
 							// Setup SoundCloud player after entire sound clip loaded
 						playWidget.bind(SC.Widget.Events.READY, function() {
-								// Prime the audio -- must initially play (seekTo won't work until sound loaded and playing)
-							playWidget.play();
 							playWidget.bind(SC.Widget.Events.PLAY, function() {
 								widgetData.playing = true;
 							});
@@ -434,12 +430,6 @@ PViewFrame.prototype.openSelection = function()
 								widgetData.playing = false;
 							});
 							playWidget.bind(SC.Widget.Events.PLAY_PROGRESS, function(params) {
-									// Pauses audio after it primes so seekTo will work properly
-								if (primeAudio) {
-									playWidget.pause();
-									primeAudio = false;
-									widgetData.playing = false;
-								}
 									// Keep within bounds if only excerpt of longer transcript
 								if (widgetData.extract) {
 									if (params.currentPosition < widgetData.sTime) {
@@ -524,14 +514,12 @@ PViewFrame.prototype.openSelection = function()
 					jQuery('#xscript-tbl').click(function(evt) {
 						if (avType && jQuery(evt.target).hasClass('timecode')) {
 							var seekTo = jQuery(evt.target).data('timecode');
-								// seekTo doesn't work unless sound is already playing
 							switch (avType) {
 							case 1:
+								widgetData.widget.seekTo(seekTo);
 								if (!widgetData.playing) {
-									widgetData.playing = true;
 									widgetData.widget.play();
 								}
-								widgetData.widget.seekTo(seekTo);
 								break;
 							case 2:
 								if (!widgetData.playing) {
@@ -593,7 +581,7 @@ PViewFrame.prototype.openSelection = function()
 						// Begin images on next line
 					if (theAtt.def.t == 'I')
 						html += '<br/>';
-					html += attVal+'</div>';						
+					html += attVal+'</div>';
 				}
 				container.append(html);
 			}
@@ -993,7 +981,7 @@ PVizFrame.prototype.initDOM = function(vI)
 			.button({icons: { primary: 'ui-icon-star' }, text: false })
 			.click(clickHighlight).next()
 			.button({icons: { primary: 'ui-icon-search' }, text: false })
-			.click(function(event) { 
+			.click(function(event) {
 				event.preventDefault();
 				self.openSelection();
 			 });
@@ -2100,7 +2088,7 @@ PTextFrame.prototype.initDOM = function()
 						ptrS=0;
 						newStart=true;
 					} else {
-						ptrC=cI;						
+						ptrC=cI;
 					}
 					break search;
 				}

@@ -424,8 +424,6 @@ function PViewFrame(vfIndex)
 						getSETimes();
 							// Is this a URL to SoundCloud?
 						if (scAttVal.match(/soundcloud\.com/)) {
-							var primeAudio=true;
-
 							avType=1;
 							container.append('<iframe id="sc-widget" class="player" width="100%" height="110" src="http://w.soundcloud.com/player/?url='+
 								scAttVal+'"></iframe>');
@@ -435,8 +433,6 @@ function PViewFrame(vfIndex)
 							widgetData.widget = playWidget;
 								// Setup SoundCloud player after entire sound clip loaded
 							playWidget.bind(SC.Widget.Events.READY, function() {
-									// Prime the audio -- must initially play (seekTo won't work until sound loaded and playing)
-								playWidget.play();
 								playWidget.bind(SC.Widget.Events.PLAY, function() {
 									widgetData.playing = true;
 								});
@@ -444,12 +440,6 @@ function PViewFrame(vfIndex)
 									widgetData.playing = false;
 								});
 								playWidget.bind(SC.Widget.Events.PLAY_PROGRESS, function(params) {
-										// Pauses audio after it primes so seekTo will work properly
-									if (primeAudio) {
-										playWidget.pause();
-										primeAudio = false;
-										widgetData.playing = false;
-									}
 										// Keep within bounds if only excerpt of longer transcript
 									if (widgetData.extract) {
 										if (params.currentPosition < widgetData.sTime) {
@@ -537,11 +527,10 @@ function PViewFrame(vfIndex)
 									// seekTo doesn't work unless sound is already playing
 								switch (avType) {
 								case 1:
+									widgetData.widget.seekTo(seekTo);
 									if (!widgetData.playing) {
-										widgetData.playing = true;
 										widgetData.widget.play();
 									}
-									widgetData.widget.seekTo(seekTo);
 									break;
 								case 2:
 									if (!widgetData.playing) {
@@ -603,7 +592,7 @@ function PViewFrame(vfIndex)
 							// Begin images on next line
 						if (theAtt.def.t == 'I')
 							html += '<br/>';
-						html += attVal+'</div>';						
+						html += attVal+'</div>';
 					}
 					container.append(html);
 				}
