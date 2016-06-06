@@ -1,7 +1,7 @@
 // Volume Editor
 
 // ASSUMES: A view area for the browser has been marked with HTML div as "ractive-output"
-// NOTES:   
+// NOTES:
 // USES:    jQuery, Underscore, jQueryUI, and Ractive
 // ASSUMES: All data not to be edited by user passed in prspdata
 //			All data to be edited by user passed in hidden fields
@@ -221,7 +221,7 @@ jQuery(document).ready(function() {
 		// Create native audio setting if missing
 	if (typeof defInspect.modal.aOn === 'undefined') {
 		defInspect.modal.aOn = false;
-	}		
+	}
 
 		// Read text labels for visualization types: c[ode], l[abel]
 	var vfTypes=[];
@@ -251,8 +251,9 @@ jQuery(document).ready(function() {
 		//		attsTxt: array of Text Attributes from Template
 		//		attsDNum: array of Number Attributes (w/"disable")
 		//		attsDates: array of Dates Atts
+		//		attsDLL: array of Lat-Lon Atts (w/"disable")
 		//		attsLL: array of Lat-Lon Atts
-		//		attsXY: array of X-Y Atts
+		//		attsXY: array of X-Y Atts (w/"disable")
 		//		attsImg: array of Image Atts (w/"disable")
 		//		attsLink: array of Link Atts
 		//		attsSC: array of SoundCloud Atts
@@ -458,8 +459,8 @@ jQuery(document).ready(function() {
 		// Also compile list of all Attributes (Joined and unjoined)
 	_.forEach(defTemplates, function(theTmplt) {
 		if (!theTmplt.def.d) {
-			var attsTxt=[], attsDates=[], attsDNum=['disable'], attsLL=[],
-				attsXY=[], attsImg=['disable'], attsSC=['disable'], attsYT=['disable'],
+			var attsTxt=[], attsDates=['disable'], attsDNum=['disable'], attsLL=[], attsDLL=['disable'],
+				attsXY=['disable'], attsImg=['disable'], attsSC=['disable'], attsYT=['disable'],
 				attsTrns=['disable'], attsTC=['disable'], attsPtr=[], attsDPtr=['disable'],
 				attsLgnd=[], attsCnt=[], attsTCnt=[], attsOAtt=[], attsFct=[];
 
@@ -503,6 +504,7 @@ jQuery(document).ready(function() {
 						attsFct.push(prefix+theAttID);
 						break;
 					case 'L':
+						attsDLL.push(prefix+theAttID);
 						attsLL.push(prefix+theAttID);
 						attsCnt.push(prefix+theAttID);
 						attsTCnt.push(prefix+theAttID);
@@ -585,7 +587,7 @@ jQuery(document).ready(function() {
 
 			var tmpltEntry = { tid: theTmplt.id, use: isUsed,
 								attsTxt: attsTxt, attsDates: attsDates, attsDNum: attsDNum,
-								attsLL: attsLL, attsXY: attsXY, attsImg: attsImg, attsSC: attsSC,
+								attsLL: attsLL, attsDLL: attsDLL, attsXY: attsXY, attsImg: attsImg, attsSC: attsSC,
 								attsYT: attsYT, attsTrns: attsTrns, attsTC: attsTC, attsPtr: attsPtr,
 								attsDPtr: attsDPtr, attsLgnd: attsLgnd, attsCnt: attsCnt, attsTCnt: attsTCnt,
 								attsOAtt: attsOAtt, attsFct: attsFct
@@ -646,7 +648,7 @@ jQuery(document).ready(function() {
 		}
 			// Previously unset
 		if (typeof attID == 'undefined' || attID == null) {
-			return def;			
+			return def;
 		}
 			// Disable
 		if (attID == 'disable') {
@@ -654,7 +656,7 @@ jQuery(document).ready(function() {
 		}
 			// No current options
 		if (typeof possible == 'undefined' || possible == null) {
-			return def;			
+			return def;
 		}
 			// Attribute ID does exist in current list of possible IDs
 		if (possible.indexOf(attID) == -1) {
@@ -747,7 +749,7 @@ jQuery(document).ready(function() {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
 					if (origTIndex == -1) {
-						newLL.push(theTmplt.attsLL[0] || '');
+						newLL.push(theTmplt.attsDLL[0] || 'disable');
 						newLClrs.push('#FFD700');
 						newSAtts.push(theTmplt.attsDNum[0] || 'disable');
 						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
@@ -755,7 +757,7 @@ jQuery(document).ready(function() {
 							}));
 						newLbls.push('n');
 					} else {
-						newLL.push(checkAttID(theVF.c.cAtts[origTIndex], theTmplt.attsLL, ''));
+						newLL.push(checkAttID(theVF.c.cAtts[origTIndex], theTmplt.attsDLL, 'disable'));
 						newLClrs.push(theVF.c.lClrs[origTIndex]);
 						newSAtts.push(checkAttID(theVF.c.sAtts[origTIndex], theTmplt.attsDNum, 'disable'));
 						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
@@ -798,7 +800,7 @@ jQuery(document).ready(function() {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
 					if (origTIndex == -1) {
-						newXY.push(theTmplt.attsXY[0] || '');
+						newXY.push(theTmplt.attsXY[0] || 'disable');
 						newPAtts.push('disable');
 						newLClrs.push('#FFD700');
 						newSAtts.push(theTmplt.attsDNum[0] || 'disable');
@@ -806,7 +808,7 @@ jQuery(document).ready(function() {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
 					} else {
-						newXY.push(checkAttID(theVF.c.cAtts[origTIndex], theTmplt.attsXY, ''));
+						newXY.push(checkAttID(theVF.c.cAtts[origTIndex], theTmplt.attsXY, 'disable'));
 						newPAtts.push(checkAttID(theVF.c.pAtts[origTIndex], theTmplt.attsDPtr, 'disable'));
 						newLClrs.push(theVF.c.lClrs[origTIndex]);
 						newSAtts.push(checkAttID(theVF.c.sAtts[origTIndex], theTmplt.attsDNum, 'disable'));
@@ -826,12 +828,12 @@ jQuery(document).ready(function() {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
 					if (origTIndex == -1) {
-						newD.push(theTmplt.attsDates[0] || '');
+						newD.push(theTmplt.attsDates[0] || 'disable');
 						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
 					} else {
-						newD.push(checkAttID(theVF.c.dAtts[origTIndex], theTmplt.attsDates, ''));
+						newD.push(checkAttID(theVF.c.dAtts[origTIndex], theTmplt.attsDates, 'disable'));
 						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
 					}
 				});
@@ -998,7 +1000,7 @@ jQuery(document).ready(function() {
 				newVFEntry.c.max = 7;
 					// Lat-Long Coordinates
 				newVFEntry.c.cAtts= _.map(iTemplates, function(theTemplate) {
-					return theTemplate.attsLL[0] || '';
+					return theTemplate.attsDLL[0] || 'disable';
 				});
 					// Connection colors
 				newVFEntry.c.lClrs= _.map(iTemplates, function(theTemplate) {
@@ -1088,7 +1090,7 @@ jQuery(document).ready(function() {
 				newVFEntry.c.zTo    = '';
 					// Dates Attribute (to place)
 				newVFEntry.c.dAtts= _.map(iTemplates, function(theTemplate) {
-					return theTemplate.attsDates[0] || '';
+					return theTemplate.attsDates[0] || 'disable';
 				});
 					// Potential Legends
 				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
@@ -1385,8 +1387,9 @@ jQuery(document).ready(function() {
 				var newArray = [];
 				saveTIndices.forEach(function(tIndex) {
 					var theID = expandedArray[tIndex];
-					if (theID == '' || theID == 'disable')
+					if (theID == '' || theID == 'disable') {
 						theID = null;
+					}
 					newArray.push(theID);
 				});
 				return newArray;
