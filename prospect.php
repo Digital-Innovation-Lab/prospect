@@ -4,7 +4,7 @@
  * Plugin URI:        https://prospect.web.unc.edu/
  * Description:       Digital Humanities platform for visualizing curated collections
  * Version:           1.3.2
- * Author:            msnewton, Breon Williams, Digital Innovation Lab, UNC-CH
+ * Author:            msnewton, kvnjcby, Breon Williams, Digital Innovation Lab, UNC-CH
  * Text Domain:       prospect
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
@@ -25,7 +25,7 @@ function prospect_register_post_types()
 		'view_item' => __('View Attribute', 'prospect'),
 		'search_items' => __('Search Attributes', 'prospect'),
 		'not_found' =>  __('No Attributes found', 'prospect'),
-		'not_found_in_trash' => __('No Attributes found in Trash', 'prospect'), 
+		'not_found_in_trash' => __('No Attributes found in Trash', 'prospect'),
 		'parent_item_colon' => '',
 		'menu_name' => __('Attributes', 'prospect')
 	);
@@ -33,7 +33,7 @@ function prospect_register_post_types()
 		'labels' => $labels,
 		'public' => true,
 		'publicly_queryable' => true,
-		'show_ui' => true, 
+		'show_ui' => true,
 		'show_in_menu' => 'prsp-top-level-handle',
 		'rewrite' => array('slug' => 'prsp-attribute', 'with_front' => FALSE),
 		'has_archive' => false,
@@ -54,7 +54,7 @@ function prospect_register_post_types()
 		),
 		'show_in_rest' => true,
 		'rest_controller_class' => 'WP_REST_Posts_Controller'
-	); 
+	);
 	register_post_type('prsp-attribute', $args);
 
 		// Register Template Custom Post Type
@@ -77,7 +77,7 @@ function prospect_register_post_types()
 		'labels' => $labels,
 		'public' => true,
 		'publicly_queryable' => true,
-		'show_ui' => true, 
+		'show_ui' => true,
 		'show_in_menu' => 'prsp-top-level-handle',
 		'rewrite' => array('slug' => 'prsp-template', 'with_front' => FALSE),
 		'has_archive' => false,
@@ -98,7 +98,7 @@ function prospect_register_post_types()
 		),
 		'show_in_rest' => true,
 		'rest_controller_class' => 'WP_REST_Posts_Controller'
-	); 
+	);
 	register_post_type('prsp-template', $args);
 
 		// Register Record Custom Post Type
@@ -121,7 +121,7 @@ function prospect_register_post_types()
 		'labels' => $labels,
 		'public' => true,
 		'publicly_queryable' => true,
-		'show_ui' => true, 
+		'show_ui' => true,
 		'show_in_menu' => 'prsp-top-level-handle',
 		'rewrite' => array('slug' => 'prsp-record', 'with_front' => FALSE),
 		'has_archive' => false,
@@ -143,7 +143,7 @@ function prospect_register_post_types()
 		),
 		'show_in_rest' => true,
 		'rest_controller_class' => 'WP_REST_Posts_Controller'
-	); 
+	);
 	register_post_type('prsp-record', $args);
 
 		// Register Exhibit Custom Post Type
@@ -166,7 +166,7 @@ function prospect_register_post_types()
 	$args = array(
 		'labels' => $labels,
 		'public' => true,
-		'show_ui' => true, 
+		'show_ui' => true,
 		'show_in_menu' => 'prsp-top-level-handle',
 		'rewrite' => array('slug' => 'prsp-exhibit', 'with_front' => FALSE),
 		'has_archive' => false,
@@ -185,7 +185,7 @@ function prospect_register_post_types()
 			'read_private_posts' => 'read_private_prsp_exhibits',
 			'delete_post' => 'delete_prsp_exhibit'
 		)
-	); 
+	);
 	register_post_type('prsp-exhibit', $args);
 
 		// Register Map Custom Post Type
@@ -252,7 +252,7 @@ function prospect_register_post_types()
 	$args = array(
 		'labels' => $labels,
 		'public' => true,
-		'show_ui' => true, 
+		'show_ui' => true,
 		'show_in_menu' => 'prsp-top-level-handle',
 		'rewrite' => array('slug' => 'prsp-prspctv', 'with_front' => FALSE),
 		'has_archive' => false,
@@ -294,7 +294,7 @@ function prospect_register_post_types()
 	$args = array(
 		'labels' => $labels,
 		'public' => true,
-		'show_ui' => true, 
+		'show_ui' => true,
 		'show_in_menu' => 'prsp-top-level-handle',
 		'rewrite' => array('slug' => 'prsp-volume', 'with_front' => FALSE),
 		'has_archive' => false,
@@ -313,7 +313,7 @@ function prospect_register_post_types()
 			'read_private_posts' => 'read_private_prsp_volumes',
 			'delete_post' => 'delete_prsp_volume'
 		)
-	); 
+	);
 	register_post_type('prsp-volume', $args);
 
 		// Register Reading Custom Post Type
@@ -336,7 +336,7 @@ function prospect_register_post_types()
 	$args = array(
 		'labels' => $labels,
 		'public' => true,
-		'show_ui' => true, 
+		'show_ui' => true,
 		'show_in_menu' => 'prsp-top-level-handle',
 		'rewrite' => array('slug' => 'prsp-reading', 'with_front' => FALSE),
 		'has_archive' => false,
@@ -733,9 +733,9 @@ if (!class_exists('CSVImporterImprovedPlugin')) {
 }
 
 function run_prospect()
-{ 
+{
 	$prospect = new Prospect();
 	$prospect->run();
 } // run_prospect()
- 
+
 run_prospect();
