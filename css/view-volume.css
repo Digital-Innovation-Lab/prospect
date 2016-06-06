@@ -485,7 +485,7 @@ div#toc-frame button.ui-widget {
 
 div#toc-frame ul.toc-wrapper {
 	list-style: none;
-	list-style-position: inside; 
+	list-style-position: inside;
 	margin: 0px;
 	padding: 0px;
 	font-size: 12px;
@@ -579,6 +579,14 @@ div#read-pane h2 {
 	border-bottom: 2px solid black;
 	font-weight: bold;
 	font-size: 16px;
+}
+
+div#read-pane h3 {
+	margin-top: 3px;
+	padding: 0px;
+	border-bottom: 1px dotted black;
+	font-weight: bold;
+	font-size: 14px;
 }
 
 div#read-pane p {
@@ -1465,7 +1473,7 @@ div.filter-vocab-bar {
 #dialog-about img {
 	/* Webkit for Chrome and Safari */
 	-webkit-transform: scale(.2, .2);
- 
+
 	/* Webkit for Mozila Firefox */
 	-moz-transform: scale(.2, .2);
 
@@ -1478,7 +1486,7 @@ div.filter-vocab-bar {
 	-webkit-transform: scale(1.0, 1.0);
 	-webkit-transition-duration: 800ms;
 	-webkit-transition-timing-function: ease-out;
- 
+
 	/* Webkit for Mozila Firefox */
 	-moz-transform: scale(1.0, 1.0);
 	-moz-transition-duration: 800ms;
