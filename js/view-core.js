@@ -379,7 +379,7 @@ VizMap.prototype.setup = function()
 	jQuery('#map-cloc-'+vI).button({ text: false, icons: { primary: "ui-icon-pin-s" }})
 		.click(curLoc);
 
-	var markers = L.featureGroup();            
+	var markers = L.featureGroup();
 	this.markerLayer = markers;
 
 		// Create options properties if they don't already exist
@@ -768,7 +768,7 @@ VizMap.prototype.doOptions = function()
 				text: dlText.cancel,
 				click: function() {
 					d.dialog("close");
-				}				
+				}
 			}
 		]
 	});
@@ -895,7 +895,7 @@ VizMap2.prototype.setup = function()
 		.click(curLoc);
 
 		// Create layer for Markers
-	var markers = L.featureGroup();            
+	var markers = L.featureGroup();
 	this.markerLayer = markers;
 
 		// Create options properties if they don't already exist
@@ -1249,7 +1249,7 @@ VizMap2.prototype.doOptions = function()
 				text: dlText.cancel,
 				click: function() {
 					d.dialog("close");
-				}				
+				}
 			}
 		]
 	});
@@ -1527,7 +1527,7 @@ VizCards.prototype.doOptions = function()
 				text: dlText.cancel,
 				click: function() {
 					d.dialog("close");
-				}				
+				}
 			}
 		]
 	});
@@ -1945,7 +1945,7 @@ VizPinboard.prototype.doOptions = function()
 				text: dlText.cancel,
 				click: function() {
 					d.dialog("close");
-				}				
+				}
 			}
 		]
 	});
@@ -1991,6 +1991,24 @@ VizPinboard.prototype.hint = function()
 
 // ===============================================
 // VizTime: Class to visualize Records on Timeline
+//
+// Instance Variables:
+//		threshold =
+//		brush = D3 brush object
+//		brushSVG = SVG object created by brush
+//		minDate = minimum Date on macro band
+//		maxDate = maximum Date on macro band
+//		zMinDate = minimum Date on zoom band
+//		zMaxDate = maximum Date on zoom band
+//		instGap = size of "instantaneous" event on macro band in Date terms
+//		chart = SVG containing entire Timeline
+//		instRad = pixel radius of instantaneous circle
+//		bands[2] = Array of Objects containing parameters for each band (macro and zoom)
+//			see createBand() for details
+//		cmpnts[] = Array of GUI components to draw
+//			axisDraw, yLabeler, mLabeler
+//		events[] = all Record event data
+//		lgBds = Date Legend Backgrounds: { s[tart], e[nd], t[top track #], h[eight], d[ata in Legend rec] }
 
 var VizTime = function(viewFrame, vSettings)
 {
@@ -2008,12 +2026,13 @@ VizTime.prototype.flags = function()
 
 VizTime.prototype.getFeatureAtts = function(tIndex)
 {
-	if (tIndex != null)
+	if (tIndex != null) {
 		return this.settings.lgnds[tIndex];
+	}
 	return this.settings.lgnds;
 } // getFeatureAtts()
 
-	// PURPOSE: Return IDs of locate Attributes 
+	// PURPOSE: Return IDs of locate Attributes
 VizTime.prototype.getLocAtts = function(tIndex)
 {
 	if (tIndex != null) {
@@ -2052,8 +2071,9 @@ VizTime.prototype.setup = function()
 {
 	var self = this;
 
-	if (typeof this.settings.xLbl !== 'number')
+	if (typeof this.settings.xLbl !== 'number') {
 		this.settings.xLbl = parseInt(this.settings.xLbl);
+	}
 
 	this.brush = null;
 	this.brushSVG = null;
@@ -2075,11 +2095,12 @@ VizTime.prototype.setup = function()
 
 	var s = this.settings;
 
-	if (typeof s.bHt === 'string')
+	if (typeof s.bHt === 'string') {
 		s.bHt = parseInt(s.bHt, 10);
+	}
 
-	function minMaxDates()
-	{
+		// Compute min-max Macro date range
+	(function() {
 		var minY, minM, minD, maxY, maxM, maxD;
 
 			// By default, use min & max time bounds from Dates Attributes
@@ -2165,20 +2186,19 @@ VizTime.prototype.setup = function()
 		});
 
 			// Override default min & max bounds?
-		if (s.from.length > 0)
+		if (s.from.length > 0) {
 			self.minDate = PData.dStr(s.from, false);
-		else
+		} else {
 			self.minDate = PData.d3Nums(minY, minM, minD, false);
-		if (s.to.length > 0)
+		}
+		if (s.to.length > 0) {
 			self.maxDate = PData.dStr(s.to, true);
-		else
+		} else {
 			self.maxDate = PData.d3Nums(maxY, maxM, maxD, true);
-
+		}
 			// Size of instananeous event: 1.5% of total time period space
 		self.instGap = (self.maxDate - self.minDate) * .015;
-	} // minMaxDates
-
-	minMaxDates();
+	})();
 
 		// Create outer SVG container
 	var widths = self.getWidths();
@@ -2187,8 +2207,8 @@ VizTime.prototype.setup = function()
 		.attr("class", "tl-vf")
 		.attr("width", widths[1]);
 
-	function makeDefs()
-	{
+		// Create SVG definitions
+	(function() {
 			// Get all unique Legend Attribute IDs
 		var lAttIDs=[];
 		s.lgnds.forEach(function(tArray) {
@@ -2204,7 +2224,7 @@ VizTime.prototype.setup = function()
 			var att = PData.aByID(lAttID);
 			if (att) {
 				att.l.forEach(function(lVal) {
-					cVals.push(lVal.v);				
+					cVals.push(lVal.v);
 				});
 			}
 		});
@@ -2240,9 +2260,7 @@ VizTime.prototype.setup = function()
 		// 	.attr('id', 'xortext');
 		// filter.append('feComposite')
 		// 	.attr('operator', "xor");
-	} // makeDefs
-
-	makeDefs();
+	})();
 
 		// Create further SVG elements (will resize later)
 	var vI = this.vFrame.getIndex();
@@ -2585,48 +2603,65 @@ VizTime.prototype.render = function(stream)
 
 				rec = PData.rByN(aI);
 				fData = rec.a[fAttID];
+					// Valid Legend data?
 				if (typeof fData !== 'undefined') {
-					if (fData = PData.lRecs(fData, fAtt, featSet, false)) {
-							// dData will either be object, '?' or undefined
-						if ((dData = rec.a[dAttID]) && (dData !== '?')) {
-							self.rMap[aI >> 4] |= (1 << (aI & 15));
-							f = dData.min.f ? EVENT_F_START : 0;
-							y = dData.min.y;
-							if (typeof dData.min.m === 'undefined') {
-								m = 1; d = 1;
+						// dData will either be object, '?' or undefined
+					if ((dData = rec.a[dAttID]) && (dData !== '?')) {
+						f = dData.min.f ? EVENT_F_START : 0;
+						y = dData.min.y;
+						if (typeof dData.min.m === 'undefined') {
+							m = 1; d = 1;
+						} else {
+							m = dData.min.m;
+							if (typeof dData.min.d === 'undefined') {
+								d = 1;
 							} else {
-								m = dData.min.m;
-								if (typeof dData.min.d === 'undefined')
-									d = 1;
-								else
-									d = dData.min.d;
+								d = dData.min.d;
 							}
-							s = PData.d3Nums(y,m,d,false);
-							if (typeof dData.max === 'undefined') {
+						}
+						s = PData.d3Nums(y,m,d,false);
+							// Instaneous event
+						if (typeof dData.max === 'undefined') {
+								// Only keep if within macro range
+							if (s >= self.minDate && s <= self.maxDate) {
 								f |= EVENT_INSTANT;
 								e = s.getTime() + self.instGap;
-							} else {
-								if (dData.max === 'open')
-									e = TODAY;
-								else {
-									if (dData.max.f)
-										f |= EVENT_F_END;
-									y = dData.max.y;
-									if (typeof dData.max.m === 'undefined') {
-										m = 12; d = 31;
-									} else {
-										m = dData.max.m;
-										if (typeof dData.max.d === 'undefined')
-											d = PData.lenMnth(y, m);
-										else
-											d = dData.max.d;
-									}
-									e = PData.d3Nums(y,m,d,true);
-								} // number
+									// Can we find a valid Legend color?
+								if (fData = PData.lRecs(fData, fAtt, featSet, false)) {
+									self.rMap[aI >> 4] |= (1 << (aI & 15));
+									te.push({ s: s, e: e, ai: aI, f: f, c: fData, l: rec.l, t: 0 });
+								}
 							}
-							te.push({ s: s, e: e, ai: aI, f: f, c: fData, l: rec.l, t: 0 });
-						} // has valid Date data
-					} // translates to Legend value
+
+							// Date range
+						} else {
+							if (dData.max === 'open') {
+								e = TODAY;
+							} else {
+								if (dData.max.f) {
+									f |= EVENT_F_END;
+								}
+								y = dData.max.y;
+								if (typeof dData.max.m === 'undefined') {
+									m = 12; d = 31;
+								} else {
+									m = dData.max.m;
+									if (typeof dData.max.d === 'undefined')
+										d = PData.lenMnth(y, m);
+									else
+										d = dData.max.d;
+								}
+								e = PData.d3Nums(y,m,d,true);
+							} // number
+							if (e >= self.minDate && s <= self.maxDate) {
+									// Can we find a valid Legend color?
+								if (fData = PData.lRecs(fData, fAtt, featSet, false)) {
+									self.rMap[aI >> 4] |= (1 << (aI & 15));
+									te.push({ s: s, e: e, ai: aI, f: f, c: fData, l: rec.l, t: 0 });
+								}
+							} // start and end in range
+						} // date range
+					} // has valid Date data
 				} // has Legend value
 			} // for
 			te.sort(compDesc);
@@ -2688,7 +2723,7 @@ VizTime.prototype.render = function(stream)
 			self.events = self.events.concat(te);
 
 			tI++;
-		} // while 
+		} // while
 	}());
 
 	var widths = self.getWidths();
@@ -2699,10 +2734,11 @@ VizTime.prototype.render = function(stream)
 	{
 		function eventClass(d)
 		{
-			if (d.f & EVENT_INSTANT)
+			if (d.f & EVENT_INSTANT) {
 				return "event instant";
-			else
+			} else {
 				return "event range";
+			}
 		} // eventClass()
 
 			// NOTE: Only zoom band responds to click
@@ -2788,8 +2824,9 @@ VizTime.prototype.render = function(stream)
 			.attr("y", function (d) { return band.yScale(d.t); })
 			.attr("height", band.iHt);
 
-		if (bi === 1)
+		if (bi === 1) {
 			allEs.on("click", clickEvent);
+		}
 
 			// Complete specifying data for date ranges
 		var ranges = d3.select(band.svgID).selectAll(".range");
@@ -3035,15 +3072,17 @@ VizTime.prototype.setSel = function(absIArray)
 	function eventClass(d)
 	{
 		if (self.isSel(d.ai)) {
-			if (d.f & EVENT_INSTANT)
+			if (d.f & EVENT_INSTANT) {
 				return "event instant obj-sel";
-			else
+			} else {
 				return "event range obj-sel";
+			}
 		} else {
-			if (d.f & EVENT_INSTANT)
+			if (d.f & EVENT_INSTANT) {
 				return "event instant";
-			else
+			} else {
 				return "event range";
+			}
 		}
 	} // checkSel()
 
@@ -3056,10 +3095,11 @@ VizTime.prototype.clearSel = function()
 {
 	function eventClass(d)
 	{
-		if (d.f & EVENT_INSTANT)
+		if (d.f & EVENT_INSTANT) {
 			return "event instant";
-		else
+		} else {
 			return "event range";
+		}
 	} // checkSel()
 
 	if (this.recSel.length > 0) {
@@ -3237,7 +3277,7 @@ VizDirectory.prototype.render = function(stream)
 		});
 
 		tRec = stream.t[++tI];
-	} // while 
+	} // while
 } // render()
 
 	// NOTES: 	Assumed that we don't need to modify tUsed[] or rMap[] because visual parameters unchanged
@@ -3322,7 +3362,7 @@ VizDirectory.prototype.doOptions = function()
 				text: dlText.cancel,
 				click: function() {
 					d.dialog("close");
-				}				
+				}
 			}
 		]
 	});
@@ -3524,7 +3564,7 @@ VizTextStream.prototype.render = function(stream)
 			});	// forEach order
 		} // if cAtt
 		tI++;
-	} // while 
+	} // while
 } // render()
 
 VizTextStream.prototype.teardown = function()
@@ -4005,7 +4045,7 @@ VizNetWheel.prototype.doOptions = function()
 				text: dlText.cancel,
 				click: function() {
 					d.dialog("close");
-				}				
+				}
 			}
 		]
 	});
@@ -5763,7 +5803,7 @@ var PData = (function() {
 				function s(v) {
 					for (var f=0; f<lI; f++) {
 						fI = fSet[f];
-							// Parent-level 
+							// Parent-level
 						if (typeof fI === 'number') {
 							lE = att.l[fI];
 							if (lE.l === v)
@@ -6767,4 +6807,3 @@ var PData = (function() {
 		} // ready
 	} // return
 })(); // PData
-
