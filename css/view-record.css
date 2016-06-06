@@ -13,6 +13,7 @@
 	margin-top: 4px;
 	max-height: 220px;
 	overflow-y: scroll;
+	table-layout: fixed;
 	resize: both;
 }
 
@@ -32,7 +33,7 @@
 	line-height: 1.2em;
 	padding: 2px;
 	cursor: pointer;
-	width: 82px;
+	width: 86px;
 }
 
 	/* playhead */
@@ -47,9 +48,10 @@
 }
 
 #xscript-tbl div.xscript {
+	font-size: 12px;
 	display: table-cell;
 	vertical-align: top;
 	line-height: 1.2em;
 	padding: 2px;
-	min-width: 40%;
+	width: auto;
 }
