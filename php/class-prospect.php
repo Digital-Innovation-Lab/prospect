@@ -51,7 +51,7 @@ class Prospect {
 				$d_templates = $the_template->get_dependent_templates(true);
 
 					// Get associative array for all Attribute definitions
-				$assoc_atts = ProspectAttribute::get_assoc_defs();				
+				$assoc_atts = ProspectAttribute::get_assoc_defs();
 
 				$record = new ProspectRecord(true, $post->ID, false, $the_template, $d_templates, $assoc_atts);
 				wp_enqueue_script('jquery');
@@ -515,7 +515,7 @@ class Prospect {
 	public function __construct()
 	{
 		$this->plugin_slug = 'prsp-slug';
-		$this->version = '1.3.2';
+		$this->version = '1.3.3';
 
 		$this->load_dependencies();
 
