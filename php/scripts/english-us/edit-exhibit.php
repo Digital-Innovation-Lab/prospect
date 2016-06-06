@@ -100,7 +100,7 @@
 		<h3><?php _e('Inspector', 'prospect'); ?></h3>
 		<div>{{#with inspectSettings}}
 			<div>
-				<?php _e('Playback Widgets', 'prospect'); ?>: 
+				<?php _e('Playback Widgets', 'prospect'); ?>:
 				<input type='checkbox' checked='{{modal.aOn}}'/> <?php _e('Audio', 'prospect'); ?>
 				<input type='checkbox' checked='{{modal.scOn}}'/> <?php _e('Load SoundCloud', 'prospect'); ?>
 				<input type='checkbox' checked='{{modal.ytOn}}'/> <?php _e('YouTube', 'prospect'); ?>
@@ -329,7 +329,7 @@
 		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
 			<b><?php _e('Locate Object by', 'prospect'); ?>:</b>
 			<select value='{{c.cAtts[tIndex]}}'>
-			{{#each attsLL}}
+			{{#each attsDLL}}
 				<option>{{this}}</option>
 			{{/each}}
 			</select>
@@ -398,7 +398,7 @@
 			<option value="t"><?php _e('Tall', 'prospect'); ?></option>
 		</select>
 	<br/>
-	<?php _e('Choose the Attribute(s) to visualize on each card according to Template type', 'prospect'); ?>: 
+	<?php _e('Choose the Attribute(s) to visualize on each card according to Template type', 'prospect'); ?>:
 	<tabs>
 		<ul>
 		{{#each iTemplates:tIndex}}
@@ -658,7 +658,7 @@
 				<button decorator="iconButton:ui-icon-trash" on-click="delPtrPair:{{vIndex}},{{tIndex}},{{pIndex}}"><?php _e('Delete', 'prospect'); ?></button>
 				<br/>
 			{{/each}}
-			<b><?php _e('Provide Legends', 'prospect'); ?>:</b> 
+			<b><?php _e('Provide Legends', 'prospect'); ?>:</b>
 			<button decorator="iconButton:ui-icon-check" on-click="allLgndsOn:{{vIndex}},{{tIndex}}"><?php _e('All On', 'prospect'); ?></button>
 			<button decorator="iconButton:ui-icon-cancel" on-click="allLgndsOff:{{vIndex}},{{tIndex}}"><?php _e('All Off', 'prospect'); ?></button>
 			{{#each c.lgnds[tIndex]:lIndex}}
