@@ -705,7 +705,7 @@ jQuery(document).ready(function() {
 	}
 
 		// Initialize View settings to correspond to iTemplates structures
-	if (true) {
+	(function() {
 		for (var i=0; i<defViews.length; i++) {
 			var theVF = defViews[i];
 				// Assign each one a temporary unique ID (only used by Editor)
@@ -884,6 +884,7 @@ jQuery(document).ready(function() {
 				theVF.c.sAtt = checkAttID(theVF.c.sAtt, facetAttIDs, '');
 				break;
 			case 'N': 	// Network Wheel
+			case 'n': 	// Network Graph
 				var newPAtts=[], newLgnds=[];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
@@ -941,7 +942,7 @@ jQuery(document).ready(function() {
 				break;
 			} // switch viewtype
 		} // for views
-	}
+	})();
 
 	PMapHub.init(prspdata.maps);
 
@@ -1172,6 +1173,19 @@ jQuery(document).ready(function() {
 				break;
 			case 'N': 	// Network Wheel
 				newVFEntry.c.lw = 120;
+					// Potential Legends
+				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
+					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
+						return { attID: theLgndAtt, useAtt: true };
+					});
+				});
+				newVFEntry.c.pAtts = _.map(iTemplates, function(theTemplate) {
+					return [];
+				});
+				break;
+			case 'n': 	// Network Graph
+				newVFEntry.c.defID = '';
+				newVFEntry.c.d = 2;
 					// Potential Legends
 				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
 					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
@@ -1670,6 +1684,17 @@ jQuery(document).ready(function() {
 					break;
 				case 'N': 	// Network Wheel
 					saveView.c.lw = viewSettings.c.lw;
+					var newPAtts=[], newLgnds=[];
+					saveTIndices.forEach(function(tIndex) {
+						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
+						newPAtts.push(viewSettings.c.pAtts[tIndex]);
+					});
+					saveView.c.pAtts = newPAtts;
+					saveView.c.lgnds = newLgnds;
+					break;
+				case 'n': 	// Network Graph
+					saveView.c.defID = viewSettings.c.defID;
+					saveView.c.d = viewSettings.c.d;
 					var newPAtts=[], newLgnds=[];
 					saveTIndices.forEach(function(tIndex) {
 						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));

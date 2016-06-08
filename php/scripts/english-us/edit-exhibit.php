@@ -84,7 +84,9 @@
 					{{elseif vf === 'S'}}
 						{{>vfSChart}}
 					{{elseif vf === 'N'}}
-						{{>vfNetwork}}
+						{{>vfNetWheel}}
+					{{elseif vf === 'n'}}
+						{{>vfNetGraph}}
 					{{elseif vf === 'F'}}
 						{{>vfFlow}}
 					{{elseif vf === 'm'}}
@@ -526,10 +528,10 @@
 <script id="vfTimeline" type='text/ractive'>
 	<?php _e('Height of Events in Zoom', 'prospect'); ?>: <input type="number" value="{{c.bHt}}" min="2" max="99"/>
 	<?php _e('Width of Frame Axis Labels', 'prospect'); ?>: <input type="number" value="{{c.xLbl}}" min="2" max="99"/><br/>
-	<?php _e('Macro Frame From Date', 'prospect'); ?>: <input type="text" value="{{c.from}}" size="12" placeholder="YYYY-MM-DD"/>
-	<?php _e('To Date', 'prospect'); ?>: <input type="text" value="{{c.to}}" size="12" placeholder="YYYY-MM-DD"/><br/>
-	<?php _e('Zoom Frame From Date', 'prospect'); ?>: <input type="text" value="{{c.zFrom}}" size="12" placeholder="YYYY-MM-DD"/>
-	<?php _e('To Date', 'prospect'); ?>: <input type="text" value="{{c.zTo}}" size="12" placeholder="YYYY-MM-DD"/><br/>
+	<?php _e('Macro Frame From Date', 'prospect'); ?>: <input type="text" value="{{c.from}}" size="12" placeholder=<?php _e('"YYYY-MM-DD"', 'prospect'); ?>/>
+	<?php _e('To Date', 'prospect'); ?>: <input type="text" value="{{c.to}}" size="12" placeholder=<?php _e('"YYYY-MM-DD"', 'prospect'); ?>/><br/>
+	<?php _e('Zoom Frame From Date', 'prospect'); ?>: <input type="text" value="{{c.zFrom}}" size="12" placeholder=<?php _e('"YYYY-MM-DD"', 'prospect'); ?>/>
+	<?php _e('To Date', 'prospect'); ?>: <input type="text" value="{{c.zTo}}" size="12" placeholder=<?php _e('"YYYY-MM-DD"', 'prospect'); ?>/><br/>
 
 	<?php _e('Choose the Attribute(s) to visualize according to Template type', 'prospect'); ?>:
 	<tabs>
@@ -634,7 +636,7 @@
 	</tabs>
 </script>
 
-<script id="vfNetwork" type='text/ractive'>
+<script id="vfNetWheel" type='text/ractive'>
 	<?php _e('Maximum Label Pixel Width', 'prospect'); ?>: <input type="number" value="{{c.lw}}" min="2" max="9999"/><br/>
 	<?php _e('Network links based on Attribute/color pairs for each Template type', 'prospect'); ?>
 	<tabs>
@@ -645,7 +647,51 @@
 		</ul>
 		{{#each iTemplates:tIndex}}
 		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
-			<button on-click="addPtrPair:{{vIndex}},{{tIndex}}"><?php _e('Add Attribute/Color Pair', 'prospect'); ?></button><br/>
+			{{#if attsPtr.length > c.pAtts[tIndex].length}}
+				<button on-click="addPtrPair:{{vIndex}},{{tIndex}}"><?php _e('Add Attribute/Color Pair', 'prospect'); ?></button><br/>
+			{{/if}}
+			{{#each c.pAtts[tIndex]:pIndex}}
+				<b><?php _e('Use Pointer Attribute', 'prospect'); ?>: </b>
+				<select value='{{pid}}'>
+				{{#each attsPtr}}
+					<option>{{this}}</option>
+				{{/each}}
+				</select>
+				<?php _e('Use color', 'prospect'); ?>: <input type="text" value="{{clr}}" size="10"/>
+				<span title=<?php _e('"Click to select visual representation"', 'prospect'); ?> class="viz-icon" style="background-color:{{clr}}" on-click="setNetLColor:{{vIndex}},{{tIndex}},{{pIndex}}"></span>
+				<button decorator="iconButton:ui-icon-trash" on-click="delPtrPair:{{vIndex}},{{tIndex}},{{pIndex}}"><?php _e('Delete', 'prospect'); ?></button>
+				<br/>
+			{{/each}}
+			<b><?php _e('Provide Legends', 'prospect'); ?>:</b>
+			<button decorator="iconButton:ui-icon-check" on-click="allLgndsOn:{{vIndex}},{{tIndex}}"><?php _e('All On', 'prospect'); ?></button>
+			<button decorator="iconButton:ui-icon-cancel" on-click="allLgndsOff:{{vIndex}},{{tIndex}}"><?php _e('All Off', 'prospect'); ?></button>
+			{{#each c.lgnds[tIndex]:lIndex}}
+				<span class="attribute-controls">
+					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Left', 'prospect'); ?></button>
+					<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Right', 'prospect'); ?></button>
+				</span>
+			{{/each}}
+		</div>
+		{{/each}}
+	</tabs>
+</script>
+
+<script id="vfNetGraph" type='text/ractive'>
+	<?php _e('Record (ID) to display by default', 'prospect'); ?>: <input type="text" value="{{c.defID}}" size="24" pattern="[\w\-]+"/><br/>
+	<?php _e('Default network depth', 'prospect'); ?>: <input type="number" value="{{c.d}}" min="1" max="6"/><br/>
+	<?php _e('Network links based on Attribute/color pairs for each Template type', 'prospect'); ?>
+	<tabs>
+		<ul>
+		{{#each iTemplates:tIndex}}
+			<li><a href="#tmpt-vf-tab-{{incID}}-{{tIndex}}">{{tid}}</a></li>
+		{{/each}}
+		</ul>
+		{{#each iTemplates:tIndex}}
+		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
+			{{#if attsPtr.length > c.pAtts[tIndex].length}}
+				<button on-click="addPtrPair:{{vIndex}},{{tIndex}}"><?php _e('Add Attribute/Color Pair', 'prospect'); ?></button><br/>
+			{{/if}}
 			{{#each c.pAtts[tIndex]:pIndex}}
 				<b><?php _e('Use Pointer Attribute', 'prospect'); ?>: </b>
 				<select value='{{pid}}'>
@@ -817,7 +863,7 @@
 
 <!-- DYNAMIC TEXT -->
 <script id="dltext-visualizations" type='text/ractive'>
-<?php _e('D,Directory|B,Facet Browser|C,Cards|t,TextStream|M,Map 1|p,Map 2|T,Timeline|P,Pinboard|S,Stacked Chart|N,Network Wheel|F,Facet Flow|m,MultiBlock Map', 'prospect'); ?>
+<?php _e('D,Directory|B,Facet Browser|C,Cards|t,TextStream|M,Map 1|p,Map 2|T,Timeline|P,Pinboard|S,Stacked Chart|N,Network Wheel|n,Network Graph|F,Facet Flow|m,MultiBlock Map', 'prospect'); ?>
 </script>
 
 
