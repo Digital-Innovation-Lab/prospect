@@ -679,7 +679,10 @@
 
 <script id="vfNetGraph" type='text/ractive'>
 	<?php _e('Record (ID) to display by default', 'prospect'); ?>: <input type="text" value="{{c.defID}}" size="24" pattern="[\w\-]+"/><br/>
-	<?php _e('Default network depth', 'prospect'); ?>: <input type="number" value="{{c.d}}" min="1" max="6"/><br/>
+	<?php _e('Default network depth', 'prospect'); ?>: <input type="number" value="{{c.d}}" min="1" max="6"/>
+	<?php _e('Min Radius', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="20" required/>
+	<?php _e('Max Radius', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="20" required/>
+	<br/>
 	<?php _e('Network links based on Attribute/color pairs for each Template type', 'prospect'); ?>
 	<tabs>
 		<ul>
@@ -689,6 +692,12 @@
 		</ul>
 		{{#each iTemplates:tIndex}}
 		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
+			<b><?php _e('Marker Radius Size', 'prospect'); ?>: </b>
+			<select value='{{c.sAtts[tIndex]}}'>
+			{{#each attsDNum}}
+				<option>{{this}}</option>
+			{{/each}}
+			</select><br/>
 			{{#if attsPtr.length > c.pAtts[tIndex].length}}
 				<button on-click="addPtrPair:{{vIndex}},{{tIndex}}"><?php _e('Add Attribute/Color Pair', 'prospect'); ?></button><br/>
 			{{/if}}
