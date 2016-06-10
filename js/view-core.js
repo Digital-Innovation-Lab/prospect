@@ -234,7 +234,10 @@ PVizModel.prototype.getLocAtts = function(tIndex)
 
 PVizModel.prototype.getFeatureAtts = function(tIndex)
 {
-	return [];
+	if (tIndex != null) {
+		return this.settings.lgnds[tIndex];
+	}
+	return this.settings.lgnds;
 } // PVizModel.getFeatureAtts()
 
 PVizModel.prototype.teardown = function()
@@ -303,13 +306,6 @@ VizMap.prototype.getLocAtts = function(tIndex)
 	}
 	return this.settings.cAtts;
 } // getLocAtts()
-
-VizMap.prototype.getFeatureAtts = function(tIndex)
-{
-	if (tIndex != null)
-		return this.settings.lgnds[tIndex];
-	return this.settings.lgnds;
-} // getFeatureAtts()
 
 VizMap.prototype.setup = function()
 {
@@ -452,7 +448,7 @@ VizMap.prototype.render = function(stream)
 	var lines = this.lineLayer;
 	lines.clearLayers();
 
-	var numTmplts = PData.eTNum();
+	var numTmplts = stream.t.length;
 	var i=0, aI, tI=0, tRec, tLClr, rec;
 	var fAttID, fAtt, locAtts, featSet, pAttID;
 	var locData, fData, newMarker;
@@ -817,14 +813,6 @@ VizMap2.prototype.getLocAtts = function(tIndex)
 	return [this.settings.cAtts];
 } // getLocAtts()
 
-VizMap2.prototype.getFeatureAtts = function(tIndex)
-{
-	if (tIndex != null) {
-		return this.settings.lgnds[tIndex];
-	}
-	return this.settings.lgnds;
-} // getFeatureAtts()
-
 VizMap2.prototype.setup = function()
 {
 	var self=this;
@@ -977,7 +965,7 @@ VizMap2.prototype.render = function(stream)
 	var lines = this.lineLayer;
 	lines.clearLayers();
 
-	var numTmplts = PData.eTNum();
+	var numTmplts = stream.t.length;
 	var i=0, aI, tI=0, tRec, tLClr, rec;
 	var fAttID, fAtt, locAtt, featSet, lbl;
 	var locData, fData, newMarker;
@@ -1278,13 +1266,6 @@ VizCards.prototype.flags = function()
 	return V_FLAG_LGND | V_FLAG_SEL | V_FLAG_VSCRL | V_FLAG_OPT;
 } // flags()
 
-VizCards.prototype.getFeatureAtts = function(tIndex)
-{
-	if (tIndex != null)
-		return this.settings.lgnds[tIndex];
-	return this.settings.lgnds;
-} // getFeatureAtts()
-
 VizCards.prototype.setup = function()
 {
 	var self = this;
@@ -1324,7 +1305,7 @@ VizCards.prototype.render = function(stream)
 		// Save reference to stream for rerender after sort
 	this.stream = stream;
 
-	var numTmplts = PData.eTNum();
+	var numTmplts = stream.t.length;
 	var tI, tID, tRec, tDef;
 	var fAttID, fAtt, iAttID;
 	var oAttID, oAtt, order;
@@ -1602,13 +1583,6 @@ VizPinboard.prototype.getLocAtts = function(tIndex)
 	return [this.settings.cAtts];
 } // getLocAtts()
 
-VizPinboard.prototype.getFeatureAtts = function(tIndex)
-{
-	if (tIndex != null)
-		return this.settings.lgnds[tIndex];
-	return this.settings.lgnds;
-} // getFeatureAtts()
-
 VizPinboard.prototype.setup = function()
 {
 	var s = this.settings;
@@ -1715,7 +1689,7 @@ VizPinboard.prototype.render = function(stream)
 
 	this.preRender();
 
-	var numTmplts = PData.eTNum();
+	var numTmplts = stream.t.length;
 	var i, aI, tI=0, tRec, tLClr, rec;
 	var fAttID, fAtt, locAtts, featSet, pAttID;
 	var locData, fData;
@@ -2023,14 +1997,6 @@ VizTime.prototype.flags = function()
 {
 	return V_FLAG_LGND | V_FLAG_SEL | V_FLAG_LOC | V_FLAG_VSCRL;
 } // flags()
-
-VizTime.prototype.getFeatureAtts = function(tIndex)
-{
-	if (tIndex != null) {
-		return this.settings.lgnds[tIndex];
-	}
-	return this.settings.lgnds;
-} // getFeatureAtts()
 
 	// PURPOSE: Return IDs of locate Attributes
 VizTime.prototype.getLocAtts = function(tIndex)
@@ -2555,7 +2521,7 @@ VizTime.prototype.render = function(stream)
 
 		// Process each Template's data
 	(function () {
-		var numTmplts = PData.eTNum();
+		var numTmplts = stream.t.length;
 		var tI=0, tRec, aI;
 		var featSet, dAttID, dAtt, fData, dData;
 		var fAtt, fAttID;
@@ -3207,7 +3173,7 @@ VizDirectory.prototype.render = function(stream)
 {
 	var self = this;
 
-	var numTmplts = PData.eTNum();
+	var numTmplts = stream.t.length;
 	var tI=0, tID, tRec, tDef;
 	var insert, fAtts, datum, rec, t;
 	var oAttID, oAtt, order;
@@ -3435,13 +3401,6 @@ VizTextStream.prototype.getLocAtts = function(tIndex)
 	return _.map(this.settings.order, function(attID) { return [attID]; });
 } // getLocAtts()
 
-VizTextStream.prototype.getFeatureAtts = function(tIndex)
-{
-	if (tIndex != null)
-		return this.settings.lgnds[tIndex];
-	return this.settings.lgnds;
-} // getFeatureAtts()
-
 VizTextStream.prototype.setup = function()
 {
 	var self = this;
@@ -3465,7 +3424,7 @@ VizTextStream.prototype.render = function(stream)
 {
 	var self = this;
 
-	var numTmplts = PData.eTNum();
+	var numTmplts = stream.t.length;
 	var tI=0, tID, tRec, tDef;
 	var insert, rec, datum, t, s;
 
@@ -3643,12 +3602,20 @@ VizTextStream.prototype.hint = function()
 
 // ===============================================================================
 // VizNetWheel: Class to visualize connections between Records as Network on Wheel
+//
+// Instance Variables:
+//		recSel = array of selected record IDs
+//		spin = degree (0-359) of spin user added to wheel
+//		prune = true if unconnected nodes should be removed
+//		svg = SVG graphic in which visualization created
+//		center = graphic at center of SVG
+//		stream = datastream visualized
+//		inc = degree spacing between nodes on Wheel
+//		cr = radius (pixel length) to center
 
 var VizNetWheel = function(viewFrame, vSettings)
 {
 	PVizModel.call(this, viewFrame, vSettings);
-
-	this.bSel=[];
 } // VizNetWheel
 
 VizNetWheel.prototype = Object.create(PVizModel.prototype);
@@ -3659,13 +3626,6 @@ VizNetWheel.prototype.flags = function()
 {
 	return V_FLAG_OPT | V_FLAG_LGND | V_FLAG_SEL | V_FLAG_VSCRL | V_FLAG_HSCRL;
 } // flags()
-
-VizNetWheel.prototype.getFeatureAtts = function(tIndex)
-{
-	if (tIndex != null)
-		return this.settings.lgnds[tIndex];
-	return this.settings.lgnds;
-} // getFeatureAtts()
 
 VizNetWheel.prototype.setup = function()
 {
@@ -3837,7 +3797,7 @@ VizNetWheel.prototype.render = function(stream)
 					clan=[];
 				}
 					// Have we run out of Templates?
-				if (++tI === PData.eTNum()) {
+				if (++tI === stream.t.length) {
 					break tLoop;
 				}
 
@@ -4060,6 +4020,332 @@ VizNetWheel.prototype.setState = function(state)
 {
 	this.vFrame.setLgndSels(state.l);
 } // setState()
+
+VizNetWheel.prototype.hint = function()
+{
+	var hint='';
+	var self=this;
+
+	for (var ti=0; ti<PData.eTNum(); ti++) {
+		var pAtts = self.settings.pAtts[ti];
+		pAtts.forEach(function(p) {
+			var att = PData.aByID(p.pid);
+			if (hint.length > 0) {
+				hint += ", ";
+			}
+			hint += '<b><span style="color: '+p.clr+'">'+att.def.l+'</span></b>';
+		});
+	}
+	return hint;
+} // hint()
+
+// ===============================================================================
+// VizNetGraph: Class to visualize connections between Records as network graph
+//
+// Instance Variables:
+//		svg = SVG created for visualization
+//		stream = datastream to visualize
+//		force = D3 force layout object
+
+var VizNetGraph = function(viewFrame, vSettings)
+{
+	PVizModel.call(this, viewFrame, vSettings);
+} // VizNetGraph
+
+VizNetGraph.prototype = Object.create(PVizModel.prototype);
+
+VizNetGraph.prototype.constructor = VizNetGraph;
+
+VizNetGraph.prototype.flags = function()
+{
+	return V_FLAG_OPT | V_FLAG_LGND | V_FLAG_SEL | V_FLAG_VSCRL | V_FLAG_HSCRL;
+} // flags()
+
+VizNetGraph.prototype.setup = function()
+{
+	var self=this;
+
+	this.svg = d3.select(this.frameID).append("svg");
+
+	this.force = d3.layout.force()
+	    .linkDistance((this.settings.max * 2) + 4)
+	    .linkStrength(1);
+} // setup()
+
+	// PURPOSE: Draw the Records in the given datastream
+VizNetGraph.prototype.render = function(stream)
+{
+	var self = this;
+
+	if (stream) {
+		this.stream = stream;
+	} else {
+		stream = this.stream;
+	}
+
+	function clickDot(d)
+	{
+		var s = self.toggleSel(d.ai);
+		d3.select(this).classed('obj-sel', s);
+	} // clickDot()
+
+		// remove any existing nodes and links
+	this.svg.selectAll(".gnode").remove();
+	this.svg.selectAll(".glink").remove();
+
+	if (this.recSel.length > 0) {
+		this.recSel=[];
+		this.vFrame.selBtns(false);
+	}
+
+	this.preRender();
+
+		// Abort if no Records
+	if (stream.l === 0) {
+			// Set sizes and centers to minimum
+		this.svg.attr("width", "10")
+			.attr("height", "10");
+		return;
+	}
+
+	var sAttID, sAtt, minR, maxR, dR, minS, dS;
+
+	minR = this.settings.min;
+	if (typeof minR === 'string') {
+		minR = parseInt(minR);
+	}
+	maxR = this.settings.max;
+	if (typeof maxR === 'string') {
+		maxR = parseInt(maxR);
+	}
+	dR = maxR - minR;
+
+		// Create initial array of all nodes
+	var nodes=[], bNodes,	// Nodes + pseudo-nodes for bezier curve
+		links = [],
+		bilinks = [];		// links augmented by intermediate psuedo-node for bezier curve
+	var link, node;
+	var i=0, rec, datum;
+	var tRec, tI=0;
+	var featSet=null;
+	var aI;
+	var nCnt=0;
+
+	(function () {
+		var fAtt, fAttID;
+
+		tRec = stream.t[0];
+		fAttID = self.vFrame.getSelLegend(0);
+		fAtt = PData.aByID(fAttID);
+		featSet = self.vFrame.getSelFeatAtts(0);
+		if (featSet.length > 0 && tRec.n > 0) {
+			self.tUsed[0] = true;
+		}
+
+		tLoop: while (i<stream.l) {
+				// Advance until we get to current Template rec
+			while (tRec.n === 0 || (tRec.i+tRec.n) === i || featSet.length === 0) {
+					// Have we run out of Templates?
+				if (++tI === stream.t.length) {
+					break tLoop;
+				}
+
+				tRec = stream.t[tI];
+					// Which Attribute chosen for Legend?
+				fAttID = self.vFrame.getSelLegend(tI);
+				fAtt = PData.aByID(fAttID);
+				featSet = self.vFrame.getSelFeatAtts(tI);
+				if (featSet.length > 0 && tRec.n > 0) {
+					self.tUsed[tI] = true;
+				}
+				sAttID = self.settings.sAtts[tI];
+				if (sAttID) {
+					sAtt = PData.aByID(sAttID);
+					if (typeof sAtt.r.min === 'number' && typeof sAtt.r.max === 'number') {
+						minS = sAtt.r.min;
+						dS = sAtt.r.max - minS;
+					} else {
+						sAttID = null;
+					}
+				} // if sAttID
+			} // if end of Template set
+
+				// Get Record data
+			aI = stream.s[i];
+			rec = PData.rByN(aI);
+			datum = rec.a[fAttID];
+			if (typeof datum !== 'undefined') {
+				fData = PData.lRecs(datum, fAtt, featSet, false);
+				if (fData) {
+					self.rMap[aI >> 4] |= (1 << (aI & 15));
+					if (sAttID) {
+						sAtt = rec.a[sAttID];
+						if (typeof sAtt === 'number') {
+							sAtt = Math.floor(((sAtt-minS)*dR)/dS) + minR;
+						} else {
+							sAtt = minR;
+						}
+					} else {
+						sAtt = minR;
+					}
+					nodes.push({
+						index: nCnt++, x: 0, y: 0, px: 0, py: 0, fixed: false, weight: 0,
+						ai: aI, t: tI, s: sAtt, c: fData.v, r: rec
+					});
+				} // legend that is enabled
+			} // valid legend data
+
+			i++;
+		} // while
+	}());
+	bNodes = nodes.slice();		// clone nodes so can add bezier nodes
+
+		// Abort if no Records
+	if (nCnt === 0) {
+			// Set sizes and centers to minimum
+		this.svg.attr("width", "10")
+			.attr("height", "10");
+		return;
+	}
+
+		// Set sizes and centers
+	// var size = (nCnt / 3) * (maxR + 4) + 4;
+	// var size = Math.ceil(Math.sqrt((((maxR * 2) + 6) * nCnt) / Math.PI) * 2) + 4;
+	// var size = Math.ceil(Math.log(nCnt) / Math.log(1.2) * ((maxR * 2) + 6)) + 4;
+	// var size = Math.ceil(Math.sqrt(((maxR * 8) + 6) * nCnt)) + 4;
+	var size = Math.ceil(((maxR * 8) + 6) * Math.sqrt(nCnt)) + 4;
+console.log("Size: "+size);
+	this.force.size([size, size]);
+	this.svg.attr("width", size)
+		.attr("height", size);
+
+		// Now we need to iterate through nodes and create links
+	var found, rec2, thisT, comp;
+	tI = null; tRec = null;
+	nodes.forEach(function(thisNode) {
+			// Have we gone to next Template? Get Pointer array
+		if (tI !== thisNode.t) {
+			tI = thisNode.t;
+			tRec = stream.t[tI];
+			featSet = self.settings.pAtts[tI];
+		}
+			// Go through all Pointer Attributes of this Template type
+		featSet.forEach(function(p) {
+			datum = thisNode.r.a[p.pid];
+			if (typeof datum !== 'undefined') {
+					// Array of Rec IDs -- must find each one
+				datum.forEach(function(rID) {
+					found=false;
+						// TO DO: expedite node search
+					for (var rI=0; rI<nodes.length; rI++) {
+						rec2 = nodes[rI];
+						comp = PData.strcmp(rec2.r.id, rID);
+						if (comp === 0) {
+							found=true;
+							break;
+						}
+					} // for rI
+					if (found) {
+						var bRec = {
+							index: nCnt++, x: 0, y: 0, px: 0, py: 0, fixed: false, weight: 0, c: p.clr
+						};
+				    	bNodes.push(bRec);	// push intermediate pseudo-node
+				    	links.push({ source: thisNode, target: bRec }, { source: bRec, target: rec2 });
+				    	bilinks.push([thisNode, bRec, rec2]);
+					} // if found
+				}); // for Pointer values
+			} // Rec has Pointer values
+		}); // for all of Template's Pointer entries
+	}); // for all nodes
+
+	this.force
+    	.nodes(bNodes)
+	    .links(links)
+    	.start();
+
+	link = this.svg.selectAll(".glink")
+    	.data(bilinks)
+    	.enter().append("path")
+    	.attr("class", "glink")
+		.style("stroke", function(d) { return d[1].c; });
+
+	node = this.svg.selectAll(".gnode")
+    	.data(nodes)
+    	.enter().append("circle")
+    	.attr("class", "gnode")
+		.attr("r", function(d) { return d.s; })
+		.style("fill", function(d) { return d.c; })
+		.call(this.force.drag)
+		.on("click", clickDot);
+
+	this.force.on("tick", function() {
+    	link.attr("d", function(d) {
+    		return "M" + d[0].x + "," + d[0].y
+        		+ "S" + d[1].x + "," + d[1].y
+        		+ " " + d[2].x + "," + d[2].y;
+    	});
+    	node.attr("transform", function(d) {
+    		return "translate(" + d.x + "," + d.y + ")";
+    	});
+	}); // force.tick
+} // render()
+
+VizNetGraph.prototype.teardown = function()
+{
+} // teardown()
+
+VizNetGraph.prototype.setSel = function(absIArray)
+{
+	var self=this;
+
+	self.recSel = absIArray;
+	this.svg.selectAll(".gnode")
+			.attr("class", function(d) { return self.isSel(d.ai) ? 'obj-sel gnode' : 'gnode' });
+} // setSel()
+
+VizNetGraph.prototype.clearSel = function()
+{
+	if (this.recSel.length > 0) {
+		this.recSel = [];
+			// Only zoom band events are selected
+		this.svg.selectAll(".gnode")
+				.attr("class", 'gnode');
+	}
+} // clearSel()
+
+VizNetGraph.prototype.doOptions = function()
+{
+	var self=this;
+
+} // doOptions()
+
+VizNetGraph.prototype.getState = function()
+{
+	return { l: this.vFrame.getLgndSels() };
+} // getState()
+
+VizNetGraph.prototype.setState = function(state)
+{
+	this.vFrame.setLgndSels(state.l);
+} // setState()
+
+VizNetGraph.prototype.hint = function()
+{
+	var hint='';
+	var self=this;
+
+	for (var ti=0; ti<PData.eTNum(); ti++) {
+		var pAtts = self.settings.pAtts[ti];
+		pAtts.forEach(function(p) {
+			var att = PData.aByID(p.pid);
+			if (hint.length > 0) {
+				hint += ", ";
+			}
+			hint += '<b><span style="color: '+p.clr+'">'+att.def.l+'</span></b>';
+		});
+	}
+	return hint;
+} // hint()
 
 
 // ====================================================================
@@ -6488,7 +6774,7 @@ var PData = (function() {
 			// TO DO: 	Optimization tricks noted below
 		cFill: function(cats, oAttID, sAttID, stream)
 		{
-			var numTmplts = PData.eTNum();
+			var numTmplts = stream.t.length;
 			var tI=0, tRec;
 			var rI=0, aI, rec, datum, fData;
 			var cI, cRec;

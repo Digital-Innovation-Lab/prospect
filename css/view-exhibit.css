@@ -1258,6 +1258,25 @@ svg .link.thick
 	stroke-width: 2px;
 }
 
+	/* Network Graph styles */
+svg circle.gnode
+{
+	cursor: pointer;
+}
+
+svg circle.gnode.obj-sel {
+	stroke: yellow;
+	stroke-width: 2px;
+}
+
+svg path.glink
+{
+	stroke-opacity: 1;
+	stroke-width: 1px;
+	fill: none;
+	pointer-events: none;
+}
+
 	/* Facet Flow styles */
 svg .bar
 {
@@ -1429,7 +1448,7 @@ svg .facet-val-num {
 	font-family:Verdana, Arial, sans-serif;
 	font-weight: normal;
 	text-anchor: end;
-	fill: black; 
+	fill: black;
 }
 
 	/* The RESET button for a facet column */
@@ -1528,7 +1547,7 @@ div.filter-vocab-bar {
 #dialog-about img {
 	/* Webkit for Chrome and Safari */
 	-webkit-transform: scale(.2, .2);
- 
+
 	/* Webkit for Mozila Firefox */
 	-moz-transform: scale(.2, .2);
 
@@ -1541,7 +1560,7 @@ div.filter-vocab-bar {
 	-webkit-transform: scale(1.0, 1.0);
 	-webkit-transition-duration: 800ms;
 	-webkit-transition-timing-function: ease-out;
- 
+
 	/* Webkit for Mozila Firefox */
 	-moz-transform: scale(1.0, 1.0);
 	-moz-transition-duration: 800ms;

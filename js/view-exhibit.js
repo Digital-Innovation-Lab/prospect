@@ -967,6 +967,9 @@ function PViewFrame(vfIndex)
 		case 'N':
 			newViz = new VizNetWheel(instance, theView.c);
 			break;
+		case 'n':
+			newViz = new VizNetGraph(instance, theView.c);
+			break;
 		case 'F':
 			newViz = new VizFlow(instance, theView.c);
 			break;
