@@ -4277,6 +4277,10 @@ console.log("Size: "+size);
 		.style("fill", function(d) { return d.c; })
 		.call(this.force.drag)
 		.on("click", clickDot);
+	node.append("title")
+		.text(function(d) {
+			return d.r.l;
+		});
 
 	this.force.on("tick", function() {
     	link.attr("d", function(d) {
