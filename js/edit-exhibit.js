@@ -1208,8 +1208,6 @@ jQuery(document).ready(function() {
 				});
 				break;
 			case 'n': 	// Network Graph
-				newVFEntry.c.defID = '';
-				newVFEntry.c.d = 2;
 				newVFEntry.c.min = 4;
 				newVFEntry.c.max = 10;
 					// Potential Legends
@@ -1723,8 +1721,6 @@ jQuery(document).ready(function() {
 					saveView.c.lgnds = newLgnds;
 					break;
 				case 'n': 	// Network Graph
-					saveView.c.defID = viewSettings.c.defID;
-					saveView.c.d = viewSettings.c.d;
 					saveView.c.min = viewSettings.c.min;
 					saveView.c.max = viewSettings.c.max;
 					var newPAtts=[], newLgnds=[];

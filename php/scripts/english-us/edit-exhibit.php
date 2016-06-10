@@ -678,8 +678,6 @@
 </script>
 
 <script id="vfNetGraph" type='text/ractive'>
-	<?php _e('Record (ID) to display by default', 'prospect'); ?>: <input type="text" value="{{c.defID}}" size="24" pattern="[\w\-]+"/><br/>
-	<?php _e('Default network depth', 'prospect'); ?>: <input type="number" value="{{c.d}}" min="1" max="6"/>
 	<?php _e('Min Radius', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="20" required/>
 	<?php _e('Max Radius', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="20" required/>
 	<br/>
