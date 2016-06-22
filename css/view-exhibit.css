@@ -1272,7 +1272,7 @@ svg circle.gnode.obj-sel {
 svg path.glink
 {
 	stroke-opacity: 1;
-	stroke-width: 1px;
+	stroke-width: 2px;
 	fill: none;
 	pointer-events: none;
 }

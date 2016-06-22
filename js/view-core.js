@@ -4046,6 +4046,7 @@ VizNetWheel.prototype.hint = function()
 //		svg = SVG created for visualization
 //		stream = datastream to visualize
 //		force = D3 force layout object
+//		rels = [ [boolean], ], to match settings.pAtts, specifying if should display
 
 var VizNetGraph = function(viewFrame, vSettings)
 {
@@ -4070,9 +4071,20 @@ VizNetGraph.prototype.setup = function()
 	this.force = d3.layout.force()
 	    .linkDistance((this.settings.max * 2) + 4)
 	    .linkStrength(1);
+
+		// By default, all relationships are shown
+	this.rels=[];
+	this.settings.pAtts.forEach(function(pSet) {
+		var relSet=[];
+		for (var i=0; i<pSet.length; i++) {
+			relSet.push(true);
+		}
+		self.rels.push(relSet);
+	});
 } // setup()
 
 	// PURPOSE: Draw the Records in the given datastream
+	// INPUT:	steam = datastream (which is saved), or null (if reuse last)
 VizNetGraph.prototype.render = function(stream)
 {
 	var self = this;
@@ -4220,7 +4232,7 @@ console.log("Size: "+size);
 		.attr("height", size);
 
 		// Now we need to iterate through nodes and create links
-	var found, rec2, thisT, comp;
+	var found, rec2, thisT, comp, relSet;
 	tI = null; tRec = null;
 	nodes.forEach(function(thisNode) {
 			// Have we gone to next Template? Get Pointer array
@@ -4228,33 +4240,37 @@ console.log("Size: "+size);
 			tI = thisNode.t;
 			tRec = stream.t[tI];
 			featSet = self.settings.pAtts[tI];
+			relSet = self.rels[tI];
 		}
 			// Go through all Pointer Attributes of this Template type
-		featSet.forEach(function(p) {
-			datum = thisNode.r.a[p.pid];
-			if (typeof datum !== 'undefined') {
-					// Array of Rec IDs -- must find each one
-				datum.forEach(function(rID) {
-					found=false;
-						// TO DO: expedite node search
-					for (var rI=0; rI<nodes.length; rI++) {
-						rec2 = nodes[rI];
-						comp = PData.strcmp(rec2.r.id, rID);
-						if (comp === 0) {
-							found=true;
-							break;
-						}
-					} // for rI
-					if (found) {
-						var bRec = {
-							index: nCnt++, x: 0, y: 0, px: 0, py: 0, fixed: false, weight: 0, c: p.clr
-						};
-				    	bNodes.push(bRec);	// push intermediate pseudo-node
-				    	links.push({ source: thisNode, target: bRec }, { source: bRec, target: rec2 });
-				    	bilinks.push([thisNode, bRec, rec2]);
-					} // if found
-				}); // for Pointer values
-			} // Rec has Pointer values
+		featSet.forEach(function(p, pIndex) {
+				// Ignore if not currently selected
+			if (relSet[pIndex]) {
+				datum = thisNode.r.a[p.pid];
+				if (typeof datum !== 'undefined') {
+						// Array of Rec IDs -- must find each one
+					datum.forEach(function(rID) {
+						found=false;
+							// TO DO: expedite node search
+						for (var rI=0; rI<nodes.length; rI++) {
+							rec2 = nodes[rI];
+							comp = PData.strcmp(rec2.r.id, rID);
+							if (comp === 0) {
+								found=true;
+								break;
+							}
+						} // for rI
+						if (found) {
+							var bRec = {
+								index: nCnt++, x: 0, y: 0, px: 0, py: 0, fixed: false, weight: 0, c: p.clr
+							};
+					    	bNodes.push(bRec);	// push intermediate pseudo-node
+					    	links.push({ source: thisNode, target: bRec }, { source: bRec, target: rec2 });
+					    	bilinks.push([thisNode, bRec, rec2]);
+						} // if found
+					}); // for Pointer values
+				} // Rec has Pointer values
+			} // if rels on
 		}); // for all of Template's Pointer entries
 	}); // for all nodes
 
@@ -4320,17 +4336,75 @@ VizNetGraph.prototype.clearSel = function()
 VizNetGraph.prototype.doOptions = function()
 {
 	var self=this;
+	var h=120;
 
+	var insertPt = jQuery('#dialog-netgraph > .scroll-container');
+	insertPt.empty();
+
+	this.settings.pAtts.forEach(function(t, tI) {
+		if (t.length > 0) {
+			h += 18;
+			var tID = PData.eTByN(tI);
+			var tDef = PData.tByID(tID);
+			var tSet = self.rels[tI];
+			insertPt.append('<b>'+tDef.l+'</b><br/>');
+			t.forEach(function(p, pI) {
+				h += 18;
+				var i = '<input type="checkbox" data-t="'+tI+'" data-index="'+pI+'"';
+				if (tSet[pI]) {
+					i += ' checked="checked"';
+				}
+				var pAtt = PData.aByID(p.pid);
+				insertPt.append(i+'/> '+pAtt.def.l+'<br/>');
+			});
+		}
+	});
+
+	var d = jQuery("#dialog-netgraph").dialog({
+		height: h,
+		width: 300,
+		modal: true,
+		buttons: [
+			{
+				text: dlText.ok,
+				click: function() {
+					d.dialog("close");
+					PState.set(PSTATE_BUILD);
+					var changed = false;
+					self.settings.pAtts.forEach(function(t, tI) {
+						t.forEach(function(p, pI) {
+							var selected = insertPt.find('input[data-t="'+tI+'"][data-index="'+pI+'"]').prop('checked');
+							if (self.rels[tI][pI] !== selected) {
+								changed = true;
+								self.rels[tI][pI] = selected;
+							}
+						});
+					});
+					if (changed) {
+						self.render(null);
+					}
+					PState.set(PSTATE_READY);
+				}
+			},
+			{
+				text: dlText.cancel,
+				click: function() {
+					d.dialog("close");
+				}
+			}
+		]
+	});
 } // doOptions()
 
 VizNetGraph.prototype.getState = function()
 {
-	return { l: this.vFrame.getLgndSels() };
+	return { l: this.vFrame.getLgndSels(), r: JSON.parse(JSON.stringify(this.rels)) };
 } // getState()
 
 VizNetGraph.prototype.setState = function(state)
 {
 	this.vFrame.setLgndSels(state.l);
+	this.rels = JSON.parse(JSON.stringify(state.r));
 } // setState()
 
 VizNetGraph.prototype.hint = function()
