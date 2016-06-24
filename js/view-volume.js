@@ -1097,6 +1097,9 @@ PVizFrame.prototype.createViz = function(vIndex, refresh)
 	case 'N':
 		newViz = new VizNetWheel(this, theView.c);
 		break;
+	case 'n':
+		newViz = new VizNetGraph(instance, theView.c);
+		break;
 	// case 'S':
 	// 	newViz = new VizStackChart(this, theView.c);
 	// 	break;

@@ -1389,18 +1389,38 @@ svg .node text {
 	font-size: 11px;
 }
 
-svg .link
+svg path.link
 {
 	stroke-opacity: .7;
 	fill: none;
 	pointer-events: none;
 }
 
-svg .link.thick
+svg path.link.thick
 {
 	stroke-opacity: 1;
 	stroke-width: 2px;
 }
+
+	/* Network Graph styles */
+svg circle.gnode
+{
+	cursor: pointer;
+}
+
+svg circle.gnode.obj-sel {
+	stroke: yellow;
+	stroke-width: 2px;
+}
+
+svg path.glink
+{
+	stroke-opacity: 1;
+	stroke-width: 2px;
+	fill: none;
+	pointer-events: none;
+}
+
 
 /* Specific Filter styles
  * ======================
