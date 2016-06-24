@@ -48,6 +48,7 @@ function PViewFrame(vfIndex)
 	var legendIDs = [];			// Attribute IDs of Legend selections (one per Template)
 	var lDirty = null;			// Legend Dirty (enabled) if true
 	var datastream = null;		// pointer to datastream given to view
+	var vizStates = [];			// saves state of each vizualization between views as Perspective
 
 	// PRIVATE FUNCTIONS
 	//==================
@@ -923,14 +924,16 @@ function PViewFrame(vfIndex)
 
 
 		// PURPOSE: Create appropriate VizModel within frame
-		// INPUT: 	vIndex is index in Exhibit array
-		//			if refresh, then immediately redraw
+		// INPUT: 	vIndex is visualization's index in Exhibit array
+		//			if refresh, then check for saved state and immediately redraw
 	function createViz(vIndex, refresh)
 	{
 		var theView = PData.vByN(vIndex);
 
 			// Remove current viz content
 		if (vizModel) {
+				// First save visualization's state so we can return to it later
+			vizStates[vizSelIndex] = vizModel.getState();
 			vizModel.teardown();
 			vizModel = null;
 		}
@@ -1119,8 +1122,16 @@ function PViewFrame(vfIndex)
 			// ViewFrames initially created w/o selection
 		doSelBtns(false);
 
-		if (datastream && refresh)
-			newViz.render(datastream);
+			// Check if there is a previously saved state
+		if (refresh) {
+			var s = vizStates[vIndex];
+			if (s) {
+				newViz.setState(s);
+			}
+			if (datastream) {
+				newViz.render(datastream);
+			}
+		}
 		vizModel = newViz;
 	} // createViz()
 
@@ -1130,11 +1141,19 @@ function PViewFrame(vfIndex)
 
 	instance.getFrameID = getFrameID;
 
+		// Create array for saving state of visualizations as user switches between them
+	for (var i=0; i<prspdata.e.vf.length; i++) {
+		vizStates.push(null);
+	}
+
 	instance.getIndex = function()
 	{
 		return vfIndex;
 	}
 
+		// PURPOSE: Sets the visualization in the view and updates menu selection
+		// ASSUMES: This is only called when restoring a Perspective, so it doesn't need to
+		//			deal with vizStates[]
 	instance.setViz = function(vI, refresh)
 	{
 		if (vI != vizSelIndex) {
@@ -1154,8 +1173,9 @@ function PViewFrame(vfIndex)
 
 			// Localize color scheme?
 		var clr = prspdata.bClrs.vf;
-		if (clr && clr.length > 0)
+		if (clr && clr.length > 0) {
 			frame.find('div.view-controls').css('background-color', clr);
+		}
 
 			// Activate drag handle on Legend
 		frame.find('div.lgnd-container').draggable({ handle: frame.find('div.lgnd-handle'), containment: "parent" });
@@ -1261,18 +1281,22 @@ function PViewFrame(vfIndex)
 	} // getState()
 
 		// PURPOSE: Set the state of the current visualization
+		// ASSUMES: This is used only to restore Perspective
+		//			No need to save in vizStates[]
 	instance.setState = function(state)
 	{
-		if (vizModel)
+		if (vizModel) {
 			vizModel.setState(state);
+		}
 	} // getState()
 
 		// PURPOSE: Called by external agent when new datastream is available for viewing
 	instance.showStream = function(stream)
 	{
 		datastream = stream;
-		if (vizModel)
+		if (vizModel) {
 			vizModel.render(stream);
+		}
 		setLDirty(false);
 	} // showStream()
 
@@ -1289,8 +1313,9 @@ function PViewFrame(vfIndex)
 
 	instance.clearSel = function()
 	{
-		if (vizModel)
+		if (vizModel) {
 			vizModel.clearSel();
+		}
 		doSelBtns(false);
 	} // clearSel()
 
@@ -1322,8 +1347,9 @@ function PViewFrame(vfIndex)
 		// PURPOSE: Alert inner visualization that view frame has resized
 	instance.resize = function()
 	{
-		if (vizModel)
+		if (vizModel) {
 			vizModel.resize();
+		}
 	} // resize()
 
 	instance.title = function()
@@ -1341,10 +1367,7 @@ function PViewFrame(vfIndex)
 		// PURPOSE: Return the Record bitmap data for this view
 	instance.getBMData = function()
 	{
-		if (vizModel) {
-			return { t: vizModel.tUsed, r: vizModel.rMap };
-		}
-		return null;
+		return vizModel ? { t: vizModel.tUsed, r: vizModel.rMap } : null;
 	} // getBMData()
 
 	return instance;
@@ -2672,6 +2695,7 @@ jQuery(document).ready(function($) {
 function onYouTubeIframeAPIReady()
 {
 		// Call saved function call
-	if (widgetData.ytCall)
+	if (widgetData.ytCall) {
 		widgetData.ytCall();
+	}
 } // onYouTubeIframeAPIReady()
