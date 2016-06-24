@@ -1245,14 +1245,14 @@ svg .node text {
 	font-size: 11px;
 }
 
-svg .link
+svg path.link
 {
 	stroke-opacity: .7;
 	fill: none;
 	pointer-events: none;
 }
 
-svg .link.thick
+svg path.link.thick
 {
 	stroke-opacity: 1;
 	stroke-width: 2px;
