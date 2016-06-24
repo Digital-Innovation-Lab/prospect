@@ -925,7 +925,7 @@ function PViewFrame(vfIndex)
 
 		// PURPOSE: Create appropriate VizModel within frame
 		// INPUT: 	vIndex is visualization's index in Exhibit array
-		//			if refresh, then check for saved state and immediately redraw
+		//			if refresh, check for saved state and immediately redraw
 	function createViz(vIndex, refresh)
 	{
 		var theView = PData.vByN(vIndex);

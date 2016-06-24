@@ -726,6 +726,12 @@ var PVizFrame = function(vfIndex, callbacks)
 	this.legendIDs = [];		// Attribute IDs of Legend selections (one per Template)
 	this.datastream = null;		// pointer to datastream given to view
 
+	this.vizStates = [];
+		// Create array for saving state of visualizations as user switches between them
+	for (var i=0; i<prspdata.e.vf.length; i++) {
+		this.vizStates.push(null);
+	}
+
 	PViewFrame.call(this, vfIndex, callbacks);
 } // PVizFrame()
 
@@ -1037,7 +1043,7 @@ PVizFrame.prototype.setLegendFeatures = function(lIndex, attID)
 
 	// PURPOSE: Create appropriate VizModel within frame
 	// INPUT: 	vIndex is index in Exhibit array
-	//			if refresh, then immediately redraw
+	//			if refresh, check for saved state and immediately redraw
 PVizFrame.prototype.createViz = function(vIndex, refresh)
 {
 	var self=this;
@@ -1056,6 +1062,8 @@ PVizFrame.prototype.createViz = function(vIndex, refresh)
 
 		// Remove current viz content
 	if (this.vizModel) {
+			// First save visualization's state so we can return to it later
+		this.vizStates[this.vizSelIndex] = this.vizModel.getState();
 		this.vizModel.teardown();
 		this.vizModel = null;
 	}
@@ -1241,12 +1249,22 @@ PVizFrame.prototype.createViz = function(vIndex, refresh)
 		// ViewFrames initially created w/o selection
 	// selBtns(false);
 
-	if (this.datastream && refresh) {
-		newViz.render(this.datastream);
+	if (refresh) {
+		var s = this.vizStates[vIndex];
+		if (s) {
+			newViz.setState(s);
+		}
+		if (this.datastream) {
+			newViz.render(this.datastream);
+		}
 	}
+
 	this.vizModel = newViz;
 } // createViz()
 
+	// PURPOSE: Sets the visualization in the view and updates menu selection
+	// ASSUMES: This is only called when restoring a Perspective, so it doesn't need to
+	//			deal with vizStates[]
 PVizFrame.prototype.setViz = function(vI, refresh)
 {
 	if (vI !== this.vizSelIndex) {
@@ -3265,7 +3283,7 @@ jQuery(document).ready(function($) {
 
 			// Does viz already exist?
 		if (v1) {
-			v1.setViz(vI, true);
+			v1.setViz(vI, false);
 			v1.selBtns(false);
 		} else {
 			views[1] = new PVizFrame(1, callbacks);
