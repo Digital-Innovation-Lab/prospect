@@ -83,6 +83,8 @@
 						{{>vfTextStream}}
 					{{elseif vf === 'N'}}
 						{{>vfNetWheel}}
+					{{elseif vf === 'n'}}
+						{{>vfNetGraph}}
 					{{/if}}
 				</div>
 				{{#if vIndex != (viewSettings.length-1) }}<hr class="vf-divider"/>{{/if}}
@@ -648,6 +650,55 @@
 	</tabs>
 </script>
 
+<script id="vfNetGraph" type='text/ractive'>
+	<?php _e('Min Radius', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="20" required/>
+	<?php _e('Max Radius', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="20" required/>
+	<br/>
+	<?php _e('Network links based on Attribute/color pairs for each Template type', 'prospect'); ?>
+	<tabs>
+		<ul>
+		{{#each iTemplates:tIndex}}
+			<li><a href="#tmpt-vf-tab-{{incID}}-{{tIndex}}">{{tid}}</a></li>
+		{{/each}}
+		</ul>
+		{{#each iTemplates:tIndex}}
+		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
+			<b><?php _e('Marker Radius Size', 'prospect'); ?>: </b>
+			<select value='{{c.sAtts[tIndex]}}'>
+			{{#each attsDNum}}
+				<option>{{this}}</option>
+			{{/each}}
+			</select><br/>
+			{{#if attsPtr.length > c.pAtts[tIndex].length}}
+				<button on-click="addPtrPair:{{vIndex}},{{tIndex}}"><?php _e('Add Attribute/Color Pair', 'prospect'); ?></button><br/>
+			{{/if}}
+			{{#each c.pAtts[tIndex]:pIndex}}
+				<b><?php _e('Use Pointer Attribute', 'prospect'); ?>: </b>
+				<select value='{{pid}}'>
+				{{#each attsPtr}}
+					<option>{{this}}</option>
+				{{/each}}
+				</select>
+				<?php _e('Use color', 'prospect'); ?>: <input type="text" value="{{clr}}" size="10"/>
+				<span title=<?php _e('"Click to select visual representation"', 'prospect'); ?> class="viz-icon" style="background-color:{{clr}}" on-click="setNetLColor:{{vIndex}},{{tIndex}},{{pIndex}}"></span>
+				<button decorator="iconButton:ui-icon-trash" on-click="delPtrPair:{{vIndex}},{{tIndex}},{{pIndex}}"><?php _e('Delete', 'prospect'); ?></button>
+				<br/>
+			{{/each}}
+			<b><?php _e('Provide Legends', 'prospect'); ?>:</b>
+			<button decorator="iconButton:ui-icon-check" on-click="allLgndsOn:{{vIndex}},{{tIndex}}"><?php _e('All On', 'prospect'); ?></button>
+			<button decorator="iconButton:ui-icon-cancel" on-click="allLgndsOff:{{vIndex}},{{tIndex}}"><?php _e('All Off', 'prospect'); ?></button>
+			{{#each c.lgnds[tIndex]:lIndex}}
+				<span class="attribute-controls">
+					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Left', 'prospect'); ?></button>
+					<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Right', 'prospect'); ?></button>
+				</span>
+			{{/each}}
+		</div>
+		{{/each}}
+	</tabs>
+</script>
+
 
 <!-- DIALOGS -->
 <!-- New View Dialog -->
@@ -688,7 +739,7 @@
 
 <!-- DYNAMIC TEXT -->
 <script id="dltext-visualizations" type='text/ractive'>
-<?php _e('D,Directory|C,Cards|t,TextStream|M,Map 1|p,Map 2|T,Timeline|P,Pinboard|N,Network Wheel', 'prospect'); ?>
+<?php _e('D,Directory|C,Cards|t,TextStream|M,Map 1|p,Map 2|T,Timeline|P,Pinboard|N,Network Wheel|n,Network Graph', 'prospect'); ?>
 </script>
 
 

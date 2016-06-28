@@ -667,7 +667,7 @@ jQuery(document).ready(function() {
 
 		// Closure for temporary vars
 		// Initialize settings to correspond to iTemplates structures
-	if (true) {
+	(function() {
 		var newSCAtts=[], newYTAtts=[], newT1Atts=[], newT2Atts=[], newTCAtts=[],
 			newModalAtts=[];
 		_.forEach(iTemplates, function(theTmplt) {
@@ -702,10 +702,10 @@ jQuery(document).ready(function() {
 		defInspect.t.t2Atts = newT2Atts;
 		defInspect.t.tcAtts = newTCAtts;
 		defInspect.modal.atts = newModalAtts;
-	}
+	})();
 
 		// Initialize View settings to correspond to iTemplates structures
-	if (true) {
+	(function() {
 		for (var i=0; i<defViews.length; i++) {
 			var theVF = defViews[i];
 				// Assign each one a temporary unique ID (only used by Editor)
@@ -901,9 +901,34 @@ jQuery(document).ready(function() {
 				theVF.c.pAtts = newPAtts;
 				theVF.c.lgnds = newLgnds;
 				break;
+			case 'n': 	// Network Graph
+				var newPAtts=[], newSAtts=[], newLgnds=[];
+				iTemplates.forEach(function(theTmplt) {
+					var origTIndex = getTemplateIndex(theTmplt.tid);
+						// Was this Template absent in original config?
+					if (origTIndex == -1) {
+						newPAtts.push([]);
+						newSAtts.push(theTmplt.attsDNum[0] || 'disable');
+						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
+								return { attID: theLgndAtt, useAtt: true };
+							}));
+					} else {
+						var newP=[];
+						theVF.c.pAtts[origTIndex].forEach(function(p) {
+							newP.push({ pid: checkAttID(p.pid, theTmplt.attsPtr, ''), clr: p.clr });
+						});
+						newPAtts.push(newP);
+						newSAtts.push(checkAttID(theVF.c.sAtts[origTIndex], theTmplt.attsDNum, 'disable'));
+						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
+					}
+				});
+				theVF.c.pAtts = newPAtts;
+				theVF.c.sAtts = newSAtts;
+				theVF.c.lgnds = newLgnds;
+				break;
 			} // switch viewtype
 		} // for views
-	}
+	})();
 
 	PMapHub.init(prspdata.maps);
 
@@ -1133,6 +1158,23 @@ jQuery(document).ready(function() {
 					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
 						return { attID: theLgndAtt, useAtt: true };
 					});
+				});
+				newVFEntry.c.pAtts = _.map(iTemplates, function(theTemplate) {
+					return [];
+				});
+				break;
+			case 'n': 	// Network Graph
+				newVFEntry.c.min = 4;
+				newVFEntry.c.max = 10;
+					// Potential Legends
+				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
+					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
+						return { attID: theLgndAtt, useAtt: true };
+					});
+				});
+					// Potential Size
+				newVFEntry.c.sAtts= _.map(iTemplates, function(theTemplate) {
+					return 'disable';
 				});
 				newVFEntry.c.pAtts = _.map(iTemplates, function(theTemplate) {
 					return [];
@@ -1549,6 +1591,18 @@ jQuery(document).ready(function() {
 						newPAtts.push(viewSettings.c.pAtts[tIndex]);
 					});
 					saveView.c.pAtts = newPAtts;
+					saveView.c.lgnds = newLgnds;
+					break;
+				case 'n': 	// Network Graph
+					saveView.c.min = viewSettings.c.min;
+					saveView.c.max = viewSettings.c.max;
+					var newPAtts=[], newLgnds=[];
+					saveTIndices.forEach(function(tIndex) {
+						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
+						newPAtts.push(viewSettings.c.pAtts[tIndex]);
+					});
+					saveView.c.pAtts = newPAtts;
+					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts);
 					saveView.c.lgnds = newLgnds;
 					break;
 				} // switch

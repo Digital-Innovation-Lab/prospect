@@ -122,7 +122,13 @@
 	</div>
 
 	<div id="dialog-prune" title=<?php _e('"Network Options"', 'prospect'); ?>>
-		<input type="checkbox" name="prune-nodes" id="prune-nodes"/> Hide unconnected Records?
+		<input type="checkbox" name="prune-nodes" id="prune-nodes"/> <?php _e('Hide unconnected Records', 'prospect'); ?>
+	</div>
+	
+	<div id="dialog-netgraph" title=<?php _e('"Network Options"', 'prospect'); ?>>
+		<?php _e('Relationships to display', 'prospect'); ?>
+		<div class="scroll-container">
+		</div>
 	</div>
 
 	<div id="dialog-about" title=<?php _e('"About Prospect&#8482;"', 'prospect'); ?>>
