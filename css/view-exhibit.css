@@ -312,6 +312,7 @@ div.filter-body svg .axis path,
 div.filter-body svg .axis line {
 	fill: none;
 	stroke: #000;
+	stroke-width: 1;
 	shape-rendering: crispEdges;
 }
 
@@ -1057,6 +1058,7 @@ div.viz-result svg .axis path,
 div.viz-result svg .axis line {
 	fill: none;
 	stroke: #000;
+	stroke-width: 1;
 	shape-rendering: crispEdges;
 }
 
@@ -1217,7 +1219,6 @@ div.viz-textstream div.recitem.obj-sel {
 }
 
 	/* Stacked Chart styles */
-
 svg .block
 {
 	cursor: pointer;
