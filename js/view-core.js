@@ -4426,6 +4426,220 @@ VizNetGraph.prototype.hint = function()
 } // hint()
 
 
+// ================================================================================
+// VizBMatrix: Class to visualize Records in "bucket" matrix with connections
+//
+// Instance Variables:
+//		svg
+//		cnx = true if configured for connections, false if none
+
+var VizBMatrix = function(viewFrame, vSettings)
+{
+	PVizModel.call(this, viewFrame, vSettings);
+} // VizBMatrix
+
+VizBMatrix.prototype = Object.create(PVizModel.prototype);
+
+VizBMatrix.prototype.constructor = VizBMatrix;
+
+VizBMatrix.prototype.flags = function()
+{
+	return V_FLAG_LGND | V_FLAG_VSCRL | V_FLAG_HSCRL | V_FLAG_SEL;
+} // flags()
+
+VizBMatrix.prototype.setup = function()
+{
+	var self=this;
+
+	this.cnx = false;
+		// Check to see if any relationships defined
+	this.settings.pAtts.forEach(function(pAttSet) {
+		if (pAttSet.length > 0) {
+			self.cnx = true;
+		}
+	});
+
+	this.svg = d3.select(this.frameID).append("svg");
+
+	this.chart = this.svg.append("g");
+	this.chart.attr("class", "chart")
+			.attr("transform", "translate("+D3SC_MARGINS.left+","+D3SC_MARGINS.top+")");
+} // setup()
+
+	// NOTES:	Each node will have radius of 4; plus 1 for outline, 1 for gap = 11 px width/node
+	//			Each bucket will be 8 nodes / 88 pix wide
+VizBMatrix.prototype.render = function(stream)
+{
+	var self=this;
+
+	var tLbls=[];	// For each Template: { l[abel], c[lass], x, y }
+	var tY=0;		// Current Y pos for top of Template's graphics
+	var tNum=0;		// Index of current (used) Template
+	var nodes=[];	// one per occurance in bucket (each Record can have > 1 node)
+					// { r[ec], t[Index], b[ucket], i[ndex w/in bucket], x, y }
+	var rSet=[];	// one per Record (used to locate with Pointers): { id, r[ec], n[odes] }
+	var maxW=0; 	// max pixel width entire SVG
+	var featSet, fAttID, fAtt;
+
+	function clickDot(d)
+	{
+		var s = self.toggleSel(d.ai);
+		d3.select(this).classed('obj-sel', s);
+	} // clickDot()
+
+
+	if (this.recSel.length > 0) {
+		this.recSel=[];
+	}
+	this.preRender();
+
+		// remove any existing nodes and links
+	this.svg.selectAll("path").remove();
+	this.svg.selectAll("text").remove();
+	this.svg.selectAll("circle").remove();
+	// this.svg.selectAll(".gnode").remove();
+	// this.svg.selectAll(".glink").remove();
+	// this.svg.selectAll(".s-lbl-txt").remove();
+
+		// Create category buckets for each Attribute
+	self.settings.oAtts.forEach(function(oAttID, tI) {
+		featSet = self.vFrame.getSelFeatAtts(tI);
+			// Skip Templates if no feature Atts or no order Attribute
+		if (oAttID != null && featSet.length !== 0) {
+				// Get Feature Attribute ID and def for this Template
+			fAttID = self.vFrame.getSelLegend(tI);
+			fAtt = PData.aByID(fAttID);
+
+			var tCat;
+			var oAtt = PData.aByID(oAttID);
+			if (oAtt.def.t !== 'g') {
+				if (self.settings.gr) {
+					tCat = PData.cRNew(oAtt, true, true);
+				} else {
+					tCat = PData.cLNew(oAtt, null, true);
+				}
+				PData.cFill(tCat, oAttID, null, stream, tI);
+			} else {
+				tCat=[];
+				PData.cFill(tCat, oAttID, null, stream, tI);
+			}
+				// Compile used categories, color nodes
+			var bI=0;
+			var used=[];
+			var tH=0;				// Max height of buckets for current Template in rows
+				// For each category
+			tCat.forEach(function(c) {
+				var rI=0;
+				var bH=0;	// Current height of bucket (node portion) in rows
+					// For each Record in category
+				c.i.forEach(function(aI) {
+					rec = PData.rByN(aI);
+					fData = rec.a[fAttID];
+					if (typeof fData !== 'undefined') {
+						fData = PData.lClr(fData, fAtt, featSet);
+						if (fData) {
+								// Set bit in rMap corresponding to absIndex
+							self.rMap[aI >> 4] |= (1 << (aI & 15));
+							nodes.push({r: rec, ai: aI, b: bI, rI: rI, c: fData,
+										x: (bI*92)+(11*(rI & 0x7))+5, y: tY+30+(11*(rI >> 3)) });
+							rI++;
+							save=true;
+							bH = (rI >> 3) + 1;
+						} // if fData
+					} // if data is defined
+				}); // for each Record
+					// Save this category bucket?
+				if (rI>0) {
+					tLbls.push({ l: c.l, c: 'b-lbl-txt', x: bI*92, y: tY+23 });
+					bI++;
+					tH = Math.max(bH, tH);
+					used.push(c);
+				} // if saved
+			}); // for each category
+				// Process data for this Template, if any nodes/categories created
+			if (bI > 0) {
+					// Create Template label
+				var tID = PData.eTByN(tI);
+				var tDef = PData.tByID(tID);
+				tLbls.push({ l: tDef.l, c: 't-lbl-txt', x: 0, y: tY+14 });
+				tNum++;
+				tY += 26+(tH*11);
+				maxW = Math.max(maxW, bI*92);
+			}
+		} // if has oAtt and features
+	}); // oAtts.forEach
+
+		// Any resulting Templates?
+	if (tNum > 0) {
+		this.svg.attr("width", maxW)
+			.attr("height", tY);
+
+		var node = this.svg.selectAll(".gnode")
+	    	.data(nodes)
+	    	.enter().append("circle")
+	    	.attr("class", "gnode")
+			.attr("r", "4")
+			.attr("cx", function(d) { return d.x; })
+			.attr("cy", function(d) { return d.y; })
+			.style("fill", function(d) { return d.c; })
+			.on("click", clickDot);
+		node.append("title")
+			.text(function(d) { return d.r.l; });
+
+		var title = this.svg.selectAll(".s-lbl-text")
+	    	.data(tLbls)
+	    	.enter().append("text")
+	    	.attr("class", function(d) { return 's-lbl-text ' + d.c; })
+			.attr("x", function(d) { return d.x; })
+			.attr("y", function(d) { return d.y; })
+			.text(function(d) { return d.l; });
+
+	} else {
+			// Set sizes and centers to minimum
+		this.svg.attr("width", "10")
+			.attr("height", "10");
+	}
+} // render()
+
+VizBMatrix.prototype.setSel = function(absIArray)
+{
+	var self=this;
+
+	self.recSel = absIArray;
+	this.svg.selectAll(".gnode")
+			.attr("class", function(d) { return self.isSel(d.ai) ? 'gnode obj-sel' : 'gnode' });
+} // setSel()
+
+VizBMatrix.prototype.clearSel = function()
+{
+	if (this.recSel.length > 0) {
+		this.recSel = [];
+		this.svg.selectAll(".gnode")
+				.attr("class", 'gnode');
+	}
+} // clearSel()
+
+VizBMatrix.prototype.getState = function()
+{
+	return { l: this.vFrame.getLgndSels() };
+} // getState()
+
+VizBMatrix.prototype.setState = function(state)
+{
+	this.vFrame.setLgndSels(state.l);
+} // setState()
+
+VizBMatrix.prototype.hint = function()
+{
+	// var h=dlText.xaxis+': ';
+	// var att = PData.aByID(this.settings.oAtt);
+	// h += att.def.l+', '+dlText.yaxis+': ';
+	// att = PData.aByID(this.settings.sAtt);
+	// h += att.def.l;
+	// return h;
+} // hint()
+
+
 // ====================================================================
 // PFilterModel: An abstract class to be subclassed by specific filters
 
@@ -6848,24 +7062,35 @@ var PData = (function() {
 			//			oAttID = ID of Attribute used for ordering (used to make cats)
 			//			sAttID = ID of secondary, required Attribute used later (or null)
 			//			stream = datastream
+			//			tOnly = null if do all Templates in stream, or else index of Template
 			// NOTES: 	Puts aIDs from stream into i arrays of rCats
 			// TO DO: 	Optimization tricks noted below
-		cFill: function(cats, oAttID, sAttID, stream)
+		cFill: function(cats, oAttID, sAttID, stream, tOnly)
 		{
-			var numTmplts = stream.t.length;
-			var tI=0, tRec;
+			var numTmplts;
+			var tI, tRec;
 			var rI=0, aI, rec, datum, fData;
 			var cI, cRec;
 
 			var oAtt = PData.aByID(oAttID);
 
-			tRec = stream.t[0];
+				// Just do one Template?
+			if (tOnly != null) {
+				tI = tOnly;
+				numTmplts = tOnly+1;
+			} else {
+				tI = 0;
+				numTmplts = stream.t.length;
+			}
+			tRec = stream.t[tI];
+
+			doStream:
 			while (rI<stream.l) {
 					// Advance until we get to next used Template rec that has both necessary Attributes
 				while (tRec.n === 0 || (tRec.i+tRec.n) === rI || !PData.aInT(oAttID, tI) || (sAttID && !PData.aInT(sAttID, tI))) {
 						// Have we run out of Templates?
 					if (++tI === numTmplts)
-						return;
+						break doStream;
 					tRec = stream.t[tI];
 					rI = tRec.i;
 				}

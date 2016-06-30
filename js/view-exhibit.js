@@ -426,7 +426,7 @@ function PViewFrame(vfIndex)
 							// Is this a URL to SoundCloud?
 						if (scAttVal.match(/soundcloud\.com/)) {
 							avType=1;
-							container.append('<iframe id="sc-widget" class="player" width="100%" height="110" src="http://w.soundcloud.com/player/?url='+
+							container.append('<iframe id="sc-widget" class="player" width="100%" height="110" src="//w.soundcloud.com/player/?url='+
 								scAttVal+'"></iframe>');
 
 								// Must set these variables after HTML appended above
@@ -981,6 +981,9 @@ function PViewFrame(vfIndex)
 			break;
 		case 'm':
 			newViz = new VizMBMap(instance, theView.c);
+			break;
+		case 'b':
+			newViz = new VizBMatrix(instance, theView.c);
 			break;
 		}
 		vizSelIndex = vIndex;

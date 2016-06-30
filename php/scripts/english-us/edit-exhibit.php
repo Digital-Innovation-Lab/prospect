@@ -93,6 +93,8 @@
 						{{>vfMBlockMap}}
 					{{elseif vf === 'B'}}
 						{{>vfBrowser}}
+					{{elseif vf === 'b'}}
+						{{>vfBucketMatrix}}
 					{{/if}}
 				</div>
 				{{#if vIndex != (viewSettings.length-1) }}<hr class="vf-divider"/>{{/if}}
@@ -773,6 +775,55 @@
 	{{/each}}
 </script>
 
+<script id="vfBucketMatrix" type='text/ractive'>
+	<input type='checkbox' checked='{{c.gr}}'/> <?php _e('Break Number and Date ranges into graduated scale?', 'prospect'); ?>
+	<br/>
+	<?php _e('Network links based on Attribute/color pairs for each Template type', 'prospect'); ?>
+	<tabs>
+		<ul>
+		{{#each iTemplates:tIndex}}
+			<li><a href="#tmpt-vf-tab-{{incID}}-{{tIndex}}">{{tid}}</a></li>
+		{{/each}}
+		</ul>
+		{{#each iTemplates:tIndex}}
+		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
+			<?php _e('Sort into buckets by ', 'prospect'); ?>
+			<select value='{{c.oAtts[tIndex]}}'>
+			{{#each attsFct}}
+				<option value="{{this}}">{{this}}</option>
+			{{/each}}
+			</select>
+			<br/>
+			{{#if attsPtr.length > c.pAtts[tIndex].length}}
+				<button on-click="addPtrPair:{{vIndex}},{{tIndex}}"><?php _e('Add Attribute/Color Pair', 'prospect'); ?></button><br/>
+			{{/if}}
+			{{#each c.pAtts[tIndex]:pIndex}}
+				<b><?php _e('Use Pointer Attribute', 'prospect'); ?>: </b>
+				<select value='{{pid}}'>
+				{{#each attsPtr}}
+					<option>{{this}}</option>
+				{{/each}}
+				</select>
+				<?php _e('Use color', 'prospect'); ?>: <input type="text" value="{{clr}}" size="10"/>
+				<span title=<?php _e('"Click to select visual representation"', 'prospect'); ?> class="viz-icon" style="background-color:{{clr}}" on-click="setNetLColor:{{vIndex}},{{tIndex}},{{pIndex}}"></span>
+				<button decorator="iconButton:ui-icon-trash" on-click="delPtrPair:{{vIndex}},{{tIndex}},{{pIndex}}"><?php _e('Delete', 'prospect'); ?></button>
+				<br/>
+			{{/each}}
+			<b><?php _e('Provide Legends', 'prospect'); ?>:</b>
+			<button decorator="iconButton:ui-icon-check" on-click="allLgndsOn:{{vIndex}},{{tIndex}}"><?php _e('All On', 'prospect'); ?></button>
+			<button decorator="iconButton:ui-icon-cancel" on-click="allLgndsOff:{{vIndex}},{{tIndex}}"><?php _e('All Off', 'prospect'); ?></button>
+			{{#each c.lgnds[tIndex]:lIndex}}
+				<span class="attribute-controls">
+					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Left', 'prospect'); ?></button>
+					<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Right', 'prospect'); ?></button>
+				</span>
+			{{/each}}
+		</div>
+		{{/each}}
+	</tabs>
+</script>
+
 <!-- Unfinished placeholder -->
 <script id="vfTree" type='text/ractive'>
 	<?php _e('Display Width', 'prospect'); ?>: <input type="number" value="{{c.w}}" min="2" max="9999"/>
@@ -870,7 +921,7 @@
 
 <!-- DYNAMIC TEXT -->
 <script id="dltext-visualizations" type='text/ractive'>
-<?php _e('D,Directory|B,Facet Browser|C,Cards|t,TextStream|M,Map 1|p,Map 2|T,Timeline|P,Pinboard|S,Stacked Chart|N,Network Wheel|n,Network Graph|F,Facet Flow|m,MultiBlock Map', 'prospect'); ?>
+<?php _e('D,Directory|B,Facet Browser|C,Cards|t,TextStream|M,Map 1|p,Map 2|T,Timeline|P,Pinboard|S,Stacked Chart|N,Network Wheel|n,Network Graph|F,Facet Flow|m,MultiBlock Map|b,Bucket Matrix', 'prospect'); ?>
 </script>
 
 

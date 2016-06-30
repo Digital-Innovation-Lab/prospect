@@ -266,7 +266,7 @@ jQuery(document).ready(function() {
 		//		attsCnt: array of Atts that can display any kind of content
 		//		attsTCnt: array of Atts that can display textual content
 		//		attsOAtt: array of Atts that can be given single sort order (no multiple values!)
-		//		attsFct: array of Atts that can be Facets (discrete values to which Record can be assigned)
+		//		attsFct: array of Atts that can be Facets, discrete values to which Record can be assigned (w/"disable")
 		//	}
 	var iTemplates = [ ];
 		// Array of all (open) Attribute definitions after Joins done
@@ -462,7 +462,7 @@ jQuery(document).ready(function() {
 			var attsTxt=[], attsDates=['disable'], attsDNum=['disable'], attsLL=[], attsDLL=['disable'],
 				attsXY=['disable'], attsImg=['disable'], attsSC=['disable'], attsYT=['disable'],
 				attsTrns=['disable'], attsTC=['disable'], attsPtr=[], attsDPtr=['disable'],
-				attsLgnd=[], attsCnt=[], attsTCnt=[], attsOAtt=[], attsFct=[];
+				attsLgnd=[], attsCnt=[], attsTCnt=[], attsOAtt=[], attsFct=['disable'];
 
 			_.forEach(theTmplt.def.a, function(theAttID) {
 				function saveAttRef(prefix, theAttID, type)
@@ -942,6 +942,31 @@ jQuery(document).ready(function() {
 				});
 				theVF.c.fcts = newFcts;
 				break;
+			case 'b':	// Bucket Matrix
+				var newPAtts=[], newOAtts=[], newLgnds=[];
+				iTemplates.forEach(function(theTmplt) {
+					var origTIndex = getTemplateIndex(theTmplt.tid);
+						// Was this Template absent in original config?
+					if (origTIndex == -1) {
+						newPAtts.push([]);
+						newOAtts.push('disable');
+						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
+								return { attID: theLgndAtt, useAtt: true };
+							}));
+					} else {
+						var newP=[];
+						theVF.c.pAtts[origTIndex].forEach(function(p) {
+							newP.push({ pid: checkAttID(p.pid, theTmplt.attsPtr, ''), clr: p.clr });
+						});
+						newPAtts.push(newP);
+						newOAtts.push(checkAttID(theVF.c.oAtts[origTIndex], theTmplt.attsFct, 'disable'));
+						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
+					}
+				});
+				theVF.c.pAtts = newPAtts;
+				theVF.c.oAtts = newOAtts;
+				theVF.c.lgnds = newLgnds;
+				break;
 
 			case 'G': 	// Tree -- view not implemented
 				var newP=[], newLgnds=[], newLClrs=[];
@@ -1235,6 +1260,21 @@ jQuery(document).ready(function() {
 				newVFEntry.c.h    = 400;
 				newVFEntry.c.p    = '';
 				newVFEntry.c.fcts = [];
+				break;
+			case 'b':	// Bucket Matrix
+				newVFEntry.c.gr = true;
+				newVFEntry.c.oAtts  = _.map(iTemplates, function(theTemplate) {
+					return 'disable';
+				});
+					// Potential Legends
+				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
+					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
+						return { attID: theLgndAtt, useAtt: true };
+					});
+				});
+				newVFEntry.c.pAtts = _.map(iTemplates, function(theTemplate) {
+					return [];
+				});
 				break;
 
 			case 'G': 	// Tree -- placeholder, not implemented
@@ -1784,6 +1824,18 @@ jQuery(document).ready(function() {
 						return false;
 					}
 					break;
+				case 'b':	// Bucket Matrix
+					saveView.c.gr   = viewSettings.c.gr;
+					var newPAtts=[], newLgnds=[];
+					saveTIndices.forEach(function(tIndex) {
+						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
+						newPAtts.push(viewSettings.c.pAtts[tIndex]);
+					});
+					saveView.c.pAtts = newPAtts;
+					saveView.c.lgnds = newLgnds;
+					saveView.c.oAtts = packUsedAttIDs(viewSettings.c.oAtts);
+					break;
+
 
 				case 'G': 	// Tree -- not yet implemented
 					saveView.c.form  = viewSettings.c.form;

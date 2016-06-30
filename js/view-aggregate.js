@@ -84,7 +84,7 @@ VizStackChart.prototype.render = function(stream)
 	} else {
 		this.cats = [];
 	}
-	PData.cFill(this.cats, oAttID, sAttID, stream);
+	PData.cFill(this.cats, oAttID, sAttID, stream, null);
 
 	var colW=0;
 	this.cats.forEach(function(c) {
@@ -289,10 +289,10 @@ VizFlow.prototype.render = function(stream)
 				tCat = PData.cRNew(att, true, true);
 			else
 				tCat = PData.cLNew(att, null, true);
-			PData.cFill(tCat, attID, null, stream);
+			PData.cFill(tCat, attID, null, stream, null);
 		} else {
 			tCat=[];
-			PData.cFill(tCat, attID, null, stream);
+			PData.cFill(tCat, attID, null, stream, null);
 		}
 			// Compile used categories
 		var used=[];
@@ -596,13 +596,13 @@ VizBrowser.prototype.render = function(stream)
 		var att = PData.aByID(attID);
 		if (att.def.t === 'g') {
 			cat=[];
-			PData.cFill(cat, attID, null, stream);
+			PData.cFill(cat, attID, null, stream, null);
 		} else {
 			if (self.settings.gr)
 				cat = PData.cRNew(att, true, true);
 			else
 				cat = PData.cLNew(att, null, true);
-			PData.cFill(cat, attID, null, stream);
+			PData.cFill(cat, attID, null, stream, null);
 		}
 			// Compile used categories
 		var used=[];
@@ -1086,10 +1086,10 @@ VizMBMap.prototype.render = function(stream)
 				tCat = PData.cRNew(att, true, true);
 			else
 				tCat = PData.cLNew(att, null, true);
-			PData.cFill(tCat, attID, null, stream);
+			PData.cFill(tCat, attID, null, stream, null);
 		} else {
 			tCat=[];
-			PData.cFill(tCat, attID, null, stream);
+			PData.cFill(tCat, attID, null, stream, null);
 		}
 
 			// Compile used categories
@@ -1145,10 +1145,10 @@ VizMBMap.prototype.render = function(stream)
 			pCat = PData.cRNew(pAtt, true, true);
 		else
 			pCat = PData.cLNew(pAtt, null, true);
-		PData.cFill(pCat, pAttID, null, stream);
+		PData.cFill(pCat, pAttID, null, stream, null);
 	} else {
 		pCat=[];
-		PData.cFill(pCat, pAttID, null, stream);
+		PData.cFill(pCat, pAttID, null, stream, null);
 	}
 
 	var vI = this.vFrame.getIndex();
@@ -1226,4 +1226,3 @@ VizMBMap.prototype.hint = function()
 	var att = PData.aByID(this.settings.p);
 	return dlText.grpblks+' '+att.def.l;
 } // hint()
-

@@ -1259,7 +1259,7 @@ svg path.link.thick
 	stroke-width: 2px;
 }
 
-	/* Network Graph styles */
+	/* Network Graph and Bucket Matrix styles */
 svg circle.gnode
 {
 	cursor: pointer;
@@ -1276,6 +1276,22 @@ svg path.glink
 	stroke-width: 2px;
 	fill: none;
 	pointer-events: none;
+}
+
+svg text.s-lbl-text {
+	font-family:Verdana, Arial, sans-serif;
+	fill: black;
+	text-anchor: start;
+}
+
+svg text.t-lbl-txt {
+	font-size: 12px;
+	font-weight: bold;
+}
+
+svg text.b-lbl-txt {
+	font-size: 9px;
+	font-weight: normal;
 }
 
 	/* Facet Flow styles */

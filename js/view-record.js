@@ -555,7 +555,7 @@ jQuery(document).ready(function($) {
 		if (widgetData.xscriptOn) {
 			container.prepend('<div>'+document.getElementById('dltext-sync-xscript').innerHTML+'</div>');
 		}
-		container.prepend('<iframe id="sc-widget" class="player" width="100%" height="166" src="http://w.soundcloud.com/player/?url='+
+		container.prepend('<iframe id="sc-widget" class="player" width="100%" height="166" src="//w.soundcloud.com/player/?url='+
 			scAttVal+'"></iframe></p>');
 
 			// Must set these variables after HTML added above
