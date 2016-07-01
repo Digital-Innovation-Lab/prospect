@@ -1063,18 +1063,18 @@ div.viz-result svg .axis line {
 }
 
 	/* Pinboard styles */
-svg .recobj
+svg circle.recobj
 {
 }
 
-svg .recobj.obj-sel
+svg circle.recobj.obj-sel
 {
 	stroke: yellow;
 	stroke-width: 1;
 	fill: none;
 }
 
-svg .recline
+svg line.recline
 {
 	stroke-opacity: 1;
 	stroke-width: 2px;
@@ -1105,7 +1105,7 @@ svg.tl-vf {
 }
 
 	/* Inner space containing chart */
-svg.tl-vf .chart {
+svg.tl-vf g.chart {
 	fill: #EEEEEE;
 }
 
@@ -1130,18 +1130,13 @@ svg.tl-vf .axis path {
 	shape-rendering: crispEdges;
 }
 
-	/* band background */
-svg.tl-vf .band {
-	fill: #FAFAFA;
-}
-
 	/* Legend "Epoch" Background Label */
-svg.tl-vf .lgBdLbl {
+svg.tl-vf text.lgBdLbl {
 	font-family:Verdana, Arial, sans-serif;
 	font-weight: bold;
 }
 
-svg.tl-vf .event.range {
+svg.tl-vf svg.event.range {
 	fill: #AAFFFF;
 	cursor : default;
 	pointer-events: true;
@@ -1150,7 +1145,7 @@ svg.tl-vf .event.range {
 	stroke-opacity: 0.8;
 }
 
-svg.tl-vf .event.instant {
+svg.tl-vf svg.event.instant {
 	cursor : default;
 	pointer-events: true;
 	stroke-width: 1;
@@ -1158,13 +1153,13 @@ svg.tl-vf .event.instant {
 	stroke-opacity: 0.8;
 }
 
-svg.tl-vf .event.obj-sel
+svg.tl-vf svg.event.obj-sel
 {
 	stroke: yellow;
 	stroke-width: 2px;
 }
 
-svg.tl-vf .instantLbl {
+svg.tl-vf text.instantLbl {
 	font-family:Verdana, Arial, sans-serif;
 	font-size: 10px;
 	font-weight: 300;
@@ -1174,7 +1169,7 @@ svg.tl-vf .instantLbl {
 	shape-rendering: crispEdges;
 }
 
-svg.tl-vf .rangeLbl {
+svg.tl-vf text.rangeLbl {
 	font-family:Verdana, Arial, sans-serif;
 	font-size: 10px;
 	font-weight: 300;
@@ -1183,11 +1178,11 @@ svg.tl-vf .rangeLbl {
 	shape-rendering: crispEdges;
 }
 
-svg.tl-vf .bLbl {
+svg.tl-vf rect.bLbl {
 	fill: #99CCCC;
 }
 
-svg.tl-vf .bMinMaxLbl {
+svg.tl-vf text.bMinMaxLbl {
 	fill: #000066;
 	font-family:Verdana, Arial, sans-serif;
 	font-size: 10px;
@@ -1219,29 +1214,29 @@ div.viz-textstream div.recitem.obj-sel {
 }
 
 	/* Stacked Chart styles */
-svg .block
+svg rect.block
 {
 	cursor: pointer;
 }
 
-svg .block.obj-sel
+svg rect.block.obj-sel
 {
 	stroke: yellow;
 	stroke-width: 2px;
 }
 
 	/* Network Wheel styles */
-svg .node
+svg g.node
 {
 	cursor: pointer;
 }
 
-svg .node circle.obj-sel {
+svg g.node circle.obj-sel {
 	stroke: yellow;
 	stroke-width: 2px;
 }
 
-svg .node text {
+svg g.node text {
 	font-family:Verdana, Arial, sans-serif;
 	font-size: 11px;
 }
@@ -1265,7 +1260,8 @@ svg circle.gnode
 	cursor: pointer;
 }
 
-svg circle.gnode.obj-sel {
+svg circle.gnode.obj-sel
+{
 	stroke: yellow;
 	stroke-width: 2px;
 }
@@ -1276,6 +1272,19 @@ svg path.glink
 	stroke-width: 2px;
 	fill: none;
 	pointer-events: none;
+}
+
+svg line.bmlink
+{
+	stroke-opacity: .2;
+	stroke-width: 1px;
+	fill: none;
+	pointer-events: none;
+}
+
+svg line.bmlink.on
+{
+	stroke-opacity: 1;
 }
 
 svg text.s-lbl-text {
@@ -1290,25 +1299,25 @@ svg text.t-lbl-txt {
 }
 
 svg text.b-lbl-txt {
-	font-size: 9px;
+	font-size: 10px;
 	font-weight: normal;
 }
 
 	/* Facet Flow styles */
-svg .bar
+svg rect.bar
 {
 	cursor: pointer;
 	stroke: black;
 	stroke-width: 1px;
 }
 
-svg .bar.obj-sel
+svg rect.bar.obj-sel
 {
 	stroke: yellow;
 	stroke-width: 2px;
 }
 
-svg .flow
+svg path.flow
 {
 	cursor: pointer;
 	fill-opacity: 0.6;
@@ -1317,19 +1326,19 @@ svg .flow
 	stroke-width: 1px;
 }
 
-svg .flow.active
+svg path.flow.active
 {
 	fill-opacity: 1;
 	stroke-opacity: 1;
 }
 
-svg .flow.obj-sel
+svg path.flow.obj-sel
 {
 	stroke: yellow;
 	stroke-width: 2px;
 }
 
-svg .att-title
+svg text.att-title
 {
 	font-family:Verdana, Arial, sans-serif;
 	font-size: 14px;
@@ -1341,18 +1350,18 @@ svg .att-title
 }
 
 	/* MultiBlock Map styles */
-svg .mbm-cell {
+svg rect.mbm-cell {
 	cursor: pointer;
 	stroke: black;
 	stroke-width: 1px;
 }
 
-svg .mbm-cell.obj-sel {
+svg rect.mbm-cell.obj-sel {
 	stroke: yellow;
 	stroke-width: 2px;
 }
 
-svg .mbm-title {
+svg text.mbm-title {
 	cursor: pointer;
 	font-family:Verdana, Arial, sans-serif;
 	font-size: 10px;
@@ -1363,12 +1372,12 @@ svg .mbm-title {
 	shape-rendering: crispEdges;
 }
 
-svg .mbm-title.obj-sel {
+svg text.mbm-title.obj-sel {
 	cursor: pointer;
 	fill: yellow;
 }
 
-svg .mbm-att-title
+svg text.mbm-att-title
 {
 	cursor: pointer;
 	font: 14px sans-serif;
@@ -1379,23 +1388,23 @@ svg .mbm-att-title
 	shape-rendering: crispEdges;
 }
 
-svg .mbm-att-title.obj-sel
+svg text.mbm-att-title.obj-sel
 {
 	fill: yellow;
 }
 
-svg .mbm-reset
+svg rect.mbm-reset
 {
 	cursor: pointer;
 	fill: #FF3333;
 }
 
-svg .mbm-reset:hover
+svg rect.mbm-reset:hover
 {
 	fill: red;
 }
 
-svg .mbm-reset-text
+svg text.mbm-reset-text
 {
 	cursor: pointer;
 	font-family:Verdana, Arial, sans-serif;
@@ -1411,11 +1420,11 @@ svg .mbm-reset-text
 	/* Facet Browser styles */
 	/* The top label for a facet (its background rectangle) */
 	/* Each has the ID "facet-"+facetIndex */
-svg .facet-lbl {
+svg rect.facet-lbl {
 	fill:  #0099FF;     /* sky-blue */
 }
 
-svg .facet-lbl-txt {
+svg text.facet-lbl-txt {
 	font-size: 12px;
 	font-family:Verdana, Arial, sans-serif;
 	font-weight: bold;
@@ -1425,32 +1434,32 @@ svg .facet-lbl-txt {
 
 	/* The button+label for a single facet value */
 	/* Each has the ID "facet-"+facetIndex+"-"+facetValueIndex */
-svg .facet-val {
+svg g.facet-val {
 }
 
-svg .facet-val-btn {
+svg rect.facet-val-btn {
 	cursor: pointer;
 	fill: #00CCFF;      /* light-blue */
 	transition: fill .75s;
 }
 
 	/* the color to show percentage */
-svg .facet-val-bar {
+svg rect.facet-val-bar {
 	cursor: pointer;
 	fill: #0099FF;      /* dark-blue */
 	transition: fill .75s;
 }
 
-svg .inactive .facet-val-btn {
+svg g.inactive rect.facet-val-btn {
 	fill: #D0D0D0;      /* light-grey */
 }
 
 	/* the color to show percentage */
-svg .inactive .facet-val-bar {
+svg g.inactive rect.facet-val-bar {
 	fill: #B0B0B0;      /* dark-grey */
 }
 
-svg .facet-val-txt {
+svg text.facet-val-txt {
 	cursor: pointer;
 	font-size: 11px;
 	font-family:Verdana, Arial, sans-serif;
@@ -1459,7 +1468,7 @@ svg .facet-val-txt {
 	fill: black;
 }
 
-svg .facet-val-num {
+svg text.facet-val-num {
 	cursor: pointer;
 	font-size: 11px;
 	font-family:Verdana, Arial, sans-serif;
@@ -1469,13 +1478,13 @@ svg .facet-val-num {
 }
 
 	/* The RESET button for a facet column */
-svg .facet-reset-btn {
+svg rect.facet-reset-btn {
 	cursor: pointer;
 	fill: #FF3333;          /* light-red */
 	transition: fill .75s;
 }
 
-svg .facet-reset-txt {
+svg text.facet-reset-txt {
 	cursor: pointer;
 	font-weight: bold;
 	font-size: 11px;
@@ -1485,11 +1494,11 @@ svg .facet-reset-txt {
 }
 
 	/* Grey out RESET if inactive */
-svg .inactive .facet-reset-btn {
+svg g.inactive rect.facet-reset-btn {
 	fill: #A8A8A8;         /* light-grey */
 }
 
-svg .inactive .facet-reset-txt {
+svg g.inactive text.facet-reset-txt {
 	fill: #808080;
 }
 
