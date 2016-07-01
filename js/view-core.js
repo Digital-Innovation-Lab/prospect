@@ -4087,7 +4087,7 @@ VizNetGraph.prototype.setup = function()
 	// INPUT:	steam = datastream (which is saved), or null (if reuse last)
 VizNetGraph.prototype.render = function(stream)
 {
-	var self = this;
+	var self=this;
 
 	if (stream) {
 		this.stream = stream;
@@ -4449,7 +4449,7 @@ VizBMatrix.prototype.constructor = VizBMatrix;
 
 VizBMatrix.prototype.flags = function()
 {
-	return V_FLAG_LGND | V_FLAG_VSCRL | V_FLAG_HSCRL | V_FLAG_SEL;
+	return V_FLAG_OPT | V_FLAG_LGND | V_FLAG_VSCRL | V_FLAG_HSCRL | V_FLAG_SEL;
 } // flags()
 
 VizBMatrix.prototype.setup = function()
@@ -4497,6 +4497,11 @@ VizBMatrix.prototype.render = function(stream)
 		self.updateLinks();
 	} // clickDot()
 
+	if (stream) {
+		this.stream = stream;
+	} else {
+		stream = this.stream;
+	}
 
 	if (this.recSel.length > 0) {
 		this.recSel=[];
@@ -4724,6 +4729,73 @@ VizBMatrix.prototype.setState = function(state)
 {
 	this.vFrame.setLgndSels(state.l);
 } // setState()
+
+VizBMatrix.prototype.doOptions = function()
+{
+	var self=this;
+	var h=120;
+
+	var insertPt = jQuery('#dialog-netgraph > .scroll-container');
+	insertPt.empty();
+
+	this.settings.pAtts.forEach(function(t, tI) {
+		if (t.length > 0) {
+			h += 18;
+			var tID = PData.eTByN(tI);
+			var tDef = PData.tByID(tID);
+			var tSet = self.rels[tI];
+			insertPt.append('<b>'+tDef.l+'</b><br/>');
+			t.forEach(function(p, pI) {
+				h += 18;
+				var i = '<input type="checkbox" data-t="'+tI+'" data-index="'+pI+'"';
+				if (tSet[pI]) {
+					i += ' checked="checked"';
+				}
+				var pAtt = PData.aByID(p.pid);
+				insertPt.append(i+'/> '+pAtt.def.l+'<br/>');
+			});
+		}
+	});
+
+	var d = jQuery("#dialog-netgraph").dialog({
+		height: h,
+		width: 300,
+		modal: true,
+		buttons: [
+			{
+				text: dlText.ok,
+				click: function() {
+					d.dialog("close");
+					PState.set(PSTATE_BUILD);
+					self.cnx= false;
+					var changed = false;
+					self.settings.pAtts.forEach(function(t, tI) {
+						t.forEach(function(p, pI) {
+							var selected = insertPt.find('input[data-t="'+tI+'"][data-index="'+pI+'"]').prop('checked');
+							if (self.rels[tI][pI] !== selected) {
+								changed = true;
+								self.rels[tI][pI] = selected;
+							}
+							if (selected) {
+								self.cnx=true;
+							}
+						});
+					});
+					if (changed) {
+						self.render(null);
+					}
+					PState.set(PSTATE_READY);
+				}
+			},
+			{
+				text: dlText.cancel,
+				click: function() {
+					d.dialog("close");
+				}
+			}
+		]
+	});
+} // doOptions()
 
 VizBMatrix.prototype.hint = function()
 {
