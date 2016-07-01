@@ -1276,7 +1276,7 @@ svg path.glink
 
 svg line.bmlink
 {
-	stroke-opacity: .2;
+	stroke-opacity: .25;
 	stroke-width: 1px;
 	fill: none;
 	pointer-events: none;
@@ -1285,6 +1285,7 @@ svg line.bmlink
 svg line.bmlink.on
 {
 	stroke-opacity: 1;
+	stroke-width: 2px;
 }
 
 svg text.s-lbl-text {

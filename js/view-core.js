@@ -4430,8 +4430,13 @@ VizNetGraph.prototype.hint = function()
 // VizBMatrix: Class to visualize Records in "bucket" matrix with connections
 //
 // Instance Variables:
-//		svg
+//		svg = entire SVG canvas
+//		stream = pointer to datastream used to render
 //		cnx = true if configured for connections, false if none
+//		rels = [ [boolean], ], to match settings.pAtts, specifying if should display
+//		nodes = [ ] about nodes (see render())
+//		rSet = [ ] for each unique Record rendered as node (see render())
+//		links = [ ] to store data about connetions/relationships (see render())
 
 var VizBMatrix = function(viewFrame, vSettings)
 {
@@ -4452,18 +4457,19 @@ VizBMatrix.prototype.setup = function()
 	var self=this;
 
 	this.cnx = false;
-		// Check to see if any relationships defined
-	this.settings.pAtts.forEach(function(pAttSet) {
-		if (pAttSet.length > 0) {
+
+		// By default, all relationships are shown
+	this.rels=[];
+	this.settings.pAtts.forEach(function(pSet) {
+		var relSet=[];
+		for (var i=0; i<pSet.length; i++) {
+			relSet.push(true);
 			self.cnx = true;
 		}
+		self.rels.push(relSet);
 	});
 
 	this.svg = d3.select(this.frameID).append("svg");
-
-	this.chart = this.svg.append("g");
-	this.chart.attr("class", "chart")
-			.attr("transform", "translate("+D3SC_MARGINS.left+","+D3SC_MARGINS.top+")");
 } // setup()
 
 	// NOTES:	Each node will have radius of 4; plus 1 for outline, 1 for gap = 11 px width/node
@@ -4476,15 +4482,19 @@ VizBMatrix.prototype.render = function(stream)
 	var tY=0;		// Current Y pos for top of Template's graphics
 	var tNum=0;		// Index of current (used) Template
 	var nodes=[];	// one per occurance in bucket (each Record can have > 1 node)
-					// { r[ec], t[Index], b[ucket], i[ndex w/in bucket], x, y }
-	var rSet=[];	// one per Record (used to locate with Pointers): { id, r[ec], n[odes] }
+					// { r[ec], rI[ndex w/in bucket], ai, b[ucketIndex], x, y, c[olor] }
+	var rSet=[];	// one per Record (used to locate with Pointers): { id, r[ec], n[ode indices] }
+	var links=[];	// every connection link: { n1, n2, c[olor] }
 	var maxW=0; 	// max pixel width entire SVG
-	var featSet, fAttID, fAtt;
+	var featSet, fAttID, fAtt, fData, rec;
 
+		// PURPOSE: Handle clicking on a node
+		// NOTES:	This is complicated by the fact that a single Record can be represented by multiple nodes
 	function clickDot(d)
 	{
-		var s = self.toggleSel(d.ai);
-		d3.select(this).classed('obj-sel', s);
+		self.toggleSel(d.ai);
+		self.updateNodes();
+		self.updateLinks();
 	} // clickDot()
 
 
@@ -4494,12 +4504,9 @@ VizBMatrix.prototype.render = function(stream)
 	this.preRender();
 
 		// remove any existing nodes and links
-	this.svg.selectAll("path").remove();
-	this.svg.selectAll("text").remove();
+	this.svg.selectAll("line").remove();
+	this.svg.selectAll("svg").remove();
 	this.svg.selectAll("circle").remove();
-	// this.svg.selectAll(".gnode").remove();
-	// this.svg.selectAll(".glink").remove();
-	// this.svg.selectAll(".s-lbl-txt").remove();
 
 		// Create category buckets for each Attribute
 	self.settings.oAtts.forEach(function(oAttID, tI) {
@@ -4541,16 +4548,31 @@ VizBMatrix.prototype.render = function(stream)
 								// Set bit in rMap corresponding to absIndex
 							self.rMap[aI >> 4] |= (1 << (aI & 15));
 							nodes.push({r: rec, ai: aI, b: bI, rI: rI, c: fData,
-										x: (bI*92)+(11*(rI & 0x7))+5, y: tY+30+(11*(rI >> 3)) });
+										x: (bI*94)+(11*(rI & 0x7))+5, y: tY+32+(11*(rI >> 3)) });
+								// Add to Record array sorted by ID?
+							if (self.cnx) {
+								var i, rRec;
+								i = _.sortedIndex(rSet, { id: rec.id }, 'id');
+								if (i < rSet.length) {
+									rRec = rSet[i];
+										// Does it already exist? Just add reference to this node
+									if (rRec.id === rec.id) {
+										rRec.n.push(nodes.length-1);
+									} else {	// Insert into rSet
+										rSet.splice(i, 0, { id: rec.id, ai: aI, r: rec, n: [ nodes.length-1 ] });
+									}
+								} else {	// Must append Object to represent Record
+									rSet.push({ id: rec.id, ai: aI, r: rec, n: [ nodes.length-1 ] })
+								}
+							} // if connections
 							rI++;
-							save=true;
 							bH = (rI >> 3) + 1;
 						} // if fData
 					} // if data is defined
 				}); // for each Record
 					// Save this category bucket?
 				if (rI>0) {
-					tLbls.push({ l: c.l, c: 'b-lbl-txt', x: bI*92, y: tY+23 });
+					tLbls.push({ l: c.l, c: 'b-lbl-txt', x: bI*94, y: tY+13 });
 					bI++;
 					tH = Math.max(bH, tH);
 					used.push(c);
@@ -4558,16 +4580,20 @@ VizBMatrix.prototype.render = function(stream)
 			}); // for each category
 				// Process data for this Template, if any nodes/categories created
 			if (bI > 0) {
+				self.tUsed[tI] = true;
 					// Create Template label
 				var tID = PData.eTByN(tI);
 				var tDef = PData.tByID(tID);
-				tLbls.push({ l: tDef.l, c: 't-lbl-txt', x: 0, y: tY+14 });
+				tLbls.push({ l: tDef.l, c: 't-lbl-txt', x: 0, y: tY });
 				tNum++;
-				tY += 26+(tH*11);
+				tY += 33+(tH*11);
 				maxW = Math.max(maxW, bI*92);
 			}
 		} // if has oAtt and features
 	}); // oAtts.forEach
+
+	this.nodes=nodes;
+	this.rSet=rSet;
 
 		// Any resulting Templates?
 	if (tNum > 0) {
@@ -4586,28 +4612,96 @@ VizBMatrix.prototype.render = function(stream)
 		node.append("title")
 			.text(function(d) { return d.r.l; });
 
-		var title = this.svg.selectAll(".s-lbl-text")
-	    	.data(tLbls)
-	    	.enter().append("text")
-	    	.attr("class", function(d) { return 's-lbl-text ' + d.c; })
+		var title = this.svg.selectAll(".s-lbl")
+			.data(tLbls)
+			.enter().append("svg")
 			.attr("x", function(d) { return d.x; })
 			.attr("y", function(d) { return d.y; })
+			.attr("height", function(d) { return d.c === 't-lbl-text' ? 14 : 12; })
+			.attr("width", "90");
+		title.append("text")
+			.attr("class", function(d) { return 's-lbl-text ' + d.c; })
+			.attr("x", function(d) { return 0; })
+			.attr("y", function(d) { return d.c === 't-lbl-text' ? 12 : 10; })
 			.text(function(d) { return d.l; });
 
+			// Create all relationship links
+		if (this.cnx) {
+			rSet.forEach(function(r) {
+					// Get Pointer set for this Template
+				var tI = PData.n2T(r.ai);
+				featSet = self.settings.pAtts[tI];
+				featSet.forEach(function(p, pI) {
+						// Ignore if not currently selected
+					if (self.rels[tI][pI]) {
+						fData = r.r.a[p.pid];
+						if (typeof fData !== 'undefined') {
+								// Array of Rec IDs -- must find each one
+							fData.forEach(function(rID) {
+								var i = _.sortedIndex(rSet, { id: rID }, 'id');
+								var d;
+								if (i < rSet.length) {
+									d = rSet[i];
+									if (d.id === rID) {
+											// All permutations of source and dest
+										r.n.forEach(function(snI) {
+											d.n.forEach(function(dnI) {
+												links.push({ n1: snI, n2: dnI, c: p.clr });
+											}); // forEach d.n
+										}); // forEach r.n
+									}
+								}
+							});
+						} // if not undefined
+					} // if relSet
+				}); // for pSet
+			}); // forEach rSet
+
+		var link = this.svg.selectAll(".bmlink")
+	    	.data(links)
+	    	.enter().append("line")
+	    	.attr("class", "bmlink")
+			.attr("x1", function(d) { return nodes[d.n1].x; })
+			.attr("y1", function(d) { return nodes[d.n1].y; })
+			.attr("x2", function(d) { return nodes[d.n2].x; })
+			.attr("y2", function(d) { return nodes[d.n2].y; })
+			.attr("stroke", function(d) { return d.c; });
+		} // if connections
 	} else {
 			// Set sizes and centers to minimum
 		this.svg.attr("width", "10")
 			.attr("height", "10");
 	}
+	this.links=links;
 } // render()
+
+	// PURPOSE: Refresh state of links based on current selection
+VizBMatrix.prototype.updateLinks = function()
+{
+	var self=this;
+	this.svg.selectAll(".bmlink")
+			.attr("class", function(d) {
+				return self.isSel(self.nodes[d.n1].ai) || self.isSel(self.nodes[d.n2].ai) ? 'on bmlink' : 'bmlink'
+			});
+} // updateLinks
+
+	// PURPOSE: Recompute the on field of links based on current selection
+VizBMatrix.prototype.updateNodes = function()
+{
+	var self=this;
+	this.svg.selectAll(".gnode")
+		.attr("class", function(d) { return self.isSel(d.ai) ? 'gnode obj-sel' : 'gnode' });
+} // updateNodes
 
 VizBMatrix.prototype.setSel = function(absIArray)
 {
 	var self=this;
 
-	self.recSel = absIArray;
-	this.svg.selectAll(".gnode")
-			.attr("class", function(d) { return self.isSel(d.ai) ? 'gnode obj-sel' : 'gnode' });
+	this.recSel = absIArray;
+	// this.svg.selectAll(".gnode")
+	// 		.attr("class", function(d) { return self.isSel(d.ai) ? 'gnode obj-sel' : 'gnode' });
+	this.updateNodes();
+	this.updateLinks();
 } // setSel()
 
 VizBMatrix.prototype.clearSel = function()
@@ -4616,6 +4710,8 @@ VizBMatrix.prototype.clearSel = function()
 		this.recSel = [];
 		this.svg.selectAll(".gnode")
 				.attr("class", 'gnode');
+		this.svg.selectAll(".bmlink")
+				.attr("class", 'bmlink');
 	}
 } // clearSel()
 
@@ -4631,12 +4727,20 @@ VizBMatrix.prototype.setState = function(state)
 
 VizBMatrix.prototype.hint = function()
 {
-	// var h=dlText.xaxis+': ';
-	// var att = PData.aByID(this.settings.oAtt);
-	// h += att.def.l+', '+dlText.yaxis+': ';
-	// att = PData.aByID(this.settings.sAtt);
-	// h += att.def.l;
-	// return h;
+	var hint='';
+	var self=this;
+
+	for (var ti=0; ti<PData.eTNum(); ti++) {
+		var pAtts = self.settings.pAtts[ti];
+		pAtts.forEach(function(p) {
+			var att = PData.aByID(p.pid);
+			if (hint.length > 0) {
+				hint += ", ";
+			}
+			hint += '<b><span style="color: '+p.clr+'">'+att.def.l+'</span></b>';
+		});
+	}
+	return hint;
 } // hint()
 
 
