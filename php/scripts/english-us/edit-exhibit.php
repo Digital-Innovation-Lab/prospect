@@ -682,6 +682,7 @@
 <script id="vfNetGraph" type='text/ractive'>
 	<?php _e('Min Radius', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="20" required/>
 	<?php _e('Max Radius', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="20" required/>
+	<?php _e('Display size', 'prospect'); ?>: <input type="number" value="{{c.s}}" min="100" max="1500" required/>
 	<br/>
 	<?php _e('Network links based on Attribute/color pairs for each Template type', 'prospect'); ?>
 	<tabs>

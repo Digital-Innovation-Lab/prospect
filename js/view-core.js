@@ -4221,12 +4221,10 @@ VizNetGraph.prototype.render = function(stream)
 	}
 
 		// Set sizes and centers
-	// var size = (nCnt / 3) * (maxR + 4) + 4;
-	// var size = Math.ceil(Math.sqrt((((maxR * 2) + 6) * nCnt) / Math.PI) * 2) + 4;
-	// var size = Math.ceil(Math.log(nCnt) / Math.log(1.2) * ((maxR * 2) + 6)) + 4;
-	// var size = Math.ceil(Math.sqrt(((maxR * 8) + 6) * nCnt)) + 4;
-	var size = Math.ceil(((maxR * 8) + 6) * Math.sqrt(nCnt)) + 4;
-console.log("Size: "+size);
+	var size = this.settings.s;
+	if (typeof size === 'string') {
+		size = parseInt(size);
+	}
 	this.force.size([size, size]);
 	this.svg.attr("width", size)
 		.attr("height", size);

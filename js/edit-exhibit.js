@@ -906,6 +906,9 @@ jQuery(document).ready(function() {
 				theVF.c.lgnds = newLgnds;
 				break;
 			case 'n': 	// Network Graph
+				if (typeof theVF.c.s === 'undefined') {
+					theVF.c.s = 500;
+				}
 				var newPAtts=[], newSAtts=[], newLgnds=[];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
@@ -1235,6 +1238,7 @@ jQuery(document).ready(function() {
 			case 'n': 	// Network Graph
 				newVFEntry.c.min = 4;
 				newVFEntry.c.max = 10;
+				newVFEntry.c.s = 500;
 					// Potential Legends
 				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
 					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
@@ -1763,6 +1767,7 @@ jQuery(document).ready(function() {
 				case 'n': 	// Network Graph
 					saveView.c.min = viewSettings.c.min;
 					saveView.c.max = viewSettings.c.max;
+					saveView.c.s = viewSettings.c.s;
 					var newPAtts=[], newLgnds=[];
 					saveTIndices.forEach(function(tIndex) {
 						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
