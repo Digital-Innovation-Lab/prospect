@@ -1935,6 +1935,10 @@ PTextFrame.prototype.initDOM = function()
 		var a, i, id, n, t, x;
 		var vizSel=self.vizSel;
 		var node = event.target;
+			// Clicked on a style inside of a link? Skip up
+		if (node.nodeName !== 'A' && node.parentNode.nodeName === 'A') {
+			node = node.parentNode;
+		}
 		if (node.nodeName === 'A') {
 			id = node.dataset.id;
 			a = PData.nByID(id);
