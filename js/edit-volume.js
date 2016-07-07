@@ -462,7 +462,7 @@ jQuery(document).ready(function() {
 			var attsTxt=[], attsDates=['disable'], attsDNum=['disable'], attsLL=[], attsDLL=['disable'],
 				attsXY=['disable'], attsImg=['disable'], attsSC=['disable'], attsYT=['disable'],
 				attsTrns=['disable'], attsTC=['disable'], attsPtr=[], attsDPtr=['disable'],
-				attsLgnd=[], attsCnt=[], attsTCnt=[], attsOAtt=[], attsFct=[];
+				attsLgnd=[], attsCnt=[], attsTCnt=[], attsOAtt=[], attsFct=['disable'];
 
 			_.forEach(theTmplt.def.a, function(theAttID) {
 				function saveAttRef(prefix, theAttID, type)
@@ -929,6 +929,37 @@ jQuery(document).ready(function() {
 				theVF.c.sAtts = newSAtts;
 				theVF.c.lgnds = newLgnds;
 				break;
+			case 'b':	// Bucket Matrix
+				var newPAtts=[], newOAtts=[], newLgnds=[];
+				if (typeof theVF.c.nr === 'undefined') {
+					theVF.c.nr = 4;
+				}
+				if (typeof theVF.c.bw === 'undefined') {
+					theVF.c.bw = 8;
+				}
+				iTemplates.forEach(function(theTmplt) {
+					var origTIndex = getTemplateIndex(theTmplt.tid);
+						// Was this Template absent in original config?
+					if (origTIndex == -1) {
+						newPAtts.push([]);
+						newOAtts.push('disable');
+						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
+								return { attID: theLgndAtt, useAtt: true };
+							}));
+					} else {
+						var newP=[];
+						theVF.c.pAtts[origTIndex].forEach(function(p) {
+							newP.push({ pid: checkAttID(p.pid, theTmplt.attsPtr, ''), clr: p.clr });
+						});
+						newPAtts.push(newP);
+						newOAtts.push(checkAttID(theVF.c.oAtts[origTIndex], theTmplt.attsFct, 'disable'));
+						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
+					}
+				});
+				theVF.c.pAtts = newPAtts;
+				theVF.c.oAtts = newOAtts;
+				theVF.c.lgnds = newLgnds;
+				break;
 			} // switch viewtype
 		} // for views
 	})();
@@ -1184,6 +1215,24 @@ jQuery(document).ready(function() {
 					return [];
 				});
 				break;
+			case 'b':	// Bucket Matrix
+				newVFEntry.c.nr = 4;
+				newVFEntry.c.bw = 8;
+				newVFEntry.c.gr = true;
+				newVFEntry.c.oAtts  = _.map(iTemplates, function(theTemplate) {
+					return 'disable';
+				});
+					// Potential Legends
+				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
+					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
+						return { attID: theLgndAtt, useAtt: true };
+					});
+				});
+				newVFEntry.c.pAtts = _.map(iTemplates, function(theTemplate) {
+					return [];
+				});
+				break;
+
 			} // switch
 			rApp.push('viewSettings', newVFEntry);
 			newDialog.teardown();
@@ -1609,6 +1658,19 @@ jQuery(document).ready(function() {
 					saveView.c.pAtts = newPAtts;
 					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts);
 					saveView.c.lgnds = newLgnds;
+					break;
+				case 'b':	// Bucket Matrix
+					saveView.c.nr   = viewSettings.c.nr;
+					saveView.c.bw   = viewSettings.c.bw;
+					saveView.c.gr   = viewSettings.c.gr;
+					var newPAtts=[], newLgnds=[];
+					saveTIndices.forEach(function(tIndex) {
+						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
+						newPAtts.push(viewSettings.c.pAtts[tIndex]);
+					});
+					saveView.c.pAtts = newPAtts;
+					saveView.c.lgnds = newLgnds;
+					saveView.c.oAtts = packUsedAttIDs(viewSettings.c.oAtts);
 					break;
 				} // switch
 				saveViews.push(saveView);

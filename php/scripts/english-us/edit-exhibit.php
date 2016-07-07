@@ -777,6 +777,9 @@
 </script>
 
 <script id="vfBucketMatrix" type='text/ractive'>
+	<?php _e('Radius of each node', 'prospect'); ?>: <input type="number" value="{{c.nr}}" min="2" max="20"/>
+	<?php _e('Width of buckets in nodes', 'prospect'); ?>: <input type="number" value="{{c.bw}}" min="2" max="28"/>
+	<br/>
 	<input type='checkbox' checked='{{c.gr}}'/> <?php _e('Break Number and Date ranges into graduated scale?', 'prospect'); ?>
 	<br/>
 	<?php _e('Network links based on Attribute/color pairs for each Template type', 'prospect'); ?>

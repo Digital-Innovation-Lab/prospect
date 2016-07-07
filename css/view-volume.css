@@ -1421,6 +1421,36 @@ svg path.glink
 	pointer-events: none;
 }
 
+svg line.bmlink
+{
+	stroke-opacity: .25;
+	stroke-width: 1px;
+	fill: none;
+	pointer-events: none;
+}
+
+svg line.bmlink.on
+{
+	stroke-opacity: 1;
+	stroke-width: 2px;
+}
+
+svg text.s-lbl-text {
+	font-family:Verdana, Arial, sans-serif;
+	fill: black;
+	text-anchor: start;
+}
+
+svg text.t-lbl-txt {
+	font-size: 12px;
+	font-weight: bold;
+}
+
+svg text.b-lbl-txt {
+	font-size: 10px;
+	font-weight: normal;
+}
+
 
 /* Specific Filter styles
  * ======================

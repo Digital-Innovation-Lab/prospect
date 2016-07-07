@@ -1112,6 +1112,9 @@ PVizFrame.prototype.createViz = function(vIndex, refresh)
 	// case 'm':
 	// 	newViz = new VizMBMap(this, theView.c);
 	// 	break;
+	case 'b':
+		newViz = new VizBMatrix(this, theView.c);
+		break;
 	}
 	this.vizSelIndex = vIndex;
 	var flags = newViz.flags();

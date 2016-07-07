@@ -947,6 +947,12 @@ jQuery(document).ready(function() {
 				break;
 			case 'b':	// Bucket Matrix
 				var newPAtts=[], newOAtts=[], newLgnds=[];
+				if (typeof theVF.c.nr === 'undefined') {
+					theVF.c.nr = 4;
+				}
+				if (typeof theVF.c.bw === 'undefined') {
+					theVF.c.bw = 8;
+				}
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
@@ -1266,6 +1272,8 @@ jQuery(document).ready(function() {
 				newVFEntry.c.fcts = [];
 				break;
 			case 'b':	// Bucket Matrix
+				newVFEntry.c.nr = 4;
+				newVFEntry.c.bw = 8;
 				newVFEntry.c.gr = true;
 				newVFEntry.c.oAtts  = _.map(iTemplates, function(theTemplate) {
 					return 'disable';
@@ -1830,6 +1838,8 @@ jQuery(document).ready(function() {
 					}
 					break;
 				case 'b':	// Bucket Matrix
+					saveView.c.nr   = viewSettings.c.nr;
+					saveView.c.bw   = viewSettings.c.bw;
 					saveView.c.gr   = viewSettings.c.gr;
 					var newPAtts=[], newLgnds=[];
 					saveTIndices.forEach(function(tIndex) {

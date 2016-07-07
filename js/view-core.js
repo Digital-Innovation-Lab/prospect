@@ -4483,7 +4483,11 @@ VizBMatrix.prototype.render = function(stream)
 					// { r[ec], rI[ndex w/in bucket], ai, b[ucketIndex], x, y, c[olor] }
 	var rSet=[];	// one per Record (used to locate with Pointers): { id, r[ec], n[ode indices] }
 	var links=[];	// every connection link: { n1, n2, c[olor] }
-	var maxW=0; 	// max pixel width entire SVG
+	var maxW=0; 	// pixel width of entire SVG
+	var rB=this.settings.bw;	// #recs/bucket
+	var nR=this.settings.nr;	// pix radius of each rec/node
+	var nS=(nR*2)+3; // pix size of each "total" node space (diameter + spacing)
+	var bPW=(rB*nS)+3;	// pix width of each bucket
 	var featSet, fAttID, fAtt, fData, rec;
 
 		// PURPOSE: Handle clicking on a node
@@ -4512,87 +4516,87 @@ VizBMatrix.prototype.render = function(stream)
 	this.svg.selectAll("circle").remove();
 
 		// Create category buckets for each Attribute
-	self.settings.oAtts.forEach(function(oAttID, tI) {
-		featSet = self.vFrame.getSelFeatAtts(tI);
-			// Skip Templates if no feature Atts or no order Attribute
-		if (oAttID != null && featSet.length !== 0) {
-				// Get Feature Attribute ID and def for this Template
-			fAttID = self.vFrame.getSelLegend(tI);
-			fAtt = PData.aByID(fAttID);
+	this.settings.oAtts.forEach(function(oAttID, tI) {
+		if (oAttID) {
+			featSet = self.vFrame.getSelFeatAtts(tI);
+				// Skip Templates if no feature Atts or no order Attribute
+			if (featSet.length > 0) {
+					// Get Feature Attribute ID and def for this Template
+				fAttID = self.vFrame.getSelLegend(tI);
+				fAtt = PData.aByID(fAttID);
 
-			var tCat;
-			var oAtt = PData.aByID(oAttID);
-			if (oAtt.def.t !== 'g') {
-				if (self.settings.gr) {
-					tCat = PData.cRNew(oAtt, true, true);
+				var tCat;
+				var oAtt = PData.aByID(oAttID);
+				if (oAtt.def.t !== 'g') {
+					if (self.settings.gr) {
+						tCat = PData.cRNew(oAtt, true, true);
+					} else {
+						tCat = PData.cLNew(oAtt, null, true);
+					}
+					PData.cFill(tCat, oAttID, null, stream, tI);
 				} else {
-					tCat = PData.cLNew(oAtt, null, true);
+					tCat=[];
+					PData.cFill(tCat, oAttID, null, stream, tI);
 				}
-				PData.cFill(tCat, oAttID, null, stream, tI);
-			} else {
-				tCat=[];
-				PData.cFill(tCat, oAttID, null, stream, tI);
-			}
-				// Compile used categories, color nodes
-			var bI=0;
-			var used=[];
-			var tH=0;				// Max height of buckets for current Template in rows
-				// For each category
-			tCat.forEach(function(c) {
-				var rI=0;
-				var bH=0;	// Current height of bucket (node portion) in rows
-					// For each Record in category
-				c.i.forEach(function(aI) {
-					rec = PData.rByN(aI);
-					fData = rec.a[fAttID];
-					if (typeof fData !== 'undefined') {
-						fData = PData.lClr(fData, fAtt, featSet);
-						if (fData) {
-								// Set bit in rMap corresponding to absIndex
-							self.rMap[aI >> 4] |= (1 << (aI & 15));
-							nodes.push({r: rec, ai: aI, b: bI, rI: rI, c: fData,
-										x: (bI*94)+(11*(rI & 0x7))+5, y: tY+32+(11*(rI >> 3)) });
-								// Add to Record array sorted by ID?
-							if (self.cnx) {
-								var i, rRec;
-								i = _.sortedIndex(rSet, { id: rec.id }, 'id');
-								if (i < rSet.length) {
-									rRec = rSet[i];
-										// Does it already exist? Just add reference to this node
-									if (rRec.id === rec.id) {
-										rRec.n.push(nodes.length-1);
-									} else {	// Insert into rSet
-										rSet.splice(i, 0, { id: rec.id, ai: aI, r: rec, n: [ nodes.length-1 ] });
+					// Compile used categories, color nodes
+				var bI=0;
+				var used=[];
+				var tH=0;				// Max height of buckets for current Template in rows
+					// For each category
+				tCat.forEach(function(c) {
+					var rI=0;
+						// For each Record in category
+					c.i.forEach(function(aI) {
+						rec = PData.rByN(aI);
+						fData = rec.a[fAttID];
+						if (typeof fData !== 'undefined') {
+							fData = PData.lClr(fData, fAtt, featSet);
+							if (fData) {
+									// Set bit in rMap corresponding to absIndex
+								self.rMap[aI >> 4] |= (1 << (aI & 15));
+								nodes.push({r: rec, ai: aI, b: bI, rI: rI, c: fData,
+											x: (bI*bPW)+(nS*(rI%rB))+nR+1, y: tY+28+nR+(nS*Math.floor(rI/rB)) });
+									// Add to Record array sorted by ID?
+								if (self.cnx) {
+									var i, rRec;
+									i = _.sortedIndex(rSet, { id: rec.id }, 'id');
+									if (i < rSet.length) {
+										rRec = rSet[i];
+											// Does it already exist? Just add reference to this node
+										if (rRec.id === rec.id) {
+											rRec.n.push(nodes.length-1);
+										} else {	// Insert into rSet
+											rSet.splice(i, 0, { id: rec.id, ai: aI, r: rec, n: [ nodes.length-1 ] });
+										}
+									} else {	// Must append Object to represent Record
+										rSet.push({ id: rec.id, ai: aI, r: rec, n: [ nodes.length-1 ] })
 									}
-								} else {	// Must append Object to represent Record
-									rSet.push({ id: rec.id, ai: aI, r: rec, n: [ nodes.length-1 ] })
-								}
-							} // if connections
-							rI++;
-							bH = (rI >> 3) + 1;
-						} // if fData
-					} // if data is defined
-				}); // for each Record
-					// Save this category bucket?
-				if (rI>0) {
-					tLbls.push({ l: c.l, c: 'b-lbl-txt', x: bI*94, y: tY+13 });
-					bI++;
-					tH = Math.max(bH, tH);
-					used.push(c);
-				} // if saved
-			}); // for each category
-				// Process data for this Template, if any nodes/categories created
-			if (bI > 0) {
-				self.tUsed[tI] = true;
-					// Create Template label
-				var tID = PData.eTByN(tI);
-				var tDef = PData.tByID(tID);
-				tLbls.push({ l: tDef.l, c: 't-lbl-txt', x: 0, y: tY });
-				tNum++;
-				tY += 33+(tH*11);
-				maxW = Math.max(maxW, bI*92);
-			}
-		} // if has oAtt and features
+								} // if connections
+								rI++;
+							} // if fData
+						} // if data is defined
+					}); // for each Record
+						// Save this category bucket?
+					if (rI>0) {
+						tLbls.push({ l: c.l, c: 'b-lbl-txt', x: bI*bPW, y: tY+13 });
+						bI++;
+						tH = Math.max(Math.floor(rI/rB) + 1, tH);
+						used.push(c);
+					} // if saved
+				}); // for each category
+					// Process data for this Template, if any nodes/categories created
+				if (bI > 0) {
+					self.tUsed[tI] = true;
+						// Create Template label
+					var tID = PData.eTByN(tI);
+					var tDef = PData.tByID(tID);
+					tLbls.push({ l: tDef.l, c: 't-lbl-txt', x: 0, y: tY });
+					tNum++;
+					tY += 33+(tH*nS);
+					maxW = Math.max(maxW, bI*bPW);
+				}
+			} // if has selected features
+		} // if oAttID not null
 	}); // oAtts.forEach
 
 	this.nodes=nodes;
@@ -4621,7 +4625,7 @@ VizBMatrix.prototype.render = function(stream)
 			.attr("x", function(d) { return d.x; })
 			.attr("y", function(d) { return d.y; })
 			.attr("height", function(d) { return d.c === 't-lbl-text' ? 14 : 12; })
-			.attr("width", "90");
+			.attr("width", bPW-2);
 		title.append("text")
 			.attr("class", function(d) { return 's-lbl-text ' + d.c; })
 			.attr("x", function(d) { return 0; })
@@ -4701,8 +4705,6 @@ VizBMatrix.prototype.setSel = function(absIArray)
 	var self=this;
 
 	this.recSel = absIArray;
-	// this.svg.selectAll(".gnode")
-	// 		.attr("class", function(d) { return self.isSel(d.ai) ? 'gnode obj-sel' : 'gnode' });
 	this.updateNodes();
 	this.updateLinks();
 } // setSel()
@@ -4797,14 +4799,29 @@ VizBMatrix.prototype.doOptions = function()
 
 VizBMatrix.prototype.hint = function()
 {
+	var ti, attID, att;
 	var hint='';
-	var self=this;
 
-	for (var ti=0; ti<PData.eTNum(); ti++) {
-		var pAtts = self.settings.pAtts[ti];
-		pAtts.forEach(function(p) {
-			var att = PData.aByID(p.pid);
+	for (ti=0; ti<PData.eTNum(); ti++) {
+		attID = this.settings.oAtts[ti];
+		if (attID !== null) {
+			var tID = PData.eTByN(ti);
+			var tDef = PData.tByID(tID);
+			att = PData.aByID(attID);
 			if (hint.length > 0) {
+				hint += '; ';
+			}
+			hint += '<b>'+ tDef.l + '</b>: '+ att.def.l;
+		}
+	}
+	hint += '<br/>';
+
+	pCnt=0;
+	for (ti=0; ti<PData.eTNum(); ti++) {
+		var pAtts = this.settings.pAtts[ti];
+		pAtts.forEach(function(p, pI) {
+			att = PData.aByID(p.pid);
+			if (pCnt++ > 0) {
 				hint += ", ";
 			}
 			hint += '<b><span style="color: '+p.clr+'">'+att.def.l+'</span></b>';
@@ -7243,7 +7260,7 @@ var PData = (function() {
 		{
 			var numTmplts;
 			var tI, tRec;
-			var rI=0, aI, rec, datum, fData;
+			var rI, aI, rec, datum, fData;
 			var cI, cRec;
 
 			var oAtt = PData.aByID(oAttID);
@@ -7257,6 +7274,7 @@ var PData = (function() {
 				numTmplts = stream.t.length;
 			}
 			tRec = stream.t[tI];
+			rI=tRec.i;	// Begin at start Template's first Record
 
 			doStream:
 			while (rI<stream.l) {
