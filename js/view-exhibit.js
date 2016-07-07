@@ -1078,7 +1078,8 @@ function PViewFrame(vfIndex)
 				});
 			}
 			frame.find('div.lgnd-container').show();
-		} else {
+			instance.flushLgnd();
+		} else {	// No Legend
 			frame.find('button.hslgnd').button('disable');
 				// Just hide Legend
 			frame.find('div.lgnd-container').hide();
@@ -1364,7 +1365,8 @@ function PViewFrame(vfIndex)
 	instance.flushLgnd = function()
 	{
 		var frame = jQuery(getFrameID());
-		frame.find('div.lgnd-container').css('left', '10px');
+		var l = frame.width() - 280;
+		frame.find('div.lgnd-container').css('left', l);
 	} // flushLgnd()
 
 		// PURPOSE: Return the Record bitmap data for this view
@@ -1531,11 +1533,11 @@ jQuery(document).ready(function($) {
 			views[1] = null;
 			jQuery('#view-frame-1').remove();
 		} else {
-			views[0].flushLgnd();
 			PState.set(PSTATE_BUILD);
 			views[1] = PViewFrame(1);
 			views[1].initDOM(0);
 			views[1].showStream(endStream);
+			views[0].flushLgnd();
 			PState.set(PSTATE_READY);
 		}
 		views[0].resize();
@@ -2366,12 +2368,12 @@ jQuery(document).ready(function($) {
 				v1.setViz(vI, false);
 				v1.setState(p.s.v1.s);
 			} else {
-				v0.flushLgnd();
 				views[1] = PViewFrame(1);
 				v1 = views[1];
 				v1.initDOM(vI);
 				v1.setState(p.s.v1.s);
 				resize0 = true;
+				v0.flushLgnd();
 			}
 		} else {
 			if (v1) {
