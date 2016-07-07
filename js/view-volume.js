@@ -779,7 +779,13 @@ PVizFrame.prototype.computeSel = function()
 	}
 
 	var vizSel=[];
+
+		// Can't complete if viz has not rendered
+	if (typeof this.vizModel.rMap === 'undefined' || this.vizModel.rMap == null) {
+		return;
+	}
 	var r = this.vizModel.rMap;
+
 	this.selAbsIs.forEach(function(absI) {
 		if (r[absI >> 4] & (1 << (absI & 15))) {
 			vizSel.push(absI);
@@ -1208,6 +1214,7 @@ PVizFrame.prototype.createViz = function(vIndex, refresh)
 			});
 		}
 		frame.find('div.lgnd-container').show();
+		this.flushLgnd();
 	} else {
 		frame.find('button.hslgnd').button('disable');
 			// Just hide Legend
@@ -1472,7 +1479,9 @@ PVizFrame.prototype.title = function()
 
 PVizFrame.prototype.flushLgnd = function()
 {
-	jQuery('#view-frame-1 div.lgnd-container').css('left', '10px');
+	var frame = jQuery('#view-frame-1');
+	var l = frame.width() - 280;
+	frame.find('div.lgnd-container').css('left', l);
 } // flushLgnd()
 
 	// PURPOSE: Return the Record bitmap data for this view
@@ -2459,6 +2468,7 @@ jQuery(document).ready(function($) {
 		// Volume extensions (not in Exhibit)
 	var vMode='v1';				// view option: selection from selaction radio buttons: 'v0', 'v1' or 'v2'
 	var callbacks;				// callbacks used by ViewFrames: { addSel, delSel, newText, textFrame }
+	var v0Sel=null;				// Array of RecIDs to select in TextFrame after data ready
 	var v1Sel=null;				// Array of RecIDs to select in VizFrame after data ready
 
 		// FUNCTIONS
@@ -3267,6 +3277,8 @@ jQuery(document).ready(function($) {
 				return vID === vf.l;
 			});
 		}
+		v0Sel = null;
+		v1Sel = null;
 
 		var p = getReading(pID);
 		if (p == null) {
@@ -3325,13 +3337,8 @@ jQuery(document).ready(function($) {
 			v0.clearSel();
 		} else {
 			hFilterIDs[0] = hFilterIDs[1] = hFilters[0] = hFilters[1] = null;
-			v0.setSel(ids2absIs(p.s.recs[0]));
-			if (vMode !== 'v2') {
-				v1.setSel(ids2absIs(p.s.recs[1]));
-				v1Sel = null;
-			} else {
-				v1Sel = p.s.recs[1];
-			}
+			v0Sel = p.s.recs[0];
+			v1Sel = p.s.recs[1];
 		}
 
 			// Don't recompute if data not loaded yet
@@ -3339,13 +3346,23 @@ jQuery(document).ready(function($) {
 			doRecompute();
 			if (hFilterIDs[0] != null) {
 				doApplyHighlight(0);
+			} else if (vMode === 'v2' && v0Sel != null) {	// Special case of view mode 2 -- need to set before render()
+				v0.setSel(ids2absIs(v0Sel));
+				v0Sel = null;
 			}
 			render();
 			if (hFilterIDs[1] != null) {
 				doApplyHighlight(1);
-			} else if (v1Sel != null) {		// Has a RecID selection been saved?
-				v1.setSel(ids2absIs(v1Sel));
-				v1Sel = null;
+			} else {
+					// Have RecID selections been saved?
+				if (v0Sel != null) {
+					v0.setSel(ids2absIs(v0Sel));
+					v0Sel = null;
+				}
+				if (v1Sel != null) {
+					v1.setSel(ids2absIs(v1Sel));
+					v1Sel = null;
+				}
 			}
 		}
 
@@ -3703,13 +3720,23 @@ jQuery(document).ready(function($) {
 			doRecompute();
 			if (hFilterIDs[0] != null) {
 				doApplyHighlight(0);
+			} else if (vMode === 'v2' && v0Sel != null) { 	// Special case of view mode 2 -- need to set before render()
+				views[0].setSel(ids2absIs(v0Sel));
+				v0Sel = null;
 			}
 			render();
 			if (hFilterIDs[1] != null) {
 				doApplyHighlight(1);
-			} else if (v1Sel != null) {		// Has a RecID selection been saved?
-				v1.setSel(ids2absIs(v1Sel));
-				v1Sel = null;
+			} else {
+					// Have RecID selections been saved?
+				if (v0Sel != null) {
+					views[0].setSel(ids2absIs(v0Sel));
+					v0Sel = null;
+				}
+				if (v1Sel != null) {
+					views[1].setSel(ids2absIs(v1Sel));
+					v1Sel = null;
+				}
 			}
 			PState.set(PSTATE_READY);
 			jQuery('body').removeClass('waiting');
