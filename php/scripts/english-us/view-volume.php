@@ -124,7 +124,7 @@
 	<div id="dialog-prune" title=<?php _e('"Network Options"', 'prospect'); ?>>
 		<input type="checkbox" name="prune-nodes" id="prune-nodes"/> <?php _e('Hide unconnected Records', 'prospect'); ?>
 	</div>
-	
+
 	<div id="dialog-netgraph" title=<?php _e('"Network Options"', 'prospect'); ?>>
 		<?php _e('Relationships to display', 'prospect'); ?>
 		<div class="scroll-container">
@@ -133,7 +133,7 @@
 
 	<div id="dialog-about" title=<?php _e('"About Prospect&#8482;"', 'prospect'); ?>>
 		<div class="scroll-container">
-			<p>Prospect&#8482; 1.3.3</p>
+			<p>Prospect&#8482; 1.4</p>
 			<img class="logo"/>
 			<p><?php _e('From the', 'prospect'); ?>
 			<a href="http://digitalinnovation.unc.edu" target="_blank">Digital Innovation Lab</a> <?php _e('of the', 'prospect'); ?> <a href="http://www.unc.edu" target="_blank">University of North Carolina, Chapel Hill</a>.</p>
