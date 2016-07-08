@@ -2474,7 +2474,7 @@ jQuery(document).ready(function($) {
 		// FUNCTIONS
 		//==========
 
-		// PURPOSE: Return "clone" of 2-dimensional TOC booleam array (for Text Frame)
+		// PURPOSE: Set values of 2-dimensional boolean array (for Text Frame)
 	function cloneTOCArray(orig)
 	{
 		var n=[];
@@ -3026,7 +3026,7 @@ jQuery(document).ready(function($) {
 			}
 		}
 
-		insert = jQuery('#dialog-hilite-'+highlight+' span.filter-id').html(theAtt.def.l);
+		jQuery('#dialog-hilite-'+highlight+' span.filter-id').html(theAtt.def.l);
 		insert = jQuery('#hilite-'+highlight);
 		insert.empty();
 
@@ -3327,6 +3327,8 @@ jQuery(document).ready(function($) {
 
 			hFilterIDs[other] = null;
 			hFilters[other] = null;
+			jQuery('#hilite-'+(hI^1)).empty();
+			jQuery('#dialog-hilite-'+(hI^1)+' .filter-id').empty();
 		} // setHFilter()
 
 			// Load Highlight filters?
@@ -3337,6 +3339,10 @@ jQuery(document).ready(function($) {
 			v0.clearSel();
 		} else {
 			hFilterIDs[0] = hFilterIDs[1] = hFilters[0] = hFilters[1] = null;
+			jQuery('#dialog-hilite-0 .filter-id').empty();
+			jQuery('#dialog-hilite-1 .filter-id').empty();
+			jQuery('#hilite-0').empty();
+			jQuery('#hilite-1').empty();
 			v0Sel = p.s.recs[0];
 			v1Sel = p.s.recs[1];
 		}
