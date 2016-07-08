@@ -126,8 +126,8 @@ class Prospect {
 
 			wp_enqueue_script('d3', plugins_url('lib/d3.min.js', dirname(__FILE__)));
 
-			wp_enqueue_script('prsp-view-core', plugins_url('js/view-core.js', dirname(__FILE__)), array('underscore'));
-			wp_enqueue_script('prsp-view-exhibit', plugins_url('js/view-exhibit.js', dirname(__FILE__)), array('prsp-view-core'));
+			wp_enqueue_script('prsp-view-core', plugins_url('js/view-core.min.js', dirname(__FILE__)), array('underscore'));
+			wp_enqueue_script('prsp-view-exhibit', plugins_url('js/view-exhibit.min.js', dirname(__FILE__)), array('prsp-view-core'));
 
 				// Get Exhibit definition
 			$the_xhbt = new ProspectExhibit(true, get_the_ID(), true);
@@ -157,7 +157,7 @@ class Prospect {
 				wp_enqueue_script('prsp-map-hub', plugins_url('js/map-hub.min.js', dirname(__FILE__)));
 			}
 			if ($use_aggregate) {
-				wp_enqueue_script('prsp-view-aggregate', plugins_url('js/view-aggregate.js', dirname(__FILE__)), array('prsp-view-core'));
+				wp_enqueue_script('prsp-view-aggregate', plugins_url('js/view-aggregate.min.js', dirname(__FILE__)), array('prsp-view-core'));
 			}
 
 				// Check for optional settings
@@ -328,8 +328,8 @@ class Prospect {
 
 			wp_enqueue_script('d3', plugins_url('lib/d3.min.js', dirname(__FILE__)));
 
-			wp_enqueue_script('prsp-view-core', plugins_url('js/view-core.js', dirname(__FILE__)));
-			wp_enqueue_script('prsp-view-volume', plugins_url('js/view-volume.js', dirname(__FILE__)), array('prsp-view-core'));
+			wp_enqueue_script('prsp-view-core', plugins_url('js/view-core.min.js', dirname(__FILE__)));
+			wp_enqueue_script('prsp-view-volume', plugins_url('js/view-volume.min.js', dirname(__FILE__)), array('prsp-view-core'));
 
 				// Get Volume definition
 			$the_volume = new ProspectVolume(true, get_the_ID(), true);
