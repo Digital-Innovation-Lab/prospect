@@ -2389,9 +2389,8 @@ PTextFrame.prototype.setSel = function(selList)
 		}
 	});
 	this.vizSel = vizSel;
-	if (vizSel.length > 0) {
-		this.selBtns(true);
-	}
+	this.selBtns(vizSel.length > 0);
+
 	return true;
 } // selSel()
 
@@ -3336,7 +3335,6 @@ jQuery(document).ready(function($) {
 			setHFilter(0, p.s.h0);
 		} else if (p.s.h1 != null) {
 			setHFilter(1, p.s.h1);
-			v0.clearSel();
 		} else {
 			hFilterIDs[0] = hFilterIDs[1] = hFilters[0] = hFilters[1] = null;
 			jQuery('#dialog-hilite-0 .filter-id').empty();
