@@ -320,7 +320,7 @@ div.filter-body svg .x.axis path {
 	display: none;
 }
 
-div.filter-body svg .brush .extent {
+div.filter-body svg .brush .selection {
 	stroke: #fff;
 	fill-opacity: .125;
 	shape-rendering: crispEdges;
@@ -1189,7 +1189,7 @@ svg.tl-vf text.bMinMaxLbl {
 	font-weight: bold;
 }
 
-svg.tl-vf .brush .extent {
+svg.tl-vf .brush .selection {
 	stroke: midnightblue;
 	fill: yellow;
 	fill-opacity: .2;

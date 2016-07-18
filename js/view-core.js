@@ -1598,12 +1598,11 @@ VizPinboard.prototype.setup = function()
 		// Maintain number of Loc Atts per Template type
 	var numT = PData.eTNum();
 
-	this.xScale = d3.scale.linear().domain([0, s.iw-1])
-		.rangeRound([0, s.dw-1]);
-	this.yScale = d3.scale.linear().domain([0,s.ih-1]).range([0,s.dh-1]);
+	this.xScale = d3.scaleLinear().domain([0, s.iw-1]).range([0, s.dw-1]);
+	this.yScale = d3.scaleLinear().domain([0, s.ih-1]).range([0, s.dh-1]);
 
-	this.xAxis = d3.svg.axis().scale(this.xScale).orient("top");
-	this.yAxis = d3.svg.axis().scale(this.yScale).orient("left");
+	this.xAxis = d3.axisTop(this.xScale);
+	this.yAxis = d3.axisLeft(this.yScale);
 
 	var svg = d3.select(this.frameID).append("svg")
 		.attr("width", s.dw+30+3)
@@ -5233,7 +5232,7 @@ PFilterVocab.prototype.setState = function(state)
 //		min = minimum allowed Number (inclusive) -- maintained dynamically
 //		max = maximum allowed Number (inclusive)  -- maintained dynamically
 //		u = true if undefined checkbox is checked -- checked at evalPrep, savePerspective
-//		yScale = D3 scale
+//		xScale, yScale = D3 scales
 //		chart = SVG for graph
 //		brush = D3 brush object
 //		brushg = SVG for brush
@@ -5343,7 +5342,7 @@ PFilterNum.prototype.useBoxes = function(insert)
 			b1 = (b1 === this.rCats.length) ? this.rCats.length-1 : b1;
 			this.b0 = b0;
 			this.b1 = b1;
-			this.brushg.call(this.brush.extent([b0, b1+1]));
+			this.brushg.call(this.brush.move, [b0, b1+1].map(this.xScale));
 		}
 		insert.find('.filter-update').prop('disabled', true);
 	}
@@ -5405,6 +5404,7 @@ PFilterNum.prototype.evalDone = function(total)
 PFilterNum.prototype.setup = function()
 {
 	var self=this;
+	var xScale, rScale;
 
 		// Set defaults
 	this.u   = false;
@@ -5437,37 +5437,42 @@ PFilterNum.prototype.setup = function()
 
 		var innerH = 80 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
 
-		function resizePath(d)
-		{
-			// Create SVG path for brush resize handles
-			var e = +(d == "e"),
-				x = e ? 1 : -1,
-				y = innerH / 4; // Relative positon if handles
-			return "M"+(.5*x)+","+y+"A6,6 0 0 "+e+" "+(6.5*x)+","+(y+6)
-				+"V"+(2*y-6)+"A6,6 0 0 "+e+" "+(.5*x)+","+(2*y)
-				+"Z"+"M"+(2.5*x)+","+(y+8)+"V"+(2*y-8)
-				+"M"+(4.5*x)+","+(y+8)
-				+"V"+(2*y-8);
-		} // resizePath()
+			// RETURNS:	SVG path for brush resize handles
+		// function resizePath(d)
+		// {
+		// 	var e;	// 0 for handle--w, 1 for handle--e
+		// 	e = d3.select(this).classed("handle--e") ? 1 : 0;
+		//
+		// 	// var e = +(d == "e");
+		// 	var	x = e ? 1 : -1,
+		// 		y = innerH / 4; // Relative positon if handles
+		// 	return "M"+(.5*x)+","+y+"A6,6 0 0 "+e+" "+(6.5*x)+","+(y+6)
+		// 		+"V"+(2*y-6)+"A6,6 0 0 "+e+" "+(.5*x)+","+(2*y)
+		// 		+"Z"+"M"+(2.5*x)+","+(y+8)+"V"+(2*y-8)
+		// 		+"M"+(4.5*x)+","+(y+8)
+		// 		+"V"+(2*y-8);
+		// } // resizePath()
 		function brushended()
 		{
-				// Ignore unless user event
-			if (!d3.event.sourceEvent)
+			if (!d3.event.sourceEvent)	// Ignore unless user event
 				return;
-			var extent0 = self.brush.extent();
-			var extent1 = [Math.floor(extent0[0]), Math.floor(extent0[1])];
-				// if empty when rounded, use floor & ceil instead
-			if (extent1[0] >= extent1[1]) {
-				extent1[0] = Math.floor(extent0[0]);
-				extent1[1] = Math.ceil(extent0[1]);
+			if (!d3.event.selection)	// Ignore empty selections
+				 return;
+				 // Convert d3.event.selection [x0, x1] in pixels to array indices
+			var d = d3.event.selection.map(xScale.invert);
+			if (d[0] > d[1]) {
+				var temp = d[0];
+				d[0] = d[1];
+				d[1] = t;
 			}
-				// must enclose at least 1 graph!
-			extent1[1] = Math.max(extent1[1], extent1[0]+1);
-			d3.select(this).transition()
-				.call(self.brush.extent(extent1));
+			d[0] = Math.floor(d[0]);
+			d[1] = Math.min(Math.ceil(d[1]), self.rCats.length);
 
-			self.b0  = extent1[0];
-			self.b1  = extent1[1]-1;
+			self.b0  = d[0];
+			self.b1  = d[1]-1;
+
+			d3.select(this).transition()
+			    .call(self.brush.move, d.map(xScale));
 
 			self.min = self.rCats[self.b0].min;
 			self.max = self.rCats[self.b1].max;
@@ -5483,15 +5488,18 @@ PFilterNum.prototype.setup = function()
 		colW=Math.max(D3FG_BAR_WIDTH, colW*7);	// 7 px/letter estimate
 
 		var innerW = this.rCats.length*colW;
-		var xScale = d3.scale.linear().domain([0, this.rCats.length])
-			.rangeRound([0, innerW]);
-		var yScale = d3.scale.linear().domain([0,100]).range([innerH, 0]);
+		xScale = d3.scaleLinear().domain([0, this.rCats.length]).range([0, innerW]);
+		this.xScale = xScale;
+
+		var yScale = d3.scaleLinear().domain([0, 100]).range([innerH, 0]);
 		this.yScale = yScale;
 
-		var rScale = d3.scale.ordinal().rangeRoundBands([0, innerW]);
-		rScale.domain(this.rCats.map(function(rc) { return rc.l; }));
-		var xAxis = d3.svg.axis().scale(rScale).orient("bottom");
-		var yAxis = d3.svg.axis().scale(yScale).orient("left").ticks(4);
+		rScale = d3.scaleBand()
+				.domain(this.rCats.map(function(rc) { return rc.l; }))
+				.range([0, innerW]);
+
+		var yAxis = d3.axisLeft(yScale).ticks(4);
+		var xAxis = d3.axisBottom(rScale);
 
 		var chart = d3.select(insert.get(0)).append("svg")
 			.attr("width", innerW+D3FG_MARGINS.left+D3FG_MARGINS.right)
@@ -5521,20 +5529,16 @@ PFilterNum.prototype.setup = function()
 			.attr("height", function(d) { return innerH - yScale(100); })
 			.attr("width", colW-4);
 
-		self.brush = d3.svg.brush()
-			.x(xScale)
-			.extent([0, this.rCats.length])
-			.on("brushend", brushended);
+		this.brush = d3.brushX();
+		this.brush.extent([[0,-1],[innerW, innerH+2]]);
+		this.brush.on("end", brushended);
 
-		self.brushg = chart.append("g");
-		self.brushg.attr("class", "brush")
-			.call(self.brush);
-		self.brushg.selectAll("rect")
-			.attr("y", -1)
-			.attr("height", innerH+4);
-		self.brushg.selectAll(".resize")
-			.append("path")
-			.attr("d", resizePath);
+		this.brushg = chart.append("g");
+			// Call brush to create SVG elements
+		this.brushg.attr("class", "brush")
+			.call(this.brush);
+			// Set SVG element positions and make visible
+		this.brush.move(this.brushg, [0, innerW]);
 	} else {
 			// no rCats because of lack of min or max bounds
 		this.min = typeof att.r.min === 'undefined' ? 0 : att.r.min;
@@ -5582,7 +5586,7 @@ PFilterNum.prototype.setState = function(state)
 //		max = maximum allowed Date (exclusive)  -- maintained dynamically
 //		c = 'o' if overlap, 'c' if contain within range -- checked at eval time
 //		u = true if undefined checkbox is checked -- checked at evalPrep, savePerspective
-//		yScale = D3 scale
+//		xScale, yScale = D3 scales
 //		chart = SVG for graph
 //		brush = D3 brush object
 //		brushg = SVG for brush
@@ -5731,7 +5735,8 @@ PFilterDates.prototype.useBoxes = function(insert)
 		b1 = (b1 === this.rCats.length) ? this.rCats.length-1 : b1;
 		this.b0 = b0;
 		this.b1 = b1;
-		this.brushg.call(this.brush.extent([b0, b1+1]));
+		this.brushg.call(this.brush.move, [b0, b1+1].map(this.xScale));
+		// this.brushg.call(this.brush.extent([b0, b1+1]));
 		insert.find('.filter-update').prop('disabled', true);
 	}
 } // useBoxes()
@@ -5815,6 +5820,7 @@ PFilterDates.prototype.evalDone = function(total)
 PFilterDates.prototype.setup = function()
 {
 	var self = this;
+	var xScale, rScale;
 
 	this.rCats = PData.cRNew(this.att, false, false);
 	this.ctrs = new Uint16Array(this.rCats.length);
@@ -5828,40 +5834,41 @@ PFilterDates.prototype.setup = function()
 
 	this.uDates = new Array(2);
 
-
 	var innerH = 80 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
 
-	function resizePath(d)
-	{
-		// Create SVG path for brush resize handles
-		var e = +(d == "e"),
-			x = e ? 1 : -1,
-			y = innerH / 4; // Relative positon if handles
-		return "M"+(.5*x)+","+y+"A6,6 0 0 "+e+" "+(6.5*x)+","+(y+6)
-			+"V"+(2*y-6)+"A6,6 0 0 "+e+" "+(.5*x)+","+(2*y)
-			+"Z"+"M"+(2.5*x)+","+(y+8)+"V"+(2*y-8)
-			+"M"+(4.5*x)+","+(y+8)
-			+"V"+(2*y-8);
-	} // resizePath()
+	// function resizePath(d)
+	// {
+	// 	// Create SVG path for brush resize handles
+	// 	var e = +(d == "e"),
+	// 		x = e ? 1 : -1,
+	// 		y = innerH / 4; // Relative positon if handles
+	// 	return "M"+(.5*x)+","+y+"A6,6 0 0 "+e+" "+(6.5*x)+","+(y+6)
+	// 		+"V"+(2*y-6)+"A6,6 0 0 "+e+" "+(.5*x)+","+(2*y)
+	// 		+"Z"+"M"+(2.5*x)+","+(y+8)+"V"+(2*y-8)
+	// 		+"M"+(4.5*x)+","+(y+8)
+	// 		+"V"+(2*y-8);
+	// } // resizePath()
 	function brushended()
 	{
-			// Ignore unless user event
-		if (!d3.event.sourceEvent)
+		if (!d3.event.sourceEvent)	// Ignore unless user event
 			return;
-		var extent0 = self.brush.extent();
-		var extent1 = [Math.floor(extent0[0]), Math.floor(extent0[1])];
-			// if empty when rounded, use floor & ceil instead
-		if (extent1[0] >= extent1[1]) {
-			extent1[0] = Math.floor(extent0[0]);
-			extent1[1] = Math.ceil(extent0[1]);
+		if (!d3.event.selection)	// Ignore empty selections
+			 return;
+			 // Convert d3.event.selection [x0, x1] in pixels to array indices
+		var d = d3.event.selection.map(xScale.invert);
+		if (d[0] > d[1]) {
+			var temp = d[0];
+			d[0] = d[1];
+			d[1] = t;
 		}
-			// must enclose at least 1 graph!
-		extent1[1] = Math.max(extent1[1], extent1[0]+1);
-		d3.select(this).transition()
-			.call(self.brush.extent(extent1));
+		d[0] = Math.floor(d[0]);
+		d[1] = Math.min(Math.ceil(d[1]), self.rCats.length);
 
-		self.b0  = extent1[0];
-		self.b1  = extent1[1]-1;
+		self.b0  = d[0];
+		self.b1  = d[1]-1;
+
+		d3.select(this).transition()
+			.call(self.brush.move, d.map(xScale));
 
 		self.min = self.rCats[self.b0].min;
 		self.max = self.rCats[self.b1].max;
@@ -5879,15 +5886,18 @@ PFilterDates.prototype.setup = function()
 	colW=Math.max(D3FG_BAR_WIDTH, colW*7);		// estimated 7 px/letter
 
 	var innerW = this.rCats.length*colW;
-	var xScale = d3.scale.linear().domain([0, this.rCats.length])
-		.rangeRound([0, innerW]);
-	var yScale = d3.scale.linear().domain([0,100]).range([innerH, 0]);
+	xScale = d3.scaleLinear().domain([0, this.rCats.length]).range([0, innerW]);
+	this.xScale = xScale;
+
+	var yScale = d3.scaleLinear().domain([0, 100]).range([innerH, 0]);
 	this.yScale = yScale;
 
-	var rScale = d3.scale.ordinal().rangeRoundBands([0, innerW]);
-	rScale.domain(this.rCats.map(function(rc) { return rc.l; }));
-	var xAxis = d3.svg.axis().scale(rScale).orient("bottom");
-	var yAxis = d3.svg.axis().scale(yScale).orient("left").ticks(4);
+	rScale = d3.scaleBand()
+			.domain(this.rCats.map(function(rc) { return rc.l; }))
+			.range([0, innerW]);
+
+	var yAxis = d3.axisLeft(yScale).ticks(4);
+	var xAxis = d3.axisBottom(rScale);
 
 	var fh = _.template(document.getElementById('dltext-filter-dates').innerHTML);
 	insert.append(fh({ id: this.id }));
@@ -5942,20 +5952,16 @@ PFilterDates.prototype.setup = function()
 		.attr("height", function(d) { return innerH - yScale(100); })
 		.attr("width", colW-4);
 
-	self.brush = d3.svg.brush()
-		.x(xScale)
-		.extent([0, this.rCats.length])
-		.on("brushend", brushended);
+	this.brush = d3.brushX();
+	this.brush.extent([[0,-1],[innerW, innerH+2]]);
+	this.brush.on("end", brushended);
 
-	self.brushg = chart.append("g");
-	self.brushg.attr("class", "brush")
-		.call(self.brush);
-	self.brushg.selectAll("rect")
-		.attr("y", -1)
-		.attr("height", innerH+4);
-	self.brushg.selectAll(".resize")
-		.append("path")
-		.attr("d", resizePath);
+	this.brushg = chart.append("g");
+		// Call brush to create SVG elements
+	this.brushg.attr("class", "brush")
+		.call(this.brush);
+		// Set SVG element positions and make visible
+	this.brush.move(this.brushg, [0, innerW]);
 } // setup()
 
 PFilterDates.prototype.getState = function()
