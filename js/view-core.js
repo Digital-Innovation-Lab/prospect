@@ -1966,14 +1966,14 @@ VizPinboard.prototype.hint = function()
 // VizTime: Class to visualize Records on Timeline
 //
 // Instance Variables:
-//		threshold =
+//		threshold = point at which months begin to appear in labels
 //		brush = D3 brush object
-//		brushSVG = SVG object created by brush
+//		brushSVG = SVG element created for brush
 //		minDate = minimum Date on macro band
 //		maxDate = maximum Date on macro band
 //		zMinDate = minimum Date on zoom band
 //		zMaxDate = maximum Date on zoom band
-//		instGap = size of "instantaneous" event on macro band in Date terms
+//		instGap = width of "instantaneous" event on macro band in Date terms
 //		chart = SVG containing entire Timeline
 //		instRad = pixel radius of instantaneous circle
 //		bands[2] = Array of Objects containing parameters for each band (macro and zoom)
@@ -2270,7 +2270,7 @@ VizTime.prototype.setup = function()
 		var band = {	id: bi, l: 0, t:0, h:0, w: widths[1],
 						svgID: "#tl-b-"+vI+"-"+bi,
 						tHt: 0, iHt: 0,
-						xScale: d3.time.scale(),
+						xScale: d3.scaleTime(),
 						yScale: function(t) { return t * band.tHt; },
 						parts: [],
 						g: null,
@@ -2289,7 +2289,7 @@ VizTime.prototype.setup = function()
 			band.iHt = 2;
 		}
 
-		if (bi == 1)
+		if (bi === 1)
 		{
 			var zMin=self.minDate, zMax=self.maxDate;
 			if (self.settings.zFrom.length > 0)
@@ -2302,7 +2302,7 @@ VizTime.prototype.setup = function()
 		} else {
 			band.xScale.domain([self.minDate, self.maxDate]);
 		}
-		band.xScale.range([0, band.w]);
+		band.xScale.rangeRound([0, band.w]);
 
 			// Create a div for this band
 		band.g = self.chart.append("g")
@@ -2326,10 +2326,8 @@ VizTime.prototype.setup = function()
 		var band = self.bands[bi];
 
 			// Create the D3 object for axis
-		var axis = d3.svg.axis()
-			.scale(band.xScale)
-			.orient("bottom")
-			.tickSize(6, 0)
+		var axis = d3.axisBottom(band.xScale);
+
 				// For now, let D3 determine what label to show -- below is alternative DIY logic
 				// This version (below) *does* look better for dates < 1000 CE
 			// .tickFormat(function (d) {
@@ -2348,11 +2346,12 @@ VizTime.prototype.setup = function()
 			//         }
 			//     }
 			// } )
-			;
+			// ;
 
 			// Do we need to localize the axis labels?
-		if (localD3)
+		if (localD3) {
 			axis.tickFormat(localD3);
+		}
 
 			// Create SVG components
 		var axisSVG = band.g.append("g")
@@ -2461,6 +2460,8 @@ VizTime.prototype.setup = function()
 				// Needs to know how to draw itself
 			mLabeler.redraw = function()
 			{
+				mLabels.attr("x", function(l) { return l.x()+l.tDelta; } );
+
 				var dVals = band.xScale.domain();
 				var min = dVals[0],
 					max = dVals[1];
@@ -2472,7 +2473,7 @@ VizTime.prototype.setup = function()
 					} else {
 						return months[l.whichDate(min,max).getMonth()];
 					}
-				})
+				});
 			}; // redraw()
 
 				// Add additional labels to components needed to be drawn
@@ -2874,72 +2875,63 @@ VizTime.prototype.render = function(stream)
 	updateBand(0);
 	updateBand(1);
 
+		// Create brush in top macro band that controls lower zoom view
 		// NOTES: 	Brush SVGs must be "on top" of everything else and hence must be created last
 		//			Code must destroy any previous SVG which would now be below stack
 	(function () {
-		var band = self.bands[0];	// Place brush in top macro band
+		var macro = self.bands[0];	// Place brush in top macro band
 
 			// SVG area where brush is created -- delete old one?
 		if (self.brushSVG != null)
 			self.brushSVG.remove();
 
 			// Create logical controller
-		self.brush = d3.svg.brush()
-			.x(band.xScale.range([0, band.w]))
-				// Start with default zoom position
-			.extent([self.zMinDate, self.zMaxDate])
+		self.brush = d3.brushX();
+		self.brush.extent([[0,0], [macro.w, macro.h]]);
 				// Code to bind when brush moves
-			.on('brush', function() {
-				var extent0 = self.brush.extent(); // "original" default value
-				var extent1;                  		// new recomputed value
+		self.brush.on('brush', function() {
+				// Ignore if side-effect rather than real user interaction
+			if (!d3.event.sourceEvent) {
+				return;
+			}
+			var d0 = d3.event.selection.map(macro.xScale.invert),
+			    d1 = d0.map(d3.timeDay.round);
+			  // If empty when rounded, use floor & ceil instead.
+			if (d1[0] >= d1[1]) {
+			    d1[0] = d3.timeDay.floor(d0[0]);
+			    d1[1] = d3.timeDay.ceil(d0[1]);
+			}
 
-				  // if dragging, preserve the width of the extent, rounding by days
-				if (d3.event.mode === "move") {
-					var d0 = d3.time.day.round(extent0[0]),
-						d1 = d3.time.day.offset(d0, Math.round((extent0[1] - extent0[0]) / 864e5));
-					extent1 = [d0, d1];
+				// Save zoom dates
+			self.zMinDate = d1[0];
+			self.zMaxDate = d1[1];
 
-					// otherwise, if new position, round both dates
-				} else {
-					extent1 = extent0.map(d3.time.day.round);
+				// Rescale bottom/zoom timeline
+			var zoom = self.bands[1];
+			zoom.xScale.domain(d1);
+			zoom.redraw();
+		});
 
-						// if empty when rounded, create minimal sized lens -- at least 1 day long
-					if (extent1[0] >= extent1[1]) {
-						extent1[0] = d3.time.day.floor(extent0[0]);
-						extent1[1] = d3.time.day.ceil(d3.time.day.offset(extent1[0], Math.round(self.instGap / 864e5)));
-					}
-				}
-
-				self.zMinDate = extent1[0];
-				self.zMaxDate = extent1[1];
-				d3.select(this).call(self.brush.extent(extent1));
-
-					// Rescale bottom/zoom timeline
-				zoom = self.bands[1];
-				zoom.xScale.domain(extent1);
-				zoom.redraw();
-			});
-
-		self.brushSVG = band.g.append("g");
+		self.brushSVG = macro.g.append("g");
 		self.brushSVG.attr("class", "brush")
 			.call(self.brush);
-		self.brushSVG.selectAll("rect")
-			.attr("y", -1)
-			.attr("height", band.h);
 
-		self.brushSVG.selectAll(".resize")
-			.append("path")
-			.attr("d", function (d) {
-				// Create SVG path for brush resize handles
-				var e = +(d == "e"),
-					x = e ? 1 : -1,
-					y = band.h / 4; // Relative positon if handles
-				return "M"+(.5*x)+","+y+"A6,6 0 0 "+e+" "+(6.5*x)+","+(y+6)
-					+"V"+(2*y-6)+"A6,6 0 0 "+e+" "+(.5*x)+","+(2*y)
-					+"Z"+"M"+(2.5*x)+","+(y+8)+"V"+(2*y-8)
-					+"M"+(4.5*x)+","+(y+8)
-					+"V"+(2*y-8);
-			});
+			// Initial brush pos in macro based on self.zMinDate, self.zMaxDate
+		self.brush.move(self.brushSVG, [macro.xScale(self.zMinDate), macro.xScale(self.zMaxDate)]);
+
+		// self.brushSVG.selectAll(".resize")
+		// 	.append("path")
+		// 	.attr("d", function (d) {
+		// 		// Create SVG path for brush resize handles
+		// 		var e = +(d == "e"),
+		// 			x = e ? 1 : -1,
+		// 			y = band.h / 4; // Relative positon if handles
+		// 		return "M"+(.5*x)+","+y+"A6,6 0 0 "+e+" "+(6.5*x)+","+(y+6)
+		// 			+"V"+(2*y-6)+"A6,6 0 0 "+e+" "+(.5*x)+","+(2*y)
+		// 			+"Z"+"M"+(2.5*x)+","+(y+8)+"V"+(2*y-8)
+		// 			+"M"+(4.5*x)+","+(y+8)
+		// 			+"V"+(2*y-8);
+		// 	});
 	}());
 
 		// PURPOSE: Update the clipping rectangle
@@ -2986,23 +2978,21 @@ VizTime.prototype.render = function(stream)
 	// NOTE: 	Do not rely upon any variables created by render()
 VizTime.prototype.resize = function()
 {
-	var self=this;
-
 		// Expand width of containers for visual space
-	var widths = self.getWidths();
+	var widths = this.getWidths();
 
-	var tlSVG = d3.select(self.frameID+" svg.tl-vf");
+	var tlSVG = d3.select(this.frameID+" svg.tl-vf");
 	tlSVG.attr("width", widths[1]);
 
 		// Clip all graphics to inner area of chart
-	tlSVG.select("#tl-clip-"+self.vFrame.getIndex()+" rect").attr("width", widths[1]);
+	tlSVG.select("#tl-clip-"+this.vFrame.getIndex()+" rect").attr("width", widths[1]);
 
 		// Now update each band
 	for (var bi=0; bi<2; bi++) {
-		b = self.bands[bi];
+		b = this.bands[bi];
 		b.w = widths[1];
 		tlSVG.select(b.svgID).attr("width", widths[1]);
-		b.xScale.range([0, widths[1]]);
+		b.xScale.rangeRound([0, widths[1]]);
 
 			// Need to update position of end labels (rect and text)
 		var toLabel = b.labels[1];
@@ -3010,21 +3000,18 @@ VizTime.prototype.resize = function()
 		b.labelSVGs.select('#rect-'+toLabel.name).attr("x", toLabel.left() );
 		b.labelSVGs.select('#txt-'+toLabel.name).attr("x", txtLeft);
 		if (bi === 0) {
-			if (self.brush) {
+			if (this.brush) {
 					// Update brush by reinstating its extent
-				if (self.brushSVG) {
-					var extent = self.brush.extent();
-					self.brushSVG.call(self.brush.extent(extent));
+				if (this.brushSVG) {
+					this.brush.move(this.brushSVG, [b.xScale(this.zMinDate), b.xScale(this.zMaxDate)]);
 				}
-				if (self.brushHandler)
-					self.brushHandler.redraw();
 			}
 			b.labelSVGs.select('#m-txt-'+toLabel.name).attr("x", txtLeft);
 		}
 	}
 
 		// Now recompute everything!
-	self.cmpnts.forEach(function(c) {
+	this.cmpnts.forEach(function(c) {
 		c.redraw();
 	});
 } // resize()
@@ -3078,8 +3065,7 @@ VizTime.prototype.clearSel = function()
 VizTime.prototype.getState = function()
 {
 		// Create more compact form for date to parse later
-	var e = this.brush.extent();
-	var e0 = e[0], e1 = e[1];
+	var e0=this.zMinDate, e1=this.zMaxDate;
 	var m = e0.getUTCMonth()+1;
 	var d0 = e0.getUTCFullYear().toString()+'-'+m.toString()+'-'+e0.getDate().toString();
 	m = e1.getUTCMonth()+1;
