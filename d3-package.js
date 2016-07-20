@@ -17,7 +17,7 @@ export * from "d3-drag";
 
 export * from "d3-force";
 
-export { cluster, treemap } from "d3-hierarchy";
+export { hierarchy, cluster, treemap } from "d3-hierarchy";
 
 export * from "d3-path";
 
