@@ -3968,7 +3968,7 @@ VizNetWheel.prototype.setSel = function(absIArray)
 
 	self.recSel = absIArray;
 	this.svg.selectAll(".node circle")
-			.attr("class", function(d) { return self.isSel(d.ai) ? 'obj-sel' : '' });
+			.attr("class", function(d) { return self.isSel(d.data.ai) ? 'obj-sel' : '' });
 } // setSel()
 
 VizNetWheel.prototype.clearSel = function()
