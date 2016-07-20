@@ -3667,6 +3667,7 @@ VizNetWheel.prototype.setup = function()
 
 	// PURPOSE: Draw the Records in the given datastream
 	// TO DO: 	Could speed up linking Records with binary search
+	// NOTES:	Tree nodes all have parent and children elements
 VizNetWheel.prototype.render = function(stream)
 {
 	var self = this;
@@ -3679,31 +3680,38 @@ VizNetWheel.prototype.render = function(stream)
 		stream = this.stream;
 	}
 
+		// PURPOSE: Utility function that converts radial position to X,Y
+	function project(x, y) {
+		var angle = (x - 90) / 180 * Math.PI, radius = y;
+		return [radius * Math.cos(angle), radius * Math.sin(angle)];
+	} // project()
+
 	function clickDot(d)
 	{
-		var s = self.toggleSel(d.ai);
+		var s = self.toggleSel(d.data.ai);
 		d3.select(this).classed('obj-sel', s);
 	} // clickDot()
 
-		// INPUT: 	nL = node entry bound to label
+		// INPUT: 	nL = node entry (from leaves) bound to label
+		// NOTES:	links s, t point to Objects in children arrays (not leaves entries!)
 	function clickName(nL)
 	{
-		var lSelf=this;
+		var nData=nL.data;
 
 		PState.set(PSTATE_UPDATE);
 
 			// First clear out all variables
-		node.each(function(n) { n.linked = false; });
+		node.each(function(n) { n.data.l = false; });
 
 			// Go through links, setting colors and flags
 		link.each(function(l) {
 				// Is this the source of a link?
-			if (l.s === nL) {
-				l.t.linked = true;
+			if (l.s === nData) {
+				l.t.l = true;
 					// Search for corresponding entry in original array
 				for (var lI=0; lI<links.length; lI++) {
 					var lk = links[lI];
-					if (lk.source === nL && lk.target === l.t) {
+					if (lk.s === nData && lk.t === l.t) {
 						d3.select(this).attr("stroke", lk.c).classed("thick", true);
 							// Put at end of render list to ensure it is on top of others
 						this.parentElement.appendChild(this);
@@ -3711,12 +3719,12 @@ VizNetWheel.prototype.render = function(stream)
 					}
 				}
 				// target of a link?
-			} else if (l.t === nL) {
-				l.s.linked = true;
+			} else if (l.t === nData) {
+				l.s.l = true;
 					// Search for corresponding entry in original array
 				for (var lI=0; lI<links.length; lI++) {
 					var lk = links[lI];
-					if (lk.target === nL && lk.source === l.s) {
+					if (lk.t === nData && lk.s === l.s) {
 						d3.select(this).attr("stroke", lk.c).classed("thick", true);
 							// Put at end of render list to ensure it is on top of others
 						this.parentElement.appendChild(this);
@@ -3729,17 +3737,17 @@ VizNetWheel.prototype.render = function(stream)
 		});
 
 		node.select("text")
-			.attr("fill", function(n) { return n.linked ? "white" : "black"; });
+			.attr("fill", function(n) { return n.data.l ? "white" : "black"; });
 
-		d3.select(lSelf)
+		d3.select(this)
 			.attr("fill", "yellow");
 
 		PState.set(PSTATE_READY);
 	} // clickName()
 
 		// remove any existing nodes and links
-	this.svg.selectAll(".node").remove();
-	this.svg.selectAll(".link").remove();
+	this.center.selectAll(".node").remove();
+	this.center.selectAll(".link").remove();
 
 	if (this.recSel.length > 0) {
 		this.recSel=[];
@@ -3756,14 +3764,14 @@ VizNetWheel.prototype.render = function(stream)
 		return;
 	}
 
-		// Create nested array of nodes for each Template { ti, children }
-		// or Record { r[ecord], ai, children }
-
-	var head = { children: [] };
+		// Create nested array of nodes for each Template { parent, ti, children }
+		// or Record { parent, r[ecord], ai, c[olor], children, l[ink], v[leaveIndex] }
+	var head = { parent: null, children: [] };
+	var tNode = { parent: head, ti: 0, children: [] };
 
 	(function () {
 		var tRec, tI=0;
-		var i=0, rec, datum, aI, clan=[];
+		var i=0, rec, datum, aI;
 		var featSet=null, fAtt, fAttID;
 
 		tRec = stream.t[0];
@@ -3777,16 +3785,18 @@ VizNetWheel.prototype.render = function(stream)
 		tLoop: while (i<stream.l) {
 				// Advance until we get to current Template rec
 			while (tRec.n === 0 || (tRec.i+tRec.n) === i || featSet.length === 0) {
-				if (clan.length > 0) {
-					head.children.push({ ti: tI, children: clan});
-					clan=[];
+					// Accumulated children to save?
+				if (tNode.children.length > 0) {
+					tNode.ti = tI;
+					head.children.push(tNode);
 				}
 					// Have we run out of Templates?
 				if (++tI === stream.t.length) {
 					break tLoop;
 				}
 
-				clan=[];
+				tNode = { parent: head, ti: tI, children: [] };
+
 				tRec = stream.t[tI];
 					// Which Attribute chosen for Legend?
 				fAttID = self.vFrame.getSelLegend(tI);
@@ -3805,19 +3815,21 @@ VizNetWheel.prototype.render = function(stream)
 				fData = PData.lRecs(datum, fAtt, featSet, false);
 				if (fData) {
 					self.rMap[aI >> 4] |= (1 << (aI & 15));
-					clan.push({ r: rec, ai: aI, c: fData.v, l: false, children: [] });
+					tNode.children.push({ parent: tNode, r: rec, ai: aI, c: fData.v, l: false, v: -1, children: [] });
 				}
 			}
 
 			i++;
 		} // while
-		if (clan.length > 0) {
-			head.children.push({ ti: tI, children: clan});
+			// Save final Template node if it had children
+		if (tNode.children.length > 0) {
+			head.children.push(tNode);
 		}
+		tNode = null;
 	}());
 
 		// Compile links between nodes
-		//  { source, target, c[olor] }
+		//  { s[ource], t[arget], c[olor] }
 	head.children.forEach(function(theT) {
 		var pAtts = self.settings.pAtts[theT.ti];
 		var q;
@@ -3841,7 +3853,7 @@ VizNetWheel.prototype.render = function(stream)
 						}
 						if (found) {
 							d.l = true; r2.l = true;
-							links.push({ source: d, target: r2, c: p.clr});
+							links.push({ s: d, t: r2, c: p.clr});
 						}
 					}); // for Pointer values
 				}
@@ -3851,7 +3863,7 @@ VizNetWheel.prototype.render = function(stream)
 
 		// Remove unconnected nodes?
 	if (this.prune) {
-		head.children.forEach(function(theT) {
+		head.children.forEach(function(theT, tI) {
 			for (var rI=theT.children.length-1; rI>=0; rI--) {
 				var r=theT.children[rI];
 				if (!r.l) {
@@ -3860,14 +3872,19 @@ VizNetWheel.prototype.render = function(stream)
 					theT.children.splice(rI, 1);
 				}
 			}
+				// If Template has now been emptied, clear Template's usage flag
+			if (theT.children.length === 0) {
+				self.tUsed[tI] = false;
+			}
 		});
-	}
+	} // if prune
+
+	var numNodes = 0;
+	head.children.forEach(function(theT, tI) {
+		numNodes += theT.children.length;
+	});
 
 		// Now that we know number of nodes, compute sizes
-	var numNodes = 0;
-	head.children.forEach(function(theT) {
-		numNodes +=	theT.children.length;
-	});
 	this.inc = 360/(numNodes+head.children.length);
 
 		// Abort if no Records
@@ -3881,8 +3898,9 @@ VizNetWheel.prototype.render = function(stream)
 		// Compute inner radius based on circumference needed to show all labels
 	var rad = Math.max((numNodes*14 + 20)/(Math.PI*2), 30);
 	var lw = this.settings.lw;
-	if (typeof lw === 'string')
+	if (typeof lw === 'string') {
 		lw = parseInt(lw);
+	}
 
 	this.cr = lw+12+rad;	// Radius to center
 	var diam = this.cr*2;	// Accommodate dot and spacing
@@ -3893,48 +3911,49 @@ VizNetWheel.prototype.render = function(stream)
 
 	this.center.attr("transform", "translate(" + this.cr + "," + this.cr + ")");
 
-	var cluster = d3.layout.cluster()
-		.size([360, rad])
-		.sort(null);
+	var cluster = d3.cluster()
+		.size([360, rad]);
 
-	nodes = cluster.nodes(head);
+	var totalGraph = d3.hierarchy(head);
+	cluster(totalGraph);
+	var leaves = totalGraph.descendants().filter(function(d) { return typeof d.data.ai === 'number'; });
 
-	node = this.center.append("g").selectAll(".node")
-		.data(nodes.filter(function(n) { return !n.children; }))    // Only showing leaf nodes
+		// Set v index in objects for Records in leaves
+	leaves.forEach(function(l, lI) {
+		l.data.v = lI;
+	});
+
+	node = this.center.selectAll(".node")
+		.data(leaves)
 		.enter()
 		.append("g")
 		.attr("class", "node")
-		.attr("transform", function(d) { return "rotate(" + (d.x - 90) + ")translate(" + (d.y + 8) + ",0)"; });
+		.attr("transform", function(d) { return "translate(" + project(d.x, d.y) + ")"; });
 
 	node.append("circle")
 			.attr("r", "5")
-			.style("fill", function(n) { return n.c; })
+			.style("fill", function(d) { return d.data.c; })
 			.on("click", clickDot);
 
 	node.append("text")
 			.attr("dy", ".31em")
-			.attr("dx", function(d) { return d.x < 180 ? "10" : "-10"; })
-			.attr("transform", function(d) { return d.x < 180 ? "" : "rotate(180)"; })
-			.style("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
+			.attr("x", function(d) { return d.x < 180 === !d.children ? 7 : -7; })
+			.style("text-anchor", function(d) { return d.x < 180 === !d.children ? "start" : "end"; })
+			.attr("transform", function(d) { return "rotate(" + (d.x < 180 ? d.x - 90 : d.x + 90) + ")"; })
 			.attr("fill", "black")
-			.text(function(d) { return d.r.l; })
+			.text(function(d) { return d.data.r.l; })
 			.on("click", clickName);
 
-	var bundle = d3.layout.bundle();
-
-	var line = d3.svg.line.radial()
-		.interpolate("bundle")
-		.tension(.85)
-		.radius(function(d) { return d.y; })
-		.angle(function(d) { return d.x / 180 * Math.PI; });
-
-	link = this.center.append("g").selectAll(".link")
-		.data(bundle(links))
-		.enter().append("path")
-		.each(function(d) { d.s = d[0], d.t = d[d.length - 1]; })
-		.attr("class", "link")
-		.attr("d", line)
-		.attr("stroke", "black");
+	link = this.center.selectAll(".link")
+		.data(links)
+	    .enter().append("path")
+	    .attr("class", "link")
+		.attr("stroke", "black")
+	    .attr("d", function(d) {
+			var s=leaves[d.s.v], t=leaves[d.t.v];
+	        return "M" + project(s.x, s.y)
+	            + " Q0,0 " + project(t.x, t.y);
+	    });
 } // render()
 
 VizNetWheel.prototype.teardown = function()
