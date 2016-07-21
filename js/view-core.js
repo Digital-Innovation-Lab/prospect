@@ -4049,7 +4049,7 @@ VizNetWheel.prototype.hint = function()
 // Instance Variables:
 //		svg = SVG created for visualization
 //		stream = datastream to visualize
-//		force = D3 force layout object
+//		physics = D3 force simulation object
 //		rels = [ [boolean], ], to match settings.pAtts, specifying if should display
 
 var VizNetGraph = function(viewFrame, vSettings)
@@ -4070,11 +4070,24 @@ VizNetGraph.prototype.setup = function()
 {
 	var self=this;
 
+	this.stream = null;
+
 	this.svg = d3.select(this.frameID).append("svg");
 
-	this.force = d3.layout.force()
-	    .linkDistance((this.settings.max * 2) + 4)
-	    .linkStrength(1);
+		// Set sizes and centers
+	var size = this.settings.s;
+	if (typeof size === 'string') {
+		size = parseInt(size);
+		this.settings.s = size;
+	}
+	this.svg.attr("width", size)
+		.attr("height", size);
+
+		// Further params set in render
+	this.physics = d3.forceSimulation()
+		.force("center", d3.forceCenter(size/2, size/2))
+	    .force("link", d3.forceLink())
+	    .force("charge", d3.forceManyBody().distanceMax(size/3));
 
 		// By default, all relationships are shown
 	this.rels=[];
@@ -4092,11 +4105,13 @@ VizNetGraph.prototype.setup = function()
 VizNetGraph.prototype.render = function(stream)
 {
 	var self=this;
+	var restart=false;
 
 	if (stream) {
 		this.stream = stream;
 	} else {
 		stream = this.stream;
+		restart = true;
 	}
 
 	function clickDot(d)
@@ -4118,9 +4133,6 @@ VizNetGraph.prototype.render = function(stream)
 
 		// Abort if no Records
 	if (stream.l === 0) {
-			// Set sizes and centers to minimum
-		this.svg.attr("width", "10")
-			.attr("height", "10");
 		return;
 	}
 
@@ -4137,9 +4149,8 @@ VizNetGraph.prototype.render = function(stream)
 	dR = maxR - minR;
 
 		// Create initial array of all nodes
-	var nodes=[], bNodes,	// Nodes + pseudo-nodes for bezier curve
-		links = [],
-		bilinks = [];		// links augmented by intermediate psuedo-node for bezier curve
+	var nodes=[],			// Nodes + pseudo-nodes for bezier curve
+		links = [];
 	var link, node;
 	var i=0, rec, datum;
 	var tRec, tI=0;
@@ -4205,7 +4216,7 @@ VizNetGraph.prototype.render = function(stream)
 						sAtt = minR;
 					}
 					nodes.push({
-						index: nCnt++, x: 0, y: 0, px: 0, py: 0, fixed: false, weight: 0,
+						index: nCnt++, x: 0, y: 0, vx: 0, vy: 0, fx: null, fy: null,
 						ai: aI, t: tI, s: sAtt, c: fData.v, r: rec
 					});
 				} // legend that is enabled
@@ -4214,24 +4225,11 @@ VizNetGraph.prototype.render = function(stream)
 			i++;
 		} // while
 	}());
-	bNodes = nodes.slice();		// clone nodes so can add bezier nodes
 
 		// Abort if no Records
 	if (nCnt === 0) {
-			// Set sizes and centers to minimum
-		this.svg.attr("width", "10")
-			.attr("height", "10");
 		return;
 	}
-
-		// Set sizes and centers
-	var size = this.settings.s;
-	if (typeof size === 'string') {
-		size = parseInt(size);
-	}
-	this.force.size([size, size]);
-	this.svg.attr("width", size)
-		.attr("height", size);
 
 		// Now we need to iterate through nodes and create links
 	var found, rec2, thisT, comp, relSet;
@@ -4263,12 +4261,7 @@ VizNetGraph.prototype.render = function(stream)
 							}
 						} // for rI
 						if (found) {
-							var bRec = {
-								index: nCnt++, x: 0, y: 0, px: 0, py: 0, fixed: false, weight: 0, c: p.clr
-							};
-					    	bNodes.push(bRec);	// push intermediate pseudo-node
-					    	links.push({ source: thisNode, target: bRec }, { source: bRec, target: rec2 });
-					    	bilinks.push([thisNode, bRec, rec2]);
+					    	links.push({ source: thisNode, target: rec2, index: links.length, c: p.clr });
 						} // if found
 					}); // for Pointer values
 				} // Rec has Pointer values
@@ -4276,40 +4269,72 @@ VizNetGraph.prototype.render = function(stream)
 		}); // for all of Template's Pointer entries
 	}); // for all nodes
 
-	this.force
-    	.nodes(bNodes)
-	    .links(links)
-    	.start();
+	function dragstarted(d) {
+		if (!d3.event.active) {
+			self.physics.alphaTarget(0.3).restart();
+		}
+		d.fx = d.x;
+		d.fy = d.y;
+	} // dragstarted()
 
-	link = this.svg.selectAll(".glink")
-    	.data(bilinks)
-    	.enter().append("path")
-    	.attr("class", "glink")
-		.style("stroke", function(d) { return d[1].c; });
+	function dragged(d) {
+		d.fx = d3.event.x;
+		d.fy = d3.event.y;
+	} // dragged()
 
-	node = this.svg.selectAll(".gnode")
+	function dragended(d) {
+		if (!d3.event.active) {
+			self.physics.alphaTarget(0);
+		}
+		d.fx = null;
+		d.fy = null;
+	} // dragended()
+
+	link = this.svg.selectAll("line")
+		.data(links)
+	    .enter()
+		.append("line")
+		.attr("class", "glink")
+		.style("stroke", function(d) { return d.c; });
+
+	node = this.svg.selectAll("circle")
     	.data(nodes)
-    	.enter().append("circle")
+    	.enter()
+		.append("circle")
     	.attr("class", "gnode")
 		.attr("r", function(d) { return d.s; })
 		.style("fill", function(d) { return d.c; })
-		.call(this.force.drag)
+		.call(d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended))
 		.on("click", clickDot);
 	node.append("title")
-		.text(function(d) {
-			return d.r.l;
-		});
+		.text(function(d) { return d.r.l; });
 
-	this.force.on("tick", function() {
-    	link.attr("d", function(d) {
-    		return "M" + d[0].x + "," + d[0].y
-        		+ "S" + d[1].x + "," + d[1].y
-        		+ " " + d[2].x + "," + d[2].y;
-    	});
-    	node.attr("transform", function(d) {
-    		return "translate(" + d.x + "," + d.y + ")";
-    	});
-	}); // force.tick
+	this.physics.force("link").links(links);
+
+		// Add a function that keeps nodes within bounds
+	maxR = this.settings.s - minR;
+	this.physics.force("bounds", function() {
+		for (var i=0, n=nodes.length, node; i<n; ++i) {
+    		node = nodes[i];
+    		node.x = Math.max(minR, Math.min(node.x, maxR));
+			node.y = Math.max(minR, Math.min(node.y, maxR));
+		}
+	});
+
+	this.physics.nodes(nodes)
+		.on("tick", function() {
+			link
+		        .attr("x1", function(d) { return d.source.x; })
+		        .attr("y1", function(d) { return d.source.y; })
+		        .attr("x2", function(d) { return d.target.x; })
+		        .attr("y2", function(d) { return d.target.y; });
+    		node
+		        .attr("cx", function(d) { return d.x; })
+		        .attr("cy", function(d) { return d.y; });
+		});
+	if (restart) {
+		this.physics.alphaTarget(0.3).restart();
+	}
 } // render()
 
 VizNetGraph.prototype.teardown = function()
