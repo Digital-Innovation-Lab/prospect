@@ -1351,13 +1351,13 @@ svg text.att-title
 }
 
 	/* MultiBlock Map styles */
-svg rect.mbm-cell {
+svg g.mbm-1 rect {
 	cursor: pointer;
 	stroke: black;
 	stroke-width: 1px;
 }
 
-svg rect.mbm-cell.obj-sel {
+svg g.mbm-1.obj-sel rect {
 	stroke: yellow;
 	stroke-width: 2px;
 }
@@ -1374,8 +1374,18 @@ svg text.mbm-title {
 }
 
 svg text.mbm-title.obj-sel {
-	cursor: pointer;
 	fill: yellow;
+}
+
+svg rect.mbm-2 {
+	cursor: pointer;
+	stroke: black;
+	stroke-width: 1px;
+}
+
+svg rect.mbm-2.obj-sel {
+	stroke: yellow;
+	stroke-width: 2px;
 }
 
 svg text.mbm-att-title
