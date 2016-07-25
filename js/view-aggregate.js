@@ -976,6 +976,10 @@ VizMBMap.prototype.renderTree = function(aI)
 			if (self.bkSel) {
 				self.bkSel.data.s = false;
 			}
+			if (self.sbkSel) {
+				self.sbkSel.data.s = false;
+			}
+			self.svg.selectAll('.mbm-2').classed('obj-sel', false);
 
 			d.data.s = true;
 			self.bkSel = d;
@@ -1000,10 +1004,13 @@ VizMBMap.prototype.renderTree = function(aI)
 				self.clearSel();
 			} else {
 					// Deselect others
-				self.svg.selectAll('.mbm-2').classed('obj-sel', false);
 				if (self.bkSel) {
 					self.bkSel.data.s = false;
 				}
+				if (self.sbkSel) {
+					self.sbkSel.data.s = false;
+				}
+				self.svg.selectAll('.mbm-2').classed('obj-sel', false);
 
 				self.sbkSel = d;
 				d3.select(this).classed('obj-sel', true);
@@ -1226,7 +1233,6 @@ VizMBMap.prototype.clearSel = function()
 {
 		// Set selection flag to false for all trees
 	if (this.bkSel) {
-		// this.bkSel.s = false;
 		this.bkSel.data.s = false;
 	}
 	this.infoG.select(".mbm-select").remove();
