@@ -3001,8 +3001,10 @@ VizTime.prototype.resize = function()
 		b.labelSVGs.select('#txt-'+toLabel.name).attr("x", txtLeft);
 		if (bi === 0) {
 			if (this.brush) {
-					// Update brush by reinstating its extent
+					// Update brush extent (constraint) and position
 				if (this.brushSVG) {
+					this.brush.extent([[0,0], [b.w, b.h]]);
+					this.brushSVG.call(this.brush);		// Needed to update extent
 					this.brush.move(this.brushSVG, [b.xScale(this.zMinDate), b.xScale(this.zMaxDate)]);
 				}
 			}
@@ -5766,7 +5768,6 @@ PFilterDates.prototype.useBoxes = function(insert)
 		this.b0 = b0;
 		this.b1 = b1;
 		this.brushg.call(this.brush.move, [b0, b1+1].map(this.xScale));
-		// this.brushg.call(this.brush.extent([b0, b1+1]));
 		insert.find('.filter-update').prop('disabled', true);
 	}
 } // useBoxes()
