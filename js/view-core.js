@@ -60,7 +60,7 @@ var V_FLAG_HSCRL = 0x40;		// Add horizontal scroll bar
 
 var parseTC = /(\d\d)\:(\d\d)\:(\d\d)\.(\d\d?)/; 	// precise regular expression for parsing timecodes
 
-var MS_IN_DAY = 86399990; 		// milliseconds in a day: 1000*60*60*24 - 10
+var MS_IN_DAY = 1000*60*60*24-100; 	// milliseconds in a day (minus 100): 1000*60*60*24 - 100
 
 	// GLOBAL VARS
 var TODAY = new Date();
@@ -5783,9 +5783,9 @@ PFilterDates.prototype.evalPrep = function()
 PFilterDates.prototype.eval = function(rec)
 {
 	function makeDate(y, m, d, field, end) {
-		if (typeof field.m != 'undefined') {
+		if (typeof field.m !== 'undefined') {
 			m = field.m;
-			if (typeof field.d != 'undefined') {
+			if (typeof field.d !== 'undefined') {
 				d = field.d;
 			}
 		}
@@ -5828,11 +5828,12 @@ PFilterDates.prototype.eval = function(rec)
 	for (var i=this.b0; i<=this.b1; i++) {
 		c = this.rCats[i];
 		if (c.min <= s && s < c.max) {
-			this.ctrs[i]++;
-			break;
+console.log("Date "+JSON.stringify(s)+" OKed for "+c.l+" ("+i+"); min "+JSON.stringify(c.min)+" / max "+JSON.stringify(c.max));
+			this.ctrs[i]+=1;
+			return true;
 		}
 	}
-	return true;
+	return false;
 } // eval()
 
 PFilterDates.prototype.evalDone = function(total)
@@ -6328,7 +6329,7 @@ var PData = (function() {
 		s1stT: function(stream, tIndex)
 		{
 			var tEntry = stream.t[tIndex];
-			if (tEntry.n == 0)
+			if (tEntry.n === 0)
 				return -1;
 			return tEntry.i;
 		}, // s1stT()
@@ -6590,7 +6591,7 @@ var PData = (function() {
 		tByID: function(tID)
 		{
 			for (var i=0; i<prspdata.t.length; i++) {
-				if (tID == prspdata.t[i].id)
+				if (tID === prspdata.t[i].id)
 					return prspdata.t[i].def;
 			}
 		}, // tByID()
@@ -6639,7 +6640,7 @@ var PData = (function() {
 					return r.length > 0 ? r : null;
 				} else {
 						// Could be multiple values, but just return first success
-					if (att.def.d != '') {
+					if (att.def.d !== '') {
 						var f;
 						for (var vI=0; vI<val.length; vI++) {
 							f = s(val[vI]);
@@ -6655,7 +6656,7 @@ var PData = (function() {
 					fI = fSet[f];
 					lE = att.l[fI];
 						// Looking for match anywhere; TO DO: use RegExp?
-					if (val.indexOf(lE.d) != -1) {
+					if (val.indexOf(lE.d) !== -1) {
 						return lE;
 					}
 				}
@@ -6855,17 +6856,19 @@ var PData = (function() {
 		{
 			var date;
 
-			if (year < 0 || year > 99) { // 'Normal' dates
-				date = new Date(year, month-1, day);
-			} else if (year == 0) { // Year 0 is '1 BC'
-				date = new Date (-1, month-1, day);
-			} else {
-				// Create arbitrary year and then set the correct year
-				date = new Date(year, month-1, day);
+			if (year === 0) { // Convert year 0 to '1 CE'
+				date = new Date (1, month-1, day, 0, 0, 0, 0);
+				date.setUTCFullYear("0001");
+			} else if (year < 0 || year > 99) { // Dates that won't be confused with dates since 1970 (short form)
+				date = new Date(year, month-1, day, 0, 0, 0, 0);
+			} else {	// One- or two-digit dates that will confuse standard Date creator
+					// Reset with the correct year
+				date = new Date(year, month-1, day, 0, 0, 0, 0);
 				date.setUTCFullYear(("0000" + year).slice(-4));
 			}
-			if (end)
+			if (end) {
 				date.setTime(date.getTime() + MS_IN_DAY);
+			}
 			return date;
 		}, // d3Nums
 
@@ -6892,7 +6895,7 @@ var PData = (function() {
 		{
 			var m, d;
 
-			if (str == 'open')
+			if (str === 'open')
 				return TODAY;
 
 			var np = 1;
@@ -7206,17 +7209,19 @@ var PData = (function() {
 						rCat.i = [];
 					}
 
+						// d3Nums() automatically converts year 0 to 1 CE, but need to do that w/string
+					var yS = curY === 0 ? "1" : curY.toString();
 					switch (inc) {
 					case 'd':
-						rCat.l = curY.toString()+"-"+curM.toString()+"-"+curD.toString();
+						rCat.l = yS+"-"+curM.toString()+"-"+curD.toString();
 						break;
 					case 'm':
-						rCat.l = curY.toString()+"-"+curM.toString();
+						rCat.l = yS+"-"+curM.toString();
 						break;
 					case 'y':
 					case 't':
 					case 'c':
-						rCat.l = curY.toString();
+						rCat.l = yS;
 						break;
 					}
 						// Advance to the relevant legend category
@@ -7273,10 +7278,9 @@ var PData = (function() {
 					if (maxMS > TODAY) {
 						maxMS = TODAY;
 					}
-						// Bump up slightly to enable exclusive comparison
-					maxMS.setTime(maxMS.getTime() + 10);
+						// Code not active: bump up slightly to enable exclusive comparison
+					// maxMS.setTime(maxMS.getTime() + 10);
 					rCat.max = maxMS;
-
 					rcs.push(rCat);
 					curDate = PData.d3Nums(curY, curM, curD, false);
 				}
