@@ -5,6 +5,7 @@
 //			There is only one hub at a time so no need for instantiating instances
 //			Implemented with the "Module" design pattern for hiding
 //				private variables and minimizing public accessibility
+//			Useful list of free base maps: http://wiki.openstreetmap.org/wiki/Tile_servers
 
 //			Map entries (as passed in arrays to init) consists of the following fields:
 //				id = unique identifier [String]; if starts with "." it is a Base map
@@ -27,14 +28,6 @@ var PMapHub = (function () {
 		{	id: '.esri-natgeoworld', sname: 'Esri, Nat Geo Landscape',
 			url: "http://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}",
 			subd: '', credits: 'Tiles &copy; Esri &mdash; National Geographic, Esri, DeLorme, NAVTEQ, UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC', desc: 'Esri, National Geographic Landscape'
-		},
-		{	id: '.mq-aerial', sname: 'MQ OpenAerial',
-			url: 'http://{s}.mqcdn.com/tiles/1.0.0/sat/{z}/{x}/{y}.jpg',
-			subd: 'otile1|otile2|otile3|otile4', credits: 'MapQuest', desc: 'MapQuest Open Aerial Base Map'
-		},
-		{	id: '.mq-base', sname: 'Map Quest OSM Base',
-			url: 'http://{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png',
-			subd: 'otile1|otile2|otile3|otile4', credits: 'MapQuest', desc: 'MapQuest Default Base Map'
 		},
 		{	id: '.osm-base', sname: 'OSM Base',
 			url: 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
@@ -61,6 +54,9 @@ var PMapHub = (function () {
 	{
 		var index = _.sortedIndex(baseLayers, { id: id }, 'id');
 		var item = baseLayers[index];
+		if (item.id !== id) {
+			throw new Error("Base map "+id+" does not exist.");
+		}
 		return item.id === id ? item : null;
 	}; // baseByID()
 
@@ -69,6 +65,9 @@ var PMapHub = (function () {
 	{
 		var index = _.sortedIndex(overLayers, { id: id }, 'id');
 		var item = overLayers[index];
+		if (item.id !== id) {
+			throw new Error("Overlay map "+id+" does not exist.");
+		}
 		return item.id === id ? item : null;
 	}; // overlayByID()
 
@@ -161,7 +160,7 @@ var PMapHub = (function () {
 				newLeafLayer.options.isBaseLayer = true;
 				if (leafMap) {
 					leafMap.minZoom = 1;
-					leafMap.maxZoom = 20;	
+					leafMap.maxZoom = 20;
 				}
 
 			} else if (id.charAt(0) === '.') {
