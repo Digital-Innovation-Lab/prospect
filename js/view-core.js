@@ -5828,7 +5828,6 @@ PFilterDates.prototype.eval = function(rec)
 	for (var i=this.b0; i<=this.b1; i++) {
 		c = this.rCats[i];
 		if (c.min <= s && s < c.max) {
-console.log("Date "+JSON.stringify(s)+" OKed for "+c.l+" ("+i+"); min "+JSON.stringify(c.min)+" / max "+JSON.stringify(c.max));
 			this.ctrs[i]+=1;
 			return true;
 		}
@@ -6719,10 +6718,10 @@ var PData = (function() {
 							if (val.max.y < lE.d.min.y)
 								continue;
 							if (val.max.y === lE.d.min.y) {
-								if (val.max.m && lE.d.min.m) {
+								if (typeof val.max.m !== 'undefined' && typeof lE.d.min.m !== 'undefined') {
 									if (val.max.m < lE.d.min.m)
 										continue;
-									if (val.max.m == lE.d.min.m) {
+									if (val.max.m === lE.d.min.m) {
 										if (val.max.d && lE.d.min.d) {
 											if (val.max.d < lE.d.min.d)
 												continue;
@@ -6732,7 +6731,7 @@ var PData = (function() {
 							}
 						}
 							// Test val mins against max bound for disqualification
-						if (val.min.y > lE.d.max.y)
+						if (val.min.y >= lE.d.max.y)
 							continue;
 						if (val.min.y === lE.d.max.y) {
 							if (val.min.m && lE.d.max.m) {
@@ -6755,11 +6754,11 @@ var PData = (function() {
 							if (val.max.y < lE.d.min.y)
 								continue;
 							if (val.max.y === lE.d.min.y) {
-								if (val.max.m && lE.d.min.m) {
+								if (typeof val.max.m !== 'undefined' && typeof lE.d.min.m !== 'undefined') {
 									if (val.max.m < lE.d.min.m)
 										continue;
 									if (val.max.m === lE.d.min.m) {
-										if (val.max.d && lE.d.min.d) {
+										if (typeof val.max.d !== 'undefined' && typeof lE.d.min.d !== 'undefined') {
 											if (val.max.d < lE.d.min.d)
 												continue;
 										}
@@ -6773,11 +6772,11 @@ var PData = (function() {
 							if (val.min.y < lE.d.min.y)
 								continue;
 							if (val.min.y === lE.d.min.y) {
-								if (val.min.m && lE.d.min.m) {
+								if (typeof val.min.m !== 'undefined' && typeof lE.d.min.m !== 'undefined') {
 									if (val.min.m < lE.d.min.m)
 										continue;
 									if (val.min.m === lE.d.min.m) {
-										if (val.min.d && lE.d.min.d) {
+										if (typeof val.min.d !== 'undefined' && typeof lE.d.min.d !== 'undefined') {
 											if (val.min.d < lE.d.min.d)
 												continue;
 										}
