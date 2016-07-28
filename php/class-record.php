@@ -231,16 +231,17 @@ class ProspectRecord {
 								$j_entry = $joins[$i];
 									// Matching Attribute name
 								if ($att_to_load == $j_entry->id) {
-										// Find matching depending Template 
+										// Find matching dependent Template
 									foreach ($dependent_array as $d_temp) {
 										if ($j_entry->t == $d_temp->id) {
 												// Get the Record to Join
 											$j_rec = new ProspectRecord(false, $val, false, $d_temp, null, $att_assocs);
-											if ($j_rec != null) {
+												// Ensure that it is a valid Record with valid data
+											if ($j_rec != null && $j_rec->tmplt_id != null && $j_rec->tmplt_id != '' && count($j_rec->att_data) > 0) {
 												foreach ($j_rec->att_data as $att_id => $att_val) {
 													$this->att_data[$att_to_load.'.'.$att_id] = $att_val;
 												}
-											}
+											} // valid Record and data
 											break;
 										}
 									}
