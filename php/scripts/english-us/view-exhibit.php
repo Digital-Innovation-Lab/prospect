@@ -84,7 +84,7 @@
 		<input type="checkbox" name="prune-nodes" id="prune-nodes"/> <?php _e('Hide unconnected Records', 'prospect'); ?>
 	</div>
 
-	<div id="dialog-netgraph" title=<?php _e('"Network Options"', 'prospect'); ?>>
+	<div id="dialog-netgraph" title=<?php _e('"Options"', 'prospect'); ?>>
 		<?php _e('Relationships to display', 'prospect'); ?>
 		<div class="scroll-container">
 		</div>
