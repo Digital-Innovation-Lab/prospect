@@ -15,7 +15,7 @@ class ProspectRecord {
 		// PURPOSE: Create Record object given its ID and load its custom field values
 		// INPUT:	If is_postid, then the_id is the WordPress post ID (not Record ID)
 		//			the_id is either (1) WordPress post ID, or
-		//				unique ID for Attribute, or '' if this is a new Attribute definition
+		//				(2) unique ID for Record, or '' if this is a new Record definition
 		//			If $keep_raw, then provide just values stored for Record
 		//				if not, then Joins are done, label is determined, etc.
 		//			If $the_template is not null, it is Template Object for Record
@@ -26,7 +26,7 @@ class ProspectRecord {
 		//			New Record created by Dashboard editor will always have $keep_raw = true, not use last fields
 		//			if $the_template, all of its fields will be unpacked
 		//			Only need to apply privacy setting if $keep_raw = false
-		// TO DO:	Evaluate value against Legend ??
+		// TO DO:	Evaluate values against Legends to optimize look-ups ??
 	public function __construct($is_postid, $the_id, $keep_raw, $the_template, $dependent_array, $att_assocs)
 	{
 		$this->id			= $this->post_id = null;
