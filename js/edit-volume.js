@@ -792,6 +792,10 @@ jQuery(document).ready(function() {
 				theVF.c.cnt = newCnt;
 				theVF.c.iAtts = newIAtts;
 				theVF.c.lgnds = newLgnds;
+					// Ensure it has a value if older version of data in use
+				if (typeof theVF.c.v === 'undefined') {
+					theVF.c.v = false;
+				}
 				break;
 			case 'P': 	// Pinboard
 				var newXY=[], newLgnds=[], newPAtts=[], newSAtts=[], newLClrs=[];
@@ -1085,6 +1089,7 @@ jQuery(document).ready(function() {
 
 			case 'C': 	// Cards
 				newVFEntry.c.lOn  = true;
+				newVFEntry.c.v	  = false;
 				newVFEntry.c.w    = 'm';
 				newVFEntry.c.h    = 'm';
 					// Potential Legends
@@ -1592,6 +1597,7 @@ jQuery(document).ready(function() {
 					break;
 				case 'C': 	// Cards
 					saveView.c.lOn  = viewSettings.c.lOn;
+					saveView.c.v	= viewSettings.c.v;
 					saveView.c.w    = viewSettings.c.w;
 					saveView.c.h    = viewSettings.c.h;
 					var newLgnds=[], newCnt=[];

@@ -889,6 +889,11 @@ div.card.obj-sel > div.card-title {
 }
 
 div.card > div.card-body {
+	font-size: 10px;
+	font-weight: normal;
+}
+
+div.card > div.card-body.flex {
 	display: -webkit-box;
 	display: -moz-box;
 	display: -ms-flexbox;
@@ -899,9 +904,6 @@ div.card > div.card-body {
 	-webkit-align-items: flex-start;
 	-moz-align-items: flex-start;
 	-ms-align-items: flex-start;
-
-	font-size: 10px;
-	font-weight: normal;
 }
 
 div.card.wt > div.card-body > img {
@@ -918,15 +920,15 @@ div.card.ww > div.card-body > img {
 }
 div.card.wt > div.card-body > img.full {
 	margin: 2px;
-	width: 92px;
+	width: 88px;
 }
 div.card.wm > div.card-body > img.full {
 	margin: 2px;
-	width: 144px;
+	width: 138px;
 }
 div.card.ww > div.card-body > img.full {
 	margin: 2px;
-	width: 190px;
+	width: 184px;
 }
 
 div.card > div.card-body > div.card-cnt {

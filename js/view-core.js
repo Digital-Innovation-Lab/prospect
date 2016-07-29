@@ -1345,6 +1345,16 @@ VizCards.prototype.render = function(stream)
 			continue;
 		} // if no featAtts
 
+			// Content for this Template type
+		iAttID = self.settings.iAtts[tI];
+		cnt = self.settings.cnt[tI];
+
+			// Skip Templates if no Image or content
+		if (iAttID == null && cnt.length === 0) {
+			tRec = stream.t[++tI];
+			continue;
+		} // if no content
+
 		thisFrame.append('<div class="template-label">'+tDef.l+'</div><div class="cards" data-ti="'+tI+'"></div>');
 		insert = jQuery('div.cards[data-ti="'+tI+'"]');
 
@@ -1353,9 +1363,6 @@ VizCards.prototype.render = function(stream)
 			// Get Feature Attribute ID and def for this Template
 		fAttID = self.vFrame.getSelLegend(tI);
 		fAtt = PData.aByID(fAttID);
-
-		iAttID = self.settings.iAtts[tI];
-		cnt = self.settings.cnt[tI];
 
 		oAttID = self.sAtts[tI];
 		oAtt = PData.aByID(oAttID);
@@ -1388,10 +1395,15 @@ VizCards.prototype.render = function(stream)
 					}
 						// Any image?
 					if (iAttID && (datum = rec.a[iAttID])) {
-						if (hasC)
-							t = '<div class="card-body"><img src="'+datum+'"/><div class="card-cnt"'+tC+'>'+t+'</div></div>';
-						else
-							t = '<div class="card-body"><img class="full" src="'+datum+'"/></div>';
+						if (hasC) {
+							if (self.settings.v) {
+								t = '<div class="card-body"><img class="full" src="'+datum+'"/>'+t+'</div>';
+							} else {
+								t = '<div class="card-body flex"><img src="'+datum+'"/><div class="card-cnt"'+tC+'>'+t+'</div></div>';
+							}
+						} else {
+							t = '<div class="card-body flex"><img class="full" src="'+datum+'"/></div>';
+						}
 					} else {
 						t = '<div class="card-body"><div class="card-cnt"'+tC+'>'+t+'</div>';
 					}
@@ -6856,13 +6868,13 @@ var PData = (function() {
 			var date;
 
 			if (year === 0) { // Convert year 0 to '1 CE'
-				date = new Date (1, month-1, day, 0, 0, 0, 0);
+				date = new Date (1, month-1, day);
 				date.setUTCFullYear("0001");
 			} else if (year < 0 || year > 99) { // Dates that won't be confused with dates since 1970 (short form)
-				date = new Date(year, month-1, day, 0, 0, 0, 0);
+				date = new Date(year, month-1, day);
 			} else {	// One- or two-digit dates that will confuse standard Date creator
 					// Reset with the correct year
-				date = new Date(year, month-1, day, 0, 0, 0, 0);
+				date = new Date(year, month-1, day);
 				date.setUTCFullYear(("0000" + year).slice(-4));
 			}
 			if (end) {

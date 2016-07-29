@@ -401,6 +401,7 @@
 			<option value="m"><?php _e('Medium', 'prospect'); ?></option>
 			<option value="t"><?php _e('Tall', 'prospect'); ?></option>
 		</select>
+	<input type='checkbox' checked='{{c.v}}'/> <?php _e('Stack image vertically', 'prospect'); ?>
 	<br/>
 	<?php _e('Choose the Attribute(s) to visualize on each card according to Template type', 'prospect'); ?>:
 	<tabs>
