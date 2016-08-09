@@ -1649,6 +1649,11 @@ jQuery(document).ready(function() {
 				saveView.c = {};
 				switch (saveView.vf) {
 				case 'M': 	// Map
+					if (viewSettings.c.clat.length == 0 || viewSettings.c.clon.length == 0)
+					{
+						displayError('#errmsg-map-coords', i);
+						return false;
+					}
 					saveView.c.clat = viewSettings.c.clat;
 					saveView.c.clon = viewSettings.c.clon;
 					saveView.c.zoom = viewSettings.c.zoom;
@@ -1671,6 +1676,11 @@ jQuery(document).ready(function() {
 					saveView.c.lyrs = viewSettings.c.lyrs;
 					break;
 				case 'p': 	// Map2
+					if (viewSettings.c.clat.length == 0 || viewSettings.c.clon.length == 0)
+					{
+						displayError('#errmsg-map-coords', i);
+						return false;
+					}
 					saveView.c.clat = viewSettings.c.clat;
 					saveView.c.clon = viewSettings.c.clon;
 					saveView.c.zoom = viewSettings.c.zoom;
@@ -1765,6 +1775,10 @@ jQuery(document).ready(function() {
 					saveView.c.oAtt = viewSettings.c.oAtt;
 					saveView.c.sAtt = viewSettings.c.sAtt;
 					if (!validFacet(saveView.c.oAtt) || !validFacet(saveView.c.sAtt)) {
+						return false;
+					}
+					if (saveView.c.oAtt == saveView.c.sAtt) {
+						displayError('#errmsg-stckchrt-diffats', saveView.l);
 						return false;
 					}
 					break;

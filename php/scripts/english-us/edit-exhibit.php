@@ -963,6 +963,15 @@
 <?php _e('All visualizations need unique, non-empty labels. You have not provided a valid label for view', 'prospect'); ?>
 </script>
 
+<script id="errmsg-stckchrt-diffats" type='text/ractive'>
+<?php _e('You cannot use the same Attribute for both axes on Stacked chart', 'prospect'); ?>
+</script>
+
+<script id="errmsg-map-coords" type='text/ractive'>
+<?php _e('You must provide the center lat-long coordinate for map', 'prospect'); ?>
+</script>
+
+
 <!-- MESSAGE -->
 <script id="msg-confirm-del-vf" type='text/ractive'>
 <?php _e('Are you sure that you wish to delete this View from your Exhibit?', 'prospect'); ?>
