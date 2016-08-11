@@ -3287,10 +3287,25 @@ jQuery(document).ready(function($) {
 		PState.set(PSTATE_PROCESS);
 
 			// Set Reading List, Reading Selection and vMode
-		v0.tocRL = cloneTOCArray(p.s.rl);
-		v0.tocSel = cloneTOCArray(p.s.sel);
-
 		vMode = p.s.vm;
+
+			// PURPOSE: Set Reading List or Selection array safely (in case structure has changed since Reading was saved)
+		function setEntries(src, dest)
+		{
+			var i0, i1, s0, d0;
+
+			for (i0=0; i0<dest.length && i0<src.length; i0++) {
+				s0 = src[i0];
+				d0 = dest[i0];
+				d0.c = s0.c;
+				for (i1=0; i1<d0.s.length && i1<s0.s.length; i1++) {
+					d0.s[i1] = s0.s[i1];
+				}
+			}
+		} // setEntries()
+		setEntries(p.s.rl, v0.tocRL);
+		setEntries(p.s.sel, v0.tocSel);
+
 		jQuery('#command-bar input[type=radio][name=vizmode]').val([vMode]);
 
 		PState.set(PSTATE_BUILD);
