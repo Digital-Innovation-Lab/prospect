@@ -12,7 +12,7 @@
 	{{#if errorMsg.length > 0}}
 	<div id="error-frame">{{errorMsg}}</div>
 	{{/if}}
-	<button id="prsp-save-data" on-click="saveTemplate"><?php _e('Verify and Save Template Definition', 'prospect'); ?></button><br/>
+	<button id="prsp-save-data" on-click="saveTemplate"><?php _e('Verify and Prepare Template Definition for Publish/Update', 'prospect'); ?></button><br/>
 	<label for="ext-label"><?php _e('Template’s external label', 'prospect'); ?>: </label>
 	<input id="ext-label" value='{{theTemplate.l}}' placeholder=<?php _e('"Enter label"', 'prospect'); ?> size="24" required/>
 	<br/>

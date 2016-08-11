@@ -43,8 +43,8 @@
 	<label for="num-g"><?php _e('Group values together by', 'prospect'); ?> </label>
 	<input type="number" id="num-g" value='{{theRange.g}}' min="0" max="4"/> <?php _e('digits', 'prospect'); ?>
 	<br/>
-	<?php _e('Use', 'prospect'); ?> 
-	<input type='checkbox' checked='{{theRange.useU}}'/> <?php _e('color for indefinite Number values ', 'prospect'); ?> 
+	<?php _e('Use', 'prospect'); ?>
+	<input type='checkbox' checked='{{theRange.useU}}'/> <?php _e('color for indefinite Number values ', 'prospect'); ?>
 	<span title=<?php _e('"Click to select color"', 'prospect'); ?> class="viz-icon" style="background-color:{{theRange.u}}" on-click="setUColor"></span>
 </script>
 
@@ -70,8 +70,8 @@
 		<option value="c"><?php _e('Century', 'prospect'); ?></option>
 	</select>
 	<br/>
-	<?php _e('Use', 'prospect'); ?> 
-	<input type='checkbox' checked='{{theRange.useU}}'/> <?php _e('color for indefinite Number values ', 'prospect'); ?> 
+	<?php _e('Use', 'prospect'); ?>
+	<input type='checkbox' checked='{{theRange.useU}}'/> <?php _e('color for indefinite Number values ', 'prospect'); ?>
 	<span title=<?php _e('"Click to select color"', 'prospect'); ?> class="viz-icon" style="background-color:{{theRange.u}}" on-click="setUColor"></span>
 </script>
 
@@ -188,14 +188,14 @@
 	{{#if errorMsg.length > 0}}
 	<div id="error-frame">{{errorMsg}}</div>
 	{{/if}}
-	<button id="prsp-save-data" on-click="saveAttribute"><?php _e('Verify and Save Attribute Definition', 'prospect'); ?></button><br/>
+	<button id="prsp-save-data" on-click="saveAttribute"><?php _e('Verify and Prepare Attribute Definition for Publish/Update', 'prospect'); ?></button><br/>
 	<?php _e('Attribute’s external label', 'prospect'); ?>: <input value='{{theAttribute.l}}' placeholder=<?php _e('"Enter label"', 'prospect'); ?> size="24" required/>
 	<?php _e('Privacy Setting', 'prospect'); ?>: <select value='{{privacy}}'>
 		<option value="o"><?php _e('Open (Public)', 'prospect'); ?></option>
 		<option value="p"><?php _e('Private', 'prospect'); ?></option>
 	</select>
 	<br/>
-	<?php _e('Attribute’s unique internal id', 'prospect'); ?>: 
+	<?php _e('Attribute’s unique internal id', 'prospect'); ?>:
 	<input value='{{attID}}' placeholder=<?php _e('"Enter id"', 'prospect'); ?> size="24" pattern="[\w\-]+" required/>
 	<button decorator="iconButton:ui-icon-info" on-click="idHint"><?php _e('Hint about IDs', 'prospect'); ?></button>
 	<select value='{{chosenCF}}'>
@@ -205,12 +205,12 @@
 	</select>
 	<button on-click="copyCF"><?php _e('Use this Custom Field name', 'prospect'); ?></button>
 	<br/>
-	<?php _e('Attribute value delimiter (single character or blank)', 'prospect'); ?>: <input value='{{theAttribute.d}}' size="2"/> &nbsp; 
+	<?php _e('Attribute value delimiter (single character or blank)', 'prospect'); ?>: <input value='{{theAttribute.d}}' size="2"/> &nbsp;
 	<?php _e('Available as Filter in Exhibit', 'prospect'); ?> <input type='checkbox' checked='{{theAttribute.f}}'/>
 	<br/>
 	<?php _e('Contributor Hint', 'prospect'); ?>: <br/>
 	<input type="text" size="64" maxlength="128" placeholder=<?php _e('"Explain Attribute entry to contributor"', 'prospect'); ?> value="{{theAttribute.h}}" /><br/>
-	<?php _e('Data type', 'prospect'); ?>: 
+	<?php _e('Data type', 'prospect'); ?>:
 	<select value='{{theAttribute.t}}'>
 		{{#each dataTypes}}
 			<option value="{{code}}">{{label}}</option>
@@ -288,11 +288,11 @@
 <!-- Move Vocab Dialog for top-level parent -->
 <script id="dialog-move-vocab-parent" type='text/ractive'>
 	<dialog title=<?php _e('"Move Vocabulary Children"', 'prospect'); ?> width="400" height="200">
-		<input type='radio' name='{{up}}' value='yes'/> <?php _e('Move all children to top (parent) level', 'prospect'); ?> 
+		<input type='radio' name='{{up}}' value='yes'/> <?php _e('Move all children to top (parent) level', 'prospect'); ?>
 		<br/>
 		<input type='radio' name='{{up}}' value='no'/>  <?php _e('Move all to new parent', 'prospect'); ?>
 		<br/>
-		<?php _e('New parent', 'prospect'); ?> 
+		<?php _e('New parent', 'prospect'); ?>
 		<select value='{{newParent}}'>
 			{{#each parents}}
 				<option>{{this}}</option>

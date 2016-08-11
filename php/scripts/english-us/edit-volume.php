@@ -32,7 +32,7 @@
 	{{#if errorMsg.length > 0}}
 	<div id="error-frame">{{errorMsg}}</div>
 	{{/if}}
-	<button id="prsp-save-data" on-click="saveVolume"><?php _e('Verify and Save Volume Definition', 'prospect'); ?></button><br/>
+	<button id="prsp-save-data" on-click="saveVolume"><?php _e('Verify and Prepare Volume Definition for Publish/Update', 'prospect'); ?></button><br/>
 	<accordion>
 		<h3><?php _e('General Settings', 'prospect'); ?></h3>
 		<div>

@@ -13,7 +13,7 @@
 	{{#if errorMsg.length > 0}}
 	<div id="error-frame">{{errorMsg}}</div>
 	{{/if}}
-	<button id="prsp-save-data" on-click="saveRecord"><?php _e('Verify and Save Record', 'prospect'); ?></button><br/>
+	<button id="prsp-save-data" on-click="saveRecord"><?php _e('Verify and Prepare Record for Publish/Update', 'prospect'); ?></button><br/>
 	<div>
 		<label for="rec-id"><?php _e('Unique Record ID', 'prospect'); ?> </label>
 		<input type="text" id="rec-id" size="32" value="{{recID}}" pattern="[\w\-]+" required/>
