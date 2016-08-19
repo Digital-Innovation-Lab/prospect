@@ -540,7 +540,7 @@ VizBrowser.prototype.update = function()
 		if (theF.s != -1) {
 			chosen = true;
 			fi = theF.c[theF.s].i;
-			if (!ia) {
+			if (ia == null) {
 				ia = fi;
 			} else {
 				ia = PData.intersect(ia, fi);
