@@ -217,6 +217,7 @@ PVizModel.prototype.toggleSel = function(absI)
 			this.vFrame.selBtns(true);
 		}
 		this.vFrame.vizAddSel(absI);
+
 		return true;
 	}
 } // toggleSel()
