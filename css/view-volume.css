@@ -528,7 +528,8 @@ div#toc-frame ul.toc-wrapper ul li.sel {
 }
 
 div#bookmark {
-	padding: 2px;
+	padding: 4px 0 0 3px;
+	margin: 0;
 	height: 38px;
 	width: 100%;
 	background: white;
