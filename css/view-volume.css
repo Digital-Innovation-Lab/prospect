@@ -344,7 +344,7 @@ div.filter-body svg .brush .selection {
 	font-family:Verdana, Arial, sans-serif;
 }
 
-	/* The first visualization display */
+	/* The text display */
 #view-frame-0 {
 	width: 550px;
 
@@ -356,7 +356,7 @@ div.filter-body svg .brush .selection {
 	position: relative;
 }
 
-	/* The second visualization display */
+	/* The visualization display */
 #view-frame-1 {
 	width: calc(100% - 550px);
 
@@ -562,44 +562,58 @@ div#read-pane {
 }
 
 div#read-pane h1 {
-	margin-top: 3px;
-	padding: 2px;
+	margin: 3px 0 0 0;
+	padding: 5px 3px 3px 3px;
 	border: 2px solid black;
 	-webkit-border-radius: 6px;
 	-moz-border-radius: 6px;
 	border-radius: 6px;
 	background-color: #56A0D3;
 	font-weight: bold;
-	font-size: 18px;
+	font-size: 22px;
+	line-height: 1em;
 }
 
 div#read-pane h2 {
-	margin-top: 3px;
+	margin: 3px 0 0 0;
 	padding: 0px;
 	border-bottom: 2px solid black;
 	font-weight: bold;
-	font-size: 16px;
+	font-size: 18px;
+	line-height: 1.1em;
 }
 
 div#read-pane h3 {
-	margin-top: 3px;
+	margin: 3px 0 0 0;
 	padding: 0px;
 	border-bottom: 1px dotted black;
 	font-weight: bold;
-	font-size: 14px;
+	font-size: 16px;
+	line-height: 1.1em;
 }
 
 div#read-pane p {
 	font-weight: normal;
-	font-size: 14px;
-	line-height: 1.3em;
+	font-size: 16px;
+	line-height: 1.2em;
+}
+
+div#read-pane h1 + p:first-letter,
+div#read-pane h2 + p:first-letter,
+div#read-pane h3 + p:first-letter {
+	float: left;
+	font-size: 325%;
+	margin: -5px 0 -5px 0;
+	padding: 0 2px 0 0;
+	height:.7em;
+	line-height:.85em;
 }
 
 div#read-pane blockquote {
 	font-family: "Crimson Text",Georgia,"Times New Roman",Times,serif;
 	font-size: 14px;
 	font-weight: normal;
-	line-height: 1.2em;
+	line-height: 1.1em;
 	margin-left: 20px;
 }
 

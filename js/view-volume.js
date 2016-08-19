@@ -3586,6 +3586,9 @@ jQuery(document).ready(function($) {
 	volURL = volURL.replace(/^\//, '');
 	volURL = "http://" + window.location.host + "/" + volURL;
 
+		// Insert reference to CrimsonText font on Google
+	jQuery("script").first().before('<link href="//fonts.googleapis.com/css?family=Crimson+Text:n,b,i" rel="stylesheet" type="text/css"/>');
+
 		// Create string to add to Filter Headers inserting Template IDs & labels
 	(function () {
 		var at = _.template(document.getElementById('dltext-filter-template').innerHTML);
