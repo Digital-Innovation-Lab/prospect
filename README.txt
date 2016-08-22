@@ -1,9 +1,9 @@
 === Prospect ===
 
-Contributors: msnewton, Breon Williams
+Contributors: msnewton, Breon Williams, Kevin Jacoby
 Tags: Data Visualization, Digital Humanities
 Requires at least: 3.9.0
-Tested up to: 4.5
+Tested up to: 4.6
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -20,7 +20,7 @@ Notes on System Requirements:
 * Requires PHP 5.4 or later.
 * WordPress 4.2 or higher recommended to ensure UTF-8 handled properly.
 * MySQL 5.5.14 or higher recommended to ensure UTF-8 handled properly.
-* HTML output uses FlexBox CSS styles, so up-to-date browser required.
+* HTML relies on FlexBox CSS styles, so up-to-date browser required.
 
 == License ==
 
@@ -30,7 +30,7 @@ The Software was developed for research and educational purposes and is copyrigh
 
 End User agrees that any publication of results obtained with the Software will acknowledge its use by the statement, “POWERED BY PROSPECT.”
 
-END USER acknowledges and agrees that UNC will not be responsible for updating the Software.  
+END USER acknowledges and agrees that UNC will not be responsible for updating the Software.
 
 THE SOFTWARE IS PROVIDED 'AS-IS.’  UNC MAKES NO WARRANTY, EXPRESS OR IMPLIED, TO THE END USER OR TO ANY OTHER PERSON OR ENTITY.  SPECIFICALLY, UNC MAKES NO WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE OF THE SOFTWARE.  UNC MAKES NO WARRANTY THAT ALL ERRORS HAVE BEEN OR CAN BE ELIMINATED FROM THE SOFTWARE.  UNC MAKES NO WARRANTIES WITH RESPECT TO THE COMPATIBILITY OF THE SOFTWARE WITH ANY THIRD PARTY CONTENT, INCLUDING ANY THIRD PARTY COMPUTER SOFTWARE AND/OR HARDWARE, AND UNC ASSUMES NO RESPONSIBILITY FOR DAMAGE CAUSED BY OR INCURRED AS A RESULT OF THE USE OF ANY SUCH THIRD PARTY CONTENT WITH THE SOFTWARE.
 
