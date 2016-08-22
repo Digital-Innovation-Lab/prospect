@@ -43,4 +43,4 @@ Notes on System Requirements:
 
 ## ChangeLog
 
-Please see [CHANGES.md](CHANGES.md)
+Please see GitHub release notes at https://github.com/Digital-Innovation-Lab/prospect/releases

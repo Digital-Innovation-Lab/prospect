@@ -44,4 +44,4 @@ The distribution of modified versions of the software under the PROSPECT tradema
 
 == ChangeLog ==
 
-Please see [CHANGES.md](CHANGES.md)
+Please see GitHub release notes at https://github.com/Digital-Innovation-Lab/prospect/releases
