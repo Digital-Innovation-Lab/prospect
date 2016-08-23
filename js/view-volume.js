@@ -2318,6 +2318,7 @@ PTextFrame.prototype.initDOM = function()
 		.click(clickTextFind);
 	jQuery('#view-frame-0 .osel').button({icons: { primary: 'ui-icon-search' }, text: false })
 		.click(clickTextShow);
+
 	jQuery('#read-pane').click(clickReadPane);
 
 	buildTOC();
@@ -3642,6 +3643,12 @@ jQuery(document).ready(function($) {
 		// Command Bar
 	jQuery('#btn-about').button({icons: { primary: 'ui-icon-power' }, text: false })
 			.click(clickAbout);
+	jQuery('#btn-togtext').button({icons: { primary: 'ui-icon-arrow-2-e-w' }, text: false })
+		.click(function() {
+			jQuery('#view-frame-0').toggleClass('mini-text');
+			jQuery('#view-frame-1').toggleClass('mini-text');
+			views[1].resize();
+		});
 	jQuery('#btn-show-reading').button({icons: { primary: 'ui-icon-image' }, text: false })
 			.click(clickShowReading);
 	jQuery('#btn-save-reading').button({icons: { primary: 'ui-icon-pencil' }, text: false })

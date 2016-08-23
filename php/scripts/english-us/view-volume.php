@@ -1,6 +1,7 @@
 <div id="command-bar">
 	<span id="title"></span>
 	&nbsp; <button id="btn-about"><?php _e('About Prospect', 'prospect'); ?></button>
+	<button id="btn-togtext"><?php _e('Min/Max Text Pane', 'prospect'); ?></button>
 	<input type="radio" name="vizmode" id="vizmode-0" value="v0"/><label for="vizmode-0"><?php _e('All Data', 'prospect'); ?></label>
 	<input type="radio" name="vizmode" id="vizmode-1" value="v1" checked/><label for="vizmode-1"><?php _e('In Text Only', 'prospect'); ?></label>
 	<input type="radio" name="vizmode" id="vizmode-2" value="v2"/><label for="vizmode-2"><?php _e('Selected Only', 'prospect'); ?></label>

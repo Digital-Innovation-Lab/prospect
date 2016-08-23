@@ -356,6 +356,10 @@ div.filter-body svg .brush .selection {
 	position: relative;
 }
 
+#view-frame-0.mini-text {
+	width: 350px;
+}
+
 	/* The visualization display */
 #view-frame-1 {
 	width: calc(100% - 550px);
@@ -367,6 +371,10 @@ div.filter-body svg .brush .selection {
 
 	position: relative;
 	margin-left: 2.5px;
+}
+
+#view-frame-1.mini-text {
+	width: calc(100% - 350px);
 }
 
 div.view-controls {
@@ -472,7 +480,7 @@ div#toc-frame {
 	padding: 2px;
 	margin: 1px auto 1px auto;
 
-	overflow-y: scroll;		/* Check if working correctly */
+	overflow-y: scroll;
 
 	position: absolute;
 	height: 100%;
@@ -572,6 +580,7 @@ div#read-pane h1 {
 	background-color: #56A0D3;
 	font-weight: bold;
 	font-size: 22px;
+	text-shadow: 2px 2px 2px grey;
 	line-height: 1em;
 }
 
@@ -622,7 +631,8 @@ div#read-pane blockquote {
 div#read-pane img {
 	margin: 3px;
 	border: 1px solid #cccccc;
-	max-width: 510px;
+
+	max-width: 98%;
 }
 
 div#read-pane a {
