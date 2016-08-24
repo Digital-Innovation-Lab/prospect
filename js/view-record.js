@@ -33,7 +33,7 @@ var widgetData = {			// Widget state has to be global because YouTube API calls 
 //				v = Template's View configuration
 
 jQuery(document).ready(function($) {
-	var container = $('.entry-content');
+	var container = $('#main');
 
 	var avType=0;		// 0=none, 1=SoundCloud, 2=YouTube, 3=Native Audio
 	var scAttVal;		// SoundCloud URL or null
