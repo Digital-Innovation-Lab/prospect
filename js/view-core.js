@@ -3636,22 +3636,49 @@ VizNetWheel.prototype.setup = function()
 
 	function rotate()
 	{
-		if (self.spin > 360)
-			self.spin -= 360;
-		else if (self.spin < 0)
-			self.spin += 360;
+		var spin = self.spin;
+
+		if (spin > 360)
+			spin -= 360;
+		else if (spin < 0)
+			spin += 360;
+		self.spin = spin;
 
 		self.center
-			.attr("transform", "translate(" + self.cr + "," + self.cr + ")rotate(" + self.spin + ")");
+			.attr("transform", "translate(" + self.cr + "," + self.cr + ")rotate(" + spin + ")");
 
-				// Failed experiments
-			// .selectAll("g.node")
-			// .attr("transform", function(d) { return "rotate(" + (((d.x-90) + self.spin) % 360) + ")translate(" + (d.y + 8) + ",0)"; })
-
-			// .selectAll("text")
-			// 	.attr("dx", function(d) { return ((d.x + self.spin) % 360) < 180 ? "10" : "-10"; })
-			// 	.attr("transform", function(d) { ((d.x + self.spin) % 360) < 180 ? "" : "rotate(180)"; })
-			// 	.style("text-anchor", function(d) { return ((d.x + self.spin) % 360) < 180 ? "start" : "end"; });
+				// Change orientation if has changed "sides" since initial render
+		self.center.selectAll("g.node text")
+				.attr("x", function(d) {
+					var x = d.x+spin;
+					x = x > 360 ? x-360 : x;
+					x = x < 0 ? x+360 : x;
+					if (((x < 180) && (d.x < 180)) || ((x >= 180) && (d.x >= 180))) {
+						return d.x < 180 ? "7" : "-7";
+					} else {
+						return d.x < 180 ? "-7" : "7";
+					}
+				})
+				.attr("transform", function(d) {
+					var x = d.x+spin;
+					x = x > 360 ? x-360 : x;
+					x = x < 0 ? x+360 : x;
+					if (((x < 180) && (d.x < 180)) || ((x >= 180) && (d.x >= 180))) {
+						return "rotate(" + (d.x < 180 ? d.x - 90 : d.x + 90) + ")";
+					} else {
+						return "rotate(" + (d.x < 180 ? d.x + 90 : d.x - 90) + ")";
+					}
+				})
+				.style("text-anchor", function(d) {
+					var x = d.x+spin;
+					x = x > 360 ? x-360 : x;
+					x = x < 0 ? x+360 : x;
+					if (((x < 180) && (d.x < 180)) || ((x >= 180) && (d.x >= 180))) {
+						return d.x < 180 ? "start" : "end";
+					} else {
+						return d.x < 180 ? "end" : "start";
+					}
+				});
 	} // rotate()
 
 	var vi = this.vFrame.getIndex();
@@ -3952,8 +3979,8 @@ VizNetWheel.prototype.render = function(stream)
 
 	node.append("text")
 			.attr("dy", ".31em")
-			.attr("x", function(d) { return d.x < 180 === !d.children ? 7 : -7; })
-			.style("text-anchor", function(d) { return d.x < 180 === !d.children ? "start" : "end"; })
+			.attr("x", function(d) { return d.x < 180 ? 7 : -7; })
+			.style("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
 			.attr("transform", function(d) { return "rotate(" + (d.x < 180 ? d.x - 90 : d.x + 90) + ")"; })
 			.attr("fill", "black")
 			.text(function(d) { return d.data.r.l; })
