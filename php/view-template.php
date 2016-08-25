@@ -1,16 +1,31 @@
-<?php get_header(); ?>
-
-<div id="primary" class="content-area">
-    <main id="main" class="site-main" role="main">
-
-		<?php
+<?php	get_header();
+			// Get Template definition
+		$the_template = null;
 		$tmplt_id = get_post_meta($post->ID, 'tmplt-id', true);
 
 		if ($tmplt_id != '') {
-				// Load Template definition
 			$the_template = new ProspectTemplate(false, $tmplt_id, true, true, true);
 
-			echo('<h1>'.$the_template->def->l.'</h1>');
+			$display_style = 0;
+		}
+?>
+
+<div id="primary" class="content-area">
+    <main id="main" class="site-main<?php 	// Add class to main content?
+		switch($display_style) {
+		case 0:
+			break;
+		case 1:
+			echo(' prospect-cards');
+			break;
+		case 2:
+			break;
+		}
+	?>" role="main">
+
+		<?php
+		if ($the_template != null) {
+			echo('<h1 class="prospect">'.$the_template->def->l.'</h1><hr/>');
 
 				// Get dependent Templates needed for Joins
 			$d_templates = $the_template->get_dependent_templates(true);
@@ -34,13 +49,28 @@
 			if ($query->have_posts()) {
 				foreach ($query->posts as $rec) {
 					$the_rec = new ProspectRecord(true, $rec->ID, false, $the_template, $d_templates, $assoc_atts);
-					echo('<h2><a href="'.get_permalink($the_rec->post_id).'">'.$the_rec->label.'</a></h2><br/>');
-						// Extract the necessary data in proper format
-					// $extracted_rec = array();
-					// $extracted_rec['id'] = $the_rec->id;
-					// $extracted_rec['wp'] = $the_rec->post_id;
-					// $extracted_rec['l']  = $the_rec->label;
-					// $extracted_rec['a']  = $the_rec->att_data;
+
+					switch($display_style) {
+					case 0:
+						echo('<h2 class="prospect"><a href="'.get_permalink($the_rec->post_id).'">'.$the_rec->label.'</a></h2>');
+						echo('<div class="prospect-no-wrap"><img class="prospect-thumb" src="https://philipwalton.github.io/solved-by-flexbox/images/kitten.jpg">');
+						echo('<p>Some fake text</p></div>');
+						break;
+					case 1:
+						echo('<div class="prospect-card">');
+						echo('<img class="prospect-thumb" src="https://philipwalton.github.io/solved-by-flexbox/images/kitten.jpg">');
+						echo('<p class="prospect-card-text"><span style="font-weight: bold"><a href="'.
+								get_permalink($the_rec->post_id).'">'.$the_rec->label.'</a></span><br/>');
+						echo('A bunch of fake text as test content blah blah blah</p>');
+						echo('</div>');
+						break;
+					case 2:
+						echo('<figure class="prospect">');
+						echo('<a href="'.get_permalink($the_rec->post_id).'"><img src="https://philipwalton.github.io/solved-by-flexbox/images/kitten.jpg"></a>');
+						echo('<figcaption class="prospect"><div>'.$the_rec->label.'</div></figcaption>');
+						echo('</figure>');
+						break;
+					} // switch by display_style
 				} // foreach
 			} // if have_posts
 		} // if template has id

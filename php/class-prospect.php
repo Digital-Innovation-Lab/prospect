@@ -37,6 +37,7 @@ class Prospect {
 			break;
 
 		case 'prsp-template':
+			wp_enqueue_style('prsp-view-template-style', plugins_url('css/view-template.css', dirname(__FILE__)));
 			$page_template = dirname(__FILE__).'/view-template.php';
 			break;
 
