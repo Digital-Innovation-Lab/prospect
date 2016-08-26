@@ -38,7 +38,7 @@ class ProspectTemplate {
 
 		// RETURNS: An array of all Template definitions (except $except_post_id)
 		// INPUT: 	Ignore the Template whose WP post ID is $except_post_id
-	static public function get_all_template_defs($except_post_id, $unpack, $load_joins, $load_views)
+	static public function get_all_template_defs($except_post_id, $unpack, $load_joins, $load_rviews, $load_tviews)
 	{
 		$all_tmp_defs = array();
 
@@ -48,7 +48,7 @@ class ProspectTemplate {
 		if ($loop->have_posts()) {
 			foreach ($loop->posts as $tmp) {
 				if ($tmp->ID != $except_post_id) {
-					$the_temp = new ProspectTemplate(true, $tmp->ID, $unpack, $load_joins, $load_views);
+					$the_temp = new ProspectTemplate(true, $tmp->ID, $unpack, $load_joins, $load_rviews, $load_tviews);
 					if ($the_temp->id != null && $the_temp->id != '') {
 						array_push($all_tmp_defs, $the_temp);
 					}
@@ -74,6 +74,8 @@ class ProspectTemplate {
 	public $joins;
 	public $meta_view;
 	public $view;
+	public $meta_pview;		// JSON packed version of Template post view config
+	public $pview;
 
 	public $all_att_ids;	// created by get_all_attributes() -- Joined version of Attributes
 
@@ -82,13 +84,15 @@ class ProspectTemplate {
 		//			the_id is either (1) WordPress post ID, or
 		//				unique ID for Template, or '' if this is a new Template definition
 		//			only load joins data if $load_joins is true
-		//			only load view data if $load_view is true
-	public function __construct($is_postid, $the_id, $unpack, $load_joins, $load_view)
+		//			only load Record view data if $load_rview is true
+		//			only load Template view data if $load_tview is
+	public function __construct($is_postid, $the_id, $unpack, $load_joins, $load_rview, $load_tview)
 	{
 		$this->id			= $this->post_id= null;
 		$this->meta_def 	= $this->def 	= null;
 		$this->meta_joins	= $this->joins 	= null;
 		$this->meta_view	= $this->view 	= null;
+		$this->meta_pview	= $this->pview 	= null;
 
 
 		if ($is_postid) {
@@ -135,11 +139,18 @@ class ProspectTemplate {
 						$this->joins = json_decode($this->meta_joins, false);
 				}
 			}
-			if ($load_view) {
+			if ($load_rview) {
 				$this->meta_view = get_post_meta($this->post_id, 'tmplt-view', true);
 				if ($unpack) {
 					if ($this->meta_view != '' && $this->meta_view != 'null')
 						$this->view = json_decode($this->meta_view, false);
+				}
+			}
+			if ($load_tview) {
+				$this->meta_pview = get_post_meta($this->post_id, 'tmplt-pview', true);
+				if ($unpack) {
+					if ($this->meta_pview != '' && $this->meta_pview != 'null')
+						$this->pview = json_decode($this->meta_pview, false);
 				}
 			}
 		} // if post_id
@@ -175,8 +186,8 @@ class ProspectTemplate {
 
 
 		// RETURNS: Array of Dependent templates joined by this Template ordered by ID
-		// INPUT: 	$view is passed as $load_view parameter
-	public function get_dependent_templates($view)
+		// INPUT: 	$view is passed as $load_rview parameter
+	public function get_dependent_templates($rview)
 	{
 			// Decode Join data if not already
 		if ($this->joins == null && ($this->meta_joins != null && $this->meta_joins != '' && $this->meta_joins != 'null'))
@@ -191,7 +202,7 @@ class ProspectTemplate {
 
 		foreach($this->joins as $join_pair) {
 				// As they are dependent Templates, they will not have join data
-			$the_template = new ProspectTemplate(false, $join_pair->t, true, false, $view);
+			$the_template = new ProspectTemplate(false, $join_pair->t, true, false, $rview, false);
 			array_push($deps, $the_template);
 		}
 			// Sort by ID
@@ -223,7 +234,7 @@ class ProspectTemplate {
 					// Find entry in Join table and get dependent Template
 				for ($ji=0; $ji<count($this->joins); $ji++) {
 					if ($att_id == $this->joins[$ji]->id) {
-						$d_tmplt = new ProspectTemplate(false, $this->joins[$ji]->t, true, false, false);
+						$d_tmplt = new ProspectTemplate(false, $this->joins[$ji]->t, true, false, false, false);
 						foreach ($d_tmplt->def->a as $d_att_id) {
 								// Get dependent Attribute definition
 							$d_att = new ProspectAttribute(false, $d_att_id, true, false, true, true, true);

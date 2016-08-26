@@ -33,7 +33,7 @@ class ProspectAdmin {
 	static private function clean_string($orig_string)
 	{
 		$new_string = $orig_string;
-		for ($i = 0; $i <= 31; ++$i) { 
+		for ($i = 0; $i <= 31; ++$i) {
 			$new_string = str_replace(chr($i), "", $new_string);
 		}
 		$new_string = str_replace(chr(127), "", $new_string);
@@ -299,13 +299,14 @@ class ProspectAdmin {
 		echo wp_nonce_field('prsp_save_template'.$postID, 'prsp_nonce');
 
 			// Load this Template's data
-		$the_tmp = new ProspectTemplate(true, $postID, false, true, true);
+		$the_tmp = new ProspectTemplate(true, $postID, false, true, true, true);
 
 			// Special hidden fields for custom fields coordinated by JavaScript code
 		echo '<input type="hidden" name="prsp_tmp_id" value="'.$the_tmp->id.'"/>';
 		echo '<textarea name="prsp_tmp_def" form="post" spellcheck="false" style="display:none">'.$the_tmp->meta_def.'</textarea>';
 		echo '<textarea name="prsp_tmp_joins" form="post" spellcheck="false" style="display:none">'.$the_tmp->meta_joins.'</textarea>';
 		echo '<textarea name="prsp_tmp_view" form="post" spellcheck="false" style="display:none">'.$the_tmp->meta_view.'</textarea>';
+		echo '<textarea name="prsp_tmp_pview" form="post" spellcheck="false" style="display:none">'.$the_tmp->meta_pview.'</textarea>';
 
 		echo '<div id="ractive-output"></div>';
 
@@ -605,6 +606,10 @@ class ProspectAdmin {
 				$tmp_view = $_POST['prsp_tmp_view'];
 				update_post_meta($post_id, 'tmplt-view', $tmp_view);
 			}
+			if (isset($_POST['prsp_tmp_pview'])) {
+				$tmp_pview = $_POST['prsp_tmp_pview'];
+				update_post_meta($post_id, 'tmplt-pview', $tmp_pview);
+			}
 			break;
 		case 'prsp-record':
 				// Verify the nonce is valid
@@ -889,7 +894,7 @@ class ProspectAdmin {
 				}
 
 					// Get all definitions of all other current Templates
-				$tmp_defs = ProspectTemplate::get_all_template_defs($postID, true, false, false);
+				$tmp_defs = ProspectTemplate::get_all_template_defs($postID, true, false, false, false);
 					// Compile into array
 				$tmp_data = array();
 				foreach($tmp_defs as $the_template) {
@@ -937,7 +942,7 @@ class ProspectAdmin {
 				}
 
 					// Get all definitions of all current Templates
-				$tmp_defs = ProspectTemplate::get_all_template_defs(0, true, true, false);
+				$tmp_defs = ProspectTemplate::get_all_template_defs(0, true, true, false, false);
 					// Compile into array
 				$tmp_data = array();
 				foreach($tmp_defs as $the_template) {
@@ -991,7 +996,7 @@ class ProspectAdmin {
 				}
 
 					// Get all definitions of all current Templates
-				$tmp_defs = ProspectTemplate::get_all_template_defs(0, true, true, false);
+				$tmp_defs = ProspectTemplate::get_all_template_defs(0, true, true, false, false);
 					// Compile into array
 				$tmp_data = array();
 				foreach($tmp_defs as $the_template) {
@@ -1051,7 +1056,7 @@ class ProspectAdmin {
 				}
 
 					// Get all definitions of all current Templates
-				$tmp_defs = ProspectTemplate::get_all_template_defs(0, true, true, false);
+				$tmp_defs = ProspectTemplate::get_all_template_defs(0, true, true, false, false);
 					// Compile into array
 				$tmp_data = array();
 				foreach($tmp_defs as $the_template) {
@@ -1184,6 +1189,7 @@ class ProspectAdmin {
 		fwrite($fp, '"tmplt-def": '.$the_template->meta_def.",\n");
 		fwrite($fp, '"tmplt-joins": '.$the_template->meta_joins.",\n");
 		fwrite($fp, '"tmplt-view": '.$the_template->meta_view." \n}");
+		fwrite($fp, '"tmplt-pview": '.$the_template->meta_pview." \n}");
 	} // write_template_data()
 
 
@@ -1201,7 +1207,7 @@ class ProspectAdmin {
 
 			// Get post ID and associated Project Data
 		$postID = (isset($_GET['post']) ? $_GET['post'] : $_POST['post']);
-		$the_template = new ProspectTemplate(true, $postID, false, true, true);
+		$the_template = new ProspectTemplate(true, $postID, false, true, true, true);
 
 			// Create appropriate filename
 		$fp = $this->createUTFOutput($the_template->id.".json", true);
@@ -1229,7 +1235,7 @@ class ProspectAdmin {
 		fwrite($fp, '{"type": "Archive", "items": ['."\n");
 
 			// Get all definitions of all current Templates
-		$template_defs = ProspectTemplate::get_all_template_defs(0, false, true, true);
+		$template_defs = ProspectTemplate::get_all_template_defs(0, false, true, true, true);
 		$first = true;
 		foreach($template_defs as $the_template) {
 			if (!$first)
@@ -1296,7 +1302,7 @@ class ProspectAdmin {
 		// PURPOSE: Export a Template definition and all Attributes that belong to it as a JSON file
 	public function prsp_export_template_and_atts($template_id)
 	{
-		$the_template = new ProspectTemplate(false, $template_id, true, true, true);
+		$the_template = new ProspectTemplate(false, $template_id, true, true, true, true);
 
 			// Create appropriate filename
 		$fp = $this->createUTFOutput($template_id."-archive.json", true);
@@ -1325,7 +1331,7 @@ class ProspectAdmin {
 		// PURPOSE: Export all Records that belong to a particular Template type as a CSV file
 	public function prsp_export_all_template_records($template_id)
 	{
-		$the_template = new ProspectTemplate(false, $template_id, true, false, false);
+		$the_template = new ProspectTemplate(false, $template_id, true, false, false, false);
 
 			// Create appropriate filename
 		$fp = $this->createUTFOutput($template_id."-records.csv", false);
@@ -1817,7 +1823,7 @@ class ProspectAdmin {
 		}
 
 			// Get all definitions of all current Templates
-		$template_defs = ProspectTemplate::get_all_template_defs(0, false, true, true);
+		$template_defs = ProspectTemplate::get_all_template_defs(0, false, true, true, true);
 		foreach($template_defs as $the_template) {
 			if (!$first)
 				fwrite($fp, ",\n");
@@ -2318,18 +2324,18 @@ class ProspectAdmin {
 	// 	$current = isset($this->options['prsp_lang']) ? esc_attr($this->options['prsp_lang']) : 'english-us';
 
 	// 	$html = '<select id="prsp_lang" name="prsp_base_options[prsp_lang]">';
- 
+
 	// 	foreach ($dirs as $this_dir)
 	// 	{
 	// 		$html .= '<option value="'.$this_dir.'"';
-	 
+
 	// 		if ($this_dir == $this->options['prsp_lang'])
 	// 			$html .= ' selected="selected"';
-	 
+
 	// 		$html .= '>'. $this_dir .'</option>';
 	// 	}
 	// 	$html .= '</select>';
- 
+
 	// 	echo($html);
 	// } // prsp_lang_callback()
 
@@ -2386,7 +2392,7 @@ class ProspectAdmin {
 	public function add_prsp_menus()
 	{
 		add_submenu_page('prsp-top-level-handle', __('Archive', 'prospect'), __('Archive', 'prospect'),
-						'manage_options', 'prsp-archive-menu', 
+						'manage_options', 'prsp-archive-menu',
 						array($this, 'show_prsp_archive_page'));
 		add_submenu_page('prsp-top-level-handle', __('Settings', 'prospect'), __('Settings', 'prospect'),
 						'manage_options', 'prsp-settings-page',
@@ -2441,7 +2447,7 @@ class ProspectAdmin {
 		$id = $request['id'];
 		$format = $request['t'];
 
-		$template = new ProspectTemplate(false, $id, true, true, false);
+		$template = new ProspectTemplate(false, $id, true, true, false, false);
 		if ($template == null || $template->post_id == null)
 			return '';
 
@@ -2504,7 +2510,7 @@ class ProspectAdmin {
 		$result = array();
 
 			// Load Template definition
-		$the_template = new ProspectTemplate(false, $tmplt_id, true, true, false);
+		$the_template = new ProspectTemplate(false, $tmplt_id, true, true, false, false);
 		if ($the_template == null || $the_template->post_id == null)
 			return '';
 
@@ -2568,7 +2574,7 @@ class ProspectAdmin {
 
 				// Get Template ID for this Record
 			$template_id = get_post_meta($rec_post_id, 'tmplt-id', true);
-			$template = new ProspectTemplate(false, $template_id, true, true, false);
+			$template = new ProspectTemplate(false, $template_id, true, true, false, false);
 
 				// Get dependent Templates needed for Joins
 			$d_templates = $template->get_dependent_templates(false);
@@ -2665,7 +2671,7 @@ class ProspectAdmin {
 		$result = array();
 
 			// Load Template definition
-		$the_template = new ProspectTemplate(false, $tmplt_id, true, true, false);
+		$the_template = new ProspectTemplate(false, $tmplt_id, true, true, false, false);
 
 			// Get dependent Templates needed for Joins
 		$d_templates = $the_template->get_dependent_templates(false);

@@ -4,21 +4,29 @@
 		$tmplt_id = get_post_meta($post->ID, 'tmplt-id', true);
 
 		if ($tmplt_id != '') {
-			$the_template = new ProspectTemplate(false, $tmplt_id, true, true, true);
+			$the_template = new ProspectTemplate(false, $tmplt_id, true, true, false, true);
 
-			$display_style = 0;
+				// Default settings
+			$display_style = 'l';
+			$display_image = 'disable';
+			$display_content = 'disable';
+			if ($the_template->pview != null) {
+				$display_style = $the_template->pview->d;
+				$display_image = $the_template->pview->i;
+				$display_content = $the_template->pview->c;
+			}
 		}
 ?>
 
 <div id="primary" class="content-area">
     <main id="main" class="site-main<?php 	// Add class to main content?
 		switch($display_style) {
-		case 0:
+		case 'l':
 			break;
-		case 1:
+		case 't':
 			echo(' prospect-cards');
 			break;
-		case 2:
+		case 'h':
 			break;
 		}
 	?>" role="main">
@@ -50,30 +58,63 @@
 				foreach ($query->posts as $rec) {
 					$the_rec = new ProspectRecord(true, $rec->ID, false, $the_template, $d_templates, $assoc_atts);
 
-					switch($display_style) {
-					case 0:
+					switch ($display_style) {
+					case 'l':
 						echo('<h2 class="prospect"><a href="'.get_permalink($the_rec->post_id).'">'.$the_rec->label.'</a></h2>');
-						echo('<div class="prospect-no-wrap"><img class="prospect-thumb" src="https://philipwalton.github.io/solved-by-flexbox/images/kitten.jpg">');
-						echo('<p>Some fake text</p></div>');
-						break;
-					case 1:
-						echo('<div class="prospect-card">');
-						echo('<img class="prospect-thumb" src="https://philipwalton.github.io/solved-by-flexbox/images/kitten.jpg">');
-						echo('<p class="prospect-card-text"><span style="font-weight: bold"><a href="'.
-								get_permalink($the_rec->post_id).'">'.$the_rec->label.'</a></span><br/>');
-						echo('A bunch of fake text as test content blah blah blah</p>');
+						echo('<div class="prospect-no-wrap">');
+						if ($display_image != 'disable' && isset($the_rec->att_data[$display_image])) {
+							echo('<img class="prospect-thumb" src="'.$the_rec->att_data[$display_image].'">');
+						}
+						if ($display_content != 'disable' && isset($the_rec->att_data[$display_content])) {
+							echo('<p>'.prospect_att_val($assoc_atts, $display_content, $the_rec->att_data).'</p>');
+						}
 						echo('</div>');
 						break;
-					case 2:
+					case 't':
+						echo('<div class="prospect-card">');
+						if ($display_image != 'disable' && isset($the_rec->att_data[$display_image])) {
+							echo('<img class="prospect-thumb" src="'.$the_rec->att_data[$display_image].'">');
+						}
+						echo('<p class="prospect-card-text"><span style="font-weight: bold"><a href="'.get_permalink($the_rec->post_id).'">'.$the_rec->label.'</a></span>');
+						if ($display_content != 'disable' && isset($the_rec->att_data[$display_content])) {
+							echo('<br/>'.prospect_att_val($assoc_atts, $display_content, $the_rec->att_data));
+						}
+						echo('</p></div>');
+						break;
+					case 'h':
 						echo('<figure class="prospect">');
-						echo('<a href="'.get_permalink($the_rec->post_id).'"><img src="https://philipwalton.github.io/solved-by-flexbox/images/kitten.jpg"></a>');
-						echo('<figcaption class="prospect"><div>'.$the_rec->label.'</div></figcaption>');
+						echo('<a href="'.get_permalink($the_rec->post_id).'">');
+						if ($display_image != 'disable' && isset($the_rec->att_data[$display_image])) {
+							echo('<img src="'.$the_rec->att_data[$display_image].'">');
+						}
+						echo('</a>');
+						echo('<figcaption class="prospect"><div>'.$the_rec->label);
+						if ($display_content != 'disable' && isset($the_rec->att_data[$display_content])) {
+							echo('<br/>'.prospect_att_val($assoc_atts, $display_content, $the_rec->att_data));
+						}
+						echo('</div></figcaption>');
 						echo('</figure>');
 						break;
 					} // switch by display_style
 				} // foreach
 			} // if have_posts
 		} // if template has id
+
+			// PURPOSE: Return a text value based on the Attribute whose ID is $att_id in $att_array
+		function prospect_att_val($att_defs, $att_id, $att_array)
+		{
+			$att_def = $att_defs[$att_id];
+			$att_val = $att_array[$att_id];
+			switch ($att_def->t) {
+			case 'V':
+			case 'g':
+				return implode(", ", $att_val);
+			case 'T':
+			case 'N':
+			case 'D':
+				return $att_val;
+			} // switch Attribute type
+		} // prospect_att_val()
 
 		?>
     </main>

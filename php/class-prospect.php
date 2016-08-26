@@ -49,7 +49,7 @@ class Prospect {
 
 			if ($tmplt_id != '') {
 					// Load Template definition
-				$the_template = new ProspectTemplate(false, $tmplt_id, true, true, true);
+				$the_template = new ProspectTemplate(false, $tmplt_id, true, true, true, false);
 
 					// Get dependent Templates needed for Joins
 				$d_templates = $the_template->get_dependent_templates(true);
@@ -188,7 +188,7 @@ class Prospect {
 			$all_ts = array();
 			$att_defs = array();
 			foreach ($the_xhbt->gen->ts as $template_id) {
-				$the_template = new ProspectTemplate(false, $template_id, true, true, false);
+				$the_template = new ProspectTemplate(false, $template_id, true, true, false, false);
 					// Get Joined form of Template Attributes
 				$att_defs = array_merge($att_defs, $the_template->get_all_attributes(false));
 				array_push($all_ts, $the_template);
@@ -377,7 +377,7 @@ class Prospect {
 			$all_ts = array();
 			$att_defs = array();
 			foreach ($the_volume->gen->ts as $template_id) {
-				$the_template = new ProspectTemplate(false, $template_id, true, true, false);
+				$the_template = new ProspectTemplate(false, $template_id, true, true, false, false);
 					// Get Joined form of Template Attributes
 				$att_defs = array_merge($att_defs, $the_template->get_all_attributes(false));
 				array_push($all_ts, $the_template);

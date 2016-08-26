@@ -87,6 +87,19 @@ jQuery(document).ready(function() {
 		} // onteardown
 	});
 
+		// PURPOSE: Ensure that Attributes exist in current set of definitions
+		// NOTES:	In case user has deleted or changed Attribute definition since this
+		//				Template was initially created
+	function checkAtt(attID) {
+		if (attID === 'disable')
+			return 'disable';
+		var attDef = _.find(defAtts, function(att) { return att.id == attID; });
+		if (attDef)
+			return attID;
+		else
+			return 'disable';
+	} // checkAtt()
+
 
 		// DATA LOADED FROM SERVER
 		// =======================
@@ -100,8 +113,10 @@ jQuery(document).ready(function() {
 	var templateID = jQuery('input[name="prsp_tmp_id"]').val();
 	var defTemplate;
 	var textAtts = [];					// Text Attributes in this Template
-	var viewAtts;						// Attributes that can be viewed from Record's Post page
-	var scAtts, ytAtts, trAtts, tcAtts;	// Attribute IDs for configuring widgets of specific types
+	var recPostAtts;					// Attributes that can be viewed from Record's Post page
+	var tmpPostAtts;					// Attributes of Records displayed on Template Post page
+	var scAtts, ytAtts, trAtts, tcAtts;	// Attribute IDs available for configuring widgets of specific types
+	var tpIAtts, tpCAtts;				// Attribute IDs for configuring Template Post page
 	var attMap = {};					// For translating from code to label/name
 
 	var embedData;
@@ -123,29 +138,32 @@ jQuery(document).ready(function() {
 
 	embedData = jQuery('textarea[name="prsp_tmp_view"]').val();
 	if (embedData && embedData.length > 2) {
-		viewAtts = JSON.parse(embedData);
-			// Ensure that Attributes still exist
-		function checkAtt(attID) {
-			if (attID === 'disable')
-				return 'disable';
-			var attDef = _.find(defAtts, function(att) { return att.id == attID; });
-			if (attDef)
-				return attID;
-			else
-				return 'disable';
-		} // checkAtt()
-		viewAtts.sc 	= checkAtt(viewAtts.sc);
-		viewAtts.yt 	= checkAtt(viewAtts.yt);
-		viewAtts.t.t1Att = checkAtt(viewAtts.t.t1Att);
-		viewAtts.t.t2Att = checkAtt(viewAtts.t.t2Att);
-		viewAtts.t.tcAtt = checkAtt(viewAtts.t.tcAtt);
+		recPostAtts = JSON.parse(embedData);
+		recPostAtts.sc 	= checkAtt(recPostAtts.sc);
+		recPostAtts.yt 	= checkAtt(recPostAtts.yt);
+		recPostAtts.t.t1Att = checkAtt(recPostAtts.t.t1Att);
+		recPostAtts.t.t2Att = checkAtt(recPostAtts.t.t2Att);
+		recPostAtts.t.tcAtt = checkAtt(recPostAtts.t.tcAtt);
 	} else {
 			// Create default settings in case of new Template
-		viewAtts 	= {};
-		viewAtts.sc = 'disable';
-		viewAtts.yt = 'disable';
-		viewAtts.t 	= { t1Att: 'disable', t2Att: 'disable', tcAtt: 'disable' };
-		viewAtts.cnt= [];
+		recPostAtts 	= {};
+		recPostAtts.sc = 'disable';
+		recPostAtts.yt = 'disable';
+		recPostAtts.t 	= { t1Att: 'disable', t2Att: 'disable', tcAtt: 'disable' };
+		recPostAtts.cnt= [];
+	}
+
+	embedData = jQuery('textarea[name="prsp_tmp_pview"]').val();
+	if (embedData && embedData.length > 2) {
+		tmpPostAtts = JSON.parse(embedData);
+		tmpPostAtts.i 	= checkAtt(tmpPostAtts.i);
+		tmpPostAtts.c 	= checkAtt(tmpPostAtts.c);
+	} else {
+			// Create default settings
+		tmpPostAtts 	= {};
+		tmpPostAtts.d = 'l';
+		tmpPostAtts.i = 'disable';
+		tmpPostAtts.c = 'disable';
 	}
 
 		// Must integrate Joins into Attribute array: { id: att ID, t: type, j: Template ID (if Join) } ]
@@ -162,7 +180,7 @@ jQuery(document).ready(function() {
 		var attDef = _.find(defAtts, function(att) { return att.id === attID; });
 			// Only copy Attributes that exist now
 		if (attDef) {
-			attObj.view = viewAtts.cnt.findIndex(function(att) { return att === attDef.id; } ) != -1;
+			attObj.view = recPostAtts.cnt.findIndex(function(att) { return att === attDef.id; } ) != -1;
 			attObj.t = attDef.def.t;
 			if (attDef.def.t == 'J') {
 					// Find Join entry and add template ID
@@ -307,7 +325,7 @@ jQuery(document).ready(function() {
 		modalDialog.on('dialog.cancel', modalDialog.teardown);
 	} // confirmModal()
 
-		// PURPOSE: Recompute arrays of Attributes for configuring widget on Record page
+		// PURPOSE: (Re)Compute arrays of Attributes for configuring widgets and Template Post page
 		// INPUT: 	if update = true, rApp already created, need to update it
 		//				otherwise, we are preparing for it
 	function compileAttOptions(update)
@@ -318,6 +336,9 @@ jQuery(document).ready(function() {
 		trAtts = ['disable'];
 		tcAtts = ['disable'];
 
+		tpIAtts = ['disable'];
+		tpCAtts = ['disable'];
+
 		var curAttDefs;
 		if (update)
 			curAttDefs = rApp.get('theTemplate.a');
@@ -327,13 +348,23 @@ jQuery(document).ready(function() {
 			// Get initial list of Attributes
 		curAttDefs.forEach(function(theAtt) {
 			switch (theAtt.t) {
-			case 'T':
-				textAtts.push(theAtt.id);
+			case 'V':	// Vocab
+			case 'g':	// Tags
+			case 'N':	// number
+			case 'D':	// Dates
+				tpCAtts.push(theAtt.id);
 				break;
-			case 'S':
+			case 'I':	// Image
+				tpIAtts.push(theAtt.id);
+				break;
+			case 'T':	// Text
+				textAtts.push(theAtt.id);
+				tpCAtts.push(theAtt.id);
+				break;
+			case 'S':	// Audio
 				scAtts.push(theAtt.id);
 				break;
-			case 'Y':
+			case 'Y':	// YouTube
 				ytAtts.push(theAtt.id);
 				break;
 			case 'x': 	// Transcript
@@ -353,21 +384,29 @@ jQuery(document).ready(function() {
 			rApp.set('trAtts', trAtts);
 			rApp.set('tcAtts', tcAtts);
 
+			rApp.set('tpIAtts', tpIAtts);
+			rApp.set('tpCAtts', tpCAtts);
+
 				// NOTES: These forced resets overcome a Ractive quirk
 			if (rApp.get('theTemplate.t') == '') {
 				if (textAtts.length > 0)
 					rApp.set('theTemplate.t', textAtts[0]);
 			}
-			if (rApp.get('viewAtts.sc') == '')
-				rApp.set('viewAtts.sc', 'disable');
-			if (rApp.get('viewAtts.yt') == '')
-				rApp.set('viewAtts.yt', 'disable');
-			if (rApp.get('viewAtts.t.t1Att') == '')
-				rApp.set('viewAtts.t.t1Att', 'disable');
-			if (rApp.get('viewAtts.t.t2Att') == '')
-				rApp.set('viewAtts.t.t2Att', 'disable');
-			if (rApp.get('viewAtts.t.tcAtt') == '')
-				rApp.set('viewAtts.t.tcAtt', 'disable');
+			if (rApp.get('recPostAtts.sc') == '')
+				rApp.set('recPostAtts.sc', 'disable');
+			if (rApp.get('recPostAtts.yt') == '')
+				rApp.set('recPostAtts.yt', 'disable');
+			if (rApp.get('recPostAtts.t.t1Att') == '')
+				rApp.set('recPostAtts.t.t1Att', 'disable');
+			if (rApp.get('recPostAtts.t.t2Att') == '')
+				rApp.set('recPostAtts.t.t2Att', 'disable');
+			if (rApp.get('recPostAtts.t.tcAtt') == '')
+				rApp.set('recPostAtts.t.tcAtt', 'disable');
+
+			if (rApp.get('tmpPostAtts.i') == '')
+				rApp.set('tmpPostAtts.i', 'disable');
+			if (rApp.get('tmpPostAtts.c') == '')
+				rApp.set('tmpPostAtts.c', 'disable');
 		}
 	} // compileAttOptions()
 
@@ -380,12 +419,15 @@ jQuery(document).ready(function() {
 		data: {
 			templateID: templateID,
 			theTemplate: defTemplate,
-			viewAtts: viewAtts,
+			recPostAtts: recPostAtts,
+			tmpPostAtts: tmpPostAtts,
 			textAtts: textAtts,
 			scAtts: scAtts,
 			ytAtts: ytAtts,
 			trAtts: trAtts,
 			tcAtts: tcAtts,
+			tpIAtts: tpIAtts,
+			tpCAtts: tpCAtts,
 			attMap: attMap,
 			errorMsg: errorString
 		},
@@ -590,13 +632,18 @@ jQuery(document).ready(function() {
 			}
 
 			var tmpView = { };
-			tmpView.sc = rApp.get('viewAtts.sc');
-			tmpView.yt = rApp.get('viewAtts.yt');
+			tmpView.sc = rApp.get('recPostAtts.sc');
+			tmpView.yt = rApp.get('recPostAtts.yt');
 			tmpView.t = { };
-			tmpView.t.t1Att = rApp.get('viewAtts.t.t1Att');
-			tmpView.t.t2Att = rApp.get('viewAtts.t.t2Att');
-			tmpView.t.tcAtt = rApp.get('viewAtts.t.tcAtt');
+			tmpView.t.t1Att = rApp.get('recPostAtts.t.t1Att');
+			tmpView.t.t2Att = rApp.get('recPostAtts.t.t2Att');
+			tmpView.t.tcAtt = rApp.get('recPostAtts.t.tcAtt');
 			tmpView.cnt 	= tmpCnt;
+
+			var tmpPost = { };
+			tmpPost.d = rApp.get('tmpPostAtts.d');
+			tmpPost.i = rApp.get('tmpPostAtts.i');
+			tmpPost.c = rApp.get('tmpPostAtts.c');
 
 // console.log("View: "+JSON.stringify(tmpView));
 
@@ -605,6 +652,7 @@ jQuery(document).ready(function() {
 			jQuery('textarea[name="prsp_tmp_def"]').val(JSON.stringify(tmpltDef));
 			jQuery('textarea[name="prsp_tmp_joins"]').val(JSON.stringify(tmpJoins));
 			jQuery('textarea[name="prsp_tmp_view"]').val(JSON.stringify(tmpView));
+			jQuery('textarea[name="prsp_tmp_pview"]').val(JSON.stringify(tmpPost));
 				// Confirm to user that Template saved
 			displayError('#msg-saved', true);
 		}

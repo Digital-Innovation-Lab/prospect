@@ -62,39 +62,59 @@
 		{{/each}}
 	</table>
 
-	<h2><?php _e('Configure Widgets on Post Page displays', 'prospect'); ?></h2>
+	<h2><?php _e('Configure Widgets on Record Post Page displays', 'prospect'); ?></h2>
 	<label for="label-scatt"><?php _e('Audio', 'prospect'); ?>: </label>
-	<select id="label-scatt" value='{{viewAtts.sc}}'>
+	<select id="label-scatt" value='{{recPostAtts.sc}}'>
 		{{#each scAtts}}
 			<option>{{this}}</option>
 		{{/each}}
 	</select>
 	<label for="label-ytatt"><?php _e('YouTube', 'prospect'); ?>: </label>
-	<select id="label-ytatt" value='{{viewAtts.yt}}'>
+	<select id="label-ytatt" value='{{recPostAtts.yt}}'>
 		{{#each ytAtts}}
 			<option>{{this}}</option>
 		{{/each}}
 	</select><br/>
 
 	<label for="label-tr1att"><?php _e('Transcript1', 'prospect'); ?>: </label>
-	<select id="label-tr1att" value='{{viewAtts.t.t1Att}}'>
+	<select id="label-tr1att" value='{{recPostAtts.t.t1Att}}'>
 		{{#each trAtts}}
 			<option>{{this}}</option>
 		{{/each}}
 	</select>
 	<label for="label-tr2att"><?php _e('Transcript2', 'prospect'); ?>: </label>
-	<select id="label-tr2att" value='{{viewAtts.t.t2Att}}'>
+	<select id="label-tr2att" value='{{recPostAtts.t.t2Att}}'>
 		{{#each trAtts}}
 			<option>{{this}}</option>
 		{{/each}}
 	</select>
 	<label for="label-tcatt"><?php _e('TimeCode', 'prospect'); ?>: </label>
-	<select id="label-tcatt" value='{{viewAtts.t.tcAtt}}'>
+	<select id="label-tcatt" value='{{recPostAtts.t.tcAtt}}'>
 		{{#each tcAtts}}
 			<option>{{this}}</option>
 		{{/each}}
 	</select>
 	<br/>
+
+	<h2><?php _e('Template Post Page Display Configuration', 'prospect'); ?></h2>
+	<label for="label-tmpdistype"><?php _e('Display Type', 'prospect'); ?>: </label>
+	<select id="label-tmpdistype" value='{{tmpPostAtts.d}}'>
+		<option value="l"><?php _e('Simple List', 'prospect'); ?></option>
+		<option value="t"><?php _e('Tiling Cards', 'prospect'); ?></option>
+		<option value="h"><?php _e('Primary Image Card', 'prospect'); ?></option>
+	</select>
+	<label for="label-tmpdistimage"><?php _e('Image', 'prospect'); ?>: </label>
+	<select id="label-tmpdistimage" value='{{tmpPostAtts.i}}'>
+		{{#each tpIAtts}}
+			<option>{{this}}</option>
+		{{/each}}
+	</select>
+	<label for="label-tmpdistcnt"><?php _e('Additional Content', 'prospect'); ?>: </label>
+	<select id="label-tmpdistcnt" value='{{tmpPostAtts.c}}'>
+		{{#each tpCAtts}}
+			<option>{{this}}</option>
+		{{/each}}
+	</select>
 </script>
 
 <!-- Choose Attribute Dialog -->
