@@ -66,7 +66,7 @@
 							echo('<img class="prospect-thumb" src="'.$the_rec->att_data[$display_image].'">');
 						}
 						if ($display_content != 'disable' && isset($the_rec->att_data[$display_content])) {
-							echo('<p>'.prospect_att_val($assoc_atts, $display_content, $the_rec->att_data).'</p>');
+							echo('<p class="prospect-list-content">'.prospect_att_val($assoc_atts, $display_content, $the_rec->att_data).'</p>');
 						}
 						echo('</div>');
 						break;
@@ -90,7 +90,7 @@
 						echo('</a>');
 						echo('<figcaption class="prospect"><div>'.$the_rec->label);
 						if ($display_content != 'disable' && isset($the_rec->att_data[$display_content])) {
-							echo('<br/>'.prospect_att_val($assoc_atts, $display_content, $the_rec->att_data));
+							echo('<br/><span style="font-size: .75em">'.prospect_att_val($assoc_atts, $display_content, $the_rec->att_data).'</span>');
 						}
 						echo('</div></figcaption>');
 						echo('</figure>');

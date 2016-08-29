@@ -182,6 +182,12 @@ p.prospect {
 	margin-right: 0;
 }
 
+	/* Style for content Attribute in Simply List display */
+p.prospect-list-content {
+	font-size: .75em;
+	font-style: italic;
+}
+
 div.prospect-no-wrap {
 	margin: 3px;
 	padding: 2px;
