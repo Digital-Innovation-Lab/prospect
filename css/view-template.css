@@ -82,6 +82,15 @@ p.prospect-card-text {
 	flex-basis:         170px;
 }
 
+p.prospect-card-text span.title {
+	font-weight: bold;
+}
+
+p.prospect-card-text span.content {
+	font-size: .8em;
+	font-style: italic;
+}
+
 	/* Styles for Image cards with hover caption */
 figure.prospect {
 	max-width: 200px;
@@ -148,6 +157,11 @@ figure.prospect:hover > figcaption.prospect > div {
 	opacity: 1;
 	top: 0;
 	color: white;
+}
+
+figure.prospect:hover > figcaption.prospect  span.content {
+	font-size: .8em;
+	font-style: italic;
 }
 
 figure.prospect > figcaption.prospect:hover div:after {
