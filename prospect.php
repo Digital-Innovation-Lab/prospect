@@ -127,7 +127,7 @@ function prospect_register_post_types()
 		'has_archive' => false,
 		'hierarchical' => false,
 		'menu_position' => null,
-		'supports' => array('title', 'editor', 'thumbnail', 'revisions'),
+		'supports' => array('title', 'editor', 'thumbnail', 'revisions', 'comments'),
 		'taxonomies' => array('category', 'post_tag'),
 		'capability_type' => array('prsp_record','prsp_records'),
 		'map_meta_cap' => true,
