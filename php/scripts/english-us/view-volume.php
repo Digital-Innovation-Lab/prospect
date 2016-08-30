@@ -140,7 +140,8 @@
 			<a href="http://digitalinnovation.unc.edu" target="_blank">Digital Innovation Lab</a> <?php _e('of the', 'prospect'); ?> <a href="http://www.unc.edu" target="_blank">University of North Carolina, Chapel Hill</a>.</p>
 			<p style="margin:6px"><b><?php _e('Credits', 'prospect'); ?>:</b><br/>
 			Michael Newton: <?php _e('Software architect and developer.', 'prospect'); ?><br/>
-			Breon Williams: <?php _e('CSS contributions.', 'prospect'); ?></p>
+			Breon Williams: <?php _e('CSS contributions.', 'prospect'); ?><br/>
+			Kevin Jacoby: <?php _e('Miscellaneous contributions.', 'prospect'); ?></p>
 			<p><a href="http://prospect.web.unc.edu" target="_blank"><?php _e('See more about Prospect', 'prospect'); ?></a>.</p>
 		</div>
 	</div>
