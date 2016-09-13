@@ -220,6 +220,7 @@
 
 	<ol id="help-txt-tour">
 		<li data-t="#pstate" data-l=<?php _e('"Current State"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Indicates the current state of Prospect (whether or not it is loading data, etc)', 'prospect'); ?></li>
+		<li data-t="#btn-togtext" data-l=<?php _e('"Min/Max Text Pane"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click to minimize or maximize the size of the Text Pane', 'prospect'); ?></li>
 		<li data-t="#vizmode-0" data-l=<?php _e('"Show All Data"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this option if you want all Record data to be shown in the visualization on the right', 'prospect'); ?></li>
 		<li data-t="#vizmode-1" data-l=<?php _e('"Show Data in Text"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this option if you want the visualization on the right to only show Records that are embedded in the text on the left', 'prospect'); ?></li>
 		<li data-t="#vizmode-2" data-l=<?php _e('"Only Show Selected Records"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this option if you want the visualization on the right to only show Records that have been selected in the text on the left', 'prospect'); ?></li>
