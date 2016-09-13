@@ -1276,7 +1276,7 @@ svg path.glink
 	pointer-events: none;
 }
 
-svg line.bmlink
+svg path.bmlink
 {
 	stroke-opacity: .25;
 	stroke-width: 1px;
@@ -1284,7 +1284,7 @@ svg line.bmlink
 	pointer-events: none;
 }
 
-svg line.bmlink.on
+svg path.bmlink.on
 {
 	stroke-opacity: 1;
 	stroke-width: 2px;

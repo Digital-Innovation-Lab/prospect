@@ -4682,7 +4682,7 @@ VizBMatrix.prototype.render = function(stream)
 	    	.data(nodes)
 	    	.enter().append("circle")
 	    	.attr("class", "gnode")
-			.attr("r", "4")
+			.attr("r", nR)
 			.attr("cx", function(d) { return d.x; })
 			.attr("cy", function(d) { return d.y; })
 			.style("fill", function(d) { return d.c; })
@@ -4737,13 +4737,17 @@ VizBMatrix.prototype.render = function(stream)
 
 		var link = this.svg.selectAll(".bmlink")
 	    	.data(links)
-	    	.enter().append("line")
-	    	.attr("class", "bmlink")
-			.attr("x1", function(d) { return nodes[d.n1].x; })
-			.attr("y1", function(d) { return nodes[d.n1].y; })
-			.attr("x2", function(d) { return nodes[d.n2].x; })
-			.attr("y2", function(d) { return nodes[d.n2].y; })
-			.attr("stroke", function(d) { return d.c; });
+
+			.enter().append("path")
+		    .attr("class", "bmlink")
+			.attr("stroke", function(d) { return d.c; })
+		    .attr("d", function(d) {
+				var x1=nodes[d.n1].x, y1=nodes[d.n1].y, x2=nodes[d.n2].x, y2=nodes[d.n2].y;
+				var xm=(x1+x2)/2 + Math.floor(Math.random()*20) - 10;
+				var ym=(y1+y2)/2 + Math.floor(Math.random()*20) - 10;
+		        return "M"+x1+" "+y1+" Q "+xm+" "+ym+" "+x2+" "+y2;
+		    });
+
 		} // if connections
 	} else {
 			// Set sizes and centers to minimum
