@@ -5013,6 +5013,11 @@ PFilterRemove.prototype.setup = function()
 
 // ============================================
 // PFilterText: Class to filter Text Attributes
+// 	Instance Variables:
+//		cs = true if "Case Sensitive" is checked
+//		s = text in search box
+//		o = search option: c[ontains], x[act] or r[egexp]
+//		x = regular expression (if any)
 
 var PFilterText = function(id, attRec)
 {
@@ -5028,8 +5033,18 @@ PFilterText.prototype.evalPrep = function()
 	var ip = this.insertPt();
 	this.cs = ip.find('input.filter-text-cs').prop('checked');
 	this.s = ip.find('input.filter-text').val();
-	if (!this.cs)
-		this.s = this.s.toLocaleLowerCase();
+	this.o = ip.find('select.filter-text-ops').val();
+	switch (this.o) {
+	case 'c':	// Contains
+	case 'x':	// Exact
+		if (!this.cs) {
+			this.s = this.s.toLocaleLowerCase();
+		}
+		break;
+	case 'r':	// Regular Expression
+		this.s = new RegExp(this.s);
+		break;
+	}
 } // evalPrep()
 
 PFilterText.prototype.eval = function(rec)
@@ -5042,9 +5057,22 @@ PFilterText.prototype.eval = function(rec)
 	var t = rec.a[this.att.id];
 	if (typeof t === 'undefined')
 		return false;
-	if (!this.cs)
-		t = t.toLocaleLowerCase();
-	return t.indexOf(s) !== -1;
+
+	switch (this.o) {
+	case 'c':	// Contains
+		if (!this.cs) {
+			t = t.toLocaleLowerCase();
+		}
+		return t.indexOf(s) !== -1;
+	case 'x':	// Exact
+		if (!this.cs) {
+			t = t.toLocaleLowerCase();
+		}
+		return t === s;
+	case 'r':	// Regular Expression
+		return s.test(t);
+	}
+	return false;
 } // eval()
 
 PFilterText.prototype.setup = function()
@@ -5058,6 +5086,9 @@ PFilterText.prototype.setup = function()
 	inserted.find('input.filter-text').change(function() {
 		self.isDirty(true);
 	});
+	inserted.find('select.filter-text-ops').change(function() {
+		self.isDirty(true);
+	});
 	inserted.find('input.filter-text-cs').click(function(event) {
 		self.isDirty(true);
 	});
@@ -5066,20 +5097,34 @@ PFilterText.prototype.setup = function()
 PFilterText.prototype.getState = function()
 {
 	var ip = this.insertPt();
-	return { cs: ip.find('input.filter-text-cs').prop('checked'), t: ip.find('input.filter-text').val() };
+	return { cs: ip.find('input.filter-text-cs').prop('checked'),
+			 t: ip.find('input.filter-text').val(),
+			 o: ip.find('select.filter-text-ops').val()
+		 	};
 } // getState()
 
+	// NOTE: Perspective data ≤ 1.6 doesn't have o[ptions] setting
 PFilterText.prototype.setState = function(state)
 {
 	var ip = this.insertPt();
 	ip.find('input.filter-text-cs').prop('checked', state.cs);
 	ip.find('input.filter-text').val(state.t);
+	if (typeof state.o === 'undefined') {	// Handle older Perspective data
+		ip.find('select.filter-text-ops').val('c');
+	} else {
+		ip.find('select.filter-text-ops').val(state.o);
+	}
 } // setState()
 
 
 // ==============================================
 // PFilterTags: Class to filter Tags Attributes
 //				Only slightly different from Text
+// 	Instance Variables:
+//		cs = true if "Case Sensitive" is checked
+//		s = text in search box
+//		o = search option: c[ontains], x[act] or r[egexp]
+//		x = regular expression (if any)
 
 var PFilterTags = function(id, attRec)
 {
@@ -5094,10 +5139,18 @@ PFilterTags.prototype.evalPrep = function()
 {
 	var ip = this.insertPt();
 	this.cs = ip.find('input.filter-text-cs').prop('checked');
-	this.p = ip.find('input.filter-text-p').prop('checked');
 	this.s = ip.find('input.filter-text').val();
-	if (!this.cs) {
-		this.s = this.s.toLocaleLowerCase();
+	this.o = ip.find('select.filter-text-ops').val();
+	switch (this.o) {
+	case 'c':	// Contains
+	case 'x':	// Exact
+		if (!this.cs) {
+			this.s = this.s.toLocaleLowerCase();
+		}
+		break;
+	case 'r':	// Regular Expression
+		this.s = new RegExp(this.s);
+		break;
 	}
 } // evalPrep()
 
@@ -5111,17 +5164,36 @@ PFilterTags.prototype.eval = function(rec)
 	var t = rec.a[this.att.id];
 	if (typeof t === 'undefined')
 		return false;
+
+	var cs=this.cs, o=this.o;
+		// Test each of this Record’s tag values
+		// Return true on first match
 	for (var i=0; i<t.length; i++) {
 		var d=t[i];
-		if (!this.cs) {
-			d = d.toLocaleLowerCase();
+
+		switch (o) {
+		case 'c':	// Contains
+			if (!cs) {
+				d = d.toLocaleLowerCase();
+			}
+			if (d.indexOf(s) !== -1) {
+				return true;
+			}
+			break;
+		case 'x':	// Exact
+			if (!cs) {
+				d = d.toLocaleLowerCase();
+			}
+			if (d === s) {
+				return true;
+			}
+			break;
+		case 'r':	// Regular Expression
+			if (s.test(d)) {
+				return true;
+			}
 		}
-		if (this.p) {
-			return (d.indexOf(s) !== -1);
-		} else {
-			return (d === s);
-		}
-	}
+	} // for each tag
 	return false;
 } // eval()
 
@@ -5136,10 +5208,10 @@ PFilterTags.prototype.setup = function()
 	inserted.find('input.filter-text').change(function() {
 		self.isDirty(true);
 	});
-	inserted.find('input.filter-text-cs').click(function(event) {
+	inserted.find('select.filter-text-ops').change(function(event) {
 		self.isDirty(true);
 	});
-	inserted.find('input.filter-text-p').click(function(event) {
+	inserted.find('input.filter-text-cs').click(function(event) {
 		self.isDirty(true);
 	});
 } // setup()
@@ -5148,16 +5220,22 @@ PFilterTags.prototype.getState = function()
 {
 	var ip = this.insertPt();
 	return { cs: ip.find('input.filter-text-cs').prop('checked'),
-				p: ip.find('input.filter-text-p').prop('checked'),
-				t: ip.find('input.filter-text').val() };
+			 t: ip.find('input.filter-text').val(),
+			 o: ip.find('select.filter-text-ops').val()
+		 	};
 } // getState()
 
+	// NOTE: Perspective data ≤ 1.6 has p[artial] flag but not o[ption]
 PFilterTags.prototype.setState = function(state)
 {
 	var ip = this.insertPt();
 	ip.find('input.filter-text-cs').prop('checked', state.cs);
-	ip.find('input.filter-text-p').prop('checked', state.p);
 	ip.find('input.filter-text').val(state.t);
+	if (typeof state.p != 'undefined') {	// Handle older Perspective data
+		ip.find('select.filter-text-ops').val('c');
+	} else {
+		ip.find('select.filter-text-ops').val(state.o);
+	}
 } // setState()
 
 // ===================================================
@@ -6080,6 +6158,11 @@ PFilterDates.prototype.setState = function(state)
 
 // ==============================================
 // PFilterPtr: Class to filter Pointer Attributes
+// 	Instance Variables:
+//		cs = true if "Case Sensitive" is checked
+//		s = text in search box
+//		o = search option: c[ontains], x[act] or r[egexp]
+//		x = regular expression (if any)
 
 var PFilterPtr = function(id, attRec)
 {
@@ -6095,8 +6178,18 @@ PFilterPtr.prototype.evalPrep = function()
 	var ip = this.insertPt();
 	this.cs = ip.find('input.filter-text-cs').prop('checked');
 	this.s = ip.find('input.filter-text').val();
-	if (!this.cs)
-		this.s = this.s.toLocaleLowerCase();
+	this.o = ip.find('select.filter-text-ops').val();
+	switch (this.o) {
+	case 'c':	// Contains
+	case 'x':	// Exact
+		if (!this.cs) {
+			this.s = this.s.toLocaleLowerCase();
+		}
+		break;
+	case 'r':	// Regular Expression
+		this.s = new RegExp(this.s);
+		break;
+	}
 } // evalPrep()
 
 PFilterPtr.prototype.eval = function(rec)
@@ -6111,16 +6204,36 @@ PFilterPtr.prototype.eval = function(rec)
 	if (typeof p === 'undefined' || p.length === 0)
 		return false;
 
+	var o=this.o, cs=this.cs;
+
+		// Process all of the Records pointed to, return true for first match
 	for (var i=0; i<p.length; i++) {
 		r = PData.rByID(p[i]);
 		l = r.l;
-		if (!this.cs) {
-			l = l.toLocaleLowerCase();
+
+		switch (o) {
+		case 'c':	// Contains
+			if (!cs) {
+				l = l.toLocaleLowerCase();
+			}
+			if (l.indexOf(s) !== -1) {
+				return true;
+			}
+			break;
+		case 'x':	// Exact
+			if (!cs) {
+				l = l.toLocaleLowerCase();
+			}
+			if (l === s) {
+				return true;
+			}
+			break;
+		case 'r':	// Regular Expression
+			if (s.test(l)) {
+				return true;
+			}
 		}
-		if (l.indexOf(s) !== -1) {
-			return true;
-		}
-	}
+	} // for all Pointers
 	return false;
 } // eval()
 
@@ -6135,6 +6248,9 @@ PFilterPtr.prototype.setup = function()
 	inserted.find('input.filter-text').change(function() {
 		self.isDirty(true);
 	});
+	inserted.find('select.filter-text-ops').change(function() {
+		self.isDirty(true);
+	});
 	inserted.find('input.filter-text-cs').click(function(event) {
 		self.isDirty(true);
 	});
@@ -6143,14 +6259,23 @@ PFilterPtr.prototype.setup = function()
 PFilterPtr.prototype.getState = function()
 {
 	var ip = this.insertPt();
-	return { cs: ip.find('input.filter-text-cs').prop('checked'), t: ip.find('input.filter-text').val() };
+	return { cs: ip.find('input.filter-text-cs').prop('checked'),
+			 t: ip.find('input.filter-text').val(),
+			 o: ip.find('select.filter-text-ops').val()
+		 	};
 } // getState()
 
+	// NOTE: Perspective data ≤ 1.6 doesn't have o[ptions] flag
 PFilterPtr.prototype.setState = function(state)
 {
 	var ip = this.insertPt();
 	ip.find('input.filter-text-cs').prop('checked', state.cs);
 	ip.find('input.filter-text').val(state.t);
+	if (typeof state.o === 'undefined') {	// Handle older Perspective data
+		ip.find('select.filter-text-ops').val('c');
+	} else {
+		ip.find('select.filter-text-ops').val(state.o);
+	}
 } // setState()
 
 

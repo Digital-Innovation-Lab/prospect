@@ -251,14 +251,23 @@
 </script>
 
 <script id="dltext-filter-text" type='text'>
-	<input type="checkbox" class="filter-text-cs" checked="checked"><?php _e('Case sensitive', 'prospect'); ?>&nbsp;&nbsp;
-	<?php _e('Text must include', 'prospect'); ?> <input class="filter-text" type="text" size="20"/>
+	<select class="filter-text-ops" value="c">
+		<option value="c"><?php _e('Text contains', 'prospect'); ?></option>
+		<option value="x"><?php _e('Exact match', 'prospect'); ?></option>
+		<option value="r"><?php _e('Regular expression', 'prospect'); ?></option>
+	</select>
+	<input class="filter-text" type="text" size="20"/>
+	<input type="checkbox" class="filter-text-cs" checked="checked"><?php _e('Case sensitive', 'prospect'); ?>
 </script>
 
 <script id="dltext-filter-tags" type='text'>
-	<input type="checkbox" class="filter-text-cs" checked="checked"><?php _e('Case sensitive', 'prospect'); ?>&nbsp;&nbsp;
-	<input type="checkbox" class="filter-text-p"><?php _e('Part of tag', 'prospect'); ?>&nbsp;&nbsp;
-	<?php _e('Tags must include', 'prospect'); ?> <input class="filter-text" type="text" size="20"/>
+	<select class="filter-text-ops" value="c">
+		<option value="c"><?php _e('Tag that contains', 'prospect'); ?></option>
+		<option value="x"><?php _e('Exact tag match with', 'prospect'); ?></option>
+		<option value="r"><?php _e('Regular expression', 'prospect'); ?></option>
+	</select>
+	<input class="filter-text" type="text" size="20"/>
+	<input type="checkbox" class="filter-text-cs" checked="checked"><?php _e('Case sensitive', 'prospect'); ?>
 </script>
 
 <script id="dltext-filter-nums" type='text'>
@@ -287,8 +296,14 @@
 </script>
 
 <script id="dltext-filter-ptr" type='text'>
-	<input type="checkbox" class="filter-text-cs" checked="checked"><?php _e('Case sensitive', 'prospect'); ?>&nbsp;&nbsp;
-	<?php _e('Must point to a Record whose label includes', 'prospect'); ?> <input class="filter-text" type="text" size="20"/>
+	<?php _e('Points to a Record label', 'prospect'); ?>
+	<select class="filter-text-ops" value="c">
+		<option value="c"><?php _e('that contains', 'prospect'); ?></option>
+		<option value="x"><?php _e('is exact match', 'prospect'); ?></option>
+		<option value="r"><?php _e('regular expression', 'prospect'); ?></option>
+	</select>
+	<input class="filter-text" type="text" size="20"/>
+	<input type="checkbox" class="filter-text-cs" checked="checked"><?php _e('Case sensitive', 'prospect'); ?>
 </script>
 
 <script id="dltext-removehideall" type="text">
