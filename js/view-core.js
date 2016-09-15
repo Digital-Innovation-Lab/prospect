@@ -5232,7 +5232,11 @@ PFilterTags.prototype.setState = function(state)
 	ip.find('input.filter-text-cs').prop('checked', state.cs);
 	ip.find('input.filter-text').val(state.t);
 	if (typeof state.p != 'undefined') {	// Handle older Perspective data
-		ip.find('select.filter-text-ops').val('c');
+		if (state.p) {
+			ip.find('select.filter-text-ops').val('c');
+		} else {
+			ip.find('select.filter-text-ops').val('x');
+		}
 	} else {
 		ip.find('select.filter-text-ops').val(state.o);
 	}
