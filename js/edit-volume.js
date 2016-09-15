@@ -205,22 +205,28 @@ jQuery(document).ready(function() {
 		defViews = JSON.parse(embedData);
 	}
 		// Configurations of Inspector
-	var defInspect = { sc: { atts: [] }, yt: { atts: [] }, t: { t1Atts: [], t2Atts: [], tcAtts: [] },
-					modal: { aOn: false, scOn: false, ytOn: false, tOn: false, t2On: false, atts: [] } };
+	var defInspect = {	modal: { aOn: false, scOn: false, ytOn: false, tOn: false, t2On: false, atts: [] },
+						sc: { atts: [] }, yt: { atts: [] }, t: { t1Atts: [], t2Atts: [], tcAtts: [] },
+						srOff: false, w: '', h: ''
+					 };
 	embedData = jQuery('textarea[name="prsp_vol_inspect"]').val();
 	if (embedData && embedData != 'null' && embedData.length > 4) {
 		defInspect = JSON.parse(embedData);
-	}
-		// Create default override width & height if not defined
-	if (typeof defInspect.w === 'undefined') {
-		defInspect.w = '';
-	}
-	if (typeof defInspect.h === 'undefined') {
-		defInspect.h = '';
-	}
-		// Create native audio setting if missing
-	if (typeof defInspect.modal.aOn === 'undefined') {
-		defInspect.modal.aOn = false;
+			// Create default override width & height if not defined
+		if (typeof defInspect.w === 'undefined') {
+			defInspect.w = '';
+		}
+		if (typeof defInspect.h === 'undefined') {
+			defInspect.h = '';
+		}
+			// Create native audio setting if missing
+		if (typeof defInspect.modal.aOn === 'undefined') {
+			defInspect.modal.aOn = false;
+		}
+			// Create default setting for disable See Record button (1.6.1)
+		if (typeof defInspect.srOff === 'undefined') {
+			defInspect.srOff = false;
+		}
 	}
 
 		// Read text labels for visualization types: c[ode], l[abel]
@@ -1712,6 +1718,7 @@ jQuery(document).ready(function() {
 				newModalCnt.push(packUsedAtts(inspectSettings.modal.atts[tIndex]));
 			});
 			saveInspect.modal.atts = newModalCnt;
+			saveInspect.srOff = inspectSettings.srOff;
 
 // console.log("Saving: ");
 // console.log("prsp_vol_gen: "+JSON.stringify(saveGen));

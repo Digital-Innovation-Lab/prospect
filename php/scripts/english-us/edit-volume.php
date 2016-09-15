@@ -96,13 +96,15 @@
 		<h3><?php _e('Inspector', 'prospect'); ?></h3>
 		<div>{{#with inspectSettings}}
 			<div>
-				<?php _e('Playback Widgets', 'prospect'); ?>:
+				<b><?php _e('Playback Widgets', 'prospect'); ?></b>:
 				<input type='checkbox' checked='{{modal.aOn}}'/> <?php _e('Audio', 'prospect'); ?>
 				<input type='checkbox' checked='{{modal.scOn}}'/> <?php _e('Load SoundCloud', 'prospect'); ?>
 				<input type='checkbox' checked='{{modal.ytOn}}'/> <?php _e('YouTube', 'prospect'); ?>
 				<input type='checkbox' checked='{{modal.tOn}}'/> <?php _e('Transcripts', 'prospect'); ?>
 				<input type='checkbox' checked='{{modal.t2On}}'/> <?php _e('Dual Transcripts', 'prospect'); ?>
 			</div>
+			<input type='checkbox' id="see-rec-off" checked='{{srOff}}'/>
+			<label for="see-rec-off"><?php _e('Disable “See Record” button', 'prospect'); ?> </label>
 			<div>
 				<?php _e('Size overrides (leave blank for default)', 'prospect'); ?>:
 				<?php _e('Width', 'prospect'); ?> <input type='text' value='{{modal.w}}' placeholder=<?php _e('"Default"', 'prospect'); ?> size="5"/>

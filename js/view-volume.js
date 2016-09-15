@@ -647,31 +647,32 @@ PViewFrame.prototype.openSelection = function()
 	inspectShow();
 	jQuery('#btn-inspect-left').click(inspectLeft);
 	jQuery('#btn-inspect-right').click(inspectRight);
+	
+	var btns = [{
+		text: dlText.findintext,
+		click: function() {
+			self.callbacks.textFrame.findRec(rec.id);
+		}
+	}];
+
+		// Handle setting if undefined
+	if (typeof prspdata.e.i.srOff === 'undefined' || !prspdata.e.i.srOff) {
+		btns.push({
+			text: dlText.seerec,
+			click: function() { window.open(prspdata.site_url+'?p='+rec.wp, '_blank'); }
+		});
+	}
+
+	btns.push({
+		text: dlText.close,
+		click: function() { inspector.dialog("close"); } // click
+	});
 
 	inspector = jQuery("#dialog-inspector").dialog({
 		width: w,
 		height: h,
 		modal: true,
-		buttons: [
-			{
-				text: dlText.findintext,
-				click: function() {
-					self.callbacks.textFrame.findRec(rec.id);
-				}
-			},
-			{
-				text: dlText.seerec,
-				click: function() {
-					window.open(prspdata.site_url+'?p='+rec.wp, '_blank');
-				}
-			},
-			{
-				text: dlText.close,
-				click: function() {
-					inspector.dialog("close");
-				} // click
-			}
-		]
+		buttons: btns
 	});
 
 	inspector.on("dialogclose", function(event, ui) {
