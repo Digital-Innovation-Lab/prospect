@@ -4089,13 +4089,16 @@ VizNetWheel.prototype.hint = function()
 // VizNetGraph: Class to visualize connections between Records as network graph
 //
 // Instance Variables:
+//		stream = last datastream used for render (needed in case redraw from options)
 //		svg = SVG created for visualization
-//		stream = datastream to visualize
 //		physics = D3 force simulation object
 //		rels = [ [boolean], ], to match settings.pAtts, specifying if should display
 
 var VizNetGraph = function(viewFrame, vSettings)
 {
+	this.physics = null;
+	this.stream = null;
+
 	PVizModel.call(this, viewFrame, vSettings);
 } // VizNetGraph
 
@@ -4112,8 +4115,6 @@ VizNetGraph.prototype.setup = function()
 {
 	var self=this;
 
-	this.stream = null;
-
 	this.svg = d3.select(this.frameID).append("svg");
 
 		// Set sizes and centers
@@ -4124,12 +4125,6 @@ VizNetGraph.prototype.setup = function()
 	}
 	this.svg.attr("width", size)
 		.attr("height", size);
-
-		// Further params set in render
-	this.physics = d3.forceSimulation()
-		.force("center", d3.forceCenter(size/2, size/2))
-	    .force("link", d3.forceLink())
-	    .force("charge", d3.forceManyBody().distanceMax(size/3));
 
 		// By default, all relationships are shown
 	this.rels=[];
@@ -4143,17 +4138,15 @@ VizNetGraph.prototype.setup = function()
 } // setup()
 
 	// PURPOSE: Draw the Records in the given datastream
-	// INPUT:	steam = datastream (which is saved), or null (if reuse last)
+	// INPUT:	steam = datastream; null is passed in if called from options
 VizNetGraph.prototype.render = function(stream)
 {
 	var self=this;
-	var restart=false;
 
 	if (stream) {
 		this.stream = stream;
 	} else {
 		stream = this.stream;
-		restart = true;
 	}
 
 	function clickDot(d)
@@ -4351,6 +4344,13 @@ VizNetGraph.prototype.render = function(stream)
 	node.append("title")
 		.text(function(d) { return d.r.l; });
 
+		// Need new physics sim for each new render
+	i = this.settings.s;
+	this.physics = d3.forceSimulation()
+		.force("center", d3.forceCenter(i/2, i/2))
+	    .force("link", d3.forceLink())
+	    .force("charge", d3.forceManyBody().distanceMax(i/8));
+
 	this.physics.force("link").links(links);
 
 		// Add a function that keeps nodes within bounds
@@ -4374,9 +4374,6 @@ VizNetGraph.prototype.render = function(stream)
 		        .attr("cx", function(d) { return d.x; })
 		        .attr("cy", function(d) { return d.y; });
 		});
-	if (restart) {
-		this.physics.alphaTarget(0.3).restart();
-	}
 } // render()
 
 VizNetGraph.prototype.teardown = function()
@@ -4499,8 +4496,8 @@ VizNetGraph.prototype.hint = function()
 // VizBMatrix: Class to visualize Records in "bucket" matrix with connections
 //
 // Instance Variables:
+//		stream = last datastream rendered on view
 //		svg = entire SVG canvas
-//		stream = pointer to datastream used to render
 //		cnx = true if configured for connections, false if none
 //		rels = [ [boolean], ], to match settings.pAtts, specifying if should display
 //		nodes = [ ] about nodes (see render())
@@ -4509,6 +4506,9 @@ VizNetGraph.prototype.hint = function()
 
 var VizBMatrix = function(viewFrame, vSettings)
 {
+	this.stream = null;
+	this.cnx = false;
+
 	PVizModel.call(this, viewFrame, vSettings);
 } // VizBMatrix
 
@@ -4525,8 +4525,6 @@ VizBMatrix.prototype.setup = function()
 {
 	var self=this;
 
-	this.cnx = false;
-
 		// By default, all relationships are shown
 	this.rels=[];
 	this.settings.pAtts.forEach(function(pSet) {
@@ -4542,7 +4540,7 @@ VizBMatrix.prototype.setup = function()
 } // setup()
 
 	// NOTES:	Each node will have radius of 4; plus 1 for outline, 1 for gap = 11 px width/node
-	//			Each bucket will be 8 nodes / 88 pix wide
+	// INPUT:	stream = datastream to render, or null if called from options (re-render last)
 VizBMatrix.prototype.render = function(stream)
 {
 	var self=this;
@@ -4582,7 +4580,7 @@ VizBMatrix.prototype.render = function(stream)
 	this.preRender();
 
 		// remove any existing nodes and links
-	this.svg.selectAll("line").remove();
+	this.svg.selectAll("path").remove();
 	this.svg.selectAll("svg").remove();
 	this.svg.selectAll("circle").remove();
 
@@ -4737,7 +4735,6 @@ VizBMatrix.prototype.render = function(stream)
 
 		var link = this.svg.selectAll(".bmlink")
 	    	.data(links)
-
 			.enter().append("path")
 		    .attr("class", "bmlink")
 			.attr("stroke", function(d) { return d.c; })
@@ -6879,13 +6876,12 @@ var PData = (function() {
 					// As undefined is first entry (-1), abort now
 				if (val === '?')
 					return null;
-								// Just looking for overlap, date doesn't have to be completely contained
-								// Disqualify for overlap if (1) end of event is before min bound, or
+								// Disqualify if (1) end of event is before min bound, or
 								//	(2) start of event is after max bound
 				for (; f<lI; f++) {
 					fI = fSet[f];
 					lE = att.l[fI];
-					if (typeof lE.d.max.y !== 'undefined') {		// max bounds
+					if (typeof lE.d.max.y !== 'undefined') {		// Legend entry has max bounds
 							// Test val maxs against min bound for disqualification
 						if (typeof val.max !== 'undefined' && val.max !== 'open') {
 							if (val.max.y < lE.d.min.y)
@@ -6918,9 +6914,25 @@ var PData = (function() {
 								}
 							}
 						}
+							// Ensure also that val.min >= lE.d.min !!
+						if (val.min.y < lE.d.min.y)
+							continue;
+						if (val.min.y === lE.d.min.y) {
+							if (val.min.m && lE.d.max.m) {
+								if (val.min.m < lE.d.min.m)
+									continue;
+								if (val.min.m === lE.d.min.m) {
+									if (val.min.d && lE.d.min.d) {
+										if (val.min.d < lE.d.min.d)
+											continue;
+									}
+								}
+							}
+						}
+
 						return lE;
-					} else {				// min bound only
-							// Event is range
+					} else {				// Legend entry has min bound only
+							// Event value is range
 						if (typeof val.max !== 'undefined') {
 							if (val.max === 'open')		// double open always overlap
 								return lE;
@@ -6940,7 +6952,7 @@ var PData = (function() {
 							}
 							return lE;
 
-							// Single date
+							// Event value is single date
 						} else {
 							if (val.min.y < lE.d.min.y)
 								continue;
