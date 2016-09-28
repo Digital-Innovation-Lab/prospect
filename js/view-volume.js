@@ -1575,8 +1575,10 @@ PTextFrame.prototype.updateBookMark = function()
 
 	// PURPOSE: Search through elements of text, marking sections for which evalFunc returns true
 	// INPUT: 	evalFunc = function(element, header)
+	//			if reset, then set move to page of first match
 	// SIDE FX: sets tocRL array values
-PTextFrame.prototype.searchFunc = function(evalFunc)
+	// NOTES:	This searches through original HTML, not reconstituted TextFrame format
+PTextFrame.prototype.searchFunc = function(evalFunc, reset)
 {
 	var self=this;
 	var fnd, cur;
@@ -1638,9 +1640,28 @@ PTextFrame.prototype.searchFunc = function(evalFunc)
 	});
 	this.updateTOCRL();
 	this.updateBookMark();
+
+	if (reset) {
+			// Put first (sub)section found in reading pane, if any
+		search:
+		for (var i=0; i<this.tocRL.length; i++) {
+			var chap = this.tocRL[i];
+			if (chap.c) {
+				this.setTOCSel(true, i, -1);
+				break;
+			}
+			for (var j=0; j<chap.s.length; j++) {
+				if (chap.s[j]) {
+					this.setTOCSel(true, i, j);
+					break search;
+				}
+			} // for j
+		} // for i
+	}
 } // searchFunc()
 
 	// PURPOSE: Mark Reading List for all references to Record id in <a> links
+	// NOTES:	Since code scans original HTML, need to check href
 PTextFrame.prototype.findRec = function(id)
 {
 	function evalRecID(e, header)
@@ -1649,16 +1670,19 @@ PTextFrame.prototype.findRec = function(id)
 		if (!header) {
 			clan = jQuery(e).children("a");
 			for (i=0; i<clan.length; i++) {
-				d = jQuery(clan[i]).data('id');
-				if (d && d === id) {
-					f=true;
-					break;
+				d = jQuery(clan[i]).attr('href');
+				if (d.charAt(0) === '#') {
+					if (d.substr(1) == id) {
+						f=true;
+						break;
+					}
+
 				}
 			}
 		}
 		return f;
 	} // evalRecID
-	this.searchFunc(evalRecID);
+	this.searchFunc(evalRecID, false);
 } // findRec()
 
 	// PURPOSE: Set reading list checkboxes based on tocRL
@@ -1690,6 +1714,35 @@ PTextFrame.prototype.updateTOCSel = function()
 		});
 	});
 } // updateTOCSel()
+
+	// PURPOSE: Set tocSel to indicate viewing chap, sec and update everything
+	// INPUT: 	if clear, remove all other flags
+	//			cI (chapter index) = 0..n-1
+	//			sI (section index) = 0..n-1 or -1 if none
+PTextFrame.prototype.setTOCSel = function(clear, cI, sI)
+{
+	var chap;
+	if (clear) {
+		for (var i=0; i<this.tocSel.length; i++) {
+			chap = this.tocSel[i];
+			chap.c = false;
+			for (var j=0; j<chap.s.length; j++)
+				chap.s[j] = false;
+		}
+	}
+
+	chap = this.tocSel[cI];
+		// Now set new reading material
+	if (sI === -1) {
+		chap.c = true;
+	} else {
+		chap.s[sI] = true;
+	}
+
+	this.updateTOCSel();
+	this.updateBookMark();
+	this.buildTextFrame();
+} // setTOCSel()
 
 
 	// PURPOSE: Insert appropriate text into text frame, given tocSel
@@ -1826,35 +1879,6 @@ PTextFrame.prototype.initDOM = function()
 		self.updateBookMark();
 		// Don't prevent default, as that's what updates HTML Dom
 	} // clickTOCHCAll()
-
-		// PURPOSE: Set tocSel to indicate viewing chap, sec and update everything
-		// INPUT: 	if clear, remove all other flags
-		//			cI (chapter index) = 0..n-1
-		//			sI (section index) = 0..n-1 or -1 if none
-	function setTOCSel(clear, cI, sI)
-	{
-		var chap;
-		if (clear) {
-			for (var i=0; i<self.tocSel.length; i++) {
-				chap = self.tocSel[i];
-				chap.c = false;
-				for (var j=0; j<chap.s.length; j++)
-					chap.s[j] = false;
-			}
-		}
-
-		chap = self.tocSel[cI];
-			// Now set new reading material
-		if (sI === -1) {
-			chap.c = true;
-		} else {
-			chap.s[sI] = true;
-		}
-
-		self.updateTOCSel();
-		self.updateBookMark();
-		self.buildTextFrame();
-	} // setTOCSel()
 
 		// PURPOSE: Handle toggling between TOC and Text panes
 	function clickHSTOC(event)
@@ -2106,14 +2130,14 @@ PTextFrame.prototype.initDOM = function()
 				// First check sections inside chapter
 			for (; ptrS > -1; ptrS--) {
 				if (chap.s[ptrS]) {
-					setTOCSel(true, ptrC, ptrS);
+					self.setTOCSel(true, ptrC, ptrS);
 					return;
 				}
 			}
 			ptrS = null;
 				// Then check chapter itself
 			if (chap.c) {
-				setTOCSel(true, ptrC, -1);
+				self.setTOCSel(true, ptrC, -1);
 				return;
 			}
 			ptrC--;
@@ -2161,13 +2185,13 @@ PTextFrame.prototype.initDOM = function()
 		while (ptrC < self.tocRL.length) {
 			chap = self.tocRL[ptrC];
 			if (newStart && chap.c) {
-				setTOCSel(true, ptrC, -1);
+				self.setTOCSel(true, ptrC, -1);
 				return;
 			}
 				// First finish examining sections in this chapter
 			for (; ptrS<chap.s.length; ptrS++) {
 				if (chap.s[ptrS]) {
-					setTOCSel(true, ptrC, ptrS);
+					self.setTOCSel(true, ptrC, ptrS);
 					return;
 				}
 			}
@@ -2200,22 +2224,7 @@ PTextFrame.prototype.initDOM = function()
 							}
 						} // evalTxtFind()
 
-						self.searchFunc(evalTxtFind);
-							// Put first (sub)section found in reading pane, if any
-						search:
-						for (var i=0; i<self.tocRL.length; i++) {
-							var chap = self.tocRL[i];
-							if (chap.c) {
-								setTOCSel(true, i, -1);
-								break;
-							}
-							for (var j=0; j<chap.s.length; j++) {
-								if (chap.s[j]) {
-									setTOCSel(true, i, j);
-									break search;
-								}
-							}
-						}
+						self.searchFunc(evalTxtFind, true);
 
 						dialog.dialog("close");
 					}
@@ -3748,7 +3757,18 @@ jQuery(document).ready(function($) {
 		views[1] = new PVizFrame(1, callbacks);
 		views[1].initDOM(0);
 		setAnnote('');
-	}
+
+			// Check to see if anchor passed in: if so, find in TOC
+		var hash = window.location.hash;
+		if (hash.length > 0) {
+			hash = hash.substr(1);
+			function evalIDFind(e, header) {
+				return jQuery(e).attr('id') === hash;
+				// return jQuery(e).find(hash).size() > 0;
+			} // evalTxtFind()
+			views[0].searchFunc(evalIDFind, true);
+		}
+	} // if no Reading
 
 		// Allow ViewFrames to handle changes in size
 	jQuery(window).resize(function() {
