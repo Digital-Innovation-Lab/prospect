@@ -612,6 +612,7 @@ function PViewFrame(vfIndex)
 				i = newI;
 				unplugAllWidgets();
 				inspectShow();
+				jQuery('#inspect-list').val(i);
 			}
 		} // inspectSlide()
 
@@ -659,6 +660,19 @@ function PViewFrame(vfIndex)
 		inspectShow();
 		jQuery('#btn-inspect-left').click(inspectLeft);
 		jQuery('#btn-inspect-right').click(inspectRight);
+		jQuery('#inspect-list').change(function() {
+			i = jQuery('#inspect-list').val();
+			i = parseInt(i);
+			unplugAllWidgets();
+			inspectShow();
+		});
+
+			// Build drop-down list
+		for (i=0; i<recSel.length; i++) {
+			var rec = PData.rByN(recSel[i]);
+			jQuery('#inspect-list').append('<option value='+i+'>'+rec.l+'</option>');
+		}
+		i=0;
 
 		var btns = [];
 			// Handle setting if undefined
@@ -685,6 +699,8 @@ function PViewFrame(vfIndex)
 			unplugAllWidgets();
 			jQuery('#btn-inspect-left').off("click");
 			jQuery('#btn-inspect-right').off("click");
+			jQuery('#inspect-list').off("change");
+			jQuery('#inspect-list').empty();
 				// turn pulsing back on
 			doSelBtns(true);
 				// Unbind Inspector from this view -- one off only

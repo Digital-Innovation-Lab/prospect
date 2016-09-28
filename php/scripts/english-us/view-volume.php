@@ -112,6 +112,9 @@
 			<button id="btn-inspect-left"><?php _e('Previous', 'prospect'); ?></button>
 			<span id="inspect-name"></span>
 			<button id="btn-inspect-right"><?php _e('Next', 'prospect'); ?></button>
+			<br/>
+			<select id="inspect-list" value=0>
+			</select>
 		</div>
 		<div id="inspect-content" class="scroll-container">
 		</div>
