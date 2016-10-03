@@ -3731,17 +3731,27 @@ jQuery(document).ready(function($) {
 		// Create New Filter list
 	(function () {
 		jQuery('#filter-list').append('<li class="remove" data-id="_remove"><i>'+dlText.rha+'</i></li>');
+		var attList=[];
 		prspdata.a.forEach(function(theAtt) {
-			switch (theAtt.def.t) {
-			case 'V':
-			case 'T':
-			case 'g':
-			case 'N':
-			case 'D':
-			case 'P':
-				jQuery('#filter-list').append('<li data-id="'+theAtt.id+'">'+theAtt.def.l+'</li>');
-				break;
-			}
+				// Check to see if Attribute should be available to use on Filter
+			if (typeof theAtt.def.f === 'undefined' || theAtt.def.f === true) {
+				switch (theAtt.def.t) {
+				case 'V':
+				case 'T':
+				case 'g':
+				case 'N':
+				case 'D':
+				case 'P':
+					attList.push({ id: theAtt.id, l: theAtt.def.l });
+					break;
+				} // switch
+			} // if
+		});
+		attList.sort(function (a, b) {
+			return a.l.localeCompare(b.l);
+		});
+		attList.forEach(function(theAtt) {
+			jQuery('#filter-list').append('<li data-id="'+theAtt.id+'">'+theAtt.l+'</li>');
 		});
 	}());
 
