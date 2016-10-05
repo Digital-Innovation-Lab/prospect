@@ -3,7 +3,7 @@
 * Contributors: Michael Newton, Breon Williams, Kevin Jacoby
 * Tags: Data Visualization, Digital Humanities
 * Requires at least: 3.9.0
-* Tested up to: 4.6
+* Tested up to: 4.6.1
 * License: GPLv2 or later
 * License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -13,9 +13,9 @@ Prospect is a Digital Humanities platform for data curation, collaboration, visu
 
 Prospect is a flexible and powerful plugin that allows administrators to create curated Digital
 Humanities projects whose data can be visualized, accessed and analyzed in flexible ways.
-See: prospect.web.unc.edu for documentation, sample data sets, training videos, etc.
+See [Prospect website](http://prospect.web.unc.edu) for documentation, sample data sets, training videos, etc.
 
-Notes on System Requirements:
+## Notes on System Requirements:
 * Requires PHP 5.4 or later.
 * WordPress 4.2 or higher recommended to ensure UTF-8 handled properly.
 * MySQL 5.5.14 or higher recommended to ensure UTF-8 handled properly.
