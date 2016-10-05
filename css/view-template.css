@@ -1,5 +1,5 @@
 	/* Creates Flex style for tiled cards */
-main#main.prospect-cards {
+.prospect-cards {
 	padding: 4px;
 
 	display: -webkit-flex; /* Safari */

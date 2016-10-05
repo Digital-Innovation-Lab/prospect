@@ -103,9 +103,8 @@ class Prospect {
 					'j' => $the_template->joins,
 					't' => $d_t_array
 				) );
+				ProspectAdmin::insert_html_file('view-record.php');
 			}
-
-			$page_template = dirname(__FILE__).'/view-record.php';
 			break;
 
 		case 'prsp-exhibit':

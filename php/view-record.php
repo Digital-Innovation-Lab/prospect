@@ -1,13 +1,3 @@
-<?php get_header(); ?>
-
-<div id="primary" class="content-area">
-    <main id="main" class="site-main" role="main">
-		<?php
-			echo $post->post_content;
-		?>
-	</main>
-</div>
-
 <script id="dltext-undef" type="text">
 <?php _e('Indefinite', 'prospect'); ?>
 </script>
@@ -39,5 +29,3 @@
 <script id="dltext-sync-xscript" type="text">
 <input type="checkbox" id="sync-xscript" name="sync-xscript" checked> <?php _e('Scroll transcript to follow playback', 'prospect'); ?>
 </script>
-
-<?php get_footer(); ?>
