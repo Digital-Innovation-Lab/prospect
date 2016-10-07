@@ -91,7 +91,7 @@ function PViewFrame(vfIndex)
 		// PURPOSE: Open Record Inspector for current selection
 	function clickOpenSelection(event)
 	{
-		var container = jQuery('#inspect-content');
+		var container = jQuery('#inspect-content');		// Inner container for Attributes & widgets
 		var avAttID=null;	// ID of any A/V widget or null
 		var avType=0;		// 0=none, 1=SoundCloud, 2=YouTube, 3=Native Audio
 		var t2URL;			// URL for transcript 2 or null

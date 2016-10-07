@@ -117,8 +117,8 @@ var PState = (function() {
 //		VizModels are responsible for rendering Records, handling selections,
 //				indicating visual attributes & tracking used Templates & Records
 //		They must call their ViewFrame when individual Records are de-/selected (not aggregates)
-//			vizAddSel(id, absI)
-//			vizDelSel(id, absI)
+//			vizAddSel(absI)
+//			vizDelSel(absI)
 //		Instance Variables:
 //			vFrame = points to viewFrame
 //			frameID = selector string for DIV
