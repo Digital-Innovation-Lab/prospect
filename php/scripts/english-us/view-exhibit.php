@@ -9,7 +9,7 @@
 	&nbsp; <span id="pstate" class="attn"><?php _e('Initializing', 'prospect'); ?></span>
 	<span class="home">
 		<span id="home-title"></span> <button id="btn-home"><?php _e('Home', 'prospect'); ?></button>
-		<button class="help"><?php _e('Help', 'prospect'); ?></button>
+		<button class="help"><?php _e('Help Tour', 'prospect'); ?></button>
 	</span>
 </div>
 
@@ -198,6 +198,7 @@
 		<button class="hilite"><?php _e('Highlight', 'prospect'); ?></button>
 		<button class="xsel"><?php _e('Clear Highlighted', 'prospect'); ?></button>
 		<button class="osel"><?php _e('Show Highlighted', 'prospect'); ?></button>
+		<span class="btn-num-sel"><?php _e('0 selected', 'prospect'); ?></span>
 	</div>
 	<div class="lgnd-container">
 		<div class="lgnd-handle">
@@ -419,6 +420,10 @@
 
 <script id="dltext-filtered" type="text">
 <?php _e('Filtered', 'prospect'); ?>
+</script>
+
+<script id="dltext-selected" type="text">
+<?php _e('selected', 'prospect'); ?>
 </script>
 
 <script id="dltext-sync-xscript" type="text">
