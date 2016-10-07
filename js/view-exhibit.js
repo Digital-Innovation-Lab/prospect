@@ -49,6 +49,7 @@ function PViewFrame(vfIndex)
 	var lDirty = null;			// Legend Dirty (enabled) if true
 	var datastream = null;		// pointer to datastream given to view
 	var vizStates = [];			// saves state of each vizualization between views as Perspective
+	var curSelSize = 0;			// current selection size (don't save pointer to array)
 
 	// PRIVATE FUNCTIONS
 	//==================
@@ -654,7 +655,7 @@ function PViewFrame(vfIndex)
 		}
 
 			// Stop pulsing while Inspector open
-		doSelBtns(false);
+//		doSelBtns(false);
 
 			// Show first item & handle scroll buttons
 		inspectShow();
@@ -702,7 +703,7 @@ function PViewFrame(vfIndex)
 			jQuery('#inspect-list').off("change");
 			jQuery('#inspect-list').empty();
 				// turn pulsing back on
-			doSelBtns(true);
+//			doSelBtns(true);
 				// Unbind Inspector from this view -- one off only
 			inspector.off("dialogclose");
 		});
@@ -710,21 +711,31 @@ function PViewFrame(vfIndex)
 		event.preventDefault();
 	} // clickOpenSelection()
 
-		// PURPOSE: Change state Highlight buttons
-	function doSelBtns(enable)
+		// PURPOSE: Inform ViewFrame of selection change, update GUI
+		// INPUT:	selList = array of absIDs, or [] if nothing selected
+		//			if force, then GUI always refreshed
+		// NOTES:	Not useful to save pointer to selList, as it will be modified in other code
+	function doUpSel(selList, force)
 	{
-		var vCnxt = jQuery(getFrameID()+' div.view-controls');
+		var newSize = selList.length;
 
-		if (enable) {
-			vCnxt.find('.osel').button("enable");
-			vCnxt.find('.osel').addClass("pulse");
-			vCnxt.find('.xsel').button("enable");
-		} else {
-			vCnxt.find('.osel').button("disable");
-			vCnxt.find('.osel').removeClass("pulse");
-			vCnxt.find('.xsel').button("disable");
+		if (force || curSelSize > 0 || newSize > 0) {
+			var vCnxt = jQuery(getFrameID()+' div.view-controls');
+			var txt = newSize + ' ' + dlText.selected;
+			vCnxt.find('.btn-num-sel').text(txt);
+
+			if (newSize > 0) {
+				vCnxt.find('.osel').button("enable");
+				vCnxt.find('.osel').addClass("pulse");
+				vCnxt.find('.xsel').button("enable");
+			} else {
+				vCnxt.find('.osel').button("disable");
+				vCnxt.find('.osel').removeClass("pulse");
+				vCnxt.find('.xsel').button("disable");
+			}
 		}
-	} // doSelBtns()
+		curSelSize = newSize;
+	} // doUpSel
 
 	function clickHighlight(event)
 	{
@@ -738,7 +749,7 @@ function PViewFrame(vfIndex)
 		PState.set(PSTATE_UPDATE);
 		if (vizModel)
 			vizModel.clearSel();
-		doSelBtns(false);
+		doUpSel([], false);
 		PState.set(PSTATE_READY);
 		event.preventDefault();
 	} // clickClearSelection()
@@ -833,7 +844,7 @@ function PViewFrame(vfIndex)
 		case 'lgnd-update':
 			if (vizModel && datastream) {
 				PState.set(PSTATE_BUILD);
-				doSelBtns(false);
+				doUpSel([], false);				// Re-render from Apply on Legend always clears selection
 				vizModel.render(datastream);
 				setLDirty(false);
 				PState.set(PSTATE_READY);
@@ -1141,7 +1152,7 @@ function PViewFrame(vfIndex)
 		newViz.setup();
 
 			// ViewFrames initially created w/o selection
-		doSelBtns(false);
+		doUpSel([], true);
 
 			// Check if there is a previously saved state
 		if (refresh) {
@@ -1326,28 +1337,31 @@ function PViewFrame(vfIndex)
 		datastream = stream;
 	} // setStream()
 
-		// PURPOSE: Either enable or disable selection buttons for this ViewFrame
-	instance.selBtns = function(enable)
+		// PURPOSE: Inform ViewFrame of update to selection in View
+	instance.upSel = function(selList)
 	{
-		doSelBtns(enable);
-	} // selBtns()
+		doUpSel(selList, false);
+	} // upSel()
 
+		// PURPOSE: Inform view to clear current selection
+		// NOTES:	Imposed because of recompute, filter reset, …
 	instance.clearSel = function()
 	{
 		if (vizModel) {
 			vizModel.clearSel();
 		}
-		doSelBtns(false);
+		doUpSel([], false);
 	} // clearSel()
 
 		// PURPOSE: Attempt to set the Selection List of the VizModel to selList
 		// RETURNS: true if possible, false if not
+		// NOTES:	Called with Highlight Filter results
 	instance.setSel = function(selList)
 	{
 		if (vizModel) {
 			if (vizModel.flags() & V_FLAG_SEL) {
 				vizModel.setSel(selList);
-				doSelBtns(selList.length > 0);
+				doUpSel(selList, false);
 				return true;
 			}
 			return false;
@@ -1355,12 +1369,12 @@ function PViewFrame(vfIndex)
 		return false;
 	} // selSel()
 
-		// PURPOSE: Handle VizModel reporting back -- but only used for Volumes, so don't pass on
+		// PURPOSE: Handle VizModel reporting back -- only used for Volumes, so can ignore
 	instance.vizAddSel = function(absI)
 	{
 	} // vizAddSel()
 
-		// PURPOSE: Handle VizModel reporting back -- but only used for Volumes, so don't pass on
+		// PURPOSE: Handle VizModel reporting back -- only used for Volumes, so can ignore
 	instance.vizDelSel = function(absI)
 	{
 	} // vizDelSel()
@@ -2370,7 +2384,7 @@ jQuery(document).ready(function($) {
 			// Already exists?
 		if (v0) {
 			v0.setViz(vI, false);
-			v0.selBtns(false);
+			v0.upSel([], true);
 		} else {
 			views[0] = PViewFrame(0);
 			v0 = views[0];
@@ -2381,7 +2395,7 @@ jQuery(document).ready(function($) {
 			vI = vizIndex(p.s.v1.l);
 				// Already exists?
 			if (v1) {
-				v1.selBtns(false);
+				v1.upSel([], true);
 				v1.setViz(vI, false);
 				v1.setState(p.s.v1.s);
 			} else {
@@ -2475,6 +2489,7 @@ jQuery(document).ready(function($) {
 		loadFrag('dltext-nofilter', 'nofilter');
 		loadFrag('dltext-dofilters', 'dofilters');
 		loadFrag('dltext-filtered', 'filtered');
+		loadFrag('dltext-selected', 'selected');
 
 		text = document.getElementById('dltext-month-names').innerHTML;
 		months = text.trim().split('|');

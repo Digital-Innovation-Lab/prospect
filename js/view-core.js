@@ -116,9 +116,14 @@ var PState = (function() {
 // PVizModel: An abstract class to be subclassed by specific visualizations
 //		VizModels are responsible for rendering Records, handling selections,
 //				indicating visual attributes & tracking used Templates & Records
-//		They must call their ViewFrame when individual Records are de-/selected (not aggregates)
+//		As render() assumes no selection, any code that calls it should first call
+//			upSel([], false) for ViewFrame
+//		Views must call their ViewFrame when individual Records are de-/selected:
 //			vizAddSel(absI)
 //			vizDelSel(absI)
+//		Views must also call ViewFrame when there is a selection change because of
+//				user action or update request via vizAddSel() or vizDelSel():
+//			upSel(selectedAbsIList)
 //		Instance Variables:
 //			vFrame = points to viewFrame
 //			frameID = selector string for DIV
@@ -157,7 +162,7 @@ function PVizModel(viewFrame, vizSettings)
 		// All subclasses must implement the following:
 	// this.flags()
 	// this.setup()
-	// this.render(stream)		// Clears any previous selection
+	// this.render(stream)		// Clears any previous selection, but ViewFrame has already reset GUI
 	// this.setSel(absIDs)
 } // PVizModel
 
@@ -206,23 +211,19 @@ PVizModel.prototype.toggleSel = function(absI)
 	var i = _.sortedIndex(this.recSel, absI);
 	if (this.recSel[i] === absI) {
 		this.recSel.splice(i, 1);
-		if (sz > 0 && this.recSel.length == 0) {
-			this.vFrame.selBtns(false);
-		}
-		this.vFrame.vizDelSel(absI);
+		this.vFrame.vizDelSel(absI);		// Inform ViewFrame of single deletion
+		this.vFrame.upSel(this.recSel);		// Inform ViewFrame of total number
 		return false;
 	} else {
 		this.recSel.splice(i, 0, absI);
-		if (sz == 0 && this.recSel.length > 0) {
-			this.vFrame.selBtns(true);
-		}
-		this.vFrame.vizAddSel(absI);
-
+		this.vFrame.vizAddSel(absI);		// Inform ViewFrame of single addition
+		this.vFrame.upSel(this.recSel);		// Inform ViewFrame of total number
 		return true;
 	}
 } // toggleSel()
 
-	// PURPOSE: Clear selection list (and remove visual indications of selection)
+	// PURPOSE: Clear internal selection list
+	// TO DO:	Does it need inform ViewFrame?
 PVizModel.prototype.clearSel = function()
 {
 	this.recSel = [];
@@ -3793,7 +3794,6 @@ VizNetWheel.prototype.render = function(stream)
 
 	if (this.recSel.length > 0) {
 		this.recSel=[];
-		this.vFrame.selBtns(false);
 	}
 
 	this.preRender();
@@ -4042,6 +4042,8 @@ VizNetWheel.prototype.doOptions = function()
 					var prune = jQuery('#prune-nodes').prop('checked');
 					if (self.prune !== prune) {
 						self.prune = prune;
+							// As we are rendering afresh, must clear any existing selection
+						self.vFrame.upSel([], false);
 						self.render(null);
 					}
 					PState.set(PSTATE_READY);
@@ -4161,7 +4163,6 @@ VizNetGraph.prototype.render = function(stream)
 
 	if (this.recSel.length > 0) {
 		this.recSel=[];
-		this.vFrame.selBtns(false);
 	}
 
 	this.preRender();
@@ -4447,6 +4448,8 @@ VizNetGraph.prototype.doOptions = function()
 						});
 					});
 					if (changed) {
+							// As we are rendering afresh, must clear any existing selection
+						self.vFrame.upSel([], false);
 						self.render(null);
 					}
 					PState.set(PSTATE_READY);
@@ -4854,6 +4857,8 @@ VizBMatrix.prototype.doOptions = function()
 						});
 					});
 					if (changed) {
+							// As we are rendering afresh, must clear any existing selection
+						self.vFrame.upSel([], false);
 						self.render(null);
 					}
 					PState.set(PSTATE_READY);

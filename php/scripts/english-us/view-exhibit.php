@@ -198,7 +198,7 @@
 		<button class="hilite"><?php _e('Highlight', 'prospect'); ?></button>
 		<button class="xsel"><?php _e('Clear Highlighted', 'prospect'); ?></button>
 		<button class="osel"><?php _e('Show Highlighted', 'prospect'); ?></button>
-		<span class="btn-num-sel"><?php _e('0 selected', 'prospect'); ?></span>
+		<span class="btn-num-sel"></span>
 	</div>
 	<div class="lgnd-container">
 		<div class="lgnd-handle">
