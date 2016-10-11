@@ -4,9 +4,22 @@
 
 // ================================================================================
 // VizStackChart: Class to visualize 2 dimensions of record data as a stacked chart
+//	Instance Variables:
+//		blocks = array of objects describing each block in chart
+//		bSel = array of indices of blocks selected
+//		cats = array of category records
+//		colW
+//		xScale
+//		yScale
+//		rScale
+//		xAxis
+//		yAxis
+//		svg
+//		chart
 
 var VizStackChart = function(viewFrame, vSettings)
 {
+	this.bSel=[];
 	PVizModel.call(this, viewFrame, vSettings);
 } // VizStackChart
 
@@ -52,6 +65,8 @@ VizStackChart.prototype.render = function(stream)
 {
 	var self = this;
 
+		// PURPOSE: Handle clicking on a block
+		// NOTES:	Record count on GUI > must calculate intersection immediately (not "lazy")
 	function clickEvent(d, bI)
 	{
 		var sz = self.bSel.length;
@@ -59,14 +74,17 @@ VizStackChart.prototype.render = function(stream)
 		if (self.bSel[i] === bI) {
 			d3.select(this).classed('obj-sel', false);
 			self.bSel.splice(i, 1);
-			if (sz > 0 && self.bSel.length == 0)
-				self.vFrame.selBtns(false);
 		} else {
 			d3.select(this).classed('obj-sel', true);
 			self.bSel.splice(i, 0, bI);
-			if (sz == 0 && self.bSel.length > 0)
-				self.vFrame.selBtns(true);
 		}
+		var u=[];
+		self.bSel.forEach(function(bI) {
+			u = PData.union(u, self.blocks[bI].a);
+		});
+		self.recSel = u;
+
+		self.vFrame.upSel(self.recSel, false);
 	} // clickEvent()
 
 	this.bSel=[];		// Reset selection
@@ -156,24 +174,13 @@ VizStackChart.prototype.setSel = function(absIArray)
 VizStackChart.prototype.clearSel = function()
 {
 	if (this.bSel.length > 0) {
+		this.recSel = [];
+
 		this.bSel = [];
 		this.svg.selectAll(".block")
 			.classed('obj-sel', false);
 	}
 } // clearSel()
-
-	// RETURNS: Array of absolute IDs of selected records
-VizStackChart.prototype.getSel = function()
-{
-	var self=this;
-	var u=[];
-
-	this.bSel.forEach(function(bI) {
-		u = PData.union(u, self.blocks[bI].a);
-	});
-
-	return u;
-} // getSel()
 
 VizStackChart.prototype.getState = function()
 {
@@ -196,12 +203,26 @@ VizStackChart.prototype.hint = function()
 } // hint()
 
 
-// ================================================================================
+// =================================================================================
 // VizFlow: Class to visualize multiple Facet values of record data as parallel sets
+// Instance Variables:
+//		bH = height of each space between blocks
+//		svg
+//		barG
+//		flowG
+//		titleG
+//		atts
+//		bars
+//		ints
+//		bSel = array of selected bar segments
+//		fSel = array of selected flow segments
 
 var VizFlow = function(viewFrame, vSettings)
 {
 	PVizModel.call(this, viewFrame, vSettings);
+
+	this.bSel=[];		// Empty bar selection
+	this.fSel=[];		// Empty flow selection
 } // VizFlow
 
 VizFlow.prototype = Object.create(PVizModel.prototype);
@@ -234,6 +255,20 @@ VizFlow.prototype.render = function(stream)
 {
 	var self=this;
 
+	function postClick()
+	{
+		var u=[];
+
+		self.bSel.forEach(function(bI) {
+			u = PData.union(u, self.bars[bI].c.i);
+		});
+		self.fSel.forEach(function(fI) {
+			u = PData.union(u, self.ints[fI].i);
+		});
+		self.recSel=u;
+		self.vFrame.upSel(u, false);
+	} // postClick()
+
 	function clickBar(d, bI)
 	{
 		var sz = self.bSel.length;
@@ -241,14 +276,11 @@ VizFlow.prototype.render = function(stream)
 		if (self.bSel[i] === bI) {
 			d3.select(this).classed('obj-sel', false);
 			self.bSel.splice(i, 1);
-			if (sz > 0 && self.bSel.length === 0 && self.fSel.length === 0)
-				self.vFrame.selBtns(false);
 		} else {
 			d3.select(this).classed('obj-sel', true);
 			self.bSel.splice(i, 0, bI);
-			if (sz === 0 && self.fSel.length === 0 && self.bSel.length > 0)
-				self.vFrame.selBtns(true);
 		}
+		postClick();
 	} // clickBar()
 
 	function clickFlow(d, fI)
@@ -258,14 +290,11 @@ VizFlow.prototype.render = function(stream)
 		if (self.fSel[i] === fI) {
 			d3.select(this).classed('obj-sel', false);
 			self.fSel.splice(i, 1);
-			if (sz > 0 && self.fSel.length === 0 && self.bSel.length === 0)
-				self.vFrame.selBtns(false);
 		} else {
 			d3.select(this).classed('obj-sel', true);
 			self.fSel.splice(i, 0, fI);
-			if (sz === 0 && self.bSel.length === 0 && self.fSel.length > 0)
-				self.vFrame.selBtns(true);
 		}
+		postClick();
 	} // clickFlow()
 
 	this.bSel=[];		// Reset selection
@@ -479,24 +508,14 @@ VizFlow.prototype.clearSel = function()
 	}
 } // clearSel()
 
-	// RETURNS: Array of absolute IDs of selected records
-VizFlow.prototype.getSel = function()
-{
-	var self=this;
-	var u=[];
 
-	this.bSel.forEach(function(bI) {
-		u = PData.union(u, self.bars[bI].c.i);
-	});
-	this.fSel.forEach(function(fI) {
-		u = PData.union(u, self.ints[fI].i);
-	});
-	return u;
-} // getSel()
-
-
-// ================================================================================
+// ====================================================================================
 // VizBrowser: Class to visualize multiple Facet values of record data as parallel sets
+// Instance Variables:
+//		stream
+//		svg
+//		pstate
+//		fcts
 
 var VizBrowser = function(viewFrame, vSettings)
 {
@@ -547,13 +566,11 @@ VizBrowser.prototype.update = function()
 			}
 		}
 	});
-	if (chosen) {
-			// Make sure result is not empty!
-		this.vFrame.selBtns(ia.length > 0);
-	} else {
-		this.vFrame.selBtns(false);
-		ia=this.stream.s;
+		// Did the user actually choose any facets?
+	if (!chosen) {
+		ia=[];
 	}
+	this.vFrame.upSel(ia, false);
 	this.recSel=ia;
 
 		// Now update bars
@@ -803,12 +820,6 @@ VizBrowser.prototype.clearSel = function()
 	this.update();
 } // clearSel()
 
-	// RETURNS: Array of absolute IDs of selected records
-VizBrowser.prototype.getSel = function()
-{
-	return this.recSel;
-} // getSel()
-
 VizBrowser.prototype.getState = function()
 {
 	var pairs=[];
@@ -861,6 +872,19 @@ VizMBMap.prototype.flags = function()
 	return V_FLAG_VSCRL | V_FLAG_HSCRL;
 } // flags()
 
+	// PURPOSE: Reset recSel according to current selection and inform ViewFrame
+VizMBMap.prototype.upSel = function()
+{
+	if (this.sbkSel !== null) {
+		this.recSel = this.sbkSel.data.i;
+	} else if (this.bkSel !== null) {
+		this.recSel = this.bkSel.data.i;
+	} else {
+		this.recSel = [];
+	}
+	this.vFrame.upSel(this.recSel, false);
+} // upSel()
+
 VizMBMap.prototype.setup = function()
 {
 	var self=this;
@@ -871,6 +895,7 @@ VizMBMap.prototype.setup = function()
 			self.bkSel.s = false;
 		}
 		self.clearSel();
+		self.upSel();
 	}
 	var h = +this.settings.h;
 	var w = +this.settings.w;
@@ -992,8 +1017,8 @@ VizMBMap.prototype.renderTree = function(aI)
 				.attr("y", "23")
 				.text(d.data.l+" ("+d.data.i.length+")");
 			recalcBars();
-			self.vFrame.selBtns(true);
 		}
+		self.upSel();
 	} // clickTitle()
 
 	function clickBlock(d)
@@ -1026,13 +1051,13 @@ VizMBMap.prototype.renderTree = function(aI)
 				self.bkSel = d.parent;
 				self.refreshTitles();
 				recalcBars();
-				self.vFrame.selBtns(true);
 			}
 
 		} else {
 				// Parent block
 			// Not needed, as either title or subblock selected
 		}
+		self.upSel();
 	} // clickBlock()
 
 	this.svg.selectAll(".mbm").remove();
@@ -1092,6 +1117,7 @@ VizMBMap.prototype.render = function(stream)
 			self.attsG.selectAll(".mbm-att-title").classed('obj-sel', false);
 
 			self.clearSel();
+			self.upSel();
 			self.resetAttBars();
 			self.renderTree(bI);
 
@@ -1235,26 +1261,15 @@ VizMBMap.prototype.clearSel = function()
 	if (this.bkSel) {
 		this.bkSel.data.s = false;
 	}
+	this.recSel=[];
+
 	this.infoG.select(".mbm-select").remove();
 	this.bkSel=null;
 	this.sbkSel=null;
 	this.svg.selectAll(".mbm").classed('obj-sel', false);
 	this.svg.selectAll(".mbm-title").classed('obj-sel', false);
 	this.resetAttBars();
-	this.vFrame.selBtns(false);
 } // clearSel()
-
-	// RETURNS: Array of absolute IDs of selected records
-VizMBMap.prototype.getSel = function()
-{
-	if (this.sbkSel !== null) {
-		return this.sbkSel.data.i;
-	} else if (this.bkSel !== null) {
-		return this.bkSel.data.i;
-	} else {
-		return [];
-	}
-} // getSel()
 
 VizMBMap.prototype.hint = function()
 {
