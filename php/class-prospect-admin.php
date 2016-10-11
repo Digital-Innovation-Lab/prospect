@@ -2106,7 +2106,7 @@ class ProspectAdmin {
 
 		add_settings_field(
 			'prsp_tour', // ID
-			__('Enable Help Tour', 'prospect'), // Title
+			__('Enable Help Tour (true/false)', 'prospect'), // Title
 			array($this, 'prsp_tour_callback'), // Callback
 			'prsp-settings-page', // Page
 			'prsp_settings' // Section
