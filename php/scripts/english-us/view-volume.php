@@ -12,7 +12,7 @@
 	&nbsp; <span id="pstate" class="attn"><?php _e('Initializing', 'prospect'); ?></span>
 	<span class="home">
 		<span id="home-title"></span> <button id="btn-home"><?php _e('Home', 'prospect'); ?></button>
-		<button class="help"><?php _e('Help', 'prospect'); ?></button>
+		<button class="help"><?php _e('Help Tour', 'prospect'); ?></button>
 	</span>
 </div>
 
@@ -33,6 +33,7 @@
 				<button id="textnext"><?php _e('Next', 'prospect'); ?></button> &nbsp;
 			<button class="hilite"><?php _e('Highlight', 'prospect'); ?></button>
 			<button class="osel"><?php _e('Show Highlighted', 'prospect'); ?></button>
+			<span class="btn-num-sel"></span>
 			</div>
 		</div>
 		<div class="viz-content">
@@ -57,6 +58,7 @@
 			<button class="vnote"><?php _e('Visualization Notes', 'prospect'); ?></button>
 			<button class="hilite"><?php _e('Highlight', 'prospect'); ?></button>
 			<button class="osel"><?php _e('Show Highlighted', 'prospect'); ?></button>
+			<span class="btn-num-sel"></span>
 		</div>
 		<div class="lgnd-container">
 			<div class="lgnd-handle">
@@ -466,6 +468,10 @@
 
 <script id="dltext-findintext" type="text">
 <?php _e('Find In Text', 'prospect'); ?>
+</script>
+
+<script id="dltext-selected" type="text">
+<?php _e('selected', 'prospect'); ?>
 </script>
 
 <script id="dltext-sync-xscript" type="text">

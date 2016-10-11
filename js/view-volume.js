@@ -56,6 +56,7 @@ function PViewFrame(vfIndex, callbacks)
 	this.callbacks	= callbacks;	// callback functions { addSel, delSel, newText }
 	this.vizSel 	= [];			// array of absIs of selected Records that are visible in this frame
 	this.selAbsIs	= [];			// array of absIs of selected Records requested externally
+	this.curSelSize = 0;			// the size of current selection
 } // PViewFrame()
 
 PViewFrame.prototype.getFrameID = function()
@@ -63,18 +64,31 @@ PViewFrame.prototype.getFrameID = function()
 	return '#view-frame-'+this.vfIndex;
 } // getFrameID()
 
-PViewFrame.prototype.selBtns = function(enable)
+	// PURPOSE: Inform ViewFrame of selection change, update GUI
+	// INPUT:	selList = array of absIDs, or [] if nothing selected
+	//			if force, then GUI always refreshed
+	// NOTES:	Not useful to save pointer to selList, as it will be modified in other code
+PViewFrame.prototype.upSel = function(selList, force)
 {
-	var vCnxt = jQuery(this.getFrameID()+' div.view-controls');
+	var newSize = selList.length;
 
-	if (enable) {
-		vCnxt.find('.osel').button("enable");
-		vCnxt.find('.osel').addClass("pulse");
-	} else {
-		vCnxt.find('.osel').button("disable");
-		vCnxt.find('.osel').removeClass("pulse");
+	if (force || this.curSelSize > 0 || newSize > 0) {
+		var vCnxt = jQuery(this.getFrameID()+' div.view-controls');
+		var txt = newSize + ' ' + dlText.selected;
+		vCnxt.find('.btn-num-sel').text(txt);
+
+		if (newSize > 0) {
+			vCnxt.find('.osel').button("enable");
+			vCnxt.find('.osel').addClass("pulse");
+			vCnxt.find('.xsel').button("enable");
+		} else {
+			vCnxt.find('.osel').button("disable");
+			vCnxt.find('.osel').removeClass("pulse");
+			vCnxt.find('.xsel').button("disable");
+		}
 	}
-} // selBtns()
+	this.curSelSize = newSize;
+} // doUpSel
 
 	// PURPOSE: Open Record Inspector for current selection
 PViewFrame.prototype.openSelection = function()
@@ -642,7 +656,7 @@ PViewFrame.prototype.openSelection = function()
 	}
 
 		// Stop pulsing while Inspector open
-	this.selBtns(false);
+// 	this.selBtns(false);
 
 		// Show first item & handle scroll buttons
 	inspectShow();
@@ -696,7 +710,7 @@ PViewFrame.prototype.openSelection = function()
 		jQuery('#inspect-list').off("change");
 		jQuery('#inspect-list').empty();
 			// turn pulsing back on
-		self.selBtns(true);
+//		self.selBtns(true);
 			// Unbind Inspector from this view -- one off only
 		inspector.off("dialogclose");
 	});
@@ -790,8 +804,8 @@ PVizFrame.prototype.computeSel = function()
 	}
 
 	if (this.selAbsIs.length === 0) {
-		this.selBtns(false);
 		this.vizModel.clearSel();
+		this.upSel([], false);
 		return;
 	}
 
@@ -812,11 +826,10 @@ PVizFrame.prototype.computeSel = function()
 
 	if (vizSel.length === 0) {
 		this.vizModel.clearSel();
-		this.selBtns(false);
 	} else {
 		this.vizModel.setSel(vizSel);
-		this.selBtns(true);
 	}
+	this.upSel(vizSel, false);
 } // computeSel()
 
 PVizFrame.prototype.initDOM = function(vI)
@@ -1064,9 +1077,10 @@ PVizFrame.prototype.setLegendFeatures = function(lIndex, attID)
 					lIndex+'"] div.lgnd-sh input').prop('checked', true);
 } // setLegendFeatures()
 
-	// PURPOSE: Create appropriate VizModel within frame
+	// PURPOSE: Create appropriate new VizModel within frame
 	// INPUT: 	vIndex is index in Exhibit array
 	//			if refresh, check for saved state and immediately redraw
+	// ASSUMES:	Initially empty Record selection
 PVizFrame.prototype.createViz = function(vIndex, refresh)
 {
 	var self=this;
@@ -1277,7 +1291,7 @@ PVizFrame.prototype.createViz = function(vIndex, refresh)
 	newViz.setup();
 
 		// ViewFrames initially created w/o selection
-	// selBtns(false);
+	this.upSel([], true);
 
 	if (refresh) {
 		var s = this.vizStates[vIndex];
@@ -1400,7 +1414,7 @@ PVizFrame.prototype.setStream = function(stream)
 
 PVizFrame.prototype.clearSel = function()
 {
-	this.selBtns(false);
+	this.upSel([], false);
 	if (this.vizModel) {
 		this.vizModel.clearSel();
 	}
@@ -1418,7 +1432,7 @@ PVizFrame.prototype.setSel = function(selList)
 		this.computeSel();
 	}
 	return false;
-} // selSel()
+} // setSel()
 
 	// PURPOSE: Handle external request to add to selection
 	// INPUT: 	absI = absolute index of Record
@@ -1804,7 +1818,7 @@ PTextFrame.prototype.buildTextFrame = function()
 	this.selAbsI=[];
 	this.vizSel=[];
 	this.txtIDs=[];
-	this.selBtns(false);
+	this.upSel([], true);
 
 	var txtIDs=[];
 	var recs;
@@ -2000,17 +2014,12 @@ PTextFrame.prototype.initDOM = function()
 					// If it already exists, remove it
 				if (vizSel[i] === a) {
 					vizSel.splice(i, 1);
-						// Empty now?
-					if (vizSel.length === 0) {
-						self.selBtns(false);
-					}
 						// Also remove from selAbsIs
 					self.selAbsIs.splice(_.sortedIndex(self.selAbsIs, a), 1);
 					self.callbacks.delSel(0, a);
 					jQuery('#read-pane a[data-id="'+id+'"]').removeClass('sel');
 				} else {	// add selected absID
 					if (vizSel.length === 0) {
-						self.selBtns(true);
 						vizSel.push(a);
 					} else {
 						vizSel.splice(i, 0, a);
@@ -2020,6 +2029,7 @@ PTextFrame.prototype.initDOM = function()
 					self.callbacks.addSel(0, a);
 					jQuery('#read-pane a[data-id="'+id+'"]').addClass('sel');
 				} // add ID
+				self.upSel(vizSel, false);
 					// Only prevent default if we can handle the "link"
 				event.preventDefault();
 			} // ID has absI
@@ -2392,7 +2402,7 @@ PTextFrame.prototype.clearSel = function()
 {
 	this.selAbsIs = [];
 	this.vizSel = [];
-	this.selBtns(false);
+	this.upSel([], false);
 	jQuery('#read-pane a').removeClass('sel');
 } // clearSel()
 
@@ -2416,10 +2426,10 @@ PTextFrame.prototype.setSel = function(selList)
 		}
 	});
 	this.vizSel = vizSel;
-	this.selBtns(vizSel.length > 0);
+	this.upSel(vizSel, false);
 
 	return true;
-} // selSel()
+} // setSel()
 
 	// PURPOSE: Handle external request to add to selection
 	// INPUT: 	absI = absolute index of Record
@@ -2436,12 +2446,12 @@ PTextFrame.prototype.addSel = function(absI)
 		t.addClass('sel');
 			// First item?
 		if (this.vizSel.length === 0) {
-			this.selBtns(true);
 			this.vizSel.push(absI);
 		} else {
 			i = _.sortedIndex(this.vizSel, absI);
 			this.vizSel.splice(i, 0, absI);
 		}
+		this.upSel(this.vizSel, false);
 	}
 } // addSel()
 
@@ -2457,12 +2467,9 @@ PTextFrame.prototype.delSel = function(absI)
 	i = _.sortedIndex(this.vizSel, absI);
 	if (this.vizSel[i] === absI) {
 		this.vizSel.splice(i, 1);
-			// Last item removed?
-		if (this.vizSel.length === 0) {
-			this.selBtns(false);
-		}
 		r = PData.rByN(absI);
 		jQuery('#read-pane a[data-id="'+r.id+'"]').removeClass('sel');
+		this.upSel(this.vizSel, false);
 	}
 } // delSel()
 
@@ -3347,7 +3354,7 @@ jQuery(document).ready(function($) {
 			// Does viz already exist?
 		if (v1) {
 			v1.setViz(vI, false);
-			v1.selBtns(false);
+			v1.upSel([], true);
 		} else {
 			views[1] = new PVizFrame(1, callbacks);
 			v1 = views[1];
@@ -3428,9 +3435,9 @@ jQuery(document).ready(function($) {
 			v1.clearSel();
 			break;
 		case 'v2': 		// Only Show selected Records (none)
-			v1.selBtns(false);
 			endStream = absIs2IS([]);
 			v1.showStream(endStream);
+			v1.upSel([], false);
 			break;
 		}
 		PState.set(PSTATE_READY);
@@ -3490,7 +3497,7 @@ jQuery(document).ready(function($) {
 	} // doNewText()
 
 		// PURPOSE: Called to request VizFrame be rendered
-		// NOTES: 	Called after Record data loaded, Text Frame renders itself or vMode changed
+		// ASSMES: 	Called after Record data loaded, Text Frame renders itself or vMode changed
 	function render()
 	{
 		var v0=views[0], v1=views[1];
@@ -3585,6 +3592,7 @@ jQuery(document).ready(function($) {
 		loadFrag('dltext-dofilters', 'dofilters');
 		loadFrag('dltext-filtered', 'filtered');
 		loadFrag('dltext-findintext', 'findintext');
+		loadFrag('dltext-selected', 'selected');
 
 		text = document.getElementById('dltext-month-names').innerHTML;
 		months = text.trim().split('|');
