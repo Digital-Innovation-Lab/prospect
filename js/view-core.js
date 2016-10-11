@@ -124,6 +124,8 @@ var PState = (function() {
 //		Views must also call ViewFrame when there is a selection change because of
 //				user action or update request via vizAddSel() or vizDelSel():
 //			upSel(selectedAbsIList)
+//		Views do not have to call upSel() when handling setSel() and clearSel(), as
+//			update to ViewFrame has already been done.
 //		Instance Variables:
 //			vFrame = points to viewFrame
 //			frameID = selector string for DIV
@@ -211,19 +213,19 @@ PVizModel.prototype.toggleSel = function(absI)
 	var i = _.sortedIndex(this.recSel, absI);
 	if (this.recSel[i] === absI) {
 		this.recSel.splice(i, 1);
-		this.vFrame.vizDelSel(absI);		// Inform ViewFrame of single deletion
-		this.vFrame.upSel(this.recSel);		// Inform ViewFrame of total number
+		this.vFrame.vizDelSel(absI);			// Inform ViewFrame of single deletion
+		this.vFrame.upSel(this.recSel, false);	// Inform ViewFrame of total number
 		return false;
 	} else {
 		this.recSel.splice(i, 0, absI);
-		this.vFrame.vizAddSel(absI);		// Inform ViewFrame of single addition
-		this.vFrame.upSel(this.recSel);		// Inform ViewFrame of total number
+		this.vFrame.vizAddSel(absI);			// Inform ViewFrame of single addition
+		this.vFrame.upSel(this.recSel, false);	// Inform ViewFrame of total number
 		return true;
 	}
 } // toggleSel()
 
 	// PURPOSE: Clear internal selection list
-	// TO DO:	Does it need inform ViewFrame?
+	// NOTES:	Called via/by ViewFrame, so don't need to inform upSel()
 PVizModel.prototype.clearSel = function()
 {
 	this.recSel = [];
