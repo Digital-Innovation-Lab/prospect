@@ -2579,10 +2579,17 @@ jQuery(document).ready(function($) {
 				jQuery('#filter-frame').slideToggle(400);
 				event.preventDefault();
 			});
-	jQuery('#btn-show-prspctv').button({icons: { primary: 'ui-icon-image' }, text: false })
-			.click(clickShowPerspective);
-	jQuery('#btn-save-prspctv').button({icons: { primary: 'ui-icon-pencil' }, text: false })
-			.click(clickSavePerspective);
+
+		// Check if need to disable Perspective buttons (added 1.7)
+	if (typeof prspdata.e.g.dspr != 'undefined' && prspdata.e.g.dspr) {
+		jQuery('#btn-show-prspctv').remove();
+		jQuery('#btn-save-prspctv').remove();
+	} else {
+		jQuery('#btn-show-prspctv').button({icons: { primary: 'ui-icon-image' }, text: false })
+				.click(clickShowPerspective);
+		jQuery('#btn-save-prspctv').button({icons: { primary: 'ui-icon-pencil' }, text: false })
+				.click(clickSavePerspective);
+	}
 	jQuery('#btn-annote').button({icons: { primary: 'ui-icon-comment' }, text: false })
 			.click(clickAnnotation);
 
