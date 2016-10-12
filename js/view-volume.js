@@ -3683,10 +3683,18 @@ jQuery(document).ready(function($) {
 			jQuery('#view-frame-1').toggleClass('mini-text');
 			views[1].resize();
 		});
-	jQuery('#btn-show-reading').button({icons: { primary: 'ui-icon-image' }, text: false })
-			.click(clickShowReading);
-	jQuery('#btn-save-reading').button({icons: { primary: 'ui-icon-pencil' }, text: false })
-			.click(clickSaveReading);
+
+		// Check if need to disable Perspective buttons (added 1.7)
+	if (typeof prspdata.e.g.dspr != 'undefined' && prspdata.e.g.dspr) {
+		jQuery('#btn-show-reading').remove();
+		jQuery('#btn-save-reading').remove();
+	} else {
+		jQuery('#btn-show-reading').button({icons: { primary: 'ui-icon-image' }, text: false })
+				.click(clickShowReading);
+		jQuery('#btn-save-reading').button({icons: { primary: 'ui-icon-pencil' }, text: false })
+				.click(clickSaveReading);
+	}
+
 	jQuery('#btn-annote').button({icons: { primary: 'ui-icon-comment' }, text: false })
 			.click(clickAnnotation);
 	jQuery('#clearsel') //.button({icons: { primary: 'ui-icon-cancel' }, text: false })

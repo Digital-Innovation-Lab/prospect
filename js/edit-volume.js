@@ -192,10 +192,18 @@ jQuery(document).ready(function() {
 		// General Attributes
 	var volID = jQuery('input[name="prsp_vol_id"]').val();
 
-	var defGen = { l: '', hbtn: '', hurl: '', ts: [] };
+	var defGen = { l: '', hbtn: '', hurl: '', ts: [], tour: false, dspr: false };
 	embedData = jQuery('textarea[name="prsp_vol_gen"]').val();
 	if (embedData && embedData != 'null' && embedData.length > 4) {
 		defGen = JSON.parse(embedData);
+			// Create default setting for Help Tour if not defined (added in 1.7)
+		if (typeof defGen.tour === 'undefined') {
+			defGen.tour = false;
+		}
+			// Create default setting for Disable Perspectives if not defined (added in 1.7)
+		if (typeof defGen.dspr === 'undefined') {
+			defGen.dspr = false;
+		}
 	}
 
 		// Configurations of Views
@@ -394,6 +402,8 @@ jQuery(document).ready(function() {
 		saveGen.l = volumeL;
 		saveGen.hbtn = rApp.get('genSettings.hbtn').trim();
 		saveGen.hurl = rApp.get('genSettings.hurl').trim();
+		saveGen.tour = rApp.get('genSettings.tour');
+		saveGen.dspr = rApp.get('genSettings.dspr');
 		saveGen.ts = [];
 
 		for (var i=0; i<iTemplates.length; i++) {
