@@ -109,7 +109,7 @@
 	<div id="dialog-sortby" title=<?php _e('"Sort By"', 'prospect'); ?>>
 	</div>
 
-	<div id="dialog-inspector" title=<?php _e('"Record Inspector"', 'prospect'); ?>>
+	<div id="dialog-inspector" title=<?php _e('"Inspector"', 'prospect'); ?>>
 		<div class="inspector-header">
 			<button id="btn-inspect-left"><?php _e('Previous', 'prospect'); ?></button>
 			<span id="inspect-name"></span>
@@ -128,7 +128,7 @@
 	</div>
 
 	<div id="dialog-prune" title=<?php _e('"Network Options"', 'prospect'); ?>>
-		<input type="checkbox" name="prune-nodes" id="prune-nodes"/> <?php _e('Hide unconnected Records', 'prospect'); ?>
+		<input type="checkbox" name="prune-nodes" id="prune-nodes"/> <?php _e('Hide unconnected items', 'prospect'); ?>
 	</div>
 
 	<div id="dialog-netgraph" title=<?php _e('"Options"', 'prospect'); ?>>
@@ -170,7 +170,7 @@
 		<input id="save-reading-lbl" type="text" size="42" placeholder=<?php _e('"Label"', 'prospect'); ?>/><br/>
 
 		<fieldset class="radiogroup">
-			<legend><?php _e('Select Records By', 'prospect'); ?></legend>
+			<legend><?php _e('Select items By', 'prospect'); ?></legend>
 			<ul class="radio">
 				<li><input type="radio" name="select-read-by" id="read-by-recs" value="recs" checked/><label for="read-by-recs"><?php _e('Restoring Exact Current Selection', 'prospect'); ?></label></li>
 				<li><input type="radio" name="select-read-by" id="read-by-h0" value="h0"/><label for="read-by-h0"><?php _e('Applying Text Frame Highlight Filter', 'prospect'); ?></label></li>
@@ -226,9 +226,9 @@
 	<ol id="help-txt-tour">
 		<li data-t="#pstate" data-l=<?php _e('"Current State"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Indicates the current state of Prospect (whether or not it is loading data, etc)', 'prospect'); ?></li>
 		<li data-t="#btn-togtext" data-l=<?php _e('"Min/Max Text Pane"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click to minimize or maximize the size of the Text Pane', 'prospect'); ?></li>
-		<li data-t="#vizmode-0" data-l=<?php _e('"Show All Data"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this option if you want all Record data to be shown in the visualization on the right', 'prospect'); ?></li>
-		<li data-t="#vizmode-1" data-l=<?php _e('"Show Data in Text"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this option if you want the visualization on the right to only show Records that are embedded in the text on the left', 'prospect'); ?></li>
-		<li data-t="#vizmode-2" data-l=<?php _e('"Only Show Selected Records"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this option if you want the visualization on the right to only show Records that have been selected in the text on the left', 'prospect'); ?></li>
+		<li data-t="#vizmode-0" data-l=<?php _e('"Show All Data"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this option if you want all item data to be shown in the visualization on the right', 'prospect'); ?></li>
+		<li data-t="#vizmode-1" data-l=<?php _e('"Show Data in Text"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this option if you want the visualization on the right to only show items that are embedded in the text on the left', 'prospect'); ?></li>
+		<li data-t="#vizmode-2" data-l=<?php _e('"Only Show Selected Items"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this option if you want the visualization on the right to only show items that have been selected in the text on the left', 'prospect'); ?></li>
 		<li data-t="#clearsel" data-l=<?php _e('"Clear Highlighted"', 'prospect'); ?> data-p="bottom" data-x=0 data-y=0><?php _e('Click this to clear out the currently highlighted selection on the current visualization', 'prospect'); ?></li>
 		<li data-t="#btn-show-reading" data-l=<?php _e('"Show Reading"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this to see which Readings are available for current Volume', 'prospect'); ?></li>
 		<li data-t="#btn-save-reading" data-l=<?php _e('"Save Reading"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this to save the current state of your activity as a Reading', 'prospect'); ?></li>
@@ -236,15 +236,15 @@
 		<li data-t="#hstoc" data-l=<?php _e('"Toggle TOC/Text"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this to toggle between the Table of Contents and the Reading Pane', 'prospect'); ?></li>
 		<li data-t="#textprev" data-l=<?php _e('"Previous Section"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this to show the previous section of the Reading List on the Reading Pane', 'prospect'); ?></li>
 		<li data-t="#textnext" data-l=<?php _e('"Next Section"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this to show the next section of the Reading List on the Reading Pane', 'prospect'); ?></li>
-		<li data-t="#text-controls .hilite" data-l=<?php _e('"Highlight Filter"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this to show or apply Filters that select Records programatically on the Reading Pane', 'prospect'); ?></li>
-		<li data-t="#text-controls .osel" data-l=<?php _e('"Show Highlighted"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this when it is pulsing to show all of the currently highlighted selection of Records (one at a time) in the Record Inspector modal dialog window', 'prospect'); ?></li>
+		<li data-t="#text-controls .hilite" data-l=<?php _e('"Highlight Filter"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this to show or apply Filters that select items programatically on the Reading Pane', 'prospect'); ?></li>
+		<li data-t="#text-controls .osel" data-l=<?php _e('"Show Highlighted"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this when it is pulsing to show all of the currently highlighted selection of items in the Inspector modal dialog window', 'prospect'); ?></li>
 		<li data-t="#bookmark" data-l=<?php _e('"Bookmark"', 'prospect'); ?> data-p="bottom" data-x=0 data-y=-22><?php _e('Shows the relative size of each section of the Volume; sections that are currently displayed are orange; sections not in the Reading List are greyed out', 'prospect'); ?></li>
 		<li data-t="#view-frame-1 .view-viz-select" data-l=<?php _e('"Select Visualization"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Choose which visualization you wish to see in this Exhibit', 'prospect'); ?></li>
 		<li data-t="#view-frame-1 .hslgnd" data-l=<?php _e('"Hide/Show Legend"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this to hide or show the Legend panel', 'prospect'); ?></li>
 		<li data-t="#view-frame-1 .vopts" data-l=<?php _e('"Visualization Options"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this to show the configuration options available for this visualization', 'prospect'); ?></li>
 		<li data-t="#view-frame-1 .vnote" data-l=<?php _e('"Visualization Notes"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this to show notes providing extra explanation about this visualization', 'prospect'); ?></li>
-		<li data-t="#view-frame-1 .hilite" data-l=<?php _e('"Highlight Filter"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this to show or apply Filters that select Records programatically on the current visualization', 'prospect'); ?></li>
-		<li data-t="#view-frame-1 .osel" data-l=<?php _e('"Show Highlighted"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this when it is pulsing to show all of the currently highlighted selection of Records (one at a time) in the Record Inspector modal dialog window', 'prospect'); ?></li>
+		<li data-t="#view-frame-1 .hilite" data-l=<?php _e('"Highlight Filter"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this to show or apply Filters that select items programatically on the current visualization', 'prospect'); ?></li>
+		<li data-t="#view-frame-1 .osel" data-l=<?php _e('"Show Highlighted"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this when it is pulsing to show all of the currently highlighted selection of items in the Inspector modal dialog window', 'prospect'); ?></li>
 	</ol>
 
 	<ol id="help-toc-tour">
@@ -294,10 +294,6 @@
 	<input type="checkbox" class="apply-tmplt-<%= ti %>"> <?php _e('Apply to', 'prospect'); ?> <%= tl %>
 </script>
 
-<script id="dltext-filter-remove" type='text'>
-<?php _e('All Records from selected Templates will be removed/hidden.', 'prospect'); ?>
-</script>
-
 <script id="dltext-filter-text" type='text'>
 	<select class="filter-text-ops" value="c">
 		<option value="c"><?php _e('Text contains', 'prospect'); ?></option>
@@ -344,7 +340,7 @@
 </script>
 
 <script id="dltext-filter-ptr" type='text'>
-	<?php _e('Points to a Record label', 'prospect'); ?>
+	<?php _e('Points to an item label', 'prospect'); ?>
 	<select class="filter-text-ops" value="c">
 		<option value="c"><?php _e('that contains', 'prospect'); ?></option>
 		<option value="x"><?php _e('is exact match', 'prospect'); ?></option>
@@ -379,7 +375,7 @@
 </script>
 
 <script id="dltext-seerec" type="text">
-<?php _e('See Record', 'prospect'); ?>
+<?php _e('See Item', 'prospect'); ?>
 </script>
 
 <script id="dltext-close" type="text">
@@ -443,11 +439,11 @@
 </script>
 
 <script id="dltext-orderedby" type="text">
-<?php _e('records ordered by', 'prospect'); ?>
+<?php _e('items ordered by', 'prospect'); ?>
 </script>
 
 <script id="dltext-grpblks" type="text">
-<?php _e('Records grouped in blocks by', 'prospect'); ?>
+<?php _e('Items grouped in blocks by', 'prospect'); ?>
 </script>
 
 <script id="dltext-reset" type="text">

@@ -65,7 +65,7 @@
 	<div id="dialog-sortby" title=<?php _e('"Sort By"', 'prospect'); ?>>
 	</div>
 
-	<div id="dialog-inspector" title=<?php _e('"Record Inspector"', 'prospect'); ?>>
+	<div id="dialog-inspector" title=<?php _e('"Inspector"', 'prospect'); ?>>
 		<div class="inspector-header">
 			<button id="btn-inspect-left"><?php _e('Previous', 'prospect'); ?></button>
 			<span id="inspect-name"></span>
@@ -84,7 +84,7 @@
 	</div>
 
 	<div id="dialog-prune" title=<?php _e('"Network Options"', 'prospect'); ?>>
-		<input type="checkbox" name="prune-nodes" id="prune-nodes"/> <?php _e('Hide unconnected Records', 'prospect'); ?>
+		<input type="checkbox" name="prune-nodes" id="prune-nodes"/> <?php _e('Hide unconnected items', 'prospect'); ?>
 	</div>
 
 	<div id="dialog-netgraph" title=<?php _e('"Options"', 'prospect'); ?>>
@@ -181,9 +181,9 @@
 		<li data-t="#view-frame-0 .hslgnd" data-l=<?php _e('"Hide/Show Legend"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this to hide or show the Legend panel', 'prospect'); ?></li>
 		<li data-t="#view-frame-0 .vopts" data-l=<?php _e('"Visualization Options"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this to show the configuration options available for this visualization', 'prospect'); ?></li>
 		<li data-t="#view-frame-0 .vnote" data-l=<?php _e('"Visualization Notes"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this to show notes providing extra explanation about this visualization', 'prospect'); ?></li>
-		<li data-t="#view-frame-0 .hilite" data-l=<?php _e('"Highlight Filter"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this to show or apply Filters that select Records programatically on the current visualization', 'prospect'); ?></li>
+		<li data-t="#view-frame-0 .hilite" data-l=<?php _e('"Highlight Filter"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this to show or apply Filters that select items programatically on the current visualization', 'prospect'); ?></li>
 		<li data-t="#view-frame-0 .xsel" data-l=<?php _e('"Clear Highlighted"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this to clear out the currently highlighted selection on the current visualization', 'prospect'); ?></li>
-		<li data-t="#view-frame-0 .osel" data-l=<?php _e('"Show Highlighted"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this when it is pulsing to show all of the currently highlighted selection of Records (one at a time) in the Record Inspector modal dialog window', 'prospect'); ?></li>
+		<li data-t="#view-frame-0 .osel" data-l=<?php _e('"Show Highlighted"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this when it is pulsing to show all of the currently highlighted selection of items in the Inspector modal dialog window', 'prospect'); ?></li>
 	</ol>
 </div> <!-- Hidden content ->
 
@@ -251,7 +251,7 @@
 </script>
 
 <script id="dltext-filter-remove" type='text'>
-<?php _e('All Records from selected Templates will be removed/hidden.', 'prospect'); ?>
+<?php _e('All items from selected Templates will be removed/hidden.', 'prospect'); ?>
 </script>
 
 <script id="dltext-filter-text" type='text'>
@@ -300,7 +300,7 @@
 </script>
 
 <script id="dltext-filter-ptr" type='text'>
-	<?php _e('Points to a Record label', 'prospect'); ?>
+	<?php _e('Points to an item label', 'prospect'); ?>
 	<select class="filter-text-ops" value="c">
 		<option value="c"><?php _e('that contains', 'prospect'); ?></option>
 		<option value="x"><?php _e('is exact match', 'prospect'); ?></option>
@@ -335,7 +335,7 @@
 </script>
 
 <script id="dltext-seerec" type="text">
-<?php _e('See Record', 'prospect'); ?>
+<?php _e('See Item', 'prospect'); ?>
 </script>
 
 <script id="dltext-close" type="text">
@@ -399,11 +399,11 @@
 </script>
 
 <script id="dltext-orderedby" type="text">
-<?php _e('records ordered by', 'prospect'); ?>
+<?php _e('items ordered by', 'prospect'); ?>
 </script>
 
 <script id="dltext-grpblks" type="text">
-<?php _e('Records grouped in blocks by', 'prospect'); ?>
+<?php _e('Items grouped in blocks by', 'prospect'); ?>
 </script>
 
 <script id="dltext-reset" type="text">
