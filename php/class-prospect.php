@@ -166,8 +166,9 @@ class Prospect {
 				// Check for optional settings
 			$options = get_option('prsp_base_options');
 
-				// Insert Help Tour?
-			$tour = isset($options['prsp_tour']) && ($options['prsp_tour'] == 'true' || $options['prsp_tour'] == 'TRUE');
+				// Insert Help Tour? Can be set at either Website or Exhibit level
+			$tour = (isset($the_xhbt->gen->tour) && $the_xhbt->gen->tour) ||
+				(isset($options['prsp_tour']) && ($options['prsp_tour'] == 'true' || $options['prsp_tour'] == 'TRUE'));
 			if ($tour) {
 				wp_enqueue_style('jquery-help-css', plugins_url('lib/hopscotch/css/hopscotch.min.css', dirname(__FILE__)), array('prsp-jquery-ui-style', 'prsp-jquery-theme-style'));
 				wp_enqueue_script('jquery-help', plugins_url('lib/hopscotch/js/hopscotch.min.js', dirname(__FILE__)), array('jquery', 'prsp-view-exhibit'));
@@ -267,7 +268,7 @@ class Prospect {
 				array_push($p, $p_def);
 			}
 
-				// Have to put numberic parameters into x or else they are treated as strings!
+				// Have to put numeric & boolean parameters into x or else they are treated as strings!
 			wp_localize_script('prsp-view-exhibit', 'prspdata', array(
 				'ajax_url'  	=> get_admin_url(get_current_blog_id() ,'admin-ajax.php'),
 				'site_url'		=> site_url(),
@@ -357,8 +358,9 @@ class Prospect {
 				// Check user options
 			$options = get_option('prsp_base_options');
 
-				// Insert Help Tour?
-			$tour = isset($options['prsp_tour']) && ($options['prsp_tour'] == 'true' || $options['prsp_tour'] == 'TRUE');
+				// Insert Help Tour? Can be set at either Website or Volume level
+			$tour = (isset($the_volume->gen->tour) && $the_volume->gen->tour) ||
+				(isset($options['prsp_tour']) && ($options['prsp_tour'] == 'true' || $options['prsp_tour'] == 'TRUE'));
 			if ($tour) {
 				wp_enqueue_style('jquery-help-css', plugins_url('lib/hopscotch/css/hopscotch.min.css', dirname(__FILE__)), array('prsp-jquery-ui-style', 'prsp-jquery-theme-style'));
 				wp_enqueue_script('jquery-help', plugins_url('lib/hopscotch/js/hopscotch.min.js', dirname(__FILE__)), array('jquery', 'prsp-view-volume'));
