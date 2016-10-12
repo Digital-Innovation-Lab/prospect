@@ -1256,11 +1256,12 @@ div.viz-result svg .axis line {
 }
 
 	/* Pinboard styles */
-svg .recobj
+svg circle.recobj
 {
+	cursor: pointer;
 }
 
-svg .recobj.obj-sel
+svg circle.recobj.obj-sel
 {
 	stroke: yellow;
 	stroke-width: 1;
@@ -1344,7 +1345,7 @@ svg.tl-vf .event.range {
 }
 
 svg.tl-vf .event.instant {
-	cursor : default;
+	cursor: default;
 	pointer-events: true;
 	stroke-width: 1;
 	stroke: black;
