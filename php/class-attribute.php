@@ -11,7 +11,7 @@ class ProspectAttribute {
 	{
 		$lo = 0;
 		$hi = count($atts)-1;
- 
+
 		while ($lo <= $hi) {
 			$pos = (int)(($lo + $hi) / 2);
 			// $pos = (int)(($hi – $lo) >> 1) + $lo;
@@ -377,7 +377,7 @@ class ProspectAttribute {
 									$entry->d->min->m = (int)$entry->d->min->m;
 								if (isset($entry->d->min->d))
 									$entry->d->min->d = (int)$entry->d->min->d;
-								if (isset($entry->d->max->y))
+								if (isset($entry->d->max->y) && $entry->d->max->y != 'open')
 									$entry->d->max->y = (int)$entry->d->max->y;
 								if (isset($entry->d->max->m))
 									$entry->d->max->m = (int)$entry->d->max->m;
