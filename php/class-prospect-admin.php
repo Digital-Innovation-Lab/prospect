@@ -1193,6 +1193,45 @@ class ProspectAdmin {
 	} // write_template_data()
 
 
+		// PURPOSE: Write the data dictionary definition of a Template into the text file
+	public function write_template_dict($fp, $template)
+	{
+			// Translate between type codes and legible strings
+		$data_types = [
+			"V" => __("Vocabulary", 'prospect'),
+			"T" => __("Text", 'prospect'),
+			"g" => __("Tags", 'prospect'),
+			"N" => __("Number", 'prospect'),
+			"D" => __("Dates", 'prospect'),
+			"L" => __("Lat-Lon", 'prospect'),
+			"X" => __("X-Y", 'prospect'),
+			"I" => __("Image", 'prospect'),
+			"l" => __("Link-To", 'prospect'),
+			"S" => __("Audio", 'prospect'),
+			"Y" => __("YouTube", 'prospect'),
+			"x" => __("Transcript", 'prospect'),
+			"t" => __("Timecode", 'prospect'),
+			"P" => __("Pointer", 'prospect'),
+			"J" => __("Join", 'prospect')
+		];
+		fwrite($fp, __('Template: ', 'prospect').$template->def->l.' ('.$template->id.')'."\n");
+		fwrite($fp, "===================\n");
+
+			// Fetch and write all Attribute definitions
+		foreach ($template->def->a as $att_id) {
+			$attribute = new ProspectAttribute(false, $att_id, true, true, false, false, false);
+			if ($attribute) {
+				fwrite($fp, __('Attribute: ', 'prospect').$attribute->def->l.' ('.$att_id.')'."\n");
+				fwrite($fp, __('Data Type: ', 'prospect').$data_types[$attribute->def->t]."\n");
+
+				fwrite($fp, "-----------------\n");
+			}
+		}
+
+		fwrite($fp, "\n");
+	} // write_template_dict()
+
+
 		// PURPOSE: Export this Template definition as a JSON Archive file
 	public function prsp_export_template()
 	{
@@ -1251,6 +1290,29 @@ class ProspectAdmin {
 	} // prsp_export_all_ts()
 
 
+		// PURPOSE: Export all Template definitions as a JSON Archive file
+	public function prsp_export_all_t_dicts()
+	{
+			// ensure that this URL has not been faked by non-admin user
+		if (!current_user_can('edit_posts')) {
+			wp_die('Invalid request');
+		}
+
+			// Create appropriate filename
+		$fp = $this->createUTFOutput("alltemplates-dict.txt", true);
+
+			// Get all definitions of all current Templates (no Joins needed)
+		$template_defs = ProspectTemplate::get_all_template_defs(-1, true, false, false, false);
+		foreach($template_defs as $the_template) {
+			$this->write_template_dict($fp, $the_template);
+		}
+
+			// Close the output buffer
+		fclose($fp);
+		exit();
+	} // prsp_export_all_t_dicts()
+
+
 		// PURPOSE: Export this Record definition as a CSV file
 	public function prsp_export_record()
 	{
@@ -1298,7 +1360,6 @@ class ProspectAdmin {
 		exit();
 	} // prsp_export_record()
 
-
 		// PURPOSE: Export a Template definition and all Attributes that belong to it as a JSON file
 	public function prsp_export_template_and_atts($template_id)
 	{
@@ -1327,6 +1388,20 @@ class ProspectAdmin {
 		exit();
 	} // prsp_export_template_and_atts()
 
+		// PURPOSE: Export a Template definition as Data Dictionary
+	public function prsp_export_template_dictionary($template_id)
+	{
+		$the_template = new ProspectTemplate(false, $template_id, true, true, true, true);
+
+			// Create appropriate filename
+		$fp = $this->createUTFOutput($template_id."-dict.txt", true);
+
+		$this->write_template_dict($fp, $the_template);
+
+			// Close the output buffer
+		fclose($fp);
+		exit();
+	} // prsp_export_template_dictionary()
 
 		// PURPOSE: Export all Records that belong to a particular Template type as a CSV file
 	public function prsp_export_all_template_records($template_id)
@@ -2070,6 +2145,8 @@ class ProspectAdmin {
 		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			if (isset($_POST['export_t_atts'])) {
 				$this->prsp_export_template_and_atts($_POST['export-type']);
+			} else if (isset($_POST['export_t_dict'])) {
+				$this->prsp_export_template_dictionary($_POST['export-type']);
 			} else if (isset($_POST['export_t_recs'])) {
 				$this->prsp_export_all_template_records($_POST['export-type']);
 			} else if (isset($_POST['export_xhbt_prspctvs'])) {
@@ -2112,15 +2189,6 @@ class ProspectAdmin {
 			'prsp_settings' // Section
 		);
 
-			// Disabled language option; using WP POT mechanism now instead
-		// add_settings_field(
-		// 	'prsp_lang',
-		// 	'Language to use',
-		// 	array($this, 'prsp_lang_callback'),
-		// 	'prsp-settings-page',
-		// 	'prsp_settings'
-		// );
-
 		add_settings_field(
 			'prsp_cb_color',
 			__('Command Bar Background Color', 'prospect'),
@@ -2157,13 +2225,29 @@ class ProspectAdmin {
 		</div>
 
 		<h3><?php _e('Attributes', 'prospect'); ?></h3>
-		<?php _e('<a href="admin.php?action=prsp_export_all_attributes" title="Export all Attributes as JSON archive file" rel="permalink">Export all Attributes as JSON file</a>', 'prospect'); ?>
+
+		<a href="admin.php?action=prsp_export_all_attributes" title="<?php
+			_e('Export all Attributes as JSON archive file', 'prospect');
+		?>" rel="permalink"><?php
+			_e('Export all Attributes as JSON file', 'prospect');
+		?></a>
 
 		<h3><?php _e('Templates', 'prospect'); ?></h3>
-		<?php _e('<a href="admin.php?action=prsp_export_all_ts" title="Export all Templates as JSON archive file" rel="permalink">Export all Templates as JSON file</a>', 'prospect'); ?>
+		<a href="admin.php?action=prsp_export_all_ts" title="<?php
+			_e('Export all Templates as JSON archive file', 'prospect');
+		?>" rel="permalink"><?php
+			_e('Export all Templates as JSON file', 'prospect');
+		?></a>
 		<br/>
 
-		<p><?php _e('Export this Template type with all Attributes (as JSON archive file)', 'prospect'); ?></p>
+		<a href="admin.php?action=prsp_export_all_t_dicts" title="<?php
+			_e('Export Data Dictionaries for all Templates', 'prospect');
+		?>" rel="permalink"><?php
+			_e('Export Data Dictionaries for all Templates', 'prospect');
+		?></a>
+		<br/>
+
+		<p><?php _e('Export this Template type with all Attributes', 'prospect'); ?></p>
 		<form id="prsp-archive-export-t-atts-form" method="post" enctype="multipart/form-data">
 		<select name="export-type">
 	<?php
@@ -2176,7 +2260,12 @@ class ProspectAdmin {
 
 	?>
 		</select>
-		<?php _e('<input type="submit" id="export_t_atts" name="export_t_atts" value="Export Template and Attributes"/>', 'prospect'); ?>
+		<input type="submit" id="export_t_atts" name="export_t_atts" value="<?php
+			_e('As JSON archive file', 'prospect');
+		?>"/>
+		<input type="submit" id="export_t_dict" name="export_t_dict" value="<?php
+			_e('As Data Dictionary', 'prospect');
+		?>"/>
 		</form>
 
 		<p><?php _e('Export all Records of this Template type (as CSV file)', 'prospect'); ?></p>
@@ -2190,11 +2279,15 @@ class ProspectAdmin {
 		}
 	?>
 		</select>
-		<?php _e('<input type="submit" id="export_t_recs" name="export_t_recs" value="Export Records"/>', 'prospect'); ?>
+		<input type="submit" id="export_t_recs" name="export_t_recs" value="<?php _e('Export Records', 'prospect'); ?>"/>
 		</form>
 
 		<h3><?php _e('Exhibits', 'prospect'); ?></h3>
-		<?php _e('<a href="admin.php?action=prsp_export_all_exhibits" title="Export all Exhibits as JSON archive file" rel="permalink">Export all Exhibits as JSON file</a>', 'prospect'); ?>
+		<a href="admin.php?action=prsp_export_all_exhibits" title="<?php
+			_e('Export all Exhibits as JSON archive file', 'prospect');
+		?>" rel="permalink"><?php
+			_e('Export all Exhibits as JSON file', 'prospect');
+		?></a>
 		<br/>
 
 		<p><?php _e('Export all Perspectives of this Exhibit as JSON file', 'prospect'); ?></p>
@@ -2208,19 +2301,33 @@ class ProspectAdmin {
 		}
 	?>
 		</select>
-		<?php _e('<input type="submit" id="export_xhbt_prspctvs" name="export_xhbt_prspctvs" value="Export Perspectives"/>', 'prospect'); ?>
+		<input type="submit" id="export_xhbt_prspctvs" name="export_xhbt_prspctvs" value="<?php
+			_e('Export Perspectives', 'prospect');
+		?>"/>
 		</form>
 
 		<h3><?php _e('Maps', 'prospect'); ?></h3>
-		<?php _e('<a href="admin.php?action=prsp_export_all_maps" title="Export all Maps as JSON archive file" rel="permalink">Export all Maps as JSON file</a>', 'prospect'); ?>
+		<a href="admin.php?action=prsp_export_all_maps" title="<?php
+			_e('Export all Maps as JSON archive file', 'prospect');
+		?>" rel="permalink"><?php
+			_e('Export all Maps as JSON file', 'prospect');
+		?></a>
 		<br/>
 
 		<h3><?php _e('Perspectives', 'prospect'); ?></h3>
-		<?php _e('<a href="admin.php?action=prsp_export_all_prspctvs" title="Export all Perspectives as JSON archive file" rel="permalink">Export all Perspectives as JSON file</a>', 'prospect'); ?>
+		<a href="admin.php?action=prsp_export_all_prspctvs" title="<?php
+			_e('Export all Perspectives as JSON archive file', 'prospect');
+		?>" rel="permalink"><?php
+			_e('Export all Perspectives as JSON file', 'prospect');
+		?></a>
 		<br/>
 
 		<h3><?php _e('Volumes', 'prospect'); ?></h3>
-		<?php _e('<a href="admin.php?action=prsp_export_all_volumes" title="Export all Volumes as JSON archive file" rel="permalink">Export all Volumes as JSON file</a>', 'prospect'); ?>
+		<a href="admin.php?action=prsp_export_all_volumes" title="<?php
+			_e('Export all Volumes as JSON archive file', 'prospect');
+		?>" rel="permalink"><?php
+			_e('Export all Volumes as JSON file', 'prospect');
+		?></a>
 		<br/>
 
 		<p><?php _e('Export all Readings of this Volume as JSON file', 'prospect'); ?></p>
@@ -2234,16 +2341,26 @@ class ProspectAdmin {
 		}
 	?>
 		</select>
-		<?php _e('<input type="submit" id="export_vol_readings" name="export_vol_readings" value="Export Readings"/>', 'prospect'); ?>
+		<input type="submit" id="export_vol_readings" name="export_vol_readings" value="<?php
+			_e('Export All Readings', 'prospect');
+		?>"/>
 		</form>
 
 		<h3><?php _e('Readings', 'prospect'); ?></h3>
-		<?php _e('<a href="admin.php?action=prsp_export_all_readings" title="Export all Readings as JSON archive file" rel="permalink">Export all Readings as JSON file</a>', 'prospect'); ?>
+		<a href="admin.php?action=prsp_export_all_readings" title="<?php
+			_e('Export all Readings as JSON archive file', 'prospect');
+		?>" rel="permalink"><?php
+			_e('Export all Readings as JSON file', 'prospect');
+		?></a>
 		<br/>
 
 		<h3><?php _e('Website Configuration Export', 'prospect'); ?></h3>
 		<p><b><?php _e('IMPORTANT','prospect'); ?>:</b> <?php _e('All Records must still be exported on a Template-by-Template basis; this archive file does not include Maps or Perspectives.', 'prospect'); ?></p>
-		<?php _e('<a href="admin.php?action=prsp_export_all" title="Export all" rel="permalink">Export all Attributes, Templates, Exhibits and Volumes from this website as a JSON archive file</a>', 'prospect'); ?>
+		<a href="admin.php?action=prsp_export_all" title="<?php
+			_e('Export all', 'prospect');
+		?>" rel="permalink"><?php
+			_e('Export all Attributes, Templates, Exhibits and Volumes from this website as a JSON archive file', 'prospect');
+		?></a>
 
 		<h3><?php _e('Import JSON Archive File', 'prospect'); ?></h3>
 		<p><?php _e('You can import a JSON archive file containing Attributes, Templates, Exhibits, Maps, Perspectives and/or Volumes. You must use other means for importing CSV files containing Records.', 'prospect'); ?></p>
@@ -2252,7 +2369,9 @@ class ProspectAdmin {
 		<form id="prsp-archive-import-form" method="post" enctype="multipart/form-data">
 		<label for="archive-import-select"><?php _e('Archive JSON File to Import', 'prospect'); ?></label>
 		<input type="file" size="60" name="archive-import-select" id="archive_import_file"/><br/>
-		<?php _e('<input type="submit" id="import_submit" name="import_submit" value="Upload Archive"/>', 'prospect'); ?>
+		<input type="submit" id="import_submit" name="import_submit" value="<?php
+			_e('Upload Archive', 'prospect');
+		?>"/>
 		</form>
 	<?php
 	} // show_prsp_archive_page()

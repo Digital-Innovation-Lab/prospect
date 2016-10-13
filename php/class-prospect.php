@@ -597,6 +597,7 @@ class Prospect {
 		$this->loader->add_action('admin_action_prsp_export_all_attributes', $this->admin, 'prsp_export_all_attributes', null, null);
 		$this->loader->add_action('admin_action_prsp_export_template', $this->admin, 'prsp_export_template', null, null);
 		$this->loader->add_action('admin_action_prsp_export_all_ts', $this->admin, 'prsp_export_all_ts', null, null);
+		$this->loader->add_action('admin_action_prsp_export_all_t_dicts', $this->admin, 'prsp_export_all_t_dicts', null, null);
 		$this->loader->add_action('admin_action_prsp_export_record', $this->admin, 'prsp_export_record', null, null);
 		$this->loader->add_action('admin_action_prsp_export_exhibit', $this->admin, 'prsp_export_exhibit', null, null);
 		$this->loader->add_action('admin_action_prsp_export_all_exhibits', $this->admin, 'prsp_export_all_exhibits', null, null);
