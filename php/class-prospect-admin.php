@@ -1192,6 +1192,22 @@ class ProspectAdmin {
 		fwrite($fp, '"tmplt-pview": '.$the_template->meta_pview." \n}");
 	} // write_template_data()
 
+	public function make_date_string($date_obj)
+	{
+		$date_string = __('(none)', 'prospect');
+
+		if (isset($date_obj->y)) {
+			if ($date_obj->y == 'open')
+				return $date_obj->y;
+			$date_string = (string)($date_obj->y);
+			if (isset($date_obj->m)) {
+				$date_string = $date_string.'-'.(string)($date_obj->m);
+				if (isset($date_obj->d))
+					$date_string = $date_string.'-'.(string)($date_obj->d);
+			}
+		}
+		return $date_string;
+	} // make_date_string()
 
 		// PURPOSE: Write the data dictionary definition of a Template into the text file
 	public function write_template_dict($fp, $template)
@@ -1219,14 +1235,103 @@ class ProspectAdmin {
 
 			// Fetch and write all Attribute definitions
 		foreach ($template->def->a as $att_id) {
-			$attribute = new ProspectAttribute(false, $att_id, true, true, false, false, false);
+			$attribute = new ProspectAttribute(false, $att_id, true, true, true, true, false);
 			if ($attribute) {
 				fwrite($fp, __('Attribute: ', 'prospect').$attribute->def->l.' ('.$att_id.')'."\n");
 				fwrite($fp, __('Data Type: ', 'prospect').$data_types[$attribute->def->t]."\n");
+				if (isset($attribute->def->h) && $attribute->def->h != '')
+					fwrite($fp, __('Note: ', 'prospect').$attribute->def->h."\n");
+
+				switch($attribute->def->t) {
+				case 'V':
+					if (isset($attribute->legend) && $attribute->legend != null && count($attribute->legend) > 0) {
+						fwrite($fp, __('Terms: ', 'prospect'));
+						$sep=false;
+						foreach($attribute->legend as $legend) {
+							if ($sep) {
+								fwrite($fp, ", ");
+							}
+							$sep=true;
+							fwrite($fp, $legend->l);
+								// Does this term have children?
+							if (count($legend->z) > 0) {
+								fwrite($fp, ' [');
+								$sep2 = false;
+								foreach($legend->z as $l2) {
+									if ($sep2) {
+										fwrite($fp, ", ");
+									}
+									$sep2=true;
+									fwrite($fp, $l2->l);
+								}
+								fwrite($fp, ']');
+							}
+						}
+						fwrite($fp, "\n");
+					}
+					break;
+				case 'T':
+					if (isset($attribute->legend) && $attribute->legend != null && count($attribute->legend) > 0) {
+						fwrite($fp, __('Text Patterns: ', 'prospect'));
+						$sep=false;
+						foreach($attribute->legend as $legend) {
+							if ($sep) {
+								fwrite($fp, ", ");
+							}
+							$sep=true;
+							fwrite($fp, $legend->l);
+						}
+						fwrite($fp, "\n");
+					}
+					break;
+				case 'N':
+					fwrite($fp, __('Min: ', 'prospect').$attribute->range->min.', ');
+					fwrite($fp, __('Max: ', 'prospect').$attribute->range->max.', ');
+					fwrite($fp, __('Group By: ', 'prospect').$attribute->range->g."\n");
+					if (isset($attribute->legend) && $attribute->legend != null && count($attribute->legend) > 0) {
+						fwrite($fp, __('Ranges: ', 'prospect'));
+						$sep=false;
+						foreach($attribute->legend as $legend) {
+							if ($sep) {
+								fwrite($fp, "; ");
+							}
+							$sep=true;
+							fwrite($fp, $legend->l.'= ');
+							$min = $max = __('none', 'prospect');
+							if (isset($legend->d->min))
+								$min = $legend->d->min;
+							if (isset($legend->d->max))
+								$max = $legend->d->max;
+							fwrite($fp, $min.__(' to ', 'prospect').$max);
+						}
+						fwrite($fp, "\n");
+					}
+					break;
+				case 'D':
+					fwrite($fp, __('Min: ', 'prospect').$this->make_date_string($attribute->range->min).', ');
+					fwrite($fp, __('Max: ', 'prospect').$this->make_date_string($attribute->range->max).', ');
+					fwrite($fp, __('Group By: ', 'prospect').$attribute->range->g."\n");
+					if (isset($attribute->legend) && $attribute->legend != null && count($attribute->legend) > 0) {
+						fwrite($fp, __('Periods: ', 'prospect'));
+						$sep=false;
+						foreach($attribute->legend as $legend) {
+							if ($sep) {
+								fwrite($fp, "; ");
+							}
+							$sep=true;
+							fwrite($fp, $legend->l.'= ');
+							fwrite($fp, $this->make_date_string($legend->d->min));
+							fwrite($fp, ' \ ');
+							fwrite($fp, $this->make_date_string($legend->d->max));
+						}
+						fwrite($fp, "\n");
+					}
+					break;
+				} // switch on data type
 
 				fwrite($fp, "-----------------\n");
-			}
-		}
+			} // if valid attribute
+		} // for all attributes
 
 		fwrite($fp, "\n");
 	} // write_template_dict()
