@@ -334,13 +334,15 @@
 				<option>{{this}}</option>
 			{{/each}}
 			</select>
-			<b><?php _e('Label Marker', 'prospect'); ?>:</b>
+			<?php _e('Label Marker', 'prospect'); ?>:
 			<select value='{{c.lbls[tIndex]}}'>
 				<option value="n"><?php _e('None', 'prospect'); ?></option>
 				<option value="a"><?php _e('Above', 'prospect'); ?></option>
 			</select>
+			<?php _e('Label Color', 'prospect'); ?>: <input type="text" value="{{c.tClrs[tIndex]}}" size="10"/>
+			<span title=<?php _e('"Click to select color"', 'prospect'); ?> class="viz-icon" style="background-color:{{c.tClrs[tIndex]}}" on-click="setTColor:{{vIndex}},{{tIndex}}"></span>
 			<br/>
-			<b><?php _e('Marker Radius Size', 'prospect'); ?>: </b>
+			<b><?php _e('Marker Radius Size', 'prospect'); ?></b>:
 			<select value='{{c.sAtts[tIndex]}}'>
 			{{#each attsDNum}}
 				<option>{{this}}</option>
