@@ -281,12 +281,6 @@ div.filter-body div.cntrl-blck {
 	vertical-align: top;
 }
 
-/*
-div.filter-body div.h-center {
-	display: block;
-	margin: 0 auto;
-}
-*/
 div.filter-body input[type=text] {
 	font-size: 9px;
 	padding: 1px;
