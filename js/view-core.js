@@ -971,8 +971,9 @@ VizMap2.prototype.render = function(stream)
 
 	var numTmplts = stream.t.length;
 	var i=0, aI, tI=0, tRec, tLClr, rec;
-	var fAttID, fAtt, locAtt, featSet, lbl;
+	var fAttID, fAtt, locAtt=null, featSet, lbl;
 	var locData, fData, newMarker;
+	var tClr;
 
 	var sAttID, sAtt, minR, maxR, dR, minS, dS, p0;
 
@@ -990,9 +991,9 @@ VizMap2.prototype.render = function(stream)
 	doStream:
 	while (i<stream.l) {
 			// Starting with new Template?
-		if (locAtt == null) {
+		if (locAtt === null) {
 			do {
-				if (++tI == numTmplts)
+				if (++tI === numTmplts)
 					break doStream;
 				tRec = stream.t[tI];
 			} while (tRec.n === 0 || (tRec.i+tRec.n) === i);
@@ -1018,6 +1019,15 @@ VizMap2.prototype.render = function(stream)
 				// Get Feature Attribute ID and def for this Template
 			fAttID = self.vFrame.getSelLegend(tI);
 			fAtt = PData.aByID(fAttID);
+
+				// Check to see if title colors define for this Template (added in 1.7)
+			tClr='';
+			if (typeof self.settings.tClrs !== 'undefined') {
+				tClr = self.settings.tClrs[tI];
+				if (tClr.length > 0) {
+					tClr = ' style="color:'+tClr+'"';
+				}
+			}
 
 			tLClr = self.settings.lClrs[tI];
 			sAttID = self.settings.sAtts[tI];
@@ -1061,7 +1071,7 @@ VizMap2.prototype.render = function(stream)
 					icon: L.divIcon({
 						iconSize: null,
 						className: 'maplbl',
-						html: '<div>' + rec.l + '</div>'
+						html: '<div'+tClr+'>' + rec.l + '</div>'
 					})
 				}));
 			} // if

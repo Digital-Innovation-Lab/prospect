@@ -761,13 +761,14 @@ jQuery(document).ready(function() {
 				theVF.c.lgnds = newLgnds;
 				break;
 			case 'p': 	// Map2
-				var newLL=[], newLgnds=[], newSAtts=[], newLClrs=[], newLbls=[];
+				var newLL=[], newLgnds=[], newSAtts=[], newLClrs=[], newTClrs=[], newLbls=[];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
 					if (origTIndex == -1) {
 						newLL.push(theTmplt.attsDLL[0] || 'disable');
 						newLClrs.push('#FFD700');
+						newTClrs.push('');
 						newSAtts.push(theTmplt.attsDNum[0] || 'disable');
 						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
@@ -776,6 +777,12 @@ jQuery(document).ready(function() {
 					} else {
 						newLL.push(checkAttID(theVF.c.cAtts[origTIndex], theTmplt.attsDLL, 'disable'));
 						newLClrs.push(theVF.c.lClrs[origTIndex]);
+							// New setting added v1.7
+						if (typeof theVF.c.tClrs === 'undefined') {
+							newTClrs.push('');
+						} else {
+							newTClrs.push(theVF.c.tClrs[origTIndex]);
+						}
 						newSAtts.push(checkAttID(theVF.c.sAtts[origTIndex], theTmplt.attsDNum, 'disable'));
 						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
 						newLbls.push(theVF.c.lbls[origTIndex]);
@@ -783,6 +790,7 @@ jQuery(document).ready(function() {
 				});
 				theVF.c.cAtts = newLL;
 				theVF.c.lClrs = newLClrs;
+				theVF.c.tClrs = newTClrs;
 				theVF.c.sAtts = newSAtts;
 				theVF.c.lgnds = newLgnds;
 				theVF.c.lbls  = newLbls;
@@ -1124,6 +1132,10 @@ jQuery(document).ready(function() {
 				newVFEntry.c.lClrs= _.map(iTemplates, function(theTemplate) {
 					return '#FFD700';
 				});
+					// Title colors (added in 1.7)
+				newVFEntry.c.tClrs= _.map(iTemplates, function(theTemplate) {
+					return '';
+				});
 					// Potential Size
 				newVFEntry.c.sAtts= _.map(iTemplates, function(theTemplate) {
 					return 'disable';
@@ -1375,6 +1387,13 @@ jQuery(document).ready(function() {
 		// For Maps and Pinboards
 	rApp.on('setLColor', function(event, vIndex, tIndex) {
 		var keypath='viewSettings['+vIndex+'].c.lClrs['+tIndex+']';
+		chooseColor(keypath);
+		return false;
+	});
+
+		// For Map2
+	rApp.on('setTColor', function(event, vIndex, tIndex) {
+		var keypath='viewSettings['+vIndex+'].c.tClrs['+tIndex+']';
 		chooseColor(keypath);
 		return false;
 	});
@@ -1703,14 +1722,16 @@ jQuery(document).ready(function() {
 					saveView.c.zoom = viewSettings.c.zoom;
 					saveView.c.min  = viewSettings.c.min;
 					saveView.c.max  = viewSettings.c.max;
-					var newLgnds=[], newLClrs=[], newLbls=[];
+					var newLgnds=[], newLClrs=[], newTClrs=[], newLbls=[];
 					saveTIndices.forEach(function(tIndex) {
 						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
 						newLClrs.push(viewSettings.c.lClrs[tIndex]);
+						newTClrs.push(viewSettings.c.tClrs[tIndex]);
 						newLbls.push(viewSettings.c.lbls[tIndex]);
 					});
 					saveView.c.lgnds = newLgnds;
 					saveView.c.lClrs = newLClrs;
+					saveView.c.tClrs = newTClrs;
 					saveView.c.lbls = newLbls;
 					saveView.c.cAtts = packUsedAttIDs(viewSettings.c.cAtts);
 					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts);
