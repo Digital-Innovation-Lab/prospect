@@ -366,6 +366,8 @@ div.filter-body svg .brush .selection {
 	-moz-box-shadow:    inset 0 0 7px #222222;
 	-webkit-box-shadow: inset 0 0 7px #222222;
 	box-shadow:         inset 0 0 7px #222222;
+
+	cursor: pointer;
 }
 
 	/* The first visualization display */
@@ -665,6 +667,7 @@ div.sellist > div.sellist-scroll > div.sellist-rec {
 	overflow-x: hidden;
 	margin: 0;
 	padding: 2px;
+	cursor: pointer;
 }
 
 
