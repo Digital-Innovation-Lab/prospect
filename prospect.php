@@ -734,7 +734,7 @@ if (!class_exists('CSVImporterImprovedPlugin')) {
 
 
 	// PURPOSE: Return a text value based on the Attribute whose ID is $att_id in $att_array
-function prospect_att_val($att_defs, $att_id, $att_array)
+function get_att_val($att_defs, $att_id, $att_array)
 {
 	$att_def = $att_defs[$att_id];
 	$att_val = $att_array[$att_id];
@@ -793,7 +793,7 @@ function prospect_att_val($att_defs, $att_id, $att_array)
 		} // from and to
 		return $date_string;
 	} // switch Attribute type
-} // prospect_att_val()
+} // get_att_val()
 
 	// PURPOSE: Generates Prospect shortcode for plain HTML views
 function tmplt_shortcode($atts)
@@ -860,7 +860,7 @@ function tmplt_shortcode($atts)
 					$html .= '<img class="prospect-thumb" src="'.$the_rec->att_data[$a['image_attr']].'">';
 				}
 				if ($a['content_attr'] != null && isset($the_rec->att_data[$a['image_attr']])) {
-					$html .= '<p class="prospect-list-content">'.prospect_att_val($assoc_atts, $a['image_attr'], $the_rec->att_data).'</p>';
+					$html .= '<p class="prospect-list-content">'.get_att_val($assoc_atts, $a['content_attr'], $the_rec->att_data).'</p>';
 				}
 				$html .= '</div>';
 				break;
@@ -874,9 +874,16 @@ function tmplt_shortcode($atts)
 		} // foreach
 	} // if have_posts
 
-
-
-
+		// Close any enclosing DIV
+	switch($a['display']) {
+	case 'list':
+		break;
+	case 'cards':
+		$html .= '</div>';
+		break;
+	case 'images':
+		break;
+	}
 
 	return $html;
 }
