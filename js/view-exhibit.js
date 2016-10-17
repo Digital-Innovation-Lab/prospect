@@ -50,6 +50,7 @@ function PViewFrame(vfIndex)
 	var datastream = null;		// pointer to datastream given to view
 	var vizStates = [];			// saves state of each vizualization between views as Perspective
 	var curSelSize = 0;			// current selection size (don't save pointer to array)
+	var inspRec=null;			// If ≠ null, open Inspector at this Record ID
 
 	// PRIVATE FUNCTIONS
 	//==================
@@ -657,8 +658,7 @@ function PViewFrame(vfIndex)
 			// Stop pulsing while Inspector open
 //		doSelBtns(false);
 
-			// Show first item & handle scroll buttons
-		inspectShow();
+			// Handle scroll buttons
 		jQuery('#btn-inspect-left').click(inspectLeft);
 		jQuery('#btn-inspect-right').click(inspectRight);
 		jQuery('#inspect-list').change(function() {
@@ -668,12 +668,18 @@ function PViewFrame(vfIndex)
 			inspectShow();
 		});
 
-			// Build drop-down list
-		for (i=0; i<recSel.length; i++) {
-			var rec = PData.rByN(recSel[i]);
-			jQuery('#inspect-list').append('<option value='+i+'>'+rec.l+'</option>');
+			// Build drop-down list -- check for selected item as we build
+		for (var j=0; j<recSel.length; j++) {
+			var rec = PData.rByN(recSel[j]);
+			jQuery('#inspect-list').append('<option value='+j+'>'+rec.l+'</option>');
+			if (inspRec && rec.id === inspRec) {
+				i=j;
+				jQuery('#inspect-list').val(j);
+			}
 		}
-		i=0;
+
+			// Show first (or selected) item
+		inspectShow();
 
 		var btns = [];
 			// Handle setting if undefined
@@ -907,8 +913,10 @@ function PViewFrame(vfIndex)
 		var clickClass = event.target.className;
 		switch (clickClass) {
 		case 'sellist-rec':
-			// TO DO: Open Inspector at this Record
-			console.log("Show "+recID);
+			// console.log("Show "+recID);
+			inspRec=recID;
+			clickOpenSelection();
+			break;
 		} // switch
 	} // clickSelList()
 
@@ -1251,7 +1259,10 @@ function PViewFrame(vfIndex)
 				.button({icons: { primary: 'ui-icon-cancel' }, text: false })
 				.click(clickClearSelection).next()
 				.button({icons: { primary: 'ui-icon-search' }, text: false })
-				.click(clickOpenSelection).next();
+				.click(function() {
+					inspRec=null;
+					clickOpenSelection();
+				});
 
 		frame.find('div.lgnd-container')
 			.click(clickLegend);
