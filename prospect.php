@@ -732,6 +732,22 @@ if (!class_exists('CSVImporterImprovedPlugin')) {
 	require_once(dirname(__FILE__) . '/lib/csv-importer/csv_importer.php');
 }
 
+
+function tmplt_shortcode($atts)
+{
+	$a = shortcode_atts( array(
+			'template' => null,			// template id (required)
+			'display' => 'list',		// display type (list, cards, images)
+			'attr_id' => null,			// attribute id (optional)
+			'attr_val' => null,			// attribute value (optional)
+			'attr_comp' => '==',		// attribute comparison (==, !=)
+	), $atts);
+
+	return 'Prospect Shortcode Placeholder';
+}
+add_shortcode('prospect', 'tmplt_shortcode');
+
+
 function run_prospect()
 {
 	$prospect = new Prospect();
