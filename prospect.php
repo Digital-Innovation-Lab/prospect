@@ -746,9 +746,12 @@ function tmplt_shortcode($atts)
 		// Return null if no template id is provided
 	if ($a['template'] == null) return 'Error: Please provide a template ID.';				// *** Should an error message be provided?
 
-	$the_template = new ProspectTemplate(false, $a['template'], true, true, false, true);
-	if ($the_template == null) return 'Error: Template not found with provided ID.';
-	
+	try {
+		$the_template = new ProspectTemplate(false, $a['template'], true, true, false, true);
+	} catch (NotFoundException $e) {
+		return 'Error: Template not found with provided ID.';
+	}
+
 		// Stores generated html to be returned
 	$html = '';
 
@@ -777,8 +780,7 @@ function tmplt_shortcode($atts)
 
 	
 	
-	if (strlen($html) > 0) return $html;
-	return 'Error';
+	return $html;
 }
 add_shortcode('prospect', 'tmplt_shortcode');
 

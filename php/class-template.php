@@ -1,5 +1,8 @@
 <?php
 
+	// Exception for template not found error (used for shortcode generation)
+class NotFoundException extends Exception {}
+
 class ProspectTemplate {
 		// CLASS METHODS
 		// =============
@@ -99,6 +102,7 @@ class ProspectTemplate {
 				// Check to see if Template post exists; trick from https://tommcfarlin.com/wordpress-post-exists-by-id/
 			if (!is_string(get_post_status($the_id))) {
 				trigger_error("Template not found by Post ID");
+				throw new NotFoundException();
 				return null;
 			}
 			$this->post_id = $the_id;
@@ -118,6 +122,7 @@ class ProspectTemplate {
 					// Abort if not found
 				if (!$query->have_posts()) {
 					trigger_error("Template not found by ID");
+					throw new NotFoundException();
 					return null;
 				}
 				$this->post_id = $query->posts[0]->ID;
