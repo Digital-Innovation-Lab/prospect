@@ -906,7 +906,7 @@ function PViewFrame(vfIndex)
 		}
 	} // clickLegend()
 
-	function clickSelList()
+	function clickSelList(event)
 	{
 			// Which Template does selection belong to?
 		var recID = jQuery(event.target).closest('div.sellist-rec').data('id');
@@ -915,7 +915,7 @@ function PViewFrame(vfIndex)
 		case 'sellist-rec':
 			// console.log("Show "+recID);
 			inspRec=recID;
-			clickOpenSelection();
+			clickOpenSelection(event);
 			break;
 		} // switch
 	} // clickSelList()
@@ -1259,9 +1259,9 @@ function PViewFrame(vfIndex)
 				.button({icons: { primary: 'ui-icon-cancel' }, text: false })
 				.click(clickClearSelection).next()
 				.button({icons: { primary: 'ui-icon-search' }, text: false })
-				.click(function() {
+				.click(function(event) {
 					inspRec=null;
-					clickOpenSelection();
+					clickOpenSelection(event);
 				});
 
 		frame.find('div.lgnd-container')
