@@ -547,10 +547,13 @@ VizBrowser.prototype.setup = function()
 } // setup()
 
 	// PURPOSE: Recompute intersection of selected Records
+	// NOTES:	Complication: If no selection, then label bars intersect with ALL Records!
 VizBrowser.prototype.update = function()
 {
 	var self=this;
 	var vI = this.vFrame.getIndex();
+	var iSet;		// Set of Records used for intersecting with each label
+	var cSet;		// Set of Records actually chosen by label selections
 
 	PState.set(PSTATE_UPDATE);
 		// Start intersect array afresh
@@ -567,11 +570,16 @@ VizBrowser.prototype.update = function()
 		}
 	});
 		// Did the user actually choose any facets?
-	if (!chosen) {
-		ia=[];
+	if (chosen) {
+		cSet=ia;
+		iSet=ia;
+	} else {
+		cSet=[];
+		iSet=this.stream.s;
 	}
-	this.vFrame.upSel(ia, false);
-	this.recSel=ia;
+
+	this.recSel=cSet;
+	this.vFrame.upSel(cSet, false);
 
 		// Now update bars
 	this.fcts.forEach(function(theF) {
@@ -580,9 +588,9 @@ VizBrowser.prototype.update = function()
 		fSel.data(theF.c)
 			.transition()
 			.attr("width", function(d) {
-				if (ia.length > 0) {
-					var x=PData.intersect(ia, d.i);
-					return (x.length*242)/ia.length;
+				if (iSet.length > 0) {
+					var x=PData.intersect(iSet, d.i);
+					return (x.length*242)/iSet.length;
 				} else {
 					return 0;
 				}
