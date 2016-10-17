@@ -864,9 +864,30 @@ function tmplt_shortcode($atts)
 				}
 				$html .= '</div>';
 				break;
-			case 'cards':	
+			case 'cards':
+				$html .= '<div class="prospect-card">';
+				if ($a['image_attr'] != null && isset($the_rec->att_data[$a['image_attr']])) {
+					$html .= '<img class="prospect-thumb" src="'.$the_rec->att_data[$a['image_attr']].'">';
+				}
+				$html .= '<p class="prospect-card-text"><span class="title"><a href="'.get_permalink($the_rec->post_id).'">'.$the_rec->label.'</a></span>';
+				if ($a['content_attr'] != null && isset($the_rec->att_data[$a['content_attr']])) {
+					$html .= '<br/><span class="content">'.get_att_val($assoc_atts, $a['content_attr'], $the_rec->att_data).'</span>';
+				}
+				$html .= '</p></div>';
 				break;
 			case 'images':
+				$html .= '<figure class="prospect">';
+				$html .= '<a href="'.get_permalink($the_rec->post_id).'">';
+				if ($a['image_attr'] != null && isset($the_rec->att_data[$a['image_attr']])) {
+					$html .= '<img src="'.$the_rec->att_data[$a['image_attr']].'">';
+				}
+				$html .= '</a>';
+				$html .= '<figcaption class="prospect"><div>'.$the_rec->label;
+				if ($a['content_attr'] != null && isset($the_rec->att_data[$a['content_attr']])) {
+					$html .= '<br/><span class="content">'.get_att_val($assoc_atts, $a['content_attr'], $the_rec->att_data).'</span>';
+				}
+				$html .= '</div></figcaption>';
+				$html .= '</figure>';
 				break;
 			}
 
