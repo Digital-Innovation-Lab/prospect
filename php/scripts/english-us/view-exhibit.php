@@ -210,7 +210,7 @@
 	</div>
 	<div class="sellist" style="display:none;">
 		<div class="sellist-handle">
-			<button class="sellist-close"><?php _e('Close', 'prospect'); ?></button>
+			<button class="sellist-close"><?php _e('Close', 'prospect'); ?></button>&nbsp;<?php _e('Highlighted Items', 'prospect'); ?>
 		</div>
 		<div class="sellist-scroll">
 		</div>
