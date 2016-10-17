@@ -746,25 +746,13 @@ function tmplt_shortcode($atts)
 		// Return null if no template id is provided
 	if ($a['template'] == null) return 'Error: Please provide a template ID.';				// *** Should an error message be provided?
 
-	/*	// Get template (if exists)
-	$args = array(
-		'post_type' => 'prsp-template',
-		'meta_query' => array(
-			array(
-				'tmplt-id' => $a['template']
-			)
-		)
-	);
-	$query = new WP_Query($args);
-	if($query->have_posts()) {
-		$query->the_post();
-		return the_ID();
-	}*/
-
 	$the_template = new ProspectTemplate(false, $a['template'], true, true, false, true);
+	if ($the_template == null) return 'Error: Template not found with provided ID.';
+	
+		// Stores generated html to be returned
+	$html = '';
 
 		// Default settings
-	$html = '';
 	$display_style = 'l';
 	$display_image = 'disable';
 	$display_content = 'disable';
@@ -776,6 +764,17 @@ function tmplt_shortcode($atts)
 
 	$html .= '<h1 class="prospect">'.$the_template->def->l.'</h1><hr/>';
 	
+		// Open any enclosing DIVs
+	switch($display_style) {
+	case 'l':
+		break;
+	case 't':
+		echo('<div class="prospect-cards">');
+		break;
+	case 'h':
+		break;
+	}
+
 	
 	
 	if (strlen($html) > 0) return $html;
