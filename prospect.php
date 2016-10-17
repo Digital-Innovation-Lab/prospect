@@ -743,7 +743,43 @@ function tmplt_shortcode($atts)
 			'attr_comp' => '==',		// attribute comparison (==, !=)
 	), $atts);
 
-	return 'Prospect Shortcode Placeholder';
+		// Return null if no template id is provided
+	if ($a['template'] == null) return 'Error: Please provide a template ID.';				// *** Should an error message be provided?
+
+	/*	// Get template (if exists)
+	$args = array(
+		'post_type' => 'prsp-template',
+		'meta_query' => array(
+			array(
+				'tmplt-id' => $a['template']
+			)
+		)
+	);
+	$query = new WP_Query($args);
+	if($query->have_posts()) {
+		$query->the_post();
+		return the_ID();
+	}*/
+
+	$the_template = new ProspectTemplate(false, $a['template'], true, true, false, true);
+
+		// Default settings
+	$html = '';
+	$display_style = 'l';
+	$display_image = 'disable';
+	$display_content = 'disable';
+	if ($the_template->pview != null) {
+		$display_style = $the_template->pview->d;
+		$display_image = $the_template->pview->i;
+		$display_content = $the_template->pview->c;
+	}
+
+	$html .= '<h1 class="prospect">'.$the_template->def->l.'</h1><hr/>';
+	
+	
+	
+	if (strlen($html) > 0) return $html;
+	return 'Error';
 }
 add_shortcode('prospect', 'tmplt_shortcode');
 
