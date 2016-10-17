@@ -325,6 +325,7 @@ div.filter-body svg .brush .selection {
 	 *	 #view-frame-0
 	 *		.view-controls
 	 *		.lgnd-container
+	 *		.selidlist
 	 *		.viz-content
 	 *			.viz-result
 	 *			.annote
@@ -515,7 +516,7 @@ div.lgnd-container {
 	box-shadow: 0 0 5px 5px rgba(0,0,0,0.3);
 }
 
-div.lgnd-handle {
+div.lgnd-container > div.lgnd-handle {
 	height: 22px;
 	background-color: #A8A8A8;
 	border: 1px black dotted;
@@ -529,23 +530,22 @@ div.lgnd-handle {
 }
 
 	/* Button to force Re-render */
-button.lgnd-update {
+div.lgnd-container > div.lgnd-handle > button.lgnd-update {
 	height: 18px;
 	margin: 2px;
-	margin-top: 1px;
+	margin-top: 0;
 	padding: 1px;
-	padding-top: 0px;
+	padding-top: 0;
 	background-color: white;
 
-	font-size: 8px;
-	font-weight: bold;
+	font-size: 9px;
 	color: #0066FF;
 }
 
-button.lgnd-update:disabled {
+div.lgnd-container > div.lgnd-handle > button.lgnd-update:disabled {
 	opacity: 0.65;
-	color: grey;
 	cursor: not-allowed;
+	color: grey;
 }
 
 div.lgnd-scroll {
@@ -598,6 +598,73 @@ div.lgnd-viz-empty {
 
 div.lgnd-value-title {
 	vertical-align: middle;
+}
+
+	/* Selection List shows what Records are currently selected
+	 * sellist (outer)
+	 *		sellist-handle (draggable)
+	 *			sellist-close (button)
+	 *		sellist-scroll (scrolling area)
+	 *			sellistid (entry)
+	 */
+div.sellist {
+	position: absolute;
+	top: 60px;
+	left: 10px;
+
+	z-index: 999;		/* Leaflet uses 400, so we need larger number */
+
+	width: 270px;
+
+	max-height: 265px;
+
+	padding: 4px;
+	background-color: rgba(255, 255, 255, .8);
+
+	color: #222;
+	font-family: Verdana, Arial, sans-serif;
+
+	-moz-box-shadow: 0 0 5px 5px rgba(0,0,0,0.3);
+	-webkit-box-shadow: 0 0 5px 5px rgba(0,0,0,0.3);
+	box-shadow: 0 0 5px 5px rgba(0,0,0,0.3);
+}
+
+div.sellist > div.sellist-handle {
+	height: 22px;
+	background-color: #A8A8A8;
+	border: 1px black dotted;
+	cursor: move;
+
+	margin-bottom: 3px;
+
+	-moz-box-shadow: 0 0 2px 2px rgba(0,0,0,0.3);
+	-webkit-box-shadow: 0 0 2px 2px rgba(0,0,0,0.3);
+	box-shadow: 0 0 2px 2px rgba(0,0,0,0.3);
+}
+
+div.sellist > div.sellist-handle > button.sellist-close {
+	height: 18px;
+	margin: 2px;
+	margin-top: 0;
+	padding: 1px;
+	padding-top: 0;
+	background-color: white;
+	font-size: 9px;
+}
+
+div.sellist > div.sellist-scroll {
+	overflow-y: auto;
+	height: 232px;
+}
+
+div.sellist > div.sellist-scroll > div.sellist-rec {
+	background-color: white;
+	color: black;
+	font-size: 10px;
+	white-space: nowrap;
+	overflow-x: hidden;
+	margin: 0;
+	padding: 2px;
 }
 
 

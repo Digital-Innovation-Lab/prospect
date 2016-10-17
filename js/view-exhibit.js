@@ -721,13 +721,19 @@ function PViewFrame(vfIndex)
 
 		if (force || curSelSize > 0 || newSize > 0) {
 			var vCnxt = jQuery(getFrameID()+' div.view-controls');
+			var selDiv = jQuery(getFrameID()+' div.sellist > div.sellist-scroll');
 			var txt = newSize + ' ' + dlText.selected;
 			vCnxt.find('.btn-num-sel').text(txt);
 
+			selDiv.empty();
 			if (newSize > 0) {
 				vCnxt.find('.osel').button("enable");
 				vCnxt.find('.osel').addClass("pulse");
 				vCnxt.find('.xsel').button("enable");
+				selList.forEach(function(absI) {
+					var r = PData.rByN(absI);
+					selDiv.append('<div class="sellist-rec" data-id="'+r.id+'">'+r.l+'</div>');
+				});
 			} else {
 				vCnxt.find('.osel').button("disable");
 				vCnxt.find('.osel').removeClass("pulse");
@@ -835,7 +841,7 @@ function PViewFrame(vfIndex)
 
 
 		// PURPOSE: Handle click anywhere on Legend
-	function clickInLegend(event)
+	function clickLegend(event)
 	{
 			// Which Template does selection belong to?
 		var tmpltIndex = jQuery(event.target).closest('div.lgnd-template').data('index');
@@ -892,8 +898,19 @@ function PViewFrame(vfIndex)
 			}
 			break;
 		}
-	} // clickInLegend()
+	} // clickLegend()
 
+	function clickSelList()
+	{
+			// Which Template does selection belong to?
+		var recID = jQuery(event.target).closest('div.sellist-rec').data('id');
+		var clickClass = event.target.className;
+		switch (clickClass) {
+		case 'sellist-rec':
+			// TO DO: Open Inspector at this Record
+			console.log("Show "+recID);
+		} // switch
+	} // clickSelList()
 
 		// PURPOSE: Handle selecting a feature Attribute for a Template from menu
 	function selectTmpltAtt(event)
@@ -1237,7 +1254,25 @@ function PViewFrame(vfIndex)
 				.click(clickOpenSelection).next();
 
 		frame.find('div.lgnd-container')
-			.click(clickInLegend);
+			.click(clickLegend);
+
+			// Activate drag handle on Legend
+		frame.find('div.sellist').draggable({ handle: frame.find('div.sellist > div.sellist-handle'), containment: "parent" });
+
+			// Click on selection number brings up Selection List
+		frame.find('div.view-controls > span.btn-num-sel').click(function() {
+			// TO DO: Keep track of whether visible for optimizing outputting list?
+			frame.find('div.sellist').show();
+		});
+
+			// Click on close button closes Selection List
+		frame.find('div.sellist > div.sellist-handle > button.sellist-close').click(function() {
+			// TO DO: Keep track of whether visible for optimizing outputting list?
+			frame.find('div.sellist').hide();
+		});
+
+		frame.find('div.sellist > div.sellist-scroll')
+			.click(clickSelList);
 
 		createViz(vI, false);
 	} // initDOM()
