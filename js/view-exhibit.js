@@ -670,13 +670,15 @@ function PViewFrame(vfIndex)
 
 			// Build drop-down list -- check for selected item as we build
 		for (var j=0; j<recSel.length; j++) {
-			var rec = PData.rByN(recSel[j]);
-			jQuery('#inspect-list').append('<option value='+j+'>'+rec.l+'</option>');
-			if (inspRec && rec.id === inspRec) {
+			var r = PData.rByN(recSel[j]);
+			jQuery('#inspect-list').append('<option value='+j+'>'+r.l+'</option>');
+			if (inspRec && r.id === inspRec) {
 				i=j;
 				jQuery('#inspect-list').val(j);
 			}
 		}
+			// Clear target item by default
+		inspRec=null;
 
 			// Show first (or selected) item
 		inspectShow();
@@ -906,14 +908,13 @@ function PViewFrame(vfIndex)
 		}
 	} // clickLegend()
 
+		// PURPOSE: Handle clicking an item on the Selection List
 	function clickSelList(event)
 	{
-			// Which Template does selection belong to?
 		var recID = jQuery(event.target).closest('div.sellist-rec').data('id');
 		var clickClass = event.target.className;
 		switch (clickClass) {
 		case 'sellist-rec':
-			// console.log("Show "+recID);
 			inspRec=recID;
 			clickOpenSelection(event);
 			break;
@@ -1259,29 +1260,24 @@ function PViewFrame(vfIndex)
 				.button({icons: { primary: 'ui-icon-cancel' }, text: false })
 				.click(clickClearSelection).next()
 				.button({icons: { primary: 'ui-icon-search' }, text: false })
-				.click(function(event) {
-					inspRec=null;
-					clickOpenSelection(event);
-				});
+				.click(clickOpenSelection);
 
 		frame.find('div.lgnd-container')
 			.click(clickLegend);
 
-			// Activate drag handle on Legend
+			// Activate Selection List drag handle
 		frame.find('div.sellist').draggable({ handle: frame.find('div.sellist > div.sellist-handle'), containment: "parent" });
-
 			// Click on selection number brings up Selection List
 		frame.find('div.view-controls > span.btn-num-sel').click(function() {
-			// TO DO: Keep track of whether visible for optimizing outputting list?
+			// TO DO: Keep track of whether visible for optimizing outputting list? i.e., lazy updating
 			frame.find('div.sellist').show();
 		});
-
 			// Click on close button closes Selection List
 		frame.find('div.sellist > div.sellist-handle > button.sellist-close').click(function() {
-			// TO DO: Keep track of whether visible for optimizing outputting list?
+			// TO DO: Keep track of whether visible for optimizing outputting list? i.e., lazy updating
 			frame.find('div.sellist').hide();
 		});
-
+			// Click on item
 		frame.find('div.sellist > div.sellist-scroll')
 			.click(clickSelList);
 
