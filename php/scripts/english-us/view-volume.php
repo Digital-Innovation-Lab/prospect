@@ -31,9 +31,16 @@
 			<div id="text-controls">
 				&nbsp;<button id="textprev"><?php _e('Previous', 'prospect'); ?></button>
 				<button id="textnext"><?php _e('Next', 'prospect'); ?></button> &nbsp;
-			<button class="hilite"><?php _e('Highlight', 'prospect'); ?></button>
-			<button class="osel"><?php _e('Show Highlighted', 'prospect'); ?></button>
-			<span class="btn-num-sel"></span>
+				<button class="hilite"><?php _e('Highlight', 'prospect'); ?></button>
+				<button class="osel"><?php _e('Show Highlighted', 'prospect'); ?></button>
+				<span class="btn-num-sel"></span>
+			</div>
+		</div>
+		<div class="sellist" style="display:none;">
+			<div class="sellist-handle">
+				<button class="sellist-close"><?php _e('Close', 'prospect'); ?></button>&nbsp;<?php _e('Highlighted Items', 'prospect'); ?>
+			</div>
+			<div class="sellist-scroll">
 			</div>
 		</div>
 		<div class="viz-content">
@@ -65,6 +72,13 @@
 				<button class="lgnd-update"><?php _e('Update', 'prospect'); ?></button>
 			</div>
 			<div class="lgnd-scroll">
+			</div>
+		</div>
+		<div class="sellist" style="display:none;">
+			<div class="sellist-handle">
+				<button class="sellist-close"><?php _e('Close', 'prospect'); ?></button>&nbsp;<?php _e('Highlighted Items', 'prospect'); ?>
+			</div>
+			<div class="sellist-scroll">
 			</div>
 		</div>
 		<div class="viz-content">
@@ -245,6 +259,7 @@
 		<li data-t="#view-frame-1 .vnote" data-l=<?php _e('"Visualization Notes"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this to show notes providing extra explanation about this visualization', 'prospect'); ?></li>
 		<li data-t="#view-frame-1 .hilite" data-l=<?php _e('"Highlight Filter"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this to show or apply Filters that select items programatically on the current visualization', 'prospect'); ?></li>
 		<li data-t="#view-frame-1 .osel" data-l=<?php _e('"Show Highlighted"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Click this when it is pulsing to show all of the currently highlighted selection of items in the Inspector modal dialog window', 'prospect'); ?></li>
+		<li data-t="#view-frame-1 .btn-num-sel" data-l=<?php _e('"Highlighted List"', 'prospect'); ?> data-p="right" data-x=0 data-y=-22><?php _e('Displays the number of items currently highlighted. Click it to display a list of the names of the items.', 'prospect'); ?></li>
 	</ol>
 
 	<ol id="help-toc-tour">

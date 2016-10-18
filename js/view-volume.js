@@ -57,6 +57,7 @@ function PViewFrame(vfIndex, callbacks)
 	this.vizSel 	= [];			// array of absIs of selected Records that are visible in this frame
 	this.selAbsIs	= [];			// array of absIs of selected Records requested externally
 	this.curSelSize = 0;			// the size of current selection
+	this.inspRec	= null;			// if ≠ null, Record to open on in Inspector
 } // PViewFrame()
 
 PViewFrame.prototype.getFrameID = function()
@@ -74,13 +75,19 @@ PViewFrame.prototype.upSel = function(selList, force)
 
 	if (force || this.curSelSize > 0 || newSize > 0) {
 		var vCnxt = jQuery(this.getFrameID()+' div.view-controls');
+		var selDiv = jQuery(this.getFrameID()+' div.sellist > div.sellist-scroll');
 		var txt = newSize + ' ' + dlText.selected;
 		vCnxt.find('.btn-num-sel').text(txt);
 
+		selDiv.empty();
 		if (newSize > 0) {
 			vCnxt.find('.osel').button("enable");
 			vCnxt.find('.osel').addClass("pulse");
 			vCnxt.find('.xsel').button("enable");
+			selList.forEach(function(absI) {
+				var r = PData.rByN(absI);
+				selDiv.append('<div class="sellist-rec" data-id="'+r.id+'">'+r.l+'</div>');
+			});
 		} else {
 			vCnxt.find('.osel').button("disable");
 			vCnxt.find('.osel').removeClass("pulse");
@@ -658,8 +665,7 @@ PViewFrame.prototype.openSelection = function()
 		// Stop pulsing while Inspector open
 // 	this.selBtns(false);
 
-		// Show first item & handle scroll buttons
-	inspectShow();
+		// Handle scroll buttons
 	jQuery('#btn-inspect-left').click(inspectLeft);
 	jQuery('#btn-inspect-right').click(inspectRight);
 	jQuery('#inspect-list').change(function() {
@@ -669,12 +675,19 @@ PViewFrame.prototype.openSelection = function()
 		inspectShow();
 	});
 
-		// Build drop-down list
-	for (i=0; i<recSel.length; i++) {
-		var rec = PData.rByN(recSel[i]);
-		jQuery('#inspect-list').append('<option value='+i+'>'+rec.l+'</option>');
+		// Build drop-down list -- check for selected item as we build
+	for (var j=0; j<recSel.length; j++) {
+		var r = PData.rByN(recSel[j]);
+		jQuery('#inspect-list').append('<option value='+j+'>'+r.l+'</option>');
+		if (this.inspRec && r.id === this.inspRec) {
+			i=j;
+			jQuery('#inspect-list').val(j);
+		}
 	}
-	i=0;
+		// Clear target item by default
+	this.inspRec=null;
+
+	inspectShow();
 
 	var btns = [{
 		text: dlText.findintext,
@@ -991,6 +1004,20 @@ PVizFrame.prototype.initDOM = function(vI)
 		}
 	} // clickInLegend()
 
+		// PURPOSE: Handle click on item on Selection List
+	function clickSelList(event)
+	{
+		var recID = jQuery(event.target).closest('div.sellist-rec').data('id');
+		var clickClass = event.target.className;
+		switch (clickClass) {
+		case 'sellist-rec':
+			self.inspRec=recID;
+			self.openSelection();
+			break;
+		} // switch
+		event.preventDefault();
+	} // clickSelList()
+
 		// Can assume in right view frame
 	var frame = jQuery('#view-frame-1');
 
@@ -1030,7 +1057,23 @@ PVizFrame.prototype.initDOM = function(vI)
 	frame.find('div.lgnd-container')
 		.click(clickInLegend);
 
-	self.createViz(vI, false);
+		// Activate Selection List drag handle
+	frame.find('div.sellist').draggable({ handle: frame.find('div.sellist > div.sellist-handle'), containment: "parent" });
+		// Click on selection number brings up Selection List
+	frame.find('div.view-controls > span.btn-num-sel').click(function() {
+		// TO DO: Keep track of whether visible for optimizing outputting list? i.e., lazy updating
+		frame.find('div.sellist').show();
+	});
+		// Click on close button closes Selection List
+	frame.find('div.sellist > div.sellist-handle > button.sellist-close').click(function() {
+		// TO DO: Keep track of whether visible for optimizing outputting list? i.e., lazy updating
+		frame.find('div.sellist').hide();
+	});
+		// Click on item
+	frame.find('div.sellist > div.sellist-scroll')
+		.click(clickSelList);
+
+	this.createViz(vI, false);
 } // initDOM()
 
 	// PURPOSE: Set feature attributes in Legend
@@ -1853,7 +1896,7 @@ PTextFrame.prototype.initDOM = function()
 {
 	var self=this;
 	var maxL=0;		// maximum length of a H1/H2 section
-	var frame = jQuery('#view-frame-1');
+	var frame = jQuery('#view-frame-0');
 
 		// PURPOSE: Handle click of Un/Check All (Reading List) checkbox on TOC
 	function clickTOCHCAll(event)
@@ -1877,7 +1920,7 @@ PTextFrame.prototype.initDOM = function()
 		self.tocSelDirty=true;
 		var s = event.target.checked;
 		self.tocSel.forEach(function(chap, cI) {
-			var cDom = jQuery('#toc-frame > ul.toc-wrapper > li.toc-chap[data-c="'+cI+'"]');
+			var cDom = frame.find('#toc-frame > ul.toc-wrapper > li.toc-chap[data-c="'+cI+'"]');
 			chap.c = s;
 			for (i=0; i<chap.s.length; i++) {
 				chap.s[i] = s;
@@ -1901,19 +1944,19 @@ PTextFrame.prototype.initDOM = function()
 		if (self.tocVis) {
 			tour = tourTOC;
 			self.tocSelDirty=false;
-			jQuery('#toc-controls').show();
-			jQuery('#toc-frame').show();
-			jQuery('#text-controls').hide();
-			jQuery('#text-frame').hide();
+			frame.find('#toc-controls').show();
+			frame.find('#toc-frame').show();
+			frame.find('#text-controls').hide();
+			frame.find('#text-frame').hide();
 		} else {
 			tour = tourTxt;
 			if (self.tocSelDirty) {
 				self.buildTextFrame();
 			}
-			jQuery('#toc-controls').hide();
-			jQuery('#toc-frame').hide();
-			jQuery('#text-controls').show();
-			jQuery('#text-frame').show();
+			frame.find('#toc-controls').hide();
+			frame.find('#toc-frame').hide();
+			frame.find('#text-controls').show();
+			frame.find('#text-frame').show();
 		}
 		event.preventDefault();
 	} // clickHSTOC()
@@ -1934,7 +1977,7 @@ PTextFrame.prototype.initDOM = function()
 		var txt = document.getElementById('prsp-volume').innerHTML;
 		var str;
 
-		var tf = jQuery('#toc-frame > ul.toc-wrapper');
+		var tf = frame.find('#toc-frame > ul.toc-wrapper');
 		tf.empty();
 
 		self.volData.forEach(function(chap, cI) {
@@ -1953,13 +1996,13 @@ PTextFrame.prototype.initDOM = function()
 		});
 
 			// Bind click on chapters first
-		jQuery('#toc-frame > ul.toc-wrapper > li.toc-chap').click(clickTOCChap);
+		frame.find('#toc-frame > ul.toc-wrapper > li.toc-chap').click(clickTOCChap);
 			// Then bind clickk on sections
-		jQuery('#toc-frame > ul.toc-wrapper > li.toc-chap > ul.toc-secs li').click(clickTOCSec);
+		frame.find('#toc-frame > ul.toc-wrapper > li.toc-chap > ul.toc-secs li').click(clickTOCSec);
 			// Bind all RL checkbox clicks
-		jQuery('#toc-frame > ul.toc-wrapper > li.toc-chap input[type=checkbox]').click(clickRLCheck);
+		frame.find('#toc-frame > ul.toc-wrapper > li.toc-chap input[type=checkbox]').click(clickRLCheck);
 			// Bind collapse/expand icon buttons
-		jQuery('#toc-frame .toccollapse').button({icons: { primary: 'ui-icon-plus' }, text: false })
+		frame.find('#toc-frame .toccollapse').button({icons: { primary: 'ui-icon-plus' }, text: false })
 			.click(clickTOCCollapse);
 	} // buildTOC()
 
@@ -2017,7 +2060,7 @@ PTextFrame.prototype.initDOM = function()
 						// Also remove from selAbsIs
 					self.selAbsIs.splice(_.sortedIndex(self.selAbsIs, a), 1);
 					self.callbacks.delSel(0, a);
-					jQuery('#read-pane a[data-id="'+id+'"]').removeClass('sel');
+					frame.find('#read-pane a[data-id="'+id+'"]').removeClass('sel');
 				} else {	// add selected absID
 					if (vizSel.length === 0) {
 						vizSel.push(a);
@@ -2027,7 +2070,7 @@ PTextFrame.prototype.initDOM = function()
 						// Also add to selAbsIs
 					self.selAbsIs.splice(_.sortedIndex(self.selAbsIs, a), 0, a);
 					self.callbacks.addSel(0, a);
-					jQuery('#read-pane a[data-id="'+id+'"]').addClass('sel');
+					frame.find('#read-pane a[data-id="'+id+'"]').addClass('sel');
 				} // add ID
 				self.upSel(vizSel, false);
 					// Only prevent default if we can handle the "link"
@@ -2045,7 +2088,7 @@ PTextFrame.prototype.initDOM = function()
 				// De/Select chapter and all of its sections
 			var chap = self.tocSel[cI];
 			chap.c = !chap.c;
-			var cDom = jQuery('#toc-frame > ul.toc-wrapper > li.toc-chap[data-c="'+cI+'"]');
+			var cDom = frame.find('#toc-frame > ul.toc-wrapper > li.toc-chap[data-c="'+cI+'"]');
 			if (chap.c) {
 				cDom.addClass('sel');
 				// cDom.find('ul.toc-secs > li').addClass('sel');
@@ -2266,6 +2309,20 @@ PTextFrame.prototype.initDOM = function()
 		event.preventDefault();
 	} // clickTextShow()
 
+		// PURPOSE: Handle clicking an item on the Selection List
+	function clickSelList(event)
+	{
+		var recID = jQuery(event.target).closest('div.sellist-rec').data('id');
+		var clickClass = event.target.className;
+		switch (clickClass) {
+		case 'sellist-rec':
+			self.inspRec=recID;
+			self.openSelection();
+			break;
+		} // switch
+		event.preventDefault();
+	} // clickSelList()
+
 		// PURPOSE: Create all volume data by parsing HTML text representing volume
 		// SIDE-FX: Creates volData, tocRL, tocSel
 		// NOTES: 	Reading List is all on by default; open with first chapter in text pane
@@ -2340,22 +2397,40 @@ PTextFrame.prototype.initDOM = function()
 	})();
 
 		// Text Frame icon buttons
-	jQuery('#hstoc').button({icons: { primary: 'ui-icon-bookmark' }, text: false })
+	frame.find('#hstoc').button({icons: { primary: 'ui-icon-bookmark' }, text: false })
 		.click(clickHSTOC);
-	jQuery('#tochcall').click(clickTOCHCAll);
-	jQuery('#tochsall').click(clickTOCHSAll);
-	jQuery('#tocfind').button({icons: { primary: 'ui-icon-star' }, text: false })
+	frame.find('#tochcall').click(clickTOCHCAll);
+	frame.find('#tochsall').click(clickTOCHSAll);
+	frame.find('#tocfind').button({icons: { primary: 'ui-icon-star' }, text: false })
 		.click(clickTOCFind);
-	jQuery('#textprev').button({icons: { primary: 'ui-icon-arrow-1-w' }, text: false })
+	frame.find('#textprev').button({icons: { primary: 'ui-icon-arrow-1-w' }, text: false })
 		.click(clickTextPrev);
-	jQuery('#textnext').button({icons: { primary: 'ui-icon-arrow-1-e' }, text: false })
+	frame.find('#textnext').button({icons: { primary: 'ui-icon-arrow-1-e' }, text: false })
 		.click(clickTextNext);
-	jQuery('#view-frame-0 .hilite').button({icons: { primary: 'ui-icon-star' }, text: false })
+	frame.find('.hilite').button({icons: { primary: 'ui-icon-star' }, text: false })
 		.click(clickTextFind);
-	jQuery('#view-frame-0 .osel').button({icons: { primary: 'ui-icon-search' }, text: false })
+	frame.find('.osel').button({icons: { primary: 'ui-icon-search' }, text: false })
 		.click(clickTextShow);
 
-	jQuery('#read-pane').click(clickReadPane);
+	frame.find('#read-pane').click(clickReadPane);
+
+		// Activate Selection List drag handle
+	frame.find('div.sellist').draggable({ handle: frame.find('div.sellist > div.sellist-handle'), containment: "parent" });
+		// Click on selection number brings up Selection List
+	frame.find('div.view-controls > #text-controls > span.btn-num-sel').click(function(event) {
+		// TO DO: Keep track of whether visible for optimizing outputting list? i.e., lazy updating
+		frame.find('div.sellist').show();
+		event.preventDefault();
+	});
+		// Click on close button closes Selection List
+	frame.find('div.sellist > div.sellist-handle > button.sellist-close').click(function(event) {
+		// TO DO: Keep track of whether visible for optimizing outputting list? i.e., lazy updating
+		frame.find('div.sellist').hide();
+		event.preventDefault();
+	});
+		// Click on item
+	frame.find('div.sellist > div.sellist-scroll')
+		.click(clickSelList);
 
 	buildTOC();
 	this.updateTOCRL();
