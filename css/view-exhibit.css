@@ -637,6 +637,8 @@ div.sellist > div.sellist-handle {
 	border: 1px black dotted;
 	cursor: move;
 
+	font-size: 12px;
+
 	margin-bottom: 3px;
 
 	-moz-box-shadow: 0 0 2px 2px rgba(0,0,0,0.3);
