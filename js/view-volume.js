@@ -1551,11 +1551,14 @@ PVizFrame.prototype.title = function()
 	return v.l;
 } // title()
 
+	// PURPOSE: Ensure Legend visible
+	// NOTES:	Move Legend to far right; leave Selection List for now …
 PVizFrame.prototype.flushLgnd = function()
 {
 	var frame = jQuery('#view-frame-1');
 	var l = frame.width() - 280;
 	frame.find('div.lgnd-container').css('left', l);
+	// frame.find('div.sellist').css('left', 5);
 } // flushLgnd()
 
 	// PURPOSE: Return the Record bitmap data for this view

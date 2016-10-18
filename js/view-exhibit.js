@@ -1132,7 +1132,7 @@ function PViewFrame(vfIndex)
 				});
 			}
 			frame.find('div.lgnd-container').show();
-			instance.flushLgnd();
+			instance.flushLgnd(false);
 		} else {	// No Legend
 			frame.find('button.hslgnd').button('disable');
 				// Just hide Legend
@@ -1435,11 +1435,16 @@ function PViewFrame(vfIndex)
 		return v.l;
 	} // title()
 
-	instance.flushLgnd = function()
+		// PURPOSE: Ensure Legend visible on right; may move Sel List to left
+		// INPUT:	If flushSL, move Selection List to left
+	instance.flushLgnd = function(flushSL)
 	{
 		var frame = jQuery(getFrameID());
 		var l = frame.width() - 280;
 		frame.find('div.lgnd-container').css('left', l);
+		if (flushSL) {
+			frame.find('div.sellist').css('left', 5);
+		}
 	} // flushLgnd()
 
 		// PURPOSE: Return the Record bitmap data for this view
@@ -1610,7 +1615,7 @@ jQuery(document).ready(function($) {
 			views[1] = PViewFrame(1);
 			views[1].initDOM(0);
 			views[1].showStream(endStream);
-			views[0].flushLgnd();
+			views[0].flushLgnd(true);
 			PState.set(PSTATE_READY);
 		}
 		views[0].resize();
@@ -2446,7 +2451,7 @@ jQuery(document).ready(function($) {
 				v1.initDOM(vI);
 				v1.setState(p.s.v1.s);
 				resize0 = true;
-				v0.flushLgnd();
+				v0.flushLgnd(true);
 			}
 		} else {
 			if (v1) {
