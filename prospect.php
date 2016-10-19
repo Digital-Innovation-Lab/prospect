@@ -732,7 +732,7 @@ if (!class_exists('CSVImporterImprovedPlugin')) {
 	require_once(dirname(__FILE__) . '/lib/csv-importer/csv_importer.php');
 }
 
-add_shortcode('prospect', array('Prospect', 'tmplt_shortcode'));
+add_shortcode('prospect', array('ProspectTemplate', 'tmplt_shortcode'));
 
 function run_prospect()
 {
