@@ -503,6 +503,11 @@ class Prospect {
 		case 'prsp-map':
 		case 'prsp-prspctv':
 			break;
+
+			// Any other page, enqueue styles for shortcodes
+		default:
+			wp_enqueue_style('prsp-view-template-style', plugins_url('css/view-template.css', dirname(__FILE__)));
+			break;
 		} // switch
 
 		return $page_template;
