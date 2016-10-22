@@ -43,7 +43,6 @@ body {
 
 	font-family:Verdana, Arial, sans-serif;
 	font-size: 14px;
-	font: white;
 
 	overflow: hidden;
 	padding: 10px 10px 45px;
@@ -137,9 +136,11 @@ ul.radio li:hover, ul.radio li.focus {
 	height: 28px;
 	background-color: #56A0D3;
 	color: #222;
-	font-size: 14px;
 	margin: 0px;
 	padding: 12px 20px 30px;
+
+	font-family:Verdana, Arial, sans-serif;
+	font-size: 14px;
 
 	vertical-align: middle;
 }
@@ -215,12 +216,14 @@ ul.radio li:hover, ul.radio li.focus {
 
 	/* All Filters go into this frame */
 #filter-frame {
+	font-family:Verdana, Arial, sans-serif;
 	background-color: #ccc;
 }
 
+/*
 #filter-frame button {
 	font-family:Verdana, Arial, sans-serif;
-}
+}*/
 
 	/* This is the control bar for filters */
 #filter-control-bar {
@@ -350,14 +353,16 @@ div.filter-body svg .brush .selection {
 	-webkit-flex-direction: row;
 	-moz-flex-direction: row;
 	-ms-flex-direction: row;
-}
 
-#viz-frame button {
 	font-family:Verdana, Arial, sans-serif;
 }
+
+/*#viz-frame button {
+	font-family:Verdana, Arial, sans-serif;
+}*/
 
 #viz-frame span.btn-num-sel {
-	font-family:Verdana, Arial, sans-serif;
+/*	font-family:Verdana, Arial, sans-serif; */
 	font-size: 10px;
 	border-radius: 10px;
 
