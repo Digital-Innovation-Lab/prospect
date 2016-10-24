@@ -64,6 +64,199 @@ class ProspectTemplate {
 	} // get_all_template_defs()
 
 
+		// PURPOSE: Return a text value based on the Attribute whose ID is $att_id in $att_array
+	public static function get_att_val($att_defs, $att_id, $att_array)
+	{
+		$att_def = $att_defs[$att_id];
+		$att_val = $att_array[$att_id];
+		switch ($att_def->t) {
+		case 'V':
+		case 'g':
+			return implode(", ", $att_val);
+		case 'T':
+		case 'N':
+			return $att_val;
+		case 'D':
+			if ($att_val == '?') {
+				return __('(uncertain)', 'prospect');
+			}
+			$date_string = '';
+			$date_part = $att_val['min'];
+			if (!isset($att_val['max'])) { // just a single date
+				if ($date_part['f']) {
+					$date_string = __('about', 'prospect').' ';
+				}
+				$date_string .= $date_part['y'];
+				if (isset($date_part['m'])) {
+					$date_string .= '-'.$date_part['m'];
+					if (isset($date_part['d'])) {
+						$date_string .= '-'.$date_part['d'];
+					}
+				}
+			} else {	// from and to
+				if ($date_part['f']) {
+					$date_string = __('about', 'prospect').' ';
+				}
+				$date_string .=  $date_part['y'];
+				if (isset($date_part['m'])) {
+					$date_string .= '-'.$date_part['m'];
+					if (isset($date_part['d'])) {
+						$date_string .= '-'.$date_part['d'];
+					}
+				}
+
+				$date_part = $att_val['max'];
+				$date_string .= ' '.__('to', 'prospect').' ';
+				if ($date_part == 'open') {
+					$date_string .= __('now', 'prospect').' ';
+				} else {
+					if ($date_part['f']) {
+						$date_string .= __('about', 'prospect').' ';
+					}
+					$date_string .= $date_part['y'];
+					if (isset($date_part['m'])) {
+						$date_string .= '-'.$date_part['m'];
+						if (isset($date_part['d'])) {
+							$date_string .= '-'.$date_part['d'];
+						}
+					}
+				} // define to date
+			} // from and to
+			return $date_string;
+		} // switch Attribute type
+	} // get_att_val()
+
+		// PURPOSE: Generates Prospect shortcode for plain HTML views
+	public static function tmplt_shortcode($atts)
+	{
+		$a = shortcode_atts( array(
+				'template' => null,					// template id (required)
+				'display' => 'list',				// display type (list, cards, images)
+				'image_attr' => null,				// attribute id of image to be displayed (optional)
+				'content_attr' => null,				// attribute id of additional content to be displayed (optional)	
+				'filter_attr_id' => null,			// filter attribute id (optional)
+				'filter_attr_val' => null,			// filter attribute value (optional)
+				'filter_attr_comp' => '='			// filter attribute comparison (=, !=)
+		), $atts);
+
+			// Return error if no template id is provided
+		if ($a['template'] == null) return 'Error: Please provide a template ID.';
+
+		try {
+			$the_template = new ProspectTemplate(false, $a['template'], true, true, false, true);
+		} catch (NotFoundException $e) {
+			return 'Error: Template not found with provided ID "'. $a['template'] .'".';
+		}
+
+			// Stores generated html to be returned
+		$html = '<div class="prospect-shortcode">';
+		$html .= '<h1 class="prospect">'.$the_template->def->l.'</h1><hr/>';
+
+			// Open any enclosing DIVs
+		switch($a['display']) {
+		case 'list':
+			break;
+		case 'cards':
+			$html .= '<div class="prospect-cards">';
+			break;
+		case 'images':
+			break;
+		}
+
+			// Get dependent Templates needed for Joins
+		$d_templates = $the_template->get_dependent_templates(true);
+			// Get associative array for all Attribute definitions
+		$assoc_atts = ProspectAttribute::get_assoc_defs();
+
+			// Set up meta_query for use in $args
+		$meta_query = array(
+						array(
+							'key' => 'tmplt-id',
+							'value' => $a['template'],
+							'compare' => '='
+						)
+		);
+			// Provide filter if defined
+		if (array_key_exists($a['filter_attr_id'], $assoc_atts) && $a['filter_attr_val'] != null && ($a['filter_attr_comp'] == '=' || $a['filter_attr_comp'] == '!=')) {
+			$meta_query[] = array(
+				'key' => $a['filter_attr_id'],
+				'value' => $a['filter_attr_val'],
+				'compare' => $a['filter_attr_comp']
+			);
+		}
+
+			// Get Records -- Need to order by Record ID, etc
+		$args = array('post_type' => 'prsp-record',
+						'post_status' => 'publish',
+						'meta_key' => 'record-id',
+						'orderby' => 'meta_value',
+						'order' => 'ASC',
+						'posts_per_page' => -1,
+						'meta_query' => $meta_query
+					);
+		$query = new WP_Query($args);
+		if ($query->have_posts()) {
+			foreach ($query->posts as $rec) {
+				$the_rec = new ProspectRecord(true, $rec->ID, false, $the_template, $d_templates, $assoc_atts);
+
+				switch ($a['display']) {
+				case 'list':
+					$html .= '<h2 class="prospect"><a href="'.get_permalink($the_rec->post_id).'">'.$the_rec->label.'</a></h2>';
+					$html .= '<div class="prospect-no-wrap">';
+					if ($a['image_attr'] != null && isset($the_rec->att_data[$a['image_attr']])) {
+						$html .= '<img class="prospect-thumb" src="'.$the_rec->att_data[$a['image_attr']].'">';
+					}
+					if ($a['content_attr'] != null && isset($the_rec->att_data[$a['content_attr']])) {
+						$html .= '<p class="prospect-list-content">'.ProspectTemplate::get_att_val($assoc_atts, $a['content_attr'], $the_rec->att_data).'</p>';
+					}
+					$html .= '</div>';
+					break;
+				case 'cards':
+					$html .= '<div class="prospect-card">';
+					if ($a['image_attr'] != null && isset($the_rec->att_data[$a['image_attr']])) {
+						$html .= '<img class="prospect-thumb" src="'.$the_rec->att_data[$a['image_attr']].'">';
+					}
+					$html .= '<p class="prospect-card-text"><span class="title"><a href="'.get_permalink($the_rec->post_id).'">'.$the_rec->label.'</a></span>';
+					if ($a['content_attr'] != null && isset($the_rec->att_data[$a['content_attr']])) {
+						$html .= '<br/><span class="content">'.ProspectTemplate::get_att_val($assoc_atts, $a['content_attr'], $the_rec->att_data).'</span>';
+					}
+					$html .= '</p></div>';
+					break;
+				case 'images':
+					$html .= '<figure class="prospect">';
+					$html .= '<a href="'.get_permalink($the_rec->post_id).'">';
+					if ($a['image_attr'] != null && isset($the_rec->att_data[$a['image_attr']])) {
+						$html .= '<img src="'.$the_rec->att_data[$a['image_attr']].'">';
+					}
+					$html .= '</a>';
+					$html .= '<figcaption class="prospect"><div>'.$the_rec->label;
+					if ($a['content_attr'] != null && isset($the_rec->att_data[$a['content_attr']])) {
+						$html .= '<br/><span class="content">'.ProspectTemplate::get_att_val($assoc_atts, $a['content_attr'], $the_rec->att_data).'</span>';
+					}
+					$html .= '</div></figcaption>';
+					$html .= '</figure>';
+					break;
+				}
+			} // foreach
+		} // if have_posts
+
+			// Close any enclosing DIV
+		switch($a['display']) {
+		case 'list':
+			break;
+		case 'cards':
+			$html .= '</div>';
+			break;
+		case 'images':
+			break;
+		}
+
+		$html .= '</div>';	// prospect-shortcode 
+
+		return $html;
+	}
+
+
 		// INSTANCE VARIABLES & METHODS
 		// ============================
 

@@ -66,7 +66,7 @@
 						echo('<img class="prospect-thumb" src="'.$the_rec->att_data[$display_image].'">');
 					}
 					if ($display_content != 'disable' && isset($the_rec->att_data[$display_content])) {
-						echo('<p class="prospect-list-content">'.prospect_att_val($assoc_atts, $display_content, $the_rec->att_data).'</p>');
+						echo('<p class="prospect-list-content">'.ProspectTemplate::get_att_val($assoc_atts, $display_content, $the_rec->att_data).'</p>');
 					}
 					echo('</div>');
 					break;
@@ -77,7 +77,7 @@
 					}
 					echo('<p class="prospect-card-text"><span class="title"><a href="'.get_permalink($the_rec->post_id).'">'.$the_rec->label.'</a></span>');
 					if ($display_content != 'disable' && isset($the_rec->att_data[$display_content])) {
-						echo('<br/><span class="content">'.prospect_att_val($assoc_atts, $display_content, $the_rec->att_data).'</span>');
+						echo('<br/><span class="content">'.ProspectTemplate::get_att_val($assoc_atts, $display_content, $the_rec->att_data).'</span>');
 					}
 					echo('</p></div>');
 					break;
@@ -90,7 +90,7 @@
 					echo('</a>');
 					echo('<figcaption class="prospect"><div>'.$the_rec->label);
 					if ($display_content != 'disable' && isset($the_rec->att_data[$display_content])) {
-						echo('<br/><span class="content">'.prospect_att_val($assoc_atts, $display_content, $the_rec->att_data).'</span>');
+						echo('<br/><span class="content">'.ProspectTemplate::get_att_val($assoc_atts, $display_content, $the_rec->att_data).'</span>');
 					}
 					echo('</div></figcaption>');
 					echo('</figure>');
@@ -99,68 +99,6 @@
 			} // foreach
 		} // if have_posts
 	} // if template has id
-
-		// PURPOSE: Return a text value based on the Attribute whose ID is $att_id in $att_array
-	function prospect_att_val($att_defs, $att_id, $att_array)
-	{
-		$att_def = $att_defs[$att_id];
-		$att_val = $att_array[$att_id];
-		switch ($att_def->t) {
-		case 'V':
-		case 'g':
-			return implode(", ", $att_val);
-		case 'T':
-		case 'N':
-			return $att_val;
-		case 'D':
-			if ($att_val == '?') {
-				return __('(uncertain)', 'prospect');
-			}
-			$date_string = '';
-			$date_part = $att_val['min'];
-			if (!isset($att_val['max'])) { // just a single date
-				if ($date_part['f']) {
-					$date_string = __('about', 'prospect').' ';
-				}
-				$date_string .= $date_part['y'];
-				if (isset($date_part['m'])) {
-					$date_string .= '-'.$date_part['m'];
-					if (isset($date_part['d'])) {
-						$date_string .= '-'.$date_part['d'];
-					}
-				}
-			} else {	// from and to
-				if ($date_part['f']) {
-					$date_string = __('about', 'prospect').' ';
-				}
-				$date_string .=  $date_part['y'];
-				if (isset($date_part['m'])) {
-					$date_string .= '-'.$date_part['m'];
-					if (isset($date_part['d'])) {
-						$date_string .= '-'.$date_part['d'];
-					}
-				}
-
-				$date_part = $att_val['max'];
-				$date_string .= ' '.__('to', 'prospect').' ';
-				if ($date_part == 'open') {
-					$date_string .= __('now', 'prospect').' ';
-				} else {
-					if ($date_part['f']) {
-						$date_string .= __('about', 'prospect').' ';
-					}
-					$date_string .= $date_part['y'];
-					if (isset($date_part['m'])) {
-						$date_string .= '-'.$date_part['m'];
-						if (isset($date_part['d'])) {
-							$date_string .= '-'.$date_part['d'];
-						}
-					}
-				} // define to date
-			} // from and to
-			return $date_string;
-		} // switch Attribute type
-	} // prospect_att_val()
 
 		// Close any enclosing DIV
 	switch($display_style) {
