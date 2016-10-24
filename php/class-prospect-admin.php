@@ -2527,8 +2527,8 @@ class ProspectAdmin {
 	public function prsp_tour_callback()
 	{
 		printf(
-			'<input type="text" size="8" id="prsp_tour" name="prsp_base_options[prsp_tour]" value="%s" />',
-			isset($this->options['prsp_tour']) ? esc_attr($this->options['prsp_tour']) : 'false'
+			'<input type="checkbox" id="prsp_tour" name="prsp_base_options[prsp_tour]" value="true" %s />',
+			($this->options['prsp_tour'] == 'true') ? 'checked' : null
 		);
 	} // prsp_tour_callback()
 

@@ -168,7 +168,7 @@ class Prospect {
 
 				// Insert Help Tour? Can be set at either Website or Exhibit level
 			$tour = (isset($the_xhbt->gen->tour) && $the_xhbt->gen->tour) ||
-				(isset($options['prsp_tour']) && ($options['prsp_tour'] == 'true' || $options['prsp_tour'] == 'TRUE'));
+				(isset($options['prsp_tour']) && ($options['prsp_tour'] == 'true'));
 			if ($tour) {
 				wp_enqueue_style('jquery-help-css', plugins_url('lib/hopscotch/css/hopscotch.min.css', dirname(__FILE__)), array('prsp-jquery-ui-style', 'prsp-jquery-theme-style'));
 				wp_enqueue_script('jquery-help', plugins_url('lib/hopscotch/js/hopscotch.min.js', dirname(__FILE__)), array('jquery', 'prsp-view-exhibit'));
@@ -360,7 +360,7 @@ class Prospect {
 
 				// Insert Help Tour? Can be set at either Website or Volume level
 			$tour = (isset($the_volume->gen->tour) && $the_volume->gen->tour) ||
-				(isset($options['prsp_tour']) && ($options['prsp_tour'] == 'true' || $options['prsp_tour'] == 'TRUE'));
+				(isset($options['prsp_tour']) && ($options['prsp_tour'] == 'true'));
 			if ($tour) {
 				wp_enqueue_style('jquery-help-css', plugins_url('lib/hopscotch/css/hopscotch.min.css', dirname(__FILE__)), array('prsp-jquery-ui-style', 'prsp-jquery-theme-style'));
 				wp_enqueue_script('jquery-help', plugins_url('lib/hopscotch/js/hopscotch.min.js', dirname(__FILE__)), array('jquery', 'prsp-view-volume'));
