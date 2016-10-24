@@ -112,7 +112,7 @@ class Prospect {
 			wp_enqueue_style('prsp-jquery-ui-style', plugins_url('css/jquery-ui.min.css', dirname(__FILE__)));
 			wp_enqueue_style('prsp-jquery-theme-style', plugins_url('css/jquery-ui.theme.min.css', dirname(__FILE__)));
 			wp_enqueue_style('leaflet-style', plugins_url('lib/leaflet/leaflet.css', dirname(__FILE__)));
-			wp_enqueue_style('prsp-exhibit-style', plugins_url('css/view-exhibit.css', dirname(__FILE__)));
+			wp_enqueue_style('prsp-exhibit-style', plugins_url('css/view-exhibit.min.css', dirname(__FILE__)));
 
 			wp_enqueue_script('jquery');
 			wp_enqueue_script('underscore');
@@ -314,7 +314,7 @@ class Prospect {
 			wp_enqueue_style('prsp-jquery-ui-style', plugins_url('css/jquery-ui.min.css', dirname(__FILE__)));
 			wp_enqueue_style('prsp-jquery-theme-style', plugins_url('css/jquery-ui.theme.min.css', dirname(__FILE__)));
 			wp_enqueue_style('leaflet-style', plugins_url('lib/leaflet/leaflet.css', dirname(__FILE__)));
-			wp_enqueue_style('prsp-volume-style', plugins_url('css/view-volume.css', dirname(__FILE__)));
+			wp_enqueue_style('prsp-volume-style', plugins_url('css/view-volume.min.css', dirname(__FILE__)));
 
 			wp_enqueue_script('jquery');
 			wp_enqueue_script('underscore');
