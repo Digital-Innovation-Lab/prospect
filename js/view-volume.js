@@ -1041,15 +1041,15 @@ PVizFrame.prototype.initDOM = function(vI)
 
 		// Hook control bar Icon buttons
 	frame.find('div.view-controls button:first')
-			.button({icons: { primary: 'ui-icon-bookmark' }, text: false })
+			.button({icons: { primary: 'ui-icon-battery-0' }, text: false })
 			.click(clickShowHideLegend).next()
-			.button({icons: { primary: 'ui-icon-wrench' }, text: false })
+			.button({icons: { primary: 'ui-icon-battery-1' }, text: false })
 			.click(clickVizControls).next()
 			.button({icons: { primary: 'ui-icon-info' }, text: false })
 			.click(clickVizNotes).next()
-			.button({icons: { primary: 'ui-icon-star' }, text: false })
+			.button({icons: { primary: 'ui-icon-signal' }, text: false })
 			.click(clickHighlight).next()
-			.button({icons: { primary: 'ui-icon-search' }, text: false })
+			.button({icons: { primary: 'ui-icon-battery-3' }, text: false })
 			.click(function(event) {
 				event.preventDefault();
 				self.openSelection();
@@ -2410,9 +2410,9 @@ PTextFrame.prototype.initDOM = function()
 		.click(clickTextPrev);
 	frame.find('#textnext').button({icons: { primary: 'ui-icon-arrow-1-e' }, text: false })
 		.click(clickTextNext);
-	frame.find('.hilite').button({icons: { primary: 'ui-icon-star' }, text: false })
+	frame.find('.hilite').button({icons: { primary: 'ui-icon-signal' }, text: false })
 		.click(clickTextFind);
-	frame.find('.osel').button({icons: { primary: 'ui-icon-search' }, text: false })
+	frame.find('.osel').button({icons: { primary: 'ui-icon-battery-3' }, text: false })
 		.click(clickTextShow);
 
 	frame.find('#read-pane').click(clickReadPane);
@@ -3753,7 +3753,7 @@ jQuery(document).ready(function($) {
 	}
 
 		// Command Bar
-	jQuery('#btn-about').button({icons: { primary: 'ui-icon-power' }, text: false })
+	jQuery('#btn-about').button({icons: { primary: 'ui-icon-signal-diag' }, text: false })
 			.click(clickAbout);
 	jQuery('#btn-togtext').button({icons: { primary: 'ui-icon-arrow-2-e-w' }, text: false })
 		.click(function() {
