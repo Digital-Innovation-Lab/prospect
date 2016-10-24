@@ -17,12 +17,24 @@ module.exports = function(grunt) {
 			  { src: 'js/view-volume.js', dest: 'js/view-volume.min.js' }
 		  ]
 	  }
-    }
+    },
+	cssmin: {
+		dist: {
+      		options: {
+         		banner: '/*! <%= grunt.template.today("yyyy-mm-dd") %> */\n'
+      		},
+      		files: {
+	        	'css/view-exhibit.min.css': ['css/view-exhibit.css'],
+				'css/view-volume.min.css': ['css/view-volume.css']
+      		}
+  		}
+	}
   });
 
-  // Load the plugin that provides the "uglify" task.
+  	// Load the plugin that provides the "uglify" task.
   grunt.loadNpmTasks('grunt-contrib-uglify');
-
+  	// And the minify-CSS plugin
+  grunt.loadNpmTasks('grunt-contrib-cssmin');
   // Default task(s).
-  grunt.registerTask('default', ['uglify']);
+  grunt.registerTask('default', ['uglify', 'cssmin']);
 };
