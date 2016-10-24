@@ -2928,10 +2928,10 @@ VizTime.prototype.render = function(stream)
 				var	x = i ? 1 : -1,
 					y = macro.h / 4; // Relative positon of handles
 				return "M"+(.5*x)+","+y+"A6,6 0 0 "+i+" "+(6.5*x)+","+(y+6)
-					+"V"+(2*y-6)+"A6,6 0 0 "+i+" "+(.5*x)+","+(2*y)
-					+"Z"+"M"+(2.5*x)+","+(y+8)+"V"+(2*y-8)
+					+"V"+(3*y-6)+"A6,6 0 0 "+i+" "+(.5*x)+","+(3*y)
+					+"Z"+"M"+(2.5*x)+","+(y+8)+"V"+(3*y-8)
 					+"M"+(4.5*x)+","+(y+8)
-					+"V"+(2*y-8);
+					+"V"+(3*y-8);
 			});
 
 				// Code to bind when brush moves
