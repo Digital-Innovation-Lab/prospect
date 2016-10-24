@@ -2906,21 +2906,40 @@ VizTime.prototype.render = function(stream)
 		//			Code must destroy any previous SVG which would now be below stack
 	(function () {
 		var macro = self.bands[0];	// Place brush in top macro band
-
-			// SVG area where brush is created -- delete old one?
+		var cHs;
+			// SVG area where brush is created -- delete old one
 		if (self.brushSVG != null)
 			self.brushSVG.remove();
 
 			// Create logical controller
 		self.brush = d3.brushX();
 		self.brush.extent([[0,0], [macro.w, macro.h]]);
+
+		self.brushSVG = macro.g.append("g");
+		self.brushSVG.attr("class", "brush")
+			.call(self.brush);
+
+			// Create custom handle SVG elements
+		cHs = self.brushSVG.selectAll(".handle--custom")
+			.data([{type: "w"}, {type: "e"}])
+			.enter().append("path")
+			.attr("d", function (d, i) {
+				// Create SVG path for brush resize handles
+				var	x = i ? 1 : -1,
+					y = macro.h / 4; // Relative positon of handles
+				return "M"+(.5*x)+","+y+"A6,6 0 0 "+i+" "+(6.5*x)+","+(y+6)
+					+"V"+(2*y-6)+"A6,6 0 0 "+i+" "+(.5*x)+","+(2*y)
+					+"Z"+"M"+(2.5*x)+","+(y+8)+"V"+(2*y-8)
+					+"M"+(4.5*x)+","+(y+8)
+					+"V"+(2*y-8);
+			});
+
 				// Code to bind when brush moves
-		self.brush.on('brush', function() {
-				// Ignore if side-effect rather than real user interaction
-			if (!d3.event.sourceEvent) {
-				return;
-			}
-			var d0 = d3.event.selection.map(macro.xScale.invert),
+		self.brush.on('start brush end', function() {
+			var sel = d3.event.selection;
+			if (sel == null) { return; }
+
+			var d0 = sel.map(macro.xScale.invert),
 			    d1 = d0.map(d3.timeDay.round);
 			  // If empty when rounded, use floor & ceil instead.
 			if (d1[0] >= d1[1]) {
@@ -2932,32 +2951,20 @@ VizTime.prototype.render = function(stream)
 			self.zMinDate = d1[0];
 			self.zMaxDate = d1[1];
 
+				// Update custom handles
+			cHs.attr("display", null)
+				.attr("transform", function(d, i) {
+					return "translate(" + sel[i] + ",0)";
+				});
+
 				// Rescale bottom/zoom timeline
 			var zoom = self.bands[1];
 			zoom.xScale.domain(d1);
 			zoom.redraw();
 		});
 
-		self.brushSVG = macro.g.append("g");
-		self.brushSVG.attr("class", "brush")
-			.call(self.brush);
-
 			// Initial brush pos in macro based on self.zMinDate, self.zMaxDate
 		self.brush.move(self.brushSVG, [macro.xScale(self.zMinDate), macro.xScale(self.zMaxDate)]);
-
-		// self.brushSVG.selectAll(".resize")
-		// 	.append("path")
-		// 	.attr("d", function (d) {
-		// 		// Create SVG path for brush resize handles
-		// 		var e = +(d == "e"),
-		// 			x = e ? 1 : -1,
-		// 			y = band.h / 4; // Relative positon if handles
-		// 		return "M"+(.5*x)+","+y+"A6,6 0 0 "+e+" "+(6.5*x)+","+(y+6)
-		// 			+"V"+(2*y-6)+"A6,6 0 0 "+e+" "+(.5*x)+","+(2*y)
-		// 			+"Z"+"M"+(2.5*x)+","+(y+8)+"V"+(2*y-8)
-		// 			+"M"+(4.5*x)+","+(y+8)
-		// 			+"V"+(2*y-8);
-		// 	});
 	}());
 
 		// PURPOSE: Update the clipping rectangle
@@ -5514,6 +5521,7 @@ PFilterNum.prototype.useBoxes = function(insert)
 			b1 = (b1 === this.rCats.length) ? this.rCats.length-1 : b1;
 			this.b0 = b0;
 			this.b1 = b1;
+				// This automatically calls brushended, which will update custom handles
 			this.brushg.call(this.brush.move, [b0, b1+1].map(this.xScale));
 		}
 		insert.find('.filter-update').prop('disabled', true);
@@ -5577,6 +5585,7 @@ PFilterNum.prototype.setup = function()
 {
 	var self=this;
 	var xScale, rScale;
+	var inprocess=false;		// Prevent brush handle recursion
 
 		// Set defaults
 	this.u   = false;
@@ -5600,6 +5609,8 @@ PFilterNum.prototype.setup = function()
 	if (this.rCats !== null) {
 		this.ctrs = new Uint16Array(this.rCats.length);
 
+		var cHs;	// custom brush handle elemnts
+
 			// Set defaults
 			// indices of rCats contained by brush (inclusive)
 		this.b0  = 0;
@@ -5610,47 +5621,64 @@ PFilterNum.prototype.setup = function()
 		var innerH = 80 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
 
 			// RETURNS:	SVG path for brush resize handles
-		// function resizePath(d)
-		// {
-		// 	var e;	// 0 for handle--w, 1 for handle--e
-		// 	e = d3.select(this).classed("handle--e") ? 1 : 0;
-		//
-		// 	// var e = +(d == "e");
-		// 	var	x = e ? 1 : -1,
-		// 		y = innerH / 4; // Relative positon if handles
-		// 	return "M"+(.5*x)+","+y+"A6,6 0 0 "+e+" "+(6.5*x)+","+(y+6)
-		// 		+"V"+(2*y-6)+"A6,6 0 0 "+e+" "+(.5*x)+","+(2*y)
-		// 		+"Z"+"M"+(2.5*x)+","+(y+8)+"V"+(2*y-8)
-		// 		+"M"+(4.5*x)+","+(y+8)
-		// 		+"V"+(2*y-8);
-		// } // resizePath()
+		function resizePath(d, i)
+		{
+			var	x = i ? 1 : -1,
+				y = innerH / 4; // Relative positon of handles
+			return "M"+(.5*x)+","+y+"A6,6 0 0 "+i+" "+(6.5*x)+","+(y+6)
+				+"V"+(3*y-6)+"A6,6 0 0 "+i+" "+(.5*x)+","+(3*y)
+				+"Z"+"M"+(2.5*x)+","+(y+8)+"V"+(3*y-8)
+				+"M"+(4.5*x)+","+(y+8)+"V"+(3*y-8);
+		} // resizePath()
+
+			// PURPOSE:	Update custom brush handles; clip to box bounds ONLY if doing by hand
+			// NOTES:	Different behavior brush vs. end:
+			//				If end, then clip according to range bar edges;
+			//				If brush, just follow the current seletion
 		function brushended()
 		{
-			if (!d3.event.sourceEvent)	// Ignore unless user event
-				return;
-			if (!d3.event.selection)	// Ignore empty selections
-				 return;
-				 // Convert d3.event.selection [x0, x1] in pixels to array indices
-			var d = d3.event.selection.map(xScale.invert);
-			if (d[0] > d[1]) {
-				var temp = d[0];
-				d[0] = d[1];
-				d[1] = t;
-			}
-			d[0] = Math.floor(d[0]);
-			d[1] = Math.min(Math.ceil(d[1]), self.rCats.length);
+			var sx;			// pixel x positions of brush selection
+			var sel=d3.event.selection;
+			if (sel == null) { return; }	// Ignore empty selections
 
-			self.b0  = d[0];
-			self.b1  = d[1]-1;
+				// Just move the handles if user still dragging or move comes from code (brush.move)
+			if (!d3.event.sourceEvent || d3.event.type === "brush") {
+				self.cHs.attr("display", null)
+					.attr("transform", function(d, i) {
+						return "translate(" + sel[i] + ",0)";
+					});
+			} else if (d3.event.type === "end") {
+					// Don't recurse if already processing
+				if (inprocess) { return; }
+				inprocess = true;
+					 // Convert d3.event.selection [x0, x1] in pixels to array indices
+				var d = sel.map(xScale.invert);
+				if (d[0] > d[1]) {
+					var temp = d[0];
+					d[0] = d[1];
+					d[1] = temp;
+				}
+				d[0] = Math.floor(d[0]);
+				d[1] = Math.min(Math.ceil(d[1]), self.rCats.length);
 
-			d3.select(this).transition()
-			    .call(self.brush.move, d.map(xScale));
+				self.b0  = d[0];
+				self.b1  = d[1]-1;
 
-			self.min = self.rCats[self.b0].min;
-			self.max = self.rCats[self.b1].max;
-			self.refreshBoxes();
+				var sx = d.map(xScale);
+				self.brush.move(self.brushg, sx);
 
-			self.isDirty(true);
+					// Update custom brush handles
+				self.cHs.attr("display", null)
+					.attr("transform", function(dd, i) {
+						return "translate(" + sx[i] + ",0)";
+					});
+
+				self.min = self.rCats[self.b0].min;
+				self.max = self.rCats[self.b1].max;
+				self.refreshBoxes();
+				self.isDirty(true);
+				inprocess=false;
+			} // if brush move end
 		} // brushended()
 
 		var colW=0;
@@ -5703,12 +5731,17 @@ PFilterNum.prototype.setup = function()
 
 		this.brush = d3.brushX();
 		this.brush.extent([[0,-1],[innerW, innerH+2]]);
-		this.brush.on("end", brushended);
-
 		this.brushg = chart.append("g");
 			// Call brush to create SVG elements
 		this.brushg.attr("class", "brush")
 			.call(this.brush);
+			// Create custom handle SVG elements
+		this.cHs = this.brushg.selectAll(".handle--custom")
+			.data([{type: "w"}, {type: "e"}])
+			.enter().append("path");
+		this.cHs.attr("d", resizePath);
+
+		this.brush.on("brush end", brushended);
 			// Set SVG element positions and make visible
 		this.brush.move(this.brushg, [0, innerW]);
 	} else {
@@ -5762,6 +5795,7 @@ PFilterNum.prototype.setState = function(state)
 //		chart = SVG for graph
 //		brush = D3 brush object
 //		brushg = SVG for brush
+//		cHs = custom brush handle elements
 
 var PFilterDates = function(id, attRec, req)
 {
@@ -5907,6 +5941,7 @@ PFilterDates.prototype.useBoxes = function(insert)
 		b1 = (b1 === this.rCats.length) ? this.rCats.length-1 : b1;
 		this.b0 = b0;
 		this.b1 = b1;
+			// This automatically updates custom brush handles
 		this.brushg.call(this.brush.move, [b0, b1+1].map(this.xScale));
 		insert.find('.filter-update').prop('disabled', true);
 	}
@@ -5992,6 +6027,7 @@ PFilterDates.prototype.setup = function()
 {
 	var self = this;
 	var xScale, rScale;
+	var inprocess=false;		// Prevent brush handle recursion
 
 	this.rCats = PData.cRNew(this.att, false, false);
 	this.ctrs = new Uint16Array(this.rCats.length);
@@ -6007,45 +6043,66 @@ PFilterDates.prototype.setup = function()
 
 	var innerH = 80 - D3FG_MARGINS.top - D3FG_MARGINS.bottom;
 
-	// function resizePath(d)
-	// {
-	// 	// Create SVG path for brush resize handles
-	// 	var e = +(d == "e"),
-	// 		x = e ? 1 : -1,
-	// 		y = innerH / 4; // Relative positon if handles
-	// 	return "M"+(.5*x)+","+y+"A6,6 0 0 "+e+" "+(6.5*x)+","+(y+6)
-	// 		+"V"+(2*y-6)+"A6,6 0 0 "+e+" "+(.5*x)+","+(2*y)
-	// 		+"Z"+"M"+(2.5*x)+","+(y+8)+"V"+(2*y-8)
-	// 		+"M"+(4.5*x)+","+(y+8)
-	// 		+"V"+(2*y-8);
-	// } // resizePath()
+		// RETURNS:	SVG path for brush resize handles
+	function resizePath(d, i)
+	{
+		var	x = i ? 1 : -1,
+			y = innerH / 4; // Relative positon of handles
+		return "M"+(.5*x)+","+y+"A6,6 0 0 "+i+" "+(6.5*x)+","+(y+6)
+			+"V"+(3*y-6)+"A6,6 0 0 "+i+" "+(.5*x)+","+(3*y)
+			+"Z"+"M"+(2.5*x)+","+(y+8)+"V"+(3*y-8)
+			+"M"+(4.5*x)+","+(y+8)+"V"+(3*y-8);
+	} // resizePath()
+
+		// PURPOSE:	Update custom brush handles; clip to box bounds ONLY if doing by hand
+		// NOTES:	Different behavior brush vs. end:
+		//				If end, then clip according to range bar edges;
+		//				If brush, just follow the current seletion
 	function brushended()
 	{
-		if (!d3.event.sourceEvent)	// Ignore unless user event
-			return;
-		if (!d3.event.selection)	// Ignore empty selections
-			 return;
-			 // Convert d3.event.selection [x0, x1] in pixels to array indices
-		var d = d3.event.selection.map(xScale.invert);
-		if (d[0] > d[1]) {
-			var temp = d[0];
-			d[0] = d[1];
-			d[1] = t;
+		var sx;			// pixel x positions of brush selection
+			// Ignore empty selections
+		var sel=d3.event.selection;
+		if (sel == null) { return; }
+			// Just move the handles if user still dragging or move comes from code (brush.move)
+		if (!d3.event.sourceEvent || d3.event.type === "brush") {
+			self.cHs.attr("display", null)
+				.attr("transform", function(d, i) {
+					return "translate(" + sel[i] + ",0)";
+				});
+		} else if (d3.event.type === "end") {
+				// Don't recurse if already processing
+			if (inprocess) { return; }
+			inprocess = true;
+				// Convert d3.event.selection [x0, x1] in pixels to array indices
+			var d = sel.map(self.xScale.invert);
+			if (d[0] > d[1]) {
+				var temp = d[0];
+				d[0] = d[1];
+				d[1] = temp;
+			}
+			d[0] = Math.floor(d[0]);
+			d[1] = Math.min(Math.ceil(d[1]), self.rCats.length);
+
+			self.b0  = d[0];
+			self.b1  = d[1]-1;
+			sx = d.map(self.xScale);
+
+			self.brush.move(self.brushg, sx);
+
+				// Update custom brush handles
+			self.cHs.attr("display", null)
+				.attr("transform", function(d, i) {
+					return "translate(" + sx[i] + ",0)";
+				});
+
+			self.min = self.rCats[self.b0].min;
+			self.max = self.rCats[self.b1].max;
+			self.refreshBoxes();
+
+			self.isDirty(true);
+			inprocess=false;
 		}
-		d[0] = Math.floor(d[0]);
-		d[1] = Math.min(Math.ceil(d[1]), self.rCats.length);
-
-		self.b0  = d[0];
-		self.b1  = d[1]-1;
-
-		d3.select(this).transition()
-			.call(self.brush.move, d.map(xScale));
-
-		self.min = self.rCats[self.b0].min;
-		self.max = self.rCats[self.b1].max;
-		self.refreshBoxes();
-
-		self.isDirty(true);
 	} // brushended()
 
 	var insert = this.insertPt();
@@ -6125,12 +6182,17 @@ PFilterDates.prototype.setup = function()
 
 	this.brush = d3.brushX();
 	this.brush.extent([[0,-1],[innerW, innerH+2]]);
-	this.brush.on("end", brushended);
-
 	this.brushg = chart.append("g");
 		// Call brush to create SVG elements
 	this.brushg.attr("class", "brush")
 		.call(this.brush);
+		// Create custom handle SVG elements
+	this.cHs = this.brushg.selectAll(".handle--custom")
+		.data([{type: "w"}, {type: "e"}])
+		.enter().append("path");
+	this.cHs.attr("d", resizePath);
+
+	this.brush.on("brush end", brushended);
 		// Set SVG element positions and make visible
 	this.brush.move(this.brushg, [0, innerW]);
 } // setup()

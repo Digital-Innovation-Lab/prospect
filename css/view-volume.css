@@ -299,10 +299,15 @@ div.filter-body svg .x.axis path {
 	display: none;
 }
 
-div.filter-body svg .brush .selection {
+div.filter-body svg g.brush .selection {
 	stroke: #fff;
 	fill-opacity: .125;
 	shape-rendering: crispEdges;
+}
+
+div.filter-body svg g.brush path {
+	stroke: midnightblue;
+	stroke-width: 1px;
 }
 
 	/* DOM Structure of Visualization frames
@@ -1461,10 +1466,15 @@ svg.tl-vf .bMinMaxLbl {
 	font-weight: bold;
 }
 
-svg.tl-vf .brush .selection {
+svg.tl-vf g.brush .selection {
 	stroke: midnightblue;
 	fill: yellow;
 	fill-opacity: .2;
+}
+
+svg.tl-vf g.brush path {
+	stroke: midnightblue;
+	stroke-width: 1px;
 }
 
 	/* TextStream styles */
