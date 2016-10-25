@@ -1,5 +1,4 @@
 // This file contains:
-//		PState Module
 //		PVizModel abstract Class & implementations for views of individual Records
 //		PFilterModal abstract Class & implementations
 //		PData Module for handling data
@@ -30,19 +29,18 @@ if (!Array.prototype.findIndex) {
 }
 
 	// GLOBAL CONSTANTS
+	//=================
+
+	// Prospect sends global signals via jQuery; the following are valid signals (but not defined as variables)
+	// --------
+	// "loaded" = The data has been loaded and is ready to be processed
+	// "fdirty"	= A filter is "dirty" (needs refresh) in the Filter Stack
+	// "hilite"	= A ViewFrame requests that main app create a Highlight Filter
+
+	// Types of chronological events: bit-flags
 var EVENT_INSTANT = 1;			// Single instantaneous event (not Date range)
 var EVENT_F_START = 2;			// Event has fuzzy start
 var EVENT_F_END = 4;			// Event has fuzzy end
-
-var PSTATE_INIT = 0;			// Initialization
-var PSTATE_LOAD = 1;			// Loading data
-var PSTATE_PROCESS = 2;			// Processing data or handling command
-var PSTATE_BUILD = 3;			// Building visuals
-var PSTATE_UPDATE = 4;			// Updating visuals (selection, etc)
-var PSTATE_READY = 5;			// Waiting for user
-	// Further internal async Signals, not states
-var PSTATE_FDIRTY = 6;
-var PSTATE_HILITE = 7;
 
 var D3FG_BAR_WIDTH 	= 25;		// D3 Graphs created for filters
 var D3FG_MARGINS	= { top: 4, right: 7, bottom: 22, left: 30 };
@@ -58,58 +56,12 @@ var V_FLAG_OPT   = 0x10;		// Has an Options dialog
 var V_FLAG_VSCRL = 0x20;		// Add vertical scroll bar
 var V_FLAG_HSCRL = 0x40;		// Add horizontal scroll bar
 
-var parseTC = /(\d\d)\:(\d\d)\:(\d\d)\.(\d\d?)/; 	// precise regular expression for parsing timecodes
-
-var MS_IN_DAY = 1000*60*60*24-100; 	// milliseconds in a day (minus 100): 1000*60*60*24 - 100
-
 	// GLOBAL VARS
 var TODAY = new Date();
 var localD3;					// For localizing D3
 var months;						// Array of month names (for localization)
 var dlText={};					// Dynamically-loaded text stored in Object
 								// .sha = "Show/Hide All", .ok, .cancel, .seerec, .close, .add
-
-
-// ==========================================================
-// PState
-// PURPOSE: Manages state of Prospect and displaying it
-// NOTES: 	Must be a global object because called by VizModels, VizFrames and global app object
-//			Try to force sychronous DOM flush/refresh. See:
-//				https://gist.github.com/paulirish/5d52fb081b3570c81e3a
-//				http://stackoverflow.com/questions/8840580/force-dom-redraw-refresh-on-chrome-mac
-//				http://stackoverflow.com/questions/6955912/can-i-use-javascript-to-force-the-browser-to-flush-any-pending-layout-changes
-
-var PState = (function() {
-
-	var state = PSTATE_INIT; // current state of Prospect web app
-	var pSTxts;				// array of PSTATE_ texts
-	var el;					// pstate element
-	var f;					// dummy variable used to force DOM refresh
-
-	return {
-		init: function()
-		{
-			var text = document.getElementById('dltext-pstates').innerHTML;
-			pSTxts = text.trim().split('|');
-			el = document.getElementById('pstate');
-		},
-
-		set: function(s)
-		{
-			if (s != state) {
-				if (state === PSTATE_READY) {
-					el.classList.add('attn');
-				} else if (s === PSTATE_READY) {
-					el.classList.remove('attn');
-				}
-				el.textContent = pSTxts[s-1];
-				state = s;
-				f = el.offsetWidth;
-				// f = el.innerText;
-			}
-		} // setState()
-	}
-})(); // PState
 
 
 // ==============================================================================
@@ -419,7 +371,6 @@ VizMap.prototype.render = function(stream)
 			var tI = PData.n2T(aid);
 				// If so, go through all markers looking for fellows of same _aid and setStyle accordingly
 			if (self.tLCnt[tI] > 1) {
-				PState.set(PSTATE_UPDATE);
 				mLayer.eachLayer(function(marker) {
 					if (marker.options._aid === aid) {
 						if (added) {
@@ -429,7 +380,6 @@ VizMap.prototype.render = function(stream)
 						}
 					}
 				});
-				PState.set(PSTATE_READY);
 			} else {
 				if (added) {
 					this.setStyle({ color: "yellow", weight: 2 });
@@ -932,7 +882,6 @@ VizMap2.prototype.render = function(stream)
 
 				// If so, go through all markers looking for fellows of same _aid and setStyle accordingly
 			if (locData.length > 1) {
-				PState.set(PSTATE_UPDATE);
 				mLayer.eachLayer(function(marker) {
 					if (marker.options._aid === aid) {	// ignore labels
 						if (added) {
@@ -942,7 +891,6 @@ VizMap2.prototype.render = function(stream)
 						}
 					}
 				});
-				PState.set(PSTATE_READY);
 			} else {
 				if (added) {
 					this.setStyle({ color: "yellow", weight: 2 });
@@ -1519,7 +1467,6 @@ VizCards.prototype.doOptions = function()
 				text: dlText.ok,
 				click: function() {
 					d.dialog("close");
-					PState.set(PSTATE_BUILD);
 					for (var tI=0; tI<PData.eTNum(); tI++) {
 						var sAttID = jQuery('#dialog-sortby select[data-ti="'+tI+'"]').val();
 						if (sAttID != self.sAtts[tI]) {
@@ -1527,7 +1474,6 @@ VizCards.prototype.doOptions = function()
 							self.rerender(tI);
 						}
 					}
-					PState.set(PSTATE_READY);
 				}
 			},
 			{
@@ -3329,7 +3275,6 @@ VizDirectory.prototype.doOptions = function()
 				text: dlText.ok,
 				click: function() {
 					d.dialog("close");
-					PState.set(PSTATE_BUILD);
 					for (var tI=0; tI<PData.eTNum(); tI++) {
 						var sAttID = jQuery('#dialog-sortby select[data-ti="'+tI+'"]').val();
 						if (sAttID !== self.sAtts[tI]) {
@@ -3341,7 +3286,6 @@ VizDirectory.prototype.doOptions = function()
 							self.rerender(tI);
 						}
 					}
-					PState.set(PSTATE_READY);
 				}
 			},
 			{
@@ -3760,8 +3704,6 @@ VizNetWheel.prototype.render = function(stream)
 	{
 		var nData=nL.data;
 
-		PState.set(PSTATE_UPDATE);
-
 			// First clear out all variables
 		node.each(function(n) { n.data.l = false; });
 
@@ -3803,8 +3745,6 @@ VizNetWheel.prototype.render = function(stream)
 
 		d3.select(this)
 			.attr("fill", "yellow");
-
-		PState.set(PSTATE_READY);
 	} // clickName()
 
 		// remove any existing nodes and links
@@ -4057,7 +3997,6 @@ VizNetWheel.prototype.doOptions = function()
 				text: dlText.ok,
 				click: function() {
 					d.dialog("close");
-					PState.set(PSTATE_BUILD);
 					var prune = jQuery('#prune-nodes').prop('checked');
 					if (self.prune !== prune) {
 						self.prune = prune;
@@ -4065,7 +4004,6 @@ VizNetWheel.prototype.doOptions = function()
 						self.vFrame.upSel([], false);
 						self.render(null);
 					}
-					PState.set(PSTATE_READY);
 				}
 			},
 			{
@@ -4455,7 +4393,6 @@ VizNetGraph.prototype.doOptions = function()
 				text: dlText.ok,
 				click: function() {
 					d.dialog("close");
-					PState.set(PSTATE_BUILD);
 					var changed = false;
 					self.settings.pAtts.forEach(function(t, tI) {
 						t.forEach(function(p, pI) {
@@ -4471,7 +4408,6 @@ VizNetGraph.prototype.doOptions = function()
 						self.vFrame.upSel([], false);
 						self.render(null);
 					}
-					PState.set(PSTATE_READY);
 				}
 			},
 			{
@@ -4860,7 +4796,6 @@ VizBMatrix.prototype.doOptions = function()
 				text: dlText.ok,
 				click: function() {
 					d.dialog("close");
-					PState.set(PSTATE_BUILD);
 					self.cnx= false;
 					var changed = false;
 					self.settings.pAtts.forEach(function(t, tI) {
@@ -4880,7 +4815,6 @@ VizBMatrix.prototype.doOptions = function()
 						self.vFrame.upSel([], false);
 						self.render(null);
 					}
-					PState.set(PSTATE_READY);
 				}
 			},
 			{
@@ -4959,7 +4893,7 @@ PFilterModel.prototype.isDirty = function(set)
 {
 	if (set != null) {
 		if (!this.dirty && set && this.id > 0) {
-			jQuery("body").trigger("prospect", { s: PSTATE_FDIRTY });
+			jQuery("body").trigger("prospect", { s: "fdirty" });
 		}
 		this.dirty = set;
 	}
@@ -6450,8 +6384,8 @@ var PData = (function() {
 		if (done) {
 			loaded=true;
 			setTimeout(function() {
-				jQuery("body").trigger("prospect", { s: PSTATE_PROCESS });
-			}, 500);
+				jQuery("body").trigger("prospect", { s: "loaded" });
+			}, 100);
 		}
 	} // rLoad()
 
@@ -7118,6 +7052,7 @@ var PData = (function() {
 		d3Nums: function(year, month, day, end)
 		{
 			var date;
+			var MS_IN_DAY = 1000*60*60*24-100; 	// milliseconds in a day (minus 100): 1000*60*60*24 - 100
 
 			if (year === 0) { // Convert year 0 to '1 CE'
 				date = new Date (1, month-1, day);

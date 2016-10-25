@@ -75,9 +75,7 @@ function PViewFrame(vfIndex)
 	{
 		var selector = jQuery(getFrameID()+' div.view-controls select.view-viz-select option:selected');
 		var newSelIndex   = selector.val();
-		PState.set(PSTATE_BUILD);
 		createViz(newSelIndex, true);
-		PState.set(PSTATE_READY)
 	} // selectChangeViz()
 
 
@@ -100,6 +98,7 @@ function PViewFrame(vfIndex)
 			// Set default size -- change acc to widget settings & overrides
 		var w=450;
 		var h=400;
+		var parseTC = /(\d\d)\:(\d\d)\:(\d\d)\.(\d\d?)/; 	// precise regular expression for parsing timecodes
 
 		function tTrim(str)
 		{
@@ -754,17 +753,15 @@ function PViewFrame(vfIndex)
 	function clickHighlight(event)
 	{
 			// Send signal back to Prospect "main app" to create Highlight filter on this viz
-		jQuery("body").trigger("prospect", { s: PSTATE_HILITE, v: vfIndex, t: vizModel.tUsed });
+		jQuery("body").trigger("prospect", { s: "hilite", v: vfIndex, t: vizModel.tUsed });
 		event.preventDefault();
 	} // clickHighlight()
 
 	function clickClearSelection(event)
 	{
-		PState.set(PSTATE_UPDATE);
 		if (vizModel)
 			vizModel.clearSel();
 		doUpSel([], false);
-		PState.set(PSTATE_READY);
 		event.preventDefault();
 	} // clickClearSelection()
 
@@ -857,11 +854,9 @@ function PViewFrame(vfIndex)
 		switch (clickClass) {
 		case 'lgnd-update':
 			if (vizModel && datastream) {
-				PState.set(PSTATE_BUILD);
 				doUpSel([], false);				// Re-render from Apply on Legend always clears selection
 				vizModel.render(datastream);
 				setLDirty(false);
-				PState.set(PSTATE_READY);
 			}
 			break;
 			// Turn on or off just this one value
@@ -1494,8 +1489,6 @@ jQuery(document).ready(function($) {
 	{
 		var fDiv;
 
-		PState.set(PSTATE_PROCESS);
-
 		if (topStream == null)
 			topStream = PData.sNew(true);
 		endStream = topStream;
@@ -1550,7 +1543,6 @@ jQuery(document).ready(function($) {
 			} else
 				endStream = theF.f.out;
 		}
-		PState.set(PSTATE_BUILD);
 		views.forEach(function(v) {
 			if (v) {
 				v.showStream(endStream);
@@ -1575,7 +1567,6 @@ jQuery(document).ready(function($) {
 			}
 		});
 		doRecompute();
-		PState.set(PSTATE_READY);
 		event.preventDefault();
 	} // clickFilter()
 
@@ -1611,12 +1602,10 @@ jQuery(document).ready(function($) {
 			views[1] = null;
 			jQuery('#view-frame-1').remove();
 		} else {
-			PState.set(PSTATE_BUILD);
 			views[1] = PViewFrame(1);
 			views[1].initDOM(0);
 			views[1].showStream(endStream);
 			views[0].flushLgnd(true);
-			PState.set(PSTATE_READY);
 		}
 		views[0].resize();
 	} // clickTog2nd()
@@ -1995,7 +1984,6 @@ jQuery(document).ready(function($) {
 						if (selItem.length) {
 							var setP = selItem.data('id');
 							doShowPerspective(setP);
-							PState.set(PSTATE_READY);
 						}
 					} // OK
 				},
@@ -2089,7 +2077,6 @@ jQuery(document).ready(function($) {
 					v.clearSel(endStream);
 			});
 			doRecompute();
-			PState.set(PSTATE_READY);
 		} else {
 			fState = 1;
 			jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
@@ -2286,8 +2273,6 @@ jQuery(document).ready(function($) {
 		// TO DO: 	Get tUsed, rMap from the VizModels themselves!
 	function doApplyHighlight(vI)
 	{
-		PState.set(PSTATE_PROCESS);
-
 		var vf = views[vI];
 		var bm = vf.getBMData();
 		var list=[];
@@ -2322,15 +2307,11 @@ jQuery(document).ready(function($) {
 			hFilter.evalDone(endStream.l);
 		}
 
-		PState.set(PSTATE_UPDATE);
-
 		if (list.length > 0) {
 			vf.setSel(list);
 		} else {
 			vf.clearSel();
 		}
-
-		PState.set(PSTATE_READY);
 	} // doApplyHighlight()
 
 		// PURPOSE: Handle click on "Highlight" button
@@ -2390,8 +2371,6 @@ jQuery(document).ready(function($) {
 		if (p == null)
 			return false;
 
-		PState.set(PSTATE_PROCESS);
-
 			// Minimize filter and selector bars
 		jQuery('#filter-frame').hide();
 
@@ -2426,7 +2405,6 @@ jQuery(document).ready(function($) {
 		var vI, v0=views[0], v1=views[1];
 		var resize0=false;
 
-		PState.set(PSTATE_BUILD);
 		vI = vizIndex(p.s.v0.l);
 			// Already exists?
 		if (v0) {
@@ -2497,7 +2475,6 @@ jQuery(document).ready(function($) {
 	localizeColor('cb', '#command-bar');
 	localizeColor('fs', '#filter-frame');
 
-	PState.init();
 	if (typeof PMapHub !== 'undefined') {
 		PMapHub.init(prspdata.m, prspdata.mg);
 	}
@@ -2728,30 +2705,31 @@ jQuery(document).ready(function($) {
 		// Intercept global signals: data { s[tate] }
 	jQuery("body").on("prospect", function(event, data) {
 		switch (data.s) {
-		case PSTATE_PROCESS:
+		case "loaded":
+			var ready = document.getElementById('dltext-ready').innerHTML;
+			var el = document.getElementById('pstate');
+			el.classList.remove('attn');
+			el.textContent = ready.trim();
 				// ASSUMED: This won't be triggered until after Filters & Views set up
-			PState.set(PSTATE_PROCESS);
 			doRecompute();
 			for (var h=0; h<2; h++) {
 				if (hFilters[h] !== null) {
 					doApplyHighlight(h);
 				}
 			}
-			PState.set(PSTATE_READY);
 			jQuery('body').removeClass('waiting');
 			break;
-		case PSTATE_FDIRTY:
+		case "fdirty":
 			fState = 1;
 			jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
 			break;
-		case PSTATE_HILITE:
+		case "hilite":
 			clickHighlight(data.v, data.t);
 			break;
 		}
 	});
 
 		// Init hub using config settings
-	PState.set(PSTATE_LOAD);
 	PData.init();
 
 		// Set up Help Tour?

@@ -157,11 +157,6 @@ ul.radio li:hover, ul.radio li.focus {
 	margin-bottom: 3px;
 }
 
-#command-bar button.ui-button {
-	margin-left: 4px;
-	margin-right: 4px;
-}
-
 #command-bar .ui-icon {
 	cursor: pointer;
 }

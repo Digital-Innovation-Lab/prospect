@@ -109,6 +109,7 @@ PViewFrame.prototype.openSelection = function()
 		// Set default size -- change acc to widget settings & overrides
 	var w=450;
 	var h=400;
+	var parseTC = /(\d\d)\:(\d\d)\:(\d\d)\.(\d\d?)/; 	// precise regular expression for parsing timecodes
 
 	function tTrim(str)
 	{
@@ -801,10 +802,8 @@ PVizFrame.prototype.selectChangeViz = function()
 {
 	var selector = jQuery('#view-frame-1 div.view-controls select.view-viz-select option:selected');
 	var newSelIndex   = selector.val();
-	PState.set(PSTATE_BUILD);
 	this.createViz(newSelIndex, true);
 	this.computeSel();
-	PState.set(PSTATE_READY)
 } // selectChangeViz()
 
 	// PURPOSE: Check selAbsI against Records shown in view, update view
@@ -887,7 +886,7 @@ PVizFrame.prototype.initDOM = function(vI)
 	function clickHighlight(event)
 	{
 			// Send signal back to Prospect "main app" to create Highlight filter on this viz
-		jQuery("body").trigger("prospect", { s: PSTATE_HILITE, v: 1, t: self.vizModel.tUsed });
+		jQuery("body").trigger("prospect", { s: "hilite", v: 1, t: self.vizModel.tUsed });
 		event.preventDefault();
 	} // clickHighlight()
 
@@ -953,11 +952,9 @@ PVizFrame.prototype.initDOM = function(vI)
 		switch (clickClass) {
 		case 'lgnd-update':
 			if (self.vizModel && self.datastream) {
-				PState.set(PSTATE_BUILD);
 				self.vizModel.render(self.datastream);
 				self.computeSel();
 				self.setLDirty(false);
-				PState.set(PSTATE_READY);
 			}
 			break;
 			// Turn on or off just this one value
@@ -2301,7 +2298,7 @@ PTextFrame.prototype.initDOM = function()
 	function clickTextFind(event)
 	{
 			// Send signal back to Prospect "main app" to create Highlight filter on this viz
-		jQuery("body").trigger("prospect", { s: PSTATE_HILITE, v: 0, t: null });
+		jQuery("body").trigger("prospect", { s: "hilite", v: 0, t: null });
 		event.preventDefault();
 	} // clickTextFind()
 
@@ -2655,13 +2652,9 @@ jQuery(document).ready(function($) {
 		// PURPOSE: Called after data has been loaded to prepare dataStreams for rendering
 	function doRecompute()
 	{
-		PState.set(PSTATE_PROCESS);
-
 		if (topStream == null)
 			topStream = PData.sNew(true);
 		endStream = topStream;
-
-		PState.set(PSTATE_BUILD);
 	} // doRecompute()
 
 		// PURPOSE: Set annotation text to <t>
@@ -3061,7 +3054,6 @@ jQuery(document).ready(function($) {
 						if (selItem.length) {
 							var setP = selItem.data('id');
 							doShowReading(setP);
-							PState.set(PSTATE_READY);
 						}
 					} // OK
 				},
@@ -3233,8 +3225,6 @@ jQuery(document).ready(function($) {
 		var tI=0, tRec;
 		var list=[];
 
-		PState.set(PSTATE_PROCESS);
-
 			// Apply to Text Frame?
 		if (vI === 0) {
 			var txtIS = v0.txtIDs2IS();
@@ -3262,7 +3252,6 @@ jQuery(document).ready(function($) {
 			}
 			hFilter.evalDone(txtIS.l);
 
-			PState.set(PSTATE_UPDATE);
 			switch (vMode) {
 			case 'v0': 		// Show all Records, highlight selected
 			case 'v1': 		// Show Records visible from Text, highlight selected
@@ -3316,7 +3305,6 @@ jQuery(document).ready(function($) {
 				}
 				hFilter.evalDone(endStream.l);
 			}
-			PState.set(PSTATE_UPDATE);
 
 			if (list.length > 0) {
 				v1.setSel(list);
@@ -3330,8 +3318,6 @@ jQuery(document).ready(function($) {
 				}
 			}
 		} // if VizFrame
-
-		PState.set(PSTATE_READY);
 	} // doApplyHighlight()
 
 		// PURPOSE: Handle click on "Highlight" button
@@ -3396,8 +3382,6 @@ jQuery(document).ready(function($) {
 			return false;
 		}
 
-		PState.set(PSTATE_PROCESS);
-
 			// Set Reading List, Reading Selection and vMode
 		vMode = p.s.vm;
 
@@ -3419,8 +3403,6 @@ jQuery(document).ready(function($) {
 		setEntries(p.s.sel, v0.tocSel);
 
 		jQuery('#command-bar input[type=radio][name=vizmode]').val([vMode]);
-
-		PState.set(PSTATE_BUILD);
 
 		v0.updateTOCRL();
 		v0.updateTOCSel();
@@ -3504,8 +3486,6 @@ jQuery(document).ready(function($) {
 	function clickClear(event)
 	{
 		var v0=views[0], v1=views[1];
-
-		PState.set(PSTATE_UPDATE);
 		v0.clearSel();
 		switch (vMode) {
 		case 'v0': 		// Show all Records, highlight selected
@@ -3518,7 +3498,6 @@ jQuery(document).ready(function($) {
 			v1.upSel([], false);
 			break;
 		}
-		PState.set(PSTATE_READY);
 		event.preventDefault();
 	} // clickClear()
 
@@ -3630,7 +3609,6 @@ jQuery(document).ready(function($) {
 	} // localizeColor()
 	localizeColor('cb', '#command-bar');
 
-	PState.init();
 	if (typeof PMapHub !== 'undefined') {
 		PMapHub.init(prspdata.m);
 	}
@@ -3884,9 +3862,12 @@ jQuery(document).ready(function($) {
 		// Intercept global signals: data { s[tate] }
 	jQuery("body").on("prospect", function(event, data) {
 		switch (data.s) {
-		case PSTATE_PROCESS:
+		case "loaded":
+			var ready = document.getElementById('dltext-ready').innerHTML;
+			var el = document.getElementById('pstate');
+			el.classList.remove('attn');
+			el.textContent = ready.trim();
 				// ASSUMED: This won't be triggered until after Volume, Filters & Views set up
-			PState.set(PSTATE_PROCESS);
 			doRecompute();
 			if (hFilterIDs[0] != null) {
 				doApplyHighlight(0);
@@ -3908,17 +3889,15 @@ jQuery(document).ready(function($) {
 					v1Sel = null;
 				}
 			}
-			PState.set(PSTATE_READY);
 			jQuery('body').removeClass('waiting');
 			break;
-		case PSTATE_HILITE:
+		case "hilite":
 			clickHighlight(data.v, data.t);
 			break;
 		}
 	});
 
 		// Init hub using config settings
-	PState.set(PSTATE_LOAD);
 	PData.init();
 
 		// Set up Help Tour?

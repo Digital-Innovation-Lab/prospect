@@ -555,7 +555,6 @@ VizBrowser.prototype.update = function()
 	var iSet;		// Set of Records used for intersecting with each label
 	var cSet;		// Set of Records actually chosen by label selections
 
-	PState.set(PSTATE_UPDATE);
 		// Start intersect array afresh
 	var ia = null, fi, chosen=false;
 	this.fcts.forEach(function(theF) {
@@ -596,7 +595,6 @@ VizBrowser.prototype.update = function()
 				}
 			});
 	});
-	PState.set(PSTATE_READY);
 } // update
 
 VizBrowser.prototype.render = function(stream)
@@ -972,7 +970,6 @@ VizMBMap.prototype.renderTree = function(aI)
 
 		var src = self.sbkSel !== null ? self.sbkSel.data.i : self.bkSel.data.i;
 
-		PState.set(PSTATE_UPDATE);
 		self.fcts.forEach(function(thisF, fI) {
 			var newIs=[];
 			var total=0;
@@ -996,7 +993,6 @@ VizMBMap.prototype.renderTree = function(aI)
 		self.attsG.selectAll(".bar").transition()
 			.attr("x", function(d) { return d.x; })
 			.attr("width", function(d) { return d.w; });
-		PState.set(PSTATE_READY);
 	} // recalcBars()
 
 	function clickTitle(d)
@@ -1121,7 +1117,6 @@ VizMBMap.prototype.render = function(stream)
 	function clickAtt(d, bI)
 	{
 		if (self.attSel != bI) {
-			PState.set(PSTATE_UPDATE);
 			self.attsG.selectAll(".mbm-att-title").classed('obj-sel', false);
 
 			self.clearSel();
@@ -1131,7 +1126,6 @@ VizMBMap.prototype.render = function(stream)
 
 			d3.select(this).classed('obj-sel', true);
 			self.attSel = bI;
-			PState.set(PSTATE_READY);
 		}
 	} // clickAtt()
 

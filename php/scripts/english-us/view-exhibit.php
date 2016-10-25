@@ -6,7 +6,7 @@
 	<button id="btn-show-prspctv"><?php _e('Show Perspective', 'prospect'); ?></button>
 	<button id="btn-save-prspctv"><?php _e('Save Perspective', 'prospect'); ?></button>
 	<button id="btn-annote"><?php _e('Show/Hide Annotation', 'prospect'); ?></button>
-	&nbsp; <span id="pstate" class="attn"><?php _e('Initializing', 'prospect'); ?></span>
+	&nbsp; <span id="pstate" class="attn"><?php _e('Loading', 'prospect'); ?></span>
 	<span class="home">
 		<span id="home-title"></span> <button id="btn-home"><?php _e('Home', 'prospect'); ?></button>
 		<button class="help"><?php _e('Help Tour', 'prospect'); ?></button>
@@ -448,6 +448,6 @@
 no-d3-local
 </script>
 
-<script id="dltext-pstates" type="text">
-<?php _e('Loading|Processing|Building|Updating|Ready', 'prospect'); ?>
+<script id="dltext-ready" type="text">
+<?php _e('Ready', 'prospect'); ?>
 </script>
