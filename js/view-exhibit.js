@@ -43,6 +43,7 @@ function PViewFrame(vfIndex)
 	// INSTANCE VARIABLES
 	//===================
 
+	var autoUpdate=false;		// If true, view should immediately update whenever change happens
 	var vizSelIndex = 0;		// index of currently selected Viz
 	var vizModel = null;		// PVizModel currently in frame
 	var legendIDs = [];			// Attribute IDs of Legend selections (one per Template)
@@ -55,12 +56,23 @@ function PViewFrame(vfIndex)
 	// PRIVATE FUNCTIONS
 	//==================
 
-		// PURPOSE: Set Legend Dirty flag to true or false
+		// PURPOSE: A Legend setting has changed and needs to be applied by refresh
+		// INPUT:	s = true if Legend is dirty, false if not
 	function setLDirty(s)
 	{
-		if (s !== lDirty) {
-			lDirty = s;
-			jQuery(getFrameID()+' div.lgnd-container div.lgnd-handle button.lgnd-update').prop('disabled', !s);
+		if (autoUpdate) {
+			lDirty=s;
+			if (s) {
+console.log("Rerender, Legend dirty");
+				doUpSel([], false);				// Re-render always clears selection
+				if (vizModel)
+					vizModel.render(datastream);
+			}
+		} else {
+			if (s !== lDirty) {
+				lDirty=s;
+				jQuery(getFrameID()+' div.lgnd-container div.lgnd-handle button.lgnd-update').prop('disabled', !s);
+			}
 		}
 	} // setLDirty
 
@@ -1277,6 +1289,29 @@ function PViewFrame(vfIndex)
 			.click(clickSelList);
 
 		createViz(vI, false);
+
+			// Intercept signals
+		jQuery("body").on("prospect", function(event, data) {
+console.log("ViewFrame signal: "+data.s);
+			switch (data.s) {
+			case "auto":
+				autoUpdate = data.a;
+				if (autoUpdate) {	// Turn on: disable Apply button, do any outstanding updates
+					jQuery(getFrameID()+' div.lgnd-container div.lgnd-handle button.lgnd-update').prop('disabled', true);
+						// Any outstand updates?
+					if (lDirty) {
+console.log("Rerender, catch 'auto' in ViewFrame");
+						doUpSel([], false);				// Re-render always clears selection
+						if (vizModel) {
+							vizModel.render(datastream);
+						}
+						lDirty=false;
+					}
+				}
+					// Note: No need to enable Apply button on Legend, as that will happen if any user actions "dirty" it
+				break;
+			} // switch
+		});
 	} // initDOM()
 
 
@@ -1468,6 +1503,8 @@ jQuery(document).ready(function($) {
 	var apTmStr;				// Apply to <template label> for Filters
 	var filters=[];				// Filter Stack: { id, f [PFilterModel], out [stream] }
 	var fState=0;				// Filter State: 0 = no filter, 1 = filters changed, 2 = filters run
+
+	var autoUpdate=false;		// If true, then all GUI changes trigger recompute
 
 	var hFilters=[null, null];	// Highlight Filter
 	var hFilterIDs=[null, null]; // Highlight Filter Attribute IDs
@@ -2041,7 +2078,7 @@ jQuery(document).ready(function($) {
 		var head = jQuery(this).closest('div.filter-instance');
 		var fID = head.data('id');
 
-		var fI, fRec;
+		var fI, fRec, dirtyI;
 		fI = filters.findIndex(function(fRec) { return fRec.id == fID; });
 		if (fI === -1)	{ alert('Bad Filter ID '+fID); return; }
 
@@ -2053,35 +2090,47 @@ jQuery(document).ready(function($) {
 		if (fI >= filters.length) {
 			var endStream;
 				// No filters left, reset ViewFrame data source
-			if (filters.length === 0)
+			if (filters.length === 0) {
 				endStream = topStream;
-			else
+			} else {
 				endStream = filters[fI-1].out;
+			}
 			views.forEach(function(v) {
-				if (v)
+				if (v) {
 					v.setStream(endStream);
+				}
 			});
 		} else {
-				// Output must be recomputed from successor on
-			filters[fI].f.isDirty(true);
+				// Datastream must be recomputed from successor on
+			dirtyI=fI;
+			// filters[fI].f.isDirty(true);
 		}
 
 			// Remove this DOM element
 		head.remove();
 
+			// Emptied Filter Stack?
 		if (filters.length === 0) {
 			jQuery('#btn-toggle-filters').button("disable");
 				// Invalidate selections
 			views.forEach(function(v) {
-				if (v)
-					v.clearSel(endStream);
+				if (v) {
+					v.clearSel();
+					v.showStream(endStream);
+				}
 			});
-			doRecompute();
+			jQuery('#btn-f-state').prop('disabled', true).html(dlText.nofilter);
+			// doRecompute();	// ### don't think this is needed
 		} else {
-			fState = 1;
-			jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
+			if (!autoUpdate) {
+				fState = 1;
+				jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
+			}
+				// This will either (1) dirty filter, or (2) trigger recompute
+			if (dirtyI != null) {
+				filters[dirtyI].f.isDirty(true);
+			}
 		}
-
 		event.preventDefault();
 	} // clickFilterDel()
 
@@ -2165,9 +2214,9 @@ jQuery(document).ready(function($) {
 			head.find('button.btn-filter-del').button({
 						text: false, icons: { primary: 'ui-icon-trash' }
 					}).click(clickFilterDel);
-
-			fState = 1;
-			jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
+				// Code below should not be necessary, as initial state of all Filters allow all data through
+			// fState = 1;
+			// jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
 		}
 
 			// Allow Filter to insert required HTML
@@ -2316,7 +2365,6 @@ jQuery(document).ready(function($) {
 
 		// PURPOSE: Handle click on "Highlight" button
 		// INPUT: 	vI = index of view frame
-	// function clickHighlight(vI, tUsed, rMap)
 	function clickHighlight(vI, tUsed)
 	{
 		var dialog;
@@ -2702,15 +2750,50 @@ jQuery(document).ready(function($) {
 		})
 	});
 
+		// If Auto-update is not set for this Exhibit, turn on if total num records < 500
+		// NOTE: Must do this AFTER both ViewFrames have been created (i.e., by Perspective)
+		//		so that they can intercept signal
+	if (typeof prspdata.e.g.auto === 'undefined') {
+		var total=0;
+		for (var t=0; t<prspdata.t.length; t++) {
+			total += prspdata.t[t].n;
+		}
+console.log("Total Recs: "+total);
+		if (total < 500) {
+			autoUpdate=true;
+		}
+	} else {
+		autoUpdate=prspdata.e.g.auto;
+	}
+	if (autoUpdate) {
+		jQuery('#auto-re').prop('checked', true);
+		jQuery("body").trigger("prospect", { s: "auto", a: autoUpdate });
+	}
+
+		// Watch Auto-Update checkbox (added 1.7)
+	jQuery('#auto-re').change(function() {
+		autoUpdate = jQuery('#auto-re').prop('checked');
+console.log("AutoUpdate clicked: "+autoUpdate);
+		if (autoUpdate) {	// If turned on, apply any outstanding updates and disable buttons
+			if (fState === 1) {
+				doRecompute();
+			}
+		}	// If turned off autoUpdate, assumed any updates already applied!
+		// jQuery('#btn-f-state').prop('disabled', autoUpdate);
+			// Notify all listeners, which may need to update visuals
+			// This will trigger an update of Legend changes for ViewFrames
+		jQuery("body").trigger("prospect", { s: "auto", a: autoUpdate });
+	});
+
 		// Intercept global signals: data { s[tate] }
 	jQuery("body").on("prospect", function(event, data) {
+console.log("Main app signal: "+data.s);
 		switch (data.s) {
-		case "loaded":
+		case "loaded":	// ASSUMED: This signal won't be sent until after Filters & Views set up
 			var ready = document.getElementById('dltext-ready').innerHTML;
 			var el = document.getElementById('pstate');
 			el.classList.remove('attn');
 			el.textContent = ready.trim();
-				// ASSUMED: This won't be triggered until after Filters & Views set up
 			doRecompute();
 			for (var h=0; h<2; h++) {
 				if (hFilters[h] !== null) {
@@ -2720,8 +2803,14 @@ jQuery(document).ready(function($) {
 			jQuery('body').removeClass('waiting');
 			break;
 		case "fdirty":
-			fState = 1;
-			jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
+console.log("autoUpdate: "+autoUpdate);
+			if (autoUpdate) {
+console.log("Recompute, fdirty");
+				doRecompute();
+			} else {
+				fState = 1;
+				jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
+			}
 			break;
 		case "hilite":
 			clickHighlight(data.v, data.t);

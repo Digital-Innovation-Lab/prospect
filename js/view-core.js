@@ -31,11 +31,15 @@ if (!Array.prototype.findIndex) {
 	// GLOBAL CONSTANTS
 	//=================
 
-	// Prospect sends global signals via jQuery; the following are valid signals (but not defined as variables)
+	// Prospect sends global signals via jQuery; the following are valid signals (strings, not variables)
 	// --------
-	// "loaded" = The data has been loaded and is ready to be processed
-	// "fdirty"	= A filter is "dirty" (needs refresh) in the Filter Stack
+	// "loaded" = The data has been fully loaded (via AJAX) and is ready to be processed
+	// "auto"	= User has changed state of "Auto-Update" checkbox
+	//				(data.a = new state, true or false)
+	// "fdirty"	= A filter is "dirty" in the Filter Stack
+	//				(data.id = ID of the Filter)
 	// "hilite"	= A ViewFrame requests that main app create a Highlight Filter
+	//				(data.v = view frame index (0 or 1), data.t = array of booleans of Templates used)
 
 	// Types of chronological events: bit-flags
 var EVENT_INSTANT = 1;			// Single instantaneous event (not Date range)
@@ -4872,7 +4876,7 @@ function PFilterModel(id, attRec)
 	this.id 		= id;
 	this.att 		= attRec;
 
-	this.dirty 		= true;
+	this.dirty 		= false;
 
 		// Sublcasses can override the following:
 	// this.title()
@@ -4886,16 +4890,19 @@ function PFilterModel(id, attRec)
 	// this.setState(data)
 } // PFilterModel
 
-	// PURPOSE: Either set or get dirty state of Filter
-	// RETURNS: true if filter is "dirty" (has been changed and thus forces recompute)
-	// INPUT:   null if only retrieving state, else true or false
+	// PURPOSE: Either set or get the dirty state of Filter
+	// RETURNS: true if filter is "dirty" (has been changed and thus needs to be recomputed)
+	// INPUT:  set is null if only retrieving state, else true or false
 PFilterModel.prototype.isDirty = function(set)
 {
+	var old=this.dirty;
+console.log("IsDirty called with "+set+" for ID "+this.id+"; old: "+old);
 	if (set != null) {
-		if (!this.dirty && set && this.id > 0) {
-			jQuery("body").trigger("prospect", { s: "fdirty" });
-		}
 		this.dirty = set;
+		// if (set && this.id > 0) {
+		if (!old && set && this.id > 0) {
+			jQuery("body").trigger("prospect", { s: "fdirty", id: this.id });
+		}
 	}
 	return this.dirty;
 } // isDirty
@@ -5042,12 +5049,26 @@ PFilterText.prototype.setup = function()
 		self.isDirty(true);
 	});
 	inserted.find('select.filter-text-ops').change(function() {
-		self.isDirty(true);
+		var t = inserted.find('input.filter-text').val();
+		if (t.length) {
+			self.isDirty(true);
+		}
 	});
 	inserted.find('input.filter-text-cs').click(function(event) {
-		self.isDirty(true);
+		var t = inserted.find('input.filter-text').val();
+		if (t.length) {
+			self.isDirty(true);
+		}
 	});
 } // setup()
+
+PFilterText.prototype.teardown = function()
+{
+	var inserted = this.insertPt();
+	inserted.find('input.filter-text').off("change");
+	inserted.find('input.filter-text-ops').off("change");
+	inserted.find('input.filter-text-cs').off("change");
+} // teardown()
 
 PFilterText.prototype.getState = function()
 {
@@ -5164,12 +5185,26 @@ PFilterTags.prototype.setup = function()
 		self.isDirty(true);
 	});
 	inserted.find('select.filter-text-ops').change(function(event) {
-		self.isDirty(true);
+		var t = inserted.find('input.filter-text').val();
+		if (t.length) {
+			self.isDirty(true);
+		}
 	});
 	inserted.find('input.filter-text-cs').click(function(event) {
-		self.isDirty(true);
+		var t = inserted.find('input.filter-text').val();
+		if (t.length) {
+			self.isDirty(true);
+		}
 	});
 } // setup()
+
+PFilterTags.prototype.teardown = function()
+{
+	var inserted = this.insertPt();
+	inserted.find('input.filter-text').off("change");
+	inserted.find('input.filter-text-ops').off("change");
+	inserted.find('input.filter-text-cs').off("click");
+} // teardown()
 
 PFilterTags.prototype.getState = function()
 {
@@ -5309,6 +5344,11 @@ PFilterVocab.prototype.setup = function()
 	});
 } // setup()
 
+PFilterVocab.prototype.teardown = function()
+{
+	this.insertPt().off("click");
+} // teardown()
+
 PFilterVocab.prototype.getState = function()
 {
 	var s=[];
@@ -5436,8 +5476,6 @@ PFilterNum.prototype.evalBoxes = function(insert)
 PFilterNum.prototype.useBoxes = function(insert)
 {
 	if (this.evalBoxes(insert)) {
-			// Dirty filter
-		this.isDirty(true);
 			// Update min, max
 		this.min = this.uNums[0];
 		this.max = this.uNums[1];
@@ -5459,6 +5497,8 @@ PFilterNum.prototype.useBoxes = function(insert)
 			this.brushg.call(this.brush.move, [b0, b1+1].map(this.xScale));
 		}
 		insert.find('.filter-update').prop('disabled', true);
+			// Signal dirty filter after everything else updated
+		this.isDirty(true);
 	}
 } // useBoxes()
 
@@ -5610,8 +5650,8 @@ PFilterNum.prototype.setup = function()
 				self.min = self.rCats[self.b0].min;
 				self.max = self.rCats[self.b1].max;
 				self.refreshBoxes();
-				self.isDirty(true);
 				inprocess=false;
+				self.isDirty(true);
 			} // if brush move end
 		} // brushended()
 
@@ -5695,6 +5735,15 @@ PFilterNum.prototype.setup = function()
 		self.useBoxes(insert);
 	});
 } // setup()
+
+PFilterNum.prototype.teardown = function()
+{
+	this.brush.on("brush end", null);
+	var insert = this.insertPt();
+	insert.find("input").off("change");
+	insert.find(".allow-undef").off("click");
+	insert.find(".filter-update").off("click");
+} // teardown()
 
 PFilterNum.prototype.getState = function()
 {
@@ -5855,8 +5904,6 @@ PFilterDates.prototype.evalBoxes = function(insert)
 PFilterDates.prototype.useBoxes = function(insert)
 {
 	if (this.evalBoxes(insert)) {
-			// Dirty filter
-		this.isDirty(true);
 			// Update min, max -- bump max just over edge to allow exclusive comparison
 		this.min = this.uDates[0].ms;
 		var maxMS = this.uDates[1].ms;
@@ -5878,6 +5925,8 @@ PFilterDates.prototype.useBoxes = function(insert)
 			// This automatically updates custom brush handles
 		this.brushg.call(this.brush.move, [b0, b1+1].map(this.xScale));
 		insert.find('.filter-update').prop('disabled', true);
+			// Send Dirty filter signal after all data prepared
+		this.isDirty(true);
 	}
 } // useBoxes()
 
@@ -6033,9 +6082,8 @@ PFilterDates.prototype.setup = function()
 			self.min = self.rCats[self.b0].min;
 			self.max = self.rCats[self.b1].max;
 			self.refreshBoxes();
-
-			self.isDirty(true);
 			inprocess=false;
+			self.isDirty(true);
 		}
 	} // brushended()
 
@@ -6130,6 +6178,15 @@ PFilterDates.prototype.setup = function()
 		// Set SVG element positions and make visible
 	this.brush.move(this.brushg, [0, innerW]);
 } // setup()
+
+PFilterDates.prototype.teardown = function()
+{
+	this.brush.on("brush end", null);
+	var insert = this.insertPt();
+	insert.find("input").off("change");
+	insert.find(".allow-undef").off("click");
+	insert.find(".filter-update").off("click");
+} // teardown()
 
 PFilterDates.prototype.getState = function()
 {
@@ -6263,12 +6320,26 @@ PFilterPtr.prototype.setup = function()
 		self.isDirty(true);
 	});
 	inserted.find('select.filter-text-ops').change(function() {
-		self.isDirty(true);
+		var t = inserted.find('input.filter-text').val();
+		if (t.length) {
+			self.isDirty(true);
+		}
 	});
 	inserted.find('input.filter-text-cs').click(function(event) {
-		self.isDirty(true);
+		var t = inserted.find('input.filter-text').val();
+		if (t.length) {
+			self.isDirty(true);
+		}
 	});
 } // setup()
+
+PFilterPtr.prototype.teardown = function()
+{
+	var inserted = this.insertPt();
+	inserted.find('input.filter-text').off("change");
+	inserted.find('input.filter-text-ops').off("change");
+	inserted.find('input.filter-text-cs').off("click");
+} // teardown()
 
 PFilterPtr.prototype.getState = function()
 {
@@ -6362,7 +6433,6 @@ var PData = (function() {
 			}
 		});
 	} // rChunk()
-
 
 		// PURPOSE: Look for set of Records that haven't been loaded and request
 	function rLoad()
