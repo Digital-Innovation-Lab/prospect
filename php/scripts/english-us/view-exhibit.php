@@ -7,6 +7,7 @@
 	<button id="btn-save-prspctv"><?php _e('Save Perspective', 'prospect'); ?></button>
 	<button id="btn-annote"><?php _e('Show/Hide Annotation', 'prospect'); ?></button>
 	&nbsp; <span id="pstate" class="attn"><?php _e('Loading', 'prospect'); ?></span>
+	<input type="checkbox" name="auto-re" id="auto-re"/> <label><?php _e('Auto-Update', 'prospect'); ?></label>
 	<span class="home">
 		<span id="home-title"></span> <button id="btn-home"><?php _e('Home', 'prospect'); ?></button>
 		<button class="help"><?php _e('Help Tour', 'prospect'); ?></button>
@@ -210,7 +211,7 @@
 	</div>
 	<div class="sellist" style="display:none;">
 		<div class="sellist-handle">
-			<button class="sellist-close"><?php _e('Close', 'prospect'); ?></button>&nbsp;<?php _e('Highlighted Items', 'prospect'); ?>
+			<button class="sellist-close"><?php _e('Close', 'prospect'); ?></button>&nbsp;<label><?php _e('Highlighted Items', 'prospect'); ?></label>
 		</div>
 		<div class="sellist-scroll">
 		</div>

@@ -845,6 +845,12 @@ div.sellist > div.sellist-handle > button.sellist-close {
 	font-size: 9px;
 }
 
+div.sellist > div.sellist-handle > label {
+	margin-top: 5px;
+	font-size: 10px;
+	font-weight: bold;
+}
+
 div.sellist > div.sellist-scroll {
 	overflow-y: auto;
 	height: 232px;
