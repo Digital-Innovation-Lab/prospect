@@ -63,7 +63,6 @@ function PViewFrame(vfIndex)
 		if (autoUpdate) {
 			lDirty=s;
 			if (s) {
-console.log("Rerender, Legend dirty");
 				doUpSel([], false);				// Re-render always clears selection
 				if (vizModel)
 					vizModel.render(datastream);
@@ -1292,7 +1291,6 @@ console.log("Rerender, Legend dirty");
 
 			// Intercept signals
 		jQuery("body").on("prospect", function(event, data) {
-console.log("ViewFrame signal: "+data.s);
 			switch (data.s) {
 			case "auto":
 				autoUpdate = data.a;
@@ -1300,7 +1298,6 @@ console.log("ViewFrame signal: "+data.s);
 					jQuery(getFrameID()+' div.lgnd-container div.lgnd-handle button.lgnd-update').prop('disabled', true);
 						// Any outstand updates?
 					if (lDirty) {
-console.log("Rerender, catch 'auto' in ViewFrame");
 						doUpSel([], false);				// Re-render always clears selection
 						if (vizModel) {
 							vizModel.render(datastream);
@@ -2120,7 +2117,6 @@ jQuery(document).ready(function($) {
 				}
 			});
 			jQuery('#btn-f-state').prop('disabled', true).html(dlText.nofilter);
-			// doRecompute();	// ### don't think this is needed
 		} else {
 			if (!autoUpdate) {
 				fState = 1;
@@ -2758,7 +2754,6 @@ jQuery(document).ready(function($) {
 		for (var t=0; t<prspdata.t.length; t++) {
 			total += prspdata.t[t].n;
 		}
-console.log("Total Recs: "+total);
 		if (total < 500) {
 			autoUpdate=true;
 		}
@@ -2773,13 +2768,11 @@ console.log("Total Recs: "+total);
 		// Watch Auto-Update checkbox (added 1.7)
 	jQuery('#auto-re').change(function() {
 		autoUpdate = jQuery('#auto-re').prop('checked');
-console.log("AutoUpdate clicked: "+autoUpdate);
 		if (autoUpdate) {	// If turned on, apply any outstanding updates and disable buttons
 			if (fState === 1) {
 				doRecompute();
 			}
 		}	// If turned off autoUpdate, assumed any updates already applied!
-		// jQuery('#btn-f-state').prop('disabled', autoUpdate);
 			// Notify all listeners, which may need to update visuals
 			// This will trigger an update of Legend changes for ViewFrames
 		jQuery("body").trigger("prospect", { s: "auto", a: autoUpdate });
@@ -2787,7 +2780,6 @@ console.log("AutoUpdate clicked: "+autoUpdate);
 
 		// Intercept global signals: data { s[tate] }
 	jQuery("body").on("prospect", function(event, data) {
-console.log("Main app signal: "+data.s);
 		switch (data.s) {
 		case "loaded":	// ASSUMED: This signal won't be sent until after Filters & Views set up
 			var ready = document.getElementById('dltext-ready').innerHTML;
@@ -2803,9 +2795,7 @@ console.log("Main app signal: "+data.s);
 			jQuery('body').removeClass('waiting');
 			break;
 		case "fdirty":
-console.log("autoUpdate: "+autoUpdate);
 			if (autoUpdate) {
-console.log("Recompute, fdirty");
 				doRecompute();
 			} else {
 				fState = 1;

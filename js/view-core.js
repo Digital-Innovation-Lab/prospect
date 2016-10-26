@@ -4896,10 +4896,8 @@ function PFilterModel(id, attRec)
 PFilterModel.prototype.isDirty = function(set)
 {
 	var old=this.dirty;
-console.log("IsDirty called with "+set+" for ID "+this.id+"; old: "+old);
 	if (set != null) {
 		this.dirty = set;
-		// if (set && this.id > 0) {
 		if (!old && set && this.id > 0) {
 			jQuery("body").trigger("prospect", { s: "fdirty", id: this.id });
 		}
