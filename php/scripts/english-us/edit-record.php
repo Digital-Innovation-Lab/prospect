@@ -109,6 +109,7 @@
 <script id="att-type-Lat-Lon" type='text/ractive'>
 	<?php _e('Lat,Long', 'prospect'); ?>: <input type="text" size="20" value="{{value}}"/>
 	{{#if canGeoLoc}}<button on-click="setHere:{{rIndex}}"><?php _e('Here', 'prospect'); ?></button>{{/if}}
+	<button decorator="iconButton:ui-icon-search" on-click="geoNames"><?php _e('Look Up Coordinates', 'prospect'); ?></button>
 </script>
 
 <script id="att-type-X-Y" type='text/ractive'>
@@ -128,7 +129,7 @@
 </script>
 
 <script id="att-type-YouTube" type='text/ractive'>
-	Y<?php _e('ouTube ID code', 'prospect'); ?>: <input type="text" size="12" value="{{value}}"/>
+	Y<?php _e('YouTube ID code', 'prospect'); ?>: <input type="text" size="12" value="{{value}}"/>
 </script>
 
 <script id="att-type-Transcript" type='text/ractive'>
@@ -188,6 +189,23 @@
 	<dialog title=<?php _e('"Display Hint"', 'prospect'); ?> width="300" height="350" cancel="false">
 		<div class="scroll-container">
 			{{message}}
+		</div>
+	</dialog>
+</script>
+
+<!-- GeoNames Dialog -->
+<script id="dialog-geonames" type='text/ractive'>
+	<dialog title="<?php _e('GeoNames Coordinate Search', 'prospect'); ?>" width="600" height="450">
+		<div class="scroll-container">
+			<form>
+				<input type="text" size="50" value="{{query}}" placeholder="<?php _e('Look up coordinates by location name', 'prospect'); ?>" autofocus>
+				<button type="submit"><?php _e('Search', 'prospect'); ?></button>
+			</form>
+			<ul>
+				{{#results}}
+					<li>{{name}}, {{#if adminName1}} {{adminName1}},{{/if}} {{countryName}}</li>
+				{{/results}}
+			</ul>
 		</div>
 	</dialog>
 </script>

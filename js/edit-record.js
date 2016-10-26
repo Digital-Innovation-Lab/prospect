@@ -198,6 +198,54 @@ jQuery(document).ready(function() {
 	} // getTemplate
 
 
+		// PURPOSE: Present GeoNames search modal for lat/lon coordinates
+	function geoNamesModal()
+	{
+		var modalDialog = new Ractive({
+			el: '#insert-dialog',
+			template: '#dialog-geonames',
+			data: {
+				query: 'Chapel Hill',
+				results: null,
+				selected: null
+			},
+			lazy: true,
+			components: {
+				dialog: RJDialogComponent
+			}
+		}); // new Ractive()
+
+		modalDialog.observe('query', function(newValue, oldValue, keypath) {
+			jQuery.ajax({
+				url: 'http://api.geonames.org/searchJSON?q='+ newValue +'&maxRows=10&username=google',
+				success: function(val) {
+					console.log(val);
+					modalDialog.set('results', val.geonames);
+				},
+				error: function(e) {
+					console.log(e);
+				}
+			});
+		});
+
+		jQuery('form').submit(function(e){
+			e.preventDefault();
+		});
+
+		modalDialog.on('dialog.ok', function() {
+			modalDialog.teardown();
+			return false;
+		});
+		modalDialog.on('dialog.cancel', function() {
+			modalDialog.teardown();
+		});
+	}
+
+	function geoSearch(query) {
+		var c = rApp.get(query);
+		console.log(query);
+	}
+
 		// PURPOSE: Present user message in modal dialog box
 	function messageModal(mText)
 	{
@@ -456,6 +504,11 @@ jQuery(document).ready(function() {
 			var newVal = pos.coords.latitude.toString() + "," + pos.coords.longitude.toString();
 			rApp.set('defRecord['+index+'].value', newVal);
 		});
+		return false;
+	});
+
+	rApp.on('geoNames', function() {
+		geoNamesModal();
 		return false;
 	});
 
