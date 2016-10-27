@@ -703,6 +703,7 @@ VizMap.prototype.doOptions = function()
 	} // restoreOps()
 
 	var d = jQuery("#dialog-opacities").dialog({
+		dialogClass: "no-close",
 		height: 300,
 		width: 500,
 		modal: true,
@@ -1184,6 +1185,7 @@ VizMap2.prototype.doOptions = function()
 	} // restoreOps()
 
 	var d = jQuery("#dialog-opacities").dialog({
+		dialogClass: "no-close",
 		height: 300,
 		width: 500,
 		modal: true,
@@ -1463,6 +1465,7 @@ VizCards.prototype.doOptions = function()
 	});
 
 	var d = jQuery("#dialog-sortby").dialog({
+		dialogClass: "no-close",
 		height: 220,
 		width: 400,
 		modal: true,
@@ -1875,6 +1878,7 @@ VizPinboard.prototype.doOptions = function()
 	} // restoreOps()
 
 	var d = jQuery("#dialog-opacities").dialog({
+		dialogClass: "no-close",
 		height: 300,
 		width: 320,
 		modal: true,
@@ -3271,6 +3275,7 @@ VizDirectory.prototype.doOptions = function()
 	}
 
 	var d = jQuery("#dialog-sortby").dialog({
+		dialogClass: "no-close",
 		height: 220,
 		width: 400,
 		modal: true,
@@ -3993,6 +3998,7 @@ VizNetWheel.prototype.doOptions = function()
 	jQuery('#prune-nodes').prop('checked', this.prune);
 
 	var d = jQuery("#dialog-prune").dialog({
+		dialogClass: "no-close",
 		height: 150,
 		width: 400,
 		modal: true,
@@ -4389,6 +4395,7 @@ VizNetGraph.prototype.doOptions = function()
 	});
 
 	var d = jQuery("#dialog-netgraph").dialog({
+		dialogClass: "no-close",
 		height: h,
 		width: 300,
 		modal: true,
@@ -4792,6 +4799,7 @@ VizBMatrix.prototype.doOptions = function()
 	});
 
 	var d = jQuery("#dialog-netgraph").dialog({
+		dialogClass: "no-close",
 		height: h,
 		width: 300,
 		modal: true,

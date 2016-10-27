@@ -65,6 +65,11 @@ input[type=text].error {
 	color: red;
 }
 
+	/* Class to prevent close icon on jQueryUI Dialog boxes */
+.no-close .ui-dialog-titlebar-close {
+	display: none;
+}
+
 	/* For maximal expansion of an element */
 div.max-size {
 	width: 100%;

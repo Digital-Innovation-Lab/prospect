@@ -708,6 +708,7 @@ function PViewFrame(vfIndex)
 		});
 
 		inspector = jQuery("#dialog-inspector").dialog({
+			dialogClass: "no-close",
 			width: w,
 			height: h,
 			modal: true,
@@ -788,6 +789,7 @@ function PViewFrame(vfIndex)
 	function clickVizNotes(event)
 	{
 		var d = jQuery("#dialog-vnotes").dialog({
+			dialogClass: "no-close",
 			width: 300,
 			height: 300,
 			modal: true,
@@ -1650,6 +1652,7 @@ jQuery(document).ready(function($) {
 
 		jQuery("#dialog-about img").removeClass("zoomin");
 		aboutDialog = jQuery("#dialog-about").dialog({
+			dialogClass: "no-close",
 			height: 390,
 			width: 350,
 			modal: true,
@@ -1784,6 +1787,7 @@ jQuery(document).ready(function($) {
 		}
 
 		spDialog = jQuery("#dialog-save-prsrctv").dialog({
+			dialogClass: "no-close",
 			width: 350,
 			height: 370,
 			modal: true,
@@ -1806,6 +1810,7 @@ jQuery(document).ready(function($) {
 							idError = '#dialog-prspctv-label-bad';
 						if (idError) {
 							var errDialog = jQuery(idError).dialog({
+								dialogClass: "no-close",
 								width: 320,
 								height: 210,
 								modal: true,
@@ -1826,6 +1831,7 @@ jQuery(document).ready(function($) {
 
 								jQuery('#save-prspctv-embed').val(embed);
 								var embedDialog = jQuery("#dialog-prspctv-url").dialog({
+									dialogClass: "no-close",
 									width: 480,
 									height: 230,
 									modal: true,
@@ -1945,6 +1951,7 @@ jQuery(document).ready(function($) {
 					jQuery('#edit-prspctv-note').val(pRec.n);
 
 					var epDialog = jQuery("#dialog-edit-prsrctv").dialog({
+						dialogClass: "no-close",
 						width: 340,
 						height: 270,
 						modal: true,
@@ -1973,6 +1980,7 @@ jQuery(document).ready(function($) {
 		});
 
 		mpDialog = jQuery("#dialog-manage-prsrctv").dialog({
+			dialogClass: "no-close",
 			width: 450,
 			height: 350,
 			modal: true,
@@ -2035,6 +2043,7 @@ jQuery(document).ready(function($) {
 					}});
 
 		var spDialog = jQuery("#dialog-show-prsrctv").dialog({
+			dialogClass: "no-close",
 			width: 350,
 			height: 350,
 			modal: true,
@@ -2266,6 +2275,7 @@ jQuery(document).ready(function($) {
 		var attDialog;
 
 		var dialogParams = {
+			dialogClass: "no-close",
 			height: 300,
 			width: 350,
 			modal: true,
@@ -2366,6 +2376,7 @@ jQuery(document).ready(function($) {
 		var dialog;
 
 		dialog = jQuery("#dialog-hilite-"+vI).dialog({
+			dialogClass: "no-close",
 			height: 275,
 			width: Math.min(jQuery(window).width() - 20, 675),
 			modal: true,

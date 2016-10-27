@@ -5,7 +5,7 @@
 //			In case of newly created Record, prsp_rec_id and prsp_tmplt_id will be empty, and prsp_rec_atts will be "null"
 //			prspdata will pass definitions of Templates and Attributes
 // USES:    jQuery, Underscore, jQueryUI, and Ractive
-// ASSUMES: 
+// ASSUMES:
 
 // TO DO:	Enable loading items to Media Library
 
@@ -81,6 +81,7 @@ jQuery(document).ready(function() {
 				} );
 			}
 			self.modal = jQuery(thisComponent).dialog({
+				dialogClass: "no-close",
 				width: self.get('width'),
 				height: self.get('height'),
 				modal : true,
@@ -721,7 +722,7 @@ jQuery(document).ready(function() {
 					// Ensure valid number
 				if (newVal.match(numCheck) == null) {
 					displayError('#errmsg-number');
-					return false;					
+					return false;
 				}
 
 				var newNum = parseInt(newVal, 10);
@@ -776,7 +777,7 @@ jQuery(document).ready(function() {
 					}
 					if (minYear > maxYear) {
 						displayError('#errmsg-date-maxmin');
-						return false;						
+						return false;
 					}
 
 					if (newVal.max.m && newVal.max.m !== '') {

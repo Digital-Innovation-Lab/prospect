@@ -89,6 +89,11 @@ button#prsp-save-data {
 	height: 1.4em !important;
 }
 
+	/* Class to prevent close icon on jQueryUI Dialog boxes */
+.no-close .ui-dialog-titlebar-close {
+	display: none;
+}
+
 	/* To display Legend entry */
 .viz-icon {
 	cursor: pointer;
@@ -139,7 +144,7 @@ hr.vf-divider {
 }
 
 .ui-accordion, .ui-accordion-header, .ui-accordion-content {
-	font-family: "Trebuchet MS", "Arial", "Helvetica", "Verdana", "sans-serif";  
+	font-family: "Trebuchet MS", "Arial", "Helvetica", "Verdana", "sans-serif";
 }
 
 .ui-accordion-header {

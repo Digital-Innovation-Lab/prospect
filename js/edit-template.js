@@ -73,6 +73,7 @@ jQuery(document).ready(function() {
 				} );
 			}
 			self.modal = jQuery(thisComponent).dialog({
+				dialogClass: "no-close",
 				width: self.get('width'),
 				height: self.get('height'),
 				modal : true,

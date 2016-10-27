@@ -76,6 +76,7 @@ jQuery(document).ready(function() {
 				} );
 			}
 			self.modal = jQuery(thisComponent).dialog({
+				dialogClass: "no-close",
 				width: self.get('width'),
 				height: self.get('height'),
 				modal : true,
@@ -214,7 +215,7 @@ jQuery(document).ready(function() {
 				defRange.useU = true;
 			break;
 		case 'D':
-				// Convert into 
+				// Convert into
 			defRange.min.y = defRange.min.y.toString();
 			if (typeof(defRange.min.m) == 'undefined')
 				defRange.min.m = '';
@@ -291,7 +292,7 @@ jQuery(document).ready(function() {
 				if (typeof(newEntry.d.min.m) == 'undefined')
 					newEntry.d.min.m = '';
 				else
-					newEntry.d.min.m = newEntry.d.min.m.toString();					
+					newEntry.d.min.m = newEntry.d.min.m.toString();
 				if (typeof(newEntry.d.min.d) == 'undefined')
 					newEntry.d.min.d = '';
 				else
@@ -305,7 +306,7 @@ jQuery(document).ready(function() {
 					if (typeof(newEntry.d.max.m) == 'undefined')
 						newEntry.d.max.m = '';
 					else
-						newEntry.d.max.m = newEntry.d.max.m.toString();					
+						newEntry.d.max.m = newEntry.d.max.m.toString();
 					if (typeof(newEntry.d.max.d) == 'undefined')
 						newEntry.d.max.d = '';
 					else
@@ -611,7 +612,7 @@ jQuery(document).ready(function() {
 					break;
 				case 'D':
 					rApp.set('theRange', {
-								min: { d: '', m: '', y: '' }, 
+								min: { d: '', m: '', y: '' },
 								max: { d: '', m: '', y: '' },
 								g: 'y',
 								u: '#888888', useU: false
@@ -1092,7 +1093,7 @@ jQuery(document).ready(function() {
 				rApp.splice(parent, index2, 1).then(function(spliced) {
 					rApp.splice(parent, index2+1, 0, spliced[0]);
 				});
-			}				
+			}
 		}
 		return false;
 	}); // on doLegendDown

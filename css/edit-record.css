@@ -83,6 +83,11 @@ button#prsp-save-data {
 	height: 1.4em !important;
 }
 
+	/* Class to prevent close icon on jQueryUI Dialog boxes */
+.no-close .ui-dialog-titlebar-close {
+	display: none;
+}
+
 .scroll-container {
 	overflow-y: auto;
 }

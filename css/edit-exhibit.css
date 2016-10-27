@@ -133,6 +133,11 @@ hr.vf-divider {
 	background-position: top;
 }
 
+	/* Class to prevent close icon on jQueryUI Dialog boxes */
+.no-close .ui-dialog-titlebar-close {
+	display: none;
+}
+
 .ui-dialog-title, .ui-dialog-content, .ui-dialog-buttonpane {
 	font-size: 12px;
 	font-family: "Trebuchet MS", "Arial", "Helvetica", "Verdana", "sans-serif";

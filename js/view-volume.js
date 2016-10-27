@@ -711,6 +711,7 @@ PViewFrame.prototype.openSelection = function()
 	});
 
 	inspector = jQuery("#dialog-inspector").dialog({
+		dialogClass: "no-close",
 		width: w,
 		height: h,
 		modal: true,
@@ -869,6 +870,7 @@ PVizFrame.prototype.initDOM = function(vI)
 	function clickVizNotes(event)
 	{
 		var d = jQuery("#dialog-vnotes").dialog({
+			dialogClass: "no-close",
 			width: 300,
 			height: 300,
 			modal: true,
@@ -2260,6 +2262,7 @@ PTextFrame.prototype.initDOM = function()
 		var dialog;
 
 		dialog = jQuery("#dialog-find-toc").dialog({
+			dialogClass: "no-close",
 			height: 150,
 			width: 250,
 			modal: true,
@@ -2687,6 +2690,7 @@ jQuery(document).ready(function($) {
 
 		jQuery("#dialog-about img").removeClass("zoomin");
 		aboutDialog = jQuery("#dialog-about").dialog({
+			dialogClass: "no-close",
 			height: 390,
 			width: 350,
 			modal: true,
@@ -2817,6 +2821,7 @@ jQuery(document).ready(function($) {
 		jQuery('#read-by-h1').prop('disabled', hFilters[1] == null);
 
 		spDialog = jQuery("#dialog-save-reading").dialog({
+			dialogClass: "no-close",
 			width: 350,
 			height: 420,
 			modal: true,
@@ -2840,6 +2845,7 @@ jQuery(document).ready(function($) {
 						}
 						if (idError) {
 							var errDialog = jQuery(idError).dialog({
+								dialogClass: "no-close",
 								width: 320,
 								height: 210,
 								modal: true,
@@ -2860,6 +2866,7 @@ jQuery(document).ready(function($) {
 
 								jQuery('#save-reading-embed').val(embed);
 								var embedDialog = jQuery("#dialog-reading-url").dialog({
+									dialogClass: "no-close",
 									width: 480,
 									height: 230,
 									modal: true,
@@ -2979,6 +2986,7 @@ jQuery(document).ready(function($) {
 					jQuery('#edit-reading-note').val(pRec.n);
 
 					var epDialog = jQuery("#dialog-edit-reading").dialog({
+						dialogClass: "no-close",
 						width: 340,
 						height: 270,
 						modal: true,
@@ -3008,6 +3016,7 @@ jQuery(document).ready(function($) {
 		});
 
 		mpDialog = jQuery("#dialog-manage-reading").dialog({
+			dialogClass: "no-close",
 			width: 450,
 			height: 350,
 			modal: true,
@@ -3072,6 +3081,7 @@ jQuery(document).ready(function($) {
 		}
 
 		var spDialog = jQuery("#dialog-show-reading").dialog({
+			dialogClass: "no-close",
 			width: 350,
 			height: 350,
 			modal: true,
@@ -3185,6 +3195,7 @@ jQuery(document).ready(function($) {
 		var attDialog;
 
 		var dialogParams = {
+			dialogClass: "no-close",
 			height: 300,
 			width: 350,
 			modal: true,
@@ -3328,6 +3339,7 @@ jQuery(document).ready(function($) {
 		var dialog;
 
 		dialog = jQuery("#dialog-hilite-"+vI).dialog({
+			dialogClass: "no-close",
 			height: 275,
 			width: Math.min(jQuery(window).width() - 20, 675),
 			modal: true,

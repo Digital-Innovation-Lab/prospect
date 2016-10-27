@@ -106,6 +106,9 @@ button#prsp-save-data {
 	font-size: 12px;
 }
 
+.no-close .ui-dialog-titlebar-close {
+	display: none;
+}
 	/* Container for list of vocab entries */
 .legend-vocab {
 	width: 600px;
@@ -144,4 +147,3 @@ ol.vocab-parent {
 ol.vocab-children {
 	margin-left: 20px;
 }
-
