@@ -61,12 +61,12 @@ function PViewFrame(vfIndex)
 	function setLDirty(s)
 	{
 		if (autoUpdate) {
-			lDirty=s;
 			if (s) {
-				doUpSel([], false);				// Re-render always clears selection
+				doUpSel([], false);		// Re-render always clears selection
 				if (vizModel)
 					vizModel.render(datastream);
 			}
+			lDirty=false;				// Legend is always left "clean"
 		} else {
 			if (s !== lDirty) {
 				lDirty=s;
@@ -1265,7 +1265,7 @@ function PViewFrame(vfIndex)
 				.click(clickVizNotes).next()
 				.button({icons: { primary: 'ui-icon-signal' }, text: false })
 				.click(clickHighlight).next()
-				.button({icons: { primary: 'ui-icon-battery-2' }, text: false })
+				.button({icons: { primary: 'ui-icon-signal-diag' }, text: false })
 				.click(clickClearSelection).next()
 				.button({icons: { primary: 'ui-icon-battery-3' }, text: false })
 				.click(clickOpenSelection);
@@ -2214,7 +2214,7 @@ jQuery(document).ready(function($) {
 			}
 
 			head.find('button.btn-filter-toggle').button({
-						text: false, icons: { primary: 'ui-icon-carat-2-n-s' }
+						text: false, icons: { primary: 'ui-icon-arrowthick-2-n-s' }
 					}).click(clickFilterToggle);
 			head.find('button.btn-filter-del').button({
 						text: false, icons: { primary: 'ui-icon-trash' }
@@ -2649,11 +2649,11 @@ jQuery(document).ready(function($) {
 	}
 
 		// Command Bar
-	jQuery('#btn-about').button({icons: { primary: 'ui-icon-signal-diag' }, text: false })
+	jQuery('#btn-about').button({icons: { primary: 'ui-icon-power' }, text: false })
 			.click(clickAbout);
 	jQuery('#btn-set-layout').button({icons: { primary: 'ui-icon-newwin' }, text: false })
 			.click(clickTog2nd);
-	jQuery('#btn-hs-bars').button({icons: { primary: 'ui-icon-carat-2-n-s' }, text: false })
+	jQuery('#btn-hs-bars').button({icons: { primary: 'ui-icon-arrowthick-2-n-s' }, text: false })
 			.click(function(event) {
 				jQuery('#filter-frame').slideToggle(400);
 				event.preventDefault();
@@ -2666,7 +2666,7 @@ jQuery(document).ready(function($) {
 	} else {
 		jQuery('#btn-show-prspctv').button({icons: { primary: 'ui-icon-image' }, text: false })
 				.click(clickShowPerspective);
-		jQuery('#btn-save-prspctv').button({icons: { primary: 'ui-icon-pencil' }, text: false })
+		jQuery('#btn-save-prspctv').button({icons: { primary: 'ui-icon-cart' }, text: false })
 				.click(clickSavePerspective);
 	}
 	jQuery('#btn-annote').button({icons: { primary: 'ui-icon-comment' }, text: false })
@@ -2704,7 +2704,7 @@ jQuery(document).ready(function($) {
 		// Filter Control Bar
 	jQuery('#btn-new-filter').button({icons: { primary: 'ui-icon-plus' }, text: false })
 			.click(clickNewFilter);
-	jQuery('#btn-toggle-filters').button({icons: { primary: 'ui-icon-arrow-2-n-s' }, text: false })
+	jQuery('#btn-toggle-filters').button({icons: { primary: 'ui-icon-arrowthick-2-n-s' }, text: false })
 			.click(clickToggleFilters);
 	jQuery('#btn-f-state').click(clickFilter);
 
