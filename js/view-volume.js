@@ -38,8 +38,7 @@ var widgetData = {			// Widget state has to be global because YouTube API calls 
 //			Instance Methods
 //			----------------
 //			getFrameID() = Return ID of Frame's outermost DIV container
-//			setSel(sel) = array of absI of selected Records from external source (ideal)
-//			selBtns(enable) = set state of Show Selection button
+//			upSel(selList, force) = Set Record selection; update if force is true
 //			initDOM = initialize internal DOM
 //			openSelection()
 //
@@ -1092,11 +1091,11 @@ PVizFrame.prototype.initDOM = function(vI)
 			self.autoUpdate = data.a;
 			if (data.s) {	// Turn on: disable Apply button, do any outstanding updates
 				jQuery('#view-frame-1 div.lgnd-container div.lgnd-handle button.lgnd-update').prop('disabled', true);
-					// Any outstand updates?
+					// Any outstanding updates?
 				if (self.lDirty) {
-					self.upSel([], false);				// Re-render always clears selection
 					if (self.vizModel && self.datastream) {
 						self.vizModel.render(self.datastream);
+						self.computeSel();		// Highlight any possible selections
 					}
 					self.lDirty=false;
 				}
@@ -3777,7 +3776,7 @@ jQuery(document).ready(function($) {
 	}
 
 		// Command Bar
-	jQuery('#btn-about').button({icons: { primary: 'ui-icon-signal-diag' }, text: false })
+	jQuery('#btn-about').button({icons: { primary: 'ui-icon-power' }, text: false })
 			.click(clickAbout);
 	jQuery('#btn-togtext').button({icons: { primary: 'ui-icon-arrow-2-e-w' }, text: false })
 		.click(function() {
@@ -3793,7 +3792,7 @@ jQuery(document).ready(function($) {
 	} else {
 		jQuery('#btn-show-reading').button({icons: { primary: 'ui-icon-image' }, text: false })
 				.click(clickShowReading);
-		jQuery('#btn-save-reading').button({icons: { primary: 'ui-icon-pencil' }, text: false })
+		jQuery('#btn-save-reading').button({icons: { primary: 'ui-icon-cart' }, text: false })
 				.click(clickSaveReading);
 	}
 
