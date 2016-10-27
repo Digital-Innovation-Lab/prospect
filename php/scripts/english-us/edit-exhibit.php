@@ -44,7 +44,8 @@
 			<button decorator="iconButton:ui-icon-info" on-click="idHint"><?php _e('Hint about IDs', 'prospect'); ?></button>
 			<br/>
 			<input type='checkbox' checked='{{genSettings.tour}}'/> Show Help Tour &nbsp;
-			<input type='checkbox' checked='{{genSettings.dspr}}'/> Disable Perspective Buttons
+			<input type='checkbox' checked='{{genSettings.dspr}}'/> Disable Perspective Buttons &nbsp;
+			<input type='checkbox' checked='{{genSettings.auto}}'/> Enable Auto-update
 			<br/>
 			<label for="home-btn"><?php _e('Home button label', 'prospect'); ?>: </label>
 			<input type='text' id="home-btn" value='{{genSettings.hbtn}}' placeholder=<?php _e('"Enter label"', 'prospect'); ?> size="12"/>
