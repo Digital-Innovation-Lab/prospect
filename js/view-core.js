@@ -5902,11 +5902,9 @@ PFilterDates.prototype.evalBoxes = function(insert)
 PFilterDates.prototype.useBoxes = function(insert)
 {
 	if (this.evalBoxes(insert)) {
-			// Update min, max -- bump max just over edge to allow exclusive comparison
+			// Update min, max -- as max is exclusive date, don't modify it!
 		this.min = this.uDates[0].ms;
-		var maxMS = this.uDates[1].ms;
-		maxMS.setTime(maxMS.getTime() + 10);
-		this.max = maxMS;
+		this.max = this.uDates[1].ms;
 			// Find appropriate rCats bounds for brush and redraw
 		var b0, b1;
 		for (b0=0; b0<this.rCats.length; b0++) {
@@ -7439,7 +7437,7 @@ var PData = (function() {
 							else
 								d = field.d;
 						}
-							// Since max value is exclusive boundary, don't add day to it
+							// Since max value is exclusive boundary, don't add time to it
 						return PData.d3Nums(y,m,d,false);
 					}
 				} // makeMaxDate()
