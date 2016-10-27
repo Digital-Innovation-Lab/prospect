@@ -95,7 +95,7 @@ PViewFrame.prototype.upSel = function(selList, force)
 		}
 	}
 	this.curSelSize = newSize;
-} // doUpSel
+} // upSel
 
 	// PURPOSE: Open Record Inspector for current selection
 PViewFrame.prototype.openSelection = function()
@@ -766,7 +766,8 @@ PViewFrame.prototype.openSelection = function()
 
 var PVizFrame = function(vfIndex, callbacks)
 {
-	this.lDirty = null;			// Legend Dirty (enabled) if true
+	this.autoUpdate=false;		// Does viz immediately refresh itself after user interaction?
+	this.lDirty = null;			// Legend Dirty (visualization needs refresh) if true
 	this.vizSelIndex = 0;		// index of currently selected Viz
 	this.vizModel = null;		// PVizModel currently in frame
 	this.legendIDs = [];		// Attribute IDs of Legend selections (one per Template)
@@ -793,9 +794,19 @@ PVizFrame.prototype.getIndex = function()
 	// PURPOSE: Set Legend Dirty flag to true or false
 PVizFrame.prototype.setLDirty = function(s)
 {
-	if (s !== this.lDirty) {
-		this.lDirty = s;
-		jQuery('#view-frame-1 div.lgnd-container div.lgnd-handle button.lgnd-update').prop('disabled', !s);
+	if (this.autoUpdate) {
+		if (s) {
+			this.upSel([], false);	// Re-render always clears selection
+			if (this.vizModel && this.datastream) {
+				this.vizModel.render(this.datastream);
+			}
+		}
+		this.lDirty=false;			// Legend is always left "clean"
+	} else {
+		if (s !== this.lDirty) {
+			this.lDirty=s;
+			jQuery('#view-frame-1 div.lgnd-container div.lgnd-handle button.lgnd-update').prop('disabled', !s);
+		}
 	}
 } // setLDirty
 
@@ -936,10 +947,10 @@ PVizFrame.prototype.initDOM = function(vI)
 	function doFeatureSelectOnly(tmpltIndex, vIndex)
 	{
 			// Deselect everything
-		jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
+		jQuery('#view-frame-1 div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
 								tmpltIndex+'"] div.lgnd-group input.lgnd-entry-check').prop('checked', false);
 			// Just select this one
-		jQuery(getFrameID()+' div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
+		jQuery('#view-frame-1 div.lgnd-container div.lgnd-scroll div.lgnd-template[data-index="'+
 								tmpltIndex+'"] div.lgnd-group div.lgnd-value[data-index="'+vIndex+
 								'"] input.lgnd-entry-check').prop('checked', true);
 		self.setLDirty(true);
@@ -1073,6 +1084,27 @@ PVizFrame.prototype.initDOM = function(vI)
 		.click(clickSelList);
 
 	this.createViz(vI, false);
+
+		// Intercept signals
+	jQuery("body").on("prospect", function(event, data) {
+		switch (data.s) {
+		case "auto":
+			self.autoUpdate = data.a;
+			if (data.s) {	// Turn on: disable Apply button, do any outstanding updates
+				jQuery('#view-frame-1 div.lgnd-container div.lgnd-handle button.lgnd-update').prop('disabled', true);
+					// Any outstand updates?
+				if (self.lDirty) {
+					self.upSel([], false);				// Re-render always clears selection
+					if (self.vizModel && self.datastream) {
+						self.vizModel.render(self.datastream);
+					}
+					self.lDirty=false;
+				}
+			}
+				// Note: No need to enable Apply button on Legend, as that will happen if any user actions "dirty" it
+			break;
+		} // switch
+	});
 } // initDOM()
 
 	// PURPOSE: Set feature attributes in Legend
@@ -2576,6 +2608,8 @@ jQuery(document).ready(function($) {
 	var localStore=null;		// Local (Browser) storage (if Browser capable)
 	var localReadings=[];		// locally-stored Readings
 
+	var autoUpdate=false;		// Does visualization immediately respond to user actions?
+
 		// Volume extensions (not in Exhibit)
 	var vMode='v1';				// view option: selection from selaction radio buttons: 'v0', 'v1' or 'v2'
 	var callbacks;				// callbacks used by ViewFrames: { addSel, delSel, newText, textFrame }
@@ -3869,6 +3903,34 @@ jQuery(document).ready(function($) {
 		if (views[1]) {
 			views[1].resize();
 		}
+	});
+
+		// If Auto-update is not set for this Exhibit, turn on if total num records < 500
+		// NOTE: Must do this AFTER both ViewFrames have been created (i.e., by Perspective)
+		//		so that they can intercept signal
+	if (typeof prspdata.e.g.auto === 'undefined') {
+		var total=0;
+		for (var t=0; t<prspdata.t.length; t++) {
+			total += prspdata.t[t].n;
+		}
+		if (total < 500) {
+			autoUpdate=true;
+		}
+	} else {
+		autoUpdate=prspdata.e.g.auto;
+	}
+	if (autoUpdate) {
+		jQuery('#auto-re').prop('checked', true);
+		jQuery("body").trigger("prospect", { s: "auto", a: autoUpdate });
+	}
+
+		// Watch Auto-Update checkbox (added 1.7)
+	jQuery('#auto-re').change(function() {
+		autoUpdate = jQuery('#auto-re').prop('checked');
+			// If turned off autoUpdate, assumed any updates already applied!
+			// Notify all listeners, which may need to update visuals
+			// This will trigger an update of Legend changes for ViewFrames
+		jQuery("body").trigger("prospect", { s: "auto", a: autoUpdate });
 	});
 
 		// Intercept global signals: data { s[tate] }
