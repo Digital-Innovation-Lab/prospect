@@ -498,7 +498,10 @@ jQuery(document).ready(function() {
 		});
 
 		modalDialog.on('dialog.ok', function() {
-			rApp.set('defRecord['+index+'].value', modalDialog.get('selected'));
+			var newValue = modalDialog.get('selected');
+			if (newValue){
+				rApp.set('defRecord['+index+'].value', newValue);
+			}
 			modalDialog.teardown();
 			return false;
 		});
