@@ -18,7 +18,7 @@
 }
 
 	/* Modify all buttons in the Edit Record Dashboard */
-#prsp_record_box button {
+#prsp_record_box button, .ui-dialog button {
 	display: inline-block;
 	padding: 6px 12px;
 	margin-bottom: 0;
@@ -43,7 +43,7 @@
 	border-color: #ccc;
 }
 
-#prsp_record_box button:active {
+#prsp_record_box button:active, .ui-dialog button {
     background: #ccc;
 }
 
@@ -51,7 +51,7 @@ button#prsp-save-data {
 	background-color: #77CCFF;
 }
 
-#prsp_record_box input[type="text"], #prsp_record_box input {
+#prsp_record_box input[type="text"], #prsp_record_box input, .ui-dialog input {
 	padding: 6px 12px;
 	margin: 5px 0;
 	font-size: 14px;
