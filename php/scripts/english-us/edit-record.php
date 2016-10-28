@@ -196,14 +196,14 @@
 <!-- GeoNames Dialog -->
 <script id="dialog-geonames" type='text/ractive'>
 	<dialog title="<?php _e('GeoNames Coordinate Search', 'prospect'); ?>" width="600" height="450">
-		<div class="scroll-container">
+		<div class="scroll-container" id="geonames">
 			<form>
 				<input type="text" size="50" value="{{query}}" placeholder="<?php _e('Look up coordinates by location name', 'prospect'); ?>" autofocus>
 				<button type="submit"><?php _e('Search', 'prospect'); ?></button>
 			</form>
 			<ul>
 				{{#results}}
-					<li on-click="select">{{name}}{{#if adminName1}}, {{adminName1}}{{/if}}{{#if countryName}}, {{countryName}}{{/if}}</li>
+					{{#if name}}<li on-click="select">{{name}}{{#if adminName1}}, {{adminName1}}{{/if}}{{#if countryName}}, {{countryName}}{{/if}}</li>{{/if}}
 				{{/results}}
 				{{^results}}
 					<p><?php _e('Error.', 'prospect'); ?></p>

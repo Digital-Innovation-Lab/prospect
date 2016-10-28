@@ -465,7 +465,7 @@ jQuery(document).ready(function() {
 			el: '#insert-dialog',
 			template: '#dialog-geonames',
 			data: {
-				query: 'Chapel Hill',
+				query: null,
 				results: [''],		// must not be empty so error message is not displayed
 				selected: null
 			},
@@ -476,21 +476,24 @@ jQuery(document).ready(function() {
 		}); // new Ractive()
 
 		modalDialog.observe('query', function(newValue, oldValue, keypath) {
-			jQuery.ajax({
-				url: 'http://api.geonames.org/searchJSON?q='+ newValue +'&maxRows=10&username=UNCDIL',
-				success: function(val) {
-					modalDialog.set('results', val.geonames);
-				},
-				error: function(e) {
-					modalDialog.set('results', false);
-					console.log(e);
-				}
-			});
+			if (newValue && newValue != oldValue) {
+				jQuery.ajax({
+					url: 'http://api.geonames.org/searchJSON?q='+ newValue +'&maxRows=10&username=UNCDIL',
+					success: function(val) {
+						modalDialog.set('results', val.geonames);
+					},
+					error: function(e) {
+						modalDialog.set('results', false);
+						console.log(e);
+					}
+				});
+			}
 		});
 
-		modalDialog.on('select', function(e) {
-			var result = modalDialog.get(e.keypath);
-			modalDialog.set('selected', result.lat + ', ' + result.lng);
+		modalDialog.on('select', function(item) {
+			jQuery('#geonames li').removeClass('active');
+			jQuery(item.node).addClass('active');
+			modalDialog.set('selected', item.context.lat + ', ' + item.context.lng);
 		})
 
 		jQuery('form').submit(function(e){
