@@ -379,6 +379,7 @@ VizMap.prototype.render = function(stream)
 					if (marker.options._aid === aid) {
 						if (added) {
 							marker.setStyle({ color: "yellow", weight: 2 });
+							marker.bringToFront();
 						} else {
 							marker.setStyle({ color: "#000", weight: 1 });
 						}
@@ -387,6 +388,7 @@ VizMap.prototype.render = function(stream)
 			} else {
 				if (added) {
 					this.setStyle({ color: "yellow", weight: 2 });
+					this.bringToFront();
 				} else {
 					this.setStyle({ color: "#000", weight: 1 });
 				}
@@ -618,10 +620,12 @@ VizMap.prototype.setSel = function(absIArray)
 	this.recSel = absIArray;
 	if (this.markerLayer) {
 		this.markerLayer.eachLayer(function(marker) {
-			if (self.isSel(marker.options._aid))
+			if (self.isSel(marker.options._aid)) {
 				marker.setStyle({ color: "yellow", weight: 2 });
-			else
+				marker.bringToFront();
+			} else {
 				marker.setStyle({ color: "#000", weight: 1 });
+			}
 		});
 	}
 } // setSel()
@@ -891,6 +895,7 @@ VizMap2.prototype.render = function(stream)
 					if (marker.options._aid === aid) {	// ignore labels
 						if (added) {
 							marker.setStyle({ color: "yellow", weight: 2 });
+							marker.bringToFront();
 						} else {
 							marker.setStyle({ color: "#000", weight: 1 });
 						}
@@ -899,6 +904,7 @@ VizMap2.prototype.render = function(stream)
 			} else {
 				if (added) {
 					this.setStyle({ color: "yellow", weight: 2 });
+					this.bringToFront();
 				} else {
 					this.setStyle({ color: "#000", weight: 1 });
 				}
@@ -1096,6 +1102,7 @@ VizMap2.prototype.setSel = function(absIArray)
 		this.markerLayer.eachLayer(function(marker) {
 			if (self.isSel(marker.options._aid)) {
 				marker.setStyle({ color: "yellow", weight: 2 });
+				marker.bringToFront();
 			} else {
 				marker.setStyle({ color: "#000", weight: 1 });
 			}
@@ -4876,16 +4883,15 @@ VizBMatrix.prototype.hint = function()
 // ====================================================================
 // PFilterModel: An abstract class to be subclassed by specific filters
 
-	// INPUT: 	id = unique ID for this filter (0 = selector filter)
+	// INPUT: 	id = unique ID for this filter
 	//			attRec = pointer to complete Attribute or Facet Browser settings
-	// ASSUMES: required is true by default
+	// NOTES:   IDs 0 and 1 are specially allocated to Highlight those respective views
 function PFilterModel(id, attRec)
 {
 	this.id 		= id;
 	this.att 		= attRec;
 
-	this.dirty 		= false;
-
+	this.dirty 		= 1;		// 0=clean (no recompute needed), 1=new filter (data not run through it yet), 2=settings changed (needs recompute)
 		// Sublcasses can override the following:
 	// this.title()
 	// this.teardown()
@@ -4899,14 +4905,15 @@ function PFilterModel(id, attRec)
 } // PFilterModel
 
 	// PURPOSE: Either set or get the dirty state of Filter
-	// RETURNS: true if filter is "dirty" (has been changed and thus needs to be recomputed)
-	// INPUT:  set is null if only retrieving state, else true or false
+	// RETURNS: 0 ("clean"), 1 (new filter) or 2 (settings dirty, needs recompute)
+	// INPUT:  set is null if only retrieving state, else 0,1,2
 PFilterModel.prototype.isDirty = function(set)
 {
 	var old=this.dirty;
-	if (set != null) {
+	if (set !== null) {
 		this.dirty = set;
-		if (!old && set && this.id > 0) {
+			// Signal dirty if previously clean or new filter that is now dirty for non-Highlight Filter
+		if (old < 2 && set > 1 && this.id > 1) {
 			jQuery("body").trigger("prospect", { s: "fdirty", id: this.id });
 		}
 	}
@@ -4926,7 +4933,7 @@ PFilterModel.prototype.evalPrep = function()
 
 PFilterModel.prototype.evalDone = function()
 {
-} // teardown()
+} // evalDone()
 
 	// PURPOSE: Return jQuery result for contents of this filter
 PFilterModel.prototype.insertPt = function()
@@ -5052,18 +5059,18 @@ PFilterText.prototype.setup = function()
 	inserted.append(htmlText);
 		// Intercept changes to text
 	inserted.find('input.filter-text').change(function() {
-		self.isDirty(true);
+		self.isDirty(2);
 	});
 	inserted.find('select.filter-text-ops').change(function() {
 		var t = inserted.find('input.filter-text').val();
 		if (t.length) {
-			self.isDirty(true);
+			self.isDirty(2);
 		}
 	});
 	inserted.find('input.filter-text-cs').click(function(event) {
 		var t = inserted.find('input.filter-text').val();
 		if (t.length) {
-			self.isDirty(true);
+			self.isDirty(2);
 		}
 	});
 } // setup()
@@ -5188,18 +5195,18 @@ PFilterTags.prototype.setup = function()
 	inserted.append(htmlText);
 		// Intercept changes to text
 	inserted.find('input.filter-text').change(function() {
-		self.isDirty(true);
+		self.isDirty(2);
 	});
 	inserted.find('select.filter-text-ops').change(function(event) {
 		var t = inserted.find('input.filter-text').val();
 		if (t.length) {
-			self.isDirty(true);
+			self.isDirty(2);
 		}
 	});
 	inserted.find('input.filter-text-cs').click(function(event) {
 		var t = inserted.find('input.filter-text').val();
 		if (t.length) {
-			self.isDirty(true);
+			self.isDirty(2);
 		}
 	});
 } // setup()
@@ -5345,7 +5352,7 @@ PFilterVocab.prototype.setup = function()
 				var index = event.target.parentElement.parentElement.dataset.index;
 				ip.find('input[data-parent="'+index+'"]').prop("checked", true);
 			}
-			self.isDirty(true);
+			self.isDirty(2);
 		}
 	});
 } // setup()
@@ -5478,8 +5485,9 @@ PFilterNum.prototype.evalBoxes = function(insert)
 	// PURPOSE: Try to use values in boxes to calculate Filter settings,
 	//				as when user clicks "Use Number"
 	// INPUT: 	insert = insertPt() for this filter
+	//			dirty = should change of values raise dirty signal?
 	// SIDE-FX: Sets min, max, b0, b1 and brush from text boxes
-PFilterNum.prototype.useBoxes = function(insert)
+PFilterNum.prototype.useBoxes = function(insert, dirty)
 {
 	if (this.evalBoxes(insert)) {
 			// Update min, max
@@ -5504,7 +5512,9 @@ PFilterNum.prototype.useBoxes = function(insert)
 		}
 		insert.find('.filter-update').prop('disabled', true);
 			// Signal dirty filter after everything else updated
-		this.isDirty(true);
+		if (dirty) {
+			this.isDirty(2);
+		}
 	}
 } // useBoxes()
 
@@ -5579,7 +5589,7 @@ PFilterNum.prototype.setup = function()
 	} else {
 		insert.find(".allow-undef").click(function() {
 			self.u = insert.find('input.allow-undef').prop('checked');
-			self.isDirty(true);
+			self.isDirty(2);
 		});
 	}
 
@@ -5657,7 +5667,7 @@ PFilterNum.prototype.setup = function()
 				self.max = self.rCats[self.b1].max;
 				self.refreshBoxes();
 				inprocess=false;
-				self.isDirty(true);
+				self.isDirty(2);
 			} // if brush move end
 		} // brushended()
 
@@ -5738,7 +5748,7 @@ PFilterNum.prototype.setup = function()
 	});
 		// Try to use Dates
 	insert.find(".filter-update").click(function() {
-		self.useBoxes(insert);
+		self.useBoxes(insert, true);
 	});
 } // setup()
 
@@ -5764,7 +5774,7 @@ PFilterNum.prototype.setState = function(state)
 	this.u = state.u;
 	insert.find('.from').removeClass('error').val(state.min);
 	insert.find('.to').removeClass('error').val(state.max);
-	this.useBoxes(insert);
+	this.useBoxes(insert, false);
 } // setState()
 
 
@@ -5906,8 +5916,9 @@ PFilterDates.prototype.evalBoxes = function(insert)
 	// PURPOSE: Try to use values in boxes to calculate Filter settings,
 	//				as when user clicks "Use Date"
 	// INPUT: 	insert = insertPt() for this filter
+	//			dirty = should change of values raise dirty signal?
 	// SIDE-FX: Sets min, max, b0, b1 and brush from text boxes
-PFilterDates.prototype.useBoxes = function(insert)
+PFilterDates.prototype.useBoxes = function(insert, dirty)
 {
 	if (this.evalBoxes(insert)) {
 			// Update min, max -- as max is exclusive date, don't modify it!
@@ -5929,8 +5940,10 @@ PFilterDates.prototype.useBoxes = function(insert)
 			// This automatically updates custom brush handles
 		this.brushg.call(this.brush.move, [b0, b1+1].map(this.xScale));
 		insert.find('.filter-update').prop('disabled', true);
-			// Send Dirty filter signal after all data prepared
-		this.isDirty(true);
+			// Send Dirty filter signal after all data prepared (if allowed)
+		if (dirty) {
+			this.isDirty(2);
+		}
 	}
 } // useBoxes()
 
@@ -6087,7 +6100,7 @@ PFilterDates.prototype.setup = function()
 			self.max = self.rCats[self.b1].max;
 			self.refreshBoxes();
 			inprocess=false;
-			self.isDirty(true);
+			self.isDirty(2);
 		}
 	} // brushended()
 
@@ -6117,7 +6130,7 @@ PFilterDates.prototype.setup = function()
 	insert.append(fh({ id: this.id }));
 		// Dirty filter if user changes overlap/contain setting
 	insert.find("input[name=dctrl-"+self.id+"]").change(function() {
-		self.isDirty(true);
+		self.isDirty(2);
 	});
 		// Only enabled "allow undefined" if enabled by Attribute
 	if (typeof this.att.r.u === 'undefined') {
@@ -6125,7 +6138,7 @@ PFilterDates.prototype.setup = function()
 	} else {
 		insert.find(".allow-undef").click(function() {
 			self.u = insert.find('input.allow-undef').prop('checked');
-			self.isDirty(true);
+			self.isDirty(2);
 		});
 	}
 
@@ -6137,7 +6150,7 @@ PFilterDates.prototype.setup = function()
 	});
 		// Try to use Dates
 	insert.find(".filter-update").click(function() {
-		self.useBoxes(insert);
+		self.useBoxes(insert, true);
 	});
 
 	var chart = d3.select(insert.get(0)).append("svg")
@@ -6227,7 +6240,7 @@ PFilterDates.prototype.setState = function(state)
 	this.u = state.u;
 	setBoxes('.from', state.min);
 	setBoxes('.to', state.max);
-	this.useBoxes(insert);
+	this.useBoxes(insert, false);
 } // setState()
 
 
@@ -6321,18 +6334,18 @@ PFilterPtr.prototype.setup = function()
 	inserted.append(htmlText);
 		// Intercept changes to text
 	inserted.find('input.filter-text').change(function() {
-		self.isDirty(true);
+		self.isDirty(2);
 	});
 	inserted.find('select.filter-text-ops').change(function() {
 		var t = inserted.find('input.filter-text').val();
 		if (t.length) {
-			self.isDirty(true);
+			self.isDirty(2);
 		}
 	});
 	inserted.find('input.filter-text-cs').click(function(event) {
 		var t = inserted.find('input.filter-text').val();
 		if (t.length) {
-			self.isDirty(true);
+			self.isDirty(2);
 		}
 	});
 } // setup()

@@ -1535,7 +1535,7 @@ jQuery(document).ready(function($) {
 			theF = filters[fI];
 			fDiv = jQuery('div.filter-instance[data-id="'+theF.id+'"]');
 				// If we've started, evaluate and propagate
-			if (started || theF.f.isDirty(null)) {
+			if (started || theF.f.isDirty(null) > 0) {
 				started = true;
 				var f = theF.f;
 				f.evalPrep();
@@ -1572,7 +1572,7 @@ jQuery(document).ready(function($) {
 					newStream.t.push( { i: (newStream.l-tRn), n: tRn } );
 					tRn = 0;
 				}
-				f.isDirty(false);
+				f.isDirty(0);
 				f.out = newStream;
 				f.evalDone(rTotal);
 				endStream = newStream;
@@ -1880,7 +1880,13 @@ jQuery(document).ready(function($) {
 				var xKey = localStore.key(i);
 				if (xKey != prspdata.e.id) {
 					var xItem = localStore.getItem(xKey);
-					xData.push({ id: xKey, ps: JSON.parse(xItem) });
+						// Put parse inside of try to prevent crash on parse problems
+					try {
+					    var parsed = JSON.parse(xItem);
+						xData.push({ id: xKey, ps: parsed });
+					} catch (e) {
+						// Just ignore entry
+					}
 				}
 			}
 
@@ -2074,7 +2080,7 @@ jQuery(document).ready(function($) {
 				var fRec;
 				fRec = filters.find(function(fr) { return fr.id == fID; });
 				if (fRec == null)	{ alert('Bad Filter ID '+fID); return; }
-				fRec.f.isDirty(true);
+				fRec.f.isDirty(2);
 			}
 		}
 	} // clickFilterApply()
@@ -2109,7 +2115,6 @@ jQuery(document).ready(function($) {
 		} else {
 				// Datastream must be recomputed from successor on
 			dirtyI=fI;
-			// filters[fI].f.isDirty(true);
 		}
 
 			// Remove this DOM element
@@ -2133,7 +2138,7 @@ jQuery(document).ready(function($) {
 			}
 				// This will either (1) dirty filter, or (2) trigger recompute
 			if (dirtyI != null) {
-				filters[dirtyI].f.isDirty(true);
+				filters[dirtyI].f.isDirty(2);
 			}
 		}
 		event.preventDefault();
@@ -2425,7 +2430,6 @@ jQuery(document).ready(function($) {
 		var p = getPerspective(pID);
 		if (p == null)
 			return false;
-
 			// Minimize filter and selector bars
 		jQuery('#filter-frame').hide();
 
@@ -2643,9 +2647,11 @@ jQuery(document).ready(function($) {
 		storage.removeItem(x);
 		var lp = storage.getItem(prspdata.e.id);
 		localStore = storage;
-		if (lp.length > 0)
-			localPrspctvs = JSON.parse(lp);
+		if (lp.length > 0) {
+			localPrspctvs = JSON.parse(lp);			// Parse errors will leave array empty
+		}
 	} catch(e) {
+		// If there are any errors in local Perspective data, leave empty
 	}
 
 		// Command Bar

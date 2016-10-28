@@ -2948,7 +2948,13 @@ jQuery(document).ready(function($) {
 				var xKey = localStore.key(i);
 				if (xKey != prspdata.e.id) {
 					var xItem = localStore.getItem(xKey);
-					xData.push({ id: xKey, ps: JSON.parse(xItem) });
+						// Put parse inside of try to prevent crash on parse problems
+					try {
+						var parsed = JSON.parse(xItem);
+						xData.push({ id: xKey, ps: parsed });
+					} catch (e) {
+						// Just ignore entry
+					}
 				}
 			}
 
@@ -3770,8 +3776,9 @@ jQuery(document).ready(function($) {
 		storage.removeItem(x);
 		var lp = storage.getItem(prspdata.e.id);
 		localStore = storage;
-		if (lp.length > 0)
-			localReadings = JSON.parse(lp);
+		if (lp.length > 0) {
+			localReadings = JSON.parse(lp);			// Parse errors will leave array empty
+		}
 	} catch(e) {
 	}
 
