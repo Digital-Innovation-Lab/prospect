@@ -27,7 +27,7 @@
 	line-height: 1.42857143;
 	text-align: center;
 	white-space: nowrap;
-	vertical-align: middle;
+	/*vertical-align: middle;*/
 	-ms-touch-action: manipulation;
 	touch-action: manipulation;
 	cursor: pointer;
@@ -43,7 +43,7 @@
 	border-color: #ccc;
 }
 
-#prsp_record_box button:active, .ui-dialog button {
+#prsp_record_box button:active, .ui-dialog button:active {
     background: #ccc;
 }
 
@@ -90,4 +90,18 @@ button#prsp-save-data {
 
 .scroll-container {
 	overflow-y: auto;
+}
+
+#geonames ul li {
+	padding: 5px;
+	width: 100%;
+}
+
+#geonames ul li:hover {
+	cursor: pointer;
+	background: #ddd;
+}
+
+#geonames ul li.active {
+	background: #cdcdcd;
 }
