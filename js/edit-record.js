@@ -198,55 +198,6 @@ jQuery(document).ready(function() {
 		return t;
 	} // getTemplate
 
-
-		// PURPOSE: Present GeoNames search modal for lat/lon coordinates
-	function geoNamesModal()
-	{
-		var modalDialog = new Ractive({
-			el: '#insert-dialog',
-			template: '#dialog-geonames',
-			data: {
-				query: 'Chapel Hill',
-				results: null,
-				selected: null
-			},
-			lazy: true,
-			components: {
-				dialog: RJDialogComponent
-			}
-		}); // new Ractive()
-
-		modalDialog.observe('query', function(newValue, oldValue, keypath) {
-			jQuery.ajax({
-				url: 'http://api.geonames.org/searchJSON?q='+ newValue +'&maxRows=10&username=google',
-				success: function(val) {
-					console.log(val);
-					modalDialog.set('results', val.geonames);
-				},
-				error: function(e) {
-					console.log(e);
-				}
-			});
-		});
-
-		jQuery('form').submit(function(e){
-			e.preventDefault();
-		});
-
-		modalDialog.on('dialog.ok', function() {
-			modalDialog.teardown();
-			return false;
-		});
-		modalDialog.on('dialog.cancel', function() {
-			modalDialog.teardown();
-		});
-	}
-
-	function geoSearch(query) {
-		var c = rApp.get(query);
-		console.log(query);
-	}
-
 		// PURPOSE: Present user message in modal dialog box
 	function messageModal(mText)
 	{
@@ -508,8 +459,53 @@ jQuery(document).ready(function() {
 		return false;
 	});
 
-	rApp.on('geoNames', function() {
-		geoNamesModal();
+		// PURPOSE: Present GeoNames search modal for lat/lon coordinates
+	rApp.on('geoNames', function(event, index) {
+		var modalDialog = new Ractive({
+			el: '#insert-dialog',
+			template: '#dialog-geonames',
+			data: {
+				query: 'Chapel Hill',
+				results: [''],		// must not be empty so error message is not displayed
+				selected: null
+			},
+			lazy: true,
+			components: {
+				dialog: RJDialogComponent
+			}
+		}); // new Ractive()
+
+		modalDialog.observe('query', function(newValue, oldValue, keypath) {
+			jQuery.ajax({
+				url: 'http://api.geonames.org/searchJSON?q='+ newValue +'&maxRows=10&username=UNCDIL',
+				success: function(val) {
+					modalDialog.set('results', val.geonames);
+				},
+				error: function(e) {
+					modalDialog.set('results', false);
+					console.log(e);
+				}
+			});
+		});
+
+		modalDialog.on('select', function(e) {
+			var result = modalDialog.get(e.keypath);
+			modalDialog.set('selected', result.lat + ', ' + result.lng);
+		})
+
+		jQuery('form').submit(function(e){
+			e.preventDefault();
+		});
+
+		modalDialog.on('dialog.ok', function() {
+			rApp.set('defRecord['+index+'].value', modalDialog.get('selected'));
+			modalDialog.teardown();
+			return false;
+		});
+		modalDialog.on('dialog.cancel', function() {
+			modalDialog.teardown();
+		});
+
 		return false;
 	});
 

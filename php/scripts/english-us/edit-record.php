@@ -109,7 +109,7 @@
 <script id="att-type-Lat-Lon" type='text/ractive'>
 	<?php _e('Lat,Long', 'prospect'); ?>: <input type="text" size="20" value="{{value}}"/>
 	{{#if canGeoLoc}}<button on-click="setHere:{{rIndex}}"><?php _e('Here', 'prospect'); ?></button>{{/if}}
-	<button decorator="iconButton:ui-icon-search" on-click="geoNames"><?php _e('Look Up Coordinates', 'prospect'); ?></button>
+	<button decorator="iconButton:ui-icon-search" on-click="geoNames:{{rIndex}}"><?php _e('Look Up Coordinates', 'prospect'); ?></button>
 </script>
 
 <script id="att-type-X-Y" type='text/ractive'>
@@ -203,7 +203,10 @@
 			</form>
 			<ul>
 				{{#results}}
-					<li>{{name}}, {{#if adminName1}} {{adminName1}},{{/if}} {{countryName}}</li>
+					<li on-click="select">{{name}}{{#if adminName1}}, {{adminName1}}{{/if}}{{#if countryName}}, {{countryName}}{{/if}}</li>
+				{{/results}}
+				{{^results}}
+					<p><?php _e('Error.', 'prospect'); ?></p>
 				{{/results}}
 			</ul>
 		</div>
