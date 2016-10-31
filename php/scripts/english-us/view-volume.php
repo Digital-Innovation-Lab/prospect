@@ -75,7 +75,7 @@
 			<div class="lgnd-scroll">
 			</div>
 		</div>
-		<div class="sellist" style="display:none;">
+		<div class="sellist">
 			<div class="sellist-handle">
 				<button class="sellist-close"><?php _e('Close', 'prospect'); ?></button>&nbsp;<?php _e('Highlighted Items', 'prospect'); ?>
 			</div>

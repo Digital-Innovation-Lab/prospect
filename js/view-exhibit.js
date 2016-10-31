@@ -765,7 +765,7 @@ function PViewFrame(vfIndex)
 	function clickHighlight(event)
 	{
 			// Send signal back to Prospect "main app" to create Highlight filter on this viz
-		jQuery("body").trigger("prospect", { s: "hilite", v: vfIndex, t: vizModel.tUsed });
+		jQuery("body").trigger("prsp-hilite", { v: vfIndex, t: vizModel.tUsed });
 		event.preventDefault();
 	} // clickHighlight()
 
@@ -1140,12 +1140,12 @@ function PViewFrame(vfIndex)
 				});
 			}
 			frame.find('div.lgnd-container').show();
-			instance.flushLgnd(false);
 		} else {	// No Legend
 			frame.find('button.hslgnd').button('disable');
 				// Just hide Legend
 			frame.find('div.lgnd-container').hide();
 		}
+		instance.flushLgnd();
 			// As we initially render view, "Update" should be disabled
 		setLDirty(false);
 
@@ -1291,25 +1291,21 @@ function PViewFrame(vfIndex)
 
 		createViz(vI, false);
 
-			// Intercept signals
-		jQuery("body").on("prospect", function(event, data) {
-			switch (data.s) {
-			case "auto":
-				autoUpdate = data.a;
-				if (autoUpdate) {	// Turn on: disable Apply button, do any outstanding updates
-					jQuery(getFrameID()+' div.lgnd-container div.lgnd-handle button.lgnd-update').prop('disabled', true);
-						// Any outstand updates?
-					if (lDirty) {
-						doUpSel([], false);				// Re-render always clears selection
-						if (vizModel) {
-							vizModel.render(datastream);
-						}
-						lDirty=false;
+			// Intercept Auto-Update signal
+		jQuery("body").on("prsp-auto", function(event, data) {
+			autoUpdate = data.a;
+			if (autoUpdate) {	// Turn on: disable Apply button, do any outstanding updates
+				jQuery(getFrameID()+' div.lgnd-container div.lgnd-handle button.lgnd-update').prop('disabled', true);
+					// Any outstand updates?
+				if (lDirty) {
+					doUpSel([], false);				// Re-render always clears selection
+					if (vizModel) {
+						vizModel.render(datastream);
 					}
+					lDirty=false;
 				}
-					// Note: No need to enable Apply button on Legend, as that will happen if any user actions "dirty" it
-				break;
-			} // switch
+			}
+				// NOTE: No need to enable Apply button on Legend, as that will happen if any user actions "dirty" it
 		});
 	} // initDOM()
 
@@ -1465,15 +1461,12 @@ function PViewFrame(vfIndex)
 	} // title()
 
 		// PURPOSE: Ensure Legend visible on right; may move Sel List to left
-		// INPUT:	If flushSL, move Selection List to left
-	instance.flushLgnd = function(flushSL)
+	instance.flushLgnd = function()
 	{
 		var frame = jQuery(getFrameID());
 		var l = frame.width() - 280;
-		frame.find('div.lgnd-container').css('left', l);
-		if (flushSL) {
-			frame.find('div.sellist').css('left', 5);
-		}
+		frame.find('div.lgnd-container').css('left', l).css('top', 270);
+		frame.find('div.sellist').css('left', l).css('top', 2);
 	} // flushLgnd()
 
 		// PURPOSE: Return the Record bitmap data for this view
@@ -1641,9 +1634,9 @@ jQuery(document).ready(function($) {
 			views[1] = PViewFrame(1);
 			views[1].initDOM(0);
 			views[1].showStream(endStream);
-			views[0].flushLgnd(true);
 		}
 		views[0].resize();
+		views[0].flushLgnd();
 	} // clickTog2nd()
 
 	function clickAbout(event)
@@ -2488,7 +2481,7 @@ jQuery(document).ready(function($) {
 				v1.initDOM(vI);
 				v1.setState(p.s.v1.s);
 				resize0 = true;
-				v0.flushLgnd(true);
+				v0.flushLgnd();
 			}
 		} else {
 			if (v1) {
@@ -2779,7 +2772,7 @@ jQuery(document).ready(function($) {
 	}
 	if (autoUpdate) {
 		jQuery('#auto-re').prop('checked', true);
-		jQuery("body").trigger("prospect", { s: "auto", a: autoUpdate });
+		jQuery("body").trigger("prsp-auto", { a: autoUpdate });
 	}
 
 		// Watch Auto-Update checkbox (added 1.7)
@@ -2792,37 +2785,35 @@ jQuery(document).ready(function($) {
 		}	// If turned off autoUpdate, assumed any updates already applied!
 			// Notify all listeners, which may need to update visuals
 			// This will trigger an update of Legend changes for ViewFrames
-		jQuery("body").trigger("prospect", { s: "auto", a: autoUpdate });
+		jQuery("body").trigger("prsp-auto", { a: autoUpdate });
 	});
 
 		// Intercept global signals: data { s[tate] }
-	jQuery("body").on("prospect", function(event, data) {
-		switch (data.s) {
-		case "loaded":	// ASSUMED: This signal won't be sent until after Filters & Views set up
-			var ready = document.getElementById('dltext-ready').innerHTML;
-			var el = document.getElementById('pstate');
-			el.classList.remove('attn');
-			el.textContent = ready.trim();
-			doRecompute();
-			for (var h=0; h<2; h++) {
-				if (hFilters[h] !== null) {
-					doApplyHighlight(h);
-				}
+
+		// ASSUMED: Loaded signal won't be sent until after Filters & Views set up
+	jQuery("body").on("prsp-loaded", function(event) {
+		var ready = document.getElementById('dltext-ready').innerHTML;
+		var el = document.getElementById('pstate');
+		el.classList.remove('attn');
+		el.textContent = ready.trim();
+		doRecompute();
+		for (var h=0; h<2; h++) {
+			if (hFilters[h] !== null) {
+				doApplyHighlight(h);
 			}
-			jQuery('body').removeClass('waiting');
-			break;
-		case "fdirty":
-			if (autoUpdate) {
-				doRecompute();
-			} else {
-				fState = 1;
-				jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
-			}
-			break;
-		case "hilite":
-			clickHighlight(data.v, data.t);
-			break;
 		}
+		jQuery('body').removeClass('waiting');
+	});
+	jQuery("body").on("prsp-fdirty", function(event) {
+		if (autoUpdate) {
+			doRecompute();
+		} else {
+			fState = 1;
+			jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
+		}
+	});
+	jQuery("body").on("prsp-hilite", function(event, data) {
+		clickHighlight(data.v, data.t);
 	});
 
 		// Init hub using config settings

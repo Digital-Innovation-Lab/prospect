@@ -33,12 +33,12 @@ if (!Array.prototype.findIndex) {
 
 	// Prospect sends global signals via jQuery; the following are valid signals (strings, not variables)
 	// --------
-	// "loaded" = The data has been fully loaded (via AJAX) and is ready to be processed
-	// "auto"	= User has changed state of "Auto-Update" checkbox
+	// "prsp-loaded" = The data has been fully loaded (via AJAX) and is ready to be processed
+	// "prsp-auto" = User has changed state of "Auto-Update" checkbox
 	//				(data.a = new state, true or false)
-	// "fdirty"	= A filter is "dirty" in the Filter Stack
+	// "prsp-fdirty" = A filter is "dirty" in the Filter Stack
 	//				(data.id = ID of the Filter)
-	// "hilite"	= A ViewFrame requests that main app create a Highlight Filter
+	// "prsp-hilite" = A ViewFrame requests that main app create a Highlight Filter
 	//				(data.v = view frame index (0 or 1), data.t = array of booleans of Templates used)
 
 	// Types of chronological events: bit-flags
@@ -4914,7 +4914,7 @@ PFilterModel.prototype.isDirty = function(set)
 		this.dirty = set;
 			// Signal dirty if previously clean or new filter that is now dirty for non-Highlight Filter
 		if (old < 2 && set > 1 && this.id > 1) {
-			jQuery("body").trigger("prospect", { s: "fdirty", id: this.id });
+			jQuery("body").trigger("prsp-fdirty", { id: this.id });
 		}
 	}
 	return this.dirty;
@@ -6471,7 +6471,7 @@ var PData = (function() {
 		if (done) {
 			loaded=true;
 			setTimeout(function() {
-				jQuery("body").trigger("prospect", { s: "loaded" });
+				jQuery("body").trigger("prsp-loaded");
 			}, 100);
 		}
 	} // rLoad()
