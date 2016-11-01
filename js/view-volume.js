@@ -3795,7 +3795,7 @@ jQuery(document).ready(function($) {
 	} else {
 		jQuery('#btn-show-reading').button({icons: { primary: 'ui-icon-image' }, text: false })
 				.click(clickShowReading);
-		jQuery('#btn-save-reading').button({icons: { primary: 'ui-icon-cart' }, text: false })
+		jQuery('#btn-save-reading').button({icons: { primary: 'ui-icon-calendar' }, text: false })
 				.click(clickSaveReading);
 	}
 
