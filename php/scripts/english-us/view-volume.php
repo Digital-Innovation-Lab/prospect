@@ -77,7 +77,7 @@
 		</div>
 		<div class="sellist">
 			<div class="sellist-handle">
-				<button class="sellist-close"><?php _e('Close', 'prospect'); ?></button>&nbsp;<?php _e('Highlighted Items', 'prospect'); ?>
+				<button class="sellist-close"><?php _e('Close', 'prospect'); ?></button>&nbsp;<label><?php _e('Highlighted Items', 'prospect'); ?></label>
 			</div>
 			<div class="sellist-scroll">
 			</div>

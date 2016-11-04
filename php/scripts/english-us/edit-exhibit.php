@@ -116,7 +116,7 @@
 				<input type='checkbox' checked='{{modal.t2On}}'/> <?php _e('Dual Transcripts', 'prospect'); ?>
 			</div>
 			<input type='checkbox' id="see-rec-off" checked='{{srOff}}'/>
-			<label for="see-rec-off"><?php _e('Disable “See Record” button', 'prospect'); ?> </label>
+			<label for="see-rec-off"><?php _e('Disable “See Item” button', 'prospect'); ?> </label>
 			<div>
 				<?php _e('Size overrides (leave blank for default)', 'prospect'); ?>:
 				<?php _e('Width', 'prospect'); ?> <input type='text' value='{{modal.w}}' placeholder=<?php _e('"Default"', 'prospect'); ?> size="5"/>
