@@ -625,6 +625,8 @@ class Prospect {
 		$this->loader->add_action('wp_ajax_prsp_get_cf_vals', $this->admin, 'prsp_get_cf_vals', null, null);
 		$this->loader->add_action('wp_ajax_prsp_get_transcript', $this->admin, 'prsp_get_transcript', null, null);
 		$this->loader->add_action('wp_ajax_nopriv_prsp_get_transcript', $this->admin, 'prsp_get_transcript', null, null);
+		$this->loader->add_action('wp_ajax_prsp_get_geonames', $this->admin, 'prsp_get_geonames', null, null);
+		$this->loader->add_action('wp_ajax_nopriv_prsp_get_geonames', $this->admin, 'prsp_get_geonames', null, null);
 
 		$this->loader->add_action('wp_ajax_prsp_save_prspctv', $this->admin, 'prsp_save_prspctv', null, null);
 		$this->loader->add_action('wp_ajax_prsp_save_reading', $this->admin, 'prsp_save_reading', null, null);

@@ -3080,6 +3080,23 @@ class ProspectAdmin {
 	} // prsp_get_transcript()
 
 
+
+		// PURPOSE: Returns Geonames API results 
+		// INPUT: $_POST['query'] = name query from Geonames dialog
+	public function prsp_get_geonames() {
+		$content = @file_get_contents('http://api.geonames.org/searchJSON?q='. $_POST['query'] .'&maxRows=10&username=UNCDIL');
+		
+		if ($content === false) {
+			$result = 'Error';
+		} else {
+			$result = $content;
+		}
+
+		header('Content-Type: application/json');
+		die($result);
+	} // prsp_get_geonames()
+
+
 	// NEW OBJECT CONSTRUCTOR
 	// ======================
 

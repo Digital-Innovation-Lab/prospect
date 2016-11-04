@@ -476,15 +476,20 @@ jQuery(document).ready(function() {
 		}); // new Ractive()
 
 		modalDialog.observe('query', function(newValue, oldValue, keypath) {
-			if (newValue && newValue != oldValue) {
+			if (newValue != oldValue) {
 				jQuery.ajax({
-					url: 'http://api.geonames.org/searchJSON?q='+ newValue +'&maxRows=10&username=UNCDIL',
+					type: 'POST',
+					url: prspdata.ajax_url,
+					data: {
+						action: 'prsp_get_geonames',
+						query: newValue
+					},
 					success: function(val) {
 						modalDialog.set('results', val.geonames);
 					},
 					error: function(e) {
-						modalDialog.set('results', false);
 						console.log(e);
+						modalDialog.set('results', false);
 					}
 				});
 			}
