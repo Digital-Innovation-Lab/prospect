@@ -2329,6 +2329,14 @@ class ProspectAdmin {
 		<h2><?php _e('Prospect Archives', 'prospect'); ?></h2>
 		</div>
 
+		<h3><?php _e('Website Complete Configuration Export', 'prospect'); ?></h3>
+		<p><b><?php _e('IMPORTANT','prospect'); ?>:</b> <?php _e('All Records must still be exported on a Template-by-Template basis; this archive file does not include Maps or Perspectives.', 'prospect'); ?></p>
+		<a href="admin.php?action=prsp_export_all" title="<?php
+			_e('Export all', 'prospect');
+		?>" rel="permalink"><?php
+			_e('Export all Attributes, Templates, Exhibits and Volumes from this website as a JSON archive file', 'prospect');
+		?></a>
+
 		<h3><?php _e('Attributes', 'prospect'); ?></h3>
 
 		<a href="admin.php?action=prsp_export_all_attributes" title="<?php
@@ -2458,14 +2466,6 @@ class ProspectAdmin {
 			_e('Export all Readings as JSON file', 'prospect');
 		?></a>
 		<br/>
-
-		<h3><?php _e('Website Configuration Export', 'prospect'); ?></h3>
-		<p><b><?php _e('IMPORTANT','prospect'); ?>:</b> <?php _e('All Records must still be exported on a Template-by-Template basis; this archive file does not include Maps or Perspectives.', 'prospect'); ?></p>
-		<a href="admin.php?action=prsp_export_all" title="<?php
-			_e('Export all', 'prospect');
-		?>" rel="permalink"><?php
-			_e('Export all Attributes, Templates, Exhibits and Volumes from this website as a JSON archive file', 'prospect');
-		?></a>
 
 		<h3><?php _e('Import JSON Archive File', 'prospect'); ?></h3>
 		<p><?php _e('You can import a JSON archive file containing Attributes, Templates, Exhibits, Maps, Perspectives and/or Volumes. You must use other means for importing CSV files containing Records.', 'prospect'); ?></p>
