@@ -1465,8 +1465,8 @@ function PViewFrame(vfIndex)
 	{
 		var frame = jQuery(getFrameID());
 		var l = frame.width() - 280;
-		frame.find('div.lgnd-container').css('left', l).css('top', 270);
-		frame.find('div.sellist').css('left', l).css('top', 2);
+		frame.find('div.lgnd-container').css('left', l).css('top', 290);
+		frame.find('div.sellist').css('left', l).css('top', 20);
 	} // flushLgnd()
 
 		// PURPOSE: Return the Record bitmap data for this view

@@ -1577,14 +1577,14 @@ PVizFrame.prototype.title = function()
 	return v.l;
 } // title()
 
-	// PURPOSE: Ensure Legend visible
+	// PURPOSE: Ensure Legend and Selection List visible
 	// NOTES:	Move Legend to far right; leave Selection List for now …
 PVizFrame.prototype.flushLgnd = function()
 {
 	var frame = jQuery('#view-frame-1');
 	var l = frame.width() - 280;
-	frame.find('div.lgnd-container').css('left', l).css('top', 270);
-	frame.find('div.sellist').css('left', l).css('top', 2);
+	frame.find('div.lgnd-container').css('left', l).css('top', 290);
+	frame.find('div.sellist').css('left', l).css('top', 20);
 } // flushLgnd()
 
 	// PURPOSE: Return the Record bitmap data for this view
@@ -2468,6 +2468,15 @@ PTextFrame.prototype.initDOM = function()
 	this.buildTextFrame();
 	buildBookMark();
 } // initDOM()
+
+	// PURPOSE: Ensure Selection List visible
+	// NOTES:	Move Legend to far right; leave Selection List for now …
+PTextFrame.prototype.flushLgnd = function()
+{
+	var frame = jQuery('#view-frame-0');
+	var l = frame.width() - 280;
+	frame.find('div.sellist').css('left', l).css('top', 20);
+} // flushLgnd()
 
 	// PURPOSE: Convert the IDs of all Records in text frame to IndexStream
 PTextFrame.prototype.txtIDs2IS = function()
@@ -3786,6 +3795,8 @@ jQuery(document).ready(function($) {
 			jQuery('#view-frame-0').toggleClass('mini-text');
 			jQuery('#view-frame-1').toggleClass('mini-text');
 			views[1].resize();
+			views[0].flushLgnd();
+			views[1].flushLgnd();
 		});
 
 		// Check if need to disable Perspective buttons (added 1.7)
