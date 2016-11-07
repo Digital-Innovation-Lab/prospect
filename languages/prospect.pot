@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Prospect\n"
-"POT-Creation-Date: 2016-11-01 10:28-0400\n"
+"POT-Creation-Date: 2016-11-07 08:28-0500\n"
 "PO-Revision-Date: 2016-03-08 15:33-0500\n"
 "Last-Translator: \n"
 "Language-Team: Digital Innovation Lab <dil@unc.edu>\n"
@@ -366,155 +366,155 @@ msgstr ""
 msgid "Prospect Archives"
 msgstr ""
 
-#: php/class-prospect-admin.php:2332 prospect.php:18 prospect.php:24
+#: php/class-prospect-admin.php:2332
+msgid "Website Complete Configuration Export"
+msgstr ""
+
+#: php/class-prospect-admin.php:2333
+msgid "IMPORTANT"
+msgstr ""
+
+#: php/class-prospect-admin.php:2333
+msgid "All Records must still be exported on a Template-by-Template basis; this archive file does not include Maps or Perspectives."
+msgstr ""
+
+#: php/class-prospect-admin.php:2335
+msgid "Export all"
+msgstr ""
+
+#: php/class-prospect-admin.php:2337
+msgid "Export all Attributes, Templates, Exhibits and Volumes from this website as a JSON archive file"
+msgstr ""
+
+#: php/class-prospect-admin.php:2340 prospect.php:18 prospect.php:24
 #: prospect.php:30
 msgid "Attributes"
 msgstr ""
 
-#: php/class-prospect-admin.php:2335
+#: php/class-prospect-admin.php:2343
 msgid "Export all Attributes as JSON archive file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2337
+#: php/class-prospect-admin.php:2345
 msgid "Export all Attributes as JSON file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2340 prospect.php:62 prospect.php:68
+#: php/class-prospect-admin.php:2348 prospect.php:62 prospect.php:68
 #: prospect.php:74
 msgid "Templates"
 msgstr ""
 
-#: php/class-prospect-admin.php:2342
+#: php/class-prospect-admin.php:2350
 msgid "Export all Templates as JSON archive file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2344
+#: php/class-prospect-admin.php:2352
 msgid "Export all Templates as JSON file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2349 php/class-prospect-admin.php:2351
+#: php/class-prospect-admin.php:2357 php/class-prospect-admin.php:2359
 msgid "Export Data Dictionaries for all Templates"
 msgstr ""
 
-#: php/class-prospect-admin.php:2355
+#: php/class-prospect-admin.php:2363
 msgid "Export this Template type with all Attributes"
 msgstr ""
 
-#: php/class-prospect-admin.php:2369
+#: php/class-prospect-admin.php:2377
 msgid "As JSON archive file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2372
+#: php/class-prospect-admin.php:2380
 msgid "As Data Dictionary"
 msgstr ""
 
-#: php/class-prospect-admin.php:2376
+#: php/class-prospect-admin.php:2384
 msgid "Export all Records of this Template type (as CSV file)"
 msgstr ""
 
-#: php/class-prospect-admin.php:2387
+#: php/class-prospect-admin.php:2395
 msgid "Export Records"
 msgstr ""
 
-#: php/class-prospect-admin.php:2390 prospect.php:151 prospect.php:157
+#: php/class-prospect-admin.php:2398 prospect.php:151 prospect.php:157
 #: prospect.php:164
 msgid "Exhibits"
 msgstr ""
 
-#: php/class-prospect-admin.php:2392
+#: php/class-prospect-admin.php:2400
 msgid "Export all Exhibits as JSON archive file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2394
+#: php/class-prospect-admin.php:2402
 msgid "Export all Exhibits as JSON file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2398
+#: php/class-prospect-admin.php:2406
 msgid "Export all Perspectives of this Exhibit as JSON file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2410
+#: php/class-prospect-admin.php:2418
 msgid "Export Perspectives"
 msgstr ""
 
-#: php/class-prospect-admin.php:2414 prospect.php:193
+#: php/class-prospect-admin.php:2422 prospect.php:193
 msgid "Maps"
 msgstr ""
 
-#: php/class-prospect-admin.php:2416
+#: php/class-prospect-admin.php:2424
 msgid "Export all Maps as JSON archive file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2418
+#: php/class-prospect-admin.php:2426
 msgid "Export all Maps as JSON file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2422
+#: php/class-prospect-admin.php:2430
 #: php/scripts/english-us/view-exhibit.php:140 prospect.php:237
 #: prospect.php:243 prospect.php:250
 msgid "Perspectives"
 msgstr ""
 
-#: php/class-prospect-admin.php:2424
+#: php/class-prospect-admin.php:2432
 msgid "Export all Perspectives as JSON archive file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2426
+#: php/class-prospect-admin.php:2434
 msgid "Export all Perspectives as JSON file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2430 prospect.php:279 prospect.php:285
+#: php/class-prospect-admin.php:2438 prospect.php:279 prospect.php:285
 #: prospect.php:292
 msgid "Volumes"
 msgstr ""
 
-#: php/class-prospect-admin.php:2432
+#: php/class-prospect-admin.php:2440
 msgid "Export all Volumes as JSON archive file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2434
+#: php/class-prospect-admin.php:2442
 msgid "Export all Volumes as JSON file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2438
+#: php/class-prospect-admin.php:2446
 msgid "Export all Readings of this Volume as JSON file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2450
+#: php/class-prospect-admin.php:2458
 msgid "Export All Readings"
 msgstr ""
 
-#: php/class-prospect-admin.php:2454 php/scripts/english-us/view-volume.php:206
+#: php/class-prospect-admin.php:2462 php/scripts/english-us/view-volume.php:206
 #: prospect.php:321 prospect.php:327 prospect.php:334
 msgid "Readings"
 msgstr ""
 
-#: php/class-prospect-admin.php:2456
+#: php/class-prospect-admin.php:2464
 msgid "Export all Readings as JSON archive file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2458
+#: php/class-prospect-admin.php:2466
 msgid "Export all Readings as JSON file"
-msgstr ""
-
-#: php/class-prospect-admin.php:2462
-msgid "Website Configuration Export"
-msgstr ""
-
-#: php/class-prospect-admin.php:2463
-msgid "IMPORTANT"
-msgstr ""
-
-#: php/class-prospect-admin.php:2463
-msgid "All Records must still be exported on a Template-by-Template basis; this archive file does not include Maps or Perspectives."
-msgstr ""
-
-#: php/class-prospect-admin.php:2465
-msgid "Export all"
-msgstr ""
-
-#: php/class-prospect-admin.php:2467
-msgid "Export all Attributes, Templates, Exhibits and Volumes from this website as a JSON archive file"
 msgstr ""
 
 #: php/class-prospect-admin.php:2470
@@ -1224,7 +1224,7 @@ msgstr ""
 
 #: php/scripts/english-us/edit-exhibit.php:119
 #: php/scripts/english-us/edit-volume.php:111
-msgid "Disable “See Record” button"
+msgid "Disable “See Item” button"
 msgstr ""
 
 #: php/scripts/english-us/edit-exhibit.php:121
