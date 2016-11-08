@@ -840,51 +840,6 @@
 	</tabs>
 </script>
 
-<!-- Unfinished placeholder -->
-<script id="vfTree" type='text/ractive'>
-	<?php _e('Display Width', 'prospect'); ?>: <input type="number" value="{{c.w}}" min="2" max="9999"/>
-	<?php _e('Height', 'prospect'); ?>: <input type="number" value="{{c.h}}" min="2" max="9999"/>
-	<?php _e('Tree type', 'prospect'); ?>: <select value="{{c.form}}">
-			<option value="f"><?php _e('Flat', 'prospect'); ?></option>
-			<option value="r"><?php _e('Radial', 'prospect'); ?></option>
-			<option value="s"><?php _e('Segment', 'prospect'); ?></option>
-		</select>
-	<br/>
-	<?php _e('Head node(s)', 'prospect'); ?>: <input type="text" value="{{c.head}}" size="32" required/>
-	<?php _e('Node Radius', 'prospect'); ?>: <input type="number" value="{{c.r}}" min="1" max="99"/>
-	<br/>
-	<?php _e('Font Size', 'prospect'); ?>: <input type="number" value="{{c.f}}" min="1" max="99"/>
-	<?php _e('Padding', 'prospect'); ?>: <input type="number" value="{{c.pad}}" min="1" max="999"/>
-	<br/>
-
-	<?php _e('Choose the Attribute(s) to visualize according to Template type', 'prospect'); ?>:
-	<tabs>
-		<ul>
-		{{#each iTemplates:tIndex}}
-			<li><a href="#tmpt-vf-tab-{{incID}}-{{tIndex}}">{{tid}}</a></li>
-		{{/each}}
-		</ul>
-		{{#each iTemplates:tIndex}}
-		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
-			<b><?php _e('Pointer Attribute to descendants', 'prospect'); ?>: </b>
-			<select value='{{c.pAtts[tIndex]}}'>
-			{{#each attsPtr}}
-				<option>{{this}}</option>
-			{{/each}}
-			</select>
-			<?php _e('Link Line Color', 'prospect'); ?>: <input type="text" value="{{c.lClrs[tIndex]}}" size="10"/>
-			<br/>
-			<b><?php _e('Provide Legends', 'prospect'); ?>: </b>
-			{{#each c.lgnds[tIndex]}}
-				<span class="attribute-controls">
-					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
-				</span>
-			{{/each}}
-		</div>
-		{{/each}}
-	</tabs>
-</script>
-
 
 <!-- DIALOGS -->
 <!-- New View Dialog -->

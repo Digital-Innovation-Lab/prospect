@@ -1011,28 +1011,6 @@ jQuery(document).ready(function() {
 				theVF.c.oAtts = newOAtts;
 				theVF.c.lgnds = newLgnds;
 				break;
-
-			case 'G': 	// Tree -- view not implemented
-				var newP=[], newLgnds=[], newLClrs=[];
-				iTemplates.forEach(function(theTmplt) {
-					var origTIndex = getTemplateIndex(theTmplt.tid);
-						// Was this Template absent in original config?
-					if (origTIndex == -1) {
-						newP.push(theTmplt.attsPtr[0] || '');
-						newLClrs.push('#FFD700');
-						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
-								return { attID: theLgndAtt, useAtt: true };
-							}));
-					} else {
-						newP.push(checkAttID(theVF.c.pAtts[origTIndex], theTmplt.attsPtr, ''));
-						newLClrs.push(theVF.c.lClrs[origTIndex]);
-						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
-					}
-				});
-				theVF.c.pAtts = newP;
-				theVF.c.lClrs = newLClrs;
-				theVF.c.lgnds = newLgnds;
-				break;
 			} // switch viewtype
 		} // for views
 	})();
@@ -1326,30 +1304,6 @@ jQuery(document).ready(function() {
 				});
 				newVFEntry.c.pAtts = _.map(iTemplates, function(theTemplate) {
 					return [];
-				});
-				break;
-
-			case 'G': 	// Tree -- placeholder, not implemented
-				newVFEntry.c.form = 'f';
-				newVFEntry.c.w    = 1000;
-				newVFEntry.c.h    = 1000;
-				newVFEntry.c.head = '';
-				newVFEntry.c.r    = 4;
-				newVFEntry.c.f    = 12;
-				newVFEntry.c.pad  = 100;
-					// Pointers to children
-				newVFEntry.c.pAtts= _.map(iTemplates, function(theTemplate) {
-					return theTemplate.attsPtr[0] || '';
-				});
-					// Connection colors
-				newVFEntry.c.lClrs= _.map(iTemplates, function(theTemplate) {
-					return '#FFD700';
-				});
-					// Potential Legends
-				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
-					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
-						return { attID: theLgndAtt, useAtt: true };
-					});
 				});
 				break;
 			} // switch
@@ -1913,25 +1867,6 @@ jQuery(document).ready(function() {
 					saveView.c.pAtts = newPAtts;
 					saveView.c.lgnds = newLgnds;
 					saveView.c.oAtts = packUsedAttIDs(viewSettings.c.oAtts);
-					break;
-
-
-				case 'G': 	// Tree -- not yet implemented
-					saveView.c.form  = viewSettings.c.form;
-					saveView.c.w     = viewSettings.c.w;
-					saveView.c.h     = viewSettings.c.h;
-					saveView.c.head  = viewSettings.c.head;
-					saveView.c.r     = viewSettings.c.r;
-					saveView.c.f     = viewSettings.c.f;
-					saveView.c.pad   = viewSettings.c.pad;
-					var newLgnds=[], newLClrs=[];
-					saveTIndices.forEach(function(tIndex) {
-						newLClrs.push(viewSettings.c.lClrs[tIndex]);
-						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
-					});
-					saveView.c.pAtts = packUsedAttIDs(viewSettings.c.pAtts);
-					saveView.c.lClrs = newLClrs;
-					saveView.c.lgnds = newLgnds;
 					break;
 				} // switch
 				saveViews.push(saveView);
