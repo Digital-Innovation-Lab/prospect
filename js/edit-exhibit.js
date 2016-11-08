@@ -413,12 +413,25 @@ jQuery(document).ready(function() {
 
 		saveGen.ts = [];
 
-		for (var i=0; i<iTemplates.length; i++) {
+		var i;
+		for (i=0; i<iTemplates.length; i++) {
 			var used = rApp.get('iTemplates['+i+'].use');
 			if (used) {
 				saveGen.ts.push(rApp.get('iTemplates['+i+'].tid'));
 				saveTIndices.push(i);
 			}
+		}
+
+			// Ensure unique labels given to all views
+		var vNames=[];
+		for (i=0; i<rApp.get('viewSettings.length'); i++) {
+			var label = rApp.get('viewSettings['+i+'].l');
+			label = label.trim();
+			if (_.indexOf(vNames,label) != -1) {
+				displayError('#errmsg-dup-label', label);
+				return false;
+			}
+			vNames.push(label);
 		}
 
 		if (saveGen.ts.length == 0 || saveGen.ts.length > 4) {
@@ -1654,7 +1667,7 @@ jQuery(document).ready(function() {
 				return newArray;
 			} // packUsedAttIDs
 
-				// Compact View Attribute arrays
+				// Compact View Setting arrays
 			var vCount = rApp.get('viewSettings.length');
 			for (var i=0; i<vCount; i++) {
 				var saveView = {}, viewSettings = rApp.get('viewSettings['+i+']');
