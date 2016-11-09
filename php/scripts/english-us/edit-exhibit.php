@@ -56,6 +56,63 @@
 			{{#each iTemplates}}
 				<input type='checkbox' checked='{{use}}'/> {{tid}}
 			{{/each}}
+			<br/>
+			<input type='checkbox' checked='{{qrOn}}'/> Enable Qualified Relationships &nbsp;&nbsp;
+			{{#if qrOn}}
+				QR Template <select value='{{genSettings.qr.t}}'>
+				{{#each iTemplates}}
+					<option>{{this.tid}}</option>
+				{{/each}}
+				</select>
+				<br/>
+				Entity 1 <select value='{{genSettings.qr.e1}}'> &nbsp;
+				{{#each qrOptions.optsPtr}}
+					<option>{{this}}</option>
+				{{/each}}
+				</select>
+				Entity 2 <select value='{{genSettings.qr.e2}}'> &nbsp;
+				{{#each qrOptions.optsPtr}}
+					<option>{{this}}</option>
+				{{/each}}
+				</select>
+				Dates <select value='{{genSettings.qr.d}}'>
+				{{#each qrOptions.optsDates}}
+					<option>{{this}}</option>
+				{{/each}}
+				</select>
+				<br/>
+				Relationships <select value='{{genSettings.qr.r}}'> &nbsp;
+				{{#each qrOptions.optsVocab}}
+					<option>{{this}}</option>
+				{{/each}}
+				</select>
+				Role 1 <select value='{{genSettings.qr.r1}}'> &nbsp;
+				{{#each qrOptions.optsTxt}}
+					<option>{{this}}</option>
+				{{/each}}
+				</select>
+				Role 2 <select value='{{genSettings.qr.r2}}'>
+				{{#each qrOptions.optsTxt}}
+					<option>{{this}}</option>
+				{{/each}}
+				</select>
+				<br/>
+				Lat-Lon 1 <select value='{{genSettings.qr.c1}}'> &nbsp;
+				{{#each qrOptions.optsLL}}
+					<option>{{this}}</option>
+				{{/each}}
+				</select>
+				Lat-Lon 2 <select value='{{genSettings.qr.c2}}'> &nbsp;
+				{{#each qrOptions.optsLL}}
+					<option>{{this}}</option>
+				{{/each}}
+				</select>
+				Certainty <select value='{{genSettings.qr.c}}'> &nbsp;
+				{{#each qrOptions.optsNum}}
+					<option>{{this}}</option>
+				{{/each}}
+				</select>
+			{{/if}}
 		</div>
 		<h3><?php _e('Visualizations', 'prospect'); ?></h3>
 		<div>

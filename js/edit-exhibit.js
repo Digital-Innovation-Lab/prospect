@@ -193,7 +193,12 @@ jQuery(document).ready(function() {
 		// General Attributes
 	var xhbtID = jQuery('input[name="prsp_xhbt_id"]').val();
 
-	var defGen = { l: '', hbtn: '', hurl: '', ts: [], tour: false, dspr: false, auto: true };
+	var qrOn = false;
+	var defGen = { l: '', hbtn: '', hurl: '', ts: [], tour: false, dspr: false, auto: true,
+					qr: { t: 'disable', e1: '', e2: '', d: '', r: '', r1: '', r2: '',
+							c1: 'disable', c2: 'disable', c: 'disable', x: []
+						}
+ 				 };
 	embedData = jQuery('textarea[name="prsp_xhbt_gen"]').val();
 	if (embedData && embedData != 'null' && embedData.length > 4) {
 		defGen = JSON.parse(embedData);
@@ -208,6 +213,14 @@ jQuery(document).ready(function() {
 			// Create default setting for Disable Perspectives if not defined (added in 1.7)
 		if (typeof defGen.auto === 'undefined') {
 			defGen.auto = true;
+		}
+			// Create default settings for Qualified Relationships if not defined (added in 1.8)
+		if (typeof defGen.qr === 'undefined') {
+			defGen.qr = { t: 'disable', e1: '', e2: '', d: '', r: '', r1: '', r2: '',
+						 c1: 'disable', c2: 'disable', c: 'disable', x: []
+						};
+		} else {
+			qrOn=true;
 		}
 	}
 
@@ -257,6 +270,7 @@ jQuery(document).ready(function() {
 
 		// RUN-TIME VARS
 		// =============
+	// var qrOn defined above
 	var rApp;							// the main Ractive application
 	var errTimer;
 	var errorString = '';				// error readout
@@ -292,6 +306,10 @@ jQuery(document).ready(function() {
 	var defJoinedAtts = [ ];
 		// Array of all (open) Facet Attribute definitions after Joins done
 	var defJoinedFacets = [ ];
+		// Configuration options for Qualified Templates
+	var qrOptions = {   optsPtr: [], optsLL: [], optsTxt: [], optsVocab: [],
+						optsDates: [], optsNum: []
+					};
 
 		// CODE
 		// ====
@@ -484,7 +502,7 @@ jQuery(document).ready(function() {
 		if (!theTmplt.def.d) {
 			var attsTxt=[], attsDates=['disable'], attsDNum=['disable'], attsLL=[], attsDLL=['disable'],
 				attsXY=['disable'], attsImg=['disable'], attsSC=['disable'], attsYT=['disable'],
-				attsTrns=['disable'], attsTC=['disable'], attsPtr=[], attsDPtr=['disable'],
+				attsTrns=['disable'], attsTC=['disable'], attsPtr=[], attsDPtr=['disable'], attsVocab=[],
 				attsLgnd=[], attsCnt=[], attsTCnt=[], attsOAtt=[], attsFct=['disable'];
 
 			_.forEach(theTmplt.def.a, function(theAttID) {
@@ -492,6 +510,7 @@ jQuery(document).ready(function() {
 				{
 					switch (type) {
 					case 'V':
+						attsVocab.push(prefix+theAttID);
 						attsLgnd.push(prefix+theAttID);
 						attsCnt.push(prefix+theAttID);
 						attsTCnt.push(prefix+theAttID);
@@ -613,7 +632,7 @@ jQuery(document).ready(function() {
 								attsLL: attsLL, attsDLL: attsDLL, attsXY: attsXY, attsImg: attsImg, attsSC: attsSC,
 								attsYT: attsYT, attsTrns: attsTrns, attsTC: attsTC, attsPtr: attsPtr,
 								attsDPtr: attsDPtr, attsLgnd: attsLgnd, attsCnt: attsCnt, attsTCnt: attsTCnt,
-								attsOAtt: attsOAtt, attsFct: attsFct
+								attsOAtt: attsOAtt, attsFct: attsFct, attsVocab: attsVocab
 							};
 			iTemplates.push(tmpltEntry);
 		}
@@ -636,6 +655,33 @@ jQuery(document).ready(function() {
 
 		// Create list of Attribute IDs of all Joined facets for drop-down menu
 	var facetAttIDs = defJoinedFacets.map(function(f) { return f.id; });
+
+
+		// PURPOSE: Create all of the options for QRs based on which Template has been chosen
+		// INPUT:	selectedT = ID of Template selected for QR
+	function updateQROptions(selectedT)
+	{
+		var newPtr=[], newLL=[], newDates=[], newNum=[], newVocab=[], newTxt=[];
+
+		if (selectedT != 'disable') {
+			var tDef = iTemplates.find(function(thisTemplate) { return thisTemplate.tid === selectedT; });
+			if (tDef) {
+				newPtr = tDef.attsPtr.slice(0);
+				newLL = tDef.attsDLL.slice(0);
+				newDates  = tDef.attsDates.slice(0);
+				newNum  = tDef.attsDNum.slice(0);
+				newVocab  = tDef.attsVocab.slice(0);
+				newTxt = tDef.attsTxt.slice(0);
+			}
+		}
+
+		rApp.set('qrOptions.optsPtr', newPtr);
+		rApp.set('qrOptions.optsLL', newLL);
+		rApp.set('qrOptions.optsDates', newDates);
+		rApp.set('qrOptions.optsNum', newNum);
+		rApp.set('qrOptions.optsVocab', newVocab);
+		rApp.set('qrOptions.optsTxt', newTxt);
+	} // updateQROptions()
 
 		// PURPOSE: Created expanded array with useAtt: false if selArray not in fullArray
 		// INPUT:   fullArray = complete list of potential Attributes
@@ -689,7 +735,7 @@ jQuery(document).ready(function() {
 	} // checkAttID()
 
 		// Closure for temporary vars
-		// Initialize settings to correspond to iTemplates structures
+		// Initialize playback widget settings that correspond to iTemplates structures
 	if (true) {
 		var newSCAtts=[], newYTAtts=[], newT1Atts=[], newT2Atts=[], newTCAtts=[],
 			newModalAtts=[];
@@ -1032,11 +1078,24 @@ jQuery(document).ready(function() {
 			errorMsg: errorString,
 			baseMaps: PMapHub.getBaseLayers(),
 			layerMaps: PMapHub.getOverlays(),
-			mapGroups: prspdata.map_groups
+			mapGroups: prspdata.map_groups,
+			qrOn: qrOn,
+			qrOptions: qrOptions
 		},
 		components: {
 			accordion: RJAccordionComponent,
 			tabs: RJTabsComponent
+		}
+	});
+
+		// Set initial options for QR Template options
+	updateQROptions(defGen.qr.t);
+
+		// Watch for changes and reset when new QR Template chosen
+	rApp.observe('genSettings.qr.t', function (newValue, oldValue, keypath) {
+			// Non-initial change
+		if (typeof(oldValue) !== 'undefined') {
+			updateQROptions(newValue);
 		}
 	});
 
