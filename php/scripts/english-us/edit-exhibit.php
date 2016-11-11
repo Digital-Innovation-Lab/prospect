@@ -60,8 +60,8 @@
 			<input type='checkbox' checked='{{qrOn}}'/> Enable Qualified Relationships &nbsp;&nbsp;
 			{{#if qrOn}}
 				QR Template <select value='{{genSettings.qr.t}}'>
-				{{#each iTemplates}}
-					<option>{{this.tid}}</option>
+				{{#each qrOptions.t}}
+					<option>{{this}}</option>
 				{{/each}}
 				</select>
 				<br/>
@@ -112,6 +112,11 @@
 					<option>{{this}}</option>
 				{{/each}}
 				</select>
+				<br/>
+				<button on-click="setRoles"><?php _e('Set Roles for Relationships', 'prospect'); ?></button>
+				{{#if genSettings.qr.x.length == 0}}
+					&nbsp; <?php _e('(currently empty)', 'prospect'); ?>
+				{{/if}}
 			{{/if}}
 		</div>
 		<h3><?php _e('Visualizations', 'prospect'); ?></h3>
@@ -947,6 +952,23 @@
 	</dialog>
 </script>
 
+<!-- Map Relationhip values to Roles Attributes Dialog -->
+<script id="dialog-qr-x" type='text/ractive'>
+	<dialog title=<?php _e('"Set Roles for Relationships"', 'prospect'); ?> width="450" height="300">
+		<button on-click="resetterms"><?php _e('Read & Reset Terms', 'prospect'); ?></button><br/>
+		{{#each pairs:pIndex}}
+			<span class="oneterm">{{this.t}}</span>
+			<select value='{{this.id}}'>
+			{{#each vocabOpts}}
+				<option value="{{this}}">{{this}}</option>
+			{{/each}}
+			</select>
+			<br/>
+		{{/each}}
+	</dialog>
+</script>
+
+
 <!-- DYNAMIC TEXT -->
 <script id="dltext-visualizations" type='text/ractive'>
 <?php _e('D,Directory|B,Facet Browser|C,Cards|t,TextStream|M,Map 1|p,Map 2|T,Timeline|P,Pinboard|S,Stacked Chart|N,Network Wheel|n,Network Graph|F,Facet Flow|m,MultiBlock Map|b,Bucket Matrix', 'prospect'); ?>
@@ -992,6 +1014,10 @@
 
 <script id="errmsg-map-coords" type='text/ractive'>
 <?php _e('You must provide the center lat-long coordinate for map', 'prospect'); ?>
+</script>
+
+<script id="errmsg-qr-missing" type='text/ractive'>
+<?php _e('Some required Attributes are missing from the Qualified Relationship configuration', 'prospect'); ?>
 </script>
 
 

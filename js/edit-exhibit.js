@@ -308,8 +308,9 @@ jQuery(document).ready(function() {
 	var defJoinedFacets = [ ];
 		// Configuration options for Qualified Templates
 	var qrOptions = {   optsPtr: [], optsLL: [], optsTxt: [], optsVocab: [],
-						optsDates: [], optsNum: []
+						optsDates: [], optsNum: [], t: ['disable']
 					};
+
 
 		// CODE
 		// ====
@@ -331,6 +332,79 @@ jQuery(document).ready(function() {
 	// 	return template(vars);
 	// } // compileText()
 
+		// PURPOSE: Update all of the QR Att IDs based on choice of QR Template
+		// INPUT:	qrTID is ID of QR Template, or 'disable'
+	function resetQRAttIDs(qrID)
+	{
+		var qrT;
+			// PURPOSE: Ensure that Attribute actually exists in chosen Template
+			//			and convert nulls into 'disable'
+			// INPUT:	id = original Attribute ID
+			//			disable = true if "disable" stands for lack of setting (only optional settings)
+		function checkQRAttID(id, disable)
+		{
+			if (id == null) {
+				if (disable) {
+					return 'disable';
+				}
+				return '';
+			}
+
+			var failed=false;
+			var checkAtt;
+				// First check for Attribute ID in Template definition
+			checkAtt = _.indexOf(qrT.def.a, id);
+			if (checkAtt == -1) {
+				failed=true;
+			} else {
+				checkAtt = getAttribute(id);
+				if (typeof checkAtt === 'undefined') {
+					failed=true;
+				}
+			}
+			if (failed) {
+				if (disable) {
+					return 'disable';
+				}
+				return '';
+			}
+			return id;
+		} // checkQRAttID()
+		var hasQRT = (qrT==='disable') ? false : true;
+		var qrI;
+			// Check that Template ID exists
+		if (hasQRT) {
+			qrI = defTemplates.findIndex(function(theT) { return qrID === theT.id; });
+			if (qrI == -1) {
+				hasQRT=false;
+			} else {
+				qrT = defTemplates[qrI];
+			}
+		}
+		if (hasQRT) {
+			rApp.set('genSettings.qr.e1', checkQRAttID(rApp.get('genSettings.qr.e1'), false));
+			rApp.set('genSettings.qr.e2', checkQRAttID(rApp.get('genSettings.qr.e2'), false));
+			rApp.set('genSettings.qr.d',  checkQRAttID(rApp.get('genSettings.qr.d'), true));
+			rApp.set('genSettings.qr.r',  checkQRAttID(rApp.get('genSettings.qr.r')));
+			rApp.set('genSettings.qr.r1', checkQRAttID(rApp.get('genSettings.qr.r1')));
+			rApp.set('genSettings.qr.r2', checkQRAttID(rApp.get('genSettings.qr.r2')));
+			rApp.set('genSettings.qr.c',  checkQRAttID(rApp.get('genSettings.qr.c')));
+			rApp.set('genSettings.qr.c1', checkQRAttID(rApp.get('genSettings.qr.c1')));
+			rApp.set('genSettings.qr.c2', checkQRAttID(rApp.get('genSettings.qr.c2')));
+		} else {
+			rApp.set('genSettings.qr.t', 'disable');
+			rApp.set('genSettings.qr.e1', '');
+			rApp.set('genSettings.qr.e2', '');
+			rApp.set('genSettings.qr.d',  'disable');
+			rApp.set('genSettings.qr.r',  '');
+			rApp.set('genSettings.qr.r1', '');
+			rApp.set('genSettings.qr.r2', '');
+			rApp.set('genSettings.qr.c',  'disable');
+			rApp.set('genSettings.qr.c1', 'disable');
+			rApp.set('genSettings.qr.c2', 'disable');
+			rApp.set('genSettings.qr.x', []);
+		}
+	} // resetQRAttIDs()
 
 		// PURPOSE: Show error message for 5 seconds
 	function displayError(errID, append, ok)
@@ -428,6 +502,29 @@ jQuery(document).ready(function() {
 		saveGen.tour = rApp.get('genSettings.tour');
 		saveGen.dspr = rApp.get('genSettings.dspr');
 		saveGen.auto = rApp.get('genSettings.auto');
+
+			// Has user enabled Qualified Relationships?
+		if (rApp.get('qrOn') && rApp.get('genSettings.qr.t') != 'disable') {
+			function disableToNull(id)
+			{
+				return (id == 'disable') ? null : id;
+			} // disableToNull()
+			saveGen.qr = rApp.get('genSettings.qr');
+console.log("Saved settings: "+JSON.stringify(saveGen.qr));
+			saveGen.qr.c  = disableToNull(saveGen.qr.c);
+			saveGen.qr.c1 = disableToNull(saveGen.qr.c1);
+			saveGen.qr.c2 = disableToNull(saveGen.qr.c2);
+				// Check that all required Attribute settings are given
+			if (saveGen.qr.e1 == '' || saveGen.qr.e2 == '' || saveGen.qr.d == '' || saveGen.qr.r == '' ||
+				saveGen.qr.r1 == '' || saveGen.qr.r2 == '')
+			{
+				displayError('#errmsg-qr-missing');
+				return false;
+			}
+				// TO DO: Error checking
+				//			Check that terms in qr.x are in the selected Relationship Attribute
+				//			Check that r1/r2, e1/e2 are different Attributes
+		}
 
 		saveGen.ts = [];
 
@@ -627,6 +724,8 @@ jQuery(document).ready(function() {
 				// Is Template ID given in existing configuration?
 			var isUsed = getTemplateIndex(theTmplt.id) != -1;
 
+			qrOptions.t.push(theTmplt.id);
+
 			var tmpltEntry = { tid: theTmplt.id, use: isUsed,
 								attsTxt: attsTxt, attsDates: attsDates, attsDNum: attsDNum,
 								attsLL: attsLL, attsDLL: attsDLL, attsXY: attsXY, attsImg: attsImg, attsSC: attsSC,
@@ -640,11 +739,15 @@ jQuery(document).ready(function() {
 		// Sort Joined Attributes by ID
 	defJoinedAtts = _.sortBy(defJoinedAtts, 'id');
 
+		// Collect IDs all Vocabulary Attributes
+	var allVocabAttIDs=[];
+
 		// Compile Joined Facets from Joined Attributes
 	_.forEach(defJoinedAtts, function(theJAtt) {
 		switch (theJAtt.def.t) {
-		case 'T':
 		case 'V':
+			allVocabAttIDs.push(theJAtt.id);
+		case 'T':
 		case 'g':
 		case 'N':
 		case 'D':
@@ -1088,18 +1191,61 @@ jQuery(document).ready(function() {
 		}
 	});
 
-		// Set initial options for QR Template options
+		// Set initial options for QR Template options and Attribute IDs
 	updateQROptions(defGen.qr.t);
+	resetQRAttIDs(defGen.qr.t);
 
 		// Watch for changes and reset when new QR Template chosen
 	rApp.observe('genSettings.qr.t', function (newValue, oldValue, keypath) {
 			// Non-initial change
 		if (typeof(oldValue) !== 'undefined') {
 			updateQROptions(newValue);
+			resetQRAttIDs(newValue);
 		}
 	});
 
-		// Create a blank new View/Filter
+		// Open dialog to set Role Vocab for each Relationship value
+	rApp.on('setRoles', function() {
+		var pairs=rApp.get('genSettings.qr.x');
+		pairs = pairs.slice(0);
+		var newDialog = new Ractive({
+			el: '#insert-dialog',
+			template: '#dialog-qr-x',
+			data: {
+				pairs: pairs,
+				vocabOpts: allVocabAttIDs
+			},
+			components: {
+				dialog: RJDialogComponent
+			}
+		}); // new Ractive()
+
+			// NOTE: This only supports single-tier Legends (no secondary hierarchical terms)
+		newDialog.on('resetterms', function() {
+			var newPairs=[];
+			var rAttID=rApp.get('genSettings.qr.r');
+			var defID = allVocabAttIDs.length > 0 ? allVocabAttIDs[0] : '';
+			if (rAttID != '') {
+				var rAtt = getAttribute(rAttID);
+				if (rAtt) {
+					rAtt.l.forEach(function(l) {
+						newPairs.push({ t: l.l, id: defID });
+					});
+				}
+			}
+			newDialog.set('pairs', newPairs);
+		});
+
+		newDialog.on('dialog.ok', function() {
+			pairs = newDialog.get('pairs');
+			rApp.set('genSettings.qr.x', pairs);
+			newDialog.teardown();
+		});
+		newDialog.on('dialog.cancel', newDialog.teardown);
+		return false;
+	});
+
+		// Create a blank new View
 	rApp.on('addView', function() {
 		var label = '';
 		var vfType = vfTypes[0].c;
@@ -1637,7 +1783,7 @@ jQuery(document).ready(function() {
 		var result = doErrorCheck();
 
 		if (result) {
-			var saveGen = result[0]; 		// saveGen.ts is list of all Template IDs to be saved!
+			var saveGen = result[0];
 			var saveTIndices = result[1];
 			var saveID = rApp.get('xhbtID').trim();
 			var saveViews=[], saveInspect={};

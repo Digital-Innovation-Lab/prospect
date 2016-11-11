@@ -984,7 +984,8 @@ class ProspectAdmin {
 								array('ractive', 'jquery-ui-button', 'jquery-ui-accordion', 'jquery-ui-tabs', 'underscore', 'p-map-hub'));
 
 					// Get all definitions of all current Attributes
-				$att_defs = ProspectAttribute::get_all_attributes(true, false, false, false);
+					// Need Legends because of Qualified Relationships (matching Relationships with Roles)
+				$att_defs = ProspectAttribute::get_all_attributes(true, false, false, true);
 					// Compile definition JSON strings into array
 				$att_data = array();
 				foreach($att_defs as $the_attribute) {
@@ -992,6 +993,9 @@ class ProspectAdmin {
 					$an_att['id'] = $the_attribute->id;
 					$an_att['p'] = $the_attribute->privacy;
 					$an_att['def'] = $the_attribute->def;
+					if ($the_attribute->def->t == 'V') {
+						$an_att['l'] = $the_attribute->legend;
+					}
 					array_push($att_data, $an_att);
 				}
 
@@ -3081,11 +3085,11 @@ class ProspectAdmin {
 
 
 
-		// PURPOSE: Returns Geonames API results 
+		// PURPOSE: Returns Geonames API results
 		// INPUT: $_POST['query'] = name query from Geonames dialog
 	public function prsp_get_geonames() {
 		$content = @file_get_contents('http://api.geonames.org/searchJSON?q='. $_POST['query'] .'&maxRows=10&username=UNCDIL');
-		
+
 		if ($content === false) {
 			$result = 'Error';
 		} else {
