@@ -1,7 +1,6 @@
 // Exhibit Editor
 
 // ASSUMES: A view area for the browser has been marked with HTML div as "ractive-output"
-// NOTES:
 // USES:    jQuery, Underscore, jQueryUI, and Ractive
 // ASSUMES: All data not to be edited by user passed in prspdata
 //			All data to be edited by user passed in hidden fields
@@ -195,8 +194,8 @@ jQuery(document).ready(function() {
 
 	var qrOn = false;
 	var defGen = { l: '', hbtn: '', hurl: '', ts: [], tour: false, dspr: false, auto: true,
-					qr: { t: 'disable', e1: '', e2: '', d: '', r: '', r1: '', r2: '',
-							c1: 'disable', c2: 'disable', c: 'disable', x: []
+					qr: { t: 'disable', e1: '', e2: '', d: null, r: '', r1: '', r2: '',
+							c1: null, c2: null, c: null, x: []
 						}
  				 };
 	embedData = jQuery('textarea[name="prsp_xhbt_gen"]').val();
@@ -216,8 +215,8 @@ jQuery(document).ready(function() {
 		}
 			// Create default settings for Qualified Relationships if not defined (added in 1.8)
 		if (typeof defGen.qr === 'undefined') {
-			defGen.qr = { t: 'disable', e1: '', e2: '', d: '', r: '', r1: '', r2: '',
-						 c1: 'disable', c2: 'disable', c: 'disable', x: []
+			defGen.qr = { t: 'disable', e1: '', e2: '', d: null, r: '', r1: '', r2: '',
+						 c1: null, c2: null, c: null, x: []
 						};
 		} else {
 			qrOn=true;
@@ -332,7 +331,7 @@ jQuery(document).ready(function() {
 	// 	return template(vars);
 	// } // compileText()
 
-		// PURPOSE: Update all of the QR Att IDs based on choice of QR Template
+		// PURPOSE: Ensure all of the QR Att IDs are valid (still found in QR Template)
 		// INPUT:	qrTID is ID of QR Template, or 'disable'
 	function resetQRAttIDs(qrID)
 	{
@@ -343,6 +342,11 @@ jQuery(document).ready(function() {
 			//			disable = true if "disable" stands for lack of setting (only optional settings)
 		function checkQRAttID(id, disable)
 		{
+				// Is it alread 'disable'?
+			if (id == 'disable') {
+				return id;
+			}
+				// Do we need to translate null to non-selection?
 			if (id == null) {
 				if (disable) {
 					return 'disable';
@@ -351,13 +355,15 @@ jQuery(document).ready(function() {
 			}
 
 			var failed=false;
-			var checkAtt;
+			var checkAtt, prefixID;
 				// First check for Attribute ID in Template definition
-			checkAtt = _.indexOf(qrT.def.a, id);
+				// If this is a Joined Attribute, Template will only have Join ID
+			prefixID = id.split('.')[0];
+			checkAtt = qrT.def.a.findIndex(function(theAttID) { return prefixID == theAttID; })
 			if (checkAtt == -1) {
 				failed=true;
 			} else {
-				checkAtt = getAttribute(id);
+				checkAtt = getJAttribute(id);
 				if (typeof checkAtt === 'undefined') {
 					failed=true;
 				}
@@ -385,12 +391,12 @@ jQuery(document).ready(function() {
 			rApp.set('genSettings.qr.e1', checkQRAttID(rApp.get('genSettings.qr.e1'), false));
 			rApp.set('genSettings.qr.e2', checkQRAttID(rApp.get('genSettings.qr.e2'), false));
 			rApp.set('genSettings.qr.d',  checkQRAttID(rApp.get('genSettings.qr.d'), true));
-			rApp.set('genSettings.qr.r',  checkQRAttID(rApp.get('genSettings.qr.r')));
-			rApp.set('genSettings.qr.r1', checkQRAttID(rApp.get('genSettings.qr.r1')));
-			rApp.set('genSettings.qr.r2', checkQRAttID(rApp.get('genSettings.qr.r2')));
-			rApp.set('genSettings.qr.c',  checkQRAttID(rApp.get('genSettings.qr.c')));
-			rApp.set('genSettings.qr.c1', checkQRAttID(rApp.get('genSettings.qr.c1')));
-			rApp.set('genSettings.qr.c2', checkQRAttID(rApp.get('genSettings.qr.c2')));
+			rApp.set('genSettings.qr.r',  checkQRAttID(rApp.get('genSettings.qr.r'), false));
+			rApp.set('genSettings.qr.r1', checkQRAttID(rApp.get('genSettings.qr.r1'), false));
+			rApp.set('genSettings.qr.r2', checkQRAttID(rApp.get('genSettings.qr.r2'), false));
+			rApp.set('genSettings.qr.c',  checkQRAttID(rApp.get('genSettings.qr.c'), true));
+			rApp.set('genSettings.qr.c1', checkQRAttID(rApp.get('genSettings.qr.c1'), true));
+			rApp.set('genSettings.qr.c2', checkQRAttID(rApp.get('genSettings.qr.c2'), true));
 		} else {
 			rApp.set('genSettings.qr.t', 'disable');
 			rApp.set('genSettings.qr.e1', '');
@@ -427,10 +433,18 @@ jQuery(document).ready(function() {
 
 
 		// RETURNS: Attribute definition from ID
+		// NOTE:	ONLY checks predefined Attributes, NOT Joined Attributes
 	function getAttribute(attID)
 	{
 		return _.find(defAtts, function(theAtt) { return theAtt.id === attID; });
 	} // getAttribute()
+
+		// RETURNS: Attribute definition from ID
+		// NOTE:	Checks ALL Attributes, inc. Joined Attributes
+	function getJAttribute(attID)
+	{
+		return _.find(defJoinedAtts, function(theAtt) { return theAtt.id === attID; });
+	} // getJAttribute()
 
 		// INPUT: iTemplate = the independent Template definition, jAttID = Join Attribute ID
 		// RETURNS: Dependent Template definition
@@ -505,25 +519,44 @@ jQuery(document).ready(function() {
 
 			// Has user enabled Qualified Relationships?
 		if (rApp.get('qrOn') && rApp.get('genSettings.qr.t') != 'disable') {
-			function disableToNull(id)
+			function preID(id)
 			{
-				return (id == 'disable') ? null : id;
+				if (id == 'disable') {
+					return null;
+				}
+				return id;
 			} // disableToNull()
 			saveGen.qr = rApp.get('genSettings.qr');
-console.log("Saved settings: "+JSON.stringify(saveGen.qr));
-			saveGen.qr.c  = disableToNull(saveGen.qr.c);
-			saveGen.qr.c1 = disableToNull(saveGen.qr.c1);
-			saveGen.qr.c2 = disableToNull(saveGen.qr.c2);
+
 				// Check that all required Attribute settings are given
-			if (saveGen.qr.e1 == '' || saveGen.qr.e2 == '' || saveGen.qr.d == '' || saveGen.qr.r == '' ||
+			if (saveGen.qr.e1 == '' || saveGen.qr.e2 == '' || saveGen.qr.r == '' ||
 				saveGen.qr.r1 == '' || saveGen.qr.r2 == '')
 			{
 				displayError('#errmsg-qr-missing');
 				return false;
 			}
-				// TO DO: Error checking
-				//			Check that terms in qr.x are in the selected Relationship Attribute
-				//			Check that r1/r2, e1/e2 are different Attributes
+				// Check that r1/r2, e1/e2, c1/c2 are different Attributes
+			if (saveGen.qr.e1 == saveGen.qr.e2 || saveGen.qr.r1 == saveGen.qr.r2 ||
+				(saveGen.qr.c1 != 'disable' && saveGen.qr.c1 == saveGen.qr.c2))
+			{
+				displayError('#errmsg-qr-unique');
+				return false;
+			}
+			// TO DO: Error checking
+			//		Ensure QR Template checked
+			//		Check that terms in qr.x are in the selected Relationship Attribute
+			saveGen.qr.e1 = preID(saveGen.qr.e1);
+			saveGen.qr.e2 = preID(saveGen.qr.e2);
+			saveGen.qr.d  = preID(saveGen.qr.d);
+			saveGen.qr.r  = preID(saveGen.qr.r);
+			saveGen.qr.r1 = preID(saveGen.qr.r1);
+			saveGen.qr.r2 = preID(saveGen.qr.r2);
+			saveGen.qr.c  = preID(saveGen.qr.c);
+			saveGen.qr.c1 = preID(saveGen.qr.c1);
+			saveGen.qr.c2 = preID(saveGen.qr.c2);
+			// saveGen.qr.x  = saveGen.qr.x.map(function(thePair) {
+			// 	return { t: thePair.t, id: thePair.id.replace(/\*/g, '.') }
+			// });
 		}
 
 		saveGen.ts = [];
@@ -696,7 +729,7 @@ console.log("Saved settings: "+JSON.stringify(saveGen.qr));
 								saveAttRef(attDef.id+'.', joinAttID, joinAtt.def.t);
 									// If Joined Attribute not in global list, add it
 								var joinedID = attDef.id+'.'+joinAttID;
-								if (_.find(defJoinedAtts, function(theAtt) { return theAtt.id === joinedID; }) == null)
+								if (getJAttribute(joinedID) == null)
 								{
 									var clonedAtt = _.clone(joinAtt);
 									clonedAtt.id = joinedID;
@@ -708,9 +741,10 @@ console.log("Saved settings: "+JSON.stringify(saveGen.qr));
 					default:
 							// Restrict to "Open" level of security
 						if (attDef.p == 'o') {
-								// Does it need to be added to global list?
-							if (_.find(defJoinedAtts, function(theAtt) { return theAtt.id === theAttID; }) == null)
+								// Does it need to be added to global list of Joined Attributes?
+							if (getJAttribute(theAttID) == null) {
 								defJoinedAtts.push(_.clone(attDef, true));
+							}
 							saveAttRef('', theAttID, attDef.def.t);
 						}
 						break;
@@ -759,7 +793,6 @@ console.log("Saved settings: "+JSON.stringify(saveGen.qr));
 		// Create list of Attribute IDs of all Joined facets for drop-down menu
 	var facetAttIDs = defJoinedFacets.map(function(f) { return f.id; });
 
-
 		// PURPOSE: Create all of the options for QRs based on which Template has been chosen
 		// INPUT:	selectedT = ID of Template selected for QR
 	function updateQROptions(selectedT)
@@ -769,12 +802,12 @@ console.log("Saved settings: "+JSON.stringify(saveGen.qr));
 		if (selectedT != 'disable') {
 			var tDef = iTemplates.find(function(thisTemplate) { return thisTemplate.tid === selectedT; });
 			if (tDef) {
-				newPtr = tDef.attsPtr.slice(0);
-				newLL = tDef.attsDLL.slice(0);
-				newDates  = tDef.attsDates.slice(0);
-				newNum  = tDef.attsDNum.slice(0);
-				newVocab  = tDef.attsVocab.slice(0);
-				newTxt = tDef.attsTxt.slice(0);
+				newPtr = tDef.attsPtr;
+				newLL = tDef.attsDLL;
+				newDates  = tDef.attsDates;
+				newNum  = tDef.attsDNum;
+				newVocab  = tDef.attsVocab;
+				newTxt = tDef.attsTxt;
 			}
 		}
 
@@ -1223,10 +1256,10 @@ console.log("Saved settings: "+JSON.stringify(saveGen.qr));
 			// NOTE: This only supports single-tier Legends (no secondary hierarchical terms)
 		newDialog.on('resetterms', function() {
 			var newPairs=[];
-			var rAttID=rApp.get('genSettings.qr.r');
 			var defID = allVocabAttIDs.length > 0 ? allVocabAttIDs[0] : '';
+			var rAttID=rApp.get('genSettings.qr.r');
 			if (rAttID != '') {
-				var rAtt = getAttribute(rAttID);
+				var rAtt = getJAttribute(rAttID);
 				if (rAtt) {
 					rAtt.l.forEach(function(l) {
 						newPairs.push({ t: l.l, id: defID });

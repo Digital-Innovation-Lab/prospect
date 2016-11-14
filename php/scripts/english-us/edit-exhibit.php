@@ -956,7 +956,7 @@
 <script id="dialog-qr-x" type='text/ractive'>
 	<dialog title=<?php _e('"Set Roles for Relationships"', 'prospect'); ?> width="450" height="300">
 		<button on-click="resetterms"><?php _e('Read & Reset Terms', 'prospect'); ?></button><br/>
-		{{#each pairs:pIndex}}
+		{{#each pairs}}
 			<span class="oneterm">{{this.t}}</span>
 			<select value='{{this.id}}'>
 			{{#each vocabOpts}}
@@ -1018,6 +1018,10 @@
 
 <script id="errmsg-qr-missing" type='text/ractive'>
 <?php _e('Some required Attributes are missing from the Qualified Relationship configuration', 'prospect'); ?>
+</script>
+
+<script id="errmsg-qr-unique" type='text/ractive'>
+<?php _e('Entity Attribute pairs E1/E2, R1/R2 and C1/C2 must be different', 'prospect'); ?>
 </script>
 
 
