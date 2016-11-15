@@ -161,6 +161,16 @@
 						{{>vfBrowser}}
 					{{elseif vf === 'b'}}
 						{{>vfBucketMatrix}}
+					{{elseif vf === 'L'}}
+						{{>vfLinkedChain}}
+					{{elseif vf === 'Q'}}
+						{{>vfQRMap}}
+					{{elseif vf === 'q'}}
+						{{>vfQRNetwork}}
+					{{elseif vf === 'E'}}
+						{{>vfEgoGraph}}
+					{{elseif vf === 'e'}}
+						{{>vfTimeRings}}
 					{{/if}}
 				</div>
 				{{#if vIndex != (viewSettings.length-1) }}<hr class="vf-divider"/>{{/if}}
@@ -317,7 +327,7 @@
 	<?php _e('Max Radius', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="20" required/>
 	<?php _e('Clustering', 'prospect'); ?>: <input type='checkbox' checked='{{c.clstr}}'/>
 	<br/>
-	<?php _e('Choose the Attribute(s) to visualize each Template type', 'prospect'); ?>
+	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
 	<tabs>
 		<ul>
 		{{#each iTemplates:tIndex}}
@@ -393,7 +403,7 @@
 	<?php _e('Min Radius', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="20" required/>
 	<?php _e('Max Radius', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="20" required/>
 	<br/>
-	<?php _e('Choose the Attribute(s) to visualize each Template type', 'prospect'); ?>
+	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
 	<tabs>
 		<ul>
 		{{#each iTemplates:tIndex}}
@@ -476,7 +486,7 @@
 		</select>
 	<input type='checkbox' checked='{{c.v}}'/> <?php _e('Stack image vertically', 'prospect'); ?>
 	<br/>
-	<?php _e('Choose the Attribute(s) to visualize on each card according to Template type', 'prospect'); ?>:
+	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
 	<tabs>
 		<ul>
 		{{#each iTemplates:tIndex}}
@@ -528,7 +538,7 @@
 	<?php _e('Min Radius', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="20" required/>
 	<?php _e('Max Radius', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="20" required/>
 	<br/>
-	<?php _e('Choose the Attribute(s) to visualize according to Template type', 'prospect'); ?>:
+	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
 	<tabs>
 		<ul>
 		{{#each iTemplates:tIndex}}
@@ -608,8 +618,7 @@
 	<?php _e('To Date', 'prospect'); ?>: <input type="text" value="{{c.to}}" size="12" placeholder=<?php _e('"YYYY-MM-DD"', 'prospect'); ?>/><br/>
 	<?php _e('Zoom Frame From Date', 'prospect'); ?>: <input type="text" value="{{c.zFrom}}" size="12" placeholder=<?php _e('"YYYY-MM-DD"', 'prospect'); ?>/>
 	<?php _e('To Date', 'prospect'); ?>: <input type="text" value="{{c.zTo}}" size="12" placeholder=<?php _e('"YYYY-MM-DD"', 'prospect'); ?>/><br/>
-
-	<?php _e('Choose the Attribute(s) to visualize according to Template type', 'prospect'); ?>:
+	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
 	<tabs>
 		<ul>
 		{{#each iTemplates:tIndex}}
@@ -641,7 +650,7 @@
 </script>
 
 <script id="vfDirectory" type='text/ractive'>
-	<?php _e('Choose the Attribute(s) to display according to Template type', 'prospect'); ?>:
+	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
 	<tabs>
 		<ul>
 		{{#each iTemplates:tIndex}}
@@ -669,7 +678,7 @@
 	<?php _e('Minimum Font Size', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="2" max="9999"/>
 	<?php _e('Maximum Font Size', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="2" max="9999"/>
 	<br/>
-	<?php _e('Choose the Attribute(s) to use according to Template type', 'prospect'); ?>:
+	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
 	<tabs>
 		<ul>
 		{{#each iTemplates:tIndex}}
@@ -714,7 +723,7 @@
 
 <script id="vfNetWheel" type='text/ractive'>
 	<?php _e('Maximum Label Pixel Width', 'prospect'); ?>: <input type="number" value="{{c.lw}}" min="2" max="9999"/><br/>
-	<?php _e('Network links based on Attribute/color pairs for each Template type', 'prospect'); ?>
+	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
 	<tabs>
 		<ul>
 		{{#each iTemplates:tIndex}}
@@ -758,7 +767,7 @@
 	<?php _e('Max Radius', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="20" required/>
 	<?php _e('Display size', 'prospect'); ?>: <input type="number" value="{{c.s}}" min="100" max="1500" required/>
 	<br/>
-	<?php _e('Network links based on Attribute/color pairs for each Template type', 'prospect'); ?>
+	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
 	<tabs>
 		<ul>
 		{{#each iTemplates:tIndex}}
@@ -856,7 +865,7 @@
 	<br/>
 	<input type='checkbox' checked='{{c.gr}}'/> <?php _e('Break Number and Date ranges into graduated scale?', 'prospect'); ?>
 	<br/>
-	<?php _e('Network links based on Attribute/color pairs for each Template type', 'prospect'); ?>
+	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
 	<tabs>
 		<ul>
 		{{#each iTemplates:tIndex}}
@@ -888,6 +897,167 @@
 				<br/>
 			{{/each}}
 			<b><?php _e('Provide Legends', 'prospect'); ?>:</b>
+			<button decorator="iconButton:ui-icon-check" on-click="allLgndsOn:{{vIndex}},{{tIndex}}"><?php _e('All On', 'prospect'); ?></button>
+			<button decorator="iconButton:ui-icon-cancel" on-click="allLgndsOff:{{vIndex}},{{tIndex}}"><?php _e('All Off', 'prospect'); ?></button>
+			{{#each c.lgnds[tIndex]:lIndex}}
+				<span class="attribute-controls">
+					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Left', 'prospect'); ?></button>
+					<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Right', 'prospect'); ?></button>
+				</span>
+			{{/each}}
+		</div>
+		{{/each}}
+	</tabs>
+</script>
+
+<script id="vfLinkedChain" type='text/ractive'>
+	<!-- Nothing currently needed -->
+</script>
+
+<script id="vfQRMap" type='text/ractive'>
+	<?php _e('Initial Map Center: Latitude', 'prospect'); ?>: <input type="text" value="{{c.clat}}" size="10" pattern="^-?\d{1,3}(\.\d*)*" required/>
+	<?php _e('Longitude', 'prospect'); ?>: <input type="text" value="{{c.clon}}" size="10" pattern="^-?\d{1,3}(\.\d*)*" required/>
+	<br/>
+	<?php _e('Initial Zoom Level (1=Max Zoom Out, 20=Max Zoom In)', 'prospect'); ?>: <input type="number" value="{{c.zoom}}" min="1" max="20" required/>
+	<br/>
+	<?php _e('Min Radius', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="20" required/>
+	<?php _e('Max Radius', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="20" required/>
+	<br/>
+	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
+	<tabs>
+		<ul>
+		{{#each iTemplates:tIndex}}
+			<li><a href="#tmpt-vf-tab-{{incID}}-{{tIndex}}">{{tid}}</a></li>
+		{{/each}}
+		</ul>
+		{{#each iTemplates:tIndex}}
+		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
+			<b><?php _e('Marker Radius Size', 'prospect'); ?>: </b>
+			<select value='{{c.sAtts[tIndex]}}'>
+			{{#each attsDNum}}
+				<option>{{this}}</option>
+			{{/each}}
+			</select><br/>
+			<b><?php _e('Provide Legends', 'prospect'); ?>:</b>
+			<button decorator="iconButton:ui-icon-check" on-click="allLgndsOn:{{vIndex}},{{tIndex}}"><?php _e('All On', 'prospect'); ?></button>
+			<button decorator="iconButton:ui-icon-cancel" on-click="allLgndsOff:{{vIndex}},{{tIndex}}"><?php _e('All Off', 'prospect'); ?></button>
+			{{#each c.lgnds[tIndex]:lIndex}}
+				<span class="attribute-controls">
+					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Left', 'prospect'); ?></button>
+					<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Right', 'prospect'); ?></button>
+				</span>
+			{{/each}}
+		</div>
+		{{/each}}
+	</tabs>
+	<?php _e('Map Base Layer', 'prospect'); ?>: <select value="{{c.base}}">
+	{{#each baseMaps}}
+		<option value="{{id}}">{{sname}}</option>
+	{{/each}}
+	</select>
+	<?php _e('Map Overlay Groups', 'prospect'); ?>:
+	{{#if mapGroups.length > 0 }}
+		<button on-click="addMapGroup:{{vIndex}}"><?php _e('Add Map Group', 'prospect'); ?></button><br/>
+	{{/if}}
+	{{#each c.lyrs:lIndex}}
+		<div class="map-layer-div">
+			<?php _e('Map Group ID', 'prospect'); ?>: <select value="{{gid}}">
+			{{#each mapGroups}}
+				<option value="{{this}}">{{this}}</option>
+			{{/each}}
+			</select>
+			<?php _e('Opacity', 'prospect'); ?>: <input type="range" min="0" max="1" value="{{o}}" step="0.1"/>
+			<button decorator="iconButton:ui-icon-trash" on-click="delMapGroup:{{vIndex}},{{lIndex}}"><?php _e('Delete', 'prospect'); ?></button>
+		</div>
+	{{/each}}
+</script>
+
+<script id="vfQRNetwork" type='text/ractive'>
+	<?php _e('Min Radius', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="20" required/>
+	<?php _e('Max Radius', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="20" required/>
+	<?php _e('Display size', 'prospect'); ?>: <input type="number" value="{{c.s}}" min="100" max="1500" required/>
+	<br/>
+	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
+	<tabs>
+		<ul>
+		{{#each iTemplates:tIndex}}
+			<li><a href="#tmpt-vf-tab-{{incID}}-{{tIndex}}">{{tid}}</a></li>
+		{{/each}}
+		</ul>
+		{{#each iTemplates:tIndex}}
+		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
+			<b><?php _e('Marker Radius Size', 'prospect'); ?>: </b>
+			<select value='{{c.sAtts[tIndex]}}'>
+			{{#each attsDNum}}
+				<option>{{this}}</option>
+			{{/each}}
+			</select><br/>
+			<b><?php _e('Provide Legends', 'prospect'); ?>:</b>
+			<button decorator="iconButton:ui-icon-check" on-click="allLgndsOn:{{vIndex}},{{tIndex}}"><?php _e('All On', 'prospect'); ?></button>
+			<button decorator="iconButton:ui-icon-cancel" on-click="allLgndsOff:{{vIndex}},{{tIndex}}"><?php _e('All Off', 'prospect'); ?></button>
+			{{#each c.lgnds[tIndex]:lIndex}}
+				<span class="attribute-controls">
+					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Left', 'prospect'); ?></button>
+					<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Right', 'prospect'); ?></button>
+				</span>
+			{{/each}}
+		</div>
+		{{/each}}
+	</tabs>
+</script>
+
+<script id="vfEgoGraph" type='text/ractive'>
+	<?php _e('Display size (in pixels)', 'prospect'); ?>: <input type="number" value="{{c.s}}" min="100" max="1500" required/>
+	<?php _e('Initial space between rings (in pixels)', 'prospect'); ?>: <input type="number" value="{{c.r}}" min="10" max="100" required/>
+	<?php _e('Initial number of rings', 'prospect'); ?>: <input type="number" value="{{c.n}}" min="10" max="100" required/>
+	<br/>
+	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
+	<tabs>
+		<ul>
+		{{#each iTemplates:tIndex}}
+			<li><a href="#tmpt-vf-tab-{{incID}}-{{tIndex}}">{{tid}}</a></li>
+		{{/each}}
+		</ul>
+		{{#each iTemplates:tIndex}}
+		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
+			<b><?php _e('Provide Legends', 'prospect'); ?>:</b>
+			<button decorator="iconButton:ui-icon-check" on-click="allLgndsOn:{{vIndex}},{{tIndex}}"><?php _e('All On', 'prospect'); ?></button>
+			<button decorator="iconButton:ui-icon-cancel" on-click="allLgndsOff:{{vIndex}},{{tIndex}}"><?php _e('All Off', 'prospect'); ?></button>
+			{{#each c.lgnds[tIndex]:lIndex}}
+				<span class="attribute-controls">
+					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
+					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Left', 'prospect'); ?></button>
+					<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Right', 'prospect'); ?></button>
+				</span>
+			{{/each}}
+		</div>
+		{{/each}}
+	</tabs>
+</script>
+
+<script id="vfTimeRings" type='text/ractive'>
+	<?php _e('Initial space between rings (in pixels)', 'prospect'); ?>: <input type="number" value="{{c.r}}" min="10" max="100" required/>
+	<br/>
+	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
+	<tabs>
+		<ul>
+		{{#each iTemplates:tIndex}}
+			<li><a href="#tmpt-vf-tab-{{incID}}-{{tIndex}}">{{tid}}</a></li>
+		{{/each}}
+		</ul>
+		{{#each iTemplates:tIndex}}
+		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
+			<b><?php _e('Dates Attribute to use', 'prospect'); ?>: </b>
+			<select value='{{c.dAtts[tIndex]}}'>
+			{{#each attsDates}}
+				<option>{{this}}</option>
+			{{/each}}
+			</select>
+			<br/>
+			<b><?php _e('Provide Legends', 'prospect'); ?>: </b>
 			<button decorator="iconButton:ui-icon-check" on-click="allLgndsOn:{{vIndex}},{{tIndex}}"><?php _e('All On', 'prospect'); ?></button>
 			<button decorator="iconButton:ui-icon-cancel" on-click="allLgndsOff:{{vIndex}},{{tIndex}}"><?php _e('All Off', 'prospect'); ?></button>
 			{{#each c.lgnds[tIndex]:lIndex}}
@@ -971,7 +1141,7 @@
 
 <!-- DYNAMIC TEXT -->
 <script id="dltext-visualizations" type='text/ractive'>
-<?php _e('D,Directory|B,Facet Browser|C,Cards|t,TextStream|M,Map 1|p,Map 2|T,Timeline|P,Pinboard|S,Stacked Chart|N,Network Wheel|n,Network Graph|F,Facet Flow|m,MultiBlock Map|b,Bucket Matrix', 'prospect'); ?>
+<?php _e('D,Directory|B,Facet Browser|C,Cards|t,TextStream|M,Map 1|p,Map 2|T,Timeline|P,Pinboard|S,Stacked Chart|N,Network Wheel|n,Network Graph|F,Facet Flow|m,MultiBlock Map|b,Bucket Matrix|L,Linked Chain|Q,QR-Map|q,QR-Network|E,Ego-Graph|e,Time-Rings', 'prospect'); ?>
 </script>
 
 

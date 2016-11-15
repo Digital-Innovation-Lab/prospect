@@ -32,7 +32,6 @@ if (!Array.prototype.findIndex) {
 
 
 jQuery(document).ready(function() {
-
 	Ractive.decorators.iconButton = function (node, icon) {
 		jQuery(node).button({
 			text: false,
@@ -554,9 +553,6 @@ jQuery(document).ready(function() {
 			saveGen.qr.c  = preID(saveGen.qr.c);
 			saveGen.qr.c1 = preID(saveGen.qr.c1);
 			saveGen.qr.c2 = preID(saveGen.qr.c2);
-			// saveGen.qr.x  = saveGen.qr.x.map(function(thePair) {
-			// 	return { t: thePair.t, id: thePair.id.replace(/\*/g, '.') }
-			// });
 		}
 
 		saveGen.ts = [];
@@ -743,7 +739,7 @@ jQuery(document).ready(function() {
 						if (attDef.p == 'o') {
 								// Does it need to be added to global list of Joined Attributes?
 							if (getJAttribute(theAttID) == null) {
-								defJoinedAtts.push(_.clone(attDef, true));
+								defJoinedAtts.push(_.clone(attDef));
 							}
 							saveAttRef('', theAttID, attDef.def.t);
 						}
@@ -1193,6 +1189,78 @@ jQuery(document).ready(function() {
 				theVF.c.oAtts = newOAtts;
 				theVF.c.lgnds = newLgnds;
 				break;
+			case 'L':	// Linked Chain
+				// NOTE: Currently no settings needed
+				break;
+			case 'Q':	// QR-Map
+				var newLgnds=[], newSAtts=[];
+				iTemplates.forEach(function(theTmplt) {
+					var origTIndex = getTemplateIndex(theTmplt.tid);
+						// Was this Template absent in original config?
+					if (origTIndex == -1) {
+						newSAtts.push(theTmplt.attsDNum[0] || 'disable');
+						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
+								return { attID: theLgndAtt, useAtt: true };
+							}));
+					} else {
+						newSAtts.push(checkAttID(theVF.c.sAtts[origTIndex], theTmplt.attsDNum, 'disable'));
+						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
+					}
+				});
+				theVF.c.sAtts = newSAtts;
+				theVF.c.lgnds = newLgnds;
+				break;
+			case 'q':	// QR-Network
+				var newSAtts=[], newLgnds=[];
+				iTemplates.forEach(function(theTmplt) {
+					var origTIndex = getTemplateIndex(theTmplt.tid);
+						// Was this Template absent in original config?
+					if (origTIndex == -1) {
+						newSAtts.push(theTmplt.attsDNum[0] || 'disable');
+						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
+								return { attID: theLgndAtt, useAtt: true };
+							}));
+					} else {
+						newSAtts.push(checkAttID(theVF.c.sAtts[origTIndex], theTmplt.attsDNum, 'disable'));
+						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
+					}
+				});
+				theVF.c.sAtts = newSAtts;
+				theVF.c.lgnds = newLgnds;
+				break;
+			case 'E':	// Ego-graph
+				var newLgnds=[];
+				iTemplates.forEach(function(theTmplt) {
+					var origTIndex = getTemplateIndex(theTmplt.tid);
+						// Was this Template absent in original config?
+					if (origTIndex == -1) {
+						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
+								return { attID: theLgndAtt, useAtt: true };
+							}));
+					} else {
+						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
+					}
+				});
+				theVF.c.lgnds = newLgnds;
+				break;
+			case 'e':	// Time-rings
+				var newD=[], newLgnds=[];
+				iTemplates.forEach(function(theTmplt) {
+					var origTIndex = getTemplateIndex(theTmplt.tid);
+						// Was this Template absent in original config?
+					if (origTIndex == -1) {
+						newD.push(theTmplt.attsDates[0] || 'disable');
+						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
+								return { attID: theLgndAtt, useAtt: true };
+							}));
+					} else {
+						newD.push(checkAttID(theVF.c.dAtts[origTIndex], theTmplt.attsDates, 'disable'));
+						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
+					}
+				});
+				theVF.c.dAtts = newD;
+				theVF.c.lgnds = newLgnds;
+				break;
 			} // switch viewtype
 		} // for views
 	})();
@@ -1239,8 +1307,7 @@ jQuery(document).ready(function() {
 
 		// Open dialog to set Role Vocab for each Relationship value
 	rApp.on('setRoles', function() {
-		var pairs=rApp.get('genSettings.qr.x');
-		pairs = pairs.slice(0);
+		var pairs= JSON.parse(JSON.stringify(rApp.get('genSettings.qr.x')));
 		var newDialog = new Ractive({
 			el: '#insert-dialog',
 			template: '#dialog-qr-x',
@@ -1268,10 +1335,8 @@ jQuery(document).ready(function() {
 			}
 			newDialog.set('pairs', newPairs);
 		});
-
 		newDialog.on('dialog.ok', function() {
-			pairs = newDialog.get('pairs');
-			rApp.set('genSettings.qr.x', pairs);
+			rApp.set('genSettings.qr.x', newDialog.get('pairs'));
 			newDialog.teardown();
 		});
 		newDialog.on('dialog.cancel', newDialog.teardown);
@@ -1542,6 +1607,67 @@ jQuery(document).ready(function() {
 				});
 				newVFEntry.c.pAtts = _.map(iTemplates, function(theTemplate) {
 					return [];
+				});
+				break;
+			case 'L':	// Linked Chain
+				// NOTE: Currently no settings
+				break;
+			case 'Q':	// QR-Map
+				newVFEntry.c.clat = '';
+				newVFEntry.c.clon = '';
+				newVFEntry.c.zoom = 10;
+				newVFEntry.c.min = 7;
+				newVFEntry.c.max = 7;
+					// Potential Size
+				newVFEntry.c.sAtts= _.map(iTemplates, function(theTemplate) {
+					return 'disable';
+				});
+					// Potential Legends
+				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
+					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
+						return { attID: theLgndAtt, useAtt: true };
+					});
+				});
+				newVFEntry.c.base= '.blank';
+				newVFEntry.c.lyrs= [];
+				break;
+			case 'q':	// QR-Network
+				newVFEntry.c.min = 4;
+				newVFEntry.c.max = 10;
+				newVFEntry.c.s = 500;
+					// Potential Legends
+				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
+					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
+						return { attID: theLgndAtt, useAtt: true };
+					});
+				});
+					// Potential Size
+				newVFEntry.c.sAtts= _.map(iTemplates, function(theTemplate) {
+					return 'disable';
+				});
+				break;
+			case 'E':	// Ego-graph
+				newVFEntry.c.s = 400;
+				newVFEntry.c.n = 6;
+				newVFEntry.c.r = 30;
+					// Potential Legends
+				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
+					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
+						return { attID: theLgndAtt, useAtt: true };
+					});
+				});
+				break;
+			case 'e':	// Time-rings
+				newVFEntry.c.r = 20;
+					// Potential Legends
+				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
+					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
+						return { attID: theLgndAtt, useAtt: true };
+					});
+				});
+					// Potential Dates Attributes
+				newVFEntry.c.dAtts= _.map(iTemplates, function(theTemplate) {
+					return 'disable';
 				});
 				break;
 			} // switch
@@ -1881,6 +2007,8 @@ jQuery(document).ready(function() {
 				saveView.vf = viewSettings.vf;
 				saveView.n = viewSettings.n.replace(/"/g, '');
 				saveView.c = {};
+
+					// TO DO: Ensure that QR-Template enabled if QR views are defined
 				switch (saveView.vf) {
 				case 'M': 	// Map
 					if (viewSettings.c.clat.length == 0 || viewSettings.c.clon.length == 0)
@@ -2105,6 +2233,60 @@ jQuery(document).ready(function() {
 					saveView.c.pAtts = newPAtts;
 					saveView.c.lgnds = newLgnds;
 					saveView.c.oAtts = packUsedAttIDs(viewSettings.c.oAtts);
+					break;
+				case 'L':	// Linked Chain
+					// NOTE: Currently no settings
+					break;
+				case 'Q':	// QR-Map
+					if (viewSettings.c.clat.length == 0 || viewSettings.c.clon.length == 0)
+					{
+						displayError('#errmsg-map-coords', i);
+						return false;
+					}
+					saveView.c.clat = viewSettings.c.clat;
+					saveView.c.clon = viewSettings.c.clon;
+					saveView.c.zoom = viewSettings.c.zoom;
+					saveView.c.min  = viewSettings.c.min;
+					saveView.c.max  = viewSettings.c.max;
+					var newLgnds=[];
+					saveTIndices.forEach(function(tIndex) {
+						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
+					});
+					saveView.c.lgnds = newLgnds;
+					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts);
+						// Don't need to modify map layer settings
+					saveView.c.base = viewSettings.c.base;
+					saveView.c.lyrs = viewSettings.c.lyrs;
+					break;
+				case 'q':	// QR-Network
+					saveView.c.min = viewSettings.c.min;
+					saveView.c.max = viewSettings.c.max;
+					saveView.c.s   = viewSettings.c.s;
+					var newLgnds=[];
+					saveTIndices.forEach(function(tIndex) {
+						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
+					});
+					saveView.c.lgnds = newLgnds;
+					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts);
+					break;
+				case 'E':	// Ego-graph
+					saveView.c.s = viewSettings.c.s;
+					saveView.c.n = viewSettings.c.n;
+					saveView.c.r = viewSettings.c.r;
+					var newLgnds=[];
+					saveTIndices.forEach(function(tIndex) {
+						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
+					});
+					saveView.c.lgnds = newLgnds;
+					break;
+				case 'e':	// Time-rings
+					saveView.c.r = viewSettings.c.r;
+					var newLgnds=[];
+					saveTIndices.forEach(function(tIndex) {
+						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
+					});
+					saveView.c.lgnds = newLgnds;
+					saveView.c.dAtts = packUsedAttIDs(viewSettings.c.dAtts);
 					break;
 				} // switch
 				saveViews.push(saveView);
