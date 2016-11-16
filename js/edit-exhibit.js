@@ -525,8 +525,7 @@ jQuery(document).ready(function() {
 				}
 				return id;
 			} // disableToNull()
-			saveGen.qr = rApp.get('genSettings.qr');
-
+			saveGen.qr = JSON.parse(JSON.stringify(rApp.get('genSettings.qr')));
 				// Check that all required Attribute settings are given
 			if (saveGen.qr.e1 == '' || saveGen.qr.e2 == '' || saveGen.qr.r == '' ||
 				saveGen.qr.r1 == '' || saveGen.qr.r2 == '')
@@ -1654,8 +1653,8 @@ jQuery(document).ready(function() {
 				break;
 			case 'E':	// Ego-graph
 				newVFEntry.c.s = 400;
-				newVFEntry.c.n = 6;
-				newVFEntry.c.r = 30;
+				newVFEntry.c.n = 3;
+				newVFEntry.c.r = 20;
 					// Potential Legends
 				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
 					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {

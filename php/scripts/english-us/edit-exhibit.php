@@ -323,8 +323,8 @@
 	<br/>
 	<?php _e('Initial Zoom Level (1=Max Zoom Out, 20=Max Zoom In)', 'prospect'); ?>: <input type="number" value="{{c.zoom}}" min="1" max="20" required/>
 	<br/>
-	<?php _e('Min Radius', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="20" required/>
-	<?php _e('Max Radius', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="20" required/>
+	<?php _e('Min Radius (1-20)', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="20" required/>
+	<?php _e('Max Radius (1-20)', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="20" required/>
 	<?php _e('Clustering', 'prospect'); ?>: <input type='checkbox' checked='{{c.clstr}}'/>
 	<br/>
 	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
@@ -400,8 +400,8 @@
 	<br/>
 	<?php _e('Initial Zoom Level (1=Max Zoom Out, 20=Max Zoom In)', 'prospect'); ?>: <input type="number" value="{{c.zoom}}" min="1" max="20" required/>
 	<br/>
-	<?php _e('Min Radius', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="20" required/>
-	<?php _e('Max Radius', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="20" required/>
+	<?php _e('Min Radius (1-20)', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="20" required/>
+	<?php _e('Max Radius (1-20)', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="20" required/>
 	<br/>
 	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
 	<tabs>
@@ -535,8 +535,8 @@
 	<?php _e('Display Width', 'prospect'); ?>: <input type="number" value="{{c.dw}}" min="1" max="9999"/>
 	<?php _e('Height', 'prospect'); ?>: <input type="number" value="{{c.dh}}" min="1" max="9999"/>
 	<br/>
-	<?php _e('Min Radius', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="20" required/>
-	<?php _e('Max Radius', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="20" required/>
+	<?php _e('Min Radius (1-20)', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="20" required/>
+	<?php _e('Max Radius (1-20)', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="20" required/>
 	<br/>
 	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
 	<tabs>
@@ -763,8 +763,8 @@
 </script>
 
 <script id="vfNetGraph" type='text/ractive'>
-	<?php _e('Min Radius', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="20" required/>
-	<?php _e('Max Radius', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="20" required/>
+	<?php _e('Min Radius (1-20)', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="20" required/>
+	<?php _e('Max Radius (1-20)', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="20" required/>
 	<?php _e('Display size', 'prospect'); ?>: <input type="number" value="{{c.s}}" min="100" max="1500" required/>
 	<br/>
 	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
@@ -860,8 +860,8 @@
 </script>
 
 <script id="vfBucketMatrix" type='text/ractive'>
-	<?php _e('Radius of each node', 'prospect'); ?>: <input type="number" value="{{c.nr}}" min="2" max="20"/>
-	<?php _e('Width of buckets in nodes', 'prospect'); ?>: <input type="number" value="{{c.bw}}" min="2" max="28"/>
+	<?php _e('Radius of each node (1-20)', 'prospect'); ?>: <input type="number" value="{{c.nr}}" min="1" max="20"/>
+	<?php _e('Width of buckets (2-28 nodes)', 'prospect'); ?>: <input type="number" value="{{c.bw}}" min="2" max="28"/>
 	<br/>
 	<input type='checkbox' checked='{{c.gr}}'/> <?php _e('Break Number and Date ranges into graduated scale?', 'prospect'); ?>
 	<br/>
@@ -921,8 +921,8 @@
 	<br/>
 	<?php _e('Initial Zoom Level (1=Max Zoom Out, 20=Max Zoom In)', 'prospect'); ?>: <input type="number" value="{{c.zoom}}" min="1" max="20" required/>
 	<br/>
-	<?php _e('Min Radius', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="20" required/>
-	<?php _e('Max Radius', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="20" required/>
+	<?php _e('Min Radius (1-20)', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="20" required/>
+	<?php _e('Max Radius (1-20)', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="20" required/>
 	<br/>
 	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
 	<tabs>
@@ -975,8 +975,8 @@
 </script>
 
 <script id="vfQRNetwork" type='text/ractive'>
-	<?php _e('Min Radius', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="20" required/>
-	<?php _e('Max Radius', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="20" required/>
+	<?php _e('Min Radius (1-20)', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="20" required/>
+	<?php _e('Max Radius (1-20)', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="20" required/>
 	<?php _e('Display size', 'prospect'); ?>: <input type="number" value="{{c.s}}" min="100" max="1500" required/>
 	<br/>
 	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
@@ -1011,8 +1011,9 @@
 
 <script id="vfEgoGraph" type='text/ractive'>
 	<?php _e('Display size (in pixels)', 'prospect'); ?>: <input type="number" value="{{c.s}}" min="100" max="1500" required/>
-	<?php _e('Initial space between rings (in pixels)', 'prospect'); ?>: <input type="number" value="{{c.r}}" min="10" max="100" required/>
-	<?php _e('Initial number of rings', 'prospect'); ?>: <input type="number" value="{{c.n}}" min="10" max="100" required/>
+	<br/>
+	<?php _e('Initial space between rings (10-100 pixels)', 'prospect'); ?>: <input type="number" value="{{c.r}}" min="10" max="100" required/>
+	<?php _e('Initial number of rings (1-6)', 'prospect'); ?>: <input type="number" value="{{c.n}}" min="1" max="6" required/>
 	<br/>
 	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
 	<tabs>
@@ -1039,7 +1040,7 @@
 </script>
 
 <script id="vfTimeRings" type='text/ractive'>
-	<?php _e('Initial space between rings (in pixels)', 'prospect'); ?>: <input type="number" value="{{c.r}}" min="10" max="100" required/>
+	<?php _e('Initial space between rings (10-100 pixels)', 'prospect'); ?>: <input type="number" value="{{c.r}}" min="10" max="100" required/>
 	<br/>
 	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
 	<tabs>
@@ -1191,7 +1192,7 @@
 </script>
 
 <script id="errmsg-qr-unique" type='text/ractive'>
-<?php _e('Entity Attribute pairs E1/E2, R1/R2 and C1/C2 must be different', 'prospect'); ?>
+<?php _e('Entity Attribute pairs E1/E2, R1/R2 and C1/C2 in Qualified Relationship configuration must be different', 'prospect'); ?>
 </script>
 
 
