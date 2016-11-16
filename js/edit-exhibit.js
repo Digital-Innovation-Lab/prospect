@@ -769,20 +769,26 @@ jQuery(document).ready(function() {
 		// Sort Joined Attributes by ID
 	defJoinedAtts = _.sortBy(defJoinedAtts, 'id');
 
-		// Collect IDs all Vocabulary Attributes
-	var allVocabAttIDs=[];
-
 		// Compile Joined Facets from Joined Attributes
 	_.forEach(defJoinedAtts, function(theJAtt) {
 		switch (theJAtt.def.t) {
 		case 'V':
-			allVocabAttIDs.push(theJAtt.id);
 		case 'T':
 		case 'g':
 		case 'N':
 		case 'D':
 			defJoinedFacets.push(_.clone(theJAtt));
 			break;
+		}
+	});
+
+		// Collect IDs all Vocabulary Attributes for creating Relationship Term map
+		// These Vocab Attributes define valid Roles
+		// NOTE: Vocab Attributes don't need to be included in any Template
+	var allVocabAttIDs=[];
+	defAtts.forEach(function(theAtt) {
+		if (theAtt.def.t == 'V') {
+			allVocabAttIDs.push(theAtt.id);
 		}
 	});
 
