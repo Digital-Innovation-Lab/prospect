@@ -138,9 +138,10 @@ class Prospect {
 				wp_enqueue_script('soundcloud', '//w.soundcloud.com/player/api.js');
 			}
 
-				// Check if need view-aggregate, map-dependent modules
+				// Check if need view-aggregate, map-dependent, qr modules
 			$use_maps = false;
 			$use_aggregate = false;
+			$use_qr = false;
 			foreach ($the_xhbt->views as $the_view) {
 				switch ($the_view->vf) {
 				case 'M':
@@ -153,6 +154,13 @@ class Prospect {
 				case 'm':
 					$use_aggregate = true;
 					break;
+				case 'L':
+				case 'Q':
+				case 'q':
+				case 'E':
+				case 'e':
+					$use_qr = true;
+					break;
 				}
 			}
 			if ($use_maps) {
@@ -161,6 +169,9 @@ class Prospect {
 			}
 			if ($use_aggregate) {
 				wp_enqueue_script('prsp-view-aggregate', plugins_url('js/view-aggregate.min.js', dirname(__FILE__)), array('prsp-view-core'));
+			}
+			if ($use_qr) {
+				wp_enqueue_script('prsp-view-qr', plugins_url('js/view-qr.min.js', dirname(__FILE__)), array('prsp-view-core'));
 			}
 
 				// Check for optional settings
@@ -187,6 +198,10 @@ class Prospect {
 			$t = array();
 			$all_ts = array();
 			$att_defs = array();
+				// If viewing QRs, start with Roles Vocabulary Attributes
+			if ($use_qr) {
+				$att_defs = $the_xhbt->get_qr_attributes();
+			}
 			foreach ($the_xhbt->gen->ts as $template_id) {
 				$the_template = new ProspectTemplate(false, $template_id, true, true, false, false);
 					// Get Joined form of Template Attributes

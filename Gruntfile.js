@@ -11,8 +11,9 @@ module.exports = function(grunt) {
 	  static_mappings: {
 		  files: [
 			  { src: 'js/map-hub.js', dest: 'js/map-hub.min.js' },
-			  { src: 'js/view-aggregate.js', dest: 'js/view-aggregate.min.js' },
 			  { src: 'js/view-core.js', dest: 'js/view-core.min.js' },
+			  { src: 'js/view-qr.js', dest: 'js/view-qr.min.js' },
+			  { src: 'js/view-aggregate.js', dest: 'js/view-aggregate.min.js' },
 			  { src: 'js/view-exhibit.js', dest: 'js/view-exhibit.min.js' },
 			  { src: 'js/view-volume.js', dest: 'js/view-volume.min.js' }
 		  ]
