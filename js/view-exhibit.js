@@ -1511,6 +1511,10 @@ jQuery(document).ready(function($) {
 
 	var tour;
 
+	var useQR;					// Are QRs enabled?
+
+	useQR = typeof prspdata.e.g.qr !== 'undefined' && prspdata.e.g.qr.t !== 'disable';
+
 		// FUNCTIONS
 		//==========
 
@@ -1549,7 +1553,7 @@ jQuery(document).ready(function($) {
 						// Need to evaluate
 					if (e) {
 						rec = PData.rByN(absI);
-						if (f.eval(rec)) {
+						if (f.eval(rec, tI)) {
 							newStream.s[newStream.l++] = absI;
 							tRn++;
 						}
@@ -2143,7 +2147,7 @@ jQuery(document).ready(function($) {
 		//			highlight = null if in Filter stack, else 0 or 1 (to indicate view applied to)
 		// RETURNS: The Filter object created
 		// NOTES:   IDs 0 and 1 are specially allocated to Highlight those respective views
-		// ASSUMED: Remove filter won't be created for Highlight condition
+		// ASSUMED: Remove && QR filters won't be created for Highlight condition
 	function createFilter(fID, apply, highlight)
 	{
 		var newID;
@@ -2161,8 +2165,11 @@ jQuery(document).ready(function($) {
 			} while (newID == -1);
 		}
 
-		if (fID == '_remove') {
+		if (fID === '_remove') {
 			newFilter = new PFilterRemove(newID);
+			theAtt = { t: [true, true, true, true ] };	// Create pseudo-Attribute entry
+		} else if (fID === '_qr') {
+			newFilter = new PFilterQR(newID);
 			theAtt = { t: [true, true, true, true ] };	// Create pseudo-Attribute entry
 		} else {
 			theAtt = PData.aByID(fID);
@@ -2228,14 +2235,14 @@ jQuery(document).ready(function($) {
 	} // createFilter()
 
 		// PURPOSE: Allow user to choose an Attribute from a list
-		// INPUT: 	if showRemove, then show the "Remove All" pseudo-Filter
+		// INPUT: 	if forViz, then show visualization (not Highlight) Attributes
 		//			if secondary, this dialog must appear on top of another
 		//			usedTs is either null (show all Attributes) or is array of flags for each Template
 		//				(Attribute must belong to one to appear)
 		//			if Attribute is chosen, pass selection on to callback function
 		// NOTES: 	Since this dialog can be invoked from two other modal dialogs, need
 		//				to append at particular point in DOM to ensure stacked properly
-	function chooseAttribute(showRemove, secondary, usedTs, callback)
+	function chooseAttribute(forViz, secondary, usedTs, callback)
 	{
 			// Clear previous selection
 		jQuery("#filter-list li").removeClass("selected");
@@ -2245,9 +2252,9 @@ jQuery(document).ready(function($) {
 		attList.each(function(i) {
 			li = jQuery(this);
 			attID = li.data("id");
-			if (attID == '_remove') {
+			if (attID === '_remove' || attID === '_qr') {
 					// Do we show "Remove" Filter Option?
-				if (showRemove) {
+				if (forViz) {
 					li.show();
 				} else {
 					li.hide();
@@ -2541,6 +2548,7 @@ jQuery(document).ready(function($) {
 		} // loadFrag()
 
 		loadFrag('dltext-removehideall', 'rha');
+		loadFrag('dltext-qr-rr', 'qrrr');
 		loadFrag('dltext-showhideall', 'sha');
 		loadFrag('dltext-ok', 'ok');
 		loadFrag('dltext-cancel', 'cancel');
@@ -2716,6 +2724,9 @@ jQuery(document).ready(function($) {
 		// Create New Filter list
 	(function () {
 		jQuery('#filter-list').append('<li class="remove" data-id="_remove"><i>'+dlText.rha+'</i></li>');
+		if (useQR) {
+			jQuery('#filter-list').append('<li class="remove" data-id="_qr"><i>'+dlText.qrrr+'</i></li>');
+		}
 		var attList=[];
 		prspdata.a.forEach(function(theAtt) {
 				// Check to see if Attribute should be available to use on Filter

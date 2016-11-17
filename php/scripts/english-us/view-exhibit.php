@@ -320,8 +320,24 @@
 	<input type="checkbox" class="filter-text-cs" checked="checked"><?php _e('Case sensitive', 'prospect'); ?>
 </script>
 
+<script id="dltext-filter-qr" type='text'>
+	<input type="checkbox" class="filter-qr-use-r"> <?php _e('Only Relationships', 'prospect'); ?>
+	<select class="filter-qr-r" value="c">
+	</select>
+	<input type="checkbox" class="filter-qr-use-r1"> <?php _e('With Role', 'prospect'); ?>
+	<select class="filter-qr-r1" value="c">
+	</select>
+	<input type="checkbox" class="filter-qr-use-r2"> <?php _e('And Role', 'prospect'); ?>
+	<select class="filter-qr-r2" value="c">
+	</select>
+</script>
+
 <script id="dltext-removehideall" type="text">
 <?php _e('Remove/Hide All', 'prospect'); ?>
+</script>
+
+<script id="dltext-qr-rr" type="text">
+<?php _e('Relationships and Roles', 'prospect'); ?>
 </script>
 
 <script id="dltext-showhideall" type="text">

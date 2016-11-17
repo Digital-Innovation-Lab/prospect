@@ -129,8 +129,8 @@ class Prospect {
 
 			wp_enqueue_script('d3', plugins_url('lib/d3.min.js', dirname(__FILE__)));
 
-			wp_enqueue_script('prsp-view-core', plugins_url('js/view-core.min.js', dirname(__FILE__)), array('underscore'));
-			wp_enqueue_script('prsp-view-exhibit', plugins_url('js/view-exhibit.min.js', dirname(__FILE__)), array('prsp-view-core'));
+			wp_enqueue_script('prsp-view-core', plugins_url('js/view-core.js', dirname(__FILE__)), array('underscore'));
+			wp_enqueue_script('prsp-view-exhibit', plugins_url('js/view-exhibit.js', dirname(__FILE__)), array('prsp-view-core'));
 
 				// Get Exhibit definition
 			$the_xhbt = new ProspectExhibit(true, get_the_ID(), true);
@@ -141,7 +141,8 @@ class Prospect {
 				// Check if need view-aggregate, map-dependent, qr modules
 			$use_maps = false;
 			$use_aggregate = false;
-			$use_qr = false;
+			$use_qr = isset($the_xhbt->gen->qr) && $the_xhbt->gen->qr->t != 'disable';
+
 			foreach ($the_xhbt->views as $the_view) {
 				switch ($the_view->vf) {
 				case 'M':
@@ -154,13 +155,13 @@ class Prospect {
 				case 'm':
 					$use_aggregate = true;
 					break;
-				case 'L':
-				case 'Q':
-				case 'q':
-				case 'E':
-				case 'e':
-					$use_qr = true;
-					break;
+				// case 'L':
+				// case 'Q':
+				// case 'q':
+				// case 'E':
+				// case 'e':
+				// 	$use_qr = true;
+				// 	break;
 				}
 			}
 			if ($use_maps) {
@@ -171,7 +172,7 @@ class Prospect {
 				wp_enqueue_script('prsp-view-aggregate', plugins_url('js/view-aggregate.min.js', dirname(__FILE__)), array('prsp-view-core'));
 			}
 			if ($use_qr) {
-				wp_enqueue_script('prsp-view-qr', plugins_url('js/view-qr.min.js', dirname(__FILE__)), array('prsp-view-core'));
+				wp_enqueue_script('prsp-view-qr', plugins_url('js/view-qr.js', dirname(__FILE__)), array('prsp-view-core'));
 			}
 
 				// Check for optional settings
