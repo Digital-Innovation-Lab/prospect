@@ -4884,7 +4884,7 @@ VizBMatrix.prototype.hint = function()
 // PFilterModel: An abstract class to be subclassed by specific filters
 
 	// INPUT: 	id = unique ID for this filter
-	//			attRec = pointer to complete Attribute or Facet Browser settings
+	//			attRec = pointer to complete Attribute settings
 	// NOTES:   IDs 0 and 1 are specially allocated to Highlight those respective views
 function PFilterModel(id, attRec)
 {
@@ -4898,7 +4898,7 @@ function PFilterModel(id, attRec)
 		// All subclasses must implement the following:
 	// this.setUp()
 	// this.evalPrep()
-	// this.eval(rec)
+	// this.eval(rec, templateIndex)
 	// this.evalDone(total)
 	// this.getState()
 	// this.setState(data)
