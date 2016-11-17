@@ -1512,8 +1512,17 @@ jQuery(document).ready(function($) {
 	var tour;
 
 	var useQR;					// Are QRs enabled?
+	var qrTI;					// index of QR Template
 
 	useQR = typeof prspdata.e.g.qr !== 'undefined' && prspdata.e.g.qr.t !== 'disable';
+	if (useQR) {
+		for (var i=0; i<prspdata.t.length; i++) {
+			if (prspdata.e.g.qr.t === prspdata.t[i].id) {
+				qrTI = i;
+				break;
+			}
+		}
+	}
 
 		// FUNCTIONS
 		//==========
@@ -2154,6 +2163,7 @@ jQuery(document).ready(function($) {
 		var newFilter;
 		var theAtt;
 		var insert;
+		var appBoxes=apTmStr;
 
 		if (highlight !== null) {
 			newID = highlight;
@@ -2167,10 +2177,11 @@ jQuery(document).ready(function($) {
 
 		if (fID === '_remove') {
 			newFilter = new PFilterRemove(newID);
-			theAtt = { t: [true, true, true, true ] };	// Create pseudo-Attribute entry
+			theAtt = { t: [ true, true, true, true ] };	// Create pseudo-Attribute entry
+			apply = [ false, false, false, false ];	// Remove checkboxes must be initially disabled
 		} else if (fID === '_qr') {
-			newFilter = new PFilterQR(newID);
-			theAtt = { t: [true, true, true, true ] };	// Create pseudo-Attribute entry
+			newFilter = new PFilterQR(newID, qrTI);
+			appBoxes='';
 		} else {
 			theAtt = PData.aByID(fID);
 			switch (theAtt.def.t) {
@@ -2206,16 +2217,19 @@ jQuery(document).ready(function($) {
 
 				// Now create DOM structure and handle clicks
 			var fh = _.template(document.getElementById('dltext-filter-head').innerHTML);
-			jQuery('#filter-instances').append(fh({ newID: newID, title: newFilter.title(), apply: apTmStr }));
+			jQuery('#filter-instances').append(fh({ newID: newID, title: newFilter.title(), apply: appBoxes }));
 
 			var head = jQuery('div.filter-instance[data-id="'+newID+'"]');
 
 				// Check each checkbox acoording to default settings, disable acc to Template appearance
-			for (var i=0; i<PData.eTNum(); i++) {
-				var applier = head.find('.apply-tmplt-'+i);
-				applier.prop('disabled', !theAtt.t[i]);
-				applier.prop('checked', apply[i] && theAtt.t[i]);
-				applier.click(clickFilterApply);
+				// Only if type of Filter uses them
+			if (appBoxes.length > 0) {
+				for (var i=0; i<PData.eTNum(); i++) {
+					var applier = head.find('.apply-tmplt-'+i);
+					applier.prop('disabled', !theAtt.t[i]);
+					applier.prop('checked', apply[i] && theAtt.t[i]);
+					applier.click(clickFilterApply);
+				}
 			}
 
 			head.find('button.btn-filter-toggle').button({
