@@ -6850,7 +6850,7 @@ var PData = (function() {
 			return prspdata.e.g.ts.length;
 		},
 
-			// RETURNS: The ID of this Exhibit's tIndex Template
+			// RETURNS: The data for this Exhibit's tIndex Template
 		eTByN: function(tIndex)
 		{
 			return prspdata.e.g.ts[tIndex];

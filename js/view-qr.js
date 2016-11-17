@@ -28,10 +28,24 @@ VizEgoGraph.prototype.getFeatureAtts = function(tIndex)
 
 // ====================================================================================
 // PFilterQR: Filter class that removes all QR Records based on Relationships and Roles
+//	Instance Variables:
+//		t = index of QR Template
+//		qr = shortcut to QR settings
+//		r = ID of Vocab Attribute for currently selected Relationship term
+//		rT = currently selected Relationship term
+//		rOn = if true, eval on basis of <r>
+//		r1 = ID of Vocab Attribute for currently selected Relationship term
+//		r1On = if true, eval on basis of <r1>
+//		r2 = ID of Vocab Attribute for currently selected Relationship term
+//		r2On = if true, eval on basis of <r2>
 
-var PFilterQR = function(id)
+var PFilterQR = function(id, tI)
 {
 	PFilterModel.call(this, id, null);
+	this.t = tI;
+	this.qr = prspdata.e.g.qr;
+		// Set default Relationship ID
+	this.r = prspdata.e.g.qr.x[0].id;
 } // PFilterQR()
 
 PFilterQR.prototype = Object.create(PFilterModel.prototype);
@@ -43,15 +57,29 @@ PFilterQR.prototype.title = function()
 	return dlText.qrrr;
 } // title()
 
-PFilterQR.prototype.eval = function(rec, tI)
+	// PURPOSE: Set the options for the Roles 1 and 2 dropdowns based on current Relationship selection
+PFilterQR.prototype.setRoles = function()
 {
-		// TO DO
-	return true;
-} // eval()
+	var inserted = this.insertPt();
+	var cntrl1 = inserted.find('select.filter-qr-r1');
+	var cntrl2 = inserted.find('select.filter-qr-r2');
+	cntrl1.empty();
+	cntrl2.empty();
+	var rAtt = PData.aByID(this.r);
+	var opt;
+	if (rAtt) {
+		rAtt.l.forEach(function(lgnd) {
+			opt = '<option value="'+lgnd.l+'">'+lgnd.l+'</option>';
+			cntrl1.append(opt);
+			cntrl2.append(opt);
+		});
+	}
+} // setRoles()
 
 PFilterQR.prototype.setup = function()
 {
 	var self = this;
+
 	var inserted = this.insertPt();
 	var htmlText = document.getElementById('dltext-filter-qr').innerHTML;
 	inserted.append(htmlText);
@@ -62,9 +90,12 @@ PFilterQR.prototype.setup = function()
 		options.append('<option value="'+x.id+'">'+x.t+'</option>');
 	});
 
+	this.setRoles();
+
 		// Intercept changes to Relationship & Roles selections!
 	options.change(function() {
-		// TO DO: This will actually require changing selections on Roles dropdowns
+		self.r = options.val();
+		self.setRoles();
 		self.isDirty(2);
 	});
 	inserted.find('select.filter-qr-r1').change(function() {
@@ -98,10 +129,48 @@ PFilterText.prototype.teardown = function()
 
 PFilterQR.prototype.evalPrep = function()
 {
+	var inserted = this.insertPt();
+	this.rOn  = inserted.find('input.filter-qr-use-r').prop('checked');
+	this.r1On = inserted.find('input.filter-qr-use-r1').prop('checked');
+	this.r2On = inserted.find('input.filter-qr-use-r2').prop('checked');
+		// NOTE: this.r always kept updated
+	this.rT = inserted.find('select.filter-qr-r :selected').text();
+	this.r1 = inserted.find('select.filter-qr-r1').val();
+	this.r2 = inserted.find('select.filter-qr-r2').val();
 } // evalPrep()
 
-PFilterQR.prototype.eval = function(rec)
+	// PURPOSE: Evaluate QR Records specifically
+PFilterQR.prototype.eval = function(rec, tI)
 {
+	var r1Avail=true, r2Avail=true;
+
+		// Pass Records not belonging to QR Template
+	if (this.t !== tI)
+		return true;
+		// Do we need to test the Relationship type?
+	if (this.rOn && this.rT !== rec.a[this.qr.r])
+		return false;
+
+		// Do we need to test one Role? Need to be flexible about R1/R2
+	if (this.r1On) {
+		if (this.r1 === rec.a[this.qr.r1]) {
+			r1Avail=false;
+		} else if (this.r1 === rec.a[this.qr.r2]) {
+			r2Avail=false;
+		} else {
+			return false;
+		}
+	}
+
+		// Fail if no matches in any leftover "slots"
+	if (this.r2On) {
+		if ((r1Avail && this.r2 !== rec.a[this.qr.r1]) || (r2Avail && this.r2 !== rec.a[this.qr.r2]))
+		{
+			return false;
+		}
+	}
+
+	return true;
 } // eval()
 
 PFilterQR.prototype.getState = function()
