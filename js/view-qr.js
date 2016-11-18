@@ -141,13 +141,16 @@ PFilterQR.prototype.evalPrep = function()
 } // evalPrep()
 
 	// PURPOSE: Evaluate QR Records specifically
-PFilterQR.prototype.eval = function(rec, tI)
+	// ASSUMRS:	Not called for non-QR Template Records
+	//			Attribute value for Relationship has only 1 value! (not multiple)
+PFilterQR.prototype.eval = function(rec)
 {
 	var r1Avail=true, r2Avail=true;
 
 		// Pass Records not belonging to QR Template
-	if (this.t !== tI)
-		return true;
+		// This shouldn't be needed, as recompute() doesn't call for non-QR templates
+	// if (this.t !== tI)
+	// 	return true;
 		// Do we need to test the Relationship type?
 	if (this.rOn && this.rT !== rec.a[this.qr.r][0]) {
 		return false;

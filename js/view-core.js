@@ -4898,7 +4898,7 @@ function PFilterModel(id, attRec)
 		// All subclasses must implement the following:
 	// this.setUp()
 	// this.evalPrep()
-	// this.eval(rec, templateIndex)
+	// this.eval(rec)
 	// this.evalDone(total)
 	// this.getState()
 	// this.setState(data)

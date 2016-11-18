@@ -1549,8 +1549,8 @@ jQuery(document).ready(function($) {
 				var relI=0, absI, rec;
 				var tI=0, tRec=endStream.t[0], tRn=0, rTotal=0;
 				var e;
-					// If not QR Filer, then check checkbox
-				e = (f.att.id === '_qr') || (fDiv.find('.apply-tmplt-0').is(':checked'));
+					// If not QR Filter, then check checkbox, but oNly run QR Filter on QR Template
+				e = (f.att.id === '_qr' && qrTI === 0) || (fDiv.find('.apply-tmplt-0').is(':checked'));
 
 					// Must keep absolute indices and template params updated!
 				while (relI < endStream.l) {
@@ -1559,13 +1559,13 @@ jQuery(document).ready(function($) {
 						newStream.t.push({ i: (newStream.l-tRn), n: tRn });
 						tRn = 0;
 						tRec = endStream.t[++tI];
-						e = (f.att.id === '_qr') || (fDiv.find('.apply-tmplt-'+tI).is(':checked'));
+						e = (f.att.id === '_qr' && qrTI === tI) || (fDiv.find('.apply-tmplt-'+tI).is(':checked'));
 					}
 					absI = endStream.s[relI++];
 						// Need to evaluate
 					if (e) {
 						rec = PData.rByN(absI);
-						if (f.eval(rec, tI)) {
+						if (f.eval(rec)) {
 							newStream.s[newStream.l++] = absI;
 							tRn++;
 						}
