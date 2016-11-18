@@ -1550,7 +1550,7 @@ jQuery(document).ready(function($) {
 				var tI=0, tRec=endStream.t[0], tRn=0, rTotal=0;
 				var e;
 					// If not QR Filer, then check checkbox
-				e = (f.id === '_qr') || (fDiv.find('.apply-tmplt-0').is(':checked'));
+				e = (f.att.id === '_qr') || (fDiv.find('.apply-tmplt-0').is(':checked'));
 
 					// Must keep absolute indices and template params updated!
 				while (relI < endStream.l) {
@@ -1559,7 +1559,7 @@ jQuery(document).ready(function($) {
 						newStream.t.push({ i: (newStream.l-tRn), n: tRn });
 						tRn = 0;
 						tRec = endStream.t[++tI];
-						e = (f.id === '_qr') || (fDiv.find('.apply-tmplt-'+tI).is(':checked'));
+						e = (f.att.id === '_qr') || (fDiv.find('.apply-tmplt-'+tI).is(':checked'));
 					}
 					absI = endStream.s[relI++];
 						// Need to evaluate

@@ -4960,7 +4960,8 @@ PFilterModel.prototype.setState = function(state)
 
 var PFilterRemove = function(id)
 {
-	PFilterModel.call(this, id, null);
+		// Create pseudo-Attribute entry with ID in it
+	PFilterModel.call(this, id, { id: '_remove' });
 } // PFilterRemove()
 
 PFilterRemove.prototype = Object.create(PFilterModel.prototype);

@@ -41,7 +41,8 @@ VizEgoGraph.prototype.getFeatureAtts = function(tIndex)
 
 var PFilterQR = function(id, tI)
 {
-	PFilterModel.call(this, id, null);
+		// Create pseudo-Attribute object w/ID
+	PFilterModel.call(this, id, { id: '_qr' });
 	this.t = tI;
 	this.qr = prspdata.e.g.qr;
 		// Set default Relationship ID
@@ -148,8 +149,9 @@ PFilterQR.prototype.eval = function(rec, tI)
 	if (this.t !== tI)
 		return true;
 		// Do we need to test the Relationship type?
-	if (this.rOn && this.rT !== rec.a[this.qr.r])
+	if (this.rOn && this.rT !== rec.a[this.qr.r][0]) {
 		return false;
+	}
 
 		// Do we need to test one Role? Need to be flexible about R1/R2
 	if (this.r1On) {
