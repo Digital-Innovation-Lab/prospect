@@ -181,21 +181,20 @@ PFilterQR.prototype.eval = function(rec)
 PFilterQR.prototype.getState = function()
 {
 	var ip = this.insertPt();
-	// return { cs: ip.find('input.filter-text-cs').prop('checked'),
-	// 		 t: ip.find('input.filter-text').val(),
-	// 		 o: ip.find('select.filter-text-ops').val()
-	// 	 	};
+	return {
+		rOn: ip.find('input.filter-qr-use-r').prop('checked'), r: this.r,
+		r1On: ip.find('input.filter-qr-use-r1').prop('checked'), r1: ip.find('select.filter-qr-r1').val(),
+		r2On: ip.find('input.filter-qr-use-r2').prop('checked'), r2: ip.find('select.filter-qr-r2').val()
+	};
 } // getState()
 
-	// NOTE: Perspective data ≤ 1.6 doesn't have o[ptions] setting
 PFilterQR.prototype.setState = function(state)
 {
 	var ip = this.insertPt();
-	// ip.find('input.filter-text-cs').prop('checked', state.cs);
-	// ip.find('input.filter-text').val(state.t);
-	// if (typeof state.o === 'undefined') {	// Handle older Perspective data
-	// 	ip.find('select.filter-text-ops').val('c');
-	// } else {
-	// 	ip.find('select.filter-text-ops').val(state.o);
-	// }
+	ip.find('input.filter-qr-use-r').prop('checked', state.rOn);
+	this.r = state.r; ip.find('input.filter-qr-r').val(this.r);
+	ip.find('input.filter-qr-use-r1').prop('checked', state.r1On);
+	ip.find('select.filter-qr-r1').val(state.r1);
+	ip.find('input.filter-qr-use-r1').prop('checked', state.r2On);
+	ip.find('select.filter-qr-r1').val(state.r2);
 } // setState()
