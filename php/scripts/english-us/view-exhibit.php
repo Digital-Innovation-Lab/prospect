@@ -244,6 +244,15 @@
 	</div>
 </script>
 
+<script id="dltext-ego-graph" type='text'>
+	<div class="egsellist">
+		<div class="sellist-scroll">
+		</div>
+	</div>
+	<svg class="eg">
+	</svg>
+</script>
+
 <script id="dltext-filter-head" type='text'>
 <div class="filter-instance" data-id="<%= newID %>">
 	<div class="filter-head">

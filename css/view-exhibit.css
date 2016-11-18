@@ -685,7 +685,7 @@ div.sellist > div.sellist-scroll {
 	height: 232px;
 }
 
-div.sellist > div.sellist-scroll > div.sellist-rec {
+div.sellist-rec {
 	background-color: white;
 	color: black;
 	font-size: 10px;
@@ -1622,6 +1622,25 @@ svg g.inactive rect.facet-reset-btn {
 svg g.inactive text.facet-reset-txt {
 	fill: #808080;
 }
+
+	/* Ego-graph Styles */
+div.egsellist {
+	width: 270px;
+	height: 100%;
+
+	padding: 4px;
+	background-color: rgba(255, 255, 255, .8);
+
+	color: #222;
+	font-family: Verdana, Arial, sans-serif;
+	font-size: 10px;
+}
+
+div.egsellist > div.sellist-scroll {
+	height: 100%;
+	overflow-y: auto;
+}
+
 
 /* Specific Filter styles
  * ======================

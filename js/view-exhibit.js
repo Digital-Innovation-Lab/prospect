@@ -1047,6 +1047,14 @@ function PViewFrame(vfIndex)
 		case 'b':
 			newViz = new VizBMatrix(instance, theView.c);
 			break;
+		// case 'L':	// Linked Chain
+		// case 'Q':	// QR-Map
+		// case 'q':	// QR-Network
+		case 'E':
+			newViz = new VizEgoGraph(instance, theView.c);
+			break;
+		// case 'e':	// Time-rings
+			break;
 		}
 		vizSelIndex = vIndex;
 		var flags = newViz.flags();

@@ -1,5 +1,7 @@
 // This file contains:
 //		PVizModel Classes for Qualified Relationship visualizations
+//			VizEgoGraph
+//
 //		PFilterQR Class for Filtering on Relationship-Roles
 
 // ================================================================================
@@ -17,14 +19,25 @@ VizEgoGraph.prototype.constructor = VizEgoGraph;
 
 VizEgoGraph.prototype.flags = function()
 {
-	return V_FLAG_LGND | V_FLAG_SLGND | V_FLAG_VSCRL | V_FLAG_HSCRL;
+	return V_FLAG_LGND | V_FLAG_SEL | V_FLAG_VSCRL | V_FLAG_HSCRL;
 } // flags()
 
-VizEgoGraph.prototype.getFeatureAtts = function(tIndex)
+VizEgoGraph.prototype.setup = function()
 {
-	return this.settings.sAtt;
-} // getFeatureAtts()
+	var s = this.settings;
+	var self=this;
 
+	jQuery(this.frameID).append(document.getElementById('dltext-ego-graph').innerHTML);
+
+	var ip = d3.select(this.frameID).select("svg");
+	ip.attr("width", s.s).attr("height", s.s);
+} // setup()
+
+VizEgoGraph.prototype.render = function(stream)
+{
+		// Create concentric rings
+		// Compile relationships to show
+} // render()
 
 // ====================================================================================
 // PFilterQR: Filter class that removes all QR Records based on Relationships and Roles
