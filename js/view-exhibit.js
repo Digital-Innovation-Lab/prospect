@@ -2181,7 +2181,6 @@ jQuery(document).ready(function($) {
 		if (fID === '_remove') {
 			newFilter = new PFilterRemove(newID);
 			theAtt = { t: [ true, true, true, true ] };	// Create pseudo-Attribute entry
-			apply = [ false, false, false, false ];	// Remove checkboxes must be initially disabled
 		} else if (fID === '_qr') {
 			newFilter = new PFilterQR(newID, qrTI);
 			appBoxes='';
@@ -2333,7 +2332,10 @@ jQuery(document).ready(function($) {
 	{
 		chooseAttribute(true, false, null, function(id) {
 			jQuery('#filter-instances').show(400);
-			createFilter(id, [true, true, true, true], null);
+				// Deselect All Templates ONLY in case of Remove All Filter
+				// Created (default) state of Filters always have no effect
+			var applyTs = (id === '_remove') ? [false, false, false, false] : [true, true, true, true];
+			createFilter(id, applyTs, null);
 			jQuery('#btn-toggle-filters').button("enable");
 		});
 		event.preventDefault();
@@ -2834,6 +2836,11 @@ jQuery(document).ready(function($) {
 	});
 	jQuery("body").on("prsp-fdirty", function(event) {
 		if (autoUpdate) {
+			views.forEach(function(v) {
+				if (v) {
+					v.clearSel();
+				}
+			});
 			doRecompute();
 		} else {
 			fState = 1;
