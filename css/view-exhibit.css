@@ -1624,6 +1624,17 @@ svg g.inactive text.facet-reset-txt {
 }
 
 	/* Ego-graph Styles */
+div.egograph {
+	width: 100%;
+	height: 100%;
+
+	display: -webkit-flex; /* Safari */
+	display: flex;
+
+	-webkit-flex-flow: row nowrap; /* Safari */
+    flex-flow: row nowrap;
+}
+
 div.egsellist {
 	width: 270px;
 	height: 100%;
@@ -1638,9 +1649,14 @@ div.egsellist {
 
 div.egsellist > div.sellist-scroll {
 	height: 100%;
-	overflow-y: auto;
+	overflow-y: scroll;
 }
 
+circle.ring {
+	fill: none;
+	stroke: white;
+	stroke-width: 1;
+}
 
 /* Specific Filter styles
  * ======================

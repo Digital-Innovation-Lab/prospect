@@ -7,6 +7,12 @@
 // ================================================================================
 // VizEgoGraph: Class to visualize relationships from a given "ego" node
 //	Instance Variables:
+//		svg = svg for entire visualization
+//		qrTI = index of QR Template
+//		center = g element at center
+//		n = current number of concentric rings
+//		r = current distance between concentric rings
+//		rings = represent rings [{ i: 0..n-1, r[adius] }]
 
 var VizEgoGraph = function(viewFrame, vSettings)
 {
@@ -24,19 +30,123 @@ VizEgoGraph.prototype.flags = function()
 
 VizEgoGraph.prototype.setup = function()
 {
-	var s = this.settings;
+	var s=this.settings;
 	var self=this;
+	var cr=Math.floor(s.s/2);
+
+	this.r = s.r;
+	this.n = s.n;
+
+	this.qrTI = PData.tIByID(prspdata.e.g.qr.t);
 
 	jQuery(this.frameID).append(document.getElementById('dltext-ego-graph').innerHTML);
 
-	var ip = d3.select(this.frameID).select("svg");
-	ip.attr("width", s.s).attr("height", s.s);
+	this.svg = d3.select(this.frameID).select("svg");
+	this.svg.attr("width", s.s).attr("height", s.s);
+
+	this.center = this.svg.append("g");
+	this.center.attr("transform", "translate(" + cr + "," + cr + ")");
+
+	this.rings=[];
+	for (var i=0; i<this.n; i++) {
+		this.rings.push({ i: i, r: 40+(i*this.r) });
+	}
+
+	var ring = this.center.selectAll(".ring")
+		.data(this.rings)
+		.enter()
+		.append("circle")
+		.attr("class", "ring")
+		.attr("r", function(d) { return d.r; });
 } // setup()
 
+	// NOTES:	The render stage actually only compiles data and populates the selection list;
+	//				The graph is rendered in response to clicks on the selection list
 VizEgoGraph.prototype.render = function(stream)
 {
-		// Create concentric rings
-		// Compile relationships to show
+		// Compile list of QRs
+		//		Both Recs pointed at need to have valid Feature data
+		// Compile list of nodes
+		//		(1) From the QRs
+		//		(2) that have Attribute values in current Legend;
+		//		(3) All nodes appear only once!
+		// Color links by relationships (after ego is selected)
+	var self=this;
+	var qrrecs=[];			// [ { qr [original QR], i1 [index in recData], i2 }]
+	var recData=[];			// [ { id, r[ec], qrs: [indices of QR recs], f[eature Val] }]
+	var qrconfig=prspdata.e.g.qr;
+	var tRec=stream.t[this.qrTI];
+	var relI=tRec.i, absI, aI, qrRec, i1, i2;
+	var featSets=[], fAtts=[], fAttIDs=[];
+
+		// Preload fAtt data for used Templates
+	for (var fI=0; fI<PData.eTNum(); fI++) {
+		i1 = this.vFrame.getSelLegend(fI);
+		fAttIDs.push(i1);
+		fAtts.push(i1 ? PData.aByID(i1) : null);
+		featSets.push(i1 ? this.vFrame.getSelFeatAtts(fI) : null);
+	}
+
+		// PURPOSE:	Create or update entry in recData array (kept in order)
+		// RETURNS: -1 (if abort), or index in recData
+	function addE(id)
+	{
+		var fresh = recData.length === 0;
+		var i, rec, rd, tI, fAttID, fDatum;
+
+		if (!fresh) {
+			i = _.sortedIndex(recData, id, 'id');
+			rd = recData[i];
+		}
+
+		if (fresh || rd.id !== id) {
+				// Convert ID to absolute index and get Template Index
+			absI = PData.nByID(id);
+			rec = PData.rByN(absI);
+			tI = PData.n2T(absI);
+			fAttID = fAttIDs[tI];
+			fDatum = rec.a[fAttID];
+			if (typeof fDatum === 'undefined') {
+				return -1;
+			} else {
+				fDatum = PData.lClr(fDatum, fAtts[tI], featSets[tI]);
+				if (fDatum) {
+					if (fresh) {
+						recData.push({ id: id, r: rec, qrs: [ relI ], f: fDatum });
+						return 0;
+					} else {
+						recData.splice(i, 0, { id: id, r: rec, qrs: [ relI ], f: fDatum });
+						return i;
+					}
+				} else {
+					return -1;
+				}
+			}
+		} else {
+				// Record entry already exists -- just add reference to QR
+			rd.qrs.push(relI);
+			return i;
+		}
+	} // addE()
+
+		// Compile array of QR records
+	while (relI < tRec.i+tRec.n) {
+		absI = stream.s[relI++];
+		qrRec = PData.rByN(absI);
+		i1 = addE(qrRec.a[qrconfig.e1][0]);
+		if (i1 === -1) {
+			continue;
+		}
+		i2 = addE(qrRec.a[qrconfig.e2][0]);
+		if (i2 === -1) {
+			// TO DO: Delete any entry done for i1!!
+			continue;
+		}
+		qrrecs.push({ qr: qrRec, i1: i1, i2: i2 });
+	}
+
+console.table(qrrecs);
+console.table(recData);
 } // render()
 
 // ====================================================================================

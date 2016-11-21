@@ -1524,12 +1524,7 @@ jQuery(document).ready(function($) {
 
 	useQR = typeof prspdata.e.g.qr !== 'undefined' && prspdata.e.g.qr.t !== 'disable';
 	if (useQR) {
-		for (var i=0; i<prspdata.t.length; i++) {
-			if (prspdata.e.g.qr.t === prspdata.t[i].id) {
-				qrTI = i;
-				break;
-			}
-		}
+		qrTI = PData.tIByID(prspdata.e.g.qr.t);
 	}
 
 		// FUNCTIONS

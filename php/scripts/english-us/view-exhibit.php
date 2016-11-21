@@ -245,12 +245,14 @@
 </script>
 
 <script id="dltext-ego-graph" type='text'>
-	<div class="egsellist">
-		<div class="sellist-scroll">
+	<div class="egograph">
+		<div class="egsellist">
+			<div class="sellist-scroll">
+			</div>
 		</div>
+		<svg class="eg">
+		</svg>
 	</div>
-	<svg class="eg">
-	</svg>
 </script>
 
 <script id="dltext-filter-head" type='text'>
