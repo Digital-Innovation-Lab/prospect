@@ -6784,7 +6784,6 @@ var PData = (function() {
 			return null;
 		}, // nByID()
 
-
 			// RETURNS: Record data for recID
 		rByID: function(recID)
 		{
@@ -6814,7 +6813,6 @@ var PData = (function() {
 			} // for i
 			return null;
 		}, // rByID()
-
 
 			// RETURNS: Attribute definition with this ID
 			// INPUT:   attID = full Attribute ID (could be in Join dot notation)
@@ -6856,6 +6854,15 @@ var PData = (function() {
 		{
 			return prspdata.e.g.ts[tIndex];
 		},
+
+			// RETURNS: Index of template whose ID is tID
+		tIByID: function(tID)
+		{
+			for (var i=0; i<prspdata.t.length; i++) {
+				if (tID === prspdata.t[i].id)
+					return i;
+			}
+		}, // tByID()
 
 			// RETURNS: Definition of template whose ID is tID
 		tByID: function(tID)
