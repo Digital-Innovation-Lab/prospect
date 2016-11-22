@@ -170,7 +170,7 @@
 
 	<ol id="help-tour">
 		<li data-t="#pstate" data-l=<?php _e('"Current State"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Indicates the current state of Prospect (whether or not it is loading data, etc)', 'prospect'); ?></li>
-		<li data-t="#pstate" data-l=<?php _e('"Auto-Update"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('If this is checked, visualizations will be updated automatically and immediately whenever you change a Legend or Filter setting', 'prospect'); ?></li>
+		<li data-t="#auto-re" data-l=<?php _e('"Auto-Update"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('If this is checked, visualizations will be updated automatically and immediately whenever you change a Legend or Filter setting', 'prospect'); ?></li>
 		<li data-t="#btn-hs-bars" data-l=<?php _e('"Hide/Show Filters"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this to either hide or show the Filter panel', 'prospect'); ?></li>
 		<li data-t="#btn-set-layout" data-l=<?php _e('"Toggle Second View"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this to open the second view, or hide it', 'prospect'); ?></li>
 		<li data-t="#btn-show-prspctv" data-l=<?php _e('"Show Perspective"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this to see which Perspectives are available for current Exhibit', 'prospect'); ?></li>
