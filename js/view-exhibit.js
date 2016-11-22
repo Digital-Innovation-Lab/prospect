@@ -2813,6 +2813,11 @@ jQuery(document).ready(function($) {
 		autoUpdate = jQuery('#auto-re').prop('checked');
 		if (autoUpdate) {	// If turned on, apply any outstanding updates and disable buttons
 			if (fState === 1) {
+				views.forEach(function(v) {
+					if (v) {
+						v.clearSel();
+					}
+				});
 				doRecompute();
 			}
 		}	// If turned off autoUpdate, assumed any updates already applied!
