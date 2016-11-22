@@ -696,6 +696,9 @@ div.sellist-rec {
 	cursor: pointer;
 }
 
+div.sellist-rec.active {
+	background-color: yellow;
+}
 
 /* MODAL DIALOGS
  * =============

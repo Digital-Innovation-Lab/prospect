@@ -76,8 +76,10 @@ VizEgoGraph.prototype.render = function(stream)
 	var recData=[];			// [ { id, r[ec], qrs: [indices of QR recs], f[eature Val] }]
 	var qrconfig=prspdata.e.g.qr;
 	var tRec=stream.t[this.qrTI];
-	var relI=tRec.i, absI, aI, qrRec, i1, i2;
+	var relI=tRec.i, absI, aI, qrRec;
+	var i1, i2, id1, id2;
 	var featSets=[], fAtts=[], fAttIDs=[];
+	var ip;
 
 		// Preload fAtt data for used Templates
 	for (var fI=0; fI<PData.eTNum(); fI++) {
@@ -91,15 +93,19 @@ VizEgoGraph.prototype.render = function(stream)
 		// RETURNS: -1 (if abort), or index in recData
 	function addE(id)
 	{
-		var fresh = recData.length === 0;
+		var append = recData.length === 0;
 		var i, rec, rd, tI, fAttID, fDatum;
 
-		if (!fresh) {
-			i = _.sortedIndex(recData, id, 'id');
-			rd = recData[i];
+		if (append) {
+			i=0;
+		} else {
+			i = _.sortedIndex(recData, { id: id }, 'id');
+			if (!(append = (i === recData.length))) {
+				rd = recData[i];
+			}
 		}
 
-		if (fresh || rd.id !== id) {
+		if (append || rd.id !== id) {
 				// Convert ID to absolute index and get Template Index
 			absI = PData.nByID(id);
 			rec = PData.rByN(absI);
@@ -111,13 +117,12 @@ VizEgoGraph.prototype.render = function(stream)
 			} else {
 				fDatum = PData.lClr(fDatum, fAtts[tI], featSets[tI]);
 				if (fDatum) {
-					if (fresh) {
+					if (append) {
 						recData.push({ id: id, r: rec, qrs: [ relI ], f: fDatum });
-						return 0;
 					} else {
 						recData.splice(i, 0, { id: id, r: rec, qrs: [ relI ], f: fDatum });
-						return i;
 					}
+					return i;
 				} else {
 					return -1;
 				}
@@ -133,20 +138,27 @@ VizEgoGraph.prototype.render = function(stream)
 	while (relI < tRec.i+tRec.n) {
 		absI = stream.s[relI++];
 		qrRec = PData.rByN(absI);
-		i1 = addE(qrRec.a[qrconfig.e1][0]);
-		if (i1 === -1) {
+		id1 = qrRec.a[qrconfig.e1][0];
+		index = addE(id1);
+		if (index === -1) {
 			continue;
 		}
-		i2 = addE(qrRec.a[qrconfig.e2][0]);
-		if (i2 === -1) {
-			// TO DO: Delete any entry done for i1!!
+		id2 = qrRec.a[qrconfig.e2][0];
+		if (addE(id2) === -1) {
+				// Remove entry done for i1 -- will always be last
+			recData[index].qrs.pop();
 			continue;
 		}
-		qrrecs.push({ qr: qrRec, i1: i1, i2: i2 });
+		qrrecs.push({ qr: qrRec, id1: id1, id2: id2 });
 	}
 
-console.table(qrrecs);
-console.table(recData);
+		// TO DO: Create index for putting Records in alpha order
+
+		// Populate selection list with Record labels
+	ip = jQuery(this.frameID).find('div.egograph div.egsellist div.sellist-scroll');
+	recData.forEach(function(d) {
+		ip.append('<div class="sellist-rec" data-id="'+d.r.id+'">'+d.r.l+'</div>');
+	});
 } // render()
 
 // ====================================================================================
