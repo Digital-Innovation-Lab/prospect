@@ -246,7 +246,7 @@
 
 <script id="dltext-ego-graph" type='text'>
 	<div class="egograph">
-		<div class="egsellist">
+		<div class="egolist">
 			<div class="sellist-scroll">
 			</div>
 		</div>

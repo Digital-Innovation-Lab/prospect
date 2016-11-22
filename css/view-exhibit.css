@@ -1638,7 +1638,7 @@ div.egograph {
     flex-flow: row nowrap;
 }
 
-div.egsellist {
+div.egolist {
 	width: 270px;
 	height: 100%;
 
@@ -1650,15 +1650,9 @@ div.egsellist {
 	font-size: 10px;
 }
 
-div.egsellist > div.sellist-scroll {
+div.egolist > div.sellist-scroll {
 	height: 100%;
 	overflow-y: scroll;
-}
-
-circle.ring {
-	fill: none;
-	stroke: white;
-	stroke-width: 1;
 }
 
 /* Specific Filter styles

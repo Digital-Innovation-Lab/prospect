@@ -8,11 +8,13 @@
 // VizEgoGraph: Class to visualize relationships from a given "ego" node
 //	Instance Variables:
 //		svg = svg for entire visualization
+//		center = svg.g element at center
 //		qrTI = index of QR Template
-//		center = g element at center
 //		n = current number of concentric rings
 //		r = current distance between concentric rings
 //		rings = represent rings [{ i: 0..n-1, r[adius] }]
+//		qrs = compiled data from QRTemplates
+//		drs = compiled data from Records (entities)
 
 var VizEgoGraph = function(viewFrame, vSettings)
 {
@@ -33,13 +35,26 @@ VizEgoGraph.prototype.setup = function()
 	var s=this.settings;
 	var self=this;
 	var cr=Math.floor(s.s/2);
+	var j=jQuery(this.frameID);
 
 	this.r = s.r;
 	this.n = s.n;
 
 	this.qrTI = PData.tIByID(prspdata.e.g.qr.t);
 
-	jQuery(this.frameID).append(document.getElementById('dltext-ego-graph').innerHTML);
+	j.append(document.getElementById('dltext-ego-graph').innerHTML);
+
+	j.find("div.egograph div.egolist div.sellist-scroll").on("click", function(event) {
+		if (event.target.nodeName === 'DIV') {
+			var item = jQuery(event.target).closest('div.sellist-rec');
+			if (item.size() == 1) {
+				var id = item.data('id');
+				j.find("div.egograph div.egolist div.sellist-scroll div.sellist-rec").removeClass('active');
+				item.addClass('active');
+				self.doClick(id);
+			}
+		}
+	});
 
 	this.svg = d3.select(this.frameID).select("svg");
 	this.svg.attr("width", s.s).attr("height", s.s);
@@ -47,18 +62,103 @@ VizEgoGraph.prototype.setup = function()
 	this.center = this.svg.append("g");
 	this.center.attr("transform", "translate(" + cr + "," + cr + ")");
 
-	this.rings=[];
-	for (var i=0; i<this.n; i++) {
-		this.rings.push({ i: i, r: 40+(i*this.r) });
-	}
-
-	var ring = this.center.selectAll(".ring")
-		.data(this.rings)
-		.enter()
-		.append("circle")
-		.attr("class", "ring")
-		.attr("r", function(d) { return d.r; });
+	// this.rings=[];
+	// for (var i=0; i<this.n; i++) {
+	// 	this.rings.push({ i: i, r: 40+(i*this.r) });
+	// }
+	//
+	// var ring = this.center.selectAll(".ring")
+	// 	.data(this.rings)
+	// 	.enter()
+	// 	.append("circle")
+	// 	.attr("class", "ring")
+	// 	.attr("r", function(d) { return d.r; });
 } // setup()
+
+	// PURPOSE:	Effect click on Record <id>
+VizEgoGraph.prototype.doClick = function(id)
+{
+	var self=this;
+	var s=this.settings;
+
+	var cr=Math.floor(s.s/2);
+
+	this.center.selectAll(".node").remove();
+	this.center.selectAll(".link").remove();
+
+		// Mark all qr and rec data as unused
+	this.qrs.forEach(function(q) { q.u = false; });
+	this.drs.forEach(function(d) { d.u = false; });
+
+		// PURPOSE: Utility function that converts radial position to X,Y
+	function project(x, y) {
+		var angle = (x - 90) / 180 * Math.PI, radius = y;
+		return [radius * Math.cos(angle), radius * Math.sin(angle)];
+	} // project()
+
+		// PURPOSE: Recursive function to add node <nID> to tree
+		// INPUT:	p is pointer to parent node (or null for ego)
+		//			nID is the ID for this node
+		//			depth is the level in tree
+		// TO DO:	Make breadth first, NOT depth first!
+	function growTree(p, nID, depth)
+	{
+		var newNode = { parent: p, children: [] };
+
+			// Mark this node as "used"
+		var drI = _.sortedIndex(self.drs, { id: nID }, 'id');
+		var dr = self.drs[drI];
+		dr.u = true;
+
+			// If not already at "bottom" of tree depth, look to see if this node in relationships
+			//	with others not already "used" (placed on chart)
+		if (depth < self.n) {
+			self.qrs.forEach(function(thisQR) {
+				if (!thisQR.u && (thisQR.e1 === nID || thisQR.e2 === nID)) {
+					var connectedID = (thisQR.e1 === nID) ? thisQR.e2 : thisQR.e1;
+					drI = _.sortedIndex(self.drs, { id: connectedID }, 'id');
+					dr = self.drs[drI];
+						// Find this node in node list
+					if (!dr.u) {
+							// Set both QR and node to "used"
+						thisQR.u = true;
+						dr.u = true;
+						newNode.children.push(growTree(newNode, connectedID, depth+1));
+					}
+				}
+			});
+		}
+		return newNode;
+	} // growTree()
+
+	var ego = growTree(null, id, 0);
+	var graph = d3.hierarchy(ego);
+	var treeFunc = d3.tree().size([360, cr]).separation(function(a, b) { return (a.parent == b.parent ? 1 : 2) / a.depth; });
+	var root = treeFunc(graph);
+
+	var link = this.center.selectAll(".link")
+    	.data(root.descendants().slice(1))
+    	.enter().append("path")
+        .attr("class", "link")
+		.attr("stroke", function(d) { return "#bb0011"; })	// TO DO: Use Relationship color!
+        .attr("d", function(d) {
+        	return "M" + project(d.x, d.y)
+            	+ "C" + project(d.x, (d.y + d.parent.y) / 2)
+            	+ " " + project(d.parent.x, (d.y + d.parent.y) / 2)
+            	+ " " + project(d.parent.x, d.parent.y);
+        });
+
+    var node = this.center.selectAll(".node")
+    	.data(root.descendants())
+    	.enter().append("g")
+        .attr("class", function(d) { return "node"; })
+        .attr("transform", function(d) { return "translate(" + project(d.x, d.y) + ")"; });
+
+    node.append("circle")
+        .attr("r", 2.5)
+		.attr("fill", function(d) { return "#ccaa00"; })
+	// TO DO: Add label as hover text, click on node
+} // doClick()
 
 	// NOTES:	The render stage actually only compiles data and populates the selection list;
 	//				The graph is rendered in response to clicks on the selection list
@@ -72,8 +172,8 @@ VizEgoGraph.prototype.render = function(stream)
 		//		(3) All nodes appear only once!
 		// Color links by relationships (after ego is selected)
 	var self=this;
-	var qrrecs=[];			// [ { qr [original QR], i1 [index in recData], i2 }]
-	var recData=[];			// [ { id, r[ec], qrs: [indices of QR recs], f[eature Val] }]
+	var qrrecs=[];			// [ { qr [original QR], e1, e2, u }]
+	var recData=[];			// [ { ai, id, r[ec], qrs: [indices of QR recs], f[eature Val], u }]
 	var qrconfig=prspdata.e.g.qr;
 	var tRec=stream.t[this.qrTI];
 	var relI=tRec.i, absI, aI, qrRec;
@@ -118,9 +218,9 @@ VizEgoGraph.prototype.render = function(stream)
 				fDatum = PData.lClr(fDatum, fAtts[tI], featSets[tI]);
 				if (fDatum) {
 					if (append) {
-						recData.push({ id: id, r: rec, qrs: [ relI ], f: fDatum });
+						recData.push({ ai: absI, id: id, r: rec, qrs: [ relI ], f: fDatum, u: false });
 					} else {
-						recData.splice(i, 0, { id: id, r: rec, qrs: [ relI ], f: fDatum });
+						recData.splice(i, 0, { ai: absI, id: id, r: rec, qrs: [ relI ], f: fDatum, u: false });
 					}
 					return i;
 				} else {
@@ -149,13 +249,15 @@ VizEgoGraph.prototype.render = function(stream)
 			recData[index].qrs.pop();
 			continue;
 		}
-		qrrecs.push({ qr: qrRec, id1: id1, id2: id2 });
+		qrrecs.push({ qr: qrRec, e1: id1, e2: id2, u: false });
 	}
+	this.qrs = qrrecs;
+	this.drs = recData;
 
 		// TO DO: Create index for putting Records in alpha order
 
 		// Populate selection list with Record labels
-	ip = jQuery(this.frameID).find('div.egograph div.egsellist div.sellist-scroll');
+	ip = jQuery(this.frameID).find('div.egograph div.egolist div.sellist-scroll');
 	recData.forEach(function(d) {
 		ip.append('<div class="sellist-rec" data-id="'+d.r.id+'">'+d.r.l+'</div>');
 	});
