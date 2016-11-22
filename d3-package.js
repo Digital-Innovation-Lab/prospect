@@ -1,14 +1,14 @@
 export {
-  axisTop,
-  axisLeft,
-  axisBottom
+	axisTop,
+	axisLeft,
+	axisBottom
 } from "d3-axis";
 
 export {
-  brush,
-  brushX,
-  brushY,
-  brushSelection
+	brush,
+	brushX,
+	brushY,
+	brushSelection
 } from "d3-brush";
 
 export * from "d3-dispatch";
@@ -17,7 +17,7 @@ export * from "d3-drag";
 
 export * from "d3-force";
 
-export { hierarchy, cluster, treemap } from "d3-hierarchy";
+export { hierarchy, cluster, tree, treemap } from "d3-hierarchy";
 
 export * from "d3-path";
 

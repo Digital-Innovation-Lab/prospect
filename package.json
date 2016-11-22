@@ -24,6 +24,8 @@
     "uglify-js": "^2.6.2"
   },
   "dependencies": {
-    "rollup": "^0.34.1"
+    "d3-transition": "^1.0.3",
+    "rollup": "^0.34.1",
+    "uglify-js": "^2.7.4"
   }
 }
