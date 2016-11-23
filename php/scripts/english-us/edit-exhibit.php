@@ -1012,8 +1012,8 @@
 <script id="vfEgoGraph" type='text/ractive'>
 	<?php _e('Display size (in pixels)', 'prospect'); ?>: <input type="number" value="{{c.s}}" min="100" max="1500" required/>
 	<br/>
-	<?php _e('Initial space between rings (10-100 pixels)', 'prospect'); ?>: <input type="number" value="{{c.r}}" min="10" max="100" required/>
-	<?php _e('Initial number of rings (1-6)', 'prospect'); ?>: <input type="number" value="{{c.n}}" min="1" max="6" required/>
+	<?php _e('Node radius (2-50 pixels)', 'prospect'); ?>: <input type="number" value="{{c.r}}" min="2" max="50" required/>
+	<?php _e('Initial degrees of separation (1-6)', 'prospect'); ?>: <input type="number" value="{{c.n}}" min="1" max="6" required/>
 	<br/>
 	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
 	<tabs>
