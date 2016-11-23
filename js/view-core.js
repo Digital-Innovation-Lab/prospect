@@ -131,19 +131,25 @@ PVizModel.prototype.flags = function()
 } // flags()
 
 	// PURPOSE: Clear variables used to track use of Templates and Records
+	// INPUT:	if initT, then initialize the Template flags
+	//			if initR, then initiative the Record flags
 	// NOTES: 	Needed by visualizations that render individual Records (not aggregates)
-PVizModel.prototype.preRender = function()
+PVizModel.prototype.preRender = function(initT, initR)
 {
 	var i, rCnt = PData.rSize(), mCnt = Math.floor((rCnt+15)/16);
 
-	for (i=0; i<4; i++) {
-		this.tUsed[i] = false;
+	if (initT) {
+		for (i=0; i<4; i++) {
+			this.tUsed[i] = false;
+		}
 	}
-	if (this.rMap == null) {
-		this.rMap = new Uint16Array(mCnt);
-	}
-	for (i=0; i<mCnt; i++) {
-		this.rMap[i] = 0;
+	if (initR) {
+		if (this.rMap == null) {
+			this.rMap = new Uint16Array(mCnt);
+		}
+		for (i=0; i<mCnt; i++) {
+			this.rMap[i] = 0;
+		}
 	}
 } // preRender()
 
@@ -400,7 +406,7 @@ VizMap.prototype.render = function(stream)
 		this.recSel=[];
 	}
 
-	this.preRender();
+	this.preRender(true, true);
 
 		// Remove previous Markers
 	mLayer.clearLayers();
@@ -916,7 +922,7 @@ VizMap2.prototype.render = function(stream)
 		this.recSel=[];
 	}
 
-	this.preRender();
+	this.preRender(true, true);
 
 		// Remove previous Markers
 	mLayer.clearLayers();
@@ -1294,7 +1300,7 @@ VizCards.prototype.render = function(stream)
 		this.recSel=[];
 	}
 
-	this.preRender();
+	this.preRender(true, true);
 
 	var insert;
 
@@ -1672,7 +1678,7 @@ VizPinboard.prototype.render = function(stream)
 		this.recSel=[];
 	}
 
-	this.preRender();
+	this.preRender(true, true);
 
 	var numTmplts = stream.t.length;
 	var i, aI, tI=0, tRec, tLClr, rec;
@@ -2499,7 +2505,7 @@ VizTime.prototype.render = function(stream)
 		this.recSel=[];
 	}
 
-	this.preRender();
+	this.preRender(true, true);
 
 	this.events=[];		// All event data
 	this.lgBds=[];		// Date Legend Backgrounds: { s[tart], e[nd], t[top track #], h[eight], d[ata in Legend rec] }
@@ -3166,7 +3172,7 @@ VizDirectory.prototype.render = function(stream)
 		this.recSel=[];
 	}
 
-	this.preRender();
+	this.preRender(true, true);
 
 		// Save it in case of later rerender
 	this.stream = stream;
@@ -3418,7 +3424,7 @@ VizTextStream.prototype.render = function(stream)
 		this.recSel=[];
 	}
 
-	this.preRender();
+	this.preRender(true, true);
 
 	dt = this.settings.max - this.settings.min;
 
@@ -3771,7 +3777,7 @@ VizNetWheel.prototype.render = function(stream)
 		this.recSel=[];
 	}
 
-	this.preRender();
+	this.preRender(true, true);
 
 		// Abort if no Records
 	if (stream.l === 0) {
@@ -4139,7 +4145,7 @@ VizNetGraph.prototype.render = function(stream)
 		this.recSel=[];
 	}
 
-	this.preRender();
+	this.preRender(true, true);
 
 		// Abort if no Records
 	if (stream.l === 0) {
@@ -4553,7 +4559,7 @@ VizBMatrix.prototype.render = function(stream)
 	if (this.recSel.length > 0) {
 		this.recSel=[];
 	}
-	this.preRender();
+	this.preRender(true, true);
 
 		// remove any existing nodes and links
 	this.svg.selectAll("path").remove();
