@@ -6879,6 +6879,20 @@ var PData = (function() {
 			}
 		}, // tByID()
 
+			// PURPOSE:	Create a "FeatureAtts" array to mimic ViewFrame.getSelFeatAtts()
+			// NOTE:	Currently only supports single, non-hierarchical Legend
+		allFAtts: function(att)
+		{
+			var fAtts=[];
+			if (typeof att.r.u !== 'undefined') {
+				fAtts.push(-1);
+			}
+			att.l.forEach(function(l, lI) {
+				fAtts.push(lI);
+			})
+			return fAtts;
+		}, // allFAtts()
+
 			// RETURNS: The visual feature for an Attribute value, an array (if all), or null if no match
 			// INPUT:   val = raw Attribute val (String or Number)
 			//			att = full Attribute entry
