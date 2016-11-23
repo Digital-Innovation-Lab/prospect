@@ -1639,7 +1639,7 @@ div.egograph {
 }
 
 div.egolist {
-	width: 270px;
+	width: 250px;
 	height: 100%;
 
 	padding: 4px;
@@ -1651,8 +1651,20 @@ div.egolist {
 }
 
 div.egolist > div.sellist-scroll {
-	height: 100%;
 	overflow-y: scroll;
+}
+
+svg path.bond
+{
+	stroke-opacity: 1;
+	stroke-width: 4px;
+	stroke-dasharray: 2;
+	fill: none;
+}
+
+svg path.bond.obj-sel
+{
+	stroke-dasharray: 0;
 }
 
 /* Specific Filter styles
