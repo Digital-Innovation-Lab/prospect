@@ -247,6 +247,7 @@
 <script id="dltext-ego-graph" type='text'>
 	<div class="egograph">
 		<div class="egolist">
+			<label><?php _e('Degrees of separation', 'prospect'); ?> </label><input type="text" class="ego-n" size="1"/>
 			<div class="sellist-scroll">
 			</div>
 		</div>

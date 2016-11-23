@@ -12,7 +12,6 @@
 //		qrTI = index of QR Template
 //		ego = ID of currently selected Record
 //		n = current number of concentric rings
-//		rings = represent rings [{ i: 0..n-1, r[adius] }]
 //		qrs = compiled data from QRTemplates
 //		drs = compiled data from Records (entities)
 
@@ -54,6 +53,21 @@ VizEgoGraph.prototype.setup = function()
 		}
 	});
 
+		// Set initial number of degrees of separation
+	j.find("div.egograph input.ego-n").val(s.n);
+	j.find("div.egograph input.ego-n").on("change", function() {
+		var newN = jQuery(this).val();
+		if (newN >= '2' && newN <= '6') {
+			jQuery(this).removeClass('error');
+			self.n = parseInt(newN, 10);
+			if (self.ego) {
+				self.setEgo(self.ego);
+			}
+		} else {
+			jQuery(this).addClass('error');
+		}
+	});
+
 	this.svg = d3.select(this.frameID).select("svg");
 	this.svg.attr("width", s.s).attr("height", s.s);
 
@@ -72,6 +86,13 @@ VizEgoGraph.prototype.setup = function()
 	// 	.attr("class", "ring")
 	// 	.attr("r", function(d) { return d.r; });
 } // setup()
+
+VizEgoGraph.prototype.teardown = function()
+{
+	var j = jQuery(this.frameID+" div.egograph");
+	j.find("div.egolist div.sellist-scroll").off("click");
+	j.find("div.egograph input.ego-n").off("change");
+} // teardown()
 
 	// PURPOSE:	Effect click on Record <id>
 VizEgoGraph.prototype.setEgo = function(id)
