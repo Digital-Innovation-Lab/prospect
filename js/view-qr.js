@@ -99,6 +99,9 @@ VizEgoGraph.prototype.setEgo = function(id)
 {
 	var self=this;
 	var s=this.settings;
+	var rAttID=prspdata.e.g.qr.r;
+	var rAtt=PData.aByID(rAttID);
+	var fSet=PData.allFAtts(rAtt);
 
 	this.ego = id;
 
@@ -131,20 +134,22 @@ VizEgoGraph.prototype.setEgo = function(id)
 		// INPUT:	p is pointer to parent node (or null for ego)
 		//			nID is the ID for this node
 		//			depth is the level in tree
+		//			lc is the color of the QR relationship
+		//			li is the index of the QR record
 		// TO DO:	Make breadth first, NOT depth first!
-	function growTree(p, nID, depth)
+	function growTree(p, nID, depth, lc, li)
 	{
 			// Mark this node as "used"
 		var drI = _.sortedIndex(self.drs, { id: nID }, 'id');
 		var dr = self.drs[drI];
 		dr.u = true;
 
-		var newNode = { parent: p, children: [], c: dr.f, l: dr.r.l, ai: dr.ai };
+		var newNode = { parent: p, children: [], lc: lc, li: li, nc: dr.f, ni: dr.ai, t: dr.r.l };
 
 			// If not already at "bottom" of tree depth, look to see if this node in relationships
 			//	with others not already "used" (placed on chart)
 		if (depth < self.n) {
-			self.qrs.forEach(function(thisQR) {
+			self.qrs.forEach(function(thisQR, qrI) {
 				if (!thisQR.u && (thisQR.e1 === nID || thisQR.e2 === nID)) {
 					var connectedID = (thisQR.e1 === nID) ? thisQR.e2 : thisQR.e1;
 					drI = _.sortedIndex(self.drs, { id: connectedID }, 'id');
@@ -155,7 +160,14 @@ VizEgoGraph.prototype.setEgo = function(id)
 						thisQR.u = true;
 						dr.u = true;
 						self.rMap[dr.ai >> 4] |= (1 << (dr.ai & 15));
-						newNode.children.push(growTree(newNode, connectedID, depth+1));
+							// Get Relationship value
+						var rVal = thisQR.qr.a[rAttID];
+						if (typeof rVal !== 'undefined') {
+							rVal = PData.lClr(rVal, rAtt, fSet);
+							if (rVal) {
+								newNode.children.push(growTree(newNode, connectedID, depth+1, rVal, qrI));
+							}
+						}
 					}
 				}
 			});
@@ -163,13 +175,19 @@ VizEgoGraph.prototype.setEgo = function(id)
 		return newNode;
 	} // growTree()
 
-	function clickDot(d)
+	function clickNode(d)
 	{
-		var s = self.toggleSel(d.data.ai);
+		var s = self.toggleSel(d.data.ni);
 		d3.select(this).classed('obj-sel', s);
-	} // clickDot()
+	} // clickNode()
 
-	var ego = growTree(null, id, 0);
+	function clickLink(d)
+	{
+		var s = self.toggleSel(d.data.li);
+		d3.select(this).classed('obj-sel', s);
+	} // clickLink()
+
+	var ego = growTree(null, id, 0, null, null);
 	var graph = d3.hierarchy(ego);
 	var treeFunc = d3.tree().size([360, cr-s.r]).separation(function(a, b) { return (a.parent == b.parent ? 1 : 2) / a.depth; });
 	var root = treeFunc(graph);
@@ -178,7 +196,7 @@ VizEgoGraph.prototype.setEgo = function(id)
     	.data(root.descendants().slice(1))
     	.enter().append("path")
         .attr("class", "link")
-		.attr("stroke", function(d) { return "#000"; })	// TO DO: Use Relationship color!
+		.attr("stroke", function(d) { return d.data.lc; })
         .attr("d", function(d) {
         	return "M" + project(d.x, d.y)
             	+ "C" + project(d.x, (d.y + d.parent.y) / 2)
@@ -194,11 +212,11 @@ VizEgoGraph.prototype.setEgo = function(id)
 
     node.append("circle")
         .attr("r", s.r)
-		.attr("fill", function(d) { return d.data.c; })
-		.on("click", clickDot);
+		.attr("fill", function(d) { return d.data.nc; })
+		.on("click", clickNode);
 
 	node.append("title")
-		.text(function(d) { return d.data.l; });
+		.text(function(d) { return d.data.t; });
 } // SetEgo()
 
 	// NOTES:	The render stage actually only compiles data and populates the selection list;
