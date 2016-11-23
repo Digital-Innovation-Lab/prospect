@@ -10,8 +10,8 @@
 //		svg = svg for entire visualization
 //		center = svg.g element at center
 //		qrTI = index of QR Template
+//		ego = ID of currently selected Record
 //		n = current number of concentric rings
-//		r = current distance between concentric rings
 //		rings = represent rings [{ i: 0..n-1, r[adius] }]
 //		qrs = compiled data from QRTemplates
 //		drs = compiled data from Records (entities)
@@ -37,8 +37,8 @@ VizEgoGraph.prototype.setup = function()
 	var cr=Math.floor(s.s/2);
 	var j=jQuery(this.frameID);
 
-	this.r = s.r;
 	this.n = s.n;
+	this.ego = null;
 
 	this.qrTI = PData.tIByID(prspdata.e.g.qr.t);
 
@@ -49,9 +49,7 @@ VizEgoGraph.prototype.setup = function()
 			var item = jQuery(event.target).closest('div.sellist-rec');
 			if (item.size() == 1) {
 				var id = item.data('id');
-				j.find("div.egograph div.egolist div.sellist-scroll div.sellist-rec").removeClass('active');
-				item.addClass('active');
-				self.doClick(id);
+				self.setEgo(id);
 			}
 		}
 	});
@@ -76,19 +74,31 @@ VizEgoGraph.prototype.setup = function()
 } // setup()
 
 	// PURPOSE:	Effect click on Record <id>
-VizEgoGraph.prototype.doClick = function(id)
+VizEgoGraph.prototype.setEgo = function(id)
 {
 	var self=this;
 	var s=this.settings;
+
+	this.ego = id;
 
 	var cr=Math.floor(s.s/2);
 
 	this.center.selectAll(".node").remove();
 	this.center.selectAll(".link").remove();
 
+		// Ensure that just this item is selected
+	var j=jQuery(this.frameID+" > div.egograph > div.egolist > div.sellist-scroll");
+	j.find("div.sellist-rec").removeClass('active');
+	j.find('div.sellist-rec[data-id="'+id+'"]').addClass('active');
+
 		// Mark all qr and rec data as unused
 	this.qrs.forEach(function(q) { q.u = false; });
 	this.drs.forEach(function(d) { d.u = false; });
+
+		// Ensure no current selection
+	this.vFrame.upSel([], false);
+		// Mark no Records rendered
+	this.preRender(false, true);
 
 		// PURPOSE: Utility function that converts radial position to X,Y
 	function project(x, y) {
@@ -103,12 +113,12 @@ VizEgoGraph.prototype.doClick = function(id)
 		// TO DO:	Make breadth first, NOT depth first!
 	function growTree(p, nID, depth)
 	{
-		var newNode = { parent: p, children: [] };
-
 			// Mark this node as "used"
 		var drI = _.sortedIndex(self.drs, { id: nID }, 'id');
 		var dr = self.drs[drI];
 		dr.u = true;
+
+		var newNode = { parent: p, children: [], c: dr.f, l: dr.r.l, ai: dr.ai };
 
 			// If not already at "bottom" of tree depth, look to see if this node in relationships
 			//	with others not already "used" (placed on chart)
@@ -123,6 +133,7 @@ VizEgoGraph.prototype.doClick = function(id)
 							// Set both QR and node to "used"
 						thisQR.u = true;
 						dr.u = true;
+						self.rMap[dr.ai >> 4] |= (1 << (dr.ai & 15));
 						newNode.children.push(growTree(newNode, connectedID, depth+1));
 					}
 				}
@@ -131,16 +142,22 @@ VizEgoGraph.prototype.doClick = function(id)
 		return newNode;
 	} // growTree()
 
+	function clickDot(d)
+	{
+		var s = self.toggleSel(d.data.ai);
+		d3.select(this).classed('obj-sel', s);
+	} // clickDot()
+
 	var ego = growTree(null, id, 0);
 	var graph = d3.hierarchy(ego);
-	var treeFunc = d3.tree().size([360, cr]).separation(function(a, b) { return (a.parent == b.parent ? 1 : 2) / a.depth; });
+	var treeFunc = d3.tree().size([360, cr-s.r]).separation(function(a, b) { return (a.parent == b.parent ? 1 : 2) / a.depth; });
 	var root = treeFunc(graph);
 
 	var link = this.center.selectAll(".link")
     	.data(root.descendants().slice(1))
     	.enter().append("path")
         .attr("class", "link")
-		.attr("stroke", function(d) { return "#bb0011"; })	// TO DO: Use Relationship color!
+		.attr("stroke", function(d) { return "#000"; })	// TO DO: Use Relationship color!
         .attr("d", function(d) {
         	return "M" + project(d.x, d.y)
             	+ "C" + project(d.x, (d.y + d.parent.y) / 2)
@@ -155,10 +172,13 @@ VizEgoGraph.prototype.doClick = function(id)
         .attr("transform", function(d) { return "translate(" + project(d.x, d.y) + ")"; });
 
     node.append("circle")
-        .attr("r", 2.5)
-		.attr("fill", function(d) { return "#ccaa00"; })
-	// TO DO: Add label as hover text, click on node
-} // doClick()
+        .attr("r", s.r)
+		.attr("fill", function(d) { return d.data.c; })
+		.on("click", clickDot);
+
+	node.append("title")
+		.text(function(d) { return d.data.l; });
+} // SetEgo()
 
 	// NOTES:	The render stage actually only compiles data and populates the selection list;
 	//				The graph is rendered in response to clicks on the selection list
@@ -173,7 +193,7 @@ VizEgoGraph.prototype.render = function(stream)
 		// Color links by relationships (after ego is selected)
 	var self=this;
 	var qrrecs=[];			// [ { qr [original QR], e1, e2, u }]
-	var recData=[];			// [ { ai, id, r[ec], qrs: [indices of QR recs], f[eature Val], u }]
+	var recData=[];			// [ { ai, id, r[ec], f[eature Val], u }]
 	var qrconfig=prspdata.e.g.qr;
 	var tRec=stream.t[this.qrTI];
 	var relI=tRec.i, absI, aI, qrRec;
@@ -181,12 +201,19 @@ VizEgoGraph.prototype.render = function(stream)
 	var featSets=[], fAtts=[], fAttIDs=[];
 	var ip;
 
+	if (this.recSel.length > 0) {
+		this.recSel=[];
+	}
+
+	this.preRender(true, false);
+
 		// Preload fAtt data for used Templates
 	for (var fI=0; fI<PData.eTNum(); fI++) {
 		i1 = this.vFrame.getSelLegend(fI);
 		fAttIDs.push(i1);
 		fAtts.push(i1 ? PData.aByID(i1) : null);
 		featSets.push(i1 ? this.vFrame.getSelFeatAtts(fI) : null);
+		this.tUsed[fI] = i1 ? true : false;
 	}
 
 		// PURPOSE:	Create or update entry in recData array (kept in order)
@@ -218,9 +245,9 @@ VizEgoGraph.prototype.render = function(stream)
 				fDatum = PData.lClr(fDatum, fAtts[tI], featSets[tI]);
 				if (fDatum) {
 					if (append) {
-						recData.push({ ai: absI, id: id, r: rec, qrs: [ relI ], f: fDatum, u: false });
+						recData.push({ ai: absI, id: id, r: rec, f: fDatum, u: false });
 					} else {
-						recData.splice(i, 0, { ai: absI, id: id, r: rec, qrs: [ relI ], f: fDatum, u: false });
+						recData.splice(i, 0, { ai: absI, id: id, r: rec, f: fDatum, u: false });
 					}
 					return i;
 				} else {
@@ -228,8 +255,6 @@ VizEgoGraph.prototype.render = function(stream)
 				}
 			}
 		} else {
-				// Record entry already exists -- just add reference to QR
-			rd.qrs.push(relI);
 			return i;
 		}
 	} // addE()
@@ -245,8 +270,6 @@ VizEgoGraph.prototype.render = function(stream)
 		}
 		id2 = qrRec.a[qrconfig.e2][0];
 		if (addE(id2) === -1) {
-				// Remove entry done for i1 -- will always be last
-			recData[index].qrs.pop();
 			continue;
 		}
 		qrrecs.push({ qr: qrRec, e1: id1, e2: id2, u: false });
@@ -258,10 +281,45 @@ VizEgoGraph.prototype.render = function(stream)
 
 		// Populate selection list with Record labels
 	ip = jQuery(this.frameID).find('div.egograph div.egolist div.sellist-scroll');
+	ip.empty();
 	recData.forEach(function(d) {
 		ip.append('<div class="sellist-rec" data-id="'+d.r.id+'">'+d.r.l+'</div>');
 	});
+	if (this.ego) {
+		this.setEgo(this.ego);
+	}
 } // render()
+
+VizEgoGraph.prototype.setSel = function(absIArray)
+{
+	var self=this;
+
+	self.recSel = absIArray;
+	this.center.selectAll(".node circle")
+			.attr("class", function(d) { return self.isSel(d.data.ai) ? 'obj-sel' : '' });
+} // setSel()
+
+VizEgoGraph.prototype.clearSel = function()
+{
+	if (this.recSel.length > 0) {
+		this.recSel = [];
+			// Only zoom band events are selected
+		this.center.selectAll(".node circle")
+				.attr("class", '');
+	}
+} // clearSel()
+
+VizEgoGraph.prototype.getState = function()
+{
+	return { ego: this.ego, l: this.vFrame.getLgndSels() };
+} // getState()
+
+VizEgoGraph.prototype.setState = function(state)
+{
+	this.vFrame.setLgndSels(state.l);
+	this.ego = state.ego;
+} // setState()
+
 
 // ====================================================================================
 // PFilterQR: Filter class that removes all QR Records based on Relationships and Roles
