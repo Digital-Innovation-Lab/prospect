@@ -160,6 +160,7 @@ VizEgoGraph.prototype.setEgo = function(id)
 						thisQR.u = true;
 						dr.u = true;
 						self.rMap[dr.ai >> 4] |= (1 << (dr.ai & 15));
+						self.rMap[thisQR.qi >> 4] |= (1 << (thisQR.qi & 15));
 							// Get Relationship value
 						var rVal = thisQR.qr.a[rAttID];
 						if (typeof rVal !== 'undefined') {
@@ -253,7 +254,7 @@ VizEgoGraph.prototype.render = function(stream)
 		fAttIDs.push(i1);
 		fAtts.push(i1 ? PData.aByID(i1) : null);
 		featSets.push(i1 ? this.vFrame.getSelFeatAtts(qI) : null);
-		this.tUsed[qI] = i1 ? true : false;
+		this.tUsed[qI] = true;		// Always true so that QR Attributes available
 	}
 
 		// PURPOSE:	Create or update entry in recData array (kept in order)
