@@ -365,6 +365,24 @@ VizEgoGraph.prototype.setState = function(state)
 	this.ego = state.ego;
 } // setState()
 
+VizEgoGraph.prototype.hint = function()
+{
+	var hint='';
+	var self=this;
+
+	var rAttID=prspdata.e.g.qr.r;
+	var rAtt=PData.aByID(rAttID);
+
+	rAtt.l.forEach(function(lgnd) {
+		if (hint.length > 0) {
+			hint += ", ";
+		}
+		hint += '<b><span style="color: '+lgnd.v+'">'+lgnd.l+'</span></b>';
+	});
+	return hint;
+} // hint()
+
+
 
 // ====================================================================================
 // PFilterQR: Filter class that removes all QR Records based on Relationships and Roles
