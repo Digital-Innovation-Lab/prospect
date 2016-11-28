@@ -2186,7 +2186,7 @@ jQuery(document).ready(function($) {
 			newFilter = new PFilterRemove(newID);
 			theAtt = { t: [ true, true, true, true ] };	// Create pseudo-Attribute entry
 		} else if (fID === '_qr') {
-			newFilter = new PFilterQR(newID, qrTI);
+			newFilter = new PFilterQR(newID);
 			appBoxes='';
 			title = dlText.qrrr;
 		} else {

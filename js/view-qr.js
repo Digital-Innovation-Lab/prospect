@@ -397,11 +397,10 @@ VizEgoGraph.prototype.hint = function()
 //		r2 = ID of Vocab Attribute for currently selected Relationship term
 //		r2On = if true, eval on basis of <r2>
 
-var PFilterQR = function(id, tI)
+var PFilterQR = function(id)
 {
 		// Create pseudo-Attribute object w/ID
 	PFilterModel.call(this, id, { id: '_qr' });
-	this.t = tI;
 	this.qr = prspdata.e.g.qr;
 		// Set default Relationship ID
 	this.r = prspdata.e.g.qr.x[0].id;
@@ -499,7 +498,7 @@ PFilterQR.prototype.evalPrep = function()
 } // evalPrep()
 
 	// PURPOSE: Evaluate QR Records specifically
-	// ASSUMRS:	Not called for non-QR Template Records
+	// ASSUMES:	Only called for QR Template Records
 	//			Attribute value for Relationship has only 1 value! (not multiple)
 PFilterQR.prototype.eval = function(rec)
 {
