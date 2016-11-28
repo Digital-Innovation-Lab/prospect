@@ -2170,6 +2170,7 @@ jQuery(document).ready(function($) {
 		var theAtt;
 		var insert;
 		var appBoxes=apTmStr;
+		var title;
 
 		if (highlight !== null) {
 			newID = highlight;
@@ -2187,8 +2188,10 @@ jQuery(document).ready(function($) {
 		} else if (fID === '_qr') {
 			newFilter = new PFilterQR(newID, qrTI);
 			appBoxes='';
+			title = dlText.qrrr;
 		} else {
 			theAtt = PData.aByID(fID);
+			title = theAtt.def.l;
 			switch (theAtt.def.t) {
 			case 'V':
 				newFilter = new PFilterVocab(newID, theAtt);
@@ -2212,7 +2215,7 @@ jQuery(document).ready(function($) {
 		}
 
 		if (highlight !== null) {
-			insert = jQuery('#dialog-hilite-'+highlight+' span.filter-id').html(theAtt.def.l);
+			insert = jQuery('#dialog-hilite-'+highlight+' span.filter-id').html(title);
 			insert = jQuery('#hilite-'+highlight);
 			insert.empty();
 
@@ -2271,9 +2274,16 @@ jQuery(document).ready(function($) {
 		attList.each(function(i) {
 			li = jQuery(this);
 			attID = li.data("id");
-			if (attID === '_remove' || attID === '_qr') {
+			if (attID === '_remove') {
 					// Do we show "Remove" Filter Option?
 				if (forViz) {
+					li.show();
+				} else {
+					li.hide();
+				}
+			} else if (attID === '_qr') {
+					// Enable QR filter to appear both in Filter Stack and Highlight dialog
+				if (useQR) {
 					li.show();
 				} else {
 					li.hide();
@@ -2359,6 +2369,7 @@ jQuery(document).ready(function($) {
 		var bm = vf.getBMData();
 		var list=[];
 		var hFilter=hFilters[vI];
+		var qrF = (hFilter.att.id === '_qr');
 
 		if (endStream !== null) {
 			hFilter.evalPrep();
@@ -2380,9 +2391,12 @@ jQuery(document).ready(function($) {
 				absI = endStream.s[relI++];
 					// Check bitflag if Record rendered
 				if (bm.r[absI >> 4] & (1 << (absI & 15))) {
-					rec = PData.rByN(absI);
-					if (hFilter.eval(rec)) {
-						list.push(absI);
+						// Ensure that we only call QR Filter for QR Templates
+					if (!qrF || (qrTI === tI)) {
+						rec = PData.rByN(absI);
+						if (hFilter.eval(rec)) {
+							list.push(absI);
+						}
 					}
 				}
 			}
