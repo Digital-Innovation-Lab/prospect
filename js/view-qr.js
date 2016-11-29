@@ -111,7 +111,9 @@ VizEgoGraph.prototype.setEgo = function(id)
 	this.drs.forEach(function(d) { d.u = false; });
 
 		// Ensure no current selection
+	this.recSel=[];
 	this.vFrame.upSel([], false);
+
 		// Mark no Records rendered
 	this.preRender(false, true);
 
