@@ -1053,7 +1053,8 @@ function PViewFrame(vfIndex)
 		case 'E':
 			newViz = new VizEgoGraph(instance, theView.c);
 			break;
-		// case 'e':	// Time-rings
+		case 'e':
+			newViz = new VizTimeRing(instance, theView.c);
 			break;
 		}
 		vizSelIndex = vIndex;
@@ -1301,19 +1302,22 @@ function PViewFrame(vfIndex)
 
 			// Intercept Auto-Update signal
 		jQuery("body").on("prsp-auto", function(event, data) {
-			autoUpdate = data.a;
-			if (autoUpdate) {	// Turn on: disable Apply button, do any outstanding updates
-				jQuery(getFrameID()+' div.lgnd-container div.lgnd-handle button.lgnd-update').prop('disabled', true);
-					// Any outstand updates?
-				if (lDirty) {
-					doUpSel([], false);				// Re-render always clears selection
-					if (vizModel) {
-						vizModel.render(datastream);
+				// Only act on it if different
+			if (autoUpdate !== data.a) {
+				autoUpdate = data.a;
+				if (autoUpdate) {	// Turn on: disable Apply button, do any outstanding updates
+					jQuery(getFrameID()+' div.lgnd-container div.lgnd-handle button.lgnd-update').prop('disabled', true);
+						// Any outstand updates?
+					if (lDirty) {
+						doUpSel([], false);				// Re-render always clears selection
+						if (vizModel) {
+							vizModel.render(datastream);
+						}
+						lDirty=false;
 					}
-					lDirty=false;
 				}
+					// NOTE: No need to enable Apply button on Legend, as that will happen if any user actions "dirty" it
 			}
-				// NOTE: No need to enable Apply button on Legend, as that will happen if any user actions "dirty" it
 		});
 	} // initDOM()
 
@@ -1653,6 +1657,10 @@ jQuery(document).ready(function($) {
 			views[1] = PViewFrame(1);
 			views[1].initDOM(0);
 			views[1].showStream(endStream);
+				// signal Auto-Update setting (off by default)
+			if (autoUpdate) {
+				jQuery("body").trigger("prsp-auto", { a: autoUpdate });
+			}
 		}
 		views[0].resize();
 		views[0].flushLgnd();
