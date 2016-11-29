@@ -58,7 +58,7 @@ VizEgoGraph.prototype.setup = function()
 	j.find("div.egograph input.ego-n").val(s.n);
 	j.find("div.egograph input.ego-n").on("change", function() {
 		var newN = jQuery(this).val();
-		if (newN >= '2' && newN <= '6') {
+		if (newN >= '1' && newN <= '6') {
 			jQuery(this).removeClass('error');
 			self.n = parseInt(newN, 10);
 			if (self.ego) {
@@ -74,18 +74,6 @@ VizEgoGraph.prototype.setup = function()
 
 	this.center = this.svg.append("g");
 	this.center.attr("transform", "translate(" + cr + "," + cr + ")");
-
-	// this.rings=[];
-	// for (var i=0; i<this.n; i++) {
-	// 	this.rings.push({ i: i, r: 40+(i*this.r) });
-	// }
-	//
-	// var ring = this.center.selectAll(".ring")
-	// 	.data(this.rings)
-	// 	.enter()
-	// 	.append("circle")
-	// 	.attr("class", "ring")
-	// 	.attr("r", function(d) { return d.r; });
 } // setup()
 
 VizEgoGraph.prototype.teardown = function()
@@ -103,13 +91,15 @@ VizEgoGraph.prototype.setEgo = function(id)
 	var rAttID=prspdata.e.g.qr.r;
 	var rAtt=PData.aByID(rAttID);
 	var fSet=PData.allFAtts(rAtt);
+	var numRings=0;
 
 	this.ego = id;
 
-	var cr=Math.floor(s.s/2);
+	var cr=Math.floor(s.s/2)-s.r;
 
-	this.center.selectAll(".node").remove();
 	this.center.selectAll(".bond").remove();
+	this.center.selectAll(".node").remove();
+	this.center.selectAll(".ring").remove();
 
 		// Ensure that just this item is selected
 	var j=jQuery(this.frameID+" > div.egograph > div.egolist > div.sellist-scroll");
@@ -146,7 +136,10 @@ VizEgoGraph.prototype.setEgo = function(id)
 		dr.u = true;
 
 		var newNode = { parent: p, children: [], lc: lc, li: li, nc: dr.f, ni: dr.ai, t: dr.r.l };
-
+			// Keep track of # rings
+		if (depth > numRings) {
+			numRings=depth;
+		}
 			// If not already at "bottom" of tree depth, look to see if this node in relationships
 			//	with others not already "used" (placed on chart)
 		if (depth < self.n) {
@@ -191,8 +184,22 @@ VizEgoGraph.prototype.setEgo = function(id)
 
 	var ego = growTree(null, id, 0, null, null);
 	var graph = d3.hierarchy(ego);
-	var treeFunc = d3.tree().size([360, cr-s.r]).separation(function(a, b) { return (a.parent == b.parent ? 1 : 2) / a.depth; });
+	var treeFunc = d3.tree().size([360, cr]).separation(function(a, b) { return (a.parent == b.parent ? 1 : 2) / a.depth; });
 	var root = treeFunc(graph);
+
+		// Create rings
+	var rr=cr/numRings;
+	var rings=[];
+	for (var i=0; i<numRings; ) {
+		rings.push(++i * rr);
+	}
+
+	var ring = this.center.selectAll(".ring")
+		.data(rings)
+		.enter()
+		.append("circle")
+		.attr("class", "ring")
+		.attr("r", function(d) { return d; });
 
 	var link = this.center.selectAll(".bond")
     	.data(root.descendants().slice(1))
@@ -456,18 +463,6 @@ VizTimeRing.prototype.setup = function()
 
 	this.center = this.svg.append("g");
 	this.center.attr("transform", "translate(" + cr + "," + cr + ")");
-
-	// this.rings=[];
-	// for (var i=0; i<this.n; i++) {
-	// 	this.rings.push({ i: i, r: 40+(i*this.r) });
-	// }
-	//
-	// var ring = this.center.selectAll(".ring")
-	// 	.data(this.rings)
-	// 	.enter()
-	// 	.append("circle")
-	// 	.attr("class", "ring")
-	// 	.attr("r", function(d) { return d.r; });
 } // setup()
 
 VizTimeRing.prototype.teardown = function()
@@ -701,13 +696,21 @@ VizTimeRing.prototype.render = function(stream)
 	this.qrs = qrrecs;
 	this.drs = recData;
 
-		// TO DO: Create index for putting Records in alpha order
+		// Create index for putting Records in alpha order
+	var oIndex=[];
+	for (i1=0; i1<recData.length; i1++) {
+		oIndex[i1]=i1;
+	}
+	oIndex.sort(function(a,b) {
+		return PData.strcmp(recData[b].r.l, recData[a].r.l);
+	});
 
 		// Populate selection list with Record labels
 	ip = jQuery(this.frameID).find('div.egograph div.egolist div.sellist-scroll');
 	ip.empty();
-	recData.forEach(function(d) {
-		ip.append('<div class="sellist-rec" data-id="'+d.r.id+'">'+d.r.l+'</div>');
+	oIndex.forEach(function(rI) {
+		i1=recData[rI].r;
+		ip.append('<div class="sellist-rec" data-id="'+i1.id+'">'+i1.l+'</div>');
 	});
 	if (this.ego) {
 		this.setEgo(this.ego);

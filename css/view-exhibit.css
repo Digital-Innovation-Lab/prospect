@@ -1667,6 +1667,14 @@ svg path.bond.obj-sel
 	stroke-dasharray: 0;
 }
 
+svg circle.ring
+{
+	stroke: black;
+	stroke-opacity: 1;
+	stroke-width: 1px;
+	fill: none;
+}
+
 /* Specific Filter styles
  * ======================
  */
