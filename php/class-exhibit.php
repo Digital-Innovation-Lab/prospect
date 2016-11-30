@@ -135,11 +135,17 @@ class ProspectExhibit {
 
 			// Find Map views and compile maps
 		foreach ($this->views as $the_view) {
-			if ($the_view->vf == 'p') {
+				// Both Map2 and QRMaps use Map groups
+			if ($the_view->vf == 'p' || $the_view->vf == 'Q') {
 				foreach ($the_view->c->lyrs as $the_layer) {
 					array_push($map_group_ids, $the_layer->gid);
 				}
 			}
+		}
+
+			// return if none
+		if (count($map_group_ids) == 0) {
+			return $map_group_ids;
 		}
 
 			// Sort array according to map group IDs and ensure unique

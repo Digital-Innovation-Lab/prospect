@@ -156,11 +156,11 @@ class Prospect {
 					$use_aggregate = true;
 					break;
 				// case 'L':
-				// case 'Q':
+				case 'Q':
+					$use_maps = true;
 				// case 'q':
 				// case 'E':
 				// case 'e':
-				// 	$use_qr = true;
 				// 	break;
 				}
 			}
@@ -247,28 +247,31 @@ class Prospect {
 			}
 
 				// Collect map group ID data
-			$map_groups = $the_xhbt->get_used_map_groups();
-			$map_ids = ProspectMap::get_mapids_from_groups($map_groups);
-			$map_ids = array_merge($map_ids, $the_xhbt->get_used_map_ids());
-			$map_ids = array_unique($map_ids);
-			$map_defs = ProspectMap::map_ids_to_objects($map_ids);
-
-				// Collect Map Library data (only those used by this Exhibit)
 			$m = array();
-			foreach($map_defs as $the_map) {
-				$map_def = array(
-					'id'		=> $the_map->id,
-					'sname'		=> $the_map->meta_data['sname'],
-					'credits'	=> $the_map->meta_data['credits'],
-					'url'		=> $the_map->meta_data['url'],
-					'subd'		=> $the_map->meta_data['subd'],
-					'swBounds'	=> $the_map->meta_data['swBounds'],
-					'neBounds'	=> $the_map->meta_data['neBounds'],
-					'minZoom'	=> $the_map->meta_data['minZoom'],
-					'maxZoom'	=> $the_map->meta_data['maxZoom'],
-					'inverseY'	=> $the_map->meta_data['inverseY']
-				);
-				array_push($m, $map_def);
+			$map_groups = array();
+			if ($use_maps) {
+				$map_groups = $the_xhbt->get_used_map_groups();
+				$map_ids = ProspectMap::get_mapids_from_groups($map_groups);
+				$map_ids = array_merge($map_ids, $the_xhbt->get_used_map_ids());
+				$map_ids = array_unique($map_ids);
+				$map_defs = ProspectMap::map_ids_to_objects($map_ids);
+
+					// Collect Map Library data (only those used by this Exhibit)
+				foreach($map_defs as $the_map) {
+					$map_def = array(
+						'id'		=> $the_map->id,
+						'sname'		=> $the_map->meta_data['sname'],
+						'credits'	=> $the_map->meta_data['credits'],
+						'url'		=> $the_map->meta_data['url'],
+						'subd'		=> $the_map->meta_data['subd'],
+						'swBounds'	=> $the_map->meta_data['swBounds'],
+						'neBounds'	=> $the_map->meta_data['neBounds'],
+						'minZoom'	=> $the_map->meta_data['minZoom'],
+						'maxZoom'	=> $the_map->meta_data['maxZoom'],
+						'inverseY'	=> $the_map->meta_data['inverseY']
+					);
+					array_push($m, $map_def);
+				}
 			}
 
 				// Collect Perspectives
