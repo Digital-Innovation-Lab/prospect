@@ -256,6 +256,18 @@
 	</div>
 </script>
 
+<script id="dltext-timerings" type='text'>
+	<div class="timerings">
+		<div class="egolist">
+			<label><?php _e('Pixels between rings', 'prospect'); ?> </label><input type="text" class="rr" size="2"/>
+			<div class="sellist-scroll">
+			</div>
+		</div>
+		<svg class="tr">
+		</svg>
+	</div>
+</script>
+
 <script id="dltext-filter-head" type='text'>
 <div class="filter-instance" data-id="<%= newID %>">
 	<div class="filter-head">

@@ -1,9 +1,471 @@
 // This file contains:
 //		PVizModel Classes for Qualified Relationship visualizations
+//			VizQRMap
 //			VizEgoGraph
 //			VizTimeRing
 //
 //		PFilterQR Class for Filtering on Relationship-Roles
+
+
+// ================================================
+// VizQRMap: Class to visualize QRs on GIS maps
+//				Based loosely on VizMap2
+//
+// Instance Variables:
+//		qrTI = index of QR Template
+//		lMap = Leaflet map object
+//		baseMap = basemap layer object
+//		mapLayers = group map overlay objects
+//		markerLayer = Leaflet layer for Markers
+//		lineLayer = Leaflet layer for drawing lines between markers
+//		bOp = opacity of basemap
+//		lOps = opacities of each overlay map group
+
+var VizQRMap = function(viewFrame, vSettings)
+{
+	PVizModel.call(this, viewFrame, vSettings);
+} // VizQRMap
+
+VizQRMap.prototype = Object.create(PVizModel.prototype);
+
+VizQRMap.prototype.constructor = VizQRMap;
+
+VizQRMap.prototype.flags = function()
+{
+	var flags = V_FLAG_SEL | V_FLAG_VSCRL | V_FLAG_HSCRL;
+
+		// Only use Legend if second coordinate is configured, since entities will be represented and colored individually
+		//	not as Relationships
+	if (prspdata.e.g.qr.c2 == null) {
+		flags |= V_FLAG_SLGND;
+	} else {
+		flags |= V_FLAG_LGND;
+	}
+
+	return flags;
+} // flags()
+
+VizQRMap.prototype.getFeatureAtts = function(tIndex)
+{
+		// If there are not separate coordinates for each entity, single location shown
+		//	using Relationship legend
+	if (prspdata.e.g.qr.c2 == null) {
+		return prspdata.e.g.qr.r;
+	}
+
+	return this.settings.lgnds[tIndex];
+} // getFeatureAtts()
+
+VizQRMap.prototype.setup = function()
+{
+	var self=this;
+
+		// Get index of QR Template
+	this.qrTI = PData.tIByID(prspdata.e.g.qr.t);
+
+	var centerLat = parseFloat(this.settings.clat);
+	var centerLon = parseFloat(this.settings.clon);
+	var zoom;
+	if (typeof(this.settings.zoom) === 'string') {
+		zoom = parseInt(this.settings.zoom);
+	} else {
+		zoom = this.settings.zoom;
+	}
+
+	function zoomMap()
+	{
+		self.lMap.zoomIn();
+	} // zoomMap()
+	function unzoomMap()
+	{
+		self.lMap.zoomOut();
+	} // unzoomMap()
+	function resetMap()
+	{
+		self.lMap.setView([centerLat, centerLon], zoom);
+	} // resetMap()
+	function curLoc()
+	{
+		function setHere(pos) {
+			self.lMap.setView([pos.coords.latitude, pos.coords.longitude]);
+		}
+		navigator.geolocation.getCurrentPosition(setHere);
+	} // curLoc()
+
+	var vI = this.vFrame.getIndex();
+
+		// Leaflet requires a DIV ID to startup: create and insert one
+	jQuery(this.frameID).append('<div id="l-map-'+vI+'" class="max-size"></div>');
+
+	this.lMap = L.map("l-map-"+vI, { zoomControl: false }).setView([centerLat, centerLon], zoom);
+
+		// Create basemap
+	this.baseMap = PMapHub.createMapLayer(this.settings.base, 1, this.lMap, null);
+	this.bOp = 100;		// base map opacity
+	this.lOps = [];		// overlay map group layers opacities
+	this.mapLayers = [];
+
+		// Compile map layer data into mapLayers array and create with Leaflet
+	var opacity;
+	this.settings.lyrs.forEach(function(layer, lIndex) {
+		opacity = layer.o;
+		self.lOps.push(opacity*100);
+
+		var newLayer;
+		newLayer = PMapHub.createMapGroup(layer.gid, opacity, self.lMap);
+		self.mapLayers.push(newLayer);
+	});
+
+	var fh = _.template(document.getElementById('dltext-v-map').innerHTML);
+	jQuery('#view-frame-'+vI+' div.view-controls').append(fh({ vi: vI }));
+
+	jQuery('#map-zoom-'+vI).button({ text: false, icons: { primary: "ui-icon-plus" }})
+		.click(zoomMap);
+	jQuery('#map-unzoom-'+vI).button({ text: false, icons: { primary: "ui-icon-minus" }})
+		.click(unzoomMap);
+	jQuery('#map-reset-'+vI).button({ text: false, icons: { primary: "ui-icon-arrowrefresh-1-w" }})
+		.click(resetMap);
+	jQuery('#map-cloc-'+vI).button({ text: false, icons: { primary: "ui-icon-pin-s" }})
+		.click(curLoc);
+
+		// Create layer for Markers
+	var markers = L.featureGroup();
+	this.markerLayer = markers;
+
+		// Create options properties if they don't already exist
+	markers.options = markers.options || { };
+	markers.options.layerName = dlText.markers;
+	markers.addTo(this.lMap);
+
+		// Create layer for connecting lines
+	var lines = L.featureGroup();
+	this.lineLayer = lines;
+	lines.addTo(this.lMap);
+} // setup()
+
+	// PURPOSE: Draw the Records in the given datastream
+	// NOTES: 	absolute index of Record is saved in <id> field of map marker
+VizQRMap.prototype.render = function(stream)
+{
+	var self=this;
+	var mLayer=this.markerLayer;
+	var lLayer=this.lineLayer;
+
+		// PURPOSE: Handle click on feature
+		// NOTES: 	_aid is absolute index of record, but there can be multiple instances of same record!
+		//			This function being within render closure makes it inefficient,
+		//				but need access to vFrame!
+	function markerClick(e)
+	{
+		if (e.target && e.target.options) {
+			var aid = e.target.options._aid;
+			var added = self.toggleSel(aid);
+
+			if (added) {
+				this.setStyle({ color: "yellow", weight: 2 });
+				this.bringToFront();
+			} else {
+				this.setStyle({ color: "#000", weight: 1 });
+			}
+		}
+	} // markerClick()
+
+	function lineClick(e)
+	{
+	} // lineClick()
+
+
+	if (this.recSel.length > 0) {
+		this.recSel=[];
+	}
+
+	this.preRender(true, true);
+
+		// Remove previous Markers
+	mLayer.clearLayers();
+
+		// Remove previous lines
+	lLayer.clearLayers();
+
+	var qrconfig=prspdata.e.g.qr;
+	var rAttID=qrconfig.r;			// Relationship ID
+	var rAtt=PData.aByID(rAttID);	// Relationship Attribute
+	var rAttSet=PData.allFAtts(rAtt);
+	var sAttID, sAtt, minR, maxR, dR;
+	var tRec=stream.t[this.qrTI];
+	var relI=tRec.i, maxI=tRec.i+tRec.n;
+	var qI, qrRec;
+	var i1, i2, rec1, rec2, ll1, ll12, s1, s2, t1, t2, f1, f2, m1, m2;
+	var rVal, bond;
+	var qrc1=qrconfig.c1, qrc2=qrconfig.c2;
+	var sDeltas=[], sMins=[];
+	var featSets, fAtts, fAttIDs;
+
+		// Set up radius calculation parameters
+	minR = this.settings.min;
+	if (typeof minR === 'string') {
+		minR = parseInt(minR);
+	}
+	maxR = this.settings.max;
+	if (typeof maxR === 'string') {
+		maxR = parseInt(maxR);
+	}
+	dR = maxR - minR;
+	this.settings.sAtts(function(sAttID) {
+		if (sAttID) {
+			var sAtt = PData.aByID(sAttID);
+			sMins.push(sAtt.r.min);
+			sDeltas.push(sAtt.r.max - sAtt.r.min);
+		}
+	});
+
+		// Cache fAtt data for used Templates
+	if (qrc2) {
+		featSets=[], fAtts=[], fAttIDs=[];
+		for (qI=0; qI<PData.eTNum(); qI++) {
+			id1 = this.vFrame.getSelLegend(qI);
+			fAttIDs.push(id1);
+			fAtts.push(id1 ? PData.aByID(id1) : null);
+			featSets.push(id1 ? this.vFrame.getSelFeatAtts(qI) : null);
+			this.tUsed[qI] = true;		// Always true so that QR Attributes available
+		}
+	} else {
+		featSets = this.vFrame.getSelFeatAtts(qrTI);
+		this.tUsed[qrTI] = true;		// Always true so that QR Attributes available
+	}
+
+		// PURPOSE: Add a single marker to marker layer
+		// INPUT: 	ll = LatLon point
+		//			r = radius
+		//			c = fill color
+		//			aI = absolute index of Record it represents
+		// ASSUMES: Key variables are set: rec, fData, sAttID, aI
+	function addMarker(ll, r, f, aI)
+	{
+		self.rMap[aI >> 4] |= (1 << (aI & 15));
+		var newMarker = L.circleMarker(ll,
+			{	_aid: aI, weight: 1, radius: r, fillColor: f, color: "#000",
+				opacity: 1, fillOpacity: 1 });
+		newMarker.on('click', markerClick);
+		return newMarker;
+	} // addMarker()
+
+	function getRad(absI, rec, eTI)
+	{
+		if (qrc2 == null) {
+			return minR;
+		}
+		var sAttID = self.settings.sAtts[eTI];
+
+		if (sAttID) {
+			var s = rec.a[sAttID];
+			if (typeof s === 'number') {
+				return Math.floor(((s-sMins[eTI])*dR)/sDeltas[eTI]) + minR;
+			} else {
+				return minR;
+			}
+		} else {
+			return minR;
+		}
+	} // getRad()
+
+		// Process array of QR records
+	while (relI < maxI) {
+		qI = stream.s[relI++];
+		qrRec = PData.rByN(qI);
+			// Dual connected markers?
+		if (qrc2) {
+				// Ensure valid IDs for Entities & absolute indices
+			if ((id1=qrRec.a[qrconfig.e1][0]) && (id1=PData.nByID(id1)) && (id2=qrRec.a[qrconfig.e2][0]) && (id2=PData.nByID(id2))) {
+					// And only if there are valid coordinates for both
+				if ((ll1=qrRec.a[qrc1]) && (ll2=qrRec.a[qrc2])) {
+						// TO DO: Ensure that ll1 and ll2 are arrays of two coordinates!
+						// Get Template indices & recs
+					t1=PData.n2T(id1);
+					t2=PData.n2T(id2);
+					rec1=PData.rByN(id1);
+					rec2=PData.rByN(id2);
+						// Ensure both entities have valid features
+					f1 = rec1.a[fAttIDs[t1]];
+					if ((typeof f1 !== 'undefined') && (f1=PData.lClr(f1, fAtts[t1], featSets[t1]))) {
+						f2 = rec2.a[fAttIDs[t2]];
+						if ((typeof f2 !== 'undefined') && (f2=PData.lClr(f2, fAtts[t2], featSets[t2]))) {
+							m1 = addMarker(ll1, getRad(id1, rec1, t1), f1, id1);
+							m2 = addMarker(ll2, getRad(id2, rec2, t2), f2, id2);
+							rVal = PData.lClr(qrRec.a[rAttID], rAtt, rAttSet);
+							bond = L.polyline([ll1, ll2],
+								{	_aid: qI, weight: 4, fillColor: rVal, color: "#000",
+									opacity: 1, fillOpacity: 1 });
+							bond.on('click', lineClick);
+							lLayer.addLayer(bond);
+						} // f2
+					} // f1
+				} // ll1 & ll2
+			} // id1 & id2
+		} else {	// qrRec provides Relationship Legend; no size parameter
+			if (ll1=qrRec.a[qrc1]) {
+					// TO DO: Ensure that ll1 is an array of two coordinates!
+				rVal = PData.lClr(qrRec.a[rAttID], rAtt, featSets);
+					// Translate Relationship into color
+				mLayer.addLayer(addMarker(ll1, minR, rVal, qI));
+			}
+		} // only 1 coordinate
+	} // while
+} // render()
+
+VizQRMap.prototype.teardown = function()
+{
+	var vi = this.vFrame.getIndex();
+	jQuery('#view-frame-'+vi+' div.view-controls div.iconbar').remove();
+} // teardown()
+
+VizQRMap.prototype.resize = function()
+{
+	this.lMap.invalidateSize(false);
+} // PVizModel.resize()
+
+VizQRMap.prototype.clearSel = function()
+{
+	if (this.recSel.length > 0) {
+		this.recSel = [];
+		if (this.markerLayer) {
+			this.markerLayer.eachLayer(function(marker) {
+				marker.setStyle({ color: "#000", weight: 1 });
+			});
+		}
+	}
+} // clearSel()
+
+VizQRMap.prototype.setSel = function(absIArray)
+{
+	var self=this;
+
+	this.recSel = absIArray;
+	if (this.markerLayer) {
+		this.markerLayer.eachLayer(function(marker) {
+			if (self.isSel(marker.options._aid)) {
+				marker.setStyle({ color: "yellow", weight: 2 });
+				marker.bringToFront();
+			} else {
+				marker.setStyle({ color: "#000", weight: 1 });
+			}
+		});
+	}
+} // setSel()
+
+VizQRMap.prototype.getState = function()
+{
+	return { c: this.lMap.getCenter(), z: this.lMap.getZoom(), l: this.vFrame.getLgndSels() };
+} // getState()
+
+VizQRMap.prototype.setState = function(state)
+{
+	this.lMap.setView(state.c, state.z);
+	this.vFrame.setLgndSels(state.l);
+} // setState()
+
+VizQRMap.prototype.hint = function()
+{
+	var h='';
+	var numT = PData.eTNum();
+
+	for (var tI=0; tI<numT; tI++) {
+		var sAttID = this.settings.sAtts[tI];
+		if (sAttID) {
+			if (h.length === 0) {
+				h = dlText.markersize;
+			} else {
+				h += ',';
+			}
+			var sAtt = PData.aByID(sAttID);
+			var tID = PData.eTByN(tI);
+			var tDef = PData.tByID(tID);
+			h += ' '+sAtt.def.l+' ('+tDef.l+')';
+		}
+	}
+	return (h.length > 0) ? h : null;
+} // hint()
+
+	// NOTE: Since the opacities dialog is shared, GUI must be recreated
+	//			by each Viz object and cleaned up afterwards
+VizQRMap.prototype.doOptions = function()
+{
+	var self=this;
+	var tBOp=this.bOp, tLOps=[];
+	var restore=true;
+
+	var modalOpCtrls = jQuery('#dialog-opacities div.layer-list');
+
+	var newBit = jQuery('<div class="op-layer" data-i="-1">Base Map <input type=range class="op-slider" min=0 max=100 value='+
+						this.bOp+' step=5></div>');
+	newBit.find(".op-slider").on("change", function() {
+		tBOp = jQuery(this).val();
+		self.baseMap.setOpacity(tBOp/100);
+	});
+	modalOpCtrls.append(newBit);
+
+	this.settings.lyrs.forEach(function(layer, lIndex) {
+		var initO = self.lOps[lIndex];
+		newBit = jQuery('<div class="op-layer" data-i="'+lIndex+'">'+layer.gid+
+					' <input type=range class="op-slider" min=0 max=100 value='+initO+' step=5></div>');
+		newBit.find(".op-slider").on("change", function() {
+			var newO = jQuery(this).val();
+			tLOps[lIndex] = newO;
+			newO /= 100;
+			self.mapLayers[lIndex].eachLayer(function(l) {
+				l.setOpacity(newO);
+			});
+		});
+		tLOps.push(initO);
+		modalOpCtrls.append(newBit);
+	});
+
+	function cleanUp()
+	{
+		if (restore) {
+				// Reset opacities in case user changed anything
+			self.baseMap.setOpacity(self.bOp/100);
+			self.lOps.forEach(function(op, oI) {
+				self.mapLayers[oI].eachLayer(function(l) {
+					l.setOpacity(op/100);
+				});
+			});
+		}
+		modalOpCtrls.empty();
+	} // restoreOps()
+
+	var d = jQuery("#dialog-opacities").dialog({
+		dialogClass: "no-close",
+		height: 300,
+		width: 500,
+		modal: true,
+		buttons: [
+			{
+				text: dlText.ok,
+				click: function() {
+					restore=false;
+					d.dialog("close");
+					self.bOp = tBOp;
+					tLOps.forEach(function(op, oI) {
+						self.lOps[oI] = tLOps[oI];
+					});
+				}
+			},
+			{
+				text: dlText.cancel,
+				click: function() {
+					d.dialog("close");
+				}
+			}
+		]
+	});
+	d.on("dialogclose", function(event, ui) {
+		cleanUp();
+			// Unbind Inspector from this view -- one off only
+		d.off("dialogclose");
+	});
+} // doOptions()
+
 
 // ================================================================================
 // VizEgoGraph: Class to visualize relationships from a given "ego" node
@@ -83,7 +545,9 @@ VizEgoGraph.prototype.teardown = function()
 	j.find("div.egograph input.ego-n").off("change");
 } // teardown()
 
-	// PURPOSE:	Effect click on Record <id>
+	// PURPOSE:	Effect selection on Record <id>
+	// NOTES:	This may be called in an effort to "restore" a state that cannot be
+	//				achieved because <id> is no longer available: check <id> in active list.
 VizEgoGraph.prototype.setEgo = function(id)
 {
 	var self=this;
@@ -93,22 +557,7 @@ VizEgoGraph.prototype.setEgo = function(id)
 	var fSet=PData.allFAtts(rAtt);
 	var numRings=0;
 
-	this.ego = id;
-
 	var cr=Math.floor(s.s/2)-s.r;
-
-	this.center.selectAll(".bond").remove();
-	this.center.selectAll(".node").remove();
-	this.center.selectAll(".ring").remove();
-
-		// Ensure that just this item is selected
-	var j=jQuery(this.frameID+" > div.egograph > div.egolist > div.sellist-scroll");
-	j.find("div.sellist-rec").removeClass('active');
-	j.find('div.sellist-rec[data-id="'+id+'"]').addClass('active');
-
-		// Mark all qr and rec data as unused
-	this.qrs.forEach(function(q) { q.u = false; });
-	this.drs.forEach(function(d) { d.u = false; });
 
 		// Ensure no current selection
 	this.recSel=[];
@@ -116,6 +565,27 @@ VizEgoGraph.prototype.setEgo = function(id)
 
 		// Mark no Records rendered
 	this.preRender(false, true);
+
+	this.center.selectAll(".bond").remove();
+	this.center.selectAll(".node").remove();
+	this.center.selectAll(".ring").remove();
+
+	var j=jQuery(this.frameID+" > div.egograph > div.egolist > div.sellist-scroll");
+	var d=j.find('div.sellist-rec[data-id="'+id+'"]');
+		// Ensure that just this item is selected
+	j.find("div.sellist-rec").removeClass('active');
+		// Abort if ego no longer available in active list
+	if (d.length == 0) {
+		this.ego = null;
+		return;
+	}
+	d.addClass('active');
+
+	this.ego = id;
+
+		// Mark all qr and rec data as unused
+	this.qrs.forEach(function(q) { q.u = false; });
+	this.drs.forEach(function(d) { d.u = false; });
 
 		// PURPOSE: Utility function that converts radial position to X,Y
 	function project(x, y) {
@@ -256,7 +726,7 @@ VizEgoGraph.prototype.render = function(stream)
 		this.recSel=[];
 	}
 
-	this.preRender(true, false);
+	this.preRender(true, true);
 
 		// Preload fAtt data for used Templates
 	for (qI=0; qI<PData.eTNum(); qI++) {
