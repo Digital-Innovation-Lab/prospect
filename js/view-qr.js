@@ -844,13 +844,14 @@ VizEgoGraph.prototype.clearSel = function()
 
 VizEgoGraph.prototype.getState = function()
 {
-	return { ego: this.ego, l: this.vFrame.getLgndSels() };
+	return { ego: this.ego, l: this.vFrame.getLgndSels(), n: this.n };
 } // getState()
 
 VizEgoGraph.prototype.setState = function(state)
 {
 	this.vFrame.setLgndSels(state.l);
 	this.ego = state.ego;
+	this.n = state.n;
 } // setState()
 
 VizEgoGraph.prototype.hint = function()
