@@ -225,8 +225,8 @@ VizQRMap.prototype.render = function(stream)
 			this.tUsed[qI] = true;		// Always true so that QR Attributes available
 		}
 	} else {
-		featSets = this.vFrame.getSelFeatAtts(this.qrTI);
-		this.tUsed[this.qrTI] = true;		// Always true so that QR Attributes available
+		featSets = this.vFrame.getSelFeatAtts(0);
+		this.tUsed[this.qrTI] = true;		// Always true so that QR Attributes selectable via Highlight
 	}
 
 		// PURPOSE: Add a single marker to marker layer
@@ -301,8 +301,10 @@ VizQRMap.prototype.render = function(stream)
 			if (ll1=qrRec.a[qrc1]) {
 					// TO DO: Ensure that ll1 is an array of two coordinates!
 				rVal = PData.lClr(qrRec.a[rAttID], rAtt, featSets);
-					// Translate Relationship into color
-				mLayer.addLayer(addMarker(ll1, minR, rVal, qI));
+				if (rVal) {
+						// Translate Relationship into color
+					mLayer.addLayer(addMarker(ll1, minR, rVal, qI));
+				}
 			}
 		} // only 1 coordinate
 	} // while
