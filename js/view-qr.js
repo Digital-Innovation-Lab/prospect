@@ -32,14 +32,11 @@ VizQRMap.prototype.constructor = VizQRMap;
 
 VizQRMap.prototype.flags = function()
 {
-	var flags = V_FLAG_SEL | V_FLAG_VSCRL | V_FLAG_HSCRL;
+	var flags = V_FLAG_SEL | V_FLAG_OPT | V_FLAG_LGND;
 
-		// Only use Legend if second coordinate is configured, since entities will be represented and colored individually
-		//	not as Relationships
+		// If no second coordinate, entities will be represented as Relationships
 	if (prspdata.e.g.qr.c2 == null) {
 		flags |= V_FLAG_SLGND;
-	} else {
-		flags |= V_FLAG_LGND;
 	}
 
 	return flags;
@@ -181,10 +178,8 @@ VizQRMap.prototype.render = function(stream)
 
 	this.preRender(true, true);
 
-		// Remove previous Markers
+		// Remove previous Markers & lines
 	mLayer.clearLayers();
-
-		// Remove previous lines
 	lLayer.clearLayers();
 
 	var qrconfig=prspdata.e.g.qr;
@@ -211,7 +206,7 @@ VizQRMap.prototype.render = function(stream)
 		maxR = parseInt(maxR);
 	}
 	dR = maxR - minR;
-	this.settings.sAtts(function(sAttID) {
+	this.settings.sAtts.forEach(function(sAttID) {
 		if (sAttID) {
 			var sAtt = PData.aByID(sAttID);
 			sMins.push(sAtt.r.min);
@@ -230,8 +225,8 @@ VizQRMap.prototype.render = function(stream)
 			this.tUsed[qI] = true;		// Always true so that QR Attributes available
 		}
 	} else {
-		featSets = this.vFrame.getSelFeatAtts(qrTI);
-		this.tUsed[qrTI] = true;		// Always true so that QR Attributes available
+		featSets = this.vFrame.getSelFeatAtts(this.qrTI);
+		this.tUsed[this.qrTI] = true;		// Always true so that QR Attributes available
 	}
 
 		// PURPOSE: Add a single marker to marker layer
