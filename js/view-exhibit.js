@@ -730,10 +730,11 @@ function PViewFrame(vfIndex)
 		event.preventDefault();
 	} // clickOpenSelection()
 
-		// PURPOSE: Inform ViewFrame of selection change, update GUI
+		// PURPOSE: Inform ViewFrame of selection change in ViewModel, update GUI
 		// INPUT:	selList = array of absIDs, or [] if nothing selected
 		//			if force, then GUI always refreshed
-		// NOTES:	Not useful to save pointer to selList, as it will be modified in other code
+		// NOTES:	Does NOT modify the actual selection of the ViewModel!
+		//			Not useful to save pointer to selList, as it will be modified in other code
 	function doUpSel(selList, force)
 	{
 		var newSize = selList.length;
@@ -1047,8 +1048,9 @@ function PViewFrame(vfIndex)
 		case 'b':
 			newViz = new VizBMatrix(instance, theView.c);
 			break;
-		// case 'L':	// Linked Chain
-		// case 'Q':	// QR-Map
+		case 'Q':
+			newViz = new VizQRMap(instance, theView.c);
+			break;
 		// case 'q':	// QR-Network
 		case 'E':
 			newViz = new VizEgoGraph(instance, theView.c);
