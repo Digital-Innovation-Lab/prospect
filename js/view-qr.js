@@ -174,10 +174,10 @@ VizQRMap.prototype.render = function(stream)
 			var added = self.toggleSel(aid);
 
 			if (added) {
-				this.setStyle({ dashArray: "4,2" });
+				this.setStyle({ dashArray: '4,2' });
 				this.bringToFront();
 			} else {
-				this.setStyle({ dashArray: "0" });
+				this.setStyle({ dashArray: '0' });
 			}
 		}
 	} // lineClick()
@@ -303,7 +303,7 @@ VizQRMap.prototype.render = function(stream)
 							m1 = addMarker(ll1, getRad(id1, rec1, t1), f1, id1);
 							m2 = addMarker(ll2, getRad(id2, rec2, t2), f2, id2);
 							rVal = PData.lClr(qrRec.a[rAttID], rAtt, rAttSet);
-							bond = L.polyline([ll1, ll2], { _aid: qI, weight: 5, color: rVal, dashArray: "4,2" });
+							bond = L.polyline([ll1, ll2], { _aid: qI, weight: 5, color: rVal, dashArray: '4,2' });
 							bond.on('click', lineClick);
 							lLayer.addLayer(bond);
 						} // f2
@@ -316,7 +316,7 @@ VizQRMap.prototype.render = function(stream)
 				rVal = PData.lClr(qrRec.a[rAttID], rAtt, featSets);
 				if (rVal) {
 						// Translate Relationship into color
-					mLayer.addLayer(addMarker(ll1, minR, rVal, qI));
+					addMarker(ll1, minR, rVal, qI);
 				}
 			}
 		} // only 1 coordinate
