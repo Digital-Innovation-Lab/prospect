@@ -174,10 +174,10 @@ VizQRMap.prototype.render = function(stream)
 			var added = self.toggleSel(aid);
 
 			if (added) {
-				this.setStyle({ dashArray: '4,2' });
+				this.setStyle({ dashArray: '0' });
 				this.bringToFront();
 			} else {
-				this.setStyle({ dashArray: '0' });
+				this.setStyle({ dashArray: '4,2' });
 			}
 		}
 	} // lineClick()
@@ -302,6 +302,7 @@ VizQRMap.prototype.render = function(stream)
 						if ((typeof f2 !== 'undefined') && (f2=PData.lClr(f2, fAtts[t2], featSets[t2]))) {
 							m1 = addMarker(ll1, getRad(id1, rec1, t1), f1, id1);
 							m2 = addMarker(ll2, getRad(id2, rec2, t2), f2, id2);
+							self.rMap[qI >> 4] |= (1 << (qI & 15));
 							rVal = PData.lClr(qrRec.a[rAttID], rAtt, rAttSet);
 							bond = L.polyline([ll1, ll2], { _aid: qI, weight: 5, color: rVal, dashArray: '4,2' });
 							bond.on('click', lineClick);
@@ -368,11 +369,11 @@ VizQRMap.prototype.setSel = function(absIArray)
 	}
 	if (this.lineLayer) {
 		this.lineLayer.eachLayer(function(line) {
-			if (self.isSel(marker.options._aid)) {
-				line.setStyle({ dashArray: "4, 2" });
+			if (self.isSel(line.options._aid)) {
+				line.setStyle({ dashArray: "0" });
 				line.bringToFront();
 			} else {
-				line.setStyle({ dashArray: "0" });
+				line.setStyle({ dashArray: "4,2" });
 			}
 		});
 	}
