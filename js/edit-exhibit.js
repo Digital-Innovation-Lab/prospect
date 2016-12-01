@@ -2013,7 +2013,6 @@ jQuery(document).ready(function() {
 				saveView.n = viewSettings.n.replace(/"/g, '');
 				saveView.c = {};
 
-					// TO DO: Ensure that QR-Template enabled if QR views are defined
 				switch (saveView.vf) {
 				case 'M': 	// Map
 					if (viewSettings.c.clat.length == 0 || viewSettings.c.clon.length == 0)
@@ -2240,9 +2239,23 @@ jQuery(document).ready(function() {
 					saveView.c.oAtts = packUsedAttIDs(viewSettings.c.oAtts);
 					break;
 				case 'L':	// Linked Chain
-					// NOTE: Currently no settings
+						// NOTE: Currently no settings
+						// Ensure that QR-Template enabled if QR views are defined
+					if (typeof saveGen.qr === 'undefined') {
+						displayError('#errmsg-qr-usage', i);
+						return false;
+					}
 					break;
 				case 'Q':	// QR-Map
+						// Ensure that QR-Template enabled if QR views are defined
+					if (typeof saveGen.qr === 'undefined') {
+						displayError('#errmsg-qr-usage', i);
+						return false;
+					}
+					if (saveGen.qr.c1 == null) {
+						displayError('#errmsg-qr-coord');
+						return false;
+					}
 					if (viewSettings.c.clat.length == 0 || viewSettings.c.clon.length == 0)
 					{
 						displayError('#errmsg-map-coords', i);
@@ -2264,6 +2277,11 @@ jQuery(document).ready(function() {
 					saveView.c.lyrs = viewSettings.c.lyrs;
 					break;
 				case 'q':	// QR-Network
+						// Ensure that QR-Template enabled if QR views are defined
+					if (typeof saveGen.qr === 'undefined') {
+						displayError('#errmsg-qr-usage', i);
+						return false;
+					}
 					saveView.c.min = viewSettings.c.min;
 					saveView.c.max = viewSettings.c.max;
 					saveView.c.s   = viewSettings.c.s;
@@ -2275,6 +2293,11 @@ jQuery(document).ready(function() {
 					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts);
 					break;
 				case 'E':	// Ego-graph
+						// Ensure that QR-Template enabled if QR views are defined
+					if (typeof saveGen.qr === 'undefined') {
+						displayError('#errmsg-qr-usage', i);
+						return false;
+					}
 					saveView.c.s = viewSettings.c.s;
 					saveView.c.n = viewSettings.c.n;
 					saveView.c.r = viewSettings.c.r;
@@ -2285,6 +2308,11 @@ jQuery(document).ready(function() {
 					saveView.c.lgnds = newLgnds;
 					break;
 				case 'e':	// Time-rings
+						// Ensure that QR-Template enabled if QR views are defined
+					if (typeof saveGen.qr === 'undefined') {
+						displayError('#errmsg-qr-usage', i);
+						return false;
+					}
 					saveView.c.r = viewSettings.c.r;
 					var newLgnds=[];
 					saveTIndices.forEach(function(tIndex) {

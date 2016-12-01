@@ -1192,7 +1192,15 @@
 </script>
 
 <script id="errmsg-qr-unique" type='text/ractive'>
-<?php _e('Entity Attribute pairs E1/E2, R1/R2 and C1/C2 in Qualified Relationship configuration must be different', 'prospect'); ?>
+<?php _e('Qualified Relationships require unique settings for entity Attribute pairs E1/E2, R1/R2 and C1/C2', 'prospect'); ?>
+</script>
+
+<script id="errmsg-qr-usage" type='text/ractive'>
+<?php _e('You cannot use QR visualizations if the QR settings have not been configured; provide settings or remove', 'prospect'); ?>
+</script>
+
+<script id="errmsg-qr-coord" type='text/ractive'>
+<?php _e('You cannot use a QRMap visualization if you haven’t provided the C1 setting at a minimum', 'prospect'); ?>
 </script>
 
 
