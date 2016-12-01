@@ -169,6 +169,17 @@ VizQRMap.prototype.render = function(stream)
 
 	function lineClick(e)
 	{
+		if (e.target && e.target.options) {
+			var aid = e.target.options._aid;
+			var added = self.toggleSel(aid);
+
+			if (added) {
+				this.setStyle({ dashArray: "4,2" });
+				this.bringToFront();
+			} else {
+				this.setStyle({ dashArray: "0" });
+			}
+		}
 	} // lineClick()
 
 
@@ -211,6 +222,9 @@ VizQRMap.prototype.render = function(stream)
 			var sAtt = PData.aByID(sAttID);
 			sMins.push(sAtt.r.min);
 			sDeltas.push(sAtt.r.max - sAtt.r.min);
+		} else {
+			sMins.push(minR);
+			sDeltas.push(0);
 		}
 	});
 
@@ -242,6 +256,7 @@ VizQRMap.prototype.render = function(stream)
 			{	_aid: aI, weight: 1, radius: r, fillColor: f, color: "#000",
 				opacity: 1, fillOpacity: 1 });
 		newMarker.on('click', markerClick);
+		mLayer.addLayer(newMarker);
 		return newMarker;
 	} // addMarker()
 
@@ -288,9 +303,7 @@ VizQRMap.prototype.render = function(stream)
 							m1 = addMarker(ll1, getRad(id1, rec1, t1), f1, id1);
 							m2 = addMarker(ll2, getRad(id2, rec2, t2), f2, id2);
 							rVal = PData.lClr(qrRec.a[rAttID], rAtt, rAttSet);
-							bond = L.polyline([ll1, ll2],
-								{	_aid: qI, weight: 4, fillColor: rVal, color: "#000",
-									opacity: 1, fillOpacity: 1 });
+							bond = L.polyline([ll1, ll2], { _aid: qI, weight: 5, color: rVal, dashArray: "4,2" });
 							bond.on('click', lineClick);
 							lLayer.addLayer(bond);
 						} // f2
@@ -330,6 +343,11 @@ VizQRMap.prototype.clearSel = function()
 				marker.setStyle({ color: "#000", weight: 1 });
 			});
 		}
+		if (this.lineLayer) {
+			this.lineLayer.eachLayer(function(line) {
+				line.setStyle({ dashArray: "0" });
+			});
+		}
 	}
 } // clearSel()
 
@@ -348,6 +366,16 @@ VizQRMap.prototype.setSel = function(absIArray)
 			}
 		});
 	}
+	if (this.lineLayer) {
+		this.lineLayer.eachLayer(function(line) {
+			if (self.isSel(marker.options._aid)) {
+				line.setStyle({ dashArray: "4, 2" });
+				line.bringToFront();
+			} else {
+				line.setStyle({ dashArray: "0" });
+			}
+		});
+	}
 } // setSel()
 
 VizQRMap.prototype.getState = function()
@@ -363,24 +391,41 @@ VizQRMap.prototype.setState = function(state)
 
 VizQRMap.prototype.hint = function()
 {
-	var h='';
+	var hint='';
 	var numT = PData.eTNum();
 
+	var rAttID=prspdata.e.g.qr.r;
+	var rAtt=PData.aByID(rAttID);
+
+	rAtt.l.forEach(function(lgnd) {
+		if (hint.length > 0) {
+			hint += ", ";
+		}
+		hint += '<b><span style="color: '+lgnd.v+'">'+lgnd.l+'</span></b>';
+	});
+
+	if (hint.length > 0) {
+		hint += '<br/>';
+	}
+
+	var label=true;
 	for (var tI=0; tI<numT; tI++) {
 		var sAttID = this.settings.sAtts[tI];
 		if (sAttID) {
-			if (h.length === 0) {
-				h = dlText.markersize;
+			if (label) {
+				hint += dlText.markersize;
+				label=false;
 			} else {
-				h += ',';
+				hint += ',';
 			}
 			var sAtt = PData.aByID(sAttID);
 			var tID = PData.eTByN(tI);
 			var tDef = PData.tByID(tID);
-			h += ' '+sAtt.def.l+' ('+tDef.l+')';
+			hint += ' '+sAtt.def.l+' ('+tDef.l+')';
 		}
 	}
-	return (h.length > 0) ? h : null;
+
+	return (hint.length > 0) ? hint : null;
 } // hint()
 
 	// NOTE: Since the opacities dialog is shared, GUI must be recreated
