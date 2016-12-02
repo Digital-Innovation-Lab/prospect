@@ -174,10 +174,10 @@ VizQRMap.prototype.render = function(stream)
 			var added = self.toggleSel(aid);
 
 			if (added) {
-				this.setStyle({ dashArray: '0' });
+				this.setStyle({ dashArray: '' });
 				this.bringToFront();
 			} else {
-				this.setStyle({ dashArray: '4,2' });
+				this.setStyle({ dashArray: '4,6' });
 			}
 		}
 	} // lineClick()
@@ -304,7 +304,7 @@ VizQRMap.prototype.render = function(stream)
 							m2 = addMarker(ll2, getRad(id2, rec2, t2), f2, id2);
 							self.rMap[qI >> 4] |= (1 << (qI & 15));
 							rVal = PData.lClr(qrRec.a[rAttID], rAtt, rAttSet);
-							bond = L.polyline([ll1, ll2], { _aid: qI, weight: 5, color: rVal, dashArray: '4,2' });
+							bond = L.polyline([ll1, ll2], { _aid: qI, weight: 5, color: rVal, dashArray: '4,6' });
 							bond.on('click', lineClick);
 							lLayer.addLayer(bond);
 						} // f2
@@ -346,7 +346,7 @@ VizQRMap.prototype.clearSel = function()
 		}
 		if (this.lineLayer) {
 			this.lineLayer.eachLayer(function(line) {
-				line.setStyle({ dashArray: "0" });
+				line.setStyle({ dashArray: "4,6" });
 			});
 		}
 	}
@@ -370,10 +370,10 @@ VizQRMap.prototype.setSel = function(absIArray)
 	if (this.lineLayer) {
 		this.lineLayer.eachLayer(function(line) {
 			if (self.isSel(line.options._aid)) {
-				line.setStyle({ dashArray: "0" });
+				line.setStyle({ dashArray: "" });
 				line.bringToFront();
 			} else {
-				line.setStyle({ dashArray: "4,2" });
+				line.setStyle({ dashArray: "4,6" });
 			}
 		});
 	}
