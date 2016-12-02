@@ -201,7 +201,7 @@ VizQRMap.prototype.render = function(stream)
 	var tRec=stream.t[this.qrTI];
 	var relI=tRec.i, maxI=tRec.i+tRec.n;
 	var qI, qrRec;
-	var i1, i2, rec1, rec2, ll1, ll12, s1, s2, t1, t2, f1, f2, m1, m2;
+	var id1, id2, rec1, rec2, ll1, ll12, s1, s2, t1, t2, f1, f2, m1, m2;
 	var rVal, bond;
 	var qrc1=qrconfig.c1, qrc2=qrconfig.c2;
 	var sDeltas=[], sMins=[];
@@ -283,16 +283,20 @@ VizQRMap.prototype.render = function(stream)
 	while (relI < maxI) {
 		qI = stream.s[relI++];
 		qrRec = PData.rByN(qI);
-			// Dual connected markers?
-		if (qrc2) {
-				// Ensure valid IDs for Entities & absolute indices
-			if ((id1=qrRec.a[qrconfig.e1][0]) && (id1=PData.nByID(id1)) && (id2=qrRec.a[qrconfig.e2][0]) && (id2=PData.nByID(id2))) {
+			// Ensure valid IDs for Entities & absolute indices
+		if ((id1=qrRec.a[qrconfig.e1][0]) && (id1=PData.nByID(id1)) && (id2=qrRec.a[qrconfig.e2][0]) && (id2=PData.nByID(id2))) {
+			t1=PData.n2T(id1);
+			t2=PData.n2T(id2);
+				// Ensure id1 and id2 in stream!
+			if ((PData.nInS(id1, stream, t1) === -1) || (PData.nInS(id2, stream, t2) === -1)) {
+				continue;
+			}
+				// Dual connected markers?
+			if (qrc2) {
 					// And only if there are valid coordinates for both
 				if ((ll1=qrRec.a[qrc1]) && (ll2=qrRec.a[qrc2])) {
 						// TO DO: Ensure that ll1 and ll2 are arrays of two coordinates!
 						// Get Template indices & recs
-					t1=PData.n2T(id1);
-					t2=PData.n2T(id2);
 					rec1=PData.rByN(id1);
 					rec2=PData.rByN(id2);
 						// Ensure both entities have valid features
@@ -310,17 +314,17 @@ VizQRMap.prototype.render = function(stream)
 						} // f2
 					} // f1
 				} // ll1 & ll2
-			} // id1 & id2
-		} else {	// qrRec provides Relationship Legend; no size parameter
-			if (ll1=qrRec.a[qrc1]) {
-					// TO DO: Ensure that ll1 is an array of two coordinates!
-				rVal = PData.lClr(qrRec.a[rAttID], rAtt, featSets);
-				if (rVal) {
-						// Translate Relationship into color
-					addMarker(ll1, minR, rVal, qI);
+			} else {	// qrRec provides Relationship Legend; no size parameter
+				if (ll1=qrRec.a[qrc1]) {
+						// TO DO: Ensure that ll1 is an array of two coordinates!
+					rVal = PData.lClr(qrRec.a[rAttID], rAtt, featSets);
+					if (rVal) {
+							// Translate Relationship into color
+						addMarker(ll1, minR, rVal, qI);
+					}
 				}
-			}
-		} // only 1 coordinate
+			} // only 1 coordinate
+		} // if id1 & id2
 	} // while
 } // render()
 
@@ -508,6 +512,346 @@ VizQRMap.prototype.doOptions = function()
 		d.off("dialogclose");
 	});
 } // doOptions()
+
+
+// ===============================================================================
+// VizQRNet: Class to visualize QR Records as network graph
+//
+// Instance Variables:
+//		svg = SVG created for visualization
+//		physics = D3 force simulation object
+//		rels = [ [boolean], ], to match settings.pAtts, specifying if should display
+
+var VizQRNet = function(viewFrame, vSettings)
+{
+	this.physics = null;
+	this.stream = null;
+
+	PVizModel.call(this, viewFrame, vSettings);
+} // VizQRGraph
+
+VizQRNet.prototype = Object.create(PVizModel.prototype);
+
+VizQRNet.prototype.constructor = VizQRNet;
+
+VizQRNet.prototype.flags = function()
+{
+	return V_FLAG_LGND | V_FLAG_SEL | V_FLAG_VSCRL | V_FLAG_HSCRL;
+} // flags()
+
+VizQRNet.prototype.setup = function()
+{
+	var self=this;
+
+		// Get index of QR Template
+	this.qrTI = PData.tIByID(prspdata.e.g.qr.t);
+
+	this.svg = d3.select(this.frameID).append("svg");
+
+		// Set sizes and centers
+	var size = this.settings.s;
+	if (typeof size === 'string') {
+		size = parseInt(size);
+		this.settings.s = size;
+	}
+	this.svg.attr("width", size)
+		.attr("height", size);
+} // setup()
+
+	// PURPOSE: Draw the Records in the given datastream
+	// INPUT:	steam = datastream
+VizQRNet.prototype.render = function(stream)
+{
+	var self=this;
+	var qrconfig=prspdata.e.g.qr;
+	var rAttID=qrconfig.r;			// Relationship ID
+	var rAtt=PData.aByID(rAttID);	// Relationship Attribute
+	var rAttSet=PData.allFAtts(rAtt);
+	var sAttID, sAtt, minR, maxR, dR;
+	var tRec=stream.t[this.qrTI];
+	var relI=tRec.i, maxI=tRec.i+tRec.n;
+	var qI, qrRec;
+	var id1, id2, rec1, rec2, s1, s2, t1, t2, f1, f2, m1, m2;
+	var rVal;
+	var featSets, fAtts, fAttIDs;
+	var sDeltas=[], sMins=[];
+
+		// Set up radius calculation parameters
+	minR = this.settings.min;
+	if (typeof minR === 'string') {
+		minR = parseInt(minR);
+	}
+	maxR = this.settings.max;
+	if (typeof maxR === 'string') {
+		maxR = parseInt(maxR);
+	}
+	dR = maxR - minR;
+	this.settings.sAtts.forEach(function(sAttID) {
+		if (sAttID) {
+			var sAtt = PData.aByID(sAttID);
+			sMins.push(sAtt.r.min);
+			sDeltas.push(sAtt.r.max - sAtt.r.min);
+		} else {
+			sMins.push(minR);
+			sDeltas.push(0);
+		}
+	});
+
+		// Cache all Feature Attribute data
+	featSets=[], fAtts=[], fAttIDs=[];
+	for (qI=0; qI<PData.eTNum(); qI++) {
+		if (qI === this.qrTI) {
+			fAttIDs.push(rAttID);
+			fAtts.push(rAtt);
+			featSets.push(rAttSet);
+		} else {
+			id1 = this.vFrame.getSelLegend(qI);
+			fAttIDs.push(id1);
+			fAtts.push(id1 ? PData.aByID(id1) : null);
+			featSets.push(id1 ? this.vFrame.getSelFeatAtts(qI) : null);
+		}
+		this.tUsed[qI] = true;		// Always true so that QR Attributes available
+	}
+
+	function clickDot(d)
+	{
+		var s = self.toggleSel(d.ai);
+		d3.select(this).classed('obj-sel', s);
+	} // clickDot()
+
+	function clickBond(d)
+	{
+		var s = self.toggleSel(d.ai);
+		d3.select(this).classed('obj-sel', s);
+	} // clickBond()
+
+		// remove any existing nodes and links
+	this.svg.selectAll(".gnode").remove();
+	this.svg.selectAll(".bond").remove();
+
+	if (this.recSel.length > 0) {
+		this.recSel=[];
+	}
+
+	this.preRender(true, true);
+
+		// Abort if no Records
+	if (stream.l === 0) {
+		return;
+	}
+
+		// RETURNS: Radius for marker
+		// INPUT:	absI is absolute index for Record
+		//			rec is Entity Record itself
+		//			eTI is index of Template for Record
+	function getRad(absI, rec, eTI)
+	{
+		var sAttID = self.settings.sAtts[eTI];
+
+		if (sAttID) {
+			var s = rec.a[sAttID];
+			if (typeof s === 'number') {
+				return Math.floor(((s-sMins[eTI])*dR)/sDeltas[eTI]) + minR;
+			} else {
+				return minR;
+			}
+		} else {
+			return minR;
+		}
+	} // getRad()
+
+	var nodes=[], links = [];
+	var nCnt=0;
+
+		// PURPOSE: Either retrieve entry in nodes for Record, or create it
+	function getMarker()
+	{
+
+	} // getMarker()
+
+		// Process array of QR records
+	while (relI < maxI) {
+		qI = stream.s[relI++];
+		qrRec = PData.rByN(qI);
+			// Ensure valid IDs for Entities & absolute indices
+		if ((id1=qrRec.a[qrconfig.e1][0]) && (id1=PData.nByID(id1)) && (id2=qrRec.a[qrconfig.e2][0]) && (id2=PData.nByID(id2))) {
+// ### nInS
+				// Get Template indices & recs
+			t1=PData.n2T(id1);
+			t2=PData.n2T(id2);
+			rec1=PData.rByN(id1);
+			rec2=PData.rByN(id2);
+				// Ensure both entities have valid features
+			f1 = rec1.a[fAttIDs[t1]];
+			if ((typeof f1 !== 'undefined') && (f1=PData.lClr(f1, fAtts[t1], featSets[t1]))) {
+				f2 = rec2.a[fAttIDs[t2]];
+				if ((typeof f2 !== 'undefined') && (f2=PData.lClr(f2, fAtts[t2], featSets[t2]))) {
+					rVal = PData.lClr(qrRec.a[rAttID], rAtt, rAttSet);
+					if (rVal) {
+						m1 = { index: nCnt++, x: 0, y: 0, vx: 0, vy: 0, fx: null, fy: null,
+								ai: id1, t: t1, s: getRad(id1, rec1, t1), c: f1, r: rec1 };
+						m2 = { index: nCnt++, x: 0, y: 0, vx: 0, vy: 0, fx: null, fy: null,
+								ai: id2, t: t2, s: getRad(id2, rec2, t2), c: f2, r: rec2 };
+						nodes.push(m1);
+						nodes.push(m2);
+						self.rMap[id1 >> 4] |= (1 << (id1 & 15));
+						self.rMap[id2 >> 4] |= (1 << (id2 & 15));
+						self.rMap[qI >> 4] |= (1 << (qI & 15));
+						links.push({ ai: qI, c: rVal, index: links.length, source: m1, target: m2 });
+					}
+				} // f2
+			} // f1
+		} // id1 & id2
+	} // while
+
+
+	function dragstarted(d) {
+		if (!d3.event.active) {
+			self.physics.alphaTarget(0.3).restart();
+		}
+		d.fx = d.x;
+		d.fy = d.y;
+	} // dragstarted()
+
+	function dragged(d) {
+		d.fx = d3.event.x;
+		d.fy = d3.event.y;
+	} // dragged()
+
+	function dragended(d) {
+		if (!d3.event.active) {
+			self.physics.alphaTarget(0);
+		}
+		d.fx = null;
+		d.fy = null;
+	} // dragended()
+
+	var link = this.svg.selectAll("line")
+		.data(links)
+	    .enter()
+		.append("line")
+		.attr("class", "bond")
+		.style("stroke", function(d) { return d.c; });
+		// .on("click", clickBond);
+
+	var node = this.svg.selectAll("circle")
+    	.data(nodes)
+    	.enter()
+		.append("circle")
+    	.attr("class", "gnode")
+		.attr("r", function(d) { return d.s; })
+		.style("fill", function(d) { return d.c; })
+		.call(d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended))
+		.on("click", clickDot);
+	node.append("title")
+		.text(function(d) { return d.r.l; });
+
+		// Need new physics sim for each new render
+	qI = this.settings.s;
+	this.physics = d3.forceSimulation()
+		.force("center", d3.forceCenter(qI/2, qI/2))
+	    .force("link", d3.forceLink())
+	    .force("charge", d3.forceManyBody().distanceMax(qI/8));
+
+	this.physics.force("link").links(links);
+
+		// Add a function that keeps nodes within bounds
+	maxR = this.settings.s - minR;
+	this.physics.force("bounds", function() {
+		for (qI=0, maxI=nodes.length; qI<maxI; ++qI) {
+    		m1 = nodes[qI];
+    		m1.x = Math.max(minR, Math.min(m1.x, maxR));
+			m1.y = Math.max(minR, Math.min(m1.y, maxR));
+		}
+	});
+
+	this.physics.nodes(nodes)
+		.on("tick", function() {
+			link
+		        .attr("x1", function(d) { return d.source.x; })
+		        .attr("y1", function(d) { return d.source.y; })
+		        .attr("x2", function(d) { return d.target.x; })
+		        .attr("y2", function(d) { return d.target.y; });
+    		node
+		        .attr("cx", function(d) { return d.x; })
+		        .attr("cy", function(d) { return d.y; });
+		});
+} // render()
+
+VizQRNet.prototype.teardown = function()
+{
+} // teardown()
+
+VizQRNet.prototype.setSel = function(absIArray)
+{
+	var self=this;
+
+	self.recSel = absIArray;
+	this.svg.selectAll(".gnode")
+			.attr("class", function(d) { return self.isSel(d.ai) ? 'obj-sel gnode' : 'gnode' });
+	this.svg.selectAll(".bond")
+			.attr("class", function(d) { return self.isSel(d.ai) ? 'obj-sel gnode' : 'gnode' });
+
+} // setSel()
+
+VizQRNet.prototype.clearSel = function()
+{
+	if (this.recSel.length > 0) {
+		this.recSel = [];
+			// Only zoom band events are selected
+		this.svg.selectAll(".gnode")
+				.attr("class", 'gnode');
+	}
+} // clearSel()
+
+VizQRNet.prototype.getState = function()
+{
+	return { l: this.vFrame.getLgndSels() };
+} // getState()
+
+VizQRNet.prototype.setState = function(state)
+{
+	this.vFrame.setLgndSels(state.l);
+} // setState()
+
+VizQRNet.prototype.hint = function()
+{
+	var hint='';
+	var numT = PData.eTNum();
+
+	var rAttID=prspdata.e.g.qr.r;
+	var rAtt=PData.aByID(rAttID);
+
+	rAtt.l.forEach(function(lgnd) {
+		if (hint.length > 0) {
+			hint += ", ";
+		}
+		hint += '<b><span style="color: '+lgnd.v+'">'+lgnd.l+'</span></b>';
+	});
+
+	if (hint.length > 0) {
+		hint += '<br/>';
+	}
+
+	var label=true;
+	for (var tI=0; tI<numT; tI++) {
+		var sAttID = this.settings.sAtts[tI];
+		if (sAttID) {
+			if (label) {
+				hint += dlText.markersize;
+				label=false;
+			} else {
+				hint += ',';
+			}
+			var sAtt = PData.aByID(sAttID);
+			var tID = PData.eTByN(tI);
+			var tDef = PData.tByID(tID);
+			hint += ' '+sAtt.def.l+' ('+tDef.l+')';
+		}
+	}
+
+	return (hint.length > 0) ? hint : null;
+} // hint()
 
 
 // ================================================================================
@@ -782,6 +1126,7 @@ VizEgoGraph.prototype.render = function(stream)
 
 		// PURPOSE:	Create or update entry in recData array (kept in order)
 		// RETURNS: -1 (if abort), or index in recData
+		// INPUT:	id is the Record ID (not an index)
 	function addE(id)
 	{
 		var append = recData.length === 0;
@@ -799,8 +1144,12 @@ VizEgoGraph.prototype.render = function(stream)
 		if (append || rd.id !== id) {
 				// Convert ID to absolute index and get Template Index
 			absI = PData.nByID(id);
-			rec = PData.rByN(absI);
 			tI = PData.n2T(absI);
+				// Ensure that absI is in stream!
+			if (PData.nInS(absI, stream, tI) === -1) {
+				return -1;
+			}
+			rec = PData.rByN(absI);
 			fAttID = fAttIDs[tI];
 			fDatum = rec.a[fAttID];
 			if (typeof fDatum === 'undefined') {
