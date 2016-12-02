@@ -4357,10 +4357,6 @@ VizNetGraph.prototype.render = function(stream)
 		});
 } // render()
 
-VizNetGraph.prototype.teardown = function()
-{
-} // teardown()
-
 VizNetGraph.prototype.setSel = function(absIArray)
 {
 	var self=this;
