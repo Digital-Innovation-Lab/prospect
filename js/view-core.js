@@ -6575,10 +6575,7 @@ var PData = (function() {
 			// NOTE: 	JS Arrays are quirky; s is always full size, so l is used to maintain length
 		sNew: function(full)
 		{
-			var newStream = { };
-			newStream.s = new Uint16Array(rCount);
-			newStream.t = [];
-			newStream.l = 0;
+			var newStream = { s: new Uint16Array(rCount), t: [], l: 0 };
 
 			if (full) {
 				var i;
@@ -6615,6 +6612,37 @@ var PData = (function() {
 					return i;
 			}
 		}, // n2T()
+
+			// RETURNS: The index of absI in stream (its relative index), or else -1
+		nInS: function(absI, stream, tI)
+		{
+				// Use binary search
+			var lo = 0;
+			var hi = stream.l-1;
+			var pos;
+			var rec;
+
+				// If we know the Template index, we can streamline
+			if (tI != null) {
+				var tRec = stream.t[tI];
+				lo = tRec.i;
+				hi = tRec.i+tRec.n;
+			}
+
+			while (lo <= hi) {
+				pos = (lo + hi) >> 1;
+				rec = stream.s[pos];
+
+				if (rec < absI) {
+					lo = pos + 1;
+				} else if (rec > absI) {
+					hi = pos - 1;
+				} else {
+					return pos;
+				}
+			}
+			return -1;
+		},
 
 			// RETURNS: True if attID is in template tIndex
 		aInT: function(attID, tIndex)
