@@ -1051,7 +1051,9 @@ function PViewFrame(vfIndex)
 		case 'Q':
 			newViz = new VizQRMap(instance, theView.c);
 			break;
-		// case 'q':	// QR-Network
+		case 'q':
+			newViz = new VizQRNet(instance, theView.c);
+			break;
 		case 'E':
 			newViz = new VizEgoGraph(instance, theView.c);
 			break;
