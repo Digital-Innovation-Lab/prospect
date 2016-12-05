@@ -1654,15 +1654,15 @@ div.egolist > div.sellist-scroll {
 	overflow-y: scroll;
 }
 
-svg path.bond
+svg .bond
 {
 	stroke-opacity: 1;
-	stroke-width: 4px;
-	stroke-dasharray: 4, 2;
+	stroke-width: 5px;
+	stroke-dasharray: 6, 4;
 	fill: none;
 }
 
-svg path.bond.obj-sel
+svg .bond.obj-sel
 {
 	stroke-dasharray: 0;
 }
