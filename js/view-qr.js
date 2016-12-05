@@ -251,6 +251,8 @@ VizQRMap.prototype.render = function(stream)
 		// ASSUMES: Key variables are set: rec, fData, sAttID, aI
 	function addMarker(ll, r, f, aI)
 	{
+		var rad;
+
 		self.rMap[aI >> 4] |= (1 << (aI & 15));
 		var newMarker = L.circleMarker(ll,
 			{	_aid: aI, weight: 1, radius: r, fillColor: f, color: "#000",
@@ -284,7 +286,7 @@ VizQRMap.prototype.render = function(stream)
 		qI = stream.s[relI++];
 		qrRec = PData.rByN(qI);
 			// Ensure valid IDs for Entities & absolute indices
-		if ((id1=qrRec.a[qrconfig.e1][0]) && (id1=PData.nByID(id1)) && (id2=qrRec.a[qrconfig.e2][0]) && (id2=PData.nByID(id2))) {
+		if ((id1=qrRec.a[qrconfig.e1][0]) && ((id1=PData.nByID(id1))!==null) && (id2=qrRec.a[qrconfig.e2][0]) && ((id2=PData.nByID(id2))!==null)) {
 			t1=PData.n2T(id1);
 			t2=PData.n2T(id2);
 				// Ensure id1 and id2 in stream!
@@ -576,6 +578,21 @@ VizQRNet.prototype.render = function(stream)
 	var featSets, fAtts, fAttIDs;
 	var sDeltas=[], sMins=[];
 
+		// remove any existing nodes and links
+	this.svg.selectAll(".gnode").remove();
+	this.svg.selectAll(".bond").remove();
+
+	if (this.recSel.length > 0) {
+		this.recSel=[];
+	}
+
+	this.preRender(true, true);
+
+		// Abort if no Records
+	if (stream.l === 0) {
+		return;
+	}
+
 		// Set up radius calculation parameters
 	minR = this.settings.min;
 	if (typeof minR === 'string') {
@@ -613,72 +630,71 @@ VizQRNet.prototype.render = function(stream)
 		this.tUsed[qI] = true;		// Always true so that QR Attributes available
 	}
 
-	function clickDot(d)
+		// Can use for both nodes and links
+	function doClick(d)
 	{
 		var s = self.toggleSel(d.ai);
 		d3.select(this).classed('obj-sel', s);
-	} // clickDot()
-
-	function clickBond(d)
-	{
-		var s = self.toggleSel(d.ai);
-		d3.select(this).classed('obj-sel', s);
-	} // clickBond()
-
-		// remove any existing nodes and links
-	this.svg.selectAll(".gnode").remove();
-	this.svg.selectAll(".bond").remove();
-
-	if (this.recSel.length > 0) {
-		this.recSel=[];
-	}
-
-	this.preRender(true, true);
-
-		// Abort if no Records
-	if (stream.l === 0) {
-		return;
-	}
-
-		// RETURNS: Radius for marker
-		// INPUT:	absI is absolute index for Record
-		//			rec is Entity Record itself
-		//			eTI is index of Template for Record
-	function getRad(absI, rec, eTI)
-	{
-		var sAttID = self.settings.sAtts[eTI];
-
-		if (sAttID) {
-			var s = rec.a[sAttID];
-			if (typeof s === 'number') {
-				return Math.floor(((s-sMins[eTI])*dR)/sDeltas[eTI]) + minR;
-			} else {
-				return minR;
-			}
-		} else {
-			return minR;
-		}
-	} // getRad()
+	} // doClick()
 
 	var nodes=[], links = [];
-	var nCnt=0;
 
 		// PURPOSE: Either retrieve entry in nodes for Record, or create it
-	function getMarker()
+		// RETURNS: new node entry, or else null if Record not valid in this stream
+		// NOTE:	As we don’t need actual Record IDs, can use absI as unique Record key
+	function getNode(absI, tI, rec, f)
 	{
+		var i, n;
+		var append = nodes.length === 0;
 
-	} // getMarker()
+		if (append) {
+			i=0;
+		} else {
+			i = _.sortedIndex(nodes, { ai: absI }, 'ai');
+			if (!(append = (i === nodes.length))) {
+				n = nodes[i];
+			}
+		}
+
+		if (append || n.ai !== absI) {
+			var sAttID = self.settings.sAtts[tI];
+			var rad;
+
+			if (sAttID) {
+				var s = rec.a[sAttID];
+				if (typeof s === 'number') {
+					rad = Math.floor(((s-sMins[tI])*dR)/sDeltas[tI]) + minR;
+				} else {
+					rad = minR;
+				}
+			} else {
+				rad = minR;
+			}
+			n = { index: 0, x: 0, y: 0, vx: 0, vy: 0, fx: null, fy: null,
+					ai: absI, t: tI, s: rad, c: f, r: rec };
+			if (append) {
+				nodes.push(n);
+			} else {
+				nodes.splice(i, 0, n);
+			}
+			self.rMap[absI >> 4] |= (1 << (absI & 15));
+		}
+		return n;
+	} // getNode()
 
 		// Process array of QR records
 	while (relI < maxI) {
 		qI = stream.s[relI++];
 		qrRec = PData.rByN(qI);
 			// Ensure valid IDs for Entities & absolute indices
-		if ((id1=qrRec.a[qrconfig.e1][0]) && (id1=PData.nByID(id1)) && (id2=qrRec.a[qrconfig.e2][0]) && (id2=PData.nByID(id2))) {
-// ### nInS
+		if ((id1=qrRec.a[qrconfig.e1][0]) && ((id1=PData.nByID(id1))!==null) && (id2=qrRec.a[qrconfig.e2][0]) && ((id2=PData.nByID(id2))!==null)) {
 				// Get Template indices & recs
 			t1=PData.n2T(id1);
 			t2=PData.n2T(id2);
+				// Ensure id1 and id2 in stream!
+			if ((PData.nInS(id1, stream, t1) === -1) || (PData.nInS(id2, stream, t2) === -1)) {
+				continue;
+			}
 			rec1=PData.rByN(id1);
 			rec2=PData.rByN(id2);
 				// Ensure both entities have valid features
@@ -688,14 +704,8 @@ VizQRNet.prototype.render = function(stream)
 				if ((typeof f2 !== 'undefined') && (f2=PData.lClr(f2, fAtts[t2], featSets[t2]))) {
 					rVal = PData.lClr(qrRec.a[rAttID], rAtt, rAttSet);
 					if (rVal) {
-						m1 = { index: nCnt++, x: 0, y: 0, vx: 0, vy: 0, fx: null, fy: null,
-								ai: id1, t: t1, s: getRad(id1, rec1, t1), c: f1, r: rec1 };
-						m2 = { index: nCnt++, x: 0, y: 0, vx: 0, vy: 0, fx: null, fy: null,
-								ai: id2, t: t2, s: getRad(id2, rec2, t2), c: f2, r: rec2 };
-						nodes.push(m1);
-						nodes.push(m2);
-						self.rMap[id1 >> 4] |= (1 << (id1 & 15));
-						self.rMap[id2 >> 4] |= (1 << (id2 & 15));
+						m1 = getNode(id1, t1, rec1, f1);
+						m2 = getNode(id2, t2, rec2, f2);
 						self.rMap[qI >> 4] |= (1 << (qI & 15));
 						links.push({ ai: qI, c: rVal, index: links.length, source: m1, target: m2 });
 					}
@@ -704,6 +714,10 @@ VizQRNet.prototype.render = function(stream)
 		} // id1 & id2
 	} // while
 
+		// Set proper index value in nodes[]
+	nodes.forEach(function(thisNode, nI) {
+		thisNode.index = nI;
+	});
 
 	function dragstarted(d) {
 		if (!d3.event.active) {
@@ -731,8 +745,8 @@ VizQRNet.prototype.render = function(stream)
 	    .enter()
 		.append("line")
 		.attr("class", "bond")
-		.style("stroke", function(d) { return d.c; });
-		// .on("click", clickBond);
+		.style("stroke", function(d) { return d.c; })
+		.on("click", doClick);
 
 	var node = this.svg.selectAll("circle")
     	.data(nodes)
@@ -742,7 +756,7 @@ VizQRNet.prototype.render = function(stream)
 		.attr("r", function(d) { return d.s; })
 		.style("fill", function(d) { return d.c; })
 		.call(d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended))
-		.on("click", clickDot);
+		.on("click", doClick);
 	node.append("title")
 		.text(function(d) { return d.r.l; });
 
@@ -751,7 +765,7 @@ VizQRNet.prototype.render = function(stream)
 	this.physics = d3.forceSimulation()
 		.force("center", d3.forceCenter(qI/2, qI/2))
 	    .force("link", d3.forceLink())
-	    .force("charge", d3.forceManyBody().distanceMax(qI/8));
+	    .force("charge", d3.forceManyBody().distanceMin((maxR+minR)/2).distanceMax(qI/8));
 
 	this.physics.force("link").links(links);
 
@@ -778,10 +792,6 @@ VizQRNet.prototype.render = function(stream)
 		});
 } // render()
 
-VizQRNet.prototype.teardown = function()
-{
-} // teardown()
-
 VizQRNet.prototype.setSel = function(absIArray)
 {
 	var self=this;
@@ -790,17 +800,17 @@ VizQRNet.prototype.setSel = function(absIArray)
 	this.svg.selectAll(".gnode")
 			.attr("class", function(d) { return self.isSel(d.ai) ? 'obj-sel gnode' : 'gnode' });
 	this.svg.selectAll(".bond")
-			.attr("class", function(d) { return self.isSel(d.ai) ? 'obj-sel gnode' : 'gnode' });
-
+			.attr("class", function(d) { return self.isSel(d.ai) ? 'obj-sel bond' : 'bond' });
 } // setSel()
 
 VizQRNet.prototype.clearSel = function()
 {
 	if (this.recSel.length > 0) {
 		this.recSel = [];
-			// Only zoom band events are selected
 		this.svg.selectAll(".gnode")
 				.attr("class", 'gnode');
+		this.svg.selectAll(".bond")
+				.attr("class", 'bond');
 	}
 } // clearSel()
 
@@ -1144,6 +1154,9 @@ VizEgoGraph.prototype.render = function(stream)
 		if (append || rd.id !== id) {
 				// Convert ID to absolute index and get Template Index
 			absI = PData.nByID(id);
+			if (absI === null) {
+				return -1;
+			}
 			tI = PData.n2T(absI);
 				// Ensure that absI is in stream!
 			if (PData.nInS(absI, stream, tI) === -1) {
