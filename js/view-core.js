@@ -7216,18 +7216,29 @@ var PData = (function() {
 
 			// PURPOSE: Create a Date from minimal specification in Object fields
 		dObj: function(field, m, end) {
-			var d;
+			var dd, dm;
 
 			if (typeof field.m !== 'undefined' && field.m !== null) {
-				m = field.m;
-				if (typeof field.d !== 'undefined' && field.d !== null)
-					d = field.d;
-				else
-					d = PData.lenMnth(field.y, m);
+				dm = field.m;
+				if (typeof field.d !== 'undefined' && field.d !== null) {
+					dd = field.d;
+				} else {
+					if (end) {
+						dd = PData.lenMnth(field.y, dm);
+					} else {
+						dd = 1;
+					}
+				}
 			} else {
-				d = PData.lenMnth(field.y, m);
+				dm = m;
+				if (end) {
+					dd = PData.lenMnth(field.y, m);
+				} else {
+					dd = 1;
+				}
 			}
-			return PData.d3Nums(field.y, m, d, end);
+
+			return PData.d3Nums(field.y, dm, dd, end);
 		}, // dObj()
 
 			// PURPOSE: Create Date by parsing string
