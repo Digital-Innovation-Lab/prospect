@@ -1192,7 +1192,7 @@ class ProspectAdmin {
 		fwrite($fp, '{"type": "Template", "tmplt-id": "'.$the_template->id.'", '."\n");
 		fwrite($fp, '"tmplt-def": '.$the_template->meta_def.",\n");
 		fwrite($fp, '"tmplt-joins": '.$the_template->meta_joins.",\n");
-		fwrite($fp, '"tmplt-view": '.$the_template->meta_view." \n}");
+		fwrite($fp, '"tmplt-view": '.$the_template->meta_view.",\n");
 		fwrite($fp, '"tmplt-pview": '.$the_template->meta_pview." \n}");
 	} // write_template_data()
 
