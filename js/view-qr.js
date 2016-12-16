@@ -1449,6 +1449,9 @@ PFilterQR.prototype.setup = function()
 
 		// Intercept changes to Relationship & Roles selections!
 	options.change(function() {
+			// If changed Relationship selection, uncheck Roles
+		inserted.find('input.filter-qr-use-r1').prop('checked', false);
+		inserted.find('input.filter-qr-use-r2').prop('checked', false);
 		self.r = options.val();
 		self.setRoles();
 		self.isDirty(2);
