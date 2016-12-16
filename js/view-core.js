@@ -5971,6 +5971,7 @@ PFilterDates.prototype.eval = function(rec)
 			}
 		} else {
 			dm = m;
+			dd = d;
 		}
 		return PData.d3Nums(y, dm, dd, end);
 	} // makeDate()
