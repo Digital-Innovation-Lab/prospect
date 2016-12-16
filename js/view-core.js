@@ -5536,7 +5536,7 @@ PFilterNum.prototype.eval = function(rec)
 	if (typeof num === 'undefined')
 		return false;
 
-		// Only true when i=0
+		// Only true when i=0 -- no bar graph to update
 	if (num === '?') {
 		return this.u;
 	}
@@ -5961,20 +5961,25 @@ PFilterDates.prototype.evalPrep = function()
 PFilterDates.prototype.eval = function(rec)
 {
 	function makeDate(y, m, d, field, end) {
+		var dm, dd;
 		if (typeof field.m !== 'undefined') {
-			m = field.m;
+			dm = field.m;
 			if (typeof field.d !== 'undefined') {
-				d = field.d;
+				dd = field.d;
+			} else {
+				dd = d;
 			}
+		} else {
+			dm = m;
 		}
-		return PData.d3Nums(y, m, d, end);
+		return PData.d3Nums(y, dm, dd, end);
 	} // makeDate()
 
 	var d = rec.a[this.att.id];
 	if (typeof d === 'undefined')
 		return false;
 
-		// Check for 'undefined' exception
+		// Check for 'undefined' exception -- we don't have bar graph for this
 	if (d === '?')
 		return this.u;
 
@@ -5988,8 +5993,8 @@ PFilterDates.prototype.eval = function(rec)
 		var e;
 		if (d.max === 'open')
 			e = TODAY;
-		else
-			e = makeDate(d.max.y, 12, 31, d.max, true);
+		else 	// Since exclusive compare, don't push past start of day
+			e = makeDate(d.max.y, 12, 31, d.max, false);
 
 			// Overlap?
 		if (this.c === 'o') {
@@ -6010,7 +6015,7 @@ PFilterDates.prototype.eval = function(rec)
 			return true;
 		}
 	}
-	return false;
+	return true;	// Ensure success even without bar graph
 } // eval()
 
 PFilterDates.prototype.evalDone = function(total)
