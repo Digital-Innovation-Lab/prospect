@@ -1188,7 +1188,7 @@ class ProspectAdmin {
 		fwrite($fp, '{"type": "Template", "tmplt-id": "'.$the_template->id.'", '."\n");
 		fwrite($fp, '"tmplt-def": '.$the_template->meta_def.",\n");
 		fwrite($fp, '"tmplt-joins": '.$the_template->meta_joins.",\n");
-		fwrite($fp, '"tmplt-view": '.$the_template->meta_view." \n}");
+		fwrite($fp, '"tmplt-view": '.$the_template->meta_view.",\n");
 		fwrite($fp, '"tmplt-pview": '.$the_template->meta_pview." \n}");
 	} // write_template_data()
 
@@ -3081,11 +3081,11 @@ class ProspectAdmin {
 
 
 
-		// PURPOSE: Returns Geonames API results 
+		// PURPOSE: Returns Geonames API results
 		// INPUT: $_POST['query'] = name query from Geonames dialog
 	public function prsp_get_geonames() {
 		$content = @file_get_contents('http://api.geonames.org/searchJSON?q='. $_POST['query'] .'&maxRows=10&username=UNCDIL');
-		
+
 		if ($content === false) {
 			$result = 'Error';
 		} else {
