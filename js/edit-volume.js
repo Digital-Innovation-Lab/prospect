@@ -1,7 +1,6 @@
 // Volume Editor
 
 // ASSUMES: A view area for the browser has been marked with HTML div as "ractive-output"
-// NOTES:
 // USES:    jQuery, Underscore, jQueryUI, and Ractive
 // ASSUMES: All data not to be edited by user passed in prspdata
 //			All data to be edited by user passed in hidden fields
@@ -335,10 +334,18 @@ jQuery(document).ready(function() {
 
 
 		// RETURNS: Attribute definition from ID
+		// NOTE:	ONLY checks predefined Attributes, NOT Joined Attributes
 	function getAttribute(attID)
 	{
 		return _.find(defAtts, function(theAtt) { return theAtt.id === attID; });
 	} // getAttribute()
+
+		// RETURNS: Attribute definition from ID
+		// NOTE:	Checks ALL Attributes, inc. Joined Attributes
+	function getJAttribute(attID)
+	{
+		return _.find(defJoinedAtts, function(theAtt) { return theAtt.id === attID; });
+	} // getJAttribute()
 
 		// INPUT: iTemplate = the independent Template definition, jAttID = Join Attribute ID
 		// RETURNS: Dependent Template definition
@@ -579,7 +586,7 @@ jQuery(document).ready(function() {
 								saveAttRef(attDef.id+'.', joinAttID, joinAtt.def.t);
 									// If Joined Attribute not in global list, add it
 								var joinedID = attDef.id+'.'+joinAttID;
-								if (_.find(defJoinedAtts, function(theAtt) { return theAtt.id === joinedID; }) == null)
+								if (getJAttribute(joinedID) == null)
 								{
 									var clonedAtt = _.clone(joinAtt);
 									clonedAtt.id = joinedID;
@@ -591,9 +598,10 @@ jQuery(document).ready(function() {
 					default:
 							// Restrict to "Open" level of security
 						if (attDef.p == 'o') {
-								// Does it need to be added to global list?
-							if (_.find(defJoinedAtts, function(theAtt) { return theAtt.id === theAttID; }) == null)
-								defJoinedAtts.push(_.clone(attDef, true));
+								// Does it need to be added to global list of Joined Attributes?
+							if (getJAttribute(theAttID) == null) {
+								defJoinedAtts.push(_.clone(attDef));
+							}
 							saveAttRef('', theAttID, attDef.def.t);
 						}
 						break;
