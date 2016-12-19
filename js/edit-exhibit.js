@@ -1194,9 +1194,6 @@ jQuery(document).ready(function() {
 				theVF.c.oAtts = newOAtts;
 				theVF.c.lgnds = newLgnds;
 				break;
-			case 'L':	// Linked Chain
-				// NOTE: Currently no settings needed
-				break;
 			case 'Q':	// QR-Map
 				var newLgnds=[], newSAtts=[];
 				iTemplates.forEach(function(theTmplt) {
@@ -1613,9 +1610,6 @@ jQuery(document).ready(function() {
 				newVFEntry.c.pAtts = _.map(iTemplates, function(theTemplate) {
 					return [];
 				});
-				break;
-			case 'L':	// Linked Chain
-				// NOTE: Currently no settings
 				break;
 			case 'Q':	// QR-Map
 				newVFEntry.c.clat = '';
@@ -2237,14 +2231,6 @@ jQuery(document).ready(function() {
 					saveView.c.pAtts = newPAtts;
 					saveView.c.lgnds = newLgnds;
 					saveView.c.oAtts = packUsedAttIDs(viewSettings.c.oAtts);
-					break;
-				case 'L':	// Linked Chain
-						// NOTE: Currently no settings
-						// Ensure that QR-Template enabled if QR views are defined
-					if (typeof saveGen.qr === 'undefined') {
-						displayError('#errmsg-qr-usage', i);
-						return false;
-					}
 					break;
 				case 'Q':	// QR-Map
 						// Ensure that QR-Template enabled if QR views are defined

@@ -161,8 +161,6 @@
 						{{>vfBrowser}}
 					{{elseif vf === 'b'}}
 						{{>vfBucketMatrix}}
-					{{elseif vf === 'L'}}
-						{{>vfLinkedChain}}
 					{{elseif vf === 'Q'}}
 						{{>vfQRMap}}
 					{{elseif vf === 'q'}}
@@ -911,10 +909,6 @@
 	</tabs>
 </script>
 
-<script id="vfLinkedChain" type='text/ractive'>
-	<!-- Nothing currently needed -->
-</script>
-
 <script id="vfQRMap" type='text/ractive'>
 	<?php _e('Initial Map Center: Latitude', 'prospect'); ?>: <input type="text" value="{{c.clat}}" size="10" pattern="^-?\d{1,3}(\.\d*)*" required/>
 	<?php _e('Longitude', 'prospect'); ?>: <input type="text" value="{{c.clon}}" size="10" pattern="^-?\d{1,3}(\.\d*)*" required/>
@@ -1142,7 +1136,7 @@
 
 <!-- DYNAMIC TEXT -->
 <script id="dltext-visualizations" type='text/ractive'>
-<?php _e('D,Directory|B,Facet Browser|C,Cards|t,TextStream|M,Map 1|p,Map 2|T,Timeline|P,Pinboard|S,Stacked Chart|N,Network Wheel|n,Network Graph|F,Facet Flow|m,MultiBlock Map|b,Bucket Matrix|L,Linked Chain|Q,QR-Map|q,QR-Network|E,Ego-Graph|e,Time-Rings', 'prospect'); ?>
+<?php _e('D,Directory|B,Facet Browser|C,Cards|t,TextStream|M,Map 1|p,Map 2|T,Timeline|P,Pinboard|S,Stacked Chart|N,Network Wheel|n,Network Graph|F,Facet Flow|m,MultiBlock Map|b,Bucket Matrix|Q,QR-Map|q,QR-Network|E,Ego-Graph|e,Time-Rings', 'prospect'); ?>
 </script>
 
 
