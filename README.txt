@@ -3,7 +3,7 @@
 Contributors: msnewton, Breon Williams, Kevin Jacoby
 Tags: Data Visualization, Digital Humanities
 Requires at least: 3.9.0
-Tested up to: 4.6.1
+Tested up to: 4.7
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
