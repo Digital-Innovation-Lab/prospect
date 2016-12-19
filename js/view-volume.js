@@ -795,9 +795,9 @@ PVizFrame.prototype.setLDirty = function(s)
 {
 	if (this.autoUpdate) {
 		if (s) {
-			this.upSel([], false);	// Re-render always clears selection
 			if (this.vizModel && this.datastream) {
 				this.vizModel.render(this.datastream);
+				this.computeSel();
 			}
 		}
 		this.lDirty=false;			// Legend is always left "clean"
