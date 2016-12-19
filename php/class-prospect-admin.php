@@ -1192,8 +1192,13 @@ class ProspectAdmin {
 		fwrite($fp, '{"type": "Template", "tmplt-id": "'.$the_template->id.'", '."\n");
 		fwrite($fp, '"tmplt-def": '.$the_template->meta_def.",\n");
 		fwrite($fp, '"tmplt-joins": '.$the_template->meta_joins.",\n");
-		fwrite($fp, '"tmplt-view": '.$the_template->meta_view.",\n");
-		fwrite($fp, '"tmplt-pview": '.$the_template->meta_pview." \n}");
+		fwrite($fp, '"tmplt-view": '.$the_template->meta_view);
+			// Format will depend on existence of template view data
+		if ($the_template->meta_pview != null && $the_template->meta_pview != '') {
+			fwrite($fp, ",\n ".'"tmplt-pview": '.$the_template->meta_pview." \n}");
+		} else {
+			fwrite($fp, " }");
+		}
 	} // write_template_data()
 
 	public function make_date_string($date_obj)
