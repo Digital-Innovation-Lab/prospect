@@ -1583,8 +1583,8 @@ PVizFrame.prototype.flushLgnd = function()
 {
 	var frame = jQuery('#view-frame-1');
 	var l = frame.width() - 280;
-	frame.find('div.lgnd-container').css('left', l).css('top', 290);
-	frame.find('div.sellist').css('left', l).css('top', 20);
+	frame.find('div.lgnd-container').css('left', l).css('top', 100);
+	frame.find('div.sellist').css('left', l).css('top', 30);
 } // flushLgnd()
 
 	// PURPOSE: Return the Record bitmap data for this view
