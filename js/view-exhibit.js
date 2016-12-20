@@ -1542,8 +1542,9 @@ jQuery(document).ready(function($) {
 	{
 		var fDiv;
 
-		if (topStream == null)
+		if (topStream == null) {
 			topStream = PData.sNew(true);
+		}
 		endStream = topStream;
 
 			// Go through filter stack -- find 1st dirty and recompute from there
@@ -2111,10 +2112,11 @@ jQuery(document).ready(function($) {
 
 	function clickFilterDel(event)
 	{
+		var fI, fRec, dirtyI, outStream;
 		var head = jQuery(this).closest('div.filter-instance');
 		var fID = head.data('id');
 
-		var fI, fRec, dirtyI;
+
 		fI = filters.findIndex(function(fRec) { return fRec.id == fID; });
 		if (fI === -1)	{ alert('Bad Filter ID '+fID); return; }
 
@@ -2124,18 +2126,30 @@ jQuery(document).ready(function($) {
 		filters.splice(fI, 1);
 			// Deleted last filter in stack
 		if (fI >= filters.length) {
-			var endStream;
 				// No filters left, reset ViewFrame data source
 			if (filters.length === 0) {
 				endStream = topStream;
+				views.forEach(function(v) {
+					if (v) {
+						v.clearSel();
+						v.showStream(endStream);
+					}
+				});
 			} else {
-				endStream = filters[fI-1].out;
-			}
-			views.forEach(function(v) {
-				if (v) {
-					v.setStream(endStream);
+				outStream = filters[filters.length-1].out;
+					// If previous filter was new, the out stream has not yet been computed!
+				if (outStream) {
+					endStream = outStream;
+					views.forEach(function(v) {
+						if (v) {
+							v.clearSel();
+							v.showStream(endStream);
+						}
+					});
+				} else {
+					dirtyI=filters.length-1;
 				}
-			});
+			}
 		} else {
 				// Datastream must be recomputed from successor on
 			dirtyI=fI;
@@ -2147,13 +2161,6 @@ jQuery(document).ready(function($) {
 			// Emptied Filter Stack?
 		if (filters.length === 0) {
 			jQuery('#btn-toggle-filters').button("disable");
-				// Invalidate selections
-			views.forEach(function(v) {
-				if (v) {
-					v.clearSel();
-					v.showStream(endStream);
-				}
-			});
 			jQuery('#btn-f-state').prop('disabled', true).html(dlText.nofilter);
 		} else {
 			if (!autoUpdate) {
@@ -2161,6 +2168,7 @@ jQuery(document).ready(function($) {
 				jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
 			}
 				// This will either (1) dirty filter, or (2) trigger recompute
+				// Not executed if last filter deleted!
 			if (dirtyI != null) {
 				filters[dirtyI].f.isDirty(2);
 			}
