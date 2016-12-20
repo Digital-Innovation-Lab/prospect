@@ -730,10 +730,11 @@ function PViewFrame(vfIndex)
 		event.preventDefault();
 	} // clickOpenSelection()
 
-		// PURPOSE: Inform ViewFrame of selection change, update GUI
+		// PURPOSE: Inform ViewFrame of selection change in ViewModel, update GUI
 		// INPUT:	selList = array of absIDs, or [] if nothing selected
 		//			if force, then GUI always refreshed
-		// NOTES:	Not useful to save pointer to selList, as it will be modified in other code
+		// NOTES:	Does NOT modify the actual selection of the ViewModel!
+		//			Not useful to save pointer to selList, as it will be modified in other code
 	function doUpSel(selList, force)
 	{
 		var newSize = selList.length;
@@ -1047,6 +1048,18 @@ function PViewFrame(vfIndex)
 		case 'b':
 			newViz = new VizBMatrix(instance, theView.c);
 			break;
+		case 'Q':
+			newViz = new VizQRMap(instance, theView.c);
+			break;
+		case 'q':
+			newViz = new VizQRNet(instance, theView.c);
+			break;
+		case 'E':
+			newViz = new VizEgoGraph(instance, theView.c);
+			break;
+		case 'e':
+			newViz = new VizTimeRing(instance, theView.c);
+			break;
 		}
 		vizSelIndex = vIndex;
 		var flags = newViz.flags();
@@ -1293,19 +1306,22 @@ function PViewFrame(vfIndex)
 
 			// Intercept Auto-Update signal
 		jQuery("body").on("prsp-auto", function(event, data) {
-			autoUpdate = data.a;
-			if (autoUpdate) {	// Turn on: disable Apply button, do any outstanding updates
-				jQuery(getFrameID()+' div.lgnd-container div.lgnd-handle button.lgnd-update').prop('disabled', true);
-					// Any outstand updates?
-				if (lDirty) {
-					doUpSel([], false);				// Re-render always clears selection
-					if (vizModel) {
-						vizModel.render(datastream);
+				// Only act on it if different
+			if (autoUpdate !== data.a) {
+				autoUpdate = data.a;
+				if (autoUpdate) {	// Turn on: disable Apply button, do any outstanding updates
+					jQuery(getFrameID()+' div.lgnd-container div.lgnd-handle button.lgnd-update').prop('disabled', true);
+						// Any outstand updates?
+					if (lDirty) {
+						doUpSel([], false);				// Re-render always clears selection
+						if (vizModel) {
+							vizModel.render(datastream);
+						}
+						lDirty=false;
 					}
-					lDirty=false;
 				}
+					// NOTE: No need to enable Apply button on Legend, as that will happen if any user actions "dirty" it
 			}
-				// NOTE: No need to enable Apply button on Legend, as that will happen if any user actions "dirty" it
 		});
 	} // initDOM()
 
@@ -1465,8 +1481,8 @@ function PViewFrame(vfIndex)
 	{
 		var frame = jQuery(getFrameID());
 		var l = frame.width() - 280;
-		frame.find('div.lgnd-container').css('left', l).css('top', 290);
-		frame.find('div.sellist').css('left', l).css('top', 20);
+		frame.find('div.lgnd-container').css('left', l).css('top', 100);
+		frame.find('div.sellist').css('left', l).css('top', 30);
 	} // flushLgnd()
 
 		// PURPOSE: Return the Record bitmap data for this view
@@ -1511,6 +1527,14 @@ jQuery(document).ready(function($) {
 
 	var tour;
 
+	var useQR;					// Are QRs enabled?
+	var qrTI;					// index of QR Template
+
+	useQR = typeof prspdata.e.g.qr !== 'undefined' && prspdata.e.g.qr.t !== 'disable';
+	if (useQR) {
+		qrTI = PData.tIByID(prspdata.e.g.qr.t);
+	}
+
 		// FUNCTIONS
 		//==========
 
@@ -1518,8 +1542,9 @@ jQuery(document).ready(function($) {
 	{
 		var fDiv;
 
-		if (topStream == null)
+		if (topStream == null) {
 			topStream = PData.sNew(true);
+		}
 		endStream = topStream;
 
 			// Go through filter stack -- find 1st dirty and recompute from there
@@ -1535,7 +1560,10 @@ jQuery(document).ready(function($) {
 				var newStream = PData.sNew(false);
 				var relI=0, absI, rec;
 				var tI=0, tRec=endStream.t[0], tRn=0, rTotal=0;
-				var e=fDiv.find('.apply-tmplt-0').is(':checked');
+				var e;
+					// If not QR Filter, then check checkbox, but oNly run QR Filter on QR Template
+				e = (f.att.id === '_qr' && qrTI === 0) || (fDiv.find('.apply-tmplt-0').is(':checked'));
+
 					// Must keep absolute indices and template params updated!
 				while (relI < endStream.l) {
 						// Advance until we get to current Template rec
@@ -1543,7 +1571,7 @@ jQuery(document).ready(function($) {
 						newStream.t.push({ i: (newStream.l-tRn), n: tRn });
 						tRn = 0;
 						tRec = endStream.t[++tI];
-						e=fDiv.find('.apply-tmplt-'+tI).is(':checked');
+						e = (f.att.id === '_qr' && qrTI === tI) || (fDiv.find('.apply-tmplt-'+tI).is(':checked'));
 					}
 					absI = endStream.s[relI++];
 						// Need to evaluate
@@ -1634,6 +1662,10 @@ jQuery(document).ready(function($) {
 			views[1] = PViewFrame(1);
 			views[1].initDOM(0);
 			views[1].showStream(endStream);
+				// signal Auto-Update setting (off by default)
+			if (autoUpdate) {
+				jQuery("body").trigger("prsp-auto", { a: autoUpdate });
+			}
 		}
 		views[0].resize();
 		views[0].flushLgnd();
@@ -2080,10 +2112,11 @@ jQuery(document).ready(function($) {
 
 	function clickFilterDel(event)
 	{
+		var fI, fRec, dirtyI, outStream;
 		var head = jQuery(this).closest('div.filter-instance');
 		var fID = head.data('id');
 
-		var fI, fRec, dirtyI;
+
 		fI = filters.findIndex(function(fRec) { return fRec.id == fID; });
 		if (fI === -1)	{ alert('Bad Filter ID '+fID); return; }
 
@@ -2093,18 +2126,30 @@ jQuery(document).ready(function($) {
 		filters.splice(fI, 1);
 			// Deleted last filter in stack
 		if (fI >= filters.length) {
-			var endStream;
 				// No filters left, reset ViewFrame data source
 			if (filters.length === 0) {
 				endStream = topStream;
+				views.forEach(function(v) {
+					if (v) {
+						v.clearSel();
+						v.showStream(endStream);
+					}
+				});
 			} else {
-				endStream = filters[fI-1].out;
-			}
-			views.forEach(function(v) {
-				if (v) {
-					v.setStream(endStream);
+				outStream = filters[filters.length-1].out;
+					// If previous filter was new, the out stream has not yet been computed!
+				if (outStream) {
+					endStream = outStream;
+					views.forEach(function(v) {
+						if (v) {
+							v.clearSel();
+							v.showStream(endStream);
+						}
+					});
+				} else {
+					dirtyI=filters.length-1;
 				}
-			});
+			}
 		} else {
 				// Datastream must be recomputed from successor on
 			dirtyI=fI;
@@ -2116,13 +2161,6 @@ jQuery(document).ready(function($) {
 			// Emptied Filter Stack?
 		if (filters.length === 0) {
 			jQuery('#btn-toggle-filters').button("disable");
-				// Invalidate selections
-			views.forEach(function(v) {
-				if (v) {
-					v.clearSel();
-					v.showStream(endStream);
-				}
-			});
 			jQuery('#btn-f-state').prop('disabled', true).html(dlText.nofilter);
 		} else {
 			if (!autoUpdate) {
@@ -2130,6 +2168,7 @@ jQuery(document).ready(function($) {
 				jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
 			}
 				// This will either (1) dirty filter, or (2) trigger recompute
+				// Not executed if last filter deleted!
 			if (dirtyI != null) {
 				filters[dirtyI].f.isDirty(2);
 			}
@@ -2143,13 +2182,15 @@ jQuery(document).ready(function($) {
 		//			highlight = null if in Filter stack, else 0 or 1 (to indicate view applied to)
 		// RETURNS: The Filter object created
 		// NOTES:   IDs 0 and 1 are specially allocated to Highlight those respective views
-		// ASSUMED: Remove filter won't be created for Highlight condition
+		// ASSUMED: Remove && QR filters won't be created for Highlight condition
 	function createFilter(fID, apply, highlight)
 	{
 		var newID;
 		var newFilter;
 		var theAtt;
 		var insert;
+		var appBoxes=apTmStr;
+		var title;
 
 		if (highlight !== null) {
 			newID = highlight;
@@ -2161,11 +2202,16 @@ jQuery(document).ready(function($) {
 			} while (newID == -1);
 		}
 
-		if (fID == '_remove') {
+		if (fID === '_remove') {
 			newFilter = new PFilterRemove(newID);
-			theAtt = { t: [true, true, true, true ] };	// Create pseudo-Attribute entry
+			theAtt = { t: [ true, true, true, true ] };	// Create pseudo-Attribute entry
+		} else if (fID === '_qr') {
+			newFilter = new PFilterQR(newID);
+			appBoxes='';
+			title = dlText.qrrr;
 		} else {
 			theAtt = PData.aByID(fID);
+			title = theAtt.def.l;
 			switch (theAtt.def.t) {
 			case 'V':
 				newFilter = new PFilterVocab(newID, theAtt);
@@ -2189,7 +2235,7 @@ jQuery(document).ready(function($) {
 		}
 
 		if (highlight !== null) {
-			insert = jQuery('#dialog-hilite-'+highlight+' span.filter-id').html(theAtt.def.l);
+			insert = jQuery('#dialog-hilite-'+highlight+' span.filter-id').html(title);
 			insert = jQuery('#hilite-'+highlight);
 			insert.empty();
 
@@ -2199,16 +2245,19 @@ jQuery(document).ready(function($) {
 
 				// Now create DOM structure and handle clicks
 			var fh = _.template(document.getElementById('dltext-filter-head').innerHTML);
-			jQuery('#filter-instances').append(fh({ newID: newID, title: newFilter.title(), apply: apTmStr }));
+			jQuery('#filter-instances').append(fh({ newID: newID, title: newFilter.title(), apply: appBoxes }));
 
 			var head = jQuery('div.filter-instance[data-id="'+newID+'"]');
 
 				// Check each checkbox acoording to default settings, disable acc to Template appearance
-			for (var i=0; i<PData.eTNum(); i++) {
-				var applier = head.find('.apply-tmplt-'+i);
-				applier.prop('disabled', !theAtt.t[i]);
-				applier.prop('checked', apply[i] && theAtt.t[i]);
-				applier.click(clickFilterApply);
+				// Only if type of Filter uses them
+			if (appBoxes.length > 0) {
+				for (var i=0; i<PData.eTNum(); i++) {
+					var applier = head.find('.apply-tmplt-'+i);
+					applier.prop('disabled', !theAtt.t[i]);
+					applier.prop('checked', apply[i] && theAtt.t[i]);
+					applier.click(clickFilterApply);
+				}
 			}
 
 			head.find('button.btn-filter-toggle').button({
@@ -2228,14 +2277,14 @@ jQuery(document).ready(function($) {
 	} // createFilter()
 
 		// PURPOSE: Allow user to choose an Attribute from a list
-		// INPUT: 	if showRemove, then show the "Remove All" pseudo-Filter
+		// INPUT: 	if forViz, then show visualization (not Highlight) Attributes
 		//			if secondary, this dialog must appear on top of another
 		//			usedTs is either null (show all Attributes) or is array of flags for each Template
 		//				(Attribute must belong to one to appear)
 		//			if Attribute is chosen, pass selection on to callback function
 		// NOTES: 	Since this dialog can be invoked from two other modal dialogs, need
 		//				to append at particular point in DOM to ensure stacked properly
-	function chooseAttribute(showRemove, secondary, usedTs, callback)
+	function chooseAttribute(forViz, secondary, usedTs, callback)
 	{
 			// Clear previous selection
 		jQuery("#filter-list li").removeClass("selected");
@@ -2245,9 +2294,16 @@ jQuery(document).ready(function($) {
 		attList.each(function(i) {
 			li = jQuery(this);
 			attID = li.data("id");
-			if (attID == '_remove') {
+			if (attID === '_remove') {
 					// Do we show "Remove" Filter Option?
-				if (showRemove) {
+				if (forViz) {
+					li.show();
+				} else {
+					li.hide();
+				}
+			} else if (attID === '_qr') {
+					// Enable QR filter to appear both in Filter Stack and Highlight dialog
+				if (useQR) {
 					li.show();
 				} else {
 					li.hide();
@@ -2309,7 +2365,10 @@ jQuery(document).ready(function($) {
 	{
 		chooseAttribute(true, false, null, function(id) {
 			jQuery('#filter-instances').show(400);
-			createFilter(id, [true, true, true, true], null);
+				// Deselect All Templates ONLY in case of Remove All Filter
+				// Created (default) state of Filters always have no effect
+			var applyTs = (id === '_remove') ? [false, false, false, false] : [true, true, true, true];
+			createFilter(id, applyTs, null);
 			jQuery('#btn-toggle-filters').button("enable");
 		});
 		event.preventDefault();
@@ -2330,6 +2389,7 @@ jQuery(document).ready(function($) {
 		var bm = vf.getBMData();
 		var list=[];
 		var hFilter=hFilters[vI];
+		var qrF = (hFilter.att.id === '_qr');
 
 		if (endStream !== null) {
 			hFilter.evalPrep();
@@ -2351,9 +2411,12 @@ jQuery(document).ready(function($) {
 				absI = endStream.s[relI++];
 					// Check bitflag if Record rendered
 				if (bm.r[absI >> 4] & (1 << (absI & 15))) {
-					rec = PData.rByN(absI);
-					if (hFilter.eval(rec)) {
-						list.push(absI);
+						// Ensure that we only call QR Filter for QR Templates
+					if (!qrF || (qrTI === tI)) {
+						rec = PData.rByN(absI);
+						if (hFilter.eval(rec)) {
+							list.push(absI);
+						}
 					}
 				}
 			}
@@ -2541,6 +2604,7 @@ jQuery(document).ready(function($) {
 		} // loadFrag()
 
 		loadFrag('dltext-removehideall', 'rha');
+		loadFrag('dltext-qr-rr', 'qrrr');
 		loadFrag('dltext-showhideall', 'sha');
 		loadFrag('dltext-ok', 'ok');
 		loadFrag('dltext-cancel', 'cancel');
@@ -2716,6 +2780,9 @@ jQuery(document).ready(function($) {
 		// Create New Filter list
 	(function () {
 		jQuery('#filter-list').append('<li class="remove" data-id="_remove"><i>'+dlText.rha+'</i></li>');
+		if (useQR) {
+			jQuery('#filter-list').append('<li class="remove" data-id="_qr"><i>'+dlText.qrrr+'</i></li>');
+		}
 		var attList=[];
 		prspdata.a.forEach(function(theAtt) {
 				// Check to see if Attribute should be available to use on Filter

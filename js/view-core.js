@@ -131,19 +131,25 @@ PVizModel.prototype.flags = function()
 } // flags()
 
 	// PURPOSE: Clear variables used to track use of Templates and Records
+	// INPUT:	if initT, then initialize the Template flags
+	//			if initR, then initiative the Record flags
 	// NOTES: 	Needed by visualizations that render individual Records (not aggregates)
-PVizModel.prototype.preRender = function()
+PVizModel.prototype.preRender = function(initT, initR)
 {
 	var i, rCnt = PData.rSize(), mCnt = Math.floor((rCnt+15)/16);
 
-	for (i=0; i<4; i++) {
-		this.tUsed[i] = false;
+	if (initT) {
+		for (i=0; i<4; i++) {
+			this.tUsed[i] = false;
+		}
 	}
-	if (this.rMap == null) {
-		this.rMap = new Uint16Array(mCnt);
-	}
-	for (i=0; i<mCnt; i++) {
-		this.rMap[i] = 0;
+	if (initR) {
+		if (this.rMap == null) {
+			this.rMap = new Uint16Array(mCnt);
+		}
+		for (i=0; i<mCnt; i++) {
+			this.rMap[i] = 0;
+		}
 	}
 } // preRender()
 
@@ -400,7 +406,7 @@ VizMap.prototype.render = function(stream)
 		this.recSel=[];
 	}
 
-	this.preRender();
+	this.preRender(true, true);
 
 		// Remove previous Markers
 	mLayer.clearLayers();
@@ -916,7 +922,7 @@ VizMap2.prototype.render = function(stream)
 		this.recSel=[];
 	}
 
-	this.preRender();
+	this.preRender(true, true);
 
 		// Remove previous Markers
 	mLayer.clearLayers();
@@ -1294,7 +1300,7 @@ VizCards.prototype.render = function(stream)
 		this.recSel=[];
 	}
 
-	this.preRender();
+	this.preRender(true, true);
 
 	var insert;
 
@@ -1672,7 +1678,7 @@ VizPinboard.prototype.render = function(stream)
 		this.recSel=[];
 	}
 
-	this.preRender();
+	this.preRender(true, true);
 
 	var numTmplts = stream.t.length;
 	var i, aI, tI=0, tRec, tLClr, rec;
@@ -2499,7 +2505,7 @@ VizTime.prototype.render = function(stream)
 		this.recSel=[];
 	}
 
-	this.preRender();
+	this.preRender(true, true);
 
 	this.events=[];		// All event data
 	this.lgBds=[];		// Date Legend Backgrounds: { s[tart], e[nd], t[top track #], h[eight], d[ata in Legend rec] }
@@ -3166,7 +3172,7 @@ VizDirectory.prototype.render = function(stream)
 		this.recSel=[];
 	}
 
-	this.preRender();
+	this.preRender(true, true);
 
 		// Save it in case of later rerender
 	this.stream = stream;
@@ -3418,7 +3424,7 @@ VizTextStream.prototype.render = function(stream)
 		this.recSel=[];
 	}
 
-	this.preRender();
+	this.preRender(true, true);
 
 	dt = this.settings.max - this.settings.min;
 
@@ -3771,7 +3777,7 @@ VizNetWheel.prototype.render = function(stream)
 		this.recSel=[];
 	}
 
-	this.preRender();
+	this.preRender(true, true);
 
 		// Abort if no Records
 	if (stream.l === 0) {
@@ -4139,7 +4145,7 @@ VizNetGraph.prototype.render = function(stream)
 		this.recSel=[];
 	}
 
-	this.preRender();
+	this.preRender(true, true);
 
 		// Abort if no Records
 	if (stream.l === 0) {
@@ -4351,10 +4357,6 @@ VizNetGraph.prototype.render = function(stream)
 		});
 } // render()
 
-VizNetGraph.prototype.teardown = function()
-{
-} // teardown()
-
 VizNetGraph.prototype.setSel = function(absIArray)
 {
 	var self=this;
@@ -4553,7 +4555,7 @@ VizBMatrix.prototype.render = function(stream)
 	if (this.recSel.length > 0) {
 		this.recSel=[];
 	}
-	this.preRender();
+	this.preRender(true, true);
 
 		// remove any existing nodes and links
 	this.svg.selectAll("path").remove();
@@ -4884,7 +4886,7 @@ VizBMatrix.prototype.hint = function()
 // PFilterModel: An abstract class to be subclassed by specific filters
 
 	// INPUT: 	id = unique ID for this filter
-	//			attRec = pointer to complete Attribute or Facet Browser settings
+	//			attRec = pointer to complete Attribute settings
 	// NOTES:   IDs 0 and 1 are specially allocated to Highlight those respective views
 function PFilterModel(id, attRec)
 {
@@ -4960,7 +4962,8 @@ PFilterModel.prototype.setState = function(state)
 
 var PFilterRemove = function(id)
 {
-	PFilterModel.call(this, id, null);
+		// Create pseudo-Attribute entry with ID in it
+	PFilterModel.call(this, id, { id: '_remove' });
 } // PFilterRemove()
 
 PFilterRemove.prototype = Object.create(PFilterModel.prototype);
@@ -5533,7 +5536,7 @@ PFilterNum.prototype.eval = function(rec)
 	if (typeof num === 'undefined')
 		return false;
 
-		// Only true when i=0
+		// Only true when i=0 -- no bar graph to update
 	if (num === '?') {
 		return this.u;
 	}
@@ -5958,20 +5961,26 @@ PFilterDates.prototype.evalPrep = function()
 PFilterDates.prototype.eval = function(rec)
 {
 	function makeDate(y, m, d, field, end) {
+		var dm, dd;
 		if (typeof field.m !== 'undefined') {
-			m = field.m;
+			dm = field.m;
 			if (typeof field.d !== 'undefined') {
-				d = field.d;
+				dd = field.d;
+			} else {
+				dd = d;
 			}
+		} else {
+			dm = m;
+			dd = d;
 		}
-		return PData.d3Nums(y, m, d, end);
+		return PData.d3Nums(y, dm, dd, end);
 	} // makeDate()
 
 	var d = rec.a[this.att.id];
 	if (typeof d === 'undefined')
 		return false;
 
-		// Check for 'undefined' exception
+		// Check for 'undefined' exception -- we don't have bar graph for this
 	if (d === '?')
 		return this.u;
 
@@ -5985,8 +5994,8 @@ PFilterDates.prototype.eval = function(rec)
 		var e;
 		if (d.max === 'open')
 			e = TODAY;
-		else
-			e = makeDate(d.max.y, 12, 31, d.max, true);
+		else 	// Since exclusive compare, don't push past start of day
+			e = makeDate(d.max.y, 12, 31, d.max, false);
 
 			// Overlap?
 		if (this.c === 'o') {
@@ -6007,7 +6016,7 @@ PFilterDates.prototype.eval = function(rec)
 			return true;
 		}
 	}
-	return false;
+	return true;	// Ensure success even without bar graph
 } // eval()
 
 PFilterDates.prototype.evalDone = function(total)
@@ -6572,10 +6581,7 @@ var PData = (function() {
 			// NOTE: 	JS Arrays are quirky; s is always full size, so l is used to maintain length
 		sNew: function(full)
 		{
-			var newStream = { };
-			newStream.s = new Uint16Array(rCount);
-			newStream.t = [];
-			newStream.l = 0;
+			var newStream = { s: new Uint16Array(rCount), t: [], l: 0 };
 
 			if (full) {
 				var i;
@@ -6612,6 +6618,37 @@ var PData = (function() {
 					return i;
 			}
 		}, // n2T()
+
+			// RETURNS: The index of absI in stream (its relative index), or else -1
+		nInS: function(absI, stream, tI)
+		{
+				// Use binary search
+			var lo = 0;
+			var hi = stream.l-1;
+			var pos;
+			var rec;
+
+				// If we know the Template index, we can streamline
+			if (tI != null) {
+				var tRec = stream.t[tI];
+				lo = tRec.i;
+				hi = tRec.i+tRec.n;
+			}
+
+			while (lo <= hi) {
+				pos = (lo + hi) >> 1;
+				rec = stream.s[pos];
+
+				if (rec < absI) {
+					lo = pos + 1;
+				} else if (rec > absI) {
+					hi = pos - 1;
+				} else {
+					return pos;
+				}
+			}
+			return -1;
+		},
 
 			// RETURNS: True if attID is in template tIndex
 		aInT: function(attID, tIndex)
@@ -6783,7 +6820,6 @@ var PData = (function() {
 			return null;
 		}, // nByID()
 
-
 			// RETURNS: Record data for recID
 		rByID: function(recID)
 		{
@@ -6813,7 +6849,6 @@ var PData = (function() {
 			} // for i
 			return null;
 		}, // rByID()
-
 
 			// RETURNS: Attribute definition with this ID
 			// INPUT:   attID = full Attribute ID (could be in Join dot notation)
@@ -6850,11 +6885,20 @@ var PData = (function() {
 			return prspdata.e.g.ts.length;
 		},
 
-			// RETURNS: The ID of this Exhibit's tIndex Template
+			// RETURNS: The data for this Exhibit's tIndex Template
 		eTByN: function(tIndex)
 		{
 			return prspdata.e.g.ts[tIndex];
 		},
+
+			// RETURNS: Index of template whose ID is tID
+		tIByID: function(tID)
+		{
+			for (var i=0; i<prspdata.t.length; i++) {
+				if (tID === prspdata.t[i].id)
+					return i;
+			}
+		}, // tByID()
 
 			// RETURNS: Definition of template whose ID is tID
 		tByID: function(tID)
@@ -6864,6 +6908,20 @@ var PData = (function() {
 					return prspdata.t[i].def;
 			}
 		}, // tByID()
+
+			// PURPOSE:	Create a "FeatureAtts" array to mimic ViewFrame.getSelFeatAtts()
+			// NOTE:	Currently only supports single, non-hierarchical Legend
+		allFAtts: function(att)
+		{
+			var fAtts=[];
+			if (typeof att.r.u !== 'undefined') {
+				fAtts.push(-1);
+			}
+			att.l.forEach(function(l, lI) {
+				fAtts.push(lI);
+			})
+			return fAtts;
+		}, // allFAtts()
 
 			// RETURNS: The visual feature for an Attribute value, an array (if all), or null if no match
 			// INPUT:   val = raw Attribute val (String or Number)
@@ -7159,18 +7217,29 @@ var PData = (function() {
 
 			// PURPOSE: Create a Date from minimal specification in Object fields
 		dObj: function(field, m, end) {
-			var d;
+			var dd, dm;
 
 			if (typeof field.m !== 'undefined' && field.m !== null) {
-				m = field.m;
-				if (typeof field.d !== 'undefined' && field.d !== null)
-					d = field.d;
-				else
-					d = PData.lenMnth(field.y, m);
+				dm = field.m;
+				if (typeof field.d !== 'undefined' && field.d !== null) {
+					dd = field.d;
+				} else {
+					if (end) {
+						dd = PData.lenMnth(field.y, dm);
+					} else {
+						dd = 1;
+					}
+				}
 			} else {
-				d = PData.lenMnth(field.y, m);
+				dm = m;
+				if (end) {
+					dd = PData.lenMnth(field.y, m);
+				} else {
+					dd = 1;
+				}
 			}
-			return PData.d3Nums(field.y, m, d, end);
+
+			return PData.d3Nums(field.y, dm, dd, end);
 		}, // dObj()
 
 			// PURPOSE: Create Date by parsing string

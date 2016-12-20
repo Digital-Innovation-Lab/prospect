@@ -4,7 +4,7 @@
 <head>
 	<title><?php the_title(); ?></title>
 
-	<?php 
+	<?php
 		add_action('wp_enqueue_scripts', 'prspct_dequeue_scripts');
 
 			// PURPOSE: Dequeues all scripts and styles except those used by Prospect Exhibit
@@ -41,6 +41,7 @@
 				'prsp-map-hub',
 				'prsp-view-core',
 				'prsp-view-aggregate',
+				'prsp-view-qr',
 				'prsp-view-exhibit',
 				'soundcloud',
 				'jquery-help'

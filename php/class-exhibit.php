@@ -135,11 +135,17 @@ class ProspectExhibit {
 
 			// Find Map views and compile maps
 		foreach ($this->views as $the_view) {
-			if ($the_view->vf == 'p') {
+				// Both Map2 and QRMaps use Map groups
+			if ($the_view->vf == 'p' || $the_view->vf == 'Q') {
 				foreach ($the_view->c->lyrs as $the_layer) {
 					array_push($map_group_ids, $the_layer->gid);
 				}
 			}
+		}
+
+			// return if none
+		if (count($map_group_ids) == 0) {
+			return $map_group_ids;
 		}
 
 			// Sort array according to map group IDs and ensure unique
@@ -170,7 +176,7 @@ class ProspectExhibit {
 							$count = count($map_groups);
 							for ($i=0; $i<$count; $i++) {
 								$map_group = $map_groups[$i];
-								if ($map_group['gid'] == $group_id) {									
+								if ($map_group['gid'] == $group_id) {
 									array_push($map_groups[$i]['mapids'], $map_id);
 									$map_groups[$i]['mapids'] = array_unique($map_groups[$i]['mapids'], SORT_STRING);
 									sort($map_groups[$i]['mapids']);
@@ -185,4 +191,19 @@ class ProspectExhibit {
 
 		return $map_groups;
 	} // get_used_map_groups()
+
+		// RETURNS: Array of all Vocabulary Attributes appearing in Relationship-Roles associations
+		// ASSUMES: Attributes are being loaded for purposes of visualization
+		//			Attribute IDs (in R-R associations) are never Joined
+	public function get_qr_attributes()
+	{
+		$all_atts = array();
+		if (isset($this->gen->qr) && $this->gen->qr->t != 'disable') {
+			foreach($this->gen->qr->x as $role_pair) {
+				array_push($all_atts, new ProspectAttribute(false, $role_pair->id, true, false, true, true, true));
+			}
+		}
+		return $all_atts;
+	} // get_qr_attributes()
+
 } // class ProspectExhibit

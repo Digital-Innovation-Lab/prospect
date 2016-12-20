@@ -685,7 +685,7 @@ div.sellist > div.sellist-scroll {
 	height: 232px;
 }
 
-div.sellist > div.sellist-scroll > div.sellist-rec {
+div.sellist-rec {
 	background-color: white;
 	color: black;
 	font-size: 10px;
@@ -696,6 +696,9 @@ div.sellist > div.sellist-scroll > div.sellist-rec {
 	cursor: pointer;
 }
 
+div.sellist-rec.active {
+	background-color: yellow;
+}
 
 /* MODAL DIALOGS
  * =============
@@ -1621,6 +1624,56 @@ svg g.inactive rect.facet-reset-btn {
 
 svg g.inactive text.facet-reset-txt {
 	fill: #808080;
+}
+
+	/* Ego-graph Styles */
+div.egograph {
+	width: 100%;
+	height: 100%;
+
+	display: -webkit-flex; /* Safari */
+	display: flex;
+
+	-webkit-flex-flow: row nowrap; /* Safari */
+    flex-flow: row nowrap;
+}
+
+div.egolist {
+	width: 250px;
+	height: 300px;
+
+	padding: 4px;
+	background-color: rgba(255, 255, 255, .8);
+
+	color: #222;
+	font-family: Verdana, Arial, sans-serif;
+	font-size: 10px;
+}
+
+div.egolist > div.sellist-scroll {
+	height: 270px;
+	overflow-y: scroll;
+}
+
+svg .bond
+{
+	stroke-opacity: 1;
+	stroke-width: 5px;
+	stroke-dasharray: 6, 4;
+	fill: none;
+}
+
+svg .bond.obj-sel
+{
+	stroke-dasharray: 0;
+}
+
+svg circle.ring
+{
+	stroke: black;
+	stroke-opacity: 1;
+	stroke-width: 1px;
+	fill: none;
 }
 
 /* Specific Filter styles

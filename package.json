@@ -24,6 +24,17 @@
     "uglify-js": "^2.6.2"
   },
   "dependencies": {
-    "rollup": "^0.34.1"
+    "d3-axis": "^1.0.4",
+    "d3-dispatch": "^1.0.2",
+    "d3-drag": "^1.0.2",
+    "d3-force": "^1.0.4",
+    "d3-hierarchy": "^1.0.3",
+    "d3-path": "^1.0.3",
+    "d3-scale": "^1.0.4",
+    "d3-selection": "^1.0.3",
+    "d3-shape": "^1.0.4",
+    "d3-transition": "^1.0.3",
+    "rollup": "^0.34.1",
+    "uglify-js": "^2.7.5"
   }
 }

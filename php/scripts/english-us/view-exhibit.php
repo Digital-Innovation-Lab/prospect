@@ -170,7 +170,7 @@
 
 	<ol id="help-tour">
 		<li data-t="#pstate" data-l=<?php _e('"Current State"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Indicates the current state of Prospect (whether or not it is loading data, etc)', 'prospect'); ?></li>
-		<li data-t="#pstate" data-l=<?php _e('"Auto-Update"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('If this is checked, visualizations will be updated automatically and immediately whenever you change a Legend or Filter setting', 'prospect'); ?></li>
+		<li data-t="#auto-re" data-l=<?php _e('"Auto-Update"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('If this is checked, visualizations will be updated automatically and immediately whenever you change a Legend or Filter setting', 'prospect'); ?></li>
 		<li data-t="#btn-hs-bars" data-l=<?php _e('"Hide/Show Filters"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this to either hide or show the Filter panel', 'prospect'); ?></li>
 		<li data-t="#btn-set-layout" data-l=<?php _e('"Toggle Second View"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this to open the second view, or hide it', 'prospect'); ?></li>
 		<li data-t="#btn-show-prspctv" data-l=<?php _e('"Show Perspective"', 'prospect'); ?> data-p="bottom" data-x=-22 data-y=0><?php _e('Click this to see which Perspectives are available for current Exhibit', 'prospect'); ?></li>
@@ -241,6 +241,30 @@
 			<input type="radio" id="nw-size-90-<%= vi %>" name="nw-size-<%= vi %>">
 			<label for="nw-size-90-<%= vi %>">90&deg;</label>
 		</span>
+	</div>
+</script>
+
+<script id="dltext-ego-graph" type='text'>
+	<div class="egograph">
+		<div class="egolist">
+			<label><?php _e('Degrees of separation', 'prospect'); ?> </label><input type="text" class="ego-n" size="1"/>
+			<div class="sellist-scroll">
+			</div>
+		</div>
+		<svg class="eg">
+		</svg>
+	</div>
+</script>
+
+<script id="dltext-timerings" type='text'>
+	<div class="timerings">
+		<div class="egolist">
+			<label><?php _e('Pixels between rings', 'prospect'); ?> </label><input type="text" class="rr" size="2"/>
+			<div class="sellist-scroll">
+			</div>
+		</div>
+		<svg class="tr">
+		</svg>
 	</div>
 </script>
 
@@ -320,8 +344,24 @@
 	<input type="checkbox" class="filter-text-cs" checked="checked"><?php _e('Case sensitive', 'prospect'); ?>
 </script>
 
+<script id="dltext-filter-qr" type='text'>
+	<input type="checkbox" class="filter-qr-use-r"> <?php _e('Only Relationships', 'prospect'); ?>
+	<select class="filter-qr-r" value="c">
+	</select>
+	<input type="checkbox" class="filter-qr-use-r1"> <?php _e('With Role', 'prospect'); ?>
+	<select class="filter-qr-r1" value="c">
+	</select>
+	<input type="checkbox" class="filter-qr-use-r2"> <?php _e('And Role', 'prospect'); ?>
+	<select class="filter-qr-r2" value="c">
+	</select>
+</script>
+
 <script id="dltext-removehideall" type="text">
 <?php _e('Remove/Hide All', 'prospect'); ?>
+</script>
+
+<script id="dltext-qr-rr" type="text">
+<?php _e('Relationships and Roles', 'prospect'); ?>
 </script>
 
 <script id="dltext-showhideall" type="text">

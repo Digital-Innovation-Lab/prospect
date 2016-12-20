@@ -138,9 +138,11 @@ class Prospect {
 				wp_enqueue_script('soundcloud', '//w.soundcloud.com/player/api.js');
 			}
 
-				// Check if need view-aggregate, map-dependent modules
+				// Check if need view-aggregate, map-dependent, qr modules
 			$use_maps = false;
 			$use_aggregate = false;
+			$use_qr = isset($the_xhbt->gen->qr) && $the_xhbt->gen->qr->t != 'disable';
+
 			foreach ($the_xhbt->views as $the_view) {
 				switch ($the_view->vf) {
 				case 'M':
@@ -153,6 +155,12 @@ class Prospect {
 				case 'm':
 					$use_aggregate = true;
 					break;
+				case 'Q':
+					$use_maps = true;
+				// case 'q':
+				// case 'E':
+				// case 'e':
+				// 	break;
 				}
 			}
 			if ($use_maps) {
@@ -161,6 +169,9 @@ class Prospect {
 			}
 			if ($use_aggregate) {
 				wp_enqueue_script('prsp-view-aggregate', plugins_url('js/view-aggregate.min.js', dirname(__FILE__)), array('prsp-view-core'));
+			}
+			if ($use_qr) {
+				wp_enqueue_script('prsp-view-qr', plugins_url('js/view-qr.min.js', dirname(__FILE__)), array('prsp-view-core'));
 			}
 
 				// Check for optional settings
@@ -187,6 +198,10 @@ class Prospect {
 			$t = array();
 			$all_ts = array();
 			$att_defs = array();
+				// If viewing QRs, start with Roles Vocabulary Attributes
+			if ($use_qr) {
+				$att_defs = $the_xhbt->get_qr_attributes();
+			}
 			foreach ($the_xhbt->gen->ts as $template_id) {
 				$the_template = new ProspectTemplate(false, $template_id, true, true, false, false);
 					// Get Joined form of Template Attributes
@@ -231,28 +246,31 @@ class Prospect {
 			}
 
 				// Collect map group ID data
-			$map_groups = $the_xhbt->get_used_map_groups();
-			$map_ids = ProspectMap::get_mapids_from_groups($map_groups);
-			$map_ids = array_merge($map_ids, $the_xhbt->get_used_map_ids());
-			$map_ids = array_unique($map_ids);
-			$map_defs = ProspectMap::map_ids_to_objects($map_ids);
-
-				// Collect Map Library data (only those used by this Exhibit)
 			$m = array();
-			foreach($map_defs as $the_map) {
-				$map_def = array(
-					'id'		=> $the_map->id,
-					'sname'		=> $the_map->meta_data['sname'],
-					'credits'	=> $the_map->meta_data['credits'],
-					'url'		=> $the_map->meta_data['url'],
-					'subd'		=> $the_map->meta_data['subd'],
-					'swBounds'	=> $the_map->meta_data['swBounds'],
-					'neBounds'	=> $the_map->meta_data['neBounds'],
-					'minZoom'	=> $the_map->meta_data['minZoom'],
-					'maxZoom'	=> $the_map->meta_data['maxZoom'],
-					'inverseY'	=> $the_map->meta_data['inverseY']
-				);
-				array_push($m, $map_def);
+			$map_groups = array();
+			if ($use_maps) {
+				$map_groups = $the_xhbt->get_used_map_groups();
+				$map_ids = ProspectMap::get_mapids_from_groups($map_groups);
+				$map_ids = array_merge($map_ids, $the_xhbt->get_used_map_ids());
+				$map_ids = array_unique($map_ids);
+				$map_defs = ProspectMap::map_ids_to_objects($map_ids);
+
+					// Collect Map Library data (only those used by this Exhibit)
+				foreach($map_defs as $the_map) {
+					$map_def = array(
+						'id'		=> $the_map->id,
+						'sname'		=> $the_map->meta_data['sname'],
+						'credits'	=> $the_map->meta_data['credits'],
+						'url'		=> $the_map->meta_data['url'],
+						'subd'		=> $the_map->meta_data['subd'],
+						'swBounds'	=> $the_map->meta_data['swBounds'],
+						'neBounds'	=> $the_map->meta_data['neBounds'],
+						'minZoom'	=> $the_map->meta_data['minZoom'],
+						'maxZoom'	=> $the_map->meta_data['maxZoom'],
+						'inverseY'	=> $the_map->meta_data['inverseY']
+					);
+					array_push($m, $map_def);
+				}
 			}
 
 				// Collect Perspectives
