@@ -990,22 +990,38 @@ VizEgoGraph.prototype.setEgo = function(id)
 		return [radius * Math.cos(angle), radius * Math.sin(angle)];
 	} // project()
 
-		// PURPOSE: Recursive function to add node <nID> to tree
-		// INPUT:	p is pointer to parent node (or null for ego)
-		//			nID is the ID for this node
-		//			depth is the level in tree
-		//			lc is the color of the QR relationship
-		//			li is the index of the QR record
-		// TO DO:	Make breadth first, NOT depth first!
-	function growTree(p, nID, depth, lc, li)
+		// PURPOSE: Save Record data in node Object, marked as used
+		// INPUT:	p = parent node
+		//			nID = ID of this node
+		//			rec = element in drs array for this node (if already found)
+		//			lc = color of link from parent to this node
+		//			li = index of QR record connecting parent to this node
+	function newNode(p, nID, rec, lc, li)
 	{
-			// Mark this node as "used"
-		var drI = _.sortedIndex(self.drs, { id: nID }, 'id');
-		var dr = self.drs[drI];
-		dr.u = true;
+		var dr;
 
-		var newNode = { parent: p, children: [], lc: lc, li: li, nc: dr.f, ni: dr.ai, t: dr.r.l };
-			// Keep track of # rings
+			// Is there already a pointer to this node in drs[]?
+		if (rec) {
+			dr = rec;
+		} else {
+			var drI = _.sortedIndex(self.drs, { id: nID }, 'id');
+			dr = self.drs[drI];
+		}
+
+			// Mark this node as "used"
+		dr.u = true;
+		self.rMap[dr.ai >> 4] |= (1 << (dr.ai & 15));
+		return { parent: p, children: [], lc: lc, li: li, nc: dr.f, ni: dr.ai, r: dr.r };
+	} // newNode()
+
+		// PURPOSE: Breadth-first recursive function to add node <nID> to tree
+		// INPUT:	thisNode is pointer to Object in which to save this node
+		//			depth is the level in tree
+	function growTree(thisNode, depth)
+	{
+		var nID = thisNode.r.id;
+
+			// Keep track of # rings (depth)
 		if (depth > numRings) {
 			numRings=depth;
 		}
@@ -1017,26 +1033,27 @@ VizEgoGraph.prototype.setEgo = function(id)
 					var connectedID = (thisQR.e1 === nID) ? thisQR.e2 : thisQR.e1;
 					drI = _.sortedIndex(self.drs, { id: connectedID }, 'id');
 					dr = self.drs[drI];
-						// Find this node in node list
+						// Find connected node in node list, ensure not already used
 					if (!dr.u) {
-							// Set both QR and node to "used"
+							// Set QR node to "used"
 						thisQR.u = true;
-						dr.u = true;
-						self.rMap[dr.ai >> 4] |= (1 << (dr.ai & 15));
 						self.rMap[thisQR.qi >> 4] |= (1 << (thisQR.qi & 15));
 							// Get Relationship value
 						var rVal = thisQR.qr.a[rAttID];
 						if (typeof rVal !== 'undefined') {
 							rVal = PData.lClr(rVal, rAtt, fSet);
 							if (rVal) {
-								newNode.children.push(growTree(newNode, connectedID, depth+1, rVal, thisQR.qi));
+								thisNode.children.push(newNode(thisNode, connectedID, dr, rVal, thisQR.qi));
 							}
-						}
-					}
-				}
+						} // Legend value
+					} // Unused target node
+				} // Found unused matching QR
+			});
+				// Now iterate over all children
+			thisNode.children.forEach(function(thisChild) {
+				growTree(thisChild, depth+1);
 			});
 		}
-		return newNode;
 	} // growTree()
 
 	function clickNode(d)
@@ -1051,7 +1068,9 @@ VizEgoGraph.prototype.setEgo = function(id)
 		d3.select(this).classed('obj-sel', s);
 	} // clickLink()
 
-	var ego = growTree(null, id, 0, null, null);
+	var ego = newNode(null, id, null, null, null);
+	growTree(ego, 0);
+
 	var graph = d3.hierarchy(ego);
 	var treeFunc = d3.tree().size([360, cr]).separation(function(a, b) { return (a.parent == b.parent ? 1 : 2) / a.depth; });
 	var root = treeFunc(graph);
@@ -1095,7 +1114,7 @@ VizEgoGraph.prototype.setEgo = function(id)
 		.on("click", clickNode);
 
 	node.append("title")
-		.text(function(d) { return d.data.t; });
+		.text(function(d) { return d.data.r.l; });
 } // SetEgo()
 
 	// NOTES:	The render stage actually only compiles data and populates the selection list;
