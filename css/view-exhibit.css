@@ -1658,8 +1658,8 @@ div.egolist > div.sellist-scroll {
 svg .bond
 {
 	stroke-opacity: 1;
-	stroke-width: 5px;
-	stroke-dasharray: 6, 4;
+	stroke-width: 6px;
+	stroke-dasharray: 6, 3;
 	fill: none;
 }
 
