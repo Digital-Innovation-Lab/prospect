@@ -313,15 +313,17 @@
 		<input type="checkbox" class="allow-undef"> <?php _e('Allow indefinite', 'prospect'); ?><br/>
 		<?php _e('Min', 'prospect'); ?> <input type="text" class="from" size="5"><br/>
 		<?php _e('Max', 'prospect'); ?> <input type="text" class="to" size="5"><br/>
-		<button class="filter-update" disabled="disabled"><?php _e('Use Numbers', 'prospect'); ?></button>
+		<button class="filter-update" disabled="disabled"><?php _e('Use Numbers', 'prospect'); ?></button><br/>
+		<button class="move-left"><?php _e('Move Left', 'prospect'); ?></button> <button class="move-right"><?php _e('Move Right', 'prospect'); ?></button>
 	</div>
 </script>
 
 <script id="dltext-filter-dates" type='text'>
 	<div class="cntrl-blck">
-		<input type="radio" name="dctrl-<%= id %>" value="o" checked> <?php _e('Overlap', 'prospect'); ?><br>
-		<input type="radio" name="dctrl-<%= id %>" value="c"> <?php _e('Contain', 'prospect'); ?><br>
-		<input type="checkbox" class="allow-undef"> <?php _e('Allow indefinite', 'prospect'); ?>
+		<input type="radio" name="dctrl-<%= id %>" value="o" checked> <?php _e('Overlap', 'prospect'); ?><br/>
+		<input type="radio" name="dctrl-<%= id %>" value="c"> <?php _e('Contain', 'prospect'); ?><br/>
+		<input type="checkbox" class="allow-undef"> <?php _e('Allow indefinite', 'prospect'); ?><br/>
+		<button class="move-left"><?php _e('Move Left', 'prospect'); ?></button> <button class="move-right"><?php _e('Move Right', 'prospect'); ?></button>
 	</div>
 	<div class="cntrl-blck">
 		<?php _e('Date Format: YYYY &nbsp; MM &nbsp; DD', 'prospect'); ?><br/>

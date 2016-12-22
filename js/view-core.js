@@ -5674,6 +5674,41 @@ PFilterNum.prototype.setup = function()
 			} // if brush move end
 		} // brushended()
 
+			// Create arrow buttons for moving selection
+		insert.find(".move-left")
+			.button({ icons: { primary: 'ui-icon-arrowthick-1-w' }, text: false })
+			.click(function() {
+					// Can't move left if already left-most
+				if (self.b0 > 0) {
+					self.b0 -= 1;
+					self.b1 -= 1;
+					self.min = self.rCats[self.b0].min;
+					self.max = self.rCats[self.b1].max;
+					self.refreshBoxes();
+						// This automatically updates custom brush handles
+					self.brushg.call(self.brush.move, [self.b0, self.b1+1].map(self.xScale));
+						// Send Dirty filter signal
+					self.isDirty(2);
+				}
+			});
+			// Create arrow buttons for moving selection
+		insert.find(".move-right")
+			.button({ icons: { primary: 'ui-icon-arrowthick-1-e' }, text: false })
+			.click(function() {
+					// Can't move right if already right-most
+				if (self.b1 < (self.rCats.length-1)) {
+					self.b0 += 1;
+					self.b1 += 1;
+					self.min = self.rCats[self.b0].min;
+					self.max = self.rCats[self.b1].max;
+					self.refreshBoxes();
+						// This automatically updates custom brush handles
+					self.brushg.call(self.brush.move, [self.b0, self.b1+1].map(self.xScale));
+						// Send Dirty filter signal
+					self.isDirty(2);
+				}
+			});
+
 		var colW=0;
 		this.rCats.forEach(function(c) {
 			colW=Math.max(colW, c.l.length);
@@ -6161,6 +6196,41 @@ PFilterDates.prototype.setup = function()
 	insert.find(".filter-update").click(function() {
 		self.useBoxes(insert, true);
 	});
+
+		// Create arrow buttons for moving selection
+	insert.find(".move-left")
+		.button({ icons: { primary: 'ui-icon-arrowthick-1-w' }, text: false })
+		.click(function() {
+				// Can't move left if already left-most
+			if (self.b0 > 0) {
+				self.b0 -= 1;
+				self.b1 -= 1;
+				self.min = self.rCats[self.b0].min;
+				self.max = self.rCats[self.b1].max;
+				self.refreshBoxes();
+					// This automatically updates custom brush handles
+				self.brushg.call(self.brush.move, [self.b0, self.b1+1].map(self.xScale));
+					// Send Dirty filter signal
+				self.isDirty(2);
+			}
+		});
+		// Create arrow buttons for moving selection
+	insert.find(".move-right")
+		.button({ icons: { primary: 'ui-icon-arrowthick-1-e' }, text: false })
+		.click(function() {
+				// Can't move right if already right-most
+			if (self.b1 < (self.rCats.length-1)) {
+				self.b0 += 1;
+				self.b1 += 1;
+				self.min = self.rCats[self.b0].min;
+				self.max = self.rCats[self.b1].max;
+				self.refreshBoxes();
+					// This automatically updates custom brush handles
+				self.brushg.call(self.brush.move, [self.b0, self.b1+1].map(self.xScale));
+					// Send Dirty filter signal
+				self.isDirty(2);
+			}
+		});
 
 	var chart = d3.select(insert.get(0)).append("svg")
 		.attr("width", innerW+D3FG_MARGINS.left+D3FG_MARGINS.right)
