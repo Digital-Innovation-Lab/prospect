@@ -311,10 +311,12 @@
 <script id="dltext-filter-nums" type='text'>
 	<div class="cntrl-blck">
 		<input type="checkbox" class="allow-undef"> <?php _e('Allow indefinite', 'prospect'); ?><br/>
+		<button class="move-left"><?php _e('Move Left', 'prospect'); ?></button> <button class="move-right"><?php _e('Move Right', 'prospect'); ?></button>
+	</div>
+	<div class="cntrl-blck">
 		<?php _e('Min', 'prospect'); ?> <input type="text" class="from" size="5"><br/>
 		<?php _e('Max', 'prospect'); ?> <input type="text" class="to" size="5"><br/>
 		<button class="filter-update" disabled="disabled"><?php _e('Use Numbers', 'prospect'); ?></button><br/>
-		<button class="move-left"><?php _e('Move Left', 'prospect'); ?></button> <button class="move-right"><?php _e('Move Right', 'prospect'); ?></button>
 	</div>
 </script>
 
