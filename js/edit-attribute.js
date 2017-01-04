@@ -629,6 +629,10 @@ jQuery(document).ready(function() {
 	rApp.on('resetLegend', function() {
 		var lgnd = rApp.get('theLegend');
 
+		if (lgnd.length === 0) {
+			return false;
+		}
+
 		var modalDialog = new Ractive({
 			el: '#att-insert-dialog',
 			template: '#dialog-reset-colors',
