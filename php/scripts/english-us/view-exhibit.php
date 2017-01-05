@@ -257,7 +257,7 @@
 </script>
 
 <script id="dltext-timerings" type='text'>
-	<div class="timerings">
+	<div class="egograph">
 		<div class="egolist">
 			<label><?php _e('Pixels between rings', 'prospect'); ?> </label><input type="text" class="rr" size="2"/>
 			<div class="sellist-scroll">
