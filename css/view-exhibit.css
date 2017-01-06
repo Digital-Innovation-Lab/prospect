@@ -1367,7 +1367,8 @@ svg path.link.thick
 	stroke-width: 2px;
 }
 
-	/* Network Graph and Bucket Matrix styles */
+	/* Network Graph, Bucket Matrix styles */
+	/* 		gnode is shared with TimeRings */
 svg circle.gnode
 {
 	cursor: pointer;

@@ -7231,7 +7231,7 @@ var PData = (function() {
 			if (rec = PData.lRecs(val, att, fSet, false)) {
 				return rec.v;
 			} else
-				return null
+				return null;
 		}, // lClr()
 
 			// PURPOSE: Find the visual code for this Attribute's vocabulary item
