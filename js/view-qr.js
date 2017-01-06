@@ -1105,7 +1105,7 @@ VizEgoGraph.prototype.setEgo = function(id)
     var node = this.center.selectAll(".node")
     	.data(root.descendants())
     	.enter().append("g")
-        .attr("class", function(d) { return "node"; })
+        .attr("class", "node")
         .attr("transform", function(d) { return "translate(" + project(d.x, d.y) + ")"; });
 
     node.append("circle")
@@ -1115,7 +1115,7 @@ VizEgoGraph.prototype.setEgo = function(id)
 
 	node.append("title")
 		.text(function(d) { return d.data.r.l; });
-} // SetEgo()
+} // setEgo()
 
 	// NOTES:	The render stage actually only compiles data and populates the selection list;
 	//				The graph is rendered in response to clicks on the selection list
@@ -1306,7 +1306,8 @@ VizEgoGraph.prototype.hint = function()
 //		ts = D3 time scale based on Dates Attribute value of ego
 //		qrs = compiled data from QRTemplates
 //		drs = compiled data from Records (entities)
-//		ego = ID of currently selected Record
+//		egoID = ID of currently selected Record
+//		egoAbsI = absI of currently selected Record
 //		spokes = data from qrs based on current ego selection
 
 var VizTimeRing = function(viewFrame, vSettings)
@@ -1320,7 +1321,7 @@ VizTimeRing.prototype.constructor = VizTimeRing;
 
 VizTimeRing.prototype.flags = function()
 {
-	return V_FLAG_LGND | V_FLAG_SEL | V_FLAG_VSCRL | V_FLAG_HSCRL;
+	return V_FLAG_SEL | V_FLAG_VSCRL | V_FLAG_HSCRL;
 } // flags()
 
 VizTimeRing.prototype.setup = function()
@@ -1330,7 +1331,8 @@ VizTimeRing.prototype.setup = function()
 	var j=jQuery(this.frameID);
 
 	this.r = s.r;
-	this.ego = null;
+	this.egoID = null;
+	this.egoAbsI = null;
 
 	this.qrTI = PData.tIByID(prspdata.e.g.qr.t);
 	this.dAtt = PData.aByID(prspdata.e.g.qr.d);
@@ -1352,15 +1354,15 @@ VizTimeRing.prototype.setup = function()
 	j.find("div.egograph div.egolist input.rr").val(s.r);
 	j.find("div.egograph div.egolist input.rr").on("change", function() {
 		var newR = jQuery(this).val();
-		// if newR is valid number
-		// 	jQuery(this).removeClass('error');
-		// 	self.r = parseInt(newR, 10);
-		// 	if (self.ego) {
-		// 		self.drawAll();
-		// 	}
-		// } else {
-		// 	jQuery(this).addClass('error');
-		// }
+		if (newR.match(/^[0-9]+$/)) {
+			jQuery(this).removeClass('error');
+			self.r = parseInt(newR, 10);
+			if (self.egoID) {
+				self.drawAll();
+			}
+		} else {
+			jQuery(this).addClass('error');
+		}
 	});
 
 	this.svg = d3.select(this.frameID).select("svg");
@@ -1394,47 +1396,44 @@ VizTimeRing.prototype.setEgo = function(id)
 	j.find("div.sellist-rec").removeClass('active');
 		// Abort if ego no longer available in active list
 	if (d.length == 0) {
-		this.ego = null;
+		this.egoID = null;
 		return;
 	}
 	d.addClass('active');
 
-	this.ego = id;
+	this.egoID = id;
 
 	var drI = _.sortedIndex(this.drs, { id: id }, 'id');
 	var dr = this.drs[drI];
 	var tI = PData.n2T(dr.ai);
-	// self.rMap[dr.ai >> 4] |= (1 << (dr.ai & 15));
+	this.egoAbsI = dr.ai;
+
+		// Mark Ego as rendered
+	this.rMap[dr.ai >> 4] |= (1 << (dr.ai & 15));
+	this.tUsed[tI] = true;
 
 		// Set time scale domain based on ego's Dates data
 	var dAttID = dAtts[tI];
-// console.log("For ego's Dates Attribute lifespan, use "+dAttID);
 	var dData = dr.r.a[dAttID];
-// console.log("Ego Dates data: "+JSON.stringify(dData));
 	var start = PData.dObj(dData.min, 1, false);
 	var end;
 	if (dData.max === 'open') {
 		end = TODAY;
 	} else {
-		end = PData.dObj(dData.max, 12, end);
+		end = PData.dObj(dData.max, 12, true);
 	}
-	this.ts.domain([start,end]);
-// console.log("Set timescale to "+JSON.stringify(start)+", "+JSON.stringify(end));
+	this.ts.domain([start, end]);
 
-	var spokes=[];		// { r[ec of connected], qr, d[ate], i[ndex] }
-	this.qrs.forEach(function(thisQR, qrI) {
+	var spokes=[];		// { c[olor], d[ate], i[ndex], qr, r[ec of connected] }
+	this.qrs.forEach(function(thisQR) {
 		if (thisQR.e1 === id || thisQR.e2 === id) {
 			var connectedID = (thisQR.e1 === id) ? thisQR.e2 : thisQR.e1;
+				// Get Record for connected node
 			drI = _.sortedIndex(self.drs, { id: connectedID }, 'id');
 			dr = self.drs[drI];
-				// Get Dates range for relationship
-			var qrD = thisQR.qr.a[dAttID];
-			if (typeof qrD !== 'undefined' && typeof qrD.min === 'number' && typeof qrD.max === 'number') {
-				spokes.push({ r: dr, qr: thisQR, d: qrD, i: spokes.length });
-					// Mark both QR and connected node as rendered
-				self.rMap[thisQR.qi >> 4] |= (1 << (thisQR.qi & 15));
-				self.rMap[dr.ai >> 4] |= (1 << (dr.ai & 15));
-			}
+			spokes.push({ d: thisQR.d, i: spokes.length, qr: thisQR, r: dr });
+				// Mark both QR and connected node as rendered
+			self.rMap[thisQR.qi >> 4] |= (1 << (thisQR.qi & 15));
 		} // QR has ego match
 	});
 	this.spokes=spokes;
@@ -1448,11 +1447,32 @@ VizTimeRing.prototype.drawAll = function()
 	var self=this;
 	var dAttID=prspdata.e.g.qr.d;
 	var dAtt=PData.aByID(dAttID);
-	var bounds, denom;
+	var bounds;		// TimeScale domain
+	var denom;		// # milliseconds for the Dates Attribute’s grouping size
+	var segAngle;	// # degrees between each "spoke"
 	var numRings, radius;
+
+		// Ensure no current selection
+		// This needs to be here and setEgo as drawAll() can be called directly and setEgo can abort near top
+	this.recSel=[];
+	this.vFrame.upSel([], false);
+
+		// PURPOSE: Utility function that converts spoke # and time to X,Y
+	function project(spokeNum, dateField, end) {
+		var angle = ((spokeNum * segAngle) - 90) / 180 * Math.PI;
+		var date;
+		if (end && dateField === 'open') {
+			date = TODAY;
+		} else {
+			date = PData.dObj(dateField, end ? 12 : 1, end);
+		}
+		var radius = self.ts(date);
+		return [radius * Math.cos(angle), radius * Math.sin(angle)];
+	} // project()
 
 		// Get size of difference between start and end of time frame of reference
 	bounds = this.ts.domain();
+	segAngle = 360 / this.spokes.length;
 
 		// Set time scale range based on QR-time grouping setting and “lifespan” of ego
 	switch (dAtt.r.g) {
@@ -1474,12 +1494,11 @@ VizTimeRing.prototype.drawAll = function()
 	}
 	numRings = Math.ceil((bounds[1] - bounds[0]) / denom);
 	radius = numRings * this.r;
-console.log("NumRings: "+numRings+", "+radius);
 	this.ts.range([6, radius+6]);
 
 		// Remove everything
 	this.center.selectAll(".bond").remove();
-	this.center.selectAll(".node").remove();
+	this.center.selectAll(".gnode").remove();
 	this.center.selectAll(".ring").remove();
 
 	this.svg.attr("width", 16+radius*2).attr("height", 16+radius*2);
@@ -1490,7 +1509,6 @@ console.log("NumRings: "+numRings+", "+radius);
 	for (var i=0; i<numRings; ) {
 		rings.push((++i * this.r)+6);
 	}
-
 	var ring = this.center.selectAll(".ring")
 		.data(rings)
 		.enter()
@@ -1498,6 +1516,40 @@ console.log("NumRings: "+numRings+", "+radius);
 		.attr("class", "ring")
 		.attr("r", function(d) { return d; });
 
+		// Ego is only node
+	var pseudoEgo=[0];
+	function clickEgo(d)
+	{
+		var s = self.toggleSel(self.egoAbsI);
+		d3.select(this).classed('obj-sel', s);
+	} // clickEgo()
+	var node = this.center.selectAll(".gnode")
+		.data(pseudoEgo)
+		.enter()
+		.append("circle")
+		.attr("class", "gnode")
+		.attr("r", "4")
+		.attr("fill", "white")
+		.on("click", clickEgo);
+
+	function clickBond(d)
+	{
+		var s = self.toggleSel(d.qr.qi);
+		d3.select(this).classed('obj-sel', s);
+	} // clickBond()
+
+	var bond = this.center.selectAll(".bond")
+		.data(this.spokes)
+		.enter().append("path")
+		.attr("class", "bond")
+		.attr("stroke", function(d) { return d.qr.c; })
+		.attr("d", function(d) {
+			return "M" + project(d.i, d.d.min, false)
+				+ "L" + project(d.i, d.d.max, true);
+		})
+		.on("click", clickBond);
+	bond.append("title")
+		.text(function(d) { return d.qr.qr.l; });
 } // drawAll()
 
 
@@ -1509,19 +1561,21 @@ VizTimeRing.prototype.render = function(stream)
 		//		Both Recs pointed at need to have valid Feature data
 		// Compile list of nodes
 		//		(1) From the QRs
-		//		(2) that have Attribute values in current Legend;
-		//		(3) All nodes appear only once!
-		//		(4) Note if they have a necessary Dates Attribute & value
+		//		(2) All nodes appear only once!
+		//		(3) Note if they have a necessary Dates Attribute & value
 		// Color links by relationships (after ego is selected)
 	var self=this;
-	var qrrecs=[];			// [ { qr [original QR], qi [absI], e1, e2 }]
-	var recData=[];			// [ { ai, id, r[ec], f[eature Val], d }]
+	var qrrecs=[];			// [ { c[olor], d[ates], e1, e2, qi [absI], qr }]
+	var recData=[];			// [ { ai, id, r[ec], d[ates] }]
 	var qrconfig=prspdata.e.g.qr;
 	var tRec=stream.t[this.qrTI];
 	var relI=tRec.i, qI, qrRec;
 	var index, i1, id1, id2;
-	var featSets=[], fAtts=[], fAttIDs=[];		// Legend features, Template by Template
 	var dAtts=this.settings.dAtts;
+	var dData;
+	var rAttID=prspdata.e.g.qr.r;
+	var rAtt=PData.aByID(rAttID);
+	var fSet=PData.allFAtts(rAtt);
 
 	if (this.recSel.length > 0) {
 		this.recSel=[];
@@ -1529,14 +1583,8 @@ VizTimeRing.prototype.render = function(stream)
 
 	this.preRender(true, true);
 
-		// Preload fAtt data for used Templates
-	for (qI=0; qI<PData.eTNum(); qI++) {
-		i1 = this.vFrame.getSelLegend(qI);
-		fAttIDs.push(i1);
-		fAtts.push(i1 ? PData.aByID(i1) : null);
-		featSets.push(i1 ? this.vFrame.getSelFeatAtts(qI) : null);
-		this.tUsed[qI] = true;		// Always true so that QR Attributes available
-	}
+		// Display essentially only shows QRs
+	this.tUsed[this.qrTI] = true;
 
 		// PURPOSE:	Create or update entry in recData array (kept in order)
 		// RETURNS: -1 (if abort), or index in recData
@@ -1544,7 +1592,7 @@ VizTimeRing.prototype.render = function(stream)
 	function addE(id)
 	{
 		var append = recData.length === 0;
-		var absI, i, rec, rd, tI, fAttID, fDatum;
+		var absI, i, rec, tI;
 
 		if (append) {
 			i=0;
@@ -1567,53 +1615,49 @@ VizTimeRing.prototype.render = function(stream)
 				return -1;
 			}
 			rec = PData.rByN(absI);
-			fAttID = fAttIDs[tI];
-			fDatum = rec.a[fAttID];
-			if (typeof fDatum === 'undefined') {
-				return -1;
-			} else {
-				fDatum = PData.lClr(fDatum, fAtts[tI], featSets[tI]);
-				if (fDatum) {
-					var dAttID = dAtts[tI];
-					if (dAttID === null) {
-						return -1;
-					}
-					var datesVal;
-					if (typeof (datesVal=rec.a[dAttID]) === 'undefined' || datesVal === '?') {
-							// TO DO: Check that Date has min and max values
-						return -1;
-					}
-					if (append) {
-						recData.push({ ai: absI, id: id, r: rec, f: fDatum, d: datesVal });
-					} else {
-						recData.splice(i, 0, { ai: absI, id: id, r: rec, f: fDatum, d: datesVal });
-					}
-					return i;
-				} else {
-					return -1;
-				}
+				// Ensure only valid Dates Attribute provide lifespan
+			var datesVal=null, dTmp;
+			var dAttID = dAtts[tI];
+			if (dAttID !== null && typeof (dTmp=rec.a[dAttID]) !== 'undefined' && dTmp !== '?'
+					&& typeof dTmp.min.y === 'number' && (dTmp.max === 'open' || typeof dTmp.max.y === 'number'))
+			{
+				datesVal=dTmp;
 			}
-		} else {
+			if (append) {
+				recData.push({ ai: absI, id: id, r: rec, d: datesVal });
+			} else {
+				recData.splice(i, 0, { ai: absI, id: id, r: rec, d: datesVal });
+			}
 			return i;
-		}
+		} // if add
 	} // addE()
 
 		// Compile array of QR records
 	while (relI < tRec.i+tRec.n) {
 		qI = stream.s[relI++];
 		qrRec = PData.rByN(qI);
-		id1 = qrRec.a[qrconfig.e1][0];
-		index = addE(id1);
-		if (index === -1) {
-			continue;
-		}
-		id2 = qrRec.a[qrconfig.e2][0];
-		if (addE(id2) === -1) {
-			continue;
-		}
-		qrrecs.push({ qr: qrRec, qi: qI, e1: id1, e2: id2 });
-		// qrrecs.push({ qr: qrRec, qi: qI, e1: id1, e2: id2, u: false });
-	}
+			// Ensure QR has Relationship term that has color value
+		var rVal = qrRec.a[rAttID];
+		if (typeof rVal !== 'undefined') {
+			rVal = PData.lClr(rVal, rAtt, fSet);
+			if (rVal) {
+					// Ensure QR has valid Date
+					//	TO DO: Handle single dates?
+				if (typeof (dData = qrRec.a[qrconfig.d]) !== 'undefined') {
+					id1 = qrRec.a[qrconfig.e1][0];
+					index = addE(id1);
+					if (index === -1) {
+						continue;
+					}
+					id2 = qrRec.a[qrconfig.e2][0];
+					if (addE(id2) === -1) {
+						continue;
+					}
+					qrrecs.push({ c: rVal, d: dData, e1: id1, e2: id2, qi: qI, qr: qrRec });
+				} // valid Dates
+			} // if rVal
+		} // if rVal
+	} // while QRs
 	this.qrs = qrrecs;
 	this.drs = recData;
 
@@ -1635,17 +1679,30 @@ VizTimeRing.prototype.render = function(stream)
 		i1=recData[rI].r;
 		ip.append('<div class="sellist-rec" data-id="'+i1.id+'">'+i1.l+'</div>');
 	});
-	if (this.ego) {
-		this.setEgo(this.ego);
+	if (this.egoID) {
+		this.setEgo(this.egoID);
 	}
 } // render()
 
 VizTimeRing.prototype.setSel = function(absIArray)
 {
+	var self=this;
+
+	self.recSel = absIArray;
+		// Assumed only 1 pseudo-ego gnode, so <d> isn't used
+	this.center.selectAll(".gnode")
+			.attr("class", function(d) { return self.isSel(self.egoAbsI) ? 'gnode obj-sel' : 'gnode' });
+	this.center.selectAll(".bond")
+			.attr("class", function(d) { return self.isSel(d.qr.qi) ? 'bond obj-sel' : 'bond' });
 } // setSel()
 
 VizTimeRing.prototype.clearSel = function()
 {
+	if (this.recSel.length > 0) {
+		this.recSel = [];
+		this.center.selectAll(".gnode").attr("class", 'gnode');
+		this.center.selectAll(".bond").attr("class", 'bond');
+	}
 } // clearSel()
 
 VizTimeRing.prototype.getState = function()
