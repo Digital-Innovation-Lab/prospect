@@ -1321,8 +1321,13 @@ VizTimeRing.prototype.constructor = VizTimeRing;
 
 VizTimeRing.prototype.flags = function()
 {
-	return V_FLAG_SEL | V_FLAG_VSCRL | V_FLAG_HSCRL;
+	return V_FLAG_SEL | V_FLAG_VSCRL | V_FLAG_HSCRL | V_FLAG_LGND | V_FLAG_SLGND;
 } // flags()
+
+VizTimeRing.prototype.getFeatureAtts = function(tIndex)
+{
+	return prspdata.e.g.qr.r;
+} // getFeatureAtts()
 
 VizTimeRing.prototype.setup = function()
 {
@@ -1387,16 +1392,23 @@ VizTimeRing.prototype.setEgo = function(id)
 	this.recSel=[];
 	this.vFrame.upSel([], false);
 
-		// Mark no Records rendered
+		// Mark no Records rendered -- this is also called in
 	this.preRender(false, true);
 
 	var j=jQuery(this.frameID+" div.egograph div.egolist div.sellist-scroll");
 	var d=j.find('div.sellist-rec[data-id="'+id+'"]');
 		// Ensure that just this item is selected
 	j.find("div.sellist-rec").removeClass('active');
+
 		// Abort if ego no longer available in active list
 	if (d.length == 0) {
 		this.egoID = null;
+
+			// Remove everything
+		this.center.selectAll(".bond").remove();
+		this.center.selectAll(".gnode").remove();
+		this.center.selectAll(".ring").remove();
+
 		return;
 	}
 	d.addClass('active');
@@ -1457,6 +1469,11 @@ VizTimeRing.prototype.drawAll = function()
 	this.recSel=[];
 	this.vFrame.upSel([], false);
 
+		// Remove everything
+	this.center.selectAll(".bond").remove();
+	this.center.selectAll(".gnode").remove();
+	this.center.selectAll(".ring").remove();
+
 		// PURPOSE: Utility function that converts spoke # and time to X,Y
 	function project(spokeNum, dateField, end) {
 		var angle = ((spokeNum * segAngle) - 90) / 180 * Math.PI;
@@ -1495,11 +1512,6 @@ VizTimeRing.prototype.drawAll = function()
 	numRings = Math.ceil((bounds[1] - bounds[0]) / denom);
 	radius = numRings * this.r;
 	this.ts.range([6, radius+6]);
-
-		// Remove everything
-	this.center.selectAll(".bond").remove();
-	this.center.selectAll(".gnode").remove();
-	this.center.selectAll(".ring").remove();
 
 	this.svg.attr("width", 16+radius*2).attr("height", 16+radius*2);
 	this.center.attr("transform", "translate(" + (radius+8) + "," + (radius+8) + ")");
@@ -1575,12 +1587,13 @@ VizTimeRing.prototype.render = function(stream)
 	var dData;
 	var rAttID=prspdata.e.g.qr.r;
 	var rAtt=PData.aByID(rAttID);
-	var fSet=PData.allFAtts(rAtt);
+	var featSet = this.vFrame.getSelFeatAtts(0);
 
 	if (this.recSel.length > 0) {
 		this.recSel=[];
 	}
 
+		// This is also called in drawAll() as may never get that far
 	this.preRender(true, true);
 
 		// Display essentially only shows QRs
@@ -1639,7 +1652,7 @@ VizTimeRing.prototype.render = function(stream)
 			// Ensure QR has Relationship term that has color value
 		var rVal = qrRec.a[rAttID];
 		if (typeof rVal !== 'undefined') {
-			rVal = PData.lClr(rVal, rAtt, fSet);
+			rVal = PData.lClr(rVal, rAtt, featSet);
 			if (rVal) {
 					// Ensure QR has valid Date
 					//	TO DO: Handle single dates?
