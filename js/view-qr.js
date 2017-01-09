@@ -1258,10 +1258,8 @@ VizEgoGraph.prototype.clearSel = function()
 	if (this.recSel.length > 0) {
 		this.recSel = [];
 			// Only zoom band events are selected
-		this.center.selectAll(".node circle")
-				.attr("class", '');
-		this.center.selectAll(".bond")
-				.attr("class", 'bond');
+		this.center.selectAll(".node circle").attr("class", '');
+		this.center.selectAll(".bond").attr("class", 'bond');
 	}
 } // clearSel()
 
@@ -1309,7 +1307,8 @@ VizEgoGraph.prototype.hint = function()
 //		drs = compiled data from Records (entities)
 //		egoID = ID of currently selected Record
 //		egoAbsI = absI of currently selected Record
-//		spokes = data from qrs based on current ego selection
+//		spokes = time spans from qrs based on current ego
+//		spots = single dates from qrs based on current ego
 
 var VizTimeRing = function(viewFrame, vSettings)
 {
@@ -1343,6 +1342,9 @@ VizTimeRing.prototype.setup = function()
 	this.qrTI = PData.tIByID(prspdata.e.g.qr.t);
 	this.dAtt = PData.aByID(prspdata.e.g.qr.d);
 	this.ts = d3.scaleTime();
+
+	this.spokes = [];
+	this.spots = [];
 
 	j.append(document.getElementById('dltext-timerings').innerHTML);
 
@@ -1407,6 +1409,7 @@ VizTimeRing.prototype.setEgo = function(id)
 
 			// Remove everything
 		this.center.selectAll(".bond").remove();
+		this.center.selectAll(".node").remove();
 		this.center.selectAll(".gnode").remove();
 		this.center.selectAll(".ring").remove();
 
@@ -1438,18 +1441,25 @@ VizTimeRing.prototype.setEgo = function(id)
 	this.ts.domain([start, end]);
 
 	var spokes=[];		// { c[olor], d[ate], i[ndex], qr, r[ec of connected] }
+	var spots=[];		// "
+	var spokeCntr=0;
 	this.qrs.forEach(function(thisQR) {
 		if (thisQR.e1 === id || thisQR.e2 === id) {
 			var connectedID = (thisQR.e1 === id) ? thisQR.e2 : thisQR.e1;
 				// Get Record for connected node
 			drI = _.sortedIndex(self.drs, { id: connectedID }, 'id');
 			dr = self.drs[drI];
-			spokes.push({ d: thisQR.d, i: spokes.length, qr: thisQR, r: dr });
+			if (typeof thisQR.d.max !== 'undefined') {
+				spokes.push({ d: thisQR.d, i: spokeCntr++, qr: thisQR, r: dr });
+			} else {
+				spots.push({ d: thisQR.d, i: spokeCntr++, qr: thisQR, r: dr });
+			}
 				// Mark both QR and connected node as rendered
 			self.rMap[thisQR.qi >> 4] |= (1 << (thisQR.qi & 15));
 		} // QR has ego match
 	});
 	this.spokes=spokes;
+	this.spots=spots;
 
 	this.drawAll();
 } // setEgo()
@@ -1472,6 +1482,7 @@ VizTimeRing.prototype.drawAll = function()
 
 		// Remove everything
 	this.center.selectAll(".bond").remove();
+	this.center.selectAll(".node").remove();
 	this.center.selectAll(".gnode").remove();
 	this.center.selectAll(".ring").remove();
 
@@ -1490,7 +1501,7 @@ VizTimeRing.prototype.drawAll = function()
 
 		// Get size of difference between start and end of time frame of reference
 	bounds = this.ts.domain();
-	segAngle = 360 / this.spokes.length;
+	segAngle = 360 / (this.spokes.length+this.spots.length);
 
 		// Set time scale range based on QR-time grouping setting and “lifespan” of ego
 	switch (dAtt.r.g) {
@@ -1529,7 +1540,7 @@ VizTimeRing.prototype.drawAll = function()
 		.attr("class", "ring")
 		.attr("r", function(d) { return d; });
 
-		// Ego is only node
+		// Ego node
 	var pseudoEgo=[0];
 	function clickEgo(d)
 	{
@@ -1545,11 +1556,24 @@ VizTimeRing.prototype.drawAll = function()
 		.attr("fill", "white")
 		.on("click", clickEgo);
 
-	function clickBond(d)
+	function clickQR(d)
 	{
 		var s = self.toggleSel(d.qr.qi);
 		d3.select(this).classed('obj-sel', s);
-	} // clickBond()
+	} // clickQR()
+
+		// "Spot" (single date) events
+    node = this.center.selectAll(".node")
+    	.data(this.spots)
+    	.enter().append("g")
+        .attr("class", "node")
+        .attr("transform", function(d) { return "translate(" + project(d.i, d.d.min, false) + ")"; });
+    node.append("circle")
+        .attr("r", "4")
+		.attr("fill", function(d) { return d.qr.c; })
+		.on("click", clickQR);
+	node.append("title")
+		.text(function(d) { return d.qr.qr.l; });
 
 	var bond = this.center.selectAll(".bond")
 		.data(this.spokes)
@@ -1560,7 +1584,7 @@ VizTimeRing.prototype.drawAll = function()
 			return "M" + project(d.i, d.d.min, false)
 				+ "L" + project(d.i, d.d.max, true);
 		})
-		.on("click", clickBond);
+		.on("click", clickQR);
 	bond.append("title")
 		.text(function(d) { return d.qr.qr.l; });
 } // drawAll()
@@ -1629,7 +1653,7 @@ VizTimeRing.prototype.render = function(stream)
 				return -1;
 			}
 			rec = PData.rByN(absI);
-				// Ensure only valid Dates Attribute provide lifespan
+				// Ensure only valid Dates Attribute to provide full lifespan
 			var datesVal=null, dTmp;
 			var dAttID = dAtts[tI];
 			if (dAttID !== null && typeof (dTmp=rec.a[dAttID]) !== 'undefined' && dTmp !== '?'
@@ -1656,7 +1680,6 @@ VizTimeRing.prototype.render = function(stream)
 			rVal = PData.lClr(rVal, rAtt, featSet);
 			if (rVal) {
 					// Ensure QR has valid Date
-					//	TO DO: Handle single dates?
 				if (typeof (dData = qrRec.a[qrconfig.d]) !== 'undefined') {
 					id1 = qrRec.a[qrconfig.e1][0];
 					index = addE(id1);
@@ -1706,6 +1729,8 @@ VizTimeRing.prototype.setSel = function(absIArray)
 		// Assumed only 1 pseudo-ego gnode, so <d> isn't used
 	this.center.selectAll(".gnode")
 			.attr("class", function(d) { return self.isSel(self.egoAbsI) ? 'gnode obj-sel' : 'gnode' });
+	this.center.selectAll(".node circle")
+			.attr("class", function(d) { return self.isSel(d.qr.qi) ? 'obj-sel' : '' });
 	this.center.selectAll(".bond")
 			.attr("class", function(d) { return self.isSel(d.qr.qi) ? 'bond obj-sel' : 'bond' });
 } // setSel()
@@ -1715,6 +1740,7 @@ VizTimeRing.prototype.clearSel = function()
 	if (this.recSel.length > 0) {
 		this.recSel = [];
 		this.center.selectAll(".gnode").attr("class", 'gnode');
+		this.center.selectAll(".node circle").attr("class", '');
 		this.center.selectAll(".bond").attr("class", 'bond');
 	}
 } // clearSel()

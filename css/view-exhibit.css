@@ -1170,6 +1170,7 @@ div.viz-result svg .axis line {
 }
 
 	/* Pinboard styles */
+	/* recobj also reused by TimeRings */
 svg circle.recobj
 {
 	cursor: pointer;
@@ -1339,6 +1340,7 @@ svg rect.block.obj-sel
 }
 
 	/* Network Wheel styles */
+	/*	node > circle also used by EgoGraph, TimeRing */
 svg g.node
 {
 	cursor: pointer;
@@ -1368,7 +1370,7 @@ svg path.link.thick
 }
 
 	/* Network Graph, Bucket Matrix styles */
-	/* 		gnode is shared with TimeRings */
+	/* 		gnode is shared with QRNet, TimeRing */
 svg circle.gnode
 {
 	cursor: pointer;
@@ -1627,7 +1629,7 @@ svg g.inactive text.facet-reset-txt {
 	fill: #808080;
 }
 
-	/* Ego-graph Styles */
+	/* EgoGraph Styles */
 div.egograph {
 	width: 100%;
 	height: 100%;
@@ -1656,7 +1658,7 @@ div.egolist > div.sellist-scroll {
 	overflow-y: scroll;
 }
 
-svg .bond
+svg path.bond
 {
 	stroke-opacity: 1;
 	stroke-width: 6px;
@@ -1664,7 +1666,7 @@ svg .bond
 	fill: none;
 }
 
-svg .bond.obj-sel
+svg path.bond.obj-sel
 {
 	stroke-dasharray: 0;
 }
