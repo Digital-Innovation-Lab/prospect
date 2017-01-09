@@ -1660,7 +1660,7 @@ svg .bond
 {
 	stroke-opacity: 1;
 	stroke-width: 6px;
-	stroke-dasharray: 6, 3;
+	stroke-dasharray: 6, 2;
 	fill: none;
 }
 
