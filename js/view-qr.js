@@ -1275,6 +1275,7 @@ VizEgoGraph.prototype.setState = function(state)
 	this.vFrame.setLgndSels(state.l);
 	this.ego = state.ego;
 	this.n = state.n;
+	jQuery(this.frameID+" div.egograph div.egolist input.ego-n").val(state.n);
 } // setState()
 
 VizEgoGraph.prototype.hint = function()
@@ -1718,17 +1719,18 @@ VizTimeRing.prototype.clearSel = function()
 	}
 } // clearSel()
 
+	// NOTE: No need to save Legend, as always Relationships
 VizTimeRing.prototype.getState = function()
 {
+	return { ego: this.egoID, r: this.r };
 } // getState()
 
 VizTimeRing.prototype.setState = function(state)
 {
+	this.egoID = state.ego;
+	this.r = state.r;
+	jQuery(this.frameID+" div.egograph div.egolist input.rr").val(state.r);
 } // setState()
-
-VizTimeRing.prototype.hint = function()
-{
-} // hint()
 
 
 // ====================================================================================
