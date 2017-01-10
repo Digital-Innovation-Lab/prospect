@@ -1389,13 +1389,21 @@ VizTimeRing.prototype.teardown = function()
 	// PURPOSE: Display start/end dates (on rings) for selected ego
 VizTimeRing.prototype.showDomain = function()
 {
-	var j=jQuery(this.frameID+" div.egograph div.egolist");
+	var from,to;
 
-	if (this.ls) {
-
-	} else {
-
+	function dateToText(d)
+	{
+		return d.getUTCFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
 	}
+	if (this.ls) {
+		from = dateToText(this.ls[0]);
+		to = dateToText(this.ls[1]);
+	} else {
+		from = to = '--';
+	}
+	var j=jQuery(this.frameID+" div.egograph div.egolist");
+	j.find('.from').text(from);
+	j.find('.to').text(to);
 } // showDomain()
 
 	// PURPOSE:	Effect click on Record <id>
@@ -1452,10 +1460,8 @@ VizTimeRing.prototype.setEgo = function(id)
 	if (dData.max === 'open') {
 		end = TODAY;
 	} else {
-		// end = PData.dObj(dData.max, 12, false);
 		end = PData.dObj(dData.max, 12, true);
 	}
-	// this.ts.domain([start, end]);
 	this.ls = [start, end];
 	this.showDomain();
 
@@ -1518,7 +1524,6 @@ VizTimeRing.prototype.drawAll = function()
 	} // project()
 
 		// Get size of difference between start and end of time frame of reference
-	// bounds = this.ts.domain();
 	var start=this.ls[0], end=this.ls[1];
 	segAngle = 360 / (this.spokes.length+this.spots.length);
 
