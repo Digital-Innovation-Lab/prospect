@@ -1302,6 +1302,7 @@ VizEgoGraph.prototype.hint = function()
 //		r = number of pixels between time rings
 //		qrTI = index of QR Template
 //		dAtt = definition of Dates Attribute used for QRs
+//		ls = lifespan of selected ego [start,end]
 //		ts = D3 time scale based on Dates Attribute value of ego
 //		qrs = compiled data from QRTemplates
 //		drs = compiled data from Records (entities)
@@ -1338,6 +1339,7 @@ VizTimeRing.prototype.setup = function()
 	this.r = s.r;
 	this.egoID = null;
 	this.egoAbsI = null;
+	this.ls = null;
 
 	this.qrTI = PData.tIByID(prspdata.e.g.qr.t);
 	this.dAtt = PData.aByID(prspdata.e.g.qr.d);
@@ -1384,6 +1386,18 @@ VizTimeRing.prototype.teardown = function()
 	j.find("div.egolist input.rr").off("change");
 } // teardown()
 
+	// PURPOSE: Display start/end dates (on rings) for selected ego
+VizTimeRing.prototype.showDomain = function()
+{
+	var j=jQuery(this.frameID+" div.egograph div.egolist");
+
+	if (this.ls) {
+
+	} else {
+
+	}
+} // showDomain()
+
 	// PURPOSE:	Effect click on Record <id>
 	// SIDE-FX: Sets TimeRing fields and compiles spokes[]
 VizTimeRing.prototype.setEgo = function(id)
@@ -1406,6 +1420,8 @@ VizTimeRing.prototype.setEgo = function(id)
 		// Abort if ego no longer available in active list
 	if (d.length == 0) {
 		this.egoID = null;
+		this.ls = null;
+		this.showDomain();
 
 			// Remove everything
 		this.center.selectAll(".bond").remove();
@@ -1436,9 +1452,12 @@ VizTimeRing.prototype.setEgo = function(id)
 	if (dData.max === 'open') {
 		end = TODAY;
 	} else {
+		// end = PData.dObj(dData.max, 12, false);
 		end = PData.dObj(dData.max, 12, true);
 	}
-	this.ts.domain([start, end]);
+	// this.ts.domain([start, end]);
+	this.ls = [start, end];
+	this.showDomain();
 
 	var spokes=[];		// { c[olor], d[ate], i[ndex], qr, r[ec of connected] }
 	var spots=[];		// "
@@ -1470,7 +1489,6 @@ VizTimeRing.prototype.drawAll = function()
 	var self=this;
 	var dAttID=prspdata.e.g.qr.d;
 	var dAtt=PData.aByID(dAttID);
-	var bounds;		// TimeScale domain
 	var denom;		// # milliseconds for the Dates Attribute’s grouping size
 	var segAngle;	// # degrees between each "spoke"
 	var numRings, radius;
@@ -1500,7 +1518,8 @@ VizTimeRing.prototype.drawAll = function()
 	} // project()
 
 		// Get size of difference between start and end of time frame of reference
-	bounds = this.ts.domain();
+	// bounds = this.ts.domain();
+	var start=this.ls[0], end=this.ls[1];
 	segAngle = 360 / (this.spokes.length+this.spots.length);
 
 		// Set time scale range based on QR-time grouping setting and “lifespan” of ego
@@ -1521,8 +1540,10 @@ VizTimeRing.prototype.drawAll = function()
 		denom = (60 * 60 * 24 * 1000 * 365 * 100);	// # milliSecs/century
 		break;
 	}
-	numRings = Math.ceil((bounds[1] - bounds[0]) / denom);
-	radius = numRings * this.r;
+	numRings = Math.max(Math.ceil((end - start) / denom),1);
+	radius = (numRings-1) * this.r;
+	end = new Date(start.getTime() + (numRings-1)*denom);
+	this.ts.domain([start, end]);
 	this.ts.range([10, radius+10]);
 
 	this.svg.attr("width", 24+radius*2).attr("height", 24+radius*2);
