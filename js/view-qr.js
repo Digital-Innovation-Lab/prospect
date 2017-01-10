@@ -1493,7 +1493,7 @@ VizTimeRing.prototype.drawAll = function()
 		if (end && dateField === 'open') {
 			date = TODAY;
 		} else {
-			date = PData.dObj(dateField, end ? 12 : 1, end);
+			date = PData.dObj(dateField, end ? 12 : 1, false);
 		}
 		var radius = self.ts(date);
 		return [radius * Math.cos(angle), radius * Math.sin(angle)];
@@ -1523,15 +1523,15 @@ VizTimeRing.prototype.drawAll = function()
 	}
 	numRings = Math.ceil((bounds[1] - bounds[0]) / denom);
 	radius = numRings * this.r;
-	this.ts.range([6, radius+6]);
+	this.ts.range([10, radius+10]);
 
-	this.svg.attr("width", 16+radius*2).attr("height", 16+radius*2);
-	this.center.attr("transform", "translate(" + (radius+8) + "," + (radius+8) + ")");
+	this.svg.attr("width", 24+radius*2).attr("height", 24+radius*2);
+	this.center.attr("transform", "translate(" + (radius+12) + "," + (radius+12) + ")");
 
 		// Create rings
 	var rings=[];
 	for (var i=0; i<numRings; ) {
-		rings.push((++i * this.r)+6);
+		rings.push((i++ * this.r)+10);
 	}
 	var ring = this.center.selectAll(".ring")
 		.data(rings)
