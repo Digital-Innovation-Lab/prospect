@@ -1051,17 +1051,6 @@
 				<option>{{this}}</option>
 			{{/each}}
 			</select>
-			<br/>
-			<b><?php _e('Provide Legends', 'prospect'); ?>: </b>
-			<button decorator="iconButton:ui-icon-check" on-click="allLgndsOn:{{vIndex}},{{tIndex}}"><?php _e('All On', 'prospect'); ?></button>
-			<button decorator="iconButton:ui-icon-cancel" on-click="allLgndsOff:{{vIndex}},{{tIndex}}"><?php _e('All Off', 'prospect'); ?></button>
-			{{#each c.lgnds[tIndex]:lIndex}}
-				<span class="attribute-controls">
-					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
-					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Left', 'prospect'); ?></button>
-					<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Right', 'prospect'); ?></button>
-				</span>
-			{{/each}}
 		</div>
 		{{/each}}
 	</tabs>

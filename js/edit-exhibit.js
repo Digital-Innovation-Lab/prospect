@@ -1259,22 +1259,17 @@ jQuery(document).ready(function() {
 				theVF.c.lgnds = newLgnds;
 				break;
 			case 'e':	// Time-rings
-				var newD=[], newLgnds=[];
+				var newD=[];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
 					if (origTIndex == -1) {
 						newD.push(theTmplt.attsDates[0] || 'disable');
-						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
-								return { attID: theLgndAtt, useAtt: true };
-							}));
 					} else {
 						newD.push(checkAttID(theVF.c.dAtts[origTIndex], theTmplt.attsDates, 'disable'));
-						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
 					}
 				});
 				theVF.c.dAtts = newD;
-				theVF.c.lgnds = newLgnds;
 				break;
 			} // switch viewtype
 		} // for views
@@ -1671,12 +1666,6 @@ jQuery(document).ready(function() {
 				break;
 			case 'e':	// Time-rings
 				newVFEntry.c.r = 20;
-					// Potential Legends
-				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
-					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
-						return { attID: theLgndAtt, useAtt: true };
-					});
-				});
 					// Potential Dates Attributes
 				newVFEntry.c.dAtts= _.map(iTemplates, function(theTemplate) {
 					return 'disable';
@@ -2313,11 +2302,6 @@ jQuery(document).ready(function() {
 						return false;
 					}
 					saveView.c.r = viewSettings.c.r;
-					var newLgnds=[];
-					saveTIndices.forEach(function(tIndex) {
-						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
-					});
-					saveView.c.lgnds = newLgnds;
 					saveView.c.dAtts = packUsedAttIDs(viewSettings.c.dAtts);
 					break;
 				} // switch
