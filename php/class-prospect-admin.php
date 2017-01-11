@@ -1194,7 +1194,8 @@ class ProspectAdmin {
 		fwrite($fp, '"tmplt-joins": '.$the_template->meta_joins.",\n");
 		fwrite($fp, '"tmplt-view": '.$the_template->meta_view);
 			// Format will depend on existence of template view data
-		if ($the_template->meta_pview != null && $the_template->meta_pview != '') {
+		$meta_pview = $the_template->meta_pview;
+		if ($meta_pview != null && $meta_pview != '' && $meta_pview != 'null') {
 			fwrite($fp, ",\n ".'"tmplt-pview": '.$the_template->meta_pview." \n}");
 		} else {
 			fwrite($fp, " }");
