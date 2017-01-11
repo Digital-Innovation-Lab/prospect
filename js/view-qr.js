@@ -1551,8 +1551,8 @@ VizTimeRing.prototype.drawAll = function()
 	this.ts.domain([start, end]);
 	this.ts.range([10, radius+10]);
 
-	this.svg.attr("width", 24+radius*2).attr("height", 24+radius*2);
-	this.center.attr("transform", "translate(" + (radius+12) + "," + (radius+12) + ")");
+	this.svg.attr("width", 26+radius*2).attr("height", 26+radius*2);
+	this.center.attr("transform", "translate(" + (radius+13) + "," + (radius+13) + ")");
 
 		// Create rings
 	var rings=[];
@@ -1579,7 +1579,7 @@ VizTimeRing.prototype.drawAll = function()
 		.append("circle")
 		.attr("class", "gnode")
 		.attr("r", "4")
-		.attr("fill", "white")
+		.attr("fill", "#000")
 		.on("click", clickEgo);
 
 	function clickQR(d)
