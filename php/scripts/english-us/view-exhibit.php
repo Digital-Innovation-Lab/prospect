@@ -259,7 +259,7 @@
 <script id="dltext-timerings" type='text'>
 	<div class="egograph">
 		<div class="egolist">
-			<label><?php _e('Pixels per ring', 'prospect'); ?> </label><input type="text" class="rr" size="2"/>
+			<label><?php _e('Pixels per ring', 'prospect'); ?></label><input type="text" class="rr" size="2"/>
 			&nbsp;<span class="from">--</span> / <span class="to">--</span>
 			<div class="sellist-scroll">
 			</div>
