@@ -1,6 +1,7 @@
 // This file contains:
 //		PVizModel Classes for Qualified Relationship visualizations
 //			VizQRMap
+//			VizQRNet
 //			VizEgoGraph
 //			VizTimeRing
 //
@@ -1545,7 +1546,18 @@ VizTimeRing.prototype.drawAll = function()
 		denom = (60 * 60 * 24 * 1000 * 365 * 100);	// # milliSecs/century
 		break;
 	}
-	numRings = Math.max(Math.ceil((end - start) / denom),1);
+		// Number of Rings includes initial "0" ring
+	if (start == end) {
+		numRings=1;
+	} else {
+		numRings = (end - start) / denom;
+			// If units are days, ensure we don't create too many
+		if (dAtt.r.g === 'd' && (Math.ceil(numRings) - numRings) < (59 * 60 * 24 * 1000)) {
+			numRings = Math.ceil(numRings);
+		} else {
+			numRings = Math.ceil(numRings)+1;
+		}
+	}
 	radius = (numRings-1) * this.r;
 	end = new Date(start.getTime() + (numRings-1)*denom);
 	this.ts.domain([start, end]);
@@ -1556,8 +1568,8 @@ VizTimeRing.prototype.drawAll = function()
 
 		// Create rings
 	var rings=[];
-	for (var i=0; i<numRings; ) {
-		rings.push((i++ * this.r)+10);
+	for (var i=0; i<numRings; i++) {
+		rings.push((i * this.r)+10);
 	}
 	var ring = this.center.selectAll(".ring")
 		.data(rings)
