@@ -1658,7 +1658,8 @@ div.egolist > div.sellist-scroll {
 	overflow-y: scroll;
 }
 
-svg path.bond
+	/* bond can be both path and line element, so don't specify! */
+svg .bond
 {
 	stroke-opacity: 1;
 	stroke-width: 6px;
@@ -1666,7 +1667,7 @@ svg path.bond
 	fill: none;
 }
 
-svg path.bond.obj-sel
+svg .bond.obj-sel
 {
 	stroke-dasharray: 0;
 }
