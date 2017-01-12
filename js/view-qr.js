@@ -1039,14 +1039,7 @@ VizEgoGraph.prototype.setEgo = function(id)
 							// Set QR node to "used"
 						thisQR.u = true;
 						self.rMap[thisQR.qi >> 4] |= (1 << (thisQR.qi & 15));
-							// Get Relationship value
-						var rVal = thisQR.qr.a[rAttID];
-						if (typeof rVal !== 'undefined') {
-							rVal = PData.lClr(rVal, rAtt, fSet);
-							if (rVal) {
-								thisNode.children.push(newNode(thisNode, connectedID, dr, rVal, thisQR.qi));
-							}
-						} // Legend value
+						thisNode.children.push(newNode(thisNode, connectedID, dr, thisQR.f, thisQR.qi));
 					} // Unused target node
 				} // Found unused matching QR
 			});
@@ -1130,13 +1123,14 @@ VizEgoGraph.prototype.render = function(stream)
 		//		(3) All nodes appear only once!
 		// Color links by relationships (after ego is selected)
 	var self=this;
-	var qrrecs=[];			// [ { qr [original QR], qi [absI], e1, e2, u }]
-	var recData=[];			// [ { ai, id, r[ec], f[eature Val], u }]
+	var qrrecs=[];			// [ { qr [original QR], qi [absI], e1, e2, f[eature Val], u[sed] }]
+	var recData=[];			// [ { ai, id, r[ec], f[eature Val], u[sed] }]
 	var qrconfig=prspdata.e.g.qr;
 	var tRec=stream.t[this.qrTI];
 	var relI=tRec.i, qI, qrRec;
 	var index, i1, id1, id2;
 	var featSets=[], fAtts=[], fAttIDs=[];
+	var rAttID, rAtt, rFeats, rVal;
 
 	if (this.recSel.length > 0) {
 		this.recSel=[];
@@ -1152,6 +1146,9 @@ VizEgoGraph.prototype.render = function(stream)
 		featSets.push(i1 ? this.vFrame.getSelFeatAtts(qI) : null);
 		this.tUsed[qI] = true;		// Always true so that QR Attributes available
 	}
+	rAtt = fAtts[this.qrTI];
+	rAttID = rAtt.id;
+	rFeats = featSets[this.qrTI];
 
 		// PURPOSE:	Create or update entry in recData array (kept in order)
 		// RETURNS: -1 (if abort), or index in recData
@@ -1209,15 +1206,21 @@ VizEgoGraph.prototype.render = function(stream)
 		qI = stream.s[relI++];
 		qrRec = PData.rByN(qI);
 		id1 = qrRec.a[qrconfig.e1][0];
-		index = addE(id1);
-		if (index === -1) {
-			continue;
-		}
-		id2 = qrRec.a[qrconfig.e2][0];
-		if (addE(id2) === -1) {
-			continue;
-		}
-		qrrecs.push({ qr: qrRec, qi: qI, e1: id1, e2: id2, u: false });
+		rVal = qrRec.a[rAttID];
+		if (typeof rVal !== 'undefined') {
+			rVal = PData.lClr(rVal, rAtt, rFeats);
+			if (rVal) {
+				index = addE(id1);
+				if (index === -1) {
+					continue;
+				}
+				id2 = qrRec.a[qrconfig.e2][0];
+				if (addE(id2) === -1) {
+					continue;
+				}
+				qrrecs.push({ qr: qrRec, qi: qI, e1: id1, e2: id2, f: rVal, u: false });
+			}
+		} // Legend value
 	}
 	this.qrs = qrrecs;
 	this.drs = recData;
