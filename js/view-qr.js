@@ -950,9 +950,6 @@ VizEgoGraph.prototype.setEgo = function(id)
 {
 	var self=this;
 	var s=this.settings;
-	var rAttID=prspdata.e.g.qr.r;
-	var rAtt=PData.aByID(rAttID);
-	var fSet=PData.allFAtts(rAtt);
 	var numRings=0;
 
 	var cr=Math.floor(s.s/2)-s.r;
