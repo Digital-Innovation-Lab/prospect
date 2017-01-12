@@ -7118,6 +7118,7 @@ var PData = (function() {
 					return null;
 								// Disqualify if (1) end of event is before min bound, or
 								//	(2) start of event is after max bound
+								// NOTE: Code takes advantage of fact that month and day are 1-based (not 0)
 				for (; f<lI; f++) {
 					fI = fSet[f];
 					lE = att.l[fI];
@@ -7140,7 +7141,7 @@ var PData = (function() {
 							}
 						}
 							// Test val mins against max bound for disqualification
-						if (val.min.y >= lE.d.max.y)
+						if (val.min.y > lE.d.max.y)
 							continue;
 						if (val.min.y === lE.d.max.y) {
 							if (val.min.m && lE.d.max.m) {
