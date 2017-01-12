@@ -1590,7 +1590,7 @@ VizTimeRing.prototype.drawAll = function()
 		.enter()
 		.append("circle")
 		.attr("class", "gnode")
-		.attr("r", "4")
+		.attr("r", "5")
 		.attr("fill", "#000")
 		.on("click", clickEgo);
 
@@ -1607,7 +1607,7 @@ VizTimeRing.prototype.drawAll = function()
         .attr("class", "node")
         .attr("transform", function(d) { return "translate(" + project(d.i, d.d.min, false) + ")"; });
     node.append("circle")
-        .attr("r", "4")
+        .attr("r", "5")
 		.attr("fill", function(d) { return d.qr.c; })
 		.on("click", clickQR);
 	node.append("title")
