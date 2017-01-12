@@ -567,17 +567,17 @@ VizQRNet.prototype.render = function(stream)
 {
 	var self=this;
 	var qrconfig=prspdata.e.g.qr;
-	var rAttID=qrconfig.r;			// Relationship ID
-	var rAtt=PData.aByID(rAttID);	// Relationship Attribute
-	var rAttSet=PData.allFAtts(rAtt);
 	var sAttID, sAtt, minR, maxR, dR;
 	var tRec=stream.t[this.qrTI];
 	var relI=tRec.i, maxI=tRec.i+tRec.n;
 	var qI, qrRec;
 	var id1, id2, rec1, rec2, s1, s2, t1, t2, f1, f2, m1, m2;
 	var rVal;
-	var featSets, fAtts, fAttIDs;
+	var featSets=[], fAtts=[], fAttIDs=[];
 	var sDeltas=[], sMins=[];
+	var rAttID=qrconfig.r;			// Relationship ID
+	var rAtt;						// Relationship Attribute
+	var rAttSet;
 
 		// remove any existing nodes and links
 	this.svg.selectAll(".gnode").remove();
@@ -615,21 +615,16 @@ VizQRNet.prototype.render = function(stream)
 		}
 	});
 
-		// Cache all Feature Attribute data
-	featSets=[], fAtts=[], fAttIDs=[];
+		// Preload fAtt data for used Templates
 	for (qI=0; qI<PData.eTNum(); qI++) {
-		if (qI === this.qrTI) {
-			fAttIDs.push(rAttID);
-			fAtts.push(rAtt);
-			featSets.push(rAttSet);
-		} else {
-			id1 = this.vFrame.getSelLegend(qI);
-			fAttIDs.push(id1);
-			fAtts.push(id1 ? PData.aByID(id1) : null);
-			featSets.push(id1 ? this.vFrame.getSelFeatAtts(qI) : null);
-		}
+		t1 = this.vFrame.getSelLegend(qI);
+		fAttIDs.push(t1);
+		fAtts.push(t1 ? PData.aByID(t1) : null);
+		featSets.push(t1 ? this.vFrame.getSelFeatAtts(qI) : null);
 		this.tUsed[qI] = true;		// Always true so that QR Attributes available
 	}
+	rAtt = fAtts[this.qrTI];
+	rAttSet = featSets[this.qrTI];
 
 		// Can use for both nodes and links
 	function doClick(d)
@@ -829,20 +824,6 @@ VizQRNet.prototype.hint = function()
 {
 	var hint='';
 	var numT = PData.eTNum();
-
-	var rAttID=prspdata.e.g.qr.r;
-	var rAtt=PData.aByID(rAttID);
-
-	rAtt.l.forEach(function(lgnd) {
-		if (hint.length > 0) {
-			hint += ", ";
-		}
-		hint += '<b><span style="color: '+lgnd.v+'">'+lgnd.l+'</span></b>';
-	});
-
-	if (hint.length > 0) {
-		hint += '<br/>';
-	}
 
 	var label=true;
 	for (var tI=0; tI<numT; tI++) {
@@ -1276,23 +1257,6 @@ VizEgoGraph.prototype.setState = function(state)
 	this.n = state.n;
 	jQuery(this.frameID+" div.egograph div.egolist input.ego-n").val(state.n);
 } // setState()
-
-VizEgoGraph.prototype.hint = function()
-{
-	var hint='';
-	var self=this;
-
-	var rAttID=prspdata.e.g.qr.r;
-	var rAtt=PData.aByID(rAttID);
-
-	rAtt.l.forEach(function(lgnd) {
-		if (hint.length > 0) {
-			hint += ", ";
-		}
-		hint += '<b><span style="color: '+lgnd.v+'">'+lgnd.l+'</span></b>';
-	});
-	return hint;
-} // hint()
 
 
 // ================================================================================
