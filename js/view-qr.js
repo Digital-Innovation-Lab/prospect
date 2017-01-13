@@ -47,7 +47,7 @@ VizQRMap.prototype.getFeatureAtts = function(tIndex)
 {
 		// If there are not separate coordinates for each entity, single location shown
 		//	using Relationship legend
-	if (prspdata.e.g.qr.c2 == null) {
+	if (prspdata.e.g.qr.c2 === null) {
 		return prspdata.e.g.qr.r;
 	}
 
@@ -196,8 +196,8 @@ VizQRMap.prototype.render = function(stream)
 
 	var qrconfig=prspdata.e.g.qr;
 	var rAttID=qrconfig.r;			// Relationship ID
-	var rAtt=PData.aByID(rAttID);	// Relationship Attribute
-	var rAttSet=PData.allFAtts(rAtt);
+	var rAtt;						// Relationship Attribute
+	var rAttSet;
 	var sAttID, sAtt, minR, maxR, dR;
 	var tRec=stream.t[this.qrTI];
 	var relI=tRec.i, maxI=tRec.i+tRec.n;
@@ -229,7 +229,6 @@ VizQRMap.prototype.render = function(stream)
 		}
 	});
 
-		// Cache fAtt data for used Templates
 	if (qrc2) {
 		featSets=[], fAtts=[], fAttIDs=[];
 		for (qI=0; qI<PData.eTNum(); qI++) {
@@ -237,12 +236,16 @@ VizQRMap.prototype.render = function(stream)
 			fAttIDs.push(id1);
 			fAtts.push(id1 ? PData.aByID(id1) : null);
 			featSets.push(id1 ? this.vFrame.getSelFeatAtts(qI) : null);
-			this.tUsed[qI] = true;		// Always true so that QR Attributes available
+			this.tUsed[qI] = (id1 != null);
 		}
+		rAtt = fAtts[this.qrTI];
+		rAttSet = featSets[this.qrTI];
 	} else {
-		featSets = this.vFrame.getSelFeatAtts(0);
+		rAtt = PData.aByID(rAttID);
+		rAttSet = this.vFrame.getSelFeatAtts(0);
 		this.tUsed[this.qrTI] = true;		// Always true so that QR Attributes selectable via Highlight
 	}
+
 
 		// PURPOSE: Add a single marker to marker layer
 		// INPUT: 	ll = LatLon point
@@ -294,40 +297,39 @@ VizQRMap.prototype.render = function(stream)
 			if ((PData.nInS(id1, stream, t1) === -1) || (PData.nInS(id2, stream, t2) === -1)) {
 				continue;
 			}
-				// Dual connected markers?
-			if (qrc2) {
-					// And only if there are valid coordinates for both
-				if ((ll1=qrRec.a[qrc1]) && (ll2=qrRec.a[qrc2])) {
-						// TO DO: Ensure that ll1 and ll2 are arrays of two coordinates!
-						// Get Template indices & recs
-					rec1=PData.rByN(id1);
-					rec2=PData.rByN(id2);
-						// Ensure both entities have valid features
-					f1 = rec1.a[fAttIDs[t1]];
-					if ((typeof f1 !== 'undefined') && (f1=PData.lClr(f1, fAtts[t1], featSets[t1]))) {
-						f2 = rec2.a[fAttIDs[t2]];
-						if ((typeof f2 !== 'undefined') && (f2=PData.lClr(f2, fAtts[t2], featSets[t2]))) {
-							m1 = addMarker(ll1, getRad(id1, rec1, t1), f1, id1);
-							m2 = addMarker(ll2, getRad(id2, rec2, t2), f2, id2);
-							self.rMap[qI >> 4] |= (1 << (qI & 15));
-							rVal = PData.lClr(qrRec.a[rAttID], rAtt, rAttSet);
-							bond = L.polyline([ll1, ll2], { _aid: qI, weight: 5, color: rVal, dashArray: '4,6' });
-							bond.on('click', lineClick);
-							lLayer.addLayer(bond);
-						} // f2
-					} // f1
-				} // ll1 & ll2
-			} else {	// qrRec provides Relationship Legend; no size parameter
-				if (ll1=qrRec.a[qrc1]) {
+				// Ensure valid and selected Relationship: it will either be undefined or Vocab array
+			rVal = qrRec.a[rAttID];
+			if (rVal && (rVal=PData.lClr(rVal, rAtt, rAttSet))) {
+					// Dual connected markers?
+				if (qrc2) {
+						// And only if there are valid coordinates for both
+					if ((ll1=qrRec.a[qrc1]) && (ll2=qrRec.a[qrc2])) {
+							// TO DO: Ensure that ll1 and ll2 are arrays of two coordinates!
+							// Get Template indices & recs
+						rec1=PData.rByN(id1);
+						rec2=PData.rByN(id2);
+							// Ensure both entities have valid features
+						f1 = rec1.a[fAttIDs[t1]];
+						if ((typeof f1 !== 'undefined') && (f1=PData.lClr(f1, fAtts[t1], featSets[t1]))) {
+							f2 = rec2.a[fAttIDs[t2]];
+							if ((typeof f2 !== 'undefined') && (f2=PData.lClr(f2, fAtts[t2], featSets[t2]))) {
+								m1 = addMarker(ll1, getRad(id1, rec1, t1), f1, id1);
+								m2 = addMarker(ll2, getRad(id2, rec2, t2), f2, id2);
+								bond = L.polyline([ll1, ll2], { _aid: qI, weight: 5, color: rVal, dashArray: '4,6' });
+								bond.on('click', lineClick);
+								lLayer.addLayer(bond);
+								self.rMap[qI >> 4] |= (1 << (qI & 15));
+							} // f2
+						} // f1
+					} // ll1 & ll2
+				} else {	// qrRec provides Relationship Legend; no size parameter
 						// TO DO: Ensure that ll1 is an array of two coordinates!
-					rVal = PData.lClr(qrRec.a[rAttID], rAtt, featSets);
-					if (rVal) {
-							// Translate Relationship into color
-						addMarker(ll1, minR, rVal, qI);
+					if (ll1=qrRec.a[qrc1]) {
+						addMarker(ll1, getRad(id1, rec1, t1), rVal, qI);
 					}
-				}
-			} // only 1 coordinate
-		} // if id1 & id2
+				} // only 1 coordinate
+			} // if id1 & id2
+		}
 	} // while
 } // render()
 
@@ -621,7 +623,8 @@ VizQRNet.prototype.render = function(stream)
 		fAttIDs.push(t1);
 		fAtts.push(t1 ? PData.aByID(t1) : null);
 		featSets.push(t1 ? this.vFrame.getSelFeatAtts(qI) : null);
-		this.tUsed[qI] = true;		// Always true so that QR Attributes available
+		this.tUsed[qI] = (t1 != null);
+		// this.tUsed[qI] = true;		// Always true so that QR Attributes available
 	}
 	rAtt = fAtts[this.qrTI];
 	rAttSet = featSets[this.qrTI];
@@ -1122,7 +1125,8 @@ VizEgoGraph.prototype.render = function(stream)
 		fAttIDs.push(i1);
 		fAtts.push(i1 ? PData.aByID(i1) : null);
 		featSets.push(i1 ? this.vFrame.getSelFeatAtts(qI) : null);
-		this.tUsed[qI] = true;		// Always true so that QR Attributes available
+		this.tUsed[qI] = (i1 != null);
+		// this.tUsed[qI] = true;		// Always true so that QR Attributes available
 	}
 	rAtt = fAtts[this.qrTI];
 	rAttID = rAtt.id;
