@@ -404,20 +404,6 @@ VizQRMap.prototype.hint = function()
 	var hint='';
 	var numT = PData.eTNum();
 
-	var rAttID=prspdata.e.g.qr.r;
-	var rAtt=PData.aByID(rAttID);
-
-	rAtt.l.forEach(function(lgnd) {
-		if (hint.length > 0) {
-			hint += ", ";
-		}
-		hint += '<b><span style="color: '+lgnd.v+'">'+lgnd.l+'</span></b>';
-	});
-
-	if (hint.length > 0) {
-		hint += '<br/>';
-	}
-
 	var label=true;
 	for (var tI=0; tI<numT; tI++) {
 		var sAttID = this.settings.sAtts[tI];
