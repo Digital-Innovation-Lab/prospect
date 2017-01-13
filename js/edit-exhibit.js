@@ -541,7 +541,6 @@ jQuery(document).ready(function() {
 				return false;
 			}
 			// TO DO: Error checking
-			//		Ensure QR Template checked
 			//		Check that terms in qr.x are in the selected Relationship Attribute
 			saveGen.qr.e1 = preID(saveGen.qr.e1);
 			saveGen.qr.e2 = preID(saveGen.qr.e2);
@@ -1973,6 +1972,38 @@ jQuery(document).ready(function() {
 				return newArray;
 			} // packUsedAttIDs
 
+				// PURPOSE: Ensure that Legends for QR Template have single entry for QR Relationship Attribute
+				// RETURNS: true if OK, false if problem
+			function checkRelLegends(legends, name)
+			{
+					// First get index to QR Template
+				var tID = saveGen.qr.t;
+				var qrI = defTemplates.findIndex(function(theT) { return tID === theT.id; });
+
+				for (var i=0; i<legends.length; i++) {
+					var lSet=legends[i];
+					for (j=0; j<lSet.length; j++) {
+						lItem=lSet[j];
+							// Are we checking the QR Template? Make sure only Relationship Att checked
+						if (i === qrI) {
+							if (lItem.attID == saveGen.qr.r) {
+								if (!lItem.useAtt) {
+									displayError('#errmsg-qr-rel-lgnd', name);
+									return false;
+								}
+							} else {
+								if (lItem.useAtt) {
+									displayError('#errmsg-qr-rel-lgnd', name);
+									return false;
+								}
+							}
+						}
+					}
+				}
+
+				return true;
+			} // checkRelLegends()
+
 				// Compact View Setting arrays
 			var vCount = rApp.get('viewSettings.length');
 			for (var i=0; i<vCount; i++) {
@@ -2249,6 +2280,9 @@ jQuery(document).ready(function() {
 						displayError('#errmsg-map-coords', i);
 						return false;
 					}
+					if (!checkRelLegends(viewSettings.c.lgnds, saveView.l)) {
+						return false;
+					}
 					saveView.c.clat = viewSettings.c.clat;
 					saveView.c.clon = viewSettings.c.clon;
 					saveView.c.zoom = viewSettings.c.zoom;
@@ -2270,6 +2304,9 @@ jQuery(document).ready(function() {
 						displayError('#errmsg-qr-usage', i);
 						return false;
 					}
+					if (!checkRelLegends(viewSettings.c.lgnds, saveView.l)) {
+						return false;
+					}
 					saveView.c.min = viewSettings.c.min;
 					saveView.c.max = viewSettings.c.max;
 					saveView.c.s   = viewSettings.c.s;
@@ -2284,6 +2321,9 @@ jQuery(document).ready(function() {
 						// Ensure that QR-Template enabled if QR views are defined
 					if (typeof saveGen.qr === 'undefined') {
 						displayError('#errmsg-qr-usage', i);
+						return false;
+					}
+					if (!checkRelLegends(viewSettings.c.lgnds, saveView.l)) {
 						return false;
 					}
 					saveView.c.s = viewSettings.c.s;

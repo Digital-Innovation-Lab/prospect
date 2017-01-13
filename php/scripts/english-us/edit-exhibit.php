@@ -1190,6 +1190,10 @@
 <?php _e('You cannot use a QRMap visualization if you haven’t provided the C1 setting at a minimum', 'prospect'); ?>
 </script>
 
+<script id="errmsg-qr-rel-lgnd" type='text/ractive'>
+<?php _e('The legend for the QR Template must have the Relationship Attribute selected (and only that Attribute) for', 'prospect'); ?>
+</script>
+
 
 <!-- MESSAGE -->
 <script id="msg-confirm-del-vf" type='text/ractive'>
