@@ -1633,12 +1633,7 @@ svg g.inactive text.facet-reset-txt {
 div.egograph {
 	width: 100%;
 	height: 100%;
-
-	display: -webkit-flex; /* Safari */
-	display: flex;
-
-	-webkit-flex-flow: row nowrap; /* Safari */
-    flex-flow: row nowrap;
+	white-space: nowrap;
 }
 
 div.egolist {
@@ -1651,11 +1646,19 @@ div.egolist {
 	color: #222;
 	font-family: Verdana, Arial, sans-serif;
 	font-size: 10px;
+
+	display: inline-block;
+	vertical-align: top;
 }
 
 div.egolist > div.sellist-scroll {
 	height: 270px;
 	overflow-y: scroll;
+}
+
+div.egograph svg {
+	display: inline-block;
+	vertical-align: top;
 }
 
 	/* bond can be both path and line element, so don't specify! */
