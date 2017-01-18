@@ -2615,6 +2615,8 @@ VizTime.prototype.render = function(stream)
 							if (e >= self.minDate && s <= self.maxDate) {
 									// Can we find a valid Legend color?
 								if (fData = PData.lRecs(fData, fAtt, featSet, false)) {
+										// Ensure Left end of band (start) is visible so label not invisible
+									s = Math.max(self.minDate, s);
 									self.rMap[aI >> 4] |= (1 << (aI & 15));
 									te.push({ s: s, e: e, ai: aI, f: f, c: fData, l: rec.l, t: 0 });
 								}
