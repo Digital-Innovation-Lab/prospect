@@ -1407,7 +1407,8 @@ jQuery(document).ready(function() {
 					// Potential Legends
 				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
 					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
-						return { attID: theLgndAtt, useAtt: true };
+						var attDef = getJAttribute(theLgndAtt);
+						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
 					});
 				});
 				newVFEntry.c.base= '.blank';
@@ -1439,7 +1440,8 @@ jQuery(document).ready(function() {
 					// Potential Legends
 				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
 					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
-						return { attID: theLgndAtt, useAtt: true };
+						var attDef = getJAttribute(theLgndAtt);
+						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
 					});
 				});
 					// Default Label settings
@@ -1458,7 +1460,8 @@ jQuery(document).ready(function() {
 					// Potential Legends
 				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
 					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
-						return { attID: theLgndAtt, useAtt: true };
+						var attDef = getJAttribute(theLgndAtt);
+						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
 					});
 				});
 					// Image Attribute
@@ -1499,7 +1502,8 @@ jQuery(document).ready(function() {
 					// Potential Legends
 				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
 					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
-						return { attID: theLgndAtt, useAtt: true };
+						var attDef = getJAttribute(theLgndAtt);
+						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
 					});
 				});
 				newVFEntry.c.lyrs= [];
@@ -1522,7 +1526,8 @@ jQuery(document).ready(function() {
 					// Potential Legends
 				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
 					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
-						return { attID: theLgndAtt, useAtt: true };
+						var attDef = getJAttribute(theLgndAtt);
+						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
 					});
 				});
 				break;
@@ -1549,7 +1554,8 @@ jQuery(document).ready(function() {
 					// Potential Legends
 				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
 					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
-						return { attID: theLgndAtt, useAtt: true };
+						var attDef = getJAttribute(theLgndAtt);
+						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
 					});
 				});
 				break;
@@ -1564,7 +1570,8 @@ jQuery(document).ready(function() {
 					// Potential Legends
 				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
 					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
-						return { attID: theLgndAtt, useAtt: true };
+						var attDef = getJAttribute(theLgndAtt);
+						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
 					});
 				});
 				newVFEntry.c.pAtts = _.map(iTemplates, function(theTemplate) {
@@ -1578,7 +1585,8 @@ jQuery(document).ready(function() {
 					// Potential Legends
 				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
 					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
-						return { attID: theLgndAtt, useAtt: true };
+						var attDef = getJAttribute(theLgndAtt);
+						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
 					});
 				});
 					// Potential Size
@@ -1611,7 +1619,8 @@ jQuery(document).ready(function() {
 					// Potential Legends
 				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
 					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
-						return { attID: theLgndAtt, useAtt: true };
+						var attDef = getJAttribute(theLgndAtt);
+						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
 					});
 				});
 				newVFEntry.c.pAtts = _.map(iTemplates, function(theTemplate) {
@@ -1631,7 +1640,8 @@ jQuery(document).ready(function() {
 					// Potential Legends
 				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
 					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
-						return { attID: theLgndAtt, useAtt: true };
+						var attDef = getJAttribute(theLgndAtt);
+						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
 					});
 				});
 				newVFEntry.c.base= '.blank';
@@ -1644,7 +1654,8 @@ jQuery(document).ready(function() {
 					// Potential Legends
 				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
 					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
-						return { attID: theLgndAtt, useAtt: true };
+						var attDef = getJAttribute(theLgndAtt);
+						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
 					});
 				});
 					// Potential Size
@@ -1659,7 +1670,8 @@ jQuery(document).ready(function() {
 					// Potential Legends
 				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
 					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
-						return { attID: theLgndAtt, useAtt: true };
+						var attDef = getJAttribute(theLgndAtt);
+						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
 					});
 				});
 				break;
