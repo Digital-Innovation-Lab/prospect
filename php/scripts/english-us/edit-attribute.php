@@ -79,7 +79,7 @@
 <!-- Partial: Legend for Vocabulary -->
 <script id="legendVocab" type='text/ractive'>
 	<h3><?php _e('Configure Vocabulary Legend', 'prospect'); ?></h3>
-	<button id="vocab-add-terms" on-click="addTerms"><?php _e('Add Terms', 'prospect'); ?></button>
+	<button id="vocab-add-terms" on-click="addTerms"><?php _e('Collect Terms', 'prospect'); ?></button>
 	<button on-click="resetLegend"><?php _e('Reset Visuals', 'prospect'); ?></button>
 	{{#if others.length > 0}}
 		<button on-click="copyLegend"><?php _e('Copy Legend', 'prospect'); ?></button>
