@@ -1513,7 +1513,8 @@ VizTimeRing.prototype.drawAll = function()
 		}
 	}
 	radius = (numRings-1) * this.r;
-	end = new Date(start.getTime() + (numRings-1)*denom);
+	var startTime = start.getTime();
+	end = new Date(startTime + (numRings-1)*denom);
 	this.ts.domain([start, end]);
 	this.ts.range([10, radius+10]);
 
@@ -1523,14 +1524,16 @@ VizTimeRing.prototype.drawAll = function()
 		// Create rings
 	var rings=[];
 	for (var i=0; i<numRings; i++) {
-		rings.push((i * this.r)+10);
+		rings.push({ r: (i * this.r)+10, d: new Date(startTime + (i*denom)) });
 	}
 	var ring = this.center.selectAll(".ring")
 		.data(rings)
 		.enter()
 		.append("circle")
 		.attr("class", "ring")
-		.attr("r", function(d) { return d; });
+		.attr("r", function(d) { return d.r; });
+	ring.append("title")
+		.text(function(d) { return d.d.getUTCFullYear() + '-' + (d.d.getMonth()+1) + '-' + d.d.getDate(); });
 
 		// Ego node
 	var pseudoEgo=[0];
