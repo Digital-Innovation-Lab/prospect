@@ -193,8 +193,7 @@ ul.radio li:hover, ul.radio li.focus {
 #annote {
 	position: absolute;
 	z-index: 1001;		/* Leaflet uses 400, so we need larger; must also be > Legend */
-	top: 4px;
-
+	top: 29px;
 	left: 60%;
 
 	max-width: 38%;
