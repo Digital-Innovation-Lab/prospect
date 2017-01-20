@@ -1671,7 +1671,7 @@ VizPinboard.prototype.render = function(stream)
 	} // clickPin()
 
 		// Remove all previous icons and links
-	this.gRecs.selectAll('.recobj').remove();
+	this.gRecs.selectAll('.cnode').remove();
 	this.gRecs.selectAll('.recline').remove();
 
 	if (this.recSel.length > 0) {
@@ -1788,10 +1788,10 @@ VizPinboard.prototype.render = function(stream)
 	} // while
 
 		// Apply D3 to nodes
-	this.gRecs.selectAll('.recobj')
+	this.gRecs.selectAll('.cnode')
 		.data(nodes)
 		.enter()
-		.append('circle').attr('class', 'recobj')
+		.append('circle').attr('class', 'cnode')
 		.attr('cx', function(d) { return self.xScale(d.x); })
 		.attr('cy', function(d) { return self.yScale(d.y); })
 		.attr('r', function(d) { return self.yScale(d.r); })
@@ -1833,7 +1833,7 @@ VizPinboard.prototype.clearSel = function()
 	if (this.recSel.length > 0) {
 		this.recSel = [];
 
-		this.gRecs.selectAll('.recobj').classed('obj-sel', false);
+		this.gRecs.selectAll('.cnode').classed('obj-sel', false);
 	}
 } // clearSel()
 
@@ -1842,7 +1842,7 @@ VizPinboard.prototype.setSel = function(absIArray)
 	var self = this;
 
 	this.recSel = absIArray;
-	this.gRecs.selectAll('.recobj').classed('obj-sel', function(d) {
+	this.gRecs.selectAll('.cnode').classed('obj-sel', function(d) {
 		return self.isSel(d.ai);
 	});
 } // setSel()
@@ -3636,7 +3636,7 @@ VizNetWheel.prototype.setup = function()
 			.attr("transform", "translate(" + self.cr + "," + self.cr + ")rotate(" + spin + ")");
 
 				// Change orientation if has changed "sides" since initial render
-		self.center.selectAll("g.node text")
+		self.center.selectAll("g.gnode text")
 				.attr("x", function(d) {
 					var x = d.x+spin;
 					x = x > 360 ? x-360 : x;
@@ -3772,7 +3772,7 @@ VizNetWheel.prototype.render = function(stream)
 	} // clickName()
 
 		// remove any existing nodes and links
-	this.center.selectAll(".node").remove();
+	this.center.selectAll(".gnode").remove();
 	this.center.selectAll(".link").remove();
 
 	if (this.recSel.length > 0) {
@@ -3948,11 +3948,11 @@ VizNetWheel.prototype.render = function(stream)
 		l.data.v = lI;
 	});
 
-	node = this.center.selectAll(".node")
+	node = this.center.selectAll(".gnode")
 		.data(leaves)
 		.enter()
 		.append("g")
-		.attr("class", "node")
+		.attr("class", "gnode")
 		.attr("transform", function(d) { return "translate(" + project(d.x, d.y) + ")"; });
 
 	node.append("circle")
@@ -3992,7 +3992,7 @@ VizNetWheel.prototype.setSel = function(absIArray)
 	var self=this;
 
 	self.recSel = absIArray;
-	this.svg.selectAll(".node circle")
+	this.svg.selectAll(".gnode circle")
 			.attr("class", function(d) { return self.isSel(d.data.ai) ? 'obj-sel' : '' });
 } // setSel()
 
@@ -4001,7 +4001,7 @@ VizNetWheel.prototype.clearSel = function()
 	if (this.recSel.length > 0) {
 		this.recSel = [];
 			// Only zoom band events are selected
-		this.svg.selectAll(".node circle")
+		this.svg.selectAll(".gnode circle")
 				.attr("class", '');
 	}
 } // clearSel()
@@ -4141,7 +4141,7 @@ VizNetGraph.prototype.render = function(stream)
 
 		// remove any existing nodes and links
 	this.svg.selectAll(".gnode").remove();
-	this.svg.selectAll(".glink").remove();
+	this.svg.selectAll(".llink").remove();
 
 	if (this.recSel.length > 0) {
 		this.recSel=[];
@@ -4312,20 +4312,39 @@ VizNetGraph.prototype.render = function(stream)
 		.data(links)
 	    .enter()
 		.append("line")
-		.attr("class", "glink")
+		.attr("class", "llink")
 		.style("stroke", function(d) { return d.c; });
 
-	node = this.svg.selectAll("circle")
+		// Experimental shapes code
+	var star = d3.symbol()
+	            .type(d3.symbolStar)
+	            .size(50);	// Should be 10 pixels square
+
+
+	node = this.svg.selectAll(".gnode")
     	.data(nodes)
-    	.enter()
-		.append("circle")
-    	.attr("class", "gnode")
-		.attr("r", function(d) { return d.s; })
-		.style("fill", function(d) { return d.c; })
+		.enter().append("g")
+        .attr("class", "gnode")
+        .attr("transform", function(d) { return "translate(0,0)"; })
 		.call(d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended))
 		.on("click", clickDot);
+	node.append("path")
+		.style("fill", function(d) { return d.c; })
+		.attr("d", star);
 	node.append("title")
 		.text(function(d) { return d.r.l; });
+
+	// node = this.svg.selectAll("circle")
+    // 	.data(nodes)
+    // 	.enter()
+	// 	.append("circle")
+    // 	.attr("class", "gnode")
+	// 	.attr("r", function(d) { return d.s; })
+	// 	.style("fill", function(d) { return d.c; })
+	// 	.call(d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended))
+	// 	.on("click", clickDot);
+	// node.append("title")
+	// 	.text(function(d) { return d.r.l; });
 
 		// Need new physics sim for each new render
 	i = this.settings.s;
@@ -4354,8 +4373,9 @@ VizNetGraph.prototype.render = function(stream)
 		        .attr("x2", function(d) { return d.target.x; })
 		        .attr("y2", function(d) { return d.target.y; });
     		node
-		        .attr("cx", function(d) { return d.x; })
-		        .attr("cy", function(d) { return d.y; });
+				.attr("transform", function(d) { return "translate("+d.x+","+d.y+")"; });
+		        // .attr("cx", function(d) { return d.x; })
+		        // .attr("cy", function(d) { return d.y; });
 		});
 } // render()
 

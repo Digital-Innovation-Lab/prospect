@@ -512,6 +512,7 @@ VizQRMap.prototype.doOptions = function()
 //		svg = SVG created for visualization
 //		physics = D3 force simulation object
 //		rels = [ [boolean], ], to match settings.pAtts, specifying if should display
+//		qrTI = index of QR Template
 
 var VizQRNet = function(viewFrame, vSettings)
 {
@@ -733,17 +734,37 @@ VizQRNet.prototype.render = function(stream)
 		.style("stroke", function(d) { return d.c; })
 		.on("click", doClick);
 
-	var node = this.svg.selectAll("circle")
+		// Experimental shapes code
+	var star = d3.symbol()
+	            .type(d3.symbolStar)
+	            .size(50);	// Should be 10 pixels square
+
+	var node = this.svg.selectAll(".gnode")
     	.data(nodes)
-    	.enter()
-		.append("circle")
-    	.attr("class", "gnode")
-		.attr("r", function(d) { return d.s; })
+			.enter().append("g")
+	        .attr("class", "gnode")
+	        .attr("transform", function(d) { return "translate(0,0)"; })
+			.call(d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended));
+
+	node.append("path")
 		.style("fill", function(d) { return d.c; })
-		.call(d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended))
+		.attr("d", star)
 		.on("click", doClick);
 	node.append("title")
 		.text(function(d) { return d.r.l; });
+
+		// Original code for circles
+	// var node = this.svg.selectAll("circle")
+    // 	.data(nodes)
+    // 	.enter()
+	// 	.append("circle")
+    // 	.attr("class", "gnode")
+	// 	.attr("r", function(d) { return d.s; })
+	// 	.style("fill", function(d) { return d.c; })
+	// 	.call(d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended))
+	// 	.on("click", doClick);
+	// node.append("title")
+	// 	.text(function(d) { return d.r.l; });
 
 		// Need new physics sim for each new render
 	qI = this.settings.s;
@@ -771,9 +792,12 @@ VizQRNet.prototype.render = function(stream)
 		        .attr("y1", function(d) { return d.source.y; })
 		        .attr("x2", function(d) { return d.target.x; })
 		        .attr("y2", function(d) { return d.target.y; });
-    		node
-		        .attr("cx", function(d) { return d.x; })
-		        .attr("cy", function(d) { return d.y; });
+
+			node
+				.attr("transform", function(d) { return "translate("+d.x+","+d.y+")"; });
+    		// node
+		    //     .attr("cx", function(d) { return d.x; })
+		    //     .attr("cy", function(d) { return d.y; });
 		});
 } // render()
 
@@ -932,7 +956,7 @@ VizEgoGraph.prototype.setEgo = function(id)
 	this.preRender(false, true);
 
 	this.center.selectAll(".bond").remove();
-	this.center.selectAll(".node").remove();
+	this.center.selectAll(".gnode").remove();
 	this.center.selectAll(".ring").remove();
 
 	var j=jQuery(this.frameID+" > div.egograph > div.egolist > div.sellist-scroll");
@@ -1063,19 +1087,37 @@ VizEgoGraph.prototype.setEgo = function(id)
         })
 		.on("click", clickLink);
 
-    var node = this.center.selectAll(".node")
-    	.data(root.descendants())
-    	.enter().append("g")
-        .attr("class", "node")
-        .attr("transform", function(d) { return "translate(" + project(d.x, d.y) + ")"; });
+	var star = d3.symbol()
+	            .type(d3.symbolStar)
+	            .size(100);
 
-    node.append("circle")
-        .attr("r", s.r)
-		.attr("fill", function(d) { return d.data.nc; })
+	var node = this.center.selectAll(".gnode")
+    	.data(root.descendants())
+			.enter().append("g")
+	        .attr("class", "gnode")
+	        .attr("transform", function(d) { return "translate(" + project(d.x, d.y) + ")"; });
+
+	node.append("path")
+		.style("fill", function(d) { return d.data.nc; })
+		.attr("d", star)
 		.on("click", clickNode);
 
 	node.append("title")
 		.text(function(d) { return d.data.r.l; });
+
+    // var node = this.center.selectAll(".node")
+    // 	.data(root.descendants())
+    // 	.enter().append("g")
+    //     .attr("class", "node")
+    //     .attr("transform", function(d) { return "translate(" + project(d.x, d.y) + ")"; });
+	//
+    // node.append("circle")
+    //     .attr("r", s.r)
+	// 	.attr("fill", function(d) { return d.data.nc; })
+	// 	.on("click", clickNode);
+	//
+	// node.append("title")
+	// 	.text(function(d) { return d.data.r.l; });
 } // setEgo()
 
 	// NOTES:	The render stage actually only compiles data and populates the selection list;
@@ -1219,7 +1261,7 @@ VizEgoGraph.prototype.setSel = function(absIArray)
 	var self=this;
 
 	self.recSel = absIArray;
-	this.center.selectAll(".node circle")
+	this.center.selectAll(".gnode")
 			.attr("class", function(d) { return self.isSel(d.data.ni) ? 'obj-sel' : '' });
 	this.center.selectAll(".bond")
 			.attr("class", function(d) { return self.isSel(d.data.li) ? 'bond obj-sel' : 'bond' });
@@ -1230,7 +1272,7 @@ VizEgoGraph.prototype.clearSel = function()
 	if (this.recSel.length > 0) {
 		this.recSel = [];
 			// Only zoom band events are selected
-		this.center.selectAll(".node circle").attr("class", '');
+		this.center.selectAll(".gnode").attr("class", '');
 		this.center.selectAll(".bond").attr("class", 'bond');
 	}
 } // clearSel()
@@ -1388,7 +1430,7 @@ VizTimeRing.prototype.setEgo = function(id)
 
 			// Remove everything
 		this.center.selectAll(".bond").remove();
-		this.center.selectAll(".node").remove();
+		this.center.selectAll(".enode").remove();
 		this.center.selectAll(".gnode").remove();
 		this.center.selectAll(".ring").remove();
 
@@ -1461,7 +1503,7 @@ VizTimeRing.prototype.drawAll = function()
 
 		// Remove everything
 	this.center.selectAll(".bond").remove();
-	this.center.selectAll(".node").remove();
+	this.center.selectAll(".enode").remove();
 	this.center.selectAll(".gnode").remove();
 	this.center.selectAll(".ring").remove();
 
@@ -1542,11 +1584,11 @@ VizTimeRing.prototype.drawAll = function()
 		var s = self.toggleSel(self.egoAbsI);
 		d3.select(this).classed('obj-sel', s);
 	} // clickEgo()
-	var node = this.center.selectAll(".gnode")
+	var node = this.center.selectAll(".enode")
 		.data(pseudoEgo)
 		.enter()
 		.append("circle")
-		.attr("class", "gnode")
+		.attr("class", "enode")
 		.attr("r", "5")
 		.attr("fill", "#000")
 		.on("click", clickEgo);
@@ -1558,10 +1600,10 @@ VizTimeRing.prototype.drawAll = function()
 	} // clickQR()
 
 		// "Spot" (single date) events
-    node = this.center.selectAll(".node")
+	node = this.center.selectAll(".gnode")
     	.data(this.spots)
     	.enter().append("g")
-        .attr("class", "node")
+        .attr("class", "gnode")
         .attr("transform", function(d) { return "translate(" + project(d.i, d.d.min, false) + ")"; });
     node.append("circle")
         .attr("r", "5")
@@ -1722,10 +1764,10 @@ VizTimeRing.prototype.setSel = function(absIArray)
 
 	self.recSel = absIArray;
 		// Assumed only 1 pseudo-ego gnode, so <d> isn't used
+	this.center.selectAll(".enode")
+			.attr("class", function(d) { return self.isSel(self.egoAbsI) ? 'enode obj-sel' : 'enode' });
 	this.center.selectAll(".gnode")
-			.attr("class", function(d) { return self.isSel(self.egoAbsI) ? 'gnode obj-sel' : 'gnode' });
-	this.center.selectAll(".node circle")
-			.attr("class", function(d) { return self.isSel(d.qr.qi) ? 'obj-sel' : '' });
+			.attr("class", function(d) { return self.isSel(d.qr.qi) ? 'gnode obj-sel' : 'gnode' });
 	this.center.selectAll(".bond")
 			.attr("class", function(d) { return self.isSel(d.qr.qi) ? 'bond obj-sel' : 'bond' });
 } // setSel()
@@ -1734,8 +1776,8 @@ VizTimeRing.prototype.clearSel = function()
 {
 	if (this.recSel.length > 0) {
 		this.recSel = [];
+		this.center.selectAll(".enode").attr("class", 'enode');
 		this.center.selectAll(".gnode").attr("class", 'gnode');
-		this.center.selectAll(".node circle").attr("class", '');
 		this.center.selectAll(".bond").attr("class", 'bond');
 	}
 } // clearSel()

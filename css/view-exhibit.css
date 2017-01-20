@@ -1170,7 +1170,7 @@ div.viz-result svg .axis line {
 
 	/* Pinboard styles */
 	/* recobj also reused by TimeRings */
-svg circle.recobj
+/* svg circle.recobj
 {
 	cursor: pointer;
 }
@@ -1180,7 +1180,7 @@ svg circle.recobj.obj-sel
 	stroke: yellow;
 	stroke-width: 1;
 	fill: none;
-}
+} */
 
 svg line.recline
 {
@@ -1338,50 +1338,67 @@ svg rect.block.obj-sel
 	stroke-width: 2px;
 }
 
-	/* Network Wheel styles */
-	/*	node > circle also used by EgoGraph, TimeRing */
-svg g.node
+	/*	gnode > circle / path used by Pinboard, Network Wheel, EgoGraph, TimeRing */
+		/* Changed g.node > g.gnode */
+svg g.gnode
 {
 	cursor: pointer;
 }
 
-svg g.node circle.obj-sel {
+svg g.gnode circle {
+	stroke: black;
+	stroke-width: 1px;
+}
+
+svg g.gnode circle.obj-sel {
 	stroke: yellow;
 	stroke-width: 2px;
 }
 
-svg g.node text {
+svg g.gnode path {
+	stroke: black;
+	stroke-width: 1px;
+}
+
+svg g.gnode path.obj-sel {
+	stroke: yellow;
+	stroke-width: 2px;
+}
+
+svg g.gnode text {
 	font-family:Verdana, Arial, sans-serif;
 	font-size: 11px;
 }
 
-svg path.link
+svg path.plink
 {
 	stroke-opacity: .7;
 	fill: none;
 	pointer-events: none;
 }
 
-svg path.link.thick
+svg path.plink.thick
 {
 	stroke-opacity: 1;
 	stroke-width: 2px;
 }
 
-	/* Network Graph, Bucket Matrix styles */
-	/* 		gnode is shared with QRNet, TimeRing */
-svg circle.gnode
+	/* cnode is used by Bucket Matrix */
+		/* circle.gnode > circle.cnode */
+svg circle.cnode
 {
 	cursor: pointer;
+	stroke: black;
+	stroke-width: 1px;
 }
 
-svg circle.gnode.obj-sel
+svg circle.cnode.obj-sel
 {
 	stroke: yellow;
 	stroke-width: 2px;
 }
 
-svg path.glink
+svg line.llink
 {
 	stroke-opacity: 1;
 	stroke-width: 2px;
