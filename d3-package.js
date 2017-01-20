@@ -30,7 +30,19 @@ export {
 
 export * from "d3-selection";
 
-export { area, line } from "d3-shape";
+export {
+	area,
+	line,
+	symbol,
+	symbols,
+	symbolCircle,
+	symbolCross,
+	symbolDiamond,
+	symbolSquare,
+	symbolStar,
+	symbolTriangle,
+	symbolWye
+} from "d3-shape";
 
 export { timeDay, timeDays } from "d3-time";
 
