@@ -540,6 +540,8 @@ VizQRNet.prototype.setup = function()
 
 	this.svg = d3.select(this.frameID).append("svg");
 
+	this.prepSym(this.settings.min);
+
 		// Set sizes and centers
 	var size = this.settings.s;
 	if (typeof size === 'string') {
@@ -570,6 +572,7 @@ VizQRNet.prototype.render = function(stream)
 
 		// remove any existing nodes and links
 	this.svg.selectAll(".gnode").remove();
+	this.svg.selectAll(".cnode").remove();
 	this.svg.selectAll(".bond").remove();
 
 	if (this.recSel.length > 0) {
@@ -734,44 +737,64 @@ VizQRNet.prototype.render = function(stream)
 		.style("stroke", function(d) { return d.c; })
 		.on("click", doClick);
 
-		// Experimental shapes code
-	var star = d3.symbol()
-	            .type(d3.symbolStar)
-	            .size(50);	// Should be 10 pixels square
-
-	var node = this.svg.selectAll(".gnode")
-    	.data(nodes)
+	var node;
+	switch (this.symType) {
+	case 'C':
+		node = this.svg.selectAll(".cnode")
+	    	.data(nodes)
+	    	.enter()
+			.append("circle")
+	    	.attr("class", "cnode")
+			.attr("r", function(d) { return d.s; })
+			.style("fill", function(d) { return d.c; })
+			.call(d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended))
+			.on("click", doClick);
+		break;
+	case 'S':
+		node = this.svg.selectAll(".gnode")
+	    	.data(nodes)
 			.enter().append("g")
 	        .attr("class", "gnode")
 	        .attr("transform", function(d) { return "translate(0,0)"; })
 			.call(d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended));
-
-	node.append("path")
-		.style("fill", function(d) { return d.c; })
-		.attr("d", star)
-		.on("click", doClick);
+		node.append("path")
+			.style("fill", function(d) { return d.c; })
+			.attr("d", function(d) {
+				var f = self.sFuncs[self.settings.syms[d.t]];
+					// First set size function
+				f.size((d.s*d.s)/2);
+				return f();
+			})
+			.on("click", doClick);
+		break;
+	case 'I':
+		node = this.svg.selectAll(".gnode")
+			.data(nodes)
+			.enter().append("g")
+			.attr("class", "gnode")
+			.attr("transform", function(d) { return "translate(0,0)"; })
+			.call(d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended));
+		node.append("image")
+			.attr("xlink:href", function(d) {
+				var i = self.settings.iAtts[d.t];
+				return i === 'disable' ? '' : d.r.a[i];
+			})
+			.attr("x", function(d) { return "-"+(d.s/2)+"px"; })
+			.attr("y", function(d) { return "-"+(d.s/2)+"px"; })
+			.attr("width", function(d) { return d.s+"px"; })
+			.attr("height", function(d) { return d.s+"px"; })
+			.on("click", doClick);
+		break;
+	}
 	node.append("title")
 		.text(function(d) { return d.r.l; });
-
-		// Original code for circles
-	// var node = this.svg.selectAll("circle")
-    // 	.data(nodes)
-    // 	.enter()
-	// 	.append("circle")
-    // 	.attr("class", "gnode")
-	// 	.attr("r", function(d) { return d.s; })
-	// 	.style("fill", function(d) { return d.c; })
-	// 	.call(d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended))
-	// 	.on("click", doClick);
-	// node.append("title")
-	// 	.text(function(d) { return d.r.l; });
 
 		// Need new physics sim for each new render
 	qI = this.settings.s;
 	this.physics = d3.forceSimulation()
 		.force("center", d3.forceCenter(qI/2, qI/2))
 	    .force("link", d3.forceLink())
-	    .force("charge", d3.forceManyBody().distanceMin((maxR+minR)/2).distanceMax(qI/8));
+	    .force("charge", d3.forceManyBody().distanceMin(((minR+maxR)/2)+4).distanceMax(qI/8));
 
 	this.physics.force("link").links(links);
 
@@ -793,11 +816,15 @@ VizQRNet.prototype.render = function(stream)
 		        .attr("x2", function(d) { return d.target.x; })
 		        .attr("y2", function(d) { return d.target.y; });
 
-			node
-				.attr("transform", function(d) { return "translate("+d.x+","+d.y+")"; });
-    		// node
-		    //     .attr("cx", function(d) { return d.x; })
-		    //     .attr("cy", function(d) { return d.y; });
+			switch (self.symType) {
+			case 'C':
+				node.attr("cx", function(d) { return d.x; }).attr("cy", function(d) { return d.y; });
+				break;
+			case 'S':
+			case 'I':
+				node.attr("transform", function(d) { return "translate("+d.x+","+d.y+")"; });
+				break;
+			}
 		});
 } // render()
 
@@ -806,20 +833,36 @@ VizQRNet.prototype.setSel = function(absIArray)
 	var self=this;
 
 	self.recSel = absIArray;
-	this.svg.selectAll(".gnode")
-			.attr("class", function(d) { return self.isSel(d.ai) ? 'obj-sel gnode' : 'gnode' });
+
+	switch (this.symType) {
+	case 'C':
+		this.svg.selectAll(".cnode")
+			.classed('obj-sel', function(d) { return self.isSel(d.ai) });
+		break;
+	case 'S':
+	case 'I':
+		this.svg.selectAll(".gnode "+this.symStr)
+			.classed('obj-sel', function(d) { return self.isSel(d.ai) });
+		break;
+	}
 	this.svg.selectAll(".bond")
-			.attr("class", function(d) { return self.isSel(d.ai) ? 'obj-sel bond' : 'bond' });
+		.classed('obj-sel', function(d) { return self.isSel(d.ai) });
 } // setSel()
 
 VizQRNet.prototype.clearSel = function()
 {
 	if (this.recSel.length > 0) {
 		this.recSel = [];
-		this.svg.selectAll(".gnode")
-				.attr("class", 'gnode');
-		this.svg.selectAll(".bond")
-				.attr("class", 'bond');
+		switch (this.symType) {
+		case 'C':
+			this.svg.selectAll(".cnode").classed('obj-sel', false);
+			break;
+		case 'S':
+		case 'I':
+			this.svg.selectAll(".gnode "+this.symStr).classed('obj-sel', false);
+			break;
+		}
+		this.svg.selectAll(".bond").classed("obj-sel", false);
 	}
 } // clearSel()
 
@@ -895,6 +938,8 @@ VizEgoGraph.prototype.setup = function()
 	this.ego = null;
 
 	this.qrTI = PData.tIByID(prspdata.e.g.qr.t);
+
+	this.prepSym(this.settings.r);
 
 	j.append(document.getElementById('dltext-ego-graph').innerHTML);
 
@@ -1003,7 +1048,7 @@ VizEgoGraph.prototype.setEgo = function(id)
 			// Mark this node as "used"
 		dr.u = true;
 		self.rMap[dr.ai >> 4] |= (1 << (dr.ai & 15));
-		return { parent: p, children: [], lc: lc, li: li, nc: dr.f, ni: dr.ai, r: dr.r };
+		return { parent: p, children: [], lc: lc, li: li, nc: dr.f, ni: dr.ai, r: dr.r, ti: dr.t };
 	} // newNode()
 
 		// PURPOSE: Breadth-first recursive function to add node <nID> to tree
@@ -1087,37 +1132,41 @@ VizEgoGraph.prototype.setEgo = function(id)
         })
 		.on("click", clickLink);
 
-	var star = d3.symbol()
-	            .type(d3.symbolStar)
-	            .size(100);
-
 	var node = this.center.selectAll(".gnode")
-    	.data(root.descendants())
-			.enter().append("g")
-	        .attr("class", "gnode")
-	        .attr("transform", function(d) { return "translate(" + project(d.x, d.y) + ")"; });
+		.data(root.descendants())
+		.enter().append("g")
+		.attr("class", "gnode")
+		.attr("transform", function(d) { return "translate(" + project(d.x, d.y) + ")"; });
 
-	node.append("path")
-		.style("fill", function(d) { return d.data.nc; })
-		.attr("d", star)
-		.on("click", clickNode);
+	switch (this.symType) {
+	case 'C':
+	    node.append("circle")
+	        .attr("r", s.r)
+			.attr("fill", function(d) { return d.data.nc; })
+			.on("click", clickNode);
+		break;
+	case 'S':
+		node.append("path")
+			.style("fill", function(d) { return d.data.nc; })
+			.attr("d", function(d) { return self.sFuncs[s.syms[d.data.ti]](); })
+			.on("click", clickNode);
+		break;
+	case 'I':
+		node.append("image")
+			.attr("xlink:href", function(d) {
+				var i = s.iAtts[d.data.ti];
+				return i === 'disable' ? '' : d.data.r.a[i];
+			})
+			.attr("x", function(d) { return "-"+(s.r/2)+"px"; })
+			.attr("y", function(d) { return "-"+(s.r/2)+"px"; })
+			.attr("width", function(d) { return s.r+"px"; })
+			.attr("height", function(d) { return s.r+"px"; })
+			.on("click", clickNode);
+		break;
+	}
 
 	node.append("title")
 		.text(function(d) { return d.data.r.l; });
-
-    // var node = this.center.selectAll(".node")
-    // 	.data(root.descendants())
-    // 	.enter().append("g")
-    //     .attr("class", "node")
-    //     .attr("transform", function(d) { return "translate(" + project(d.x, d.y) + ")"; });
-	//
-    // node.append("circle")
-    //     .attr("r", s.r)
-	// 	.attr("fill", function(d) { return d.data.nc; })
-	// 	.on("click", clickNode);
-	//
-	// node.append("title")
-	// 	.text(function(d) { return d.data.r.l; });
 } // setEgo()
 
 	// NOTES:	The render stage actually only compiles data and populates the selection list;
@@ -1133,7 +1182,7 @@ VizEgoGraph.prototype.render = function(stream)
 		// Color links by relationships (after ego is selected)
 	var self=this;
 	var qrrecs=[];			// [ { qr [original QR], qi [absI], e1, e2, f[eature Val], u[sed] }]
-	var recData=[];			// [ { ai, id, r[ec], f[eature Val], u[sed] }]
+	var recData=[];			// [ { ai, id, r[ec], f[eature Val], t[emplate index], u[sed] }]
 	var qrconfig=prspdata.e.g.qr;
 	var tRec=stream.t[this.qrTI];
 	var relI=tRec.i, qI, qrRec;
@@ -1154,7 +1203,6 @@ VizEgoGraph.prototype.render = function(stream)
 		fAtts.push(i1 ? PData.aByID(i1) : null);
 		featSets.push(i1 ? this.vFrame.getSelFeatAtts(qI) : null);
 		this.tUsed[qI] = (i1 != null);
-		// this.tUsed[qI] = true;		// Always true so that QR Attributes available
 	}
 	rAtt = fAtts[this.qrTI];
 	rAttID = rAtt.id;
@@ -1197,9 +1245,9 @@ VizEgoGraph.prototype.render = function(stream)
 				fDatum = PData.lClr(fDatum, fAtts[tI], featSets[tI]);
 				if (fDatum) {
 					if (append) {
-						recData.push({ ai: absI, id: id, r: rec, f: fDatum, u: false });
+						recData.push({ ai: absI, id: id, r: rec, f: fDatum, t: tI, u: false });
 					} else {
-						recData.splice(i, 0, { ai: absI, id: id, r: rec, f: fDatum, u: false });
+						recData.splice(i, 0, { ai: absI, id: id, r: rec, f: fDatum, t: tI, u: false });
 					}
 					return i;
 				} else {
@@ -1261,10 +1309,10 @@ VizEgoGraph.prototype.setSel = function(absIArray)
 	var self=this;
 
 	self.recSel = absIArray;
-	this.center.selectAll(".gnode")
-			.attr("class", function(d) { return self.isSel(d.data.ni) ? 'obj-sel' : '' });
+	this.center.selectAll(".gnode "+this.symStr)
+		.classed('obj-sel', function(d) { return self.isSel(d.data.ni); } );
 	this.center.selectAll(".bond")
-			.attr("class", function(d) { return self.isSel(d.data.li) ? 'bond obj-sel' : 'bond' });
+		.classed('obj-sel', function(d) { return self.isSel(d.data.li); } );
 } // setSel()
 
 VizEgoGraph.prototype.clearSel = function()
@@ -1272,8 +1320,8 @@ VizEgoGraph.prototype.clearSel = function()
 	if (this.recSel.length > 0) {
 		this.recSel = [];
 			// Only zoom band events are selected
-		this.center.selectAll(".gnode").attr("class", '');
-		this.center.selectAll(".bond").attr("class", 'bond');
+		this.center.selectAll(".gnode "+this.symStr).classed('obj-sel', false);
+		this.center.selectAll(".bond").classed("obj-sel", false);
 	}
 } // clearSel()
 
@@ -1765,20 +1813,20 @@ VizTimeRing.prototype.setSel = function(absIArray)
 	self.recSel = absIArray;
 		// Assumed only 1 pseudo-ego gnode, so <d> isn't used
 	this.center.selectAll(".enode")
-			.attr("class", function(d) { return self.isSel(self.egoAbsI) ? 'enode obj-sel' : 'enode' });
+		.classed('obj-sel', function(d) { return self.isSel(self.egoAbsI); });
 	this.center.selectAll(".gnode")
-			.attr("class", function(d) { return self.isSel(d.qr.qi) ? 'gnode obj-sel' : 'gnode' });
+		.classed('obj-sel', function(d) { return self.isSel(d.qr.qi); });
 	this.center.selectAll(".bond")
-			.attr("class", function(d) { return self.isSel(d.qr.qi) ? 'bond obj-sel' : 'bond' });
+		.classed('obj-sel', function(d) { return self.isSel(d.qr.qi); });
 } // setSel()
 
 VizTimeRing.prototype.clearSel = function()
 {
 	if (this.recSel.length > 0) {
 		this.recSel = [];
-		this.center.selectAll(".enode").attr("class", 'enode');
-		this.center.selectAll(".gnode").attr("class", 'gnode');
-		this.center.selectAll(".bond").attr("class", 'bond');
+		this.center.selectAll(".enode").classed('obj-sel', false);
+		this.center.selectAll(".gnode").classed('obj-sel', false);
+		this.center.selectAll(".bond").classed('obj-sel', false);
 	}
 } // clearSel()
 

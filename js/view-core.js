@@ -89,6 +89,10 @@ var dlText={};					// Dynamically-loaded text stored in Object
 //			recSel = array containing absIndex of selected Records
 //			tUsed = boolean array, 1/Template, indicating if any Records of this Template type rendered
 //			rMap = bitmap indicating if each Record was rendered on the view
+//			-- in case of visualizations that use symbols: --
+//				symType = 'C' if default circle markers, 'S' if symbols, 'I' if images
+//				symStr = 'circle', 'path' or 'image'
+//				sFuncs[] = D3 symbol function (if using symbols), accessed by symbol letter
 
 	// INPUT: 	viewFrame = instance variable returned from ViewModel pseudo-constructor
 	//			vizSettings = c section of VF entry
@@ -102,8 +106,9 @@ function PVizModel(viewFrame, vizSettings)
 	this.rMap 		= null;		// bit map by absIndex tracking whether Record was rendered
 
 		// Utility functions
-	// this.preRender
-	// this.tUsed
+	// this.preRender()
+	// this.tUsed()
+	// this.prepSym()
 		// Subclasses can override the following:
 	// this.getLocAtts(tIndex)
 	// this.getFeatureAtts(tIndex)
@@ -152,6 +157,37 @@ PVizModel.prototype.preRender = function(initT, initR)
 		}
 	}
 } // preRender()
+
+	// PURPOSE: Determine whether visualization uses symbols, create functions if so
+	// INPUT:	s = default pixel size for symbols
+PVizModel.prototype.prepSym = function(s)
+{
+	if (typeof this.settings.ms === 'undefined') {
+		this.symType = 'C';
+		this.symStr  = 'circle';
+	} else {
+		switch (this.settings.ms) {
+		// case 'C':	// should not be necessary as left undefined in this case
+		// 	break;
+		case 'S':	// Symbols
+			this.symType = 'S';
+			this.symStr  = 'path';
+			var x=(s*s)/2;
+			this.sFuncs = new Array(6);
+			this.sFuncs[0] = d3.symbol().type(d3.symbolCircle).size(x);
+			this.sFuncs[1] = d3.symbol().type(d3.symbolCross).size(x);
+			this.sFuncs[2] = d3.symbol().type(d3.symbolDiamond).size(x);
+			this.sFuncs[3] = d3.symbol().type(d3.symbolSquare).size(x);
+			this.sFuncs[4] = d3.symbol().type(d3.symbolStar).size(x);
+			this.sFuncs[5] = d3.symbol().type(d3.symbolWye).size(x);
+			break;
+		case 'I':	// Images
+			this.symType = 'I';
+			this.symStr = 'image';
+			break;
+		} // switch
+	}
+} // prepSym()
 
 	// RETURNS: True if record ID is in selected list
 PVizModel.prototype.isSel = function(absI)
@@ -1587,8 +1623,7 @@ VizPinboard.prototype.setup = function()
 		self.lOps.push(layer.o*100);
 	});
 
-		// Maintain number of Loc Atts per Template type
-	var numT = PData.eTNum();
+	this.prepSym(this.settings.min);
 
 	this.xScale = d3.scaleLinear().domain([0, s.iw-1]).range([0, s.dw-1]);
 	this.yScale = d3.scaleLinear().domain([0, s.ih-1]).range([0, s.dh-1]);
@@ -1672,6 +1707,7 @@ VizPinboard.prototype.render = function(stream)
 
 		// Remove all previous icons and links
 	this.gRecs.selectAll('.cnode').remove();
+	this.gRecs.selectAll('.gnode').remove();
 	this.gRecs.selectAll('.recline').remove();
 
 	if (this.recSel.length > 0) {
@@ -1772,8 +1808,7 @@ VizPinboard.prototype.render = function(stream)
 					} else
 						sAtt = minR;
 
-						// TO DO: Handle polygons?
-					nodes.push({ ai: aI, v: fData, x: locData[0], y: locData[1], r: sAtt });
+					nodes.push({ ai: aI, v: fData, x: locData[0], y: locData[1], r: sAtt, t: tI });
 					if (cEntry)
 						cEntry.c = locData;
 				} // if fData
@@ -1787,16 +1822,55 @@ VizPinboard.prototype.render = function(stream)
 		}
 	} // while
 
-		// Apply D3 to nodes
-	this.gRecs.selectAll('.cnode')
-		.data(nodes)
-		.enter()
-		.append('circle').attr('class', 'cnode')
-		.attr('cx', function(d) { return self.xScale(d.x); })
-		.attr('cy', function(d) { return self.yScale(d.y); })
-		.attr('r', function(d) { return self.yScale(d.r); })
-		.style('fill', function(d) { return d.v; })
-		.on('click', clickPin);
+	var node;
+	switch (this.symType) {
+	case 'C':	// circles
+		node = this.gRecs.selectAll('.cnode')
+			.data(nodes)
+			.enter()
+			.append('circle').attr('class', 'cnode')
+			.attr('cx', function(d) { return self.xScale(d.x); })
+			.attr('cy', function(d) { return self.yScale(d.y); })
+			.attr('r', function(d) { return self.yScale(d.r); })
+			.style('fill', function(d) { return d.v; })
+			.on('click', clickPin);
+		break;
+	case 'S':	// symbols
+		node = this.gRecs.selectAll('.gnode')
+			.data(nodes)
+			.enter()
+			.attr("class", "gnode")
+			.attr("transform", function(d) { return "translate("+self.xScale(d.x)+","+self.yScale(d.y)+")"; });
+		node.append("path")
+			.style("fill", function(d) { return d.v; })
+			.attr("d", function(d) {
+				var f = self.sFuncs[self.settings.syms[d.t]];
+				var r = self.yScale(d.r);
+					// First set size function
+				f.size((r*r)/2);
+				return f();
+			})
+			.style('fill', function(d) { return d.v; })
+			.on('click', clickPin);
+		break;
+	case 'I':	// images
+		node = this.gRecs.selectAll('.gnode')
+			.data(nodes)
+			.enter()
+			.attr("class", "gnode")
+			.attr("transform", function(d) { return "translate("+self.xScale(d.x)+","+self.yScale(d.y)+")"; });
+		node.append("image")
+			.attr("xlink:href", function(d) {
+				var i = self.settings.iAtts[d.t];
+				return i === 'disable' ? '' : d.r.a[i];
+			})
+			.attr("x", function(d) { return "-"+(d.s/2)+"px"; })
+			.attr("y", function(d) { return "-"+(d.s/2)+"px"; })
+			.attr("width", function(d) { return d.s+"px"; })
+			.attr("height", function(d) { return d.s+"px"; })
+			.on('click', clickPin);
+		break;
+	}
 
 		// Use cache to create connections
 	if (mCache) {
@@ -1832,8 +1906,14 @@ VizPinboard.prototype.clearSel = function()
 {
 	if (this.recSel.length > 0) {
 		this.recSel = [];
-
-		this.gRecs.selectAll('.cnode').classed('obj-sel', false);
+		switch (this.symType) {
+		case 'C':
+			this.gRecs.selectAll('.cnode').classed('obj-sel', false);
+			break;
+		case 'S':
+		case 'I':
+			this.gRecs.selectAll('.gnode '+this.symStr).classed('obj-sel', false);
+		}
 	}
 } // clearSel()
 
@@ -1842,9 +1922,19 @@ VizPinboard.prototype.setSel = function(absIArray)
 	var self = this;
 
 	this.recSel = absIArray;
-	this.gRecs.selectAll('.cnode').classed('obj-sel', function(d) {
-		return self.isSel(d.ai);
-	});
+	switch (this.symType) {
+	case 'C':
+		this.gRecs.selectAll('.cnode').classed('obj-sel', function(d) {
+			return self.isSel(d.ai);
+		});
+		break;
+	case 'S':
+	case 'I':
+		this.gRecs.selectAll('.gnode '+this.symStr).classed('obj-sel', function(d) {
+			return self.isSel(d.ai);
+		});
+		break;
+	}
 } // setSel()
 
 	// NOTE: Since the opacities dialog is shared, GUI must be recreated
@@ -3025,44 +3115,44 @@ VizTime.prototype.setSel = function(absIArray)
 	var self=this;
 
 	self.recSel = absIArray;
-	function eventClass(d)
-	{
-		if (self.isSel(d.ai)) {
-			if (d.f & EVENT_INSTANT) {
-				return "event instant obj-sel";
-			} else {
-				return "event range obj-sel";
-			}
-		} else {
-			if (d.f & EVENT_INSTANT) {
-				return "event instant";
-			} else {
-				return "event range";
-			}
-		}
-	} // checkSel()
+	// function eventClass(d)
+	// {
+	// 	if (self.isSel(d.ai)) {
+	// 		if (d.f & EVENT_INSTANT) {
+	// 			return "event instant obj-sel";
+	// 		} else {
+	// 			return "event range obj-sel";
+	// 		}
+	// 	} else {
+	// 		if (d.f & EVENT_INSTANT) {
+	// 			return "event instant";
+	// 		} else {
+	// 			return "event range";
+	// 		}
+	// 	}
+	// } // checkSel()
 
 		// Only zoom band events are selected
 	d3.select(this.bands[1].svgID).selectAll(".event")
-			.attr("class", eventClass);
+			.classed("obj-sel", function(d) { return self.isSel(d.ai); });
 } // setSel()
 
 VizTime.prototype.clearSel = function()
 {
-	function eventClass(d)
-	{
-		if (d.f & EVENT_INSTANT) {
-			return "event instant";
-		} else {
-			return "event range";
-		}
-	} // checkSel()
+	// function eventClass(d)
+	// {
+	// 	if (d.f & EVENT_INSTANT) {
+	// 		return "event instant";
+	// 	} else {
+	// 		return "event range";
+	// 	}
+	// } // checkSel()
 
 	if (this.recSel.length > 0) {
 		this.recSel = [];
 			// Only zoom band events are selected
 		d3.select(this.bands[1].svgID).selectAll(".event")
-				.attr("class", eventClass);
+				.classed("obj-sel", false);
 	}
 } // clearSel()
 
@@ -3773,7 +3863,7 @@ VizNetWheel.prototype.render = function(stream)
 
 		// remove any existing nodes and links
 	this.center.selectAll(".gnode").remove();
-	this.center.selectAll(".link").remove();
+	this.center.selectAll(".plink").remove();
 
 	if (this.recSel.length > 0) {
 		this.recSel=[];
@@ -3969,10 +4059,10 @@ VizNetWheel.prototype.render = function(stream)
 			.text(function(d) { return d.data.r.l; })
 			.on("click", clickName);
 
-	link = this.center.selectAll(".link")
+	link = this.center.selectAll(".plink")
 		.data(links)
 	    .enter().append("path")
-	    .attr("class", "link")
+	    .attr("class", "plink")
 		.attr("stroke", "black")
 	    .attr("d", function(d) {
 			var s=leaves[d.s.v], t=leaves[d.t.v];
@@ -3993,7 +4083,8 @@ VizNetWheel.prototype.setSel = function(absIArray)
 
 	self.recSel = absIArray;
 	this.svg.selectAll(".gnode circle")
-			.attr("class", function(d) { return self.isSel(d.data.ai) ? 'obj-sel' : '' });
+		.classed('obj-sel', function(d) { return self.isSel(d.data.ai); } );
+			// .attr("class", function(d) { return self.isSel(d.data.ai) ? 'obj-sel' : '' });
 } // setSel()
 
 VizNetWheel.prototype.clearSel = function()
@@ -4002,7 +4093,8 @@ VizNetWheel.prototype.clearSel = function()
 		this.recSel = [];
 			// Only zoom band events are selected
 		this.svg.selectAll(".gnode circle")
-				.attr("class", '');
+			.classed('obj-sel', false);
+				// .attr("class", '');
 	}
 } // clearSel()
 
@@ -4110,6 +4202,8 @@ VizNetGraph.prototype.setup = function()
 	this.svg.attr("width", size)
 		.attr("height", size);
 
+	this.prepSym(this.settings.min);
+
 		// By default, all relationships are shown
 	this.rels=[];
 	this.settings.pAtts.forEach(function(pSet) {
@@ -4141,6 +4235,7 @@ VizNetGraph.prototype.render = function(stream)
 
 		// remove any existing nodes and links
 	this.svg.selectAll(".gnode").remove();
+	this.svg.selectAll(".cnode").remove();
 	this.svg.selectAll(".llink").remove();
 
 	if (this.recSel.length > 0) {
@@ -4315,36 +4410,56 @@ VizNetGraph.prototype.render = function(stream)
 		.attr("class", "llink")
 		.style("stroke", function(d) { return d.c; });
 
-		// Experimental shapes code
-	var star = d3.symbol()
-	            .type(d3.symbolStar)
-	            .size(50);	// Should be 10 pixels square
-
-
-	node = this.svg.selectAll(".gnode")
-    	.data(nodes)
-		.enter().append("g")
-        .attr("class", "gnode")
-        .attr("transform", function(d) { return "translate(0,0)"; })
-		.call(d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended))
-		.on("click", clickDot);
-	node.append("path")
-		.style("fill", function(d) { return d.c; })
-		.attr("d", star);
+	switch (this.symType) {
+	case 'C':
+		node = this.svg.selectAll(".cnode")
+	    	.data(nodes)
+	    	.enter()
+			.append("circle")
+	    	.attr("class", "cnode")
+			.attr("r", function(d) { return d.s; })
+			.style("fill", function(d) { return d.c; })
+			.call(d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended))
+			.on("click", clickDot);
+		break;
+	case 'S':	// Symbol
+		node = this.svg.selectAll(".gnode")
+	    	.data(nodes)
+			.enter().append("g")
+	        .attr("class", "gnode")
+	        .attr("transform", function(d) { return "translate(0,0)"; })
+			.call(d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended));
+		node.append("path")
+			.style("fill", function(d) { return d.c; })
+			.attr("d", function(d) {
+				var f = self.sFuncs[self.settings.syms[d.t]];
+					// First set size function
+				f.size((d.s*d.s)/2);
+				return f();
+			})
+			.on("click", clickDot);
+		break;
+	case 'I':	// Image
+		node = this.svg.selectAll(".gnode")
+			.data(nodes)
+			.enter().append("g")
+			.attr("class", "gnode")
+			.attr("transform", function(d) { return "translate(0,0)"; })
+			.call(d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended));
+		node.append("image")
+			.attr("xlink:href", function(d) {
+				var i = self.settings.iAtts[d.t];
+				return i === 'disable' ? '' : d.r.a[i];
+			})
+	    	.attr("x", function(d) { return "-"+(d.s/2)+"px"; })
+	    	.attr("y", function(d) { return "-"+(d.s/2)+"px"; })
+	    	.attr("width", function(d) { return d.s+"px"; })
+	    	.attr("height", function(d) { return d.s+"px"; })
+			.on("click", clickDot);
+		break;
+	} // switch symType
 	node.append("title")
 		.text(function(d) { return d.r.l; });
-
-	// node = this.svg.selectAll("circle")
-    // 	.data(nodes)
-    // 	.enter()
-	// 	.append("circle")
-    // 	.attr("class", "gnode")
-	// 	.attr("r", function(d) { return d.s; })
-	// 	.style("fill", function(d) { return d.c; })
-	// 	.call(d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended))
-	// 	.on("click", clickDot);
-	// node.append("title")
-	// 	.text(function(d) { return d.r.l; });
 
 		// Need new physics sim for each new render
 	i = this.settings.s;
@@ -4372,10 +4487,15 @@ VizNetGraph.prototype.render = function(stream)
 		        .attr("y1", function(d) { return d.source.y; })
 		        .attr("x2", function(d) { return d.target.x; })
 		        .attr("y2", function(d) { return d.target.y; });
-    		node
-				.attr("transform", function(d) { return "translate("+d.x+","+d.y+")"; });
-		        // .attr("cx", function(d) { return d.x; })
-		        // .attr("cy", function(d) { return d.y; });
+			switch (self.symType) {
+			case 'C':
+				node.attr("cx", function(d) { return d.x; }).attr("cy", function(d) { return d.y; });
+				break;
+			case 'S':
+			case 'I':
+				node.attr("transform", function(d) { return "translate("+d.x+","+d.y+")"; });
+				break;
+			}
 		});
 } // render()
 
@@ -4384,17 +4504,34 @@ VizNetGraph.prototype.setSel = function(absIArray)
 	var self=this;
 
 	self.recSel = absIArray;
-	this.svg.selectAll(".gnode")
-			.attr("class", function(d) { return self.isSel(d.ai) ? 'obj-sel gnode' : 'gnode' });
+	switch (this.symType) {
+	case 'C':
+		this.svg.selectAll(".cnode")
+			.classed("obj-sel", function(d) { return self.isSel(d.ai); } );
+				// .attr("class", function(d) { return self.isSel(d.ai) ? 'obj-sel cnode' : 'cnode' });
+		break;
+	case 'S':
+	case 'I':
+		this.svg.selectAll(".gnode "+this.symStr)
+			.classed("obj-sel", function(d) { return self.isSel(d.ai); });
+		break;
+	}
 } // setSel()
 
 VizNetGraph.prototype.clearSel = function()
 {
 	if (this.recSel.length > 0) {
 		this.recSel = [];
-			// Only zoom band events are selected
-		this.svg.selectAll(".gnode")
-				.attr("class", 'gnode');
+
+		switch (this.symType) {
+		case 'C':
+			this.svg.selectAll(".cnode").classed("obj-sel", false);
+			break;
+		case 'S':
+		case 'I':
+			this.svg.selectAll(".gnode "+this.symStr).classed("obj-sel", false);
+			break;
+		}
 	}
 } // clearSel()
 
@@ -4676,10 +4813,10 @@ VizBMatrix.prototype.render = function(stream)
 		this.svg.attr("width", maxW)
 			.attr("height", tY);
 
-		var node = this.svg.selectAll(".gnode")
+		var node = this.svg.selectAll(".cnode")
 	    	.data(nodes)
 	    	.enter().append("circle")
-	    	.attr("class", "gnode")
+	    	.attr("class", "cnode")
 			.attr("r", nR)
 			.attr("cx", function(d) { return d.x; })
 			.attr("cy", function(d) { return d.y; })
@@ -4768,8 +4905,9 @@ VizBMatrix.prototype.updateLinks = function()
 VizBMatrix.prototype.updateNodes = function()
 {
 	var self=this;
-	this.svg.selectAll(".gnode")
-		.attr("class", function(d) { return self.isSel(d.ai) ? 'gnode obj-sel' : 'gnode' });
+	this.svg.selectAll(".cnode")
+		.classed('obj-sel', function(d) { return self.isSel(d.ai); });
+		// .attr("class", function(d) { return self.isSel(d.ai) ? 'gnode obj-sel' : 'gnode' });
 } // updateNodes
 
 VizBMatrix.prototype.setSel = function(absIArray)
@@ -4785,8 +4923,8 @@ VizBMatrix.prototype.clearSel = function()
 {
 	if (this.recSel.length > 0) {
 		this.recSel = [];
-		this.svg.selectAll(".gnode")
-				.attr("class", 'gnode');
+		this.svg.selectAll(".cnode")
+				.attr("class", 'cnode');
 		this.svg.selectAll(".bmlink")
 				.attr("class", 'bmlink');
 	}

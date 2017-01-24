@@ -1168,27 +1168,6 @@ div.viz-result svg .axis line {
 	shape-rendering: crispEdges;
 }
 
-	/* Pinboard styles */
-	/* recobj also reused by TimeRings */
-/* svg circle.recobj
-{
-	cursor: pointer;
-}
-
-svg circle.recobj.obj-sel
-{
-	stroke: yellow;
-	stroke-width: 1;
-	fill: none;
-} */
-
-svg line.recline
-{
-	stroke-opacity: 1;
-	stroke-width: 2px;
-	pointer-events: none;
-}
-
 	/* Timeline styles
 	 * DOM structure
 	 * 	tl-vf	(Outermost SVG)
@@ -1338,6 +1317,27 @@ svg rect.block.obj-sel
 	stroke-width: 2px;
 }
 
+	/* Pinboard styles */
+	/* recobj also reused by TimeRings */
+/* svg circle.recobj
+{
+	cursor: pointer;
+}
+
+svg circle.recobj.obj-sel
+{
+	stroke: yellow;
+	stroke-width: 1;
+	fill: none;
+} */
+
+svg line.recline
+{
+	stroke-opacity: 1;
+	stroke-width: 2px;
+	pointer-events: none;
+}
+
 	/*	gnode > circle / path used by Pinboard, Network Wheel, EgoGraph, TimeRing */
 		/* Changed g.node > g.gnode */
 svg g.gnode
@@ -1363,6 +1363,13 @@ svg g.gnode path {
 svg g.gnode path.obj-sel {
 	stroke: yellow;
 	stroke-width: 2px;
+}
+
+svg g.gnode image {
+}
+
+svg g.gnode image.obj-sel {
+	outline: 1px solid yellow;
 }
 
 svg g.gnode text {
@@ -1437,6 +1444,8 @@ svg text.b-lbl-txt {
 }
 
 	/* Facet Flow styles */
+	/* TO DO:  Is this redundant ?? ####################### */
+	/* merge with g.mbm-1 below ?? */
 svg rect.bar
 {
 	cursor: pointer;
