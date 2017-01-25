@@ -794,7 +794,7 @@ VizQRNet.prototype.render = function(stream)
 	this.physics = d3.forceSimulation()
 		.force("center", d3.forceCenter(qI/2, qI/2))
 	    .force("link", d3.forceLink())
-	    .force("charge", d3.forceManyBody().distanceMin(((minR+maxR)/2)+4).distanceMax(qI/8));
+	    .force("charge", d3.forceManyBody().distanceMin(maxR*2).distanceMax(qI/8));
 
 	this.physics.force("link").links(links);
 

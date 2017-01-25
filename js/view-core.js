@@ -4466,7 +4466,7 @@ VizNetGraph.prototype.render = function(stream)
 	this.physics = d3.forceSimulation()
 		.force("center", d3.forceCenter(i/2, i/2))
 	    .force("link", d3.forceLink())
-	    .force("charge", d3.forceManyBody().distanceMax(i/8));
+	    .force("charge", d3.forceManyBody().distanceMin(maxR*2).distanceMax(i/8));
 
 	this.physics.force("link").links(links);
 
