@@ -1808,7 +1808,7 @@ VizPinboard.prototype.render = function(stream)
 					} else
 						sAtt = minR;
 
-					nodes.push({ ai: aI, v: fData, x: locData[0], y: locData[1], r: sAtt, t: tI });
+					nodes.push({ ai: aI, v: fData, x: locData[0], y: locData[1], r: sAtt, rec: rec, t: tI });
 					if (cEntry)
 						cEntry.c = locData;
 				} // if fData
@@ -1839,38 +1839,41 @@ VizPinboard.prototype.render = function(stream)
 		node = this.gRecs.selectAll('.gnode')
 			.data(nodes)
 			.enter()
+			.append("g")
 			.attr("class", "gnode")
 			.attr("transform", function(d) { return "translate("+self.xScale(d.x)+","+self.yScale(d.y)+")"; });
 		node.append("path")
 			.style("fill", function(d) { return d.v; })
 			.attr("d", function(d) {
 				var f = self.sFuncs[self.settings.syms[d.t]];
-				var r = self.yScale(d.r);
+				var r = self.xScale(d.r);
 					// First set size function
 				f.size((r*r)/2);
 				return f();
 			})
-			.style('fill', function(d) { return d.v; })
 			.on('click', clickPin);
 		break;
 	case 'I':	// images
 		node = this.gRecs.selectAll('.gnode')
 			.data(nodes)
 			.enter()
+			.append("g")
 			.attr("class", "gnode")
 			.attr("transform", function(d) { return "translate("+self.xScale(d.x)+","+self.yScale(d.y)+")"; });
 		node.append("image")
 			.attr("xlink:href", function(d) {
 				var i = self.settings.iAtts[d.t];
-				return i === 'disable' ? '' : d.r.a[i];
+				return i === 'disable' ? '' : d.rec.a[i];
 			})
-			.attr("x", function(d) { return "-"+(d.s/2)+"px"; })
-			.attr("y", function(d) { return "-"+(d.s/2)+"px"; })
-			.attr("width", function(d) { return d.s+"px"; })
-			.attr("height", function(d) { return d.s+"px"; })
+			.attr("x", function(d) { return "-"+(self.xScale(d.r)/2)+"px"; })
+			.attr("y", function(d) { return "-"+(self.yScale(d.r)/2)+"px"; })
+			.attr("width", function(d) { return self.xScale(d.r)+"px"; })
+			.attr("height", function(d) { return self.yScale(d.r)+"px"; })
 			.on('click', clickPin);
 		break;
 	}
+	node.append("title")
+		.text(function(d) { return d.rec.l; });
 
 		// Use cache to create connections
 	if (mCache) {

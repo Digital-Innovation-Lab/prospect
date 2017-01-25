@@ -1339,7 +1339,7 @@ div.viz-result svg .axis line {
 }
 
 	/* Pinboard styles */
-svg circle.recobj
+/* svg circle.recobj
 {
 	cursor: pointer;
 }
@@ -1356,7 +1356,7 @@ svg .recline
 	stroke-opacity: 1;
 	stroke-width: 2px;
 	pointer-events: none;
-}
+} */
 
 	/* Timeline styles
 	 * DOM structure
@@ -1422,17 +1422,17 @@ svg.tl-vf .event.range {
 	fill: #AAFFFF;
 	cursor : default;
 	pointer-events: true;
-	stroke-width: 1;
+	stroke-width: 1px;
 	stroke: black;
-	stroke-opacity: 0.8;
+	stroke-opacity: 1;
 }
 
 svg.tl-vf .event.instant {
 	cursor: default;
 	pointer-events: true;
-	stroke-width: 1;
+	stroke-width: 1px;
 	stroke: black;
-	stroke-opacity: 0.8;
+	stroke-opacity: 1;
 }
 
 svg.tl-vf .event.obj-sel
@@ -1500,8 +1500,104 @@ div.viz-textstream div.recitem.obj-sel {
 	border: yellow solid 2px;
 }
 
+	/* Pinboard styles */
+	/* recobj also reused by TimeRings */
+/* svg circle.recobj
+{
+	cursor: pointer;
+}
+
+svg circle.recobj.obj-sel
+{
+	stroke: yellow;
+	stroke-width: 1;
+	fill: none;
+} */
+
+svg line.recline
+{
+	stroke-opacity: 1;
+	stroke-width: 2px;
+	pointer-events: none;
+}
+
+/*	gnode > circle / path used by Pinboard, Network Wheel, EgoGraph, TimeRing */
+	/* Changed g.node > g.gnode */
+svg g.gnode
+{
+	cursor: pointer;
+}
+
+svg g.gnode circle {
+	stroke: black;
+	stroke-width: 1px;
+}
+
+svg g.gnode circle.obj-sel {
+	stroke: yellow;
+	stroke-width: 2px;
+}
+
+svg g.gnode path {
+	stroke: black;
+	stroke-width: 1px;
+}
+
+svg g.gnode path.obj-sel {
+	stroke: yellow;
+	stroke-width: 2px;
+}
+
+svg g.gnode image {
+}
+
+svg g.gnode image.obj-sel {
+	outline: 1px solid yellow;
+}
+
+svg g.gnode text {
+	font-family:Verdana, Arial, sans-serif;
+	font-size: 11px;
+}
+
+svg path.plink
+{
+	stroke-opacity: .7;
+	fill: none;
+	pointer-events: none;
+}
+
+svg path.plink.thick
+{
+	stroke-opacity: 1;
+	stroke-width: 2px;
+}
+
+	/* cnode is used by Bucket Matrix */
+		/* circle.gnode > circle.cnode */
+svg circle.cnode
+{
+	cursor: pointer;
+	stroke: black;
+	stroke-width: 1px;
+}
+
+svg circle.cnode.obj-sel
+{
+	stroke: yellow;
+	stroke-width: 2px;
+}
+
+svg line.llink
+{
+	stroke-opacity: 1;
+	stroke-width: 2px;
+	fill: none;
+	pointer-events: none;
+}
+
 	/* Network Wheel styles */
-svg .node
+/* svg .node
 {
 	cursor: pointer;
 }
@@ -1527,10 +1623,10 @@ svg path.link.thick
 {
 	stroke-opacity: 1;
 	stroke-width: 2px;
-}
+} */
 
 	/* Network Graph styles */
-svg circle.gnode
+/* svg circle.gnode
 {
 	cursor: pointer;
 }
@@ -1546,7 +1642,7 @@ svg path.glink
 	stroke-width: 2px;
 	fill: none;
 	pointer-events: none;
-}
+} */
 
 svg path.bmlink
 {

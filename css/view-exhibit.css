@@ -1227,17 +1227,17 @@ svg.tl-vf svg.event.range {
 	fill: #AAFFFF;
 	cursor : default;
 	pointer-events: true;
-	stroke-width: 1;
+	stroke-width: 1px;
 	stroke: black;
-	stroke-opacity: 0.8;
+	stroke-opacity: 1;
 }
 
 svg.tl-vf svg.event.instant {
 	cursor : default;
 	pointer-events: true;
-	stroke-width: 1;
+	stroke-width: 1px;
 	stroke: black;
-	stroke-opacity: 0.8;
+	stroke-opacity: 1;
 }
 
 svg.tl-vf svg.event.obj-sel
