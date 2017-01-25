@@ -557,7 +557,7 @@
 				<option>{{this}}</option>
 			{{/each}}
 			</select><br/>
-			<b><?php _e('Marker Radius Size', 'prospect'); ?>: </b>
+			<b><?php _e('Marker Size', 'prospect'); ?>: </b>
 			<select value='{{c.sAtts[tIndex]}}'>
 			{{#each attsDNum}}
 				<option>{{this}}</option>
@@ -806,7 +806,7 @@
 		</ul>
 		{{#each iTemplates:tIndex}}
 		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
-			<b><?php _e('Marker Radius Size', 'prospect'); ?>: </b>
+			<b><?php _e('Marker Size', 'prospect'); ?>: </b>
 			<select value='{{c.sAtts[tIndex]}}'>
 			{{#each attsDNum}}
 				<option>{{this}}</option>

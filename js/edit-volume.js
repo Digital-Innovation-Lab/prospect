@@ -6,6 +6,52 @@
 //			All data to be edited by user passed in hidden fields
 
 
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/fill
+if (!Array.prototype.fill) {
+  Object.defineProperty(Array.prototype, 'fill', {
+    value: function(value) {
+
+      // Steps 1-2.
+      if (this == null) {
+        throw new TypeError('this is null or not defined');
+      }
+
+      var O = Object(this);
+
+      // Steps 3-5.
+      var len = O.length >>> 0;
+
+      // Steps 6-7.
+      var start = arguments[1];
+      var relativeStart = start >> 0;
+
+      // Step 8.
+      var k = relativeStart < 0 ?
+        Math.max(len + relativeStart, 0) :
+        Math.min(relativeStart, len);
+
+      // Steps 9-10.
+      var end = arguments[2];
+      var relativeEnd = end === undefined ?
+        len : end >> 0;
+
+      // Step 11.
+      var final = relativeEnd < 0 ?
+        Math.max(len + relativeEnd, 0) :
+        Math.min(relativeEnd, len);
+
+      // Step 12.
+      while (k < final) {
+        O[k] = value;
+        k++;
+      }
+
+      // Step 13.
+      return O;
+    }
+  });
+}
+
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findIndex
 if (!Array.prototype.findIndex) {
   Array.prototype.findIndex = function(predicate) {
@@ -299,7 +345,18 @@ jQuery(document).ready(function() {
 	function getText(scriptName)
 	{
 		return jQuery(scriptName).html().trim();
-	}
+	} // getText()
+
+	function ensureInt(val)
+	{
+		if (typeof val === 'number') {
+			return val;
+		}
+		if (typeof val === 'string') {
+			return parseInt(val, 10);
+		}
+		return 0;
+	} // ensureInt()
 
 		// PURPOSE: Retrieve language-dependent text and insert variables
 		// INPUT:   scriptName = name of script text in DOM
@@ -836,8 +893,17 @@ jQuery(document).ready(function() {
 				}
 				break;
 			case 'P': 	// Pinboard
-				var newXY=[], newLgnds=[], newPAtts=[], newSAtts=[], newLClrs=[];
-
+					// Add Symbol-shape fields, if necessary (features added 1.8.3)
+				if (typeof theVF.c.ms === 'undefined') {
+					theVF.c.ms = 'C';
+				}
+				if (typeof theVF.c.syms === 'undefined') {
+					theVF.c.syms = new Array(iTemplates.length).fill(0);
+				}
+				if (typeof theVF.c.iAtts === 'undefined') {
+					theVF.c.iAtts = new Array(iTemplates.length).fill('disable');
+				}
+				var newXY=[], newLgnds=[], newPAtts=[], newSAtts=[], newLClrs=[], newSyms=[], newIAtts=[];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
@@ -849,12 +915,16 @@ jQuery(document).ready(function() {
 						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
+						newSyms.push(0);
+						newIAtts.push('disable');
 					} else {
 						newXY.push(checkAttID(theVF.c.cAtts[origTIndex], theTmplt.attsXY, 'disable'));
 						newPAtts.push(checkAttID(theVF.c.pAtts[origTIndex], theTmplt.attsDPtr, 'disable'));
 						newLClrs.push(theVF.c.lClrs[origTIndex]);
 						newSAtts.push(checkAttID(theVF.c.sAtts[origTIndex], theTmplt.attsDNum, 'disable'));
 						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
+						newSyms.push(theVF.c.syms[origTIndex]);
+						newIAtts.push(theVF.c.iAtts[origTIndex]);
 					}
 				});
 
@@ -863,6 +933,8 @@ jQuery(document).ready(function() {
 				theVF.c.lClrs = newLClrs;
 				theVF.c.sAtts = newSAtts;
 				theVF.c.lgnds = newLgnds;
+				theVF.c.syms  = newSyms;
+				theVF.c.iAtts = newIAtts;
 				break;
 			case 'T': 	// Timeline
 				var newD=[], newLgnds=[];
@@ -947,7 +1019,18 @@ jQuery(document).ready(function() {
 				if (typeof theVF.c.s === 'undefined') {
 					theVF.c.s = 500;
 				}
-				var newPAtts=[], newSAtts=[], newLgnds=[];
+					// Add Symbol-shape fields, if necessary (featres added 1.8.3)
+				if (typeof theVF.c.ms === 'undefined') {
+					theVF.c.ms = 'C';
+				}
+				if (typeof theVF.c.syms === 'undefined') {
+					theVF.c.syms = new Array(iTemplates.length).fill(0);
+				}
+				if (typeof theVF.c.iAtts === 'undefined') {
+					theVF.c.iAtts = new Array(iTemplates.length).fill('disable');
+				}
+
+				var newPAtts=[], newSAtts=[], newLgnds=[], newSyms=[], newIAtts=[];
 				iTemplates.forEach(function(theTmplt) {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
@@ -957,6 +1040,8 @@ jQuery(document).ready(function() {
 						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
+						newSyms.push(0);
+						newIAtts.push('disable');
 					} else {
 						var newP=[];
 						theVF.c.pAtts[origTIndex].forEach(function(p) {
@@ -965,11 +1050,15 @@ jQuery(document).ready(function() {
 						newPAtts.push(newP);
 						newSAtts.push(checkAttID(theVF.c.sAtts[origTIndex], theTmplt.attsDNum, 'disable'));
 						newLgnds.push(createPaddedAtts(theTmplt.attsLgnd, theVF.c.lgnds[origTIndex]));
+						newSyms.push(theVF.c.syms[origTIndex]);
+						newIAtts.push(theVF.c.iAtts[origTIndex]);
 					}
 				});
 				theVF.c.pAtts = newPAtts;
 				theVF.c.sAtts = newSAtts;
 				theVF.c.lgnds = newLgnds;
+				theVF.c.syms  = newSyms;
+				theVF.c.iAtts = newIAtts;
 				break;
 			case 'b':	// Bucket Matrix
 				var newPAtts=[], newOAtts=[], newLgnds=[];
@@ -1156,12 +1245,16 @@ jQuery(document).ready(function() {
 				newVFEntry.c.ih   = 500;
 				newVFEntry.c.dw   = 500;
 				newVFEntry.c.dh   = 500;
-				newVFEntry.c.min = 7;
-				newVFEntry.c.max = 7;
+				newVFEntry.c.min  = 7;
+				newVFEntry.c.max  = 7;
 				newVFEntry.c.img  = '';
+					// Since 1.8.3
+				newVFEntry.c.ms   = 'C';
+				newVFEntry.c.syms = new Array(iTemplates.length).fill(0);
+				newVFEntry.c.iAtts= new Array(iTemplates.length).fill('disable');
 					// X,Y Coordinates
 				newVFEntry.c.cAtts= _.map(iTemplates, function(theTemplate) {
-					return theTemplate.attsXY[0] || '';
+					return theTemplate.attsXY[0] || 'disable';
 				});
 					// Potential Pointers
 				newVFEntry.c.pAtts= _.map(iTemplates, function(theTemplate) {
@@ -1178,7 +1271,8 @@ jQuery(document).ready(function() {
 					// Potential Legends
 				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
 					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
-						return { attID: theLgndAtt, useAtt: true };
+						var attDef = getJAttribute(theLgndAtt);
+						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
 					});
 				});
 				newVFEntry.c.lyrs= [];
@@ -1248,10 +1342,15 @@ jQuery(document).ready(function() {
 				newVFEntry.c.min = 4;
 				newVFEntry.c.max = 10;
 				newVFEntry.c.s = 500;
+					// Since 1.8.3
+				newVFEntry.c.ms   = 'C';
+				newVFEntry.c.syms = new Array(iTemplates.length).fill(0);
+				newVFEntry.c.iAtts= new Array(iTemplates.length).fill('disable');
 					// Potential Legends
 				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
 					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
-						return { attID: theLgndAtt, useAtt: true };
+						var attDef = getJAttribute(theLgndAtt);
+						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
 					});
 				});
 					// Potential Size
@@ -1645,6 +1744,22 @@ jQuery(document).ready(function() {
 					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts);
 						// Don't need to modify svg layer settings
 					saveView.c.lyrs = viewSettings.c.lyrs;
+						// Handle shape-symbol options (new since 1.8.3)
+					if (viewSettings.c.ms === 'S') {
+						var newSyms=[];
+						saveView.c.ms = 'S';
+						saveTIndices.forEach(function(tIndex) {
+							newSyms.push(ensureInt(viewSettings.c.syms[tIndex]));
+						});
+						saveView.c.syms = newSyms;
+					} else if (viewSettings.c.ms === 'I') {
+						var newIAtts=[];
+						saveView.c.ms = 'I';
+						saveTIndices.forEach(function(tIndex) {
+							newIAtts.push(viewSettings.c.iAtts[tIndex]);
+						});
+						saveView.c.iAtts = newIAtts;
+					}
 					break;
 				case 'C': 	// Cards
 					saveView.c.lOn  = viewSettings.c.lOn;
@@ -1715,6 +1830,22 @@ jQuery(document).ready(function() {
 					saveView.c.pAtts = newPAtts;
 					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts);
 					saveView.c.lgnds = newLgnds;
+						// Handle shape-symbol options (new since 1.8.3)
+					if (viewSettings.c.ms === 'S') {
+						var newSyms=[];
+						saveView.c.ms = 'S';
+						saveTIndices.forEach(function(tIndex) {
+							newSyms.push(ensureInt(viewSettings.c.syms[tIndex]));
+						});
+						saveView.c.syms = newSyms;
+					} else if (viewSettings.c.ms === 'I') {
+						var newIAtts=[];
+						saveView.c.ms = 'I';
+						saveTIndices.forEach(function(tIndex) {
+							newIAtts.push(viewSettings.c.iAtts[tIndex]);
+						});
+						saveView.c.iAtts = newIAtts;
+					}
 					break;
 				case 'b':	// Bucket Matrix
 					saveView.c.nr   = viewSettings.c.nr;

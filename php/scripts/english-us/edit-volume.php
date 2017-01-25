@@ -454,10 +454,16 @@
 	<?php _e('Display Width', 'prospect'); ?>: <input type="number" value="{{c.dw}}" min="1" max="9999"/>
 	<?php _e('Height', 'prospect'); ?>: <input type="number" value="{{c.dh}}" min="1" max="9999"/>
 	<br/>
-	<?php _e('Min Radius', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="20" required/>
-	<?php _e('Max Radius', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="20" required/>
+	<?php _e('Min Marker Size (1-50)', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="50" required/>
+	<?php _e('Max Marker Size (1-50)', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="50" required/>
 	<br/>
-	<?php _e('Choose the Attribute(s) to visualize according to Template type', 'prospect'); ?>:
+	<?php _e('Shape Type', 'prospect'); ?>: <select value='{{c.ms}}'>
+		<option value="C"><?php _e('Circles', 'prospect'); ?></option>
+		<option value="S"><?php _e('Symbols', 'prospect'); ?></option>
+		<option value="I"><?php _e('Images', 'prospect'); ?></option>
+	</select>
+	<br/>
+	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
 	<tabs>
 		<ul>
 		{{#each iTemplates:tIndex}}
@@ -472,7 +478,7 @@
 				<option>{{this}}</option>
 			{{/each}}
 			</select><br/>
-			<b><?php _e('Marker Radius Size', 'prospect'); ?>: </b>
+			<b><?php _e('Marker Size', 'prospect'); ?>: </b>
 			<select value='{{c.sAtts[tIndex]}}'>
 			{{#each attsDNum}}
 				<option>{{this}}</option>
@@ -487,6 +493,26 @@
 			<?php _e('Link Line Color', 'prospect'); ?>: <input type="text" value="{{c.lClrs[tIndex]}}" size="10"/>
 			<span title=<?php _e('"Click to select color"', 'prospect'); ?> class="viz-icon" style="background-color:{{c.lClrs[tIndex]}}" on-click="setLColor:{{vIndex}},{{tIndex}}"></span>
 			<br/>
+			{{#if c.ms === 'S'}}
+				<b><?php _e('For this Template, use shape ', 'prospect'); ?>: </b>
+				<select value='{{c.syms[tIndex]}}'>
+					<option value=0><?php _e('Circle', 'prospect'); ?></option>
+					<option value=1><?php _e('Cross', 'prospect'); ?></option>
+					<option value=2><?php _e('Diamond', 'prospect'); ?></option>
+					<option value=3><?php _e('Square', 'prospect'); ?></option>
+					<option value=4><?php _e('Star', 'prospect'); ?></option>
+					<option value=5><?php _e('Wye', 'prospect'); ?></option>
+				</select>
+				<br/>
+			{{elseif c.ms === 'I'}}
+				<b><?php _e('For this Template, use Image Attribute ', 'prospect'); ?>: </b>
+				<select value='{{c.iAtts[tIndex]}}'>
+				{{#each attsImg}}
+					<option>{{this}}</option>
+				{{/each}}
+				</select>
+				<br/>
+			{{/if}}
 			<b><?php _e('Provide Legends', 'prospect'); ?>: </b>
 			<button decorator="iconButton:ui-icon-check" on-click="allLgndsOn:{{vIndex}},{{tIndex}}"><?php _e('All On', 'prospect'); ?></button>
 			<button decorator="iconButton:ui-icon-cancel" on-click="allLgndsOff:{{vIndex}},{{tIndex}}"><?php _e('All Off', 'prospect'); ?></button>
@@ -664,11 +690,17 @@
 </script>
 
 <script id="vfNetGraph" type='text/ractive'>
-	<?php _e('Min Radius', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="20" required/>
-	<?php _e('Max Radius', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="20" required/>
+	<?php _e('Min Marker Size (1-50)', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="50" required/>
+	<?php _e('Max Marker Size (1-50)', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="50" required/>
 	<?php _e('Display size', 'prospect'); ?>: <input type="number" value="{{c.s}}" min="100" max="1500" required/>
 	<br/>
-	<?php _e('Network links based on Attribute/color pairs for each Template type', 'prospect'); ?>
+	<?php _e('Shape Type', 'prospect'); ?>: <select value='{{c.ms}}'>
+		<option value="C"><?php _e('Circles', 'prospect'); ?></option>
+		<option value="S"><?php _e('Symbols', 'prospect'); ?></option>
+		<option value="I"><?php _e('Images', 'prospect'); ?></option>
+	</select>
+	<br/>
+	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
 	<tabs>
 		<ul>
 		{{#each iTemplates:tIndex}}
@@ -677,7 +709,7 @@
 		</ul>
 		{{#each iTemplates:tIndex}}
 		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
-			<b><?php _e('Marker Radius Size', 'prospect'); ?>: </b>
+			<b><?php _e('Marker Size', 'prospect'); ?>: </b>
 			<select value='{{c.sAtts[tIndex]}}'>
 			{{#each attsDNum}}
 				<option>{{this}}</option>
@@ -698,6 +730,27 @@
 				<button decorator="iconButton:ui-icon-trash" on-click="delPtrPair:{{vIndex}},{{tIndex}},{{pIndex}}"><?php _e('Delete', 'prospect'); ?></button>
 				<br/>
 			{{/each}}
+			<br/>
+			{{#if c.ms === 'S'}}
+				<b><?php _e('For this Template, use shape ', 'prospect'); ?>: </b>
+				<select value='{{c.syms[tIndex]}}'>
+					<option value=0><?php _e('Circle', 'prospect'); ?></option>
+					<option value=1><?php _e('Cross', 'prospect'); ?></option>
+					<option value=2><?php _e('Diamond', 'prospect'); ?></option>
+					<option value=3><?php _e('Square', 'prospect'); ?></option>
+					<option value=4><?php _e('Star', 'prospect'); ?></option>
+					<option value=5><?php _e('Wye', 'prospect'); ?></option>
+				</select>
+				<br/>
+			{{elseif c.ms === 'I'}}
+				<b><?php _e('For this Template, use Image Attribute ', 'prospect'); ?>: </b>
+				<select value='{{c.iAtts[tIndex]}}'>
+				{{#each attsImg}}
+					<option>{{this}}</option>
+				{{/each}}
+				</select>
+				<br/>
+			{{/if}}
 			<b><?php _e('Provide Legends', 'prospect'); ?>:</b>
 			<button decorator="iconButton:ui-icon-check" on-click="allLgndsOn:{{vIndex}},{{tIndex}}"><?php _e('All On', 'prospect'); ?></button>
 			<button decorator="iconButton:ui-icon-cancel" on-click="allLgndsOff:{{vIndex}},{{tIndex}}"><?php _e('All Off', 'prospect'); ?></button>
