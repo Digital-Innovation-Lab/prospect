@@ -154,7 +154,7 @@
 
 	<div id="dialog-about" title=<?php _e('"About Prospect&#8482;"', 'prospect'); ?>>
 		<div class="scroll-container">
-			<p>Prospect&#8482; 1.8.2</p>
+			<p>Prospect&#8482; 1.8.3</p>
 			<img class="logo"/>
 			<p><?php _e('From the', 'prospect'); ?>
 			<a href="http://digitalinnovation.unc.edu" target="_blank">Digital Innovation Lab</a> <?php _e('of the', 'prospect'); ?> <a href="http://www.unc.edu" target="_blank">University of North Carolina, Chapel Hill</a>.</p>
@@ -162,7 +162,7 @@
 			Michael Newton: <?php _e('Software architect and developer.', 'prospect'); ?><br/>
 			Breon Williams: <?php _e('CSS contributions.', 'prospect'); ?><br/>
 			Kevin Jacoby: <?php _e('Miscellaneous contributions.', 'prospect'); ?></p>
-			<p><a href="http://prospect.web.unc.edu" target="_blank"><?php _e('See more about Prospect', 'prospect'); ?></a>.</p>
+			<p><a href="http://prospect.unc.edu" target="_blank"><?php _e('See more about Prospect', 'prospect'); ?></a>.</p>
 		</div>
 	</div>
 
