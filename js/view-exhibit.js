@@ -397,10 +397,10 @@ function PViewFrame(vfIndex)
 		{
 			var recAbsI = recSel[i];
 			rec = PData.rByN(recAbsI);
-			var title = ' '+rec.l+' ('+(i+1)+'/'+recSel.length+') ';
-			var nameDOM = jQuery('#inspect-name');
-			nameDOM.text(title);
-			nameDOM.prop('title', rec.id);
+			// var title = ' '+rec.l+' ('+(i+1)+'/'+recSel.length+') ';
+			// var nameDOM = jQuery('#inspect-name');
+			// nameDOM.text(title);
+			// nameDOM.prop('title', rec.id);
 				// Which template type?
 			var tI = PData.n2T(recAbsI);
 
