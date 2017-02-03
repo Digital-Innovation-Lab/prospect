@@ -397,10 +397,6 @@ function PViewFrame(vfIndex)
 		{
 			var recAbsI = recSel[i];
 			rec = PData.rByN(recAbsI);
-			// var title = ' '+rec.l+' ('+(i+1)+'/'+recSel.length+') ';
-			// var nameDOM = jQuery('#inspect-name');
-			// nameDOM.text(title);
-			// nameDOM.prop('title', rec.id);
 				// Which template type?
 			var tI = PData.n2T(recAbsI);
 
@@ -1274,7 +1270,8 @@ function PViewFrame(vfIndex)
 			// Click on min-max button
 		frame.find('div.lgnd-container > div.lgnd-handle > button.minmax')
 			.button({icons: { primary: 'ui-icon-arrowthick-2-n-s' }, text: false })
-			.click(function() {
+			.click(function(event) {
+				event.preventDefault();
 				frame.find('div.lgnd-container > div.lgnd-scroll').toggle();
 				frame.find('div.lgnd-container').toggleClass('min');
 			});
@@ -1312,19 +1309,21 @@ function PViewFrame(vfIndex)
 			containment: "parent",
 				// Stop function necessary because of unwanted style info added after dragging
 				//		that prevents contents from disappearing
-			stop: function(event, ui) {
+			stop: function() {
 				frame.find('div.sellist').css({"height": "", "bottom": ""});
 			}
 		});
 			// Click on selection number brings up Selection List
-		frame.find('div.view-controls > span.btn-num-sel').click(function() {
+		frame.find('div.view-controls > span.btn-num-sel').click(function(event) {
+			event.preventDefault();
 			// TO DO: Keep track of whether visible for optimizing outputting list? i.e., lazy updating
 			frame.find('div.sellist').show();
 		});
 			// Click on close button closes Selection List
 		frame.find('div.sellist > div.sellist-handle > button.close')
 			.button({icons: { primary: 'ui-icon-closethick' }, text: false })
-			.click(function() {
+			.click(function(event) {
+				event.preventDefault();
 				// TO DO: Keep track of whether visible for optimizing outputting list? i.e., lazy updating
 				frame.find('div.sellist').hide();
 			});
@@ -1332,7 +1331,8 @@ function PViewFrame(vfIndex)
 			// Click on min-max button
 		frame.find('div.sellist > div.sellist-handle > button.minmax')
 			.button({icons: { primary: 'ui-icon-arrowthick-2-n-s' }, text: false })
-			.click(function() {
+			.click(function(event) {
+				event.preventDefault();
 				frame.find('div.sellist > div.sellist-scroll').toggle();
 				frame.find('div.sellist').toggleClass('min');
 			});

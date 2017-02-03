@@ -395,10 +395,6 @@ PViewFrame.prototype.openSelection = function()
 	{
 		var recAbsI = recSel[i];
 		rec = PData.rByN(recAbsI);
-		// var title = ' '+rec.l+' ('+(i+1)+'/'+recSel.length+') ';
-		// var nameDOM = jQuery('#inspect-name');
-		// nameDOM.text(title);
-		// nameDOM.prop('title', rec.id);
 			// Which template type?
 		var tI = PData.n2T(recAbsI);
 
@@ -1037,7 +1033,28 @@ PVizFrame.prototype.initDOM = function(vI)
 	}
 
 		// Activate drag handle on Legend
-	frame.find('div.lgnd-container').draggable({ handle: frame.find('div.lgnd-handle'), containment: "parent" });
+	frame.find('div.lgnd-container').draggable({
+		handle: frame.find('div.lgnd-handle'),
+		containment: "parent",
+			// Stop function necessary because of unwanted style info added after dragging
+			//		that prevents contents from disappearing
+		stop: function(event, ui) {
+			frame.find('div.lgnd-container').css({"height": "", "bottom": ""});
+		}
+	});
+		// Click on close button closes Selection List
+	frame.find('div.lgnd-container > div.lgnd-handle > button.close')
+		.button({icons: { primary: 'ui-icon-closethick' }, text: false })
+		.click(clickShowHideLegend);
+
+		// Click on min-max button
+	frame.find('div.lgnd-container > div.lgnd-handle > button.minmax')
+		.button({icons: { primary: 'ui-icon-arrowthick-2-n-s' }, text: false })
+		.click(function(event) {
+			event.preventDefault();
+			frame.find('div.lgnd-container > div.lgnd-scroll').toggle();
+			frame.find('div.lgnd-container').toggleClass('min');
+		});
 
 	var select = frame.find('div.view-controls select.view-viz-select');
 		// Set Dropdown to View names
@@ -1067,18 +1084,40 @@ PVizFrame.prototype.initDOM = function(vI)
 		.click(clickInLegend);
 
 		// Activate Selection List drag handle
-	frame.find('div.sellist').draggable({ handle: frame.find('div.sellist > div.sellist-handle'), containment: "parent" });
+	frame.find('div.sellist').draggable({
+		handle: frame.find('div.sellist > div.sellist-handle'),
+		containment: "parent",
+			// Stop function necessary because of unwanted style info added after dragging
+			//		that prevents contents from disappearing
+		stop: function() {
+			frame.find('div.sellist').css({"height": "", "bottom": ""});
+		}
+	});
 		// Click on selection number brings up Selection List
-	frame.find('div.view-controls > span.btn-num-sel').click(function() {
+	frame.find('div.view-controls > span.btn-num-sel').click(function(event) {
+		event.preventDefault();
 		// TO DO: Keep track of whether visible for optimizing outputting list? i.e., lazy updating
 		frame.find('div.sellist').show();
 	});
 		// Click on close button closes Selection List
-	frame.find('div.sellist > div.sellist-handle > button.sellist-close').click(function() {
-		// TO DO: Keep track of whether visible for optimizing outputting list? i.e., lazy updating
-		frame.find('div.sellist').hide();
-	});
-		// Click on item
+	frame.find('div.sellist > div.sellist-handle > button.close')
+		.button({icons: { primary: 'ui-icon-closethick' }, text: false })
+		.click(function(event) {
+			// TO DO: Keep track of whether visible for optimizing outputting list? i.e., lazy updating
+			event.preventDefault();
+			frame.find('div.sellist').hide();
+		});
+		// Click on min-max button
+	frame.find('div.sellist > div.sellist-handle > button.minmax')
+		.button({icons: { primary: 'ui-icon-arrowthick-2-n-s' }, text: false })
+		.click(function(event) {
+			event.preventDefault();
+			frame.find('div.sellist > div.sellist-scroll').toggle();
+			frame.find('div.sellist').toggleClass('min');
+		});
+
+
+		// Click on item on selection list
 	frame.find('div.sellist > div.sellist-scroll')
 		.click(clickSelList);
 
@@ -2445,7 +2484,15 @@ PTextFrame.prototype.initDOM = function()
 	frame.find('#read-pane').click(clickReadPane);
 
 		// Activate Selection List drag handle
-	frame.find('div.sellist').draggable({ handle: frame.find('div.sellist > div.sellist-handle'), containment: "parent" });
+	frame.find('div.sellist').draggable({
+		handle: frame.find('div.sellist > div.sellist-handle'),
+		containment: "parent",
+			// Stop function necessary because of unwanted style info added after dragging
+			//		that prevents contents from disappearing
+		stop: function() {
+			frame.find('div.sellist').css({"height": "", "bottom": ""});
+		}
+	});
 		// Click on selection number brings up Selection List
 	frame.find('div.view-controls > #text-controls > span.btn-num-sel').click(function(event) {
 		// TO DO: Keep track of whether visible for optimizing outputting list? i.e., lazy updating
@@ -2453,11 +2500,22 @@ PTextFrame.prototype.initDOM = function()
 		event.preventDefault();
 	});
 		// Click on close button closes Selection List
-	frame.find('div.sellist > div.sellist-handle > button.sellist-close').click(function(event) {
-		// TO DO: Keep track of whether visible for optimizing outputting list? i.e., lazy updating
-		frame.find('div.sellist').hide();
-		event.preventDefault();
-	});
+	frame.find('div.sellist > div.sellist-handle > button.close')
+		.button({icons: { primary: 'ui-icon-closethick' }, text: false })
+		.click(function(event) {
+			event.preventDefault();
+			// TO DO: Keep track of whether visible for optimizing outputting list? i.e., lazy updating
+			frame.find('div.sellist').hide();
+		});
+		// Click on min-max button
+	frame.find('div.sellist > div.sellist-handle > button.minmax')
+		.button({icons: { primary: 'ui-icon-arrowthick-2-n-s' }, text: false })
+		.click(function(event) {
+			event.preventDefault();
+			frame.find('div.sellist > div.sellist-scroll').toggle();
+			frame.find('div.sellist').toggleClass('min');
+		});
+
 		// Click on item
 	frame.find('div.sellist > div.sellist-scroll')
 		.click(clickSelList);
