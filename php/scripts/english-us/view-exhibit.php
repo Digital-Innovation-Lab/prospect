@@ -204,14 +204,19 @@
 	</div>
 	<div class="lgnd-container">
 		<div class="lgnd-handle">
+			<button class="close"><?php _e('Close', 'prospect'); ?></button>
+			<button class="minmax"><?php _e('Min-Max', 'prospect'); ?></button>
 			<button class="lgnd-update"><?php _e('Update', 'prospect'); ?></button>
+			<label><?php _e('Legend', 'prospect'); ?></label>
 		</div>
 		<div class="lgnd-scroll">
 		</div>
 	</div>
 	<div class="sellist">
 		<div class="sellist-handle">
-			<button class="sellist-close"><?php _e('Close', 'prospect'); ?></button>&nbsp;<label><?php _e('Highlighted Items', 'prospect'); ?></label>
+			<button class="close"><?php _e('Close', 'prospect'); ?></button>
+			<button class="minmax"><?php _e('Min-Max', 'prospect'); ?></button>
+			</button>&nbsp;<label><?php _e('Highlighted Items', 'prospect'); ?></label>
 		</div>
 		<div class="sellist-scroll">
 		</div>

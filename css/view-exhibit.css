@@ -522,7 +522,7 @@ div.lgnd-container {
 
 	width: 270px;
 
-	max-height: 265px;
+	height: 265px;
 
 	padding: 4px;
 	background-color: rgba(255, 255, 255, .8);
@@ -535,6 +535,10 @@ div.lgnd-container {
 	box-shadow: 0 0 5px 5px rgba(0,0,0,0.3);
 }
 
+div.lgnd-container.min {
+	height: 28px;
+}
+
 div.lgnd-container > div.lgnd-handle {
 	height: 22px;
 	background-color: #A8A8A8;
@@ -542,6 +546,8 @@ div.lgnd-container > div.lgnd-handle {
 	cursor: move;
 
 	margin-bottom: 3px;
+
+	font-size: 10px;	/* New Experiment */
 
 	-moz-box-shadow: 0 0 2px 2px rgba(0,0,0,0.3);
 	-webkit-box-shadow: 0 0 2px 2px rgba(0,0,0,0.3);
@@ -554,7 +560,7 @@ div.lgnd-container > div.lgnd-handle > button.lgnd-update {
 	margin: 2px;
 	margin-top: 0;
 	padding: 1px;
-	padding-top: 0;
+	padding-top: 1px;
 	background-color: white;
 
 	font-size: 9px;
@@ -566,6 +572,15 @@ div.lgnd-container > div.lgnd-handle > button.lgnd-update:disabled {
 	opacity: 0.65;
 	cursor: not-allowed;
 	color: grey;
+}
+
+div.lgnd-container > div.lgnd-handle button {
+	vertical-align: middle;
+}
+
+div.lgnd-container > div.lgnd-handle label {
+	vertical-align: middle;
+	font-weight: bold;
 }
 
 div.lgnd-scroll {
@@ -636,7 +651,7 @@ div.sellist {
 
 	width: 270px;
 
-	max-height: 265px;
+	height: 265px;
 
 	padding: 4px;
 	background-color: rgba(255, 255, 255, .8);
@@ -649,34 +664,33 @@ div.sellist {
 	box-shadow: 0 0 5px 5px rgba(0,0,0,0.3);
 }
 
+div.sellist.min {
+	height: 28px;
+}
+
 div.sellist > div.sellist-handle {
 	height: 22px;
 	background-color: #A8A8A8;
 	border: 1px black dotted;
 	cursor: move;
 
-	font-size: 12px;
-
+	padding-top: 2px;
 	margin-bottom: 3px;
 
 	-moz-box-shadow: 0 0 2px 2px rgba(0,0,0,0.3);
 	-webkit-box-shadow: 0 0 2px 2px rgba(0,0,0,0.3);
 	box-shadow: 0 0 2px 2px rgba(0,0,0,0.3);
-}
 
-div.sellist > div.sellist-handle > button.sellist-close {
-	height: 18px;
-	margin: 0 4px 2px 4px;
-	padding: 1px;
-	padding-top: 0;
-	background-color: white;
-	font-size: 9px;
-}
-
-div.sellist > div.sellist-handle > label {
-	margin-top: 5px;
 	font-size: 10px;
+}
+
+div.sellist > div.sellist-handle label {
+	vertical-align: middle;
 	font-weight: bold;
+}
+
+div.lgnd-container > div.lgnd-handle button {
+	vertical-align: middle;
 }
 
 div.sellist > div.sellist-scroll {
