@@ -37,7 +37,7 @@
 				<span class="btn-num-sel"></span>
 			</div>
 		</div>
-		<div class="sellist">
+		<div class="sellist" style="display:none;">
 			<div class="sellist-handle">
 				<button class="close"><?php _e('Close', 'prospect'); ?></button>
 				<button class="minmax"><?php _e('Min-Max', 'prospect'); ?></button>
@@ -80,7 +80,7 @@
 			<div class="lgnd-scroll">
 			</div>
 		</div>
-		<div class="sellist">
+		<div class="sellist" style="display:none;">
 			<div class="sellist-handle">
 				<button class="close"><?php _e('Close', 'prospect'); ?></button>
 				<button class="minmax"><?php _e('Min-Max', 'prospect'); ?></button>

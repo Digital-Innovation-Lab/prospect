@@ -51,6 +51,7 @@ function PViewFrame(vfIndex)
 	var datastream = null;		// pointer to datastream given to view
 	var vizStates = [];			// saves state of each vizualization between views as Perspective
 	var curSelSize = 0;			// current selection size (don't save pointer to array)
+	var selNever=true;			// Selection List has never been shown
 	var inspRec=null;			// If ≠ null, open Inspector at this Record ID
 
 	// PRIVATE FUNCTIONS
@@ -750,6 +751,11 @@ function PViewFrame(vfIndex)
 					var r = PData.rByN(absI);
 					selDiv.append('<div class="sellist-rec" data-id="'+r.id+'">'+r.l+'</div>');
 				});
+					// If this is first time a non-empty selection made, ensure Selection List visible
+				if (selNever) {
+					jQuery(getFrameID()+' div.sellist').show();
+					selNever=false;
+				}
 			} else {
 				vCnxt.find('.osel').button("disable");
 				vCnxt.find('.osel').removeClass("pulse");

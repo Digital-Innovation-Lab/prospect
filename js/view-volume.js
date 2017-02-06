@@ -57,6 +57,7 @@ function PViewFrame(vfIndex, callbacks)
 	this.selAbsIs	= [];			// array of absIs of selected Records requested externally
 	this.curSelSize = 0;			// the size of current selection
 	this.inspRec	= null;			// if ≠ null, Record to open on in Inspector
+	this.selNever	= true;			// Selection List has never been shown?
 } // PViewFrame()
 
 PViewFrame.prototype.getFrameID = function()
@@ -87,6 +88,11 @@ PViewFrame.prototype.upSel = function(selList, force)
 				var r = PData.rByN(absI);
 				selDiv.append('<div class="sellist-rec" data-id="'+r.id+'">'+r.l+'</div>');
 			});
+				// If this is first time a non-empty selection made, ensure Selection List visible
+			if (this.selNever) {
+				jQuery(this.getFrameID()+' div.sellist').show();
+				this.selNever=false;
+			}
 		} else {
 			vCnxt.find('.osel').button("disable");
 			vCnxt.find('.osel').removeClass("pulse");
