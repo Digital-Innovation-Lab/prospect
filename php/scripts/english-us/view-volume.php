@@ -40,8 +40,8 @@
 		<div class="sellist" style="display:none;">
 			<div class="sellist-handle">
 				<button class="close"><?php _e('Close', 'prospect'); ?></button>
-				<button class="minmax"><?php _e('Min-Max', 'prospect'); ?></button>
 				</button>&nbsp;<label><?php _e('Highlighted Items', 'prospect'); ?></label>
+				<button class="minmax"><?php _e('Min-Max', 'prospect'); ?></button>
 			</div>
 			<div class="sellist-scroll">
 			</div>
@@ -73,9 +73,9 @@
 		<div class="lgnd-container">
 			<div class="lgnd-handle">
 				<button class="close"><?php _e('Close', 'prospect'); ?></button>
-				<button class="minmax"><?php _e('Min-Max', 'prospect'); ?></button>
-				<button class="lgnd-update"><?php _e('Update', 'prospect'); ?></button>
 				<label><?php _e('Legend', 'prospect'); ?></label>
+				<button class="lgnd-update"><?php _e('Update', 'prospect'); ?></button>
+				<button class="minmax"><?php _e('Min-Max', 'prospect'); ?></button>
 			</div>
 			<div class="lgnd-scroll">
 			</div>
@@ -83,8 +83,8 @@
 		<div class="sellist" style="display:none;">
 			<div class="sellist-handle">
 				<button class="close"><?php _e('Close', 'prospect'); ?></button>
-				<button class="minmax"><?php _e('Min-Max', 'prospect'); ?></button>
 				</button>&nbsp;<label><?php _e('Highlighted Items', 'prospect'); ?></label>
+				<button class="minmax"><?php _e('Min-Max', 'prospect'); ?></button>
 			</div>
 			<div class="sellist-scroll">
 			</div>

@@ -546,12 +546,23 @@ div.lgnd-container > div.lgnd-handle {
 	cursor: move;
 
 	margin-bottom: 3px;
+	padding-top: 2px;
+	width: 100%;
 
 	font-size: 10px;
 
 	-moz-box-shadow: 0 0 2px 2px rgba(0,0,0,0.3);
 	-webkit-box-shadow: 0 0 2px 2px rgba(0,0,0,0.3);
 	box-shadow: 0 0 2px 2px rgba(0,0,0,0.3);
+}
+
+div.lgnd-container > div.lgnd-handle button {
+	vertical-align: middle;
+}
+
+div.lgnd-container > div.lgnd-handle label {
+	vertical-align: middle;
+	font-weight: bold;
 }
 
 	/* Button to force Re-render */
@@ -561,6 +572,9 @@ div.lgnd-container > div.lgnd-handle > button.lgnd-update {
 	margin-top: 0;
 	padding: 1px;
 	padding-top: 1px;
+
+	float: right;
+
 	background-color: white;
 
 	font-size: 9px;
@@ -572,15 +586,6 @@ div.lgnd-container > div.lgnd-handle > button.lgnd-update:disabled {
 	opacity: 0.65;
 	cursor: not-allowed;
 	color: grey;
-}
-
-div.lgnd-container > div.lgnd-handle button {
-	vertical-align: middle;
-}
-
-div.lgnd-container > div.lgnd-handle label {
-	vertical-align: middle;
-	font-weight: bold;
 }
 
 div.lgnd-scroll {
@@ -676,6 +681,7 @@ div.sellist > div.sellist-handle {
 
 	padding-top: 2px;
 	margin-bottom: 3px;
+	width: 100%;
 
 	-moz-box-shadow: 0 0 2px 2px rgba(0,0,0,0.3);
 	-webkit-box-shadow: 0 0 2px 2px rgba(0,0,0,0.3);
@@ -711,6 +717,11 @@ div.sellist-rec {
 
 div.sellist-rec.active {
 	background-color: yellow;
+}
+
+	/* Min-max button appears on both Legend and Selection List */
+button.minmax {
+	float: right;
 }
 
 /* MODAL DIALOGS

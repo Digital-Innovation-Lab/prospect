@@ -722,6 +722,7 @@ div.lgnd-container > div.lgnd-handle {
 	cursor: move;
 
 	margin-bottom: 3px;
+	padding-top: 2px;
 
 	font-size: 10px;
 
@@ -737,6 +738,9 @@ div.lgnd-container > div.lgnd-handle > button.lgnd-update {
 	margin-top: 0;
 	padding: 1px;
 	padding-top: 1px;
+
+	float: right;
+
 	background-color: white;
 
 	font-size: 9px;
@@ -883,6 +887,11 @@ div.sellist > div.sellist-scroll > div.sellist-rec {
 	margin: 0;
 	padding: 2px;
 	cursor: pointer;
+}
+
+	/* Min-max button appears on both Legend and Selection List */
+button.minmax {
+	float: right;
 }
 
 
