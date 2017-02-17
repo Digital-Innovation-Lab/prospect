@@ -1415,7 +1415,7 @@ svg path.plink.thick
 	stroke-width: 2px;
 }
 
-	/* cnode is used by Bucket Matrix */
+	/* cnode is used by Bucket Matrix and TimeRings */
 		/* circle.gnode > circle.cnode */
 svg circle.cnode
 {

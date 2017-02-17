@@ -1478,7 +1478,7 @@ VizTimeRing.prototype.setEgo = function(id)
 
 			// Remove everything
 		this.center.selectAll(".bond").remove();
-		this.center.selectAll(".enode").remove();
+		this.center.selectAll(".cnode").remove();
 		this.center.selectAll(".gnode").remove();
 		this.center.selectAll(".ring").remove();
 
@@ -1551,7 +1551,7 @@ VizTimeRing.prototype.drawAll = function()
 
 		// Remove everything
 	this.center.selectAll(".bond").remove();
-	this.center.selectAll(".enode").remove();
+	this.center.selectAll(".cnode").remove();
 	this.center.selectAll(".gnode").remove();
 	this.center.selectAll(".ring").remove();
 
@@ -1632,11 +1632,11 @@ VizTimeRing.prototype.drawAll = function()
 		var s = self.toggleSel(self.egoAbsI);
 		d3.select(this).classed('obj-sel', s);
 	} // clickEgo()
-	var node = this.center.selectAll(".enode")
+	var node = this.center.selectAll(".cnode")
 		.data(pseudoEgo)
 		.enter()
 		.append("circle")
-		.attr("class", "enode")
+		.attr("class", "cnode")
 		.attr("r", "5")
 		.attr("fill", "#000")
 		.on("click", clickEgo);
@@ -1812,9 +1812,9 @@ VizTimeRing.prototype.setSel = function(absIArray)
 
 	self.recSel = absIArray;
 		// Assumed only 1 pseudo-ego gnode, so <d> isn't used
-	this.center.selectAll(".enode")
+	this.center.selectAll(".cnode")
 		.classed('obj-sel', function(d) { return self.isSel(self.egoAbsI); });
-	this.center.selectAll(".gnode")
+	this.center.selectAll(".gnode circle")
 		.classed('obj-sel', function(d) { return self.isSel(d.qr.qi); });
 	this.center.selectAll(".bond")
 		.classed('obj-sel', function(d) { return self.isSel(d.qr.qi); });
@@ -1824,8 +1824,8 @@ VizTimeRing.prototype.clearSel = function()
 {
 	if (this.recSel.length > 0) {
 		this.recSel = [];
-		this.center.selectAll(".enode").classed('obj-sel', false);
-		this.center.selectAll(".gnode").classed('obj-sel', false);
+		this.center.selectAll(".cnode").classed('obj-sel', false);
+		this.center.selectAll(".gnode circle").classed('obj-sel', false);
 		this.center.selectAll(".bond").classed('obj-sel', false);
 	}
 } // clearSel()
