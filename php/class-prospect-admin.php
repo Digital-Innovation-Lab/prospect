@@ -2149,6 +2149,9 @@ class ProspectAdmin {
 				update_post_meta($post_id, 'tmplt-def', json_encode($data['tmplt-def'], JSON_UNESCAPED_UNICODE));
 				update_post_meta($post_id, 'tmplt-joins', json_encode($data['tmplt-joins'], JSON_UNESCAPED_UNICODE));
 				update_post_meta($post_id, 'tmplt-view', json_encode($data['tmplt-view'], JSON_UNESCAPED_UNICODE));
+				if (isset($data['tmplt-pview'])) {
+					update_post_meta($post_id, 'tmplt-pview', json_encode($data['tmplt-pview'], JSON_UNESCAPED_UNICODE));
+				}
 			}
 			break;
 		case 'Exhibit':
