@@ -2893,6 +2893,36 @@ class ProspectAdmin {
 	} // prsp_get_rec_ids()
 
 
+		// PURPOSE: Return array of ids and labels of Records of a particular Template type
+		// INPUT:	$_POST['tmplt_id'] = ID of Template whose IDs should be returned
+	public function prsp_get_rec_creds()
+	{
+		$tmplt_id = $_POST['tmplt_id'];
+		$the_template = new ProspectTemplate(false, $tmplt_id, true, false, false, false);
+
+		$result = array();
+
+			// Get matching Records
+		$args = array('post_type' => 'prsp-record', 'meta_key' => 'tmplt-id',
+						'meta_value' => $tmplt_id, 'posts_per_page' => -1);
+		$query = new WP_Query($args);
+		if ($query->have_posts()) {
+			foreach ($query->posts as $rec) {
+				$rec_id = get_post_meta($rec->ID, 'record-id', true);
+				$rec_label = get_post_meta($rec->ID, $the_template->def->t, true);
+				if ($rec_id && $rec_id != '') {
+					$pair = array();
+					$pair['id'] = $rec_id;
+					$pair['l'] = $rec_label;
+					array_push($result, $pair);
+				}
+			}
+		}
+		sort($result);
+		die(json_encode($result));
+	} // prsp_get_rec_creds()
+
+
 		// PURPOSE: Get data about these Records
 		// INPUT:   $_POST['tmplt_id'] = ID of Template whose Records should be returned
 		//			$_POST['from'] = index of first Record to get

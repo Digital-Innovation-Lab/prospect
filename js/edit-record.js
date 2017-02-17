@@ -534,8 +534,10 @@ jQuery(document).ready(function() {
 			el: '#insert-dialog',
 			template: '#dialog-choose-list',
 			data: {
+				error: false,
 				list: [],
 				loading: true,
+				message: getText('#msg-rem-data-loading'),	// Initially set to "loading" message
 				selIndex: 0
 			},
 			components: {
@@ -550,7 +552,7 @@ jQuery(document).ready(function() {
 		recDialog.on('dialog.ok', function() {
 			if (!recDialog.get('loading')) {
 				var selIndex = recDialog.get('selIndex');
-				var selID = recDialog.get('list['+selIndex+']');
+				var selID = recDialog.get('list['+selIndex+'].id');
 				var theRec = rApp.get('defRecord['+rIndex+']');
 				var newVal;
 					// Only Add if pre-existing value and delimiter allows multiple values
@@ -570,13 +572,20 @@ jQuery(document).ready(function() {
 			type: 'POST',
 			url: prspdata.ajax_url,
 			data: {
-				action: 'prsp_get_rec_ids',
+				action: 'prsp_get_rec_creds',
 				tmplt_id: tmpltID
 			},
 			success: function(data, textStatus, XMLHttpRequest)
 			{
-				recDialog.set('list', JSON.parse(data));
 				recDialog.set('loading', false);
+				var list = JSON.parse(data);
+				recDialog.set('list', list);
+				if (list.length == 0) {
+					recDialog.set('message', getText('#errmsg-no-data-available'));
+					recDialog.set('error', true);
+				} else {
+					recDialog.set('message', getText('#msg-choose-record'));
+				}
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown)
 			{
@@ -590,8 +599,9 @@ jQuery(document).ready(function() {
 		var tmpltList = [];
 			// Only Independent Templates!
 		_.forEach(defTemplates, function(theTemplate) {
-			if (!theTemplate.def.d)
-				tmpltList.push(theTemplate.id);
+			if (!theTemplate.def.d) {
+				tmpltList.push({id: theTemplate.id, l: theTemplate.def.l });
+			}
 		});
 
 		if (tmpltList.length == 1)
@@ -601,8 +611,9 @@ jQuery(document).ready(function() {
 				el: '#insert-dialog',
 				template: '#dialog-choose-list',
 				data: {
+					error: false,
 					list: tmpltList,
-					loading: false,
+					message: '',
 					selIndex: 0
 				},
 				components: {
@@ -618,7 +629,7 @@ jQuery(document).ready(function() {
 				var tIndex = tmpltDialog.get('selIndex');
 				tmpltDialog.teardown();
 
-				getRecID(tmpltList[tIndex], rIndex);
+				getRecID(tmpltList[tIndex].id, rIndex);
 
 				return false;
 			});
@@ -639,8 +650,10 @@ jQuery(document).ready(function() {
 				el: '#insert-dialog',
 				template: '#dialog-choose-list',
 				data: {
+					error: false,
 					list: [],
 					loading: true,
+					message: getText('#msg-rem-data-loading'),	// Initially set to "loading" message
 					selIndex: 0
 				},
 				components: {
@@ -655,7 +668,7 @@ jQuery(document).ready(function() {
 			modalDialog.on('dialog.ok', function() {
 				if (!modalDialog.get('loading')) {
 					var selIndex = modalDialog.get('selIndex');
-					var newID = modalDialog.get('list['+selIndex+']');
+					var newID = modalDialog.get('list['+selIndex+'].id');
 						// Only allow single ID for Join fields!
 					rApp.set('defRecord['+index+'].value', newID);
 				}
@@ -669,11 +682,12 @@ jQuery(document).ready(function() {
 				type: 'POST',
 				url: prspdata.ajax_url,
 				data: {
-					action: 'prsp_get_rec_ids',
+					action: 'prsp_get_rec_creds',
 					tmplt_id: joinRec.t
 				},
 				success: function(data, textStatus, XMLHttpRequest)
 				{
+					modalDialog.set('message', getText('#msg-choose-record'));
 					modalDialog.set('list', JSON.parse(data));
 					modalDialog.set('loading', false);
 				},

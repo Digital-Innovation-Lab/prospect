@@ -159,15 +159,18 @@
 <!-- DIALOGS -->
 <!-- Choose Template Dialog -->
 <script id="dialog-choose-list" type='text/ractive'>
-	<dialog title=<?php _e('"Choose ID"', 'prospect'); ?> width="300" height="350">
-		{{#if loading}}<p style="color: red"><?php _e('Please wait while remote data is loaded', 'prospect'); ?></p>{{/if}}
-		{{#if !loading && list.length==0}}<p style="color: red"><?php _e('No data available -- select "Cancel"', 'prospect'); ?></p>{{/if}}
+	<dialog title=<?php _e('"Choose ID"', 'prospect'); ?> width="400" height="350">
+		{{#if message.length != 0}}
+			{{#if error}}<p style="color: red">{{message}}</p>
+			{{else}}<p>{{message}}</p>
+			{{/if}}
+		{{/if}}
 		<div class="scroll-container">
 			{{#each list:index}}
 				{{#if selIndex == index}}
-					<span style="color: red" on-click="doSelect:{{index}}"><b>{{.}}</b></span>
+					<span style="color: red" on-click="doSelect:{{index}}"><b>({{this.id}}) {{this.l}}</b></span>
 				{{else}}
-					<span on-click="doSelect:{{index}}"><b>{{.}}</b></span>
+					<span on-click="doSelect:{{index}}"><b>({{this.id}}) {{this.l}}</b></span>
 				{{/if}}
 				<br/>
 			{{/each}}
@@ -238,6 +241,10 @@
 <?php _e('The start year is greater than the end year for a Date you have entered.', 'prospect'); ?>
 </script>
 
+<script id="errmsg-no-data-available" type='text/ractive'>
+<?php _e('No data available -- select "Cancel"', 'prospect'); ?>
+</script>
+
 
 <!-- MESSAGE -->
 <script id="msg-confirm-del-vf" type='text/ractive'>
@@ -246,4 +253,12 @@
 
 <script id="msg-saved" type='text/ractive'>
 <?php _e('Record was verified and prepared to be saved: now click the Publish or Update button on the right.', 'prospect'); ?>
+</script>
+
+<script id="msg-rem-data-loading" type='text/ractive'>
+<?php _e('Please wait while remote data is loaded', 'prospect'); ?>
+</script>
+
+<script id="msg-choose-record" type='text/ractive'>
+<?php _e('Please choose the Record ID', 'prospect'); ?>
 </script>

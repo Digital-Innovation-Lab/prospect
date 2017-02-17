@@ -638,6 +638,7 @@ class Prospect {
 
 			// AJAX calls
 		$this->loader->add_action('wp_ajax_prsp_get_rec_ids', $this->admin, 'prsp_get_rec_ids', null, null);
+		$this->loader->add_action('wp_ajax_prsp_get_rec_creds', $this->admin, 'prsp_get_rec_creds', null, null);
 		$this->loader->add_action('wp_ajax_prsp_get_records', $this->admin, 'prsp_get_records', null, null);
 		$this->loader->add_action('wp_ajax_nopriv_prsp_get_records', $this->admin, 'prsp_get_records', null, null);
 		$this->loader->add_action('wp_ajax_prsp_get_cf_vals', $this->admin, 'prsp_get_cf_vals', null, null);
