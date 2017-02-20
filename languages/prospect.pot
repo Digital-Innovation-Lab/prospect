@@ -2,14 +2,14 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Prospect\n"
-"POT-Creation-Date: 2017-02-06 10:26-0500\n"
+"POT-Creation-Date: 2017-02-20 08:16-0500\n"
 "PO-Revision-Date: 2016-03-08 15:33-0500\n"
 "Last-Translator: \n"
 "Language-Team: Digital Innovation Lab <dil@unc.edu>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.8.11\n"
+"X-Generator: Poedit 1.8.12\n"
 "X-Poedit-Basepath: ..\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Language: en\n"
@@ -338,222 +338,222 @@ msgstr ""
 msgid "Export this Reading as JSON archive file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2286
+#: php/class-prospect-admin.php:2289
 msgid "Prospect Customization Settings"
 msgstr ""
 
-#: php/class-prospect-admin.php:2293
+#: php/class-prospect-admin.php:2296
 msgid "Number of Records per AJAX request"
 msgstr ""
 
-#: php/class-prospect-admin.php:2301
+#: php/class-prospect-admin.php:2304
 msgid "Enable Help Tour (true/false)"
 msgstr ""
 
-#: php/class-prospect-admin.php:2309
+#: php/class-prospect-admin.php:2312
 msgid "Command Bar Background Color"
 msgstr ""
 
-#: php/class-prospect-admin.php:2317
+#: php/class-prospect-admin.php:2320
 msgid "Filter Stack Background Color"
 msgstr ""
 
-#: php/class-prospect-admin.php:2325
+#: php/class-prospect-admin.php:2328
 msgid "View Frame Background Color"
 msgstr ""
 
-#: php/class-prospect-admin.php:2339
+#: php/class-prospect-admin.php:2342
 msgid "Prospect Archives"
 msgstr ""
 
-#: php/class-prospect-admin.php:2342
+#: php/class-prospect-admin.php:2345
 msgid "Website Complete Configuration Export"
 msgstr ""
 
-#: php/class-prospect-admin.php:2343
+#: php/class-prospect-admin.php:2346
 msgid "IMPORTANT"
 msgstr ""
 
-#: php/class-prospect-admin.php:2343
+#: php/class-prospect-admin.php:2346
 msgid "All Records must still be exported on a Template-by-Template basis; this archive file does not include Maps or Perspectives."
 msgstr ""
 
-#: php/class-prospect-admin.php:2345
+#: php/class-prospect-admin.php:2348
 msgid "Export all"
 msgstr ""
 
-#: php/class-prospect-admin.php:2347
+#: php/class-prospect-admin.php:2350
 msgid "Export all Attributes, Templates, Exhibits and Volumes from this website as a JSON archive file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2350 prospect.php:18 prospect.php:24
+#: php/class-prospect-admin.php:2353 prospect.php:18 prospect.php:24
 #: prospect.php:30
 msgid "Attributes"
 msgstr ""
 
-#: php/class-prospect-admin.php:2353
+#: php/class-prospect-admin.php:2356
 msgid "Export all Attributes as JSON archive file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2355
+#: php/class-prospect-admin.php:2358
 msgid "Export all Attributes as JSON file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2358 prospect.php:62 prospect.php:68
+#: php/class-prospect-admin.php:2361 prospect.php:62 prospect.php:68
 #: prospect.php:74
 msgid "Templates"
 msgstr ""
 
-#: php/class-prospect-admin.php:2360
+#: php/class-prospect-admin.php:2363
 msgid "Export all Templates as JSON archive file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2362
+#: php/class-prospect-admin.php:2365
 msgid "Export all Templates as JSON file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2367 php/class-prospect-admin.php:2369
+#: php/class-prospect-admin.php:2370 php/class-prospect-admin.php:2372
 msgid "Export Data Dictionaries for all Templates"
 msgstr ""
 
-#: php/class-prospect-admin.php:2373
+#: php/class-prospect-admin.php:2376
 msgid "Export this Template type with all Attributes"
 msgstr ""
 
-#: php/class-prospect-admin.php:2387
+#: php/class-prospect-admin.php:2390
 msgid "As JSON archive file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2390
+#: php/class-prospect-admin.php:2393
 msgid "As Data Dictionary"
 msgstr ""
 
-#: php/class-prospect-admin.php:2394
+#: php/class-prospect-admin.php:2397
 msgid "Export all Records of this Template type (as CSV file)"
 msgstr ""
 
-#: php/class-prospect-admin.php:2405
+#: php/class-prospect-admin.php:2408
 msgid "Export Records"
 msgstr ""
 
-#: php/class-prospect-admin.php:2408 prospect.php:151 prospect.php:157
+#: php/class-prospect-admin.php:2411 prospect.php:151 prospect.php:157
 #: prospect.php:164
 msgid "Exhibits"
 msgstr ""
 
-#: php/class-prospect-admin.php:2410
+#: php/class-prospect-admin.php:2413
 msgid "Export all Exhibits as JSON archive file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2412
+#: php/class-prospect-admin.php:2415
 msgid "Export all Exhibits as JSON file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2416
+#: php/class-prospect-admin.php:2419
 msgid "Export all Perspectives of this Exhibit as JSON file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2428
+#: php/class-prospect-admin.php:2431
 msgid "Export Perspectives"
 msgstr ""
 
-#: php/class-prospect-admin.php:2432 prospect.php:193
+#: php/class-prospect-admin.php:2435 prospect.php:193
 msgid "Maps"
 msgstr ""
 
-#: php/class-prospect-admin.php:2434
+#: php/class-prospect-admin.php:2437
 msgid "Export all Maps as JSON archive file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2436
+#: php/class-prospect-admin.php:2439
 msgid "Export all Maps as JSON file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2440
+#: php/class-prospect-admin.php:2443
 #: php/scripts/english-us/view-exhibit.php:139 prospect.php:237
 #: prospect.php:243 prospect.php:250
 msgid "Perspectives"
 msgstr ""
 
-#: php/class-prospect-admin.php:2442
+#: php/class-prospect-admin.php:2445
 msgid "Export all Perspectives as JSON archive file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2444
+#: php/class-prospect-admin.php:2447
 msgid "Export all Perspectives as JSON file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2448 prospect.php:279 prospect.php:285
+#: php/class-prospect-admin.php:2451 prospect.php:279 prospect.php:285
 #: prospect.php:292
 msgid "Volumes"
 msgstr ""
 
-#: php/class-prospect-admin.php:2450
+#: php/class-prospect-admin.php:2453
 msgid "Export all Volumes as JSON archive file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2452
+#: php/class-prospect-admin.php:2455
 msgid "Export all Volumes as JSON file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2456
+#: php/class-prospect-admin.php:2459
 msgid "Export all Readings of this Volume as JSON file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2468
+#: php/class-prospect-admin.php:2471
 msgid "Export All Readings"
 msgstr ""
 
-#: php/class-prospect-admin.php:2472 php/scripts/english-us/view-volume.php:212
+#: php/class-prospect-admin.php:2475 php/scripts/english-us/view-volume.php:212
 #: prospect.php:321 prospect.php:327 prospect.php:334
 msgid "Readings"
 msgstr ""
 
-#: php/class-prospect-admin.php:2474
+#: php/class-prospect-admin.php:2477
 msgid "Export all Readings as JSON archive file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2476
+#: php/class-prospect-admin.php:2479
 msgid "Export all Readings as JSON file"
 msgstr ""
 
-#: php/class-prospect-admin.php:2480
+#: php/class-prospect-admin.php:2483
 msgid "Import JSON Archive File"
 msgstr ""
 
-#: php/class-prospect-admin.php:2481
+#: php/class-prospect-admin.php:2484
 msgid "You can import a JSON archive file containing Attributes, Templates, Exhibits, Maps, Perspectives and/or Volumes. You must use other means for importing CSV files containing Records."
 msgstr ""
 
-#: php/class-prospect-admin.php:2482
+#: php/class-prospect-admin.php:2485
 msgid "WARNING"
 msgstr ""
 
-#: php/class-prospect-admin.php:2482
+#: php/class-prospect-admin.php:2485
 msgid "Data entities whose IDs already exist are ignored, rather than overriding existing definitions."
 msgstr ""
 
-#: php/class-prospect-admin.php:2485
+#: php/class-prospect-admin.php:2488
 msgid "Archive JSON File to Import"
 msgstr ""
 
-#: php/class-prospect-admin.php:2488
+#: php/class-prospect-admin.php:2491
 msgid "Upload Archive"
 msgstr ""
 
-#: php/class-prospect-admin.php:2523
+#: php/class-prospect-admin.php:2526
 msgid "Customize Prospect on this website with these settings"
 msgstr ""
 
-#: php/class-prospect-admin.php:2611
+#: php/class-prospect-admin.php:2614
 msgid "Prospect Settings"
 msgstr ""
 
-#: php/class-prospect-admin.php:2628
+#: php/class-prospect-admin.php:2631
 msgid "Archive"
 msgstr ""
 
-#: php/class-prospect-admin.php:2631
+#: php/class-prospect-admin.php:2634
 msgid "Settings"
 msgstr ""
 
@@ -993,7 +993,7 @@ msgstr ""
 
 #: php/scripts/english-us/edit-attribute.php:334
 #: php/scripts/english-us/edit-exhibit.php:1195
-#: php/scripts/english-us/edit-record.php:180
+#: php/scripts/english-us/edit-record.php:183
 #: php/scripts/english-us/edit-template.php:155
 #: php/scripts/english-us/edit-volume.php:840
 msgid "\"Confirm\""
@@ -1001,7 +1001,7 @@ msgstr ""
 
 #: php/scripts/english-us/edit-attribute.php:341
 #: php/scripts/english-us/edit-exhibit.php:1202
-#: php/scripts/english-us/edit-record.php:189
+#: php/scripts/english-us/edit-record.php:192
 #: php/scripts/english-us/edit-template.php:162
 #: php/scripts/english-us/edit-volume.php:847
 msgid "\"Display Hint\""
@@ -2295,60 +2295,64 @@ msgstr ""
 msgid "\"Choose ID\""
 msgstr ""
 
-#: php/scripts/english-us/edit-record.php:163
-msgid "Please wait while remote data is loaded"
-msgstr ""
-
-#: php/scripts/english-us/edit-record.php:164
-msgid "No data available -- select \"Cancel\""
-msgstr ""
-
-#: php/scripts/english-us/edit-record.php:198
+#: php/scripts/english-us/edit-record.php:201
 msgid "GeoNames Coordinate Search"
 msgstr ""
 
-#: php/scripts/english-us/edit-record.php:201
+#: php/scripts/english-us/edit-record.php:204
 msgid "Look up coordinates by location name"
 msgstr ""
 
-#: php/scripts/english-us/edit-record.php:202
+#: php/scripts/english-us/edit-record.php:205
 msgid "Search"
 msgstr ""
 
-#: php/scripts/english-us/edit-record.php:209
+#: php/scripts/english-us/edit-record.php:212
 msgid "Error."
 msgstr ""
 
-#: php/scripts/english-us/edit-record.php:218
+#: php/scripts/english-us/edit-record.php:221
 msgid "You must supply an internal ID for the Record that is no more than 32 characters in length and consists entirely of alphanumeric characters (in plain ASCII), spaces and underscores (it cannot contain spaces, punctuation, Unicode-only characters, etc)."
 msgstr ""
 
-#: php/scripts/english-us/edit-record.php:222
+#: php/scripts/english-us/edit-record.php:225
 msgid "You cannot create any Records until you have defined Templates."
 msgstr ""
 
-#: php/scripts/english-us/edit-record.php:226
+#: php/scripts/english-us/edit-record.php:229
 msgid "You have entered a value into a number field that is not formatted properly."
 msgstr ""
 
-#: php/scripts/english-us/edit-record.php:230
+#: php/scripts/english-us/edit-record.php:233
 msgid "A number you entered is below the minimum allowable value or above the allowable maximum."
 msgstr ""
 
-#: php/scripts/english-us/edit-record.php:234
+#: php/scripts/english-us/edit-record.php:237
 msgid "A Date you entered is not a valid, or is before the minimum allowable year or past the maximum allowable year."
 msgstr ""
 
-#: php/scripts/english-us/edit-record.php:238
+#: php/scripts/english-us/edit-record.php:241
 msgid "The start year is greater than the end year for a Date you have entered."
 msgstr ""
 
-#: php/scripts/english-us/edit-record.php:244
+#: php/scripts/english-us/edit-record.php:245
+msgid "No data available -- select \"Cancel\""
+msgstr ""
+
+#: php/scripts/english-us/edit-record.php:251
 msgid "Are you sure that you wish to delete this View/Filter from your Exhibit?"
 msgstr ""
 
-#: php/scripts/english-us/edit-record.php:248
+#: php/scripts/english-us/edit-record.php:255
 msgid "Record was verified and prepared to be saved: now click the Publish or Update button on the right."
+msgstr ""
+
+#: php/scripts/english-us/edit-record.php:259
+msgid "Please wait while remote data is loaded"
+msgstr ""
+
+#: php/scripts/english-us/edit-record.php:263
+msgid "Please choose the Record ID"
 msgstr ""
 
 #: php/scripts/english-us/edit-template.php:15
@@ -3047,11 +3051,8 @@ msgid "Close"
 msgstr ""
 
 #: php/scripts/english-us/view-exhibit.php:208
-#: php/scripts/english-us/view-exhibit.php:218
-#: php/scripts/english-us/view-volume.php:43
 #: php/scripts/english-us/view-volume.php:76
-#: php/scripts/english-us/view-volume.php:86
-msgid "Min-Max"
+msgid "Legend"
 msgstr ""
 
 #: php/scripts/english-us/view-exhibit.php:209
@@ -3060,13 +3061,16 @@ msgid "Update"
 msgstr ""
 
 #: php/scripts/english-us/view-exhibit.php:210
-#: php/scripts/english-us/view-volume.php:78
-msgid "Legend"
-msgstr ""
-
 #: php/scripts/english-us/view-exhibit.php:219
 #: php/scripts/english-us/view-volume.php:44
+#: php/scripts/english-us/view-volume.php:78
 #: php/scripts/english-us/view-volume.php:87
+msgid "Min-Max"
+msgstr ""
+
+#: php/scripts/english-us/view-exhibit.php:218
+#: php/scripts/english-us/view-volume.php:43
+#: php/scripts/english-us/view-volume.php:86
 msgid "Highlighted Items"
 msgstr ""
 
