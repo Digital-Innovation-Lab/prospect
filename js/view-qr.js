@@ -1917,13 +1917,21 @@ PFilterQR.prototype.setup = function()
 		inserted.find('input.filter-qr-use-r2').prop('checked', false);
 		self.r = options.val();
 		self.setRoles();
-		self.isDirty(2);
+			// Only signal dirty if "use" checkbox is checked
+		if (inserted.find('input.filter-qr-use-r').prop('checked')) {
+			self.isDirty(2);
+		}
 	});
+		// Only signal dirty if Role 1 checkbox checked
 	inserted.find('select.filter-qr-r1').change(function() {
-		self.isDirty(2);
+		if (inserted.find('input.filter-qr-use-r1').prop('checked')) {
+			self.isDirty(2);
+		}
 	});
 	inserted.find('select.filter-qr-r2').change(function() {
-		self.isDirty(2);
+		if (inserted.find('input.filter-qr-use-r1').prop('checked')) {
+			self.isDirty(2);
+		}
 	});
 		// Any clicks on "use" settings just dirty filter
 	inserted.find('input.filter-qr-use-r').click(function(event) {
