@@ -57,7 +57,22 @@
 				<input type='checkbox' checked='{{use}}'/> {{tid}}
 			{{/each}}
 			<br/>
-			<input type='checkbox' checked='{{qrOn}}'/> Enable Qualified Relationships &nbsp;&nbsp;
+			<input type='checkbox' checked='{{genSettings.ds.on}}'/> <?php _e('Enable Date Slider', 'prospect'); ?>
+			{{#if genSettings.ds.on}}
+				<br/>
+				<?php _e('Start Date', 'prospect'); ?> <input type="text" value="{{genSettings.ds.s}}" size="12" placeholder=<?php _e('"YYYY-MM-DD"', 'prospect'); ?>/>
+				<?php _e('End Date', 'prospect'); ?> <input type="text" value="{{genSettings.ds.e}}" size="12" placeholder=<?php _e('"YYYY-MM-DD"', 'prospect'); ?>/>
+				<br/>
+				{{#each iTemplates:tIndex}}
+					<?php _e('Dates Attribute for', 'prospect'); ?> {{tid}}:
+					<select value='{{genSettings.ds.tAtts[tIndex]}}'>
+					{{#each attsDates}}
+						<option>{{this}}</option>
+					{{/each}} |&nbsp;
+				{{/each}}
+			{{/if}}
+			<br/>
+			<input type='checkbox' checked='{{qrOn}}'/> <?php _e('Enable Qualified Relationships', 'prospect'); ?> &nbsp;&nbsp;
 			{{#if qrOn}}
 				QR Template <select value='{{genSettings.qr.t}}'>
 				{{#each qrOptions.t}}
@@ -1297,6 +1312,18 @@
 
 <script id="errmsg-qr-rel-lgnd" type='text/ractive'>
 <?php _e('The legend for the QR Template must have the Relationship Attribute selected (and only that Attribute) for', 'prospect'); ?>
+</script>
+
+<script id="errmsg-ds-bad-date" type='text/ractive'>
+<?php _e('A date in your Date Slider is empty or poorly formatted (must be in format YYYY-MM-DD)', 'prospect'); ?>
+</script>
+
+<script id="errmsg-ds-date-order" type='text/ractive'>
+<?php _e('The start date in your Date Slider is after your end date', 'prospect'); ?>
+</script>
+
+<script id="errmsg-ds-date-atts" type='text/ractive'>
+<?php _e('You must have at least one non-disable Attribute chosen in the Date Slider', 'prospect'); ?>
 </script>
 
 

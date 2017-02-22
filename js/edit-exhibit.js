@@ -237,14 +237,23 @@ jQuery(document).ready(function() {
 	var xhbtID = jQuery('input[name="prsp_xhbt_id"]').val();
 
 	var qrOn = false;
+		// NOTE: ds.dAtts[] will be filled out as iTemplates built
 	var defGen = { l: '', hbtn: '', hurl: '', ts: [], tour: false, dspr: false, auto: true,
 					qr: { t: 'disable', e1: '', e2: '', d: null, r: '', r1: '', r2: '',
 							c1: null, c2: null, c: null, x: []
-						}
+						},
+					ds: { on: false, dAtts: new Array(defTemplates.length).fill('disable'), s: '', e: '' }
  				 };
 	embedData = jQuery('textarea[name="prsp_xhbt_gen"]').val();
 	if (embedData && embedData != 'null' && embedData.length > 4) {
 		defGen = JSON.parse(embedData);
+			// Create default settings for Date Slider if not defined (added in 1.8.6)
+			// NOTE: dAtts[] modified after iTemplates created
+		if (typeof defGen.ds === 'undefined') {
+			defGen.ds = { on: false, dAtts: new Array(defTemplates.length).fill('disable'), s: '', e: '' };
+		} else {
+			defGen.ds.on = true;
+		}
 			// Create default setting for Help Tour if not defined (added in 1.7)
 		if (typeof defGen.tour === 'undefined') {
 			defGen.tour = false;
@@ -620,6 +629,68 @@ jQuery(document).ready(function() {
 			}
 		}
 
+			// PURPOSE: Parse a string for a Date
+			// ASSUMES: String has passed RegEx test
+		function parseDate(str, end)
+		{
+			var m, d;
+
+			var np = 1;
+			if (str.charAt(0) === '-') {
+				np = -1;
+				str = str.substring(1);
+			}
+			var cmpts = str.split('-');
+			var y = parseInt(cmpts[0])*np;
+			if (cmpts.length > 1) {
+				m = parseInt(cmpts[1]);
+				if (cmpts.length == 3) {
+					d = parseInt(cmpts[2]);
+				} else {
+					if (end)
+						d = 31;
+					else
+						d = 1;
+				}
+			} else {
+				if (end) {
+					m=12; d=31;
+				} else {
+					m=1; d=1;
+				}
+			}
+				// add end of day?
+			return [y, m, d];
+		} // parseDate
+
+			// Do we need to save Date Slider params?
+		if (rApp.get('genSettings.ds.on')) {
+			var dateRegEx = /^-?\d+(-?\d+(-?\d+))$/;
+			var sDateVal = rApp.get('genSettings.ds.s');
+			if (!sDateVal.match(dateRegEx))
+			{
+				displayError('#errmsg-ds-bad-date');
+				return false;
+			}
+			var eDateVal = rApp.get('genSettings.ds.e');
+			if (!eDateVal.match(dateRegEx))
+			{
+				displayError('#errmsg-ds-bad-date');
+				return false;
+			}
+			var parsedSDate = parseDate(sDateVal, false);
+			var parsedEDate = parseDate(eDateVal, true);
+			if ((parsedSDate[0] > parsedEDate[0]) ||
+				((parsedSDate[0] === parsedEDate[0]) && (parsedSDate[1] > parsedEDate[1])) ||
+				((parsedSDate[0] === parsedEDate[0]) && (parsedSDate[1] === parsedEDate[1]) && (parsedSDate[2] > parsedEDate[2])))
+			{
+					displayError('#errmsg-ds-date-order');
+					return false;
+			}
+				// tAtts will get processed further later
+			saveGen.ds = { s: sDateVal, e: eDateVal, tAtts: rApp.get('genSettings.ds.tAtts') }
+		}
+
 			// Ensure unique labels given to all views
 		var vNames=[];
 		for (i=0; i<rApp.get('viewSettings.length'); i++) {
@@ -941,14 +1012,17 @@ jQuery(document).ready(function() {
 
 		// Closure for temporary vars
 		// Initialize playback widget settings that correspond to iTemplates structures
-	if (true) {
+		// Created "padded" array for Date Slider
+	(function() {
+		var oldDSAtts=defGen.ds.dAtts, newDSAtts=[];
 		var newSCAtts=[], newYTAtts=[], newT1Atts=[], newT2Atts=[], newTCAtts=[],
 			newModalAtts=[];
 		_.forEach(iTemplates, function(theTmplt) {
-
 			var origTIndex = getTemplateIndex(theTmplt.tid);
 				// Is Template absent in original configuration?
 			if (origTIndex == -1) {
+					// Date Slider Attributes
+				newDSAtts.push('disable');
 					// Initialize inspectSettings so that everything starts disabled
 				newSCAtts.push('disable');
 				newYTAtts.push('disable');
@@ -960,6 +1034,9 @@ jQuery(document).ready(function() {
 								return { attID: theCntAtt, useAtt: true };
 							}));
 			} else {
+					// Date Slider Attributes
+				newDSAtts.push(checkAttID(oldDSAtts[origTIndex], theTmplt.attsDates, 'disable'));
+					// Widget Attributes
 				newSCAtts.push(checkAttID(defInspect.sc.atts[origTIndex], theTmplt.attsSC, 'disable'));
 				newYTAtts.push(checkAttID(defInspect.yt.atts[origTIndex], theTmplt.attsYT, 'disable'));
 				newT1Atts.push(checkAttID(defInspect.t.t1Atts[origTIndex], theTmplt.attsTrns, 'disable'));
@@ -969,6 +1046,7 @@ jQuery(document).ready(function() {
 				newModalAtts.push(createPaddedAtts(theTmplt.attsCnt, defInspect.modal.atts[origTIndex]));
 			} // in original config
 		}); // for iTemplate
+		defGen.ds.dAtts = newDSAtts;
 			// Save recomputed values
 		defInspect.sc.atts = newSCAtts;
 		defInspect.yt.atts = newYTAtts;
@@ -976,7 +1054,7 @@ jQuery(document).ready(function() {
 		defInspect.t.t2Atts = newT2Atts;
 		defInspect.t.tcAtts = newTCAtts;
 		defInspect.modal.atts = newModalAtts;
-	}
+	})();
 
 		// Initialize View settings to correspond to iTemplates structures
 	(function() {
@@ -2107,13 +2185,15 @@ jQuery(document).ready(function() {
 			} // packUsedAtts()
 
 				// PURPOSE: Only return IDs in positions of saveTIndices entries
-			function packUsedAttIDs(expandedArray)
+				// INPUT:	expandedArray = "original" full array
+				//			emptyVal = value to use to indicate empty/disable
+			function packUsedAttIDs(expandedArray, emptyVal)
 			{
 				var newArray = [];
 				saveTIndices.forEach(function(tIndex) {
 					var theID = expandedArray[tIndex];
 					if (theID == '' || theID == 'disable') {
-						theID = null;
+						theID = emptyVal;
 					}
 					newArray.push(theID);
 				});
@@ -2151,6 +2231,15 @@ jQuery(document).ready(function() {
 
 				return true;
 			} // checkRelLegends()
+
+				// Pack Date Slider Attributes
+			if (typeof saveGen.ds !== 'undefined') {
+				saveGen.ds.tAtts = packUsedAttIDs(saveGen.ds.tAtts, 'disable');
+				if (saveGen.ds.tAtts.findIndex(function(d) { return d !== 'disable'; }) === -1) {
+					displayError('#errmsg-ds-date-atts', name);
+					return false;
+				}
+			}
 
 				// Compact View Setting arrays
 			var vCount = rApp.get('viewSettings.length');
@@ -2210,8 +2299,8 @@ jQuery(document).ready(function() {
 					saveView.c.cAtts = newCAtts;
 					saveView.c.lgnds = newLgnds;
 					saveView.c.lClrs = newLClrs;
-					saveView.c.pAtts = packUsedAttIDs(viewSettings.c.pAtts);
-					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts);
+					saveView.c.pAtts = packUsedAttIDs(viewSettings.c.pAtts, null);
+					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts, null);
 						// Don't need to modify map layer settings
 					saveView.c.base = viewSettings.c.base;
 					saveView.c.lyrs = viewSettings.c.lyrs;
@@ -2238,8 +2327,8 @@ jQuery(document).ready(function() {
 					saveView.c.lClrs = newLClrs;
 					saveView.c.tClrs = newTClrs;
 					saveView.c.lbls = newLbls;
-					saveView.c.cAtts = packUsedAttIDs(viewSettings.c.cAtts);
-					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts);
+					saveView.c.cAtts = packUsedAttIDs(viewSettings.c.cAtts, null);
+					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts, null);
 						// Don't need to modify map layer settings
 					saveView.c.base = viewSettings.c.base;
 					saveView.c.lyrs = viewSettings.c.lyrs;
@@ -2257,11 +2346,11 @@ jQuery(document).ready(function() {
 						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
 						newLClrs.push(viewSettings.c.lClrs[tIndex]);
 					});
-					saveView.c.cAtts = packUsedAttIDs(viewSettings.c.cAtts);
+					saveView.c.cAtts = packUsedAttIDs(viewSettings.c.cAtts, null);
 					saveView.c.lgnds = newLgnds;
-					saveView.c.pAtts = packUsedAttIDs(viewSettings.c.pAtts);
+					saveView.c.pAtts = packUsedAttIDs(viewSettings.c.pAtts, null);
 					saveView.c.lClrs = newLClrs;
-					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts);
+					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts, null);
 						// Don't need to modify svg layer settings
 					saveView.c.lyrs = viewSettings.c.lyrs;
 						// Handle shape-symbol options (new since 1.8.3)
@@ -2293,7 +2382,7 @@ jQuery(document).ready(function() {
 					});
 					saveView.c.lgnds = newLgnds;
 					saveView.c.cnt = newCnt;
-					saveView.c.iAtts = packUsedAttIDs(viewSettings.c.iAtts);
+					saveView.c.iAtts = packUsedAttIDs(viewSettings.c.iAtts, null);
 					break;
 				case 'T': 	// Timeline
 					saveView.c.bHt  = viewSettings.c.bHt;
@@ -2306,7 +2395,7 @@ jQuery(document).ready(function() {
 					saveTIndices.forEach(function(tIndex) {
 						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
 					});
-					saveView.c.dAtts = packUsedAttIDs(viewSettings.c.dAtts);
+					saveView.c.dAtts = packUsedAttIDs(viewSettings.c.dAtts, null);
 					saveView.c.lgnds = newLgnds;
 					break;
 				case 'D': 	// Directory
@@ -2323,10 +2412,10 @@ jQuery(document).ready(function() {
 					saveTIndices.forEach(function(tIndex) {
 						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
 					});
-					saveView.c.cnt = packUsedAttIDs(viewSettings.c.cnt);
-					saveView.c.order = packUsedAttIDs(viewSettings.c.order);
+					saveView.c.cnt = packUsedAttIDs(viewSettings.c.cnt, null);
+					saveView.c.order = packUsedAttIDs(viewSettings.c.order, null);
 					saveView.c.lgnds = newLgnds;
-					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts);
+					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts, null);
 					break;
 				case 'S': 	// Stacked Chart
 					saveView.c.gr   = viewSettings.c.gr;
@@ -2361,7 +2450,7 @@ jQuery(document).ready(function() {
 						newPAtts.push(viewSettings.c.pAtts[tIndex]);
 					});
 					saveView.c.pAtts = newPAtts;
-					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts);
+					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts, null);
 					saveView.c.lgnds = newLgnds;
 						// Handle shape-symbol options (new since 1.8.3)
 					if (viewSettings.c.ms === 'S') {
@@ -2443,7 +2532,7 @@ jQuery(document).ready(function() {
 					});
 					saveView.c.pAtts = newPAtts;
 					saveView.c.lgnds = newLgnds;
-					saveView.c.oAtts = packUsedAttIDs(viewSettings.c.oAtts);
+					saveView.c.oAtts = packUsedAttIDs(viewSettings.c.oAtts, null);
 					break;
 				case 'Q':	// QR-Map
 						// Ensure that QR-Template enabled if QR views are defined
@@ -2473,7 +2562,7 @@ jQuery(document).ready(function() {
 						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
 					});
 					saveView.c.lgnds = newLgnds;
-					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts);
+					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts, null);
 						// Don't need to modify map layer settings
 					saveView.c.base = viewSettings.c.base;
 					saveView.c.lyrs = viewSettings.c.lyrs;
@@ -2495,7 +2584,7 @@ jQuery(document).ready(function() {
 						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
 					});
 					saveView.c.lgnds = newLgnds;
-					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts);
+					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts, null);
 						// Handle shape-symbol options (new since 1.8.3)
 					if (viewSettings.c.ms === 'S') {
 						var newSyms=[];
@@ -2554,7 +2643,7 @@ jQuery(document).ready(function() {
 						return false;
 					}
 					saveView.c.r = viewSettings.c.r;
-					saveView.c.dAtts = packUsedAttIDs(viewSettings.c.dAtts);
+					saveView.c.dAtts = packUsedAttIDs(viewSettings.c.dAtts, null);
 					break;
 				} // switch
 				saveViews.push(saveView);
@@ -2563,13 +2652,13 @@ jQuery(document).ready(function() {
 				// Compact Inspector settings
 			var inspectSettings = rApp.get('inspectSettings');
 			saveInspect.sc = {};
-			saveInspect.sc.atts = packUsedAttIDs(inspectSettings.sc.atts);
+			saveInspect.sc.atts = packUsedAttIDs(inspectSettings.sc.atts, null);
 			saveInspect.yt = {};
-			saveInspect.yt.atts = packUsedAttIDs(inspectSettings.yt.atts);
+			saveInspect.yt.atts = packUsedAttIDs(inspectSettings.yt.atts, null);
 			saveInspect.t = {};
-			saveInspect.t.t1Atts = packUsedAttIDs(inspectSettings.t.t1Atts);
-			saveInspect.t.t2Atts = packUsedAttIDs(inspectSettings.t.t2Atts);
-			saveInspect.t.tcAtts = packUsedAttIDs(inspectSettings.t.tcAtts);
+			saveInspect.t.t1Atts = packUsedAttIDs(inspectSettings.t.t1Atts, null);
+			saveInspect.t.t2Atts = packUsedAttIDs(inspectSettings.t.t2Atts, null);
+			saveInspect.t.tcAtts = packUsedAttIDs(inspectSettings.t.tcAtts, null);
 			saveInspect.modal =  {};
 				// W/H overrides?
 			var n = inspectSettings.modal.w;
