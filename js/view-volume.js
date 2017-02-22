@@ -864,7 +864,7 @@ PVizFrame.prototype.initDOM = function(vI)
 	function clickShowHideLegend(event)
 	{
 		if (self.vizModel.flags() & V_FLAG_LGND) {
-			jQuery('#view-frame-1 div.lgnd-container').toggle('slide', { direction: "left" });
+			jQuery('#view-frame-1 div.lgnd-container').toggle();
 		}
 		event.preventDefault();
 	} // clickShowHideLegend()

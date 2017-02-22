@@ -94,7 +94,7 @@ function PViewFrame(vfIndex)
 	function clickShowHideLegend(event)
 	{
 		if (vizModel.flags() & V_FLAG_LGND) {
-			jQuery(getFrameID()+' div.lgnd-container').toggle('slide', {direction: "left" });
+			jQuery(getFrameID()+' div.lgnd-container').toggle();
 		}
 		event.preventDefault();
 	} // clickShowHideLegend()
