@@ -1557,6 +1557,8 @@ jQuery(document).ready(function($) {
 	var filters=[];				// Filter Stack: { id, f [PFilterModel], out [stream] }
 	var fState=0;				// Filter State: 0 = no filter, 1 = filters changed, 2 = filters run
 
+	var hasDSlider=false;		// True if DateSlider is currently in Filter Stack
+
 	var autoUpdate=false;		// If true, then all GUI changes trigger recompute
 
 	var hFilters=[null, null];	// Highlight Filter
@@ -1606,8 +1608,8 @@ jQuery(document).ready(function($) {
 				var relI=0, absI, rec;
 				var tI=0, tRec=endStream.t[0], tRn=0, rTotal=0;
 				var e;
-					// If not QR Filter, then check checkbox, but oNly run QR Filter on QR Template
-				e = (f.att.id === '_qr' && qrTI === 0) || (fDiv.find('.apply-tmplt-0').is(':checked'));
+					// Does Filter evaluate Records of this Template type?
+				e = (f.att.id === '_dslider') || (f.att.id === '_qr' && qrTI === 0) || (fDiv.find('.apply-tmplt-0').is(':checked'));
 
 					// Must keep absolute indices and template params updated!
 				while (relI < endStream.l) {
@@ -1616,13 +1618,14 @@ jQuery(document).ready(function($) {
 						newStream.t.push({ i: (newStream.l-tRn), n: tRn });
 						tRn = 0;
 						tRec = endStream.t[++tI];
-						e = (f.att.id === '_qr' && qrTI === tI) || (fDiv.find('.apply-tmplt-'+tI).is(':checked'));
+							// Does Filter evaluate Records of this Template type?
+						e = (f.att.id === '_dslider') || (f.att.id === '_qr' && qrTI === tI) || (fDiv.find('.apply-tmplt-'+tI).is(':checked'));
 					}
 					absI = endStream.s[relI++];
 						// Need to evaluate
 					if (e) {
 						rec = PData.rByN(absI);
-						if (f.eval(rec)) {
+						if (f.eval(rec, tI)) {
 							newStream.s[newStream.l++] = absI;
 							tRn++;
 						}
@@ -2161,6 +2164,9 @@ jQuery(document).ready(function($) {
 		var head = jQuery(this).closest('div.filter-instance');
 		var fID = head.data('id');
 
+		if (fID === '_dslider') {
+			hasDSlider = false;
+		}
 
 		fI = filters.findIndex(function(fRec) { return fRec.id == fID; });
 		if (fI === -1)	{ alert('Bad Filter ID '+fID); return; }
@@ -2247,14 +2253,23 @@ jQuery(document).ready(function($) {
 			} while (newID == -1);
 		}
 
-		if (fID === '_remove') {
+		switch(fID) {
+		case '_remove':
 			newFilter = new PFilterRemove(newID);
 			theAtt = { t: [ true, true, true, true ] };	// Create pseudo-Attribute entry
-		} else if (fID === '_qr') {
+			break;
+		case '_qr':
 			newFilter = new PFilterQR(newID);
 			appBoxes='';
 			title = dlText.qrrr;
-		} else {
+			break;
+		case '_dslider':
+			newFilter = new PFilterDSlider(newID);
+			hasDSlider=true;
+			appBoxes='';
+			title = document.getElementById('dltext-dateslider').innerHTML;
+			break;
+		default:
 			theAtt = PData.aByID(fID);
 			title = theAtt.def.l;
 			switch (theAtt.def.t) {
@@ -2277,7 +2292,7 @@ jQuery(document).ready(function($) {
 				newFilter = new PFilterPtr(newID, theAtt);
 				break;
 			}
-		}
+		} // switch on fID
 
 		if (highlight !== null) {
 			insert = jQuery('#dialog-hilite-'+highlight+' span.filter-id').html(title);
@@ -2290,7 +2305,7 @@ jQuery(document).ready(function($) {
 
 				// Now create DOM structure and handle clicks
 			var fh = _.template(document.getElementById('dltext-filter-head').innerHTML);
-			jQuery('#filter-instances').append(fh({ newID: newID, title: newFilter.title(), apply: appBoxes }));
+			jQuery('#filter-instances').append(fh({ newID: newID, title: title, apply: appBoxes }));
 
 			var head = jQuery('div.filter-instance[data-id="'+newID+'"]');
 
@@ -2311,9 +2326,12 @@ jQuery(document).ready(function($) {
 			head.find('button.btn-filter-del').button({
 						text: false, icons: { primary: 'ui-icon-trash' }
 					}).click(clickFilterDel);
-				// Code below should not be necessary, as initial state of all Filters allow all data through
-			// fState = 1;
-			// jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
+
+				// DateSlider is only Filter whose initial state has effect on data
+			if (fID === '_dslider') {
+				fState = 1;
+				jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
+			}
 		}
 
 			// Allow Filter to insert required HTML
@@ -2339,21 +2357,31 @@ jQuery(document).ready(function($) {
 		attList.each(function(i) {
 			li = jQuery(this);
 			attID = li.data("id");
-			if (attID === '_remove') {
+			switch (attID) {
+			case '_remove':
 					// Do we show "Remove" Filter Option?
 				if (forViz) {
 					li.show();
 				} else {
 					li.hide();
 				}
-			} else if (attID === '_qr') {
+				break;
+			case '_qr':
 					// Enable QR filter to appear both in Filter Stack and Highlight dialog
 				if (useQR) {
 					li.show();
 				} else {
 					li.hide();
 				}
-			} else {
+				break;
+			case '_dslider':
+				if (hasDSlider || forViz) {
+					li.hide();
+				} else {
+					li.show();
+				}
+				break;
+			default:
 				if (usedTs) {
 					attDef = PData.aByID(attID);
 						// Only show an Attribute if it appears in a Template that was rendered in the view
@@ -2368,7 +2396,8 @@ jQuery(document).ready(function($) {
 				} else {
 					li.show();
 				}
-			}
+				break;
+			} // switch on attID
 		});
 
 		var attDialog;
@@ -2459,7 +2488,7 @@ jQuery(document).ready(function($) {
 						// Ensure that we only call QR Filter for QR Templates
 					if (!qrF || (qrTI === tI)) {
 						rec = PData.rByN(absI);
-						if (hFilter.eval(rec)) {
+						if (hFilter.eval(rec, tI)) {
 							list.push(absI);
 						}
 					}
@@ -2825,8 +2854,12 @@ jQuery(document).ready(function($) {
 		// Create New Filter list
 	(function () {
 		jQuery('#filter-list').append('<li class="remove" data-id="_remove"><i>'+dlText.rha+'</i></li>');
+		if (typeof prspdata.e.g.ds !== 'undefined') {
+			var text = document.getElementById('dltext-dateslider').innerHTML;
+			jQuery('#filter-list').append('<li data-id="_dslider"><i>'+text+'</i></li>');
+		}
 		if (useQR) {
-			jQuery('#filter-list').append('<li class="remove" data-id="_qr"><i>'+dlText.qrrr+'</i></li>');
+			jQuery('#filter-list').append('<li data-id="_qr"><i>'+dlText.qrrr+'</i></li>');
 		}
 		var attList=[];
 		prspdata.a.forEach(function(theAtt) {
@@ -2857,6 +2890,11 @@ jQuery(document).ready(function($) {
 		views[0] = PViewFrame(0);
 		views[0].initDOM(0);
 		setAnnote('');
+			// Date Slider configured? Create automatically
+		if (typeof prspdata.e.g.ds !== 'undefined') {
+			var dsSettings = prspdata.e.g.ds;
+			createFilter('_dslider', null, null);
+		}
 	}
 
 		// Allow ViewFrames to handle changes in size

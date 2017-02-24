@@ -1702,23 +1702,6 @@ svg text.b-lbl-txt {
  * ======================
  */
 
-div.filter-num-slider {
-	display: inline-block;
-}
-
-div.filter-num-slider.ui-slider {
-	height: 6px;
-	width: 100px;
-}
-
-div.filter-num-slider.ui-slider .ui-slider-handle {
-	height: 10px;
-	width: 5px;
-}
-
-div.filter-num-slider.ui-slider .ui-slider-range {
-}
-
 	/* Outer container for Vocabulary filters */
 div.filter-vocab-container {
 	display: -webkit-box;

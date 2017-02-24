@@ -342,6 +342,13 @@
 	</div>
 </script>
 
+<script id="dltext-filter-dslider" type='text'>
+	<div class="cntrl-row">
+		<?php _e('Date: ', 'prospect'); ?><span class="d"></span> | <span class="t"></span>
+	</div>
+	<div class="dateslider"></div>
+</script>
+
 <script id="dltext-filter-ptr" type='text'>
 	<?php _e('Points to an item label', 'prospect'); ?>
 	<select class="filter-text-ops" value="c">
@@ -483,6 +490,10 @@
 
 <script id="dltext-selected" type="text">
 <?php _e('selected', 'prospect'); ?>
+</script>
+
+<script id="dltext-dateslider" type="text">
+<?php _e('Date Slider', 'prospect'); ?>
 </script>
 
 <script id="dltext-sync-xscript" type="text">
