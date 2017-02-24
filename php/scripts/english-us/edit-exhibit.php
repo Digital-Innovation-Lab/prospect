@@ -65,7 +65,7 @@
 				<br/>
 				{{#each iTemplates:tIndex}}
 					<?php _e('Dates Attribute for', 'prospect'); ?> {{tid}}:
-					<select value='{{genSettings.ds.tAtts[tIndex]}}'>
+					<select value='{{genSettings.ds.dAtts[tIndex]}}'>
 					{{#each attsDates}}
 						<option>{{this}}</option>
 					{{/each}} |&nbsp;

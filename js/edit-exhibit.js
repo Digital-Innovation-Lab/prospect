@@ -688,7 +688,7 @@ jQuery(document).ready(function() {
 					return false;
 			}
 				// tAtts will get processed further later
-			saveGen.ds = { s: sDateVal, e: eDateVal, tAtts: rApp.get('genSettings.ds.tAtts') }
+			saveGen.ds = { s: sDateVal, e: eDateVal, dAtts: rApp.get('genSettings.ds.dAtts') }
 		}
 
 			// Ensure unique labels given to all views
@@ -2234,8 +2234,8 @@ jQuery(document).ready(function() {
 
 				// Pack Date Slider Attributes
 			if (typeof saveGen.ds !== 'undefined') {
-				saveGen.ds.tAtts = packUsedAttIDs(saveGen.ds.tAtts, 'disable');
-				if (saveGen.ds.tAtts.findIndex(function(d) { return d !== 'disable'; }) === -1) {
+				saveGen.ds.dAtts = packUsedAttIDs(saveGen.ds.dAtts, 'disable');
+				if (saveGen.ds.dAtts.findIndex(function(d) { return d !== 'disable'; }) === -1) {
 					displayError('#errmsg-ds-date-atts', name);
 					return false;
 				}
