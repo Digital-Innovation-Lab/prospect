@@ -1738,37 +1738,41 @@ svg circle.ring
  */
 
 div.dateslider {
-	margin: 8px;
+	margin: 4px;
 }
 
-div.dateslider .track,
-div.dateslider .track-inset,
-div.dateslider .track-overlay {
-  stroke-linecap: round;
+div.dateslider g.slider {
+	padding-left: 4px;
+	padding-right: 4px;
 }
 
-div.dateslider .track {
-  stroke: #000;
-  stroke-opacity: 0.3;
-  stroke-width: 8px;
+div.dateslider line.track,
+div.dateslider line.track-inset,
+div.dateslider line.track-overlay {
+	stroke-linecap: round;
 }
 
-div.dateslider .track-inset {
-  stroke: #ddd;
-  stroke-width: 4px;
+div.dateslider line.track {
+	stroke: #000;
+	stroke-opacity: 0.3;
+	stroke-width: 8px;
 }
 
-div.dateslider .track-overlay {
-  pointer-events: stroke;
-  stroke-width: 2px;
-  cursor: pointer;
+div.dateslider line.track-inset {
+	stroke: #ddd;
+	stroke-width: 4px;
 }
 
-div.dateslider .handle {
-  fill: #fff;
-  stroke: #000;
-  stroke-opacity: 0.5;
-  stroke-width: 1.25px;
+div.dateslider line.track-overlay {
+	stroke-width: 2px;
+}
+
+div.dateslider circle.handle {
+	cursor: pointer;
+	fill: #fff;
+	stroke: #000;
+	stroke-opacity: 0.5;
+	stroke-width: 1.25px;
 }
 
 	/* Outer container for Vocabulary filters */

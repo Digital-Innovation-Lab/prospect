@@ -344,7 +344,7 @@
 
 <script id="dltext-filter-dslider" type='text'>
 	<div class="cntrl-row">
-		<?php _e('Date: ', 'prospect'); ?><span class="d"></span> | <span class="t"></span>
+		<?php _e('Date: ', 'prospect'); ?><span class="d"></span> &nbsp;|&nbsp; <span class="t"></span>
 	</div>
 	<div class="dateslider"></div>
 </script>

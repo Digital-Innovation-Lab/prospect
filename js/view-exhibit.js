@@ -2164,14 +2164,14 @@ jQuery(document).ready(function($) {
 		var head = jQuery(this).closest('div.filter-instance');
 		var fID = head.data('id');
 
-		if (fID === '_dslider') {
-			hasDSlider = false;
-		}
-
 		fI = filters.findIndex(function(fRec) { return fRec.id == fID; });
 		if (fI === -1)	{ alert('Bad Filter ID '+fID); return; }
 
 		fRec = filters[fI].f;
+		if (fRec.att.id === '_dslider') {
+			hasDSlider = false;
+		}
+
 		fRec.teardown();
 
 		filters.splice(fI, 1);
@@ -2375,7 +2375,7 @@ jQuery(document).ready(function($) {
 				}
 				break;
 			case '_dslider':
-				if (hasDSlider || forViz) {
+				if (hasDSlider || !forViz) {
 					li.hide();
 				} else {
 					li.show();

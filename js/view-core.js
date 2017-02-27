@@ -6503,9 +6503,12 @@ PFilterDates.prototype.setState = function(state)
 //	NOTES: This specially-configured Filter only exists in the Filter Stack of Exhibits
 //		(not in Volumes or as a Highlight Filter)
 //	Instance Variables:
+//		xScale = D3 scale for converting between Dates and pixels
 //		curDate = Date currently on slider
-//		pw = pixel width of DateSlider
-//		tAtts = Dates Attribute IDs to use on Slider for each Template
+//		pow = pixel outer width of DateSlider (g region)
+//		piw = pixel inner width (actual controls)
+//		dAtts = Dates Attribute IDs to use on Slider for each Template
+//		handle = SVG circle that represents handle
 
 var PFilterDSlider = function(id)
 {
@@ -6516,10 +6519,6 @@ var PFilterDSlider = function(id)
 PFilterDSlider.prototype = Object.create(PFilterModel.prototype);
 
 PFilterDSlider.prototype.constructor = PFilterDSlider;
-
-PFilterDSlider.prototype.evalPrep = function()
-{
-} // evalPrep()
 
 	// NOTES: DateSlider is currently only Filter that takes Template Index
 PFilterDSlider.prototype.eval = function(rec, tI)
@@ -6540,7 +6539,7 @@ PFilterDSlider.prototype.eval = function(rec, tI)
 		return PData.d3Nums(y, dm, dd, end);
 	} // makeDate()
 
-	var a = this.tAtts[tI];
+	var a = this.dAtts[tI];
 		// Data passed through whose Template is not checked
 	if (a === 'disable')
 		return true;
@@ -6557,7 +6556,6 @@ PFilterDSlider.prototype.eval = function(rec, tI)
 		var s = makeDate(d.min.y, 1, 1, d.min, false);
 		return s === this.curDate;
 	} else {
-		// ## TO DO
 		var s = makeDate(d.min.y, 1, 1, d.min, false);
 		var e;
 		if (d.max === 'open')
@@ -6565,23 +6563,14 @@ PFilterDSlider.prototype.eval = function(rec, tI)
 		else 	// Since exclusive compare, don't push past start of day
 			e = makeDate(d.max.y, 12, 31, d.max, false);
 
-			// Overlap?
-		if (this.c === 'o') {
-			if (e < this.min || s >= this.max)
-				return false;
-		} else {
-			if (this.min > s || e > this.max)
-				return false;
-		}
+		return (s <= this.curDate && this.curDate <= e);
 	}
 } // eval()
 
 	// PURPOSE: Update the date display on FIlter
 PFilterDSlider.prototype.refreshDate = function(insertPt)
 {
-	var dStr;
-	// dStr = this.curDate.getUTCFullYear() + '-' + (this.curDate.getMonth()+1) + '-' + this.curDate.getDate();
-	dStr = 'some date';
+	var dStr = this.curDate.getUTCFullYear() + '-' + (this.curDate.getMonth()+1) + '-' + this.curDate.getDate();
 	insertPt.find('div.cntrl-row span.d').text(dStr);
 } // refreshDate()
 
@@ -6589,42 +6578,65 @@ PFilterDSlider.prototype.setup = function()
 {
 	var self=this;
 	var dsSettings=prspdata.e.g.ds;
-	this.tAtts = dsSettings.tAtts;
 	var sDate = PData.dStr(dsSettings.s, false);
 	var eDate = PData.dStr(dsSettings.e, true);	// Millsecs will put at end of day -- reset to morning?
 	var insert = this.insertPt();
+	var xScale;
+	var svg, slider, handle;
 
 		// PURPOSE: Get width of slide area and update xScale
-	function widthCalc()
+	function resize()
 	{
-		var curWidth = insert.width();
-		self.xScale.range([0, curWidth]);
-		self.pw = curWidth;
-			// ### TO DO Calculate whether there are more discrete Dates or pixels
-			// Set slider params: max and step
+		var t = insert.width();
+		self.pow = t-8;		// outer width (svg)
+		self.piw = t-16;	// inner width (tracks)
+		xScale.range([0, self.piw-1]);
+			// Change sizes of SVG elements
+		svg.attr("width", this.pow);
+		slider.attr("width", this.piw);
+		slider.select(".track").attr("x2", this.piw);
+		slider.select(".track-inset").attr("x2", this.piw);
+		slider.select(".track-overlay").attr("x2", this.piw);
+			// Update handle position
+		var newX = xScale(this.curDate);
+		handle.attr("cx", newX);
 	} // widthCalc()
+
+	function roundByDay(x)
+	{
+		var newD = d3.timeDay.round(self.curDate);
+		self.curDate = newD;
+		var newX = xScale(newD);
+		handle.attr("cx", newX);
+	} // roundByDay()
 
 	function drag()
 	{
-		handle.attr("cx", d3.event.x);
+		var x=Math.max(0,Math.min(d3.event.x,self.piw-1));
+		handle.attr("cx", x);
+		self.curDate = xScale.invert(x);
+		self.refreshDate(insert);
 	} // drag()
 
 	function dragend()
 	{
-
+		roundByDay();
+		self.refreshDate(insert);
+		self.isDirty(2);
 	} // dragStop()
 
-		// ## Start in middle of range
-	var xScale = d3.scaleTime().domain([sDate, eDate]);
+	var totalWidth = insert.width();
+	this.pow = totalWidth-8;	// outer width (svg)
+	this.piw = totalWidth-16;	// inner width (tracks)
+	xScale = d3.scaleTime().domain([sDate, eDate]).range([0, this.piw]).clamp(true);
 	this.xScale = xScale;
-	widthCalc();
-	this.curDate = xScale(this.pw/2);
-	// ## TO DO -- clamp to Date
 
 	var el = document.getElementById('dltext-filter-dslider').innerHTML;
 	insert.append(el);
 
-		// Set names of Templates and chosen Attributes ###
+	this.dAtts = dsSettings.dAtts;
+
+		// Set names of Templates and chosen Attributes
 	var tStr='', tDef, aDef, id;
 	for (var i=0; i<PData.eTNum(); i++) {
 		id = dsSettings.dAtts[i];
@@ -6639,37 +6651,35 @@ PFilterDSlider.prototype.setup = function()
 	}
 	insert.find('div.cntrl-row span.t').html(tStr);
 
-	var svg = d3.select(insert.find('div.dateslider').get(0)).append("svg")
-		.attr("width", this.pw-(D3FG_MARGINS.left+D3FG_MARGINS.right))
-		.attr("height", 30);
-	var slider = svg.append("g")
+	svg = d3.select(insert.find('div.dateslider').get(0)).append("svg")
+		.attr("width", this.pow)
+		.attr("height", 24);
+	slider = svg.append("g")
 	    .attr("class", "slider")
-		.attr("transform", "translate(5,14)");
+		.attr("width", this.piw)
+		.attr("transform", "translate(0,12)");
 	slider.append("line")
 		.attr("class", "track")
 	    .attr("x1", 0)
-	    .attr("x2", this.pw)
+	    .attr("x2", this.piw)
 		.select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
 	  	.attr("class", "track-inset")
 		.select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
-		.attr("class", "track-overlay")
-		.call(d3.drag().on("start drag", drag).on("end", dragend));
+		.attr("class", "track-overlay");
 
-	var handle = slider.insert("circle", ".track-overlay")
+	handle = slider.insert("circle", ".track-overlay")
 		.attr("class", "handle")
-		.attr("r", 7);
+		.attr("r", 7)
+		.call(d3.drag().on("start drag", drag).on("end", dragend));
+	this.handle = handle;
 
-		// Create slider widget
-	// insert.find('div.dateslider').slider({
-	// 	stop: function(event, ui) {
-	// 			// Calc new curDate
-	// 		self.refreshDate(insert);
-	// 		self.isDirty(2);
-	// 	}
-	// });
+		// First, get the closest timestamp
+	this.curDate = xScale.invert(this.piw/2);
+		// Now round by day
+	roundByDay();
 
 		// Catch resize events so recalibrate slider
-	insert.find('div.dateslider').resize(widthCalc);
+	insert.find('div.dateslider').resize(resize);
 
 		// Show date
 	this.refreshDate(insert);
@@ -6689,7 +6699,10 @@ PFilterDSlider.prototype.getState = function()
 PFilterDSlider.prototype.setState = function(state)
 {
 	this.curDate = PData.dStr(state.d, false);
+		// Show date on display
 	this.refreshDate(this.insertPt());
+		// Move handle accordingly
+	this.handle.attr("cx", this.xScale(this.curDate));
 } // setState()
 
 
