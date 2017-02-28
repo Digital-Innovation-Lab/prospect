@@ -521,11 +521,6 @@ class Prospect {
 		case 'prsp-map':
 		case 'prsp-prspctv':
 			break;
-
-			// Any other page, enqueue styles for shortcodes
-		default:
-			wp_enqueue_style('prsp-view-template-style', plugins_url('css/view-template.css', dirname(__FILE__)));
-			break;
 		} // switch
 
 		return $page_template;
@@ -661,6 +656,9 @@ class Prospect {
 
 			// Add code to injet Export links
 		$this->loader->add_filter('post_row_actions', $this->admin, 'prsp_export_post', 10, 2);
+
+			// Register style for shortcode
+		wp_register_style('prsp-view-template-style', plugins_url('css/view-template.css', dirname(__FILE__)));
 	} // define_page_hooks()
 
 

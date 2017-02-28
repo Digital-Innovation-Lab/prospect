@@ -129,6 +129,7 @@ class ProspectTemplate {
 		// PURPOSE: Generates Prospect shortcode for plain HTML views
 	public static function tmplt_shortcode($atts)
 	{
+		wp_enqueue_style('prsp-view-template-style');
 		$a = shortcode_atts( array(
 				'template' => null,					// template id (required)
 				'display' => 'list',				// display type (list, cards, images)
