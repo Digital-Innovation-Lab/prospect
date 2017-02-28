@@ -6613,7 +6613,7 @@ PFilterDSlider.prototype.eval = function(rec, tI)
 PFilterDSlider.prototype.refreshDate = function(insertPt)
 {
 	var dStr = this.curDate.getUTCFullYear() + '-' + (this.curDate.getMonth()+1) + '-' + this.curDate.getDate();
-	insertPt.find('div.cntrl-row span.d').text(dStr);
+	insertPt.find('div.ds-data span.d').text(dStr);
 } // refreshDate()
 
 PFilterDSlider.prototype.setup = function()
@@ -6680,10 +6680,10 @@ PFilterDSlider.prototype.setup = function()
 			tStr += tDef.l+": <i>"+aDef.def.l+"</i>";
 		}
 	}
-	insert.find('div.cntrl-row span.t').html(tStr);
+	insert.find('div.ds-data span.t').html(tStr);
 		// Show start and end dates
-	insert.find('div.range div.s').text(dsSettings.s);
-	insert.find('div.range div.e').text(dsSettings.e);
+	insert.find('div.ds-range div.s').text(dsSettings.s);
+	insert.find('div.ds-range div.e').text(dsSettings.e);
 
 	svg = d3.select(insert.find('div.dateslider').get(0)).append("svg")
 		.attr("width", this.pow)

@@ -68,7 +68,7 @@
 					<select value='{{genSettings.ds.dAtts[tIndex]}}'>
 					{{#each attsDates}}
 						<option>{{this}}</option>
-					{{/each}} |&nbsp;
+					{{/each}} <br/>
 				{{/each}}
 			{{/if}}
 			<br/>

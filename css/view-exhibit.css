@@ -1737,6 +1737,11 @@ svg circle.ring
  * ======================
  */
 
+div.ds-data span.d {
+	width: 60px;
+	display: inline-block;
+}
+
 div.dateslider {
 	margin: 0px;
 }
@@ -1778,13 +1783,13 @@ div.dateslider circle.handle {
 	stroke-width: 1.25px;
 }
 
-div.dateslider + div.range {
+div.ds-range {
 	margin: 0;
 	padding: 0;
 	vertical-align: top;
 }
 
-div.dateslider + div.range div.s {
+div.ds-range div.s {
 	width: 60px;
 	text-align: left;
 	float: left;
@@ -1792,7 +1797,7 @@ div.dateslider + div.range div.s {
 	padding-bottom: 3px;
 }
 
-div.dateslider + div.range div.e {
+div.ds-range div.e {
 	width: 60px;
 	text-align: right;
 	float: right;
