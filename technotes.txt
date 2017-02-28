@@ -13,3 +13,5 @@ Unresolved Technical Issues / Unfinished Elements
 	* Proper and full treatment of UTF-8 strings in JavaScript, esp. sorting in PData.strcmp()
 	* Add CORS header to Exhibit & Volume HTML to prevent complaints of cross-server loads with SoundCloud
 	* jQueryUI drag does not support iOS touchscreen
+
+See complete technical specification for Prospect data structures at: https://docs.google.com/document/d/1KoH19LDHBRbE0DtRDxJoyZDd_TU-9jZKYfd3QOBuSE0/edit
