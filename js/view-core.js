@@ -5060,6 +5060,7 @@ function PFilterModel(id, attRec)
 		// Sublcasses can override the following:
 	// this.title()
 	// this.teardown()
+	// this.resize()
 		// All subclasses must implement the following:
 	// this.setUp()
 	// this.evalPrep()
@@ -5105,6 +5106,11 @@ PFilterModel.prototype.insertPt = function()
 {
 	return jQuery('div.filter-instance[data-id="'+this.id+'"] div.filter-body');
 } // insertPt()
+
+	// PURPOSE: Update Filter if window resized
+PFilterModel.prototype.resize = function()
+{
+} // resize()
 
 PFilterModel.prototype.teardown = function()
 {
@@ -6505,9 +6511,12 @@ PFilterDates.prototype.setState = function(state)
 //	Instance Variables:
 //		xScale = D3 scale for converting between Dates and pixels
 //		curDate = Date currently on slider
+//		cy, cm, cd = components of current date, calculated by evalPrep()
 //		pow = pixel outer width of DateSlider (g region)
 //		piw = pixel inner width (actual controls)
 //		dAtts = Dates Attribute IDs to use on Slider for each Template
+//		svg
+//		slider
 //		handle = SVG circle that represents handle
 
 var PFilterDSlider = function(id)
@@ -6519,6 +6528,31 @@ var PFilterDSlider = function(id)
 PFilterDSlider.prototype = Object.create(PFilterModel.prototype);
 
 PFilterDSlider.prototype.constructor = PFilterDSlider;
+
+	// PURPOSE: Get width of slide area and update widths, xScale and handle
+PFilterDSlider.prototype.resize = function()
+{
+	var t = jQuery(window).width();
+	this.pow = t-46;
+	this.piw = this.pow-16;	// inner width (tracks)
+	this.xScale.range([0, this.piw-1]);
+		// Change sizes of SVG elements
+	this.svg.attr("width", this.pow);
+	this.slider.attr("width", this.piw);
+	this.slider.select(".track").attr("x2", this.piw);
+	this.slider.select(".track-inset").attr("x2", this.piw);
+	this.slider.select(".track-overlay").attr("x2", this.piw);
+		// Update handle position
+	var newX = this.xScale(this.curDate);
+	this.handle.attr("cx", newX);
+} // resize()
+
+PFilterDSlider.prototype.evalPrep = function()
+{
+	this.cy = this.curDate.getUTCFullYear();
+	this.cm = (this.curDate.getMonth()+1);
+	this.cd = this.curDate.getDate();
+} // evalPrep()
 
 	// NOTES: DateSlider is currently only Filter that takes Template Index
 PFilterDSlider.prototype.eval = function(rec, tI)
@@ -6545,23 +6579,31 @@ PFilterDSlider.prototype.eval = function(rec, tI)
 		return true;
 
 	var d = rec.a[a];
+		// Reject undefined and uncertain values
 	if (typeof d === 'undefined')
 		return false;
-		// Reject 'undefined'
 	if (d === '?')
 		return false;
 
 		// Is it a single event?
 	if (typeof d.max === 'undefined') {
-		var s = makeDate(d.min.y, 1, 1, d.min, false);
-		return s === this.curDate;
+		if (d.min.y !== this.cy)
+			return false;
+			// Handle ambiguity of unstated digits
+		if (typeof d.min.m === 'undefined')
+			return true;
+		if (d.min.m !== this.cm)
+			return false;
+		if (typeof d.min.d === 'undefined')
+			return true;
+		return d.min.d === this.cd;
 	} else {
 		var s = makeDate(d.min.y, 1, 1, d.min, false);
 		var e;
 		if (d.max === 'open')
 			e = TODAY;
-		else 	// Since exclusive compare, don't push past start of day
-			e = makeDate(d.max.y, 12, 31, d.max, false);
+		else
+			e = makeDate(d.max.y, 12, 31, d.max, true);
 
 		return (s <= this.curDate && this.curDate <= e);
 	}
@@ -6578,29 +6620,11 @@ PFilterDSlider.prototype.setup = function()
 {
 	var self=this;
 	var dsSettings=prspdata.e.g.ds;
-	var sDate = PData.dStr(dsSettings.s, false);
-	var eDate = PData.dStr(dsSettings.e, true);	// Millsecs will put at end of day -- reset to morning?
+	var sDate;
+	var eDate;
 	var insert = this.insertPt();
 	var xScale;
 	var svg, slider, handle;
-
-		// PURPOSE: Get width of slide area and update xScale
-	function resize()
-	{
-		var t = insert.width();
-		self.pow = t-8;		// outer width (svg)
-		self.piw = t-16;	// inner width (tracks)
-		xScale.range([0, self.piw-1]);
-			// Change sizes of SVG elements
-		svg.attr("width", this.pow);
-		slider.attr("width", this.piw);
-		slider.select(".track").attr("x2", this.piw);
-		slider.select(".track-inset").attr("x2", this.piw);
-		slider.select(".track-overlay").attr("x2", this.piw);
-			// Update handle position
-		var newX = xScale(this.curDate);
-		handle.attr("cx", newX);
-	} // widthCalc()
 
 	function roundByDay(x)
 	{
@@ -6625,9 +6649,16 @@ PFilterDSlider.prototype.setup = function()
 		self.isDirty(2);
 	} // dragStop()
 
-	var totalWidth = insert.width();
-	this.pow = totalWidth-8;	// outer width (svg)
-	this.piw = totalWidth-16;	// inner width (tracks)
+		// set defaults
+	this.cy = this.cm = this.cd = 0;
+
+	sDate = PData.dStr(dsSettings.s, false);
+	eDate = PData.dStr(dsSettings.e, true);
+	eDate = d3.timeDay.floor(eDate); // reset date to start of day
+
+	var totalWidth = jQuery(window).width();
+	this.pow = totalWidth-46;
+	this.piw = this.pow-16;	// inner width (tracks)
 	xScale = d3.scaleTime().domain([sDate, eDate]).range([0, this.piw]).clamp(true);
 	this.xScale = xScale;
 
@@ -6650,14 +6681,19 @@ PFilterDSlider.prototype.setup = function()
 		}
 	}
 	insert.find('div.cntrl-row span.t').html(tStr);
+		// Show start and end dates
+	insert.find('div.range div.s').text(dsSettings.s);
+	insert.find('div.range div.e').text(dsSettings.e);
 
 	svg = d3.select(insert.find('div.dateslider').get(0)).append("svg")
 		.attr("width", this.pow)
-		.attr("height", 24);
+		.attr("height", 18);
+	this.svg = svg;
 	slider = svg.append("g")
 	    .attr("class", "slider")
 		.attr("width", this.piw)
-		.attr("transform", "translate(0,12)");
+		.attr("transform", "translate(0,10)");
+	this.slider = slider;
 	slider.append("line")
 		.attr("class", "track")
 	    .attr("x1", 0)
@@ -6678,18 +6714,9 @@ PFilterDSlider.prototype.setup = function()
 		// Now round by day
 	roundByDay();
 
-		// Catch resize events so recalibrate slider
-	insert.find('div.dateslider').resize(resize);
-
 		// Show date
 	this.refreshDate(insert);
 } // setup()
-
-PFilterDSlider.prototype.teardown = function()
-{
-	var insert = this.insertPt();
-	insert.find('div.dateslider').off("resize");
-} // teardown()
 
 PFilterDSlider.prototype.getState = function()
 {

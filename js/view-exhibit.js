@@ -2326,12 +2326,6 @@ jQuery(document).ready(function($) {
 			head.find('button.btn-filter-del').button({
 						text: false, icons: { primary: 'ui-icon-trash' }
 					}).click(clickFilterDel);
-
-				// DateSlider is only Filter whose initial state has effect on data
-			if (fID === '_dslider') {
-				fState = 1;
-				jQuery('#btn-f-state').prop('disabled', false).html(dlText.dofilters);
-			}
 		}
 
 			// Allow Filter to insert required HTML
@@ -2442,7 +2436,11 @@ jQuery(document).ready(function($) {
 				// Deselect All Templates ONLY in case of Remove All Filter
 				// Created (default) state of Filters always have no effect
 			var applyTs = (id === '_remove') ? [false, false, false, false] : [true, true, true, true];
-			createFilter(id, applyTs, null);
+			var f = createFilter(id, applyTs, null);
+				// DateSlider is only Filter whose initial state has effect on data
+			if (id === '_dslider') {
+				f.isDirty(2);
+			}
 			jQuery('#btn-toggle-filters').button("enable");
 		});
 		event.preventDefault();
@@ -2628,8 +2626,9 @@ jQuery(document).ready(function($) {
 			}
 		}
 			// Do left-side last because of resizing with right side
-		if (resize0)
+		if (resize0) {
 			v0.resize();
+		}
 		v0.setState(p.s.v0.s);
 
 		setAnnote(p.n);
@@ -2897,13 +2896,18 @@ jQuery(document).ready(function($) {
 		}
 	}
 
-		// Allow ViewFrames to handle changes in size
+		// Handle resize of window
 	jQuery(window).resize(function() {
+			// Allow ViewFrames to handle changes in size
 		views.forEach(function(v) {
 			if (v) {
 				v.resize();
 			}
-		})
+		});
+			// Inform Filters about resize (NOTE: DateSlider is currently only Filter to use this!)
+		filters.forEach(function(theF) {
+			theF.f.resize();
+		});
 	});
 
 		// If Auto-update is not set for this Exhibit, turn on if total num records < 500

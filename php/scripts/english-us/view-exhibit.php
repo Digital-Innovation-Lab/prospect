@@ -347,6 +347,7 @@
 		<?php _e('Date: ', 'prospect'); ?><span class="d"></span> &nbsp;|&nbsp; <span class="t"></span>
 	</div>
 	<div class="dateslider"></div>
+	<div class="range"><div class="s"></div><div class="e"></div></div>
 </script>
 
 <script id="dltext-filter-ptr" type='text'>
