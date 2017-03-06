@@ -242,7 +242,7 @@ jQuery(document).ready(function() {
 					qr: { t: 'disable', e1: '', e2: '', d: null, r: '', r1: '', r2: '',
 							c1: null, c2: null, c: null, x: []
 						},
-					ds: { on: false, dAtts: new Array(defTemplates.length).fill('disable'), s: '', e: '' }
+					ds: { on: false, dAtts: new Array(defTemplates.length).fill('disable'), s: '', e: '', h: '', o: true }
  				 };
 	embedData = jQuery('textarea[name="prsp_xhbt_gen"]').val();
 	if (embedData && embedData != 'null' && embedData.length > 4) {
@@ -250,7 +250,7 @@ jQuery(document).ready(function() {
 			// Create default settings for Date Slider if not defined (added in 1.8.6)
 			// NOTE: dAtts[] modified after iTemplates created
 		if (typeof defGen.ds === 'undefined') {
-			defGen.ds = { on: false, dAtts: new Array(defTemplates.length).fill('disable'), s: '', e: '' };
+			defGen.ds = { on: false, dAtts: new Array(defTemplates.length).fill('disable'), s: '', e: '', h: '', o: true };
 		} else {
 			defGen.ds.on = true;
 		}
@@ -687,8 +687,18 @@ jQuery(document).ready(function() {
 					displayError('#errmsg-ds-date-order');
 					return false;
 			}
-				// tAtts will get processed further later
-			saveGen.ds = { s: sDateVal, e: eDateVal, dAtts: rApp.get('genSettings.ds.dAtts') }
+				// dAtts will get processed further later
+			saveGen.ds = { s: sDateVal, e: eDateVal, dAtts: rApp.get('genSettings.ds.dAtts'), o: rApp.get('genSettings.ds.o') };
+				// Did user provide handle date?
+			var hDateVal = rApp.get('genSettings.ds.h');
+			if (hDateVal.length != 0) {
+				if (!hDateVal.match(dateRegEx))
+				{
+					displayError('#errmsg-ds-bad-date');
+					return false;
+				}
+				saveGen.ds.h = hDateVal;
+			}
 		}
 
 			// Ensure unique labels given to all views

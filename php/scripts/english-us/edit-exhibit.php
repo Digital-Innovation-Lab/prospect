@@ -63,12 +63,17 @@
 				<?php _e('Start Date', 'prospect'); ?> <input type="text" value="{{genSettings.ds.s}}" size="12" placeholder=<?php _e('"YYYY-MM-DD"', 'prospect'); ?>/>
 				<?php _e('End Date', 'prospect'); ?> <input type="text" value="{{genSettings.ds.e}}" size="12" placeholder=<?php _e('"YYYY-MM-DD"', 'prospect'); ?>/>
 				<br/>
+				<?php _e('Initial handle Date (or leave blank)', 'prospect'); ?> <input type="text" value="{{genSettings.ds.h}}" size="12" placeholder=<?php _e('"YYYY-MM-DD"', 'prospect'); ?>/>
+				<input type='checkbox' checked='{{genSettings.ds.o}}'/> <?php _e('Create when Exhibit opened', 'prospect'); ?>
+				<br/>
 				{{#each iTemplates:tIndex}}
 					<?php _e('Dates Attribute for', 'prospect'); ?> {{tid}}:
 					<select value='{{genSettings.ds.dAtts[tIndex]}}'>
 					{{#each attsDates}}
 						<option>{{this}}</option>
-					{{/each}} <br/>
+					{{/each}}
+					</select>
+					<br/>
 				{{/each}}
 			{{/if}}
 			<br/>
