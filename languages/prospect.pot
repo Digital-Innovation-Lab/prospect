@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Prospect\n"
-"POT-Creation-Date: 2017-02-20 08:16-0500\n"
+"POT-Creation-Date: 2017-03-06 14:30-0500\n"
 "PO-Revision-Date: 2016-03-08 15:33-0500\n"
 "Last-Translator: \n"
 "Language-Team: Digital Innovation Lab <dil@unc.edu>\n"
@@ -31,9 +31,9 @@ msgstr ""
 msgid "Attribute Label"
 msgstr ""
 
-#: php/class-prospect-admin.php:186 php/scripts/english-us/edit-exhibit.php:873
-#: php/scripts/english-us/edit-exhibit.php:885
-#: php/scripts/english-us/edit-exhibit.php:906
+#: php/class-prospect-admin.php:186 php/scripts/english-us/edit-exhibit.php:893
+#: php/scripts/english-us/edit-exhibit.php:905
+#: php/scripts/english-us/edit-exhibit.php:926
 #: php/scripts/english-us/edit-template.php:39
 msgid "Attribute ID"
 msgstr ""
@@ -135,7 +135,7 @@ msgstr ""
 
 #: php/class-prospect-admin.php:460 php/class-prospect-admin.php:527
 #: php/scripts/english-us/edit-attribute.php:245
-#: php/scripts/english-us/edit-exhibit.php:1169
+#: php/scripts/english-us/edit-exhibit.php:1189
 #: php/scripts/english-us/edit-volume.php:826
 #: php/scripts/english-us/view-exhibit.php:125
 #: php/scripts/english-us/view-volume.php:190
@@ -203,7 +203,7 @@ msgid "X-Y"
 msgstr ""
 
 #: php/class-prospect-admin.php:1234
-#: php/scripts/english-us/edit-exhibit.php:496
+#: php/scripts/english-us/edit-exhibit.php:516
 #: php/scripts/english-us/edit-template.php:106
 #: php/scripts/english-us/edit-volume.php:417
 msgid "Image"
@@ -214,14 +214,14 @@ msgid "Link-To"
 msgstr ""
 
 #: php/class-prospect-admin.php:1236
-#: php/scripts/english-us/edit-exhibit.php:182
+#: php/scripts/english-us/edit-exhibit.php:202
 #: php/scripts/english-us/edit-template.php:66
 #: php/scripts/english-us/edit-volume.php:104
 msgid "Audio"
 msgstr ""
 
 #: php/class-prospect-admin.php:1237
-#: php/scripts/english-us/edit-exhibit.php:184
+#: php/scripts/english-us/edit-exhibit.php:204
 #: php/scripts/english-us/edit-template.php:72
 #: php/scripts/english-us/edit-volume.php:106
 msgid "YouTube"
@@ -557,7 +557,7 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: php/class-prospect.php:538
+#: php/class-prospect.php:533
 msgid "Prospect"
 msgstr ""
 
@@ -566,19 +566,19 @@ msgid "(uncertain)"
 msgstr ""
 
 #: php/class-template.php:87 php/class-template.php:98
-#: php/class-template.php:114 php/scripts/english-us/view-exhibit.php:417
+#: php/class-template.php:114 php/scripts/english-us/view-exhibit.php:425
 #: php/scripts/english-us/view-record.php:10
 #: php/scripts/english-us/view-volume.php:421
 msgid "about"
 msgstr ""
 
-#: php/class-template.php:109 php/scripts/english-us/view-exhibit.php:413
+#: php/class-template.php:109 php/scripts/english-us/view-exhibit.php:421
 #: php/scripts/english-us/view-record.php:6
 #: php/scripts/english-us/view-volume.php:417
 msgid "to"
 msgstr ""
 
-#: php/class-template.php:111 php/scripts/english-us/view-exhibit.php:421
+#: php/class-template.php:111 php/scripts/english-us/view-exhibit.php:429
 #: php/scripts/english-us/view-record.php:14
 #: php/scripts/english-us/view-volume.php:425
 msgid "now"
@@ -605,17 +605,17 @@ msgstr ""
 #: php/scripts/english-us/edit-attribute.php:21
 #: php/scripts/english-us/edit-attribute.php:105
 #: php/scripts/english-us/edit-attribute.php:123
-#: php/scripts/english-us/edit-exhibit.php:131
-#: php/scripts/english-us/edit-exhibit.php:390
-#: php/scripts/english-us/edit-exhibit.php:466
-#: php/scripts/english-us/edit-exhibit.php:614
-#: php/scripts/english-us/edit-exhibit.php:771
-#: php/scripts/english-us/edit-exhibit.php:827
-#: php/scripts/english-us/edit-exhibit.php:875
-#: php/scripts/english-us/edit-exhibit.php:887
-#: php/scripts/english-us/edit-exhibit.php:908
-#: php/scripts/english-us/edit-exhibit.php:947
-#: php/scripts/english-us/edit-exhibit.php:1019
+#: php/scripts/english-us/edit-exhibit.php:151
+#: php/scripts/english-us/edit-exhibit.php:410
+#: php/scripts/english-us/edit-exhibit.php:486
+#: php/scripts/english-us/edit-exhibit.php:634
+#: php/scripts/english-us/edit-exhibit.php:791
+#: php/scripts/english-us/edit-exhibit.php:847
+#: php/scripts/english-us/edit-exhibit.php:895
+#: php/scripts/english-us/edit-exhibit.php:907
+#: php/scripts/english-us/edit-exhibit.php:928
+#: php/scripts/english-us/edit-exhibit.php:967
+#: php/scripts/english-us/edit-exhibit.php:1039
 #: php/scripts/english-us/edit-template.php:59
 #: php/scripts/english-us/edit-volume.php:69
 #: php/scripts/english-us/edit-volume.php:311
@@ -624,7 +624,7 @@ msgstr ""
 #: php/scripts/english-us/edit-volume.php:674
 #: php/scripts/english-us/edit-volume.php:730
 #: php/scripts/english-us/edit-volume.php:803
-#: php/scripts/english-us/view-exhibit.php:429
+#: php/scripts/english-us/view-exhibit.php:437
 #: php/scripts/english-us/view-volume.php:433
 msgid "Delete"
 msgstr ""
@@ -637,10 +637,10 @@ msgstr ""
 #: php/scripts/english-us/edit-attribute.php:115
 #: php/scripts/english-us/edit-attribute.php:325
 #: php/scripts/english-us/edit-attribute.php:326
-#: php/scripts/english-us/edit-exhibit.php:358
-#: php/scripts/english-us/edit-exhibit.php:425
-#: php/scripts/english-us/edit-exhibit.php:434
-#: php/scripts/english-us/edit-exhibit.php:573
+#: php/scripts/english-us/edit-exhibit.php:378
+#: php/scripts/english-us/edit-exhibit.php:445
+#: php/scripts/english-us/edit-exhibit.php:454
+#: php/scripts/english-us/edit-exhibit.php:593
 #: php/scripts/english-us/edit-volume.php:279
 #: php/scripts/english-us/edit-volume.php:346
 #: php/scripts/english-us/edit-volume.php:355
@@ -992,7 +992,7 @@ msgid "To"
 msgstr ""
 
 #: php/scripts/english-us/edit-attribute.php:334
-#: php/scripts/english-us/edit-exhibit.php:1195
+#: php/scripts/english-us/edit-exhibit.php:1215
 #: php/scripts/english-us/edit-record.php:183
 #: php/scripts/english-us/edit-template.php:155
 #: php/scripts/english-us/edit-volume.php:840
@@ -1000,7 +1000,7 @@ msgid "\"Confirm\""
 msgstr ""
 
 #: php/scripts/english-us/edit-attribute.php:341
-#: php/scripts/english-us/edit-exhibit.php:1202
+#: php/scripts/english-us/edit-exhibit.php:1222
 #: php/scripts/english-us/edit-record.php:192
 #: php/scripts/english-us/edit-template.php:162
 #: php/scripts/english-us/edit-volume.php:847
@@ -1009,7 +1009,7 @@ msgstr ""
 
 #: php/scripts/english-us/edit-attribute.php:348
 #: php/scripts/english-us/edit-attribute.php:355
-#: php/scripts/english-us/edit-exhibit.php:1209
+#: php/scripts/english-us/edit-exhibit.php:1229
 #: php/scripts/english-us/edit-volume.php:854
 msgid "\"Choose Color\""
 msgstr ""
@@ -1178,91 +1178,133 @@ msgstr ""
 msgid "will display Template types"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:116
+#: php/scripts/english-us/edit-exhibit.php:60
+msgid "Enable Date Slider"
+msgstr ""
+
+#: php/scripts/english-us/edit-exhibit.php:63
+msgid "Start Date"
+msgstr ""
+
+#: php/scripts/english-us/edit-exhibit.php:63
+#: php/scripts/english-us/edit-exhibit.php:64
+#: php/scripts/english-us/edit-exhibit.php:66
+#: php/scripts/english-us/edit-exhibit.php:661
+#: php/scripts/english-us/edit-exhibit.php:662
+#: php/scripts/english-us/edit-exhibit.php:663
+#: php/scripts/english-us/edit-exhibit.php:664
+#: php/scripts/english-us/edit-volume.php:543
+#: php/scripts/english-us/edit-volume.php:544
+#: php/scripts/english-us/edit-volume.php:545
+#: php/scripts/english-us/edit-volume.php:546
+msgid "\"YYYY-MM-DD\""
+msgstr ""
+
+#: php/scripts/english-us/edit-exhibit.php:64
+msgid "End Date"
+msgstr ""
+
+#: php/scripts/english-us/edit-exhibit.php:66
+msgid "Initial handle Date (or leave blank)"
+msgstr ""
+
+#: php/scripts/english-us/edit-exhibit.php:67
+msgid "Create when Exhibit opened"
+msgstr ""
+
+#: php/scripts/english-us/edit-exhibit.php:70
+msgid "Dates Attribute for"
+msgstr ""
+
+#: php/scripts/english-us/edit-exhibit.php:80
+msgid "Enable Qualified Relationships"
+msgstr ""
+
+#: php/scripts/english-us/edit-exhibit.php:136
 msgid "Set Roles for Relationships"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:118
+#: php/scripts/english-us/edit-exhibit.php:138
 msgid "(currently empty)"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:122
+#: php/scripts/english-us/edit-exhibit.php:142
 #: php/scripts/english-us/edit-volume.php:60
 msgid "Visualizations"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:124
+#: php/scripts/english-us/edit-exhibit.php:144
 #: php/scripts/english-us/edit-volume.php:62
 msgid "Add Visualization"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:130
-#: php/scripts/english-us/edit-exhibit.php:874
-#: php/scripts/english-us/edit-exhibit.php:886
-#: php/scripts/english-us/edit-exhibit.php:907
+#: php/scripts/english-us/edit-exhibit.php:150
+#: php/scripts/english-us/edit-exhibit.php:894
+#: php/scripts/english-us/edit-exhibit.php:906
+#: php/scripts/english-us/edit-exhibit.php:927
 #: php/scripts/english-us/edit-volume.php:68
 msgid "Move to Top"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:133
+#: php/scripts/english-us/edit-exhibit.php:153
 #: php/scripts/english-us/edit-volume.php:71
 msgid "View Hint"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:178
+#: php/scripts/english-us/edit-exhibit.php:198
 #: php/scripts/english-us/edit-volume.php:100
 msgid "Inspector"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:181
+#: php/scripts/english-us/edit-exhibit.php:201
 #: php/scripts/english-us/edit-volume.php:103
 msgid "Playback Widgets"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:183
+#: php/scripts/english-us/edit-exhibit.php:203
 #: php/scripts/english-us/edit-volume.php:105
 msgid "Load SoundCloud"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:185
+#: php/scripts/english-us/edit-exhibit.php:205
 #: php/scripts/english-us/edit-volume.php:107
 msgid "Transcripts"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:186
+#: php/scripts/english-us/edit-exhibit.php:206
 #: php/scripts/english-us/edit-volume.php:108
 msgid "Dual Transcripts"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:189
+#: php/scripts/english-us/edit-exhibit.php:209
 #: php/scripts/english-us/edit-volume.php:111
 msgid "Disable “See Item” button"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:191
+#: php/scripts/english-us/edit-exhibit.php:211
 #: php/scripts/english-us/edit-volume.php:113
 msgid "Size overrides (leave blank for default)"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:192
-#: php/scripts/english-us/edit-exhibit.php:473
+#: php/scripts/english-us/edit-exhibit.php:212
+#: php/scripts/english-us/edit-exhibit.php:493
 #: php/scripts/english-us/edit-volume.php:114
 #: php/scripts/english-us/edit-volume.php:394
 msgid "Width"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:192
-#: php/scripts/english-us/edit-exhibit.php:193
+#: php/scripts/english-us/edit-exhibit.php:212
+#: php/scripts/english-us/edit-exhibit.php:213
 #: php/scripts/english-us/edit-volume.php:114
 #: php/scripts/english-us/edit-volume.php:115
 msgid "\"Default\""
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:193
-#: php/scripts/english-us/edit-exhibit.php:479
-#: php/scripts/english-us/edit-exhibit.php:532
-#: php/scripts/english-us/edit-exhibit.php:534
-#: php/scripts/english-us/edit-exhibit.php:894
+#: php/scripts/english-us/edit-exhibit.php:213
+#: php/scripts/english-us/edit-exhibit.php:499
+#: php/scripts/english-us/edit-exhibit.php:552
+#: php/scripts/english-us/edit-exhibit.php:554
+#: php/scripts/english-us/edit-exhibit.php:914
 #: php/scripts/english-us/edit-volume.php:115
 #: php/scripts/english-us/edit-volume.php:400
 #: php/scripts/english-us/edit-volume.php:453
@@ -1270,32 +1312,32 @@ msgstr ""
 msgid "Height"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:197
+#: php/scripts/english-us/edit-exhibit.php:217
 #: php/scripts/english-us/edit-volume.php:118
 msgid "Attributes to Display"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:199
+#: php/scripts/english-us/edit-exhibit.php:219
 #: php/scripts/english-us/edit-volume.php:120
 #: php/scripts/english-us/edit-volume.php:580
 msgid "Choose the Attribute(s) to display according to Template type"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:208
-#: php/scripts/english-us/edit-exhibit.php:361
-#: php/scripts/english-us/edit-exhibit.php:437
-#: php/scripts/english-us/edit-exhibit.php:504
-#: php/scripts/english-us/edit-exhibit.php:515
-#: php/scripts/english-us/edit-exhibit.php:596
-#: php/scripts/english-us/edit-exhibit.php:662
-#: php/scripts/english-us/edit-exhibit.php:687
-#: php/scripts/english-us/edit-exhibit.php:734
-#: php/scripts/english-us/edit-exhibit.php:775
-#: php/scripts/english-us/edit-exhibit.php:852
-#: php/scripts/english-us/edit-exhibit.php:951
-#: php/scripts/english-us/edit-exhibit.php:990
-#: php/scripts/english-us/edit-exhibit.php:1071
-#: php/scripts/english-us/edit-exhibit.php:1127
+#: php/scripts/english-us/edit-exhibit.php:228
+#: php/scripts/english-us/edit-exhibit.php:381
+#: php/scripts/english-us/edit-exhibit.php:457
+#: php/scripts/english-us/edit-exhibit.php:524
+#: php/scripts/english-us/edit-exhibit.php:535
+#: php/scripts/english-us/edit-exhibit.php:616
+#: php/scripts/english-us/edit-exhibit.php:682
+#: php/scripts/english-us/edit-exhibit.php:707
+#: php/scripts/english-us/edit-exhibit.php:754
+#: php/scripts/english-us/edit-exhibit.php:795
+#: php/scripts/english-us/edit-exhibit.php:872
+#: php/scripts/english-us/edit-exhibit.php:971
+#: php/scripts/english-us/edit-exhibit.php:1010
+#: php/scripts/english-us/edit-exhibit.php:1091
+#: php/scripts/english-us/edit-exhibit.php:1147
 #: php/scripts/english-us/edit-volume.php:129
 #: php/scripts/english-us/edit-volume.php:282
 #: php/scripts/english-us/edit-volume.php:358
@@ -1311,21 +1353,21 @@ msgstr ""
 msgid "All On"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:209
-#: php/scripts/english-us/edit-exhibit.php:362
-#: php/scripts/english-us/edit-exhibit.php:438
-#: php/scripts/english-us/edit-exhibit.php:505
-#: php/scripts/english-us/edit-exhibit.php:516
-#: php/scripts/english-us/edit-exhibit.php:597
-#: php/scripts/english-us/edit-exhibit.php:663
-#: php/scripts/english-us/edit-exhibit.php:688
-#: php/scripts/english-us/edit-exhibit.php:735
-#: php/scripts/english-us/edit-exhibit.php:776
-#: php/scripts/english-us/edit-exhibit.php:853
-#: php/scripts/english-us/edit-exhibit.php:952
-#: php/scripts/english-us/edit-exhibit.php:991
-#: php/scripts/english-us/edit-exhibit.php:1072
-#: php/scripts/english-us/edit-exhibit.php:1128
+#: php/scripts/english-us/edit-exhibit.php:229
+#: php/scripts/english-us/edit-exhibit.php:382
+#: php/scripts/english-us/edit-exhibit.php:458
+#: php/scripts/english-us/edit-exhibit.php:525
+#: php/scripts/english-us/edit-exhibit.php:536
+#: php/scripts/english-us/edit-exhibit.php:617
+#: php/scripts/english-us/edit-exhibit.php:683
+#: php/scripts/english-us/edit-exhibit.php:708
+#: php/scripts/english-us/edit-exhibit.php:755
+#: php/scripts/english-us/edit-exhibit.php:796
+#: php/scripts/english-us/edit-exhibit.php:873
+#: php/scripts/english-us/edit-exhibit.php:972
+#: php/scripts/english-us/edit-exhibit.php:1011
+#: php/scripts/english-us/edit-exhibit.php:1092
+#: php/scripts/english-us/edit-exhibit.php:1148
 #: php/scripts/english-us/edit-volume.php:130
 #: php/scripts/english-us/edit-volume.php:283
 #: php/scripts/english-us/edit-volume.php:359
@@ -1341,21 +1383,21 @@ msgstr ""
 msgid "All Off"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:213
-#: php/scripts/english-us/edit-exhibit.php:366
-#: php/scripts/english-us/edit-exhibit.php:442
-#: php/scripts/english-us/edit-exhibit.php:509
-#: php/scripts/english-us/edit-exhibit.php:520
-#: php/scripts/english-us/edit-exhibit.php:601
-#: php/scripts/english-us/edit-exhibit.php:667
-#: php/scripts/english-us/edit-exhibit.php:692
-#: php/scripts/english-us/edit-exhibit.php:739
-#: php/scripts/english-us/edit-exhibit.php:780
-#: php/scripts/english-us/edit-exhibit.php:857
-#: php/scripts/english-us/edit-exhibit.php:956
-#: php/scripts/english-us/edit-exhibit.php:995
-#: php/scripts/english-us/edit-exhibit.php:1076
-#: php/scripts/english-us/edit-exhibit.php:1132
+#: php/scripts/english-us/edit-exhibit.php:233
+#: php/scripts/english-us/edit-exhibit.php:386
+#: php/scripts/english-us/edit-exhibit.php:462
+#: php/scripts/english-us/edit-exhibit.php:529
+#: php/scripts/english-us/edit-exhibit.php:540
+#: php/scripts/english-us/edit-exhibit.php:621
+#: php/scripts/english-us/edit-exhibit.php:687
+#: php/scripts/english-us/edit-exhibit.php:712
+#: php/scripts/english-us/edit-exhibit.php:759
+#: php/scripts/english-us/edit-exhibit.php:800
+#: php/scripts/english-us/edit-exhibit.php:877
+#: php/scripts/english-us/edit-exhibit.php:976
+#: php/scripts/english-us/edit-exhibit.php:1015
+#: php/scripts/english-us/edit-exhibit.php:1096
+#: php/scripts/english-us/edit-exhibit.php:1152
 #: php/scripts/english-us/edit-volume.php:134
 #: php/scripts/english-us/edit-volume.php:287
 #: php/scripts/english-us/edit-volume.php:363
@@ -1371,21 +1413,21 @@ msgstr ""
 msgid "Left"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:214
-#: php/scripts/english-us/edit-exhibit.php:367
-#: php/scripts/english-us/edit-exhibit.php:443
-#: php/scripts/english-us/edit-exhibit.php:510
-#: php/scripts/english-us/edit-exhibit.php:521
-#: php/scripts/english-us/edit-exhibit.php:602
-#: php/scripts/english-us/edit-exhibit.php:668
-#: php/scripts/english-us/edit-exhibit.php:693
-#: php/scripts/english-us/edit-exhibit.php:740
-#: php/scripts/english-us/edit-exhibit.php:781
-#: php/scripts/english-us/edit-exhibit.php:858
-#: php/scripts/english-us/edit-exhibit.php:957
-#: php/scripts/english-us/edit-exhibit.php:996
-#: php/scripts/english-us/edit-exhibit.php:1077
-#: php/scripts/english-us/edit-exhibit.php:1133
+#: php/scripts/english-us/edit-exhibit.php:234
+#: php/scripts/english-us/edit-exhibit.php:387
+#: php/scripts/english-us/edit-exhibit.php:463
+#: php/scripts/english-us/edit-exhibit.php:530
+#: php/scripts/english-us/edit-exhibit.php:541
+#: php/scripts/english-us/edit-exhibit.php:622
+#: php/scripts/english-us/edit-exhibit.php:688
+#: php/scripts/english-us/edit-exhibit.php:713
+#: php/scripts/english-us/edit-exhibit.php:760
+#: php/scripts/english-us/edit-exhibit.php:801
+#: php/scripts/english-us/edit-exhibit.php:878
+#: php/scripts/english-us/edit-exhibit.php:977
+#: php/scripts/english-us/edit-exhibit.php:1016
+#: php/scripts/english-us/edit-exhibit.php:1097
+#: php/scripts/english-us/edit-exhibit.php:1153
 #: php/scripts/english-us/edit-volume.php:135
 #: php/scripts/english-us/edit-volume.php:288
 #: php/scripts/english-us/edit-volume.php:364
@@ -1401,165 +1443,165 @@ msgstr ""
 msgid "Right"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:222
+#: php/scripts/english-us/edit-exhibit.php:242
 #: php/scripts/english-us/edit-volume.php:143
 msgid "Audio Widget"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:224
+#: php/scripts/english-us/edit-exhibit.php:244
 #: php/scripts/english-us/edit-volume.php:145
 msgid "Choose the Audio Attribute (if any) according to Template type"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:243
+#: php/scripts/english-us/edit-exhibit.php:263
 #: php/scripts/english-us/edit-volume.php:164
 msgid "YouTube Widget"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:245
+#: php/scripts/english-us/edit-exhibit.php:265
 #: php/scripts/english-us/edit-volume.php:166
 msgid "Choose the YouTube Attribute (if any) according to Template type"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:264
+#: php/scripts/english-us/edit-exhibit.php:284
 #: php/scripts/english-us/edit-volume.php:185
 msgid "Transcript Widget"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:266
+#: php/scripts/english-us/edit-exhibit.php:286
 #: php/scripts/english-us/edit-volume.php:187
 msgid "Choose the Transcript and Timecode Attributes (if any) according to Template type"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:275
+#: php/scripts/english-us/edit-exhibit.php:295
 #: php/scripts/english-us/edit-volume.php:196
 msgid "Primary Transcript"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:280
+#: php/scripts/english-us/edit-exhibit.php:300
 #: php/scripts/english-us/edit-volume.php:201
 msgid "Secondary Transcript"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:291
+#: php/scripts/english-us/edit-exhibit.php:311
 #: php/scripts/english-us/edit-volume.php:212
 msgid "Timecodes (for Playback widget segments)"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:293
+#: php/scripts/english-us/edit-exhibit.php:313
 #: php/scripts/english-us/edit-volume.php:214
 msgid "Choose the Timecode Attribute (if any) for Playback widgets according to Template type"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:302
+#: php/scripts/english-us/edit-exhibit.php:322
 #: php/scripts/english-us/edit-volume.php:223
 msgid "Extract Timecode"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:319
-#: php/scripts/english-us/edit-exhibit.php:396
-#: php/scripts/english-us/edit-exhibit.php:966
+#: php/scripts/english-us/edit-exhibit.php:339
+#: php/scripts/english-us/edit-exhibit.php:416
+#: php/scripts/english-us/edit-exhibit.php:986
 #: php/scripts/english-us/edit-volume.php:240
 #: php/scripts/english-us/edit-volume.php:317
 msgid "Initial Map Center: Latitude"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:320
-#: php/scripts/english-us/edit-exhibit.php:397
-#: php/scripts/english-us/edit-exhibit.php:967
+#: php/scripts/english-us/edit-exhibit.php:340
+#: php/scripts/english-us/edit-exhibit.php:417
+#: php/scripts/english-us/edit-exhibit.php:987
 #: php/scripts/english-us/edit-volume.php:241
 #: php/scripts/english-us/edit-volume.php:318
 msgid "Longitude"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:322
-#: php/scripts/english-us/edit-exhibit.php:399
-#: php/scripts/english-us/edit-exhibit.php:969
+#: php/scripts/english-us/edit-exhibit.php:342
+#: php/scripts/english-us/edit-exhibit.php:419
+#: php/scripts/english-us/edit-exhibit.php:989
 #: php/scripts/english-us/edit-volume.php:243
 #: php/scripts/english-us/edit-volume.php:320
 msgid "Initial Zoom Level (1=Max Zoom Out, 20=Max Zoom In)"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:324
-#: php/scripts/english-us/edit-exhibit.php:401
-#: php/scripts/english-us/edit-exhibit.php:971
+#: php/scripts/english-us/edit-exhibit.php:344
+#: php/scripts/english-us/edit-exhibit.php:421
+#: php/scripts/english-us/edit-exhibit.php:991
 msgid "Min Radius (1-20)"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:325
-#: php/scripts/english-us/edit-exhibit.php:402
-#: php/scripts/english-us/edit-exhibit.php:972
+#: php/scripts/english-us/edit-exhibit.php:345
+#: php/scripts/english-us/edit-exhibit.php:422
+#: php/scripts/english-us/edit-exhibit.php:992
 msgid "Max Radius (1-20)"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:326
+#: php/scripts/english-us/edit-exhibit.php:346
 #: php/scripts/english-us/edit-volume.php:247
 msgid "Clustering"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:328
-#: php/scripts/english-us/edit-exhibit.php:404
-#: php/scripts/english-us/edit-exhibit.php:487
-#: php/scripts/english-us/edit-exhibit.php:545
-#: php/scripts/english-us/edit-exhibit.php:645
-#: php/scripts/english-us/edit-exhibit.php:677
-#: php/scripts/english-us/edit-exhibit.php:705
-#: php/scripts/english-us/edit-exhibit.php:750
-#: php/scripts/english-us/edit-exhibit.php:800
-#: php/scripts/english-us/edit-exhibit.php:919
-#: php/scripts/english-us/edit-exhibit.php:974
-#: php/scripts/english-us/edit-exhibit.php:1035
-#: php/scripts/english-us/edit-exhibit.php:1097
-#: php/scripts/english-us/edit-exhibit.php:1144
+#: php/scripts/english-us/edit-exhibit.php:348
+#: php/scripts/english-us/edit-exhibit.php:424
+#: php/scripts/english-us/edit-exhibit.php:507
+#: php/scripts/english-us/edit-exhibit.php:565
+#: php/scripts/english-us/edit-exhibit.php:665
+#: php/scripts/english-us/edit-exhibit.php:697
+#: php/scripts/english-us/edit-exhibit.php:725
+#: php/scripts/english-us/edit-exhibit.php:770
+#: php/scripts/english-us/edit-exhibit.php:820
+#: php/scripts/english-us/edit-exhibit.php:939
+#: php/scripts/english-us/edit-exhibit.php:994
+#: php/scripts/english-us/edit-exhibit.php:1055
+#: php/scripts/english-us/edit-exhibit.php:1117
+#: php/scripts/english-us/edit-exhibit.php:1164
 #: php/scripts/english-us/edit-volume.php:466
 #: php/scripts/english-us/edit-volume.php:703
 msgid "Configure Attribute(s) by Template type"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:337
-#: php/scripts/english-us/edit-exhibit.php:413
+#: php/scripts/english-us/edit-exhibit.php:357
+#: php/scripts/english-us/edit-exhibit.php:433
 #: php/scripts/english-us/edit-volume.php:258
 #: php/scripts/english-us/edit-volume.php:334
 msgid "Locate Object by"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:344
-#: php/scripts/english-us/edit-exhibit.php:427
-#: php/scripts/english-us/edit-exhibit.php:983
-#: php/scripts/english-us/edit-exhibit.php:1044
+#: php/scripts/english-us/edit-exhibit.php:364
+#: php/scripts/english-us/edit-exhibit.php:447
+#: php/scripts/english-us/edit-exhibit.php:1003
+#: php/scripts/english-us/edit-exhibit.php:1064
 #: php/scripts/english-us/edit-volume.php:265
 #: php/scripts/english-us/edit-volume.php:348
 msgid "Marker Radius Size"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:351
-#: php/scripts/english-us/edit-exhibit.php:566
+#: php/scripts/english-us/edit-exhibit.php:371
+#: php/scripts/english-us/edit-exhibit.php:586
 #: php/scripts/english-us/edit-volume.php:272
 #: php/scripts/english-us/edit-volume.php:487
 msgid "Connect to"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:357
-#: php/scripts/english-us/edit-exhibit.php:433
-#: php/scripts/english-us/edit-exhibit.php:572
+#: php/scripts/english-us/edit-exhibit.php:377
+#: php/scripts/english-us/edit-exhibit.php:453
+#: php/scripts/english-us/edit-exhibit.php:592
 #: php/scripts/english-us/edit-volume.php:278
 #: php/scripts/english-us/edit-volume.php:354
 #: php/scripts/english-us/edit-volume.php:493
 msgid "Link Line Color"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:360
-#: php/scripts/english-us/edit-exhibit.php:436
-#: php/scripts/english-us/edit-exhibit.php:514
-#: php/scripts/english-us/edit-exhibit.php:595
-#: php/scripts/english-us/edit-exhibit.php:661
-#: php/scripts/english-us/edit-exhibit.php:733
-#: php/scripts/english-us/edit-exhibit.php:774
-#: php/scripts/english-us/edit-exhibit.php:851
-#: php/scripts/english-us/edit-exhibit.php:950
-#: php/scripts/english-us/edit-exhibit.php:989
-#: php/scripts/english-us/edit-exhibit.php:1070
-#: php/scripts/english-us/edit-exhibit.php:1126
+#: php/scripts/english-us/edit-exhibit.php:380
+#: php/scripts/english-us/edit-exhibit.php:456
+#: php/scripts/english-us/edit-exhibit.php:534
+#: php/scripts/english-us/edit-exhibit.php:615
+#: php/scripts/english-us/edit-exhibit.php:681
+#: php/scripts/english-us/edit-exhibit.php:753
+#: php/scripts/english-us/edit-exhibit.php:794
+#: php/scripts/english-us/edit-exhibit.php:871
+#: php/scripts/english-us/edit-exhibit.php:970
+#: php/scripts/english-us/edit-exhibit.php:1009
+#: php/scripts/english-us/edit-exhibit.php:1090
+#: php/scripts/english-us/edit-exhibit.php:1146
 #: php/scripts/english-us/edit-volume.php:281
 #: php/scripts/english-us/edit-volume.php:357
 #: php/scripts/english-us/edit-volume.php:435
@@ -1572,580 +1614,581 @@ msgstr ""
 msgid "Provide Legends"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:373
-#: php/scripts/english-us/edit-exhibit.php:449
-#: php/scripts/english-us/edit-exhibit.php:1002
+#: php/scripts/english-us/edit-exhibit.php:393
+#: php/scripts/english-us/edit-exhibit.php:469
+#: php/scripts/english-us/edit-exhibit.php:1022
 #: php/scripts/english-us/edit-volume.php:294
 #: php/scripts/english-us/edit-volume.php:370
 msgid "Map Base Layer"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:378
+#: php/scripts/english-us/edit-exhibit.php:398
 #: php/scripts/english-us/edit-volume.php:299
 msgid "Map Overlay Layers"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:380
+#: php/scripts/english-us/edit-exhibit.php:400
 #: php/scripts/english-us/edit-volume.php:301
 msgid "Add Layer"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:384
+#: php/scripts/english-us/edit-exhibit.php:404
 #: php/scripts/english-us/edit-volume.php:305
 msgid "Map ID"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:389
-#: php/scripts/english-us/edit-exhibit.php:465
-#: php/scripts/english-us/edit-exhibit.php:613
-#: php/scripts/english-us/edit-exhibit.php:1018
+#: php/scripts/english-us/edit-exhibit.php:409
+#: php/scripts/english-us/edit-exhibit.php:485
+#: php/scripts/english-us/edit-exhibit.php:633
+#: php/scripts/english-us/edit-exhibit.php:1038
 #: php/scripts/english-us/edit-volume.php:310
 #: php/scripts/english-us/edit-volume.php:386
 #: php/scripts/english-us/edit-volume.php:534
 msgid "Opacity"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:419
+#: php/scripts/english-us/edit-exhibit.php:439
 #: php/scripts/english-us/edit-volume.php:340
 msgid "Label Marker"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:421
+#: php/scripts/english-us/edit-exhibit.php:441
 #: php/scripts/english-us/edit-volume.php:342
 msgid "None"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:422
+#: php/scripts/english-us/edit-exhibit.php:442
 #: php/scripts/english-us/edit-volume.php:343
 msgid "Above"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:424
+#: php/scripts/english-us/edit-exhibit.php:444
 #: php/scripts/english-us/edit-volume.php:345
 msgid "Label Color"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:454
-#: php/scripts/english-us/edit-exhibit.php:1007
+#: php/scripts/english-us/edit-exhibit.php:474
+#: php/scripts/english-us/edit-exhibit.php:1027
 #: php/scripts/english-us/edit-volume.php:375
 msgid "Map Overlay Groups"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:456
-#: php/scripts/english-us/edit-exhibit.php:1009
+#: php/scripts/english-us/edit-exhibit.php:476
+#: php/scripts/english-us/edit-exhibit.php:1029
 #: php/scripts/english-us/edit-volume.php:377
 msgid "Add Map Group"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:460
-#: php/scripts/english-us/edit-exhibit.php:1013
+#: php/scripts/english-us/edit-exhibit.php:480
+#: php/scripts/english-us/edit-exhibit.php:1033
 #: php/scripts/english-us/edit-volume.php:381
 msgid "Map Group ID"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:472
+#: php/scripts/english-us/edit-exhibit.php:492
 #: php/scripts/english-us/edit-volume.php:393
 msgid "Show Title"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:475
+#: php/scripts/english-us/edit-exhibit.php:495
 #: php/scripts/english-us/edit-volume.php:396
 msgid "Thin"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:476
-#: php/scripts/english-us/edit-exhibit.php:482
+#: php/scripts/english-us/edit-exhibit.php:496
+#: php/scripts/english-us/edit-exhibit.php:502
 #: php/scripts/english-us/edit-volume.php:397
 #: php/scripts/english-us/edit-volume.php:403
 msgid "Medium"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:477
+#: php/scripts/english-us/edit-exhibit.php:497
 #: php/scripts/english-us/edit-volume.php:398
 msgid "Wide"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:481
+#: php/scripts/english-us/edit-exhibit.php:501
 #: php/scripts/english-us/edit-volume.php:402
 msgid "Short"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:483
+#: php/scripts/english-us/edit-exhibit.php:503
 #: php/scripts/english-us/edit-volume.php:404
 msgid "Tall"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:485
+#: php/scripts/english-us/edit-exhibit.php:505
 #: php/scripts/english-us/edit-volume.php:406
 msgid "Stack image vertically"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:503
-#: php/scripts/english-us/edit-exhibit.php:686
+#: php/scripts/english-us/edit-exhibit.php:523
+#: php/scripts/english-us/edit-exhibit.php:706
 #: php/scripts/english-us/edit-volume.php:424
 #: php/scripts/english-us/edit-volume.php:589
 msgid "Show content"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:530
+#: php/scripts/english-us/edit-exhibit.php:550
 #: php/scripts/english-us/edit-volume.php:451
 msgid "Original Image URL"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:531
+#: php/scripts/english-us/edit-exhibit.php:551
 #: php/scripts/english-us/edit-volume.php:452
 msgid "Original Image Width"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:533
-#: php/scripts/english-us/edit-exhibit.php:867
-#: php/scripts/english-us/edit-exhibit.php:893
+#: php/scripts/english-us/edit-exhibit.php:553
+#: php/scripts/english-us/edit-exhibit.php:887
+#: php/scripts/english-us/edit-exhibit.php:913
 #: php/scripts/english-us/edit-volume.php:454
 msgid "Display Width"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:536
-#: php/scripts/english-us/edit-exhibit.php:790
-#: php/scripts/english-us/edit-exhibit.php:1025
+#: php/scripts/english-us/edit-exhibit.php:556
+#: php/scripts/english-us/edit-exhibit.php:810
+#: php/scripts/english-us/edit-exhibit.php:1045
 #: php/scripts/english-us/edit-volume.php:457
 #: php/scripts/english-us/edit-volume.php:693
 msgid "Min Marker Size (1-50)"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:537
-#: php/scripts/english-us/edit-exhibit.php:791
-#: php/scripts/english-us/edit-exhibit.php:1026
+#: php/scripts/english-us/edit-exhibit.php:557
+#: php/scripts/english-us/edit-exhibit.php:811
+#: php/scripts/english-us/edit-exhibit.php:1046
 #: php/scripts/english-us/edit-volume.php:458
 #: php/scripts/english-us/edit-volume.php:694
 msgid "Max Marker Size (1-50)"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:539
-#: php/scripts/english-us/edit-exhibit.php:794
-#: php/scripts/english-us/edit-exhibit.php:1029
-#: php/scripts/english-us/edit-exhibit.php:1091
+#: php/scripts/english-us/edit-exhibit.php:559
+#: php/scripts/english-us/edit-exhibit.php:814
+#: php/scripts/english-us/edit-exhibit.php:1049
+#: php/scripts/english-us/edit-exhibit.php:1111
 #: php/scripts/english-us/edit-volume.php:460
 #: php/scripts/english-us/edit-volume.php:697
 msgid "Shape Type"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:540
-#: php/scripts/english-us/edit-exhibit.php:795
-#: php/scripts/english-us/edit-exhibit.php:1030
-#: php/scripts/english-us/edit-exhibit.php:1092
+#: php/scripts/english-us/edit-exhibit.php:560
+#: php/scripts/english-us/edit-exhibit.php:815
+#: php/scripts/english-us/edit-exhibit.php:1050
+#: php/scripts/english-us/edit-exhibit.php:1112
 #: php/scripts/english-us/edit-volume.php:461
 #: php/scripts/english-us/edit-volume.php:698
 msgid "Circles"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:541
-#: php/scripts/english-us/edit-exhibit.php:796
-#: php/scripts/english-us/edit-exhibit.php:1031
-#: php/scripts/english-us/edit-exhibit.php:1093
+#: php/scripts/english-us/edit-exhibit.php:561
+#: php/scripts/english-us/edit-exhibit.php:816
+#: php/scripts/english-us/edit-exhibit.php:1051
+#: php/scripts/english-us/edit-exhibit.php:1113
 #: php/scripts/english-us/edit-volume.php:462
 #: php/scripts/english-us/edit-volume.php:699
 msgid "Symbols"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:542
-#: php/scripts/english-us/edit-exhibit.php:797
-#: php/scripts/english-us/edit-exhibit.php:1032
-#: php/scripts/english-us/edit-exhibit.php:1094
+#: php/scripts/english-us/edit-exhibit.php:562
+#: php/scripts/english-us/edit-exhibit.php:817
+#: php/scripts/english-us/edit-exhibit.php:1052
+#: php/scripts/english-us/edit-exhibit.php:1114
 #: php/scripts/english-us/edit-volume.php:463
 #: php/scripts/english-us/edit-volume.php:700
 msgid "Images"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:554
+#: php/scripts/english-us/edit-exhibit.php:574
 #: php/scripts/english-us/edit-volume.php:475
 msgid "X,Y Attribute to use:"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:560
-#: php/scripts/english-us/edit-exhibit.php:809
+#: php/scripts/english-us/edit-exhibit.php:580
+#: php/scripts/english-us/edit-exhibit.php:829
 #: php/scripts/english-us/edit-volume.php:481
 #: php/scripts/english-us/edit-volume.php:712
 msgid "Marker Size"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:576
-#: php/scripts/english-us/edit-exhibit.php:832
-#: php/scripts/english-us/edit-exhibit.php:1051
-#: php/scripts/english-us/edit-exhibit.php:1107
+#: php/scripts/english-us/edit-exhibit.php:596
+#: php/scripts/english-us/edit-exhibit.php:852
+#: php/scripts/english-us/edit-exhibit.php:1071
+#: php/scripts/english-us/edit-exhibit.php:1127
 #: php/scripts/english-us/edit-volume.php:497
 #: php/scripts/english-us/edit-volume.php:735
 msgid "For this Template, use shape "
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:578
-#: php/scripts/english-us/edit-exhibit.php:834
-#: php/scripts/english-us/edit-exhibit.php:1053
-#: php/scripts/english-us/edit-exhibit.php:1109
+#: php/scripts/english-us/edit-exhibit.php:598
+#: php/scripts/english-us/edit-exhibit.php:854
+#: php/scripts/english-us/edit-exhibit.php:1073
+#: php/scripts/english-us/edit-exhibit.php:1129
 #: php/scripts/english-us/edit-volume.php:499
 #: php/scripts/english-us/edit-volume.php:737
 msgid "Circle"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:579
-#: php/scripts/english-us/edit-exhibit.php:835
-#: php/scripts/english-us/edit-exhibit.php:1054
-#: php/scripts/english-us/edit-exhibit.php:1110
+#: php/scripts/english-us/edit-exhibit.php:599
+#: php/scripts/english-us/edit-exhibit.php:855
+#: php/scripts/english-us/edit-exhibit.php:1074
+#: php/scripts/english-us/edit-exhibit.php:1130
 #: php/scripts/english-us/edit-volume.php:500
 #: php/scripts/english-us/edit-volume.php:738
 msgid "Cross"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:580
-#: php/scripts/english-us/edit-exhibit.php:836
-#: php/scripts/english-us/edit-exhibit.php:1055
-#: php/scripts/english-us/edit-exhibit.php:1111
+#: php/scripts/english-us/edit-exhibit.php:600
+#: php/scripts/english-us/edit-exhibit.php:856
+#: php/scripts/english-us/edit-exhibit.php:1075
+#: php/scripts/english-us/edit-exhibit.php:1131
 #: php/scripts/english-us/edit-volume.php:501
 #: php/scripts/english-us/edit-volume.php:739
 msgid "Diamond"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:581
-#: php/scripts/english-us/edit-exhibit.php:837
-#: php/scripts/english-us/edit-exhibit.php:1056
-#: php/scripts/english-us/edit-exhibit.php:1112
+#: php/scripts/english-us/edit-exhibit.php:601
+#: php/scripts/english-us/edit-exhibit.php:857
+#: php/scripts/english-us/edit-exhibit.php:1076
+#: php/scripts/english-us/edit-exhibit.php:1132
 #: php/scripts/english-us/edit-volume.php:502
 #: php/scripts/english-us/edit-volume.php:740
 msgid "Square"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:582
-#: php/scripts/english-us/edit-exhibit.php:838
-#: php/scripts/english-us/edit-exhibit.php:1057
-#: php/scripts/english-us/edit-exhibit.php:1113
+#: php/scripts/english-us/edit-exhibit.php:602
+#: php/scripts/english-us/edit-exhibit.php:858
+#: php/scripts/english-us/edit-exhibit.php:1077
+#: php/scripts/english-us/edit-exhibit.php:1133
 #: php/scripts/english-us/edit-volume.php:503
 #: php/scripts/english-us/edit-volume.php:741
 msgid "Star"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:583
-#: php/scripts/english-us/edit-exhibit.php:839
-#: php/scripts/english-us/edit-exhibit.php:1058
-#: php/scripts/english-us/edit-exhibit.php:1114
+#: php/scripts/english-us/edit-exhibit.php:603
+#: php/scripts/english-us/edit-exhibit.php:859
+#: php/scripts/english-us/edit-exhibit.php:1078
+#: php/scripts/english-us/edit-exhibit.php:1134
 #: php/scripts/english-us/edit-volume.php:504
 #: php/scripts/english-us/edit-volume.php:742
 msgid "Wye"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:587
-#: php/scripts/english-us/edit-exhibit.php:843
-#: php/scripts/english-us/edit-exhibit.php:1062
-#: php/scripts/english-us/edit-exhibit.php:1118
+#: php/scripts/english-us/edit-exhibit.php:607
+#: php/scripts/english-us/edit-exhibit.php:863
+#: php/scripts/english-us/edit-exhibit.php:1082
+#: php/scripts/english-us/edit-exhibit.php:1138
 #: php/scripts/english-us/edit-volume.php:508
 #: php/scripts/english-us/edit-volume.php:746
 msgid "For this Template, use Image Attribute "
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:609
+#: php/scripts/english-us/edit-exhibit.php:629
 #: php/scripts/english-us/edit-volume.php:530
 msgid "Overlay SVG Layers"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:609
+#: php/scripts/english-us/edit-exhibit.php:629
 #: php/scripts/english-us/edit-volume.php:530
 msgid "Add SVG Layer"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:612
+#: php/scripts/english-us/edit-exhibit.php:632
 #: php/scripts/english-us/edit-volume.php:533
 msgid "SVG Layer"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:620
-#: php/scripts/english-us/edit-exhibit.php:869
-#: php/scripts/english-us/edit-exhibit.php:881
-#: php/scripts/english-us/edit-exhibit.php:896
-#: php/scripts/english-us/edit-exhibit.php:917
+#: php/scripts/english-us/edit-exhibit.php:640
+#: php/scripts/english-us/edit-exhibit.php:889
+#: php/scripts/english-us/edit-exhibit.php:901
+#: php/scripts/english-us/edit-exhibit.php:916
+#: php/scripts/english-us/edit-exhibit.php:937
 #: php/scripts/english-us/edit-volume.php:773
 msgid "Break Number and Date ranges into graduated scale?"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:622
+#: php/scripts/english-us/edit-exhibit.php:642
 msgid "Pixel height of visualization"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:624
+#: php/scripts/english-us/edit-exhibit.php:644
 msgid "Sort and order Records along x axis by "
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:630
+#: php/scripts/english-us/edit-exhibit.php:650
 msgid "Group Records in each vertical stack by"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:639
+#: php/scripts/english-us/edit-exhibit.php:659
 #: php/scripts/english-us/edit-volume.php:541
 msgid "Height of Events in Zoom"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:640
+#: php/scripts/english-us/edit-exhibit.php:660
 #: php/scripts/english-us/edit-volume.php:542
 msgid "Width of Frame Axis Labels"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:641
+#: php/scripts/english-us/edit-exhibit.php:661
 #: php/scripts/english-us/edit-volume.php:543
 msgid "Macro Frame From Date"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:641
-#: php/scripts/english-us/edit-exhibit.php:642
-#: php/scripts/english-us/edit-exhibit.php:643
-#: php/scripts/english-us/edit-exhibit.php:644
-#: php/scripts/english-us/edit-volume.php:543
-#: php/scripts/english-us/edit-volume.php:544
-#: php/scripts/english-us/edit-volume.php:545
-#: php/scripts/english-us/edit-volume.php:546
-msgid "\"YYYY-MM-DD\""
-msgstr ""
-
-#: php/scripts/english-us/edit-exhibit.php:642
-#: php/scripts/english-us/edit-exhibit.php:644
+#: php/scripts/english-us/edit-exhibit.php:662
+#: php/scripts/english-us/edit-exhibit.php:664
 #: php/scripts/english-us/edit-volume.php:544
 #: php/scripts/english-us/edit-volume.php:546
 msgid "To Date"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:643
+#: php/scripts/english-us/edit-exhibit.php:663
 #: php/scripts/english-us/edit-volume.php:545
 msgid "Zoom Frame From Date"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:654
-#: php/scripts/english-us/edit-exhibit.php:1153
+#: php/scripts/english-us/edit-exhibit.php:674
+#: php/scripts/english-us/edit-exhibit.php:1173
 #: php/scripts/english-us/edit-volume.php:557
 msgid "Dates Attribute to use"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:702
+#: php/scripts/english-us/edit-exhibit.php:722
 #: php/scripts/english-us/edit-volume.php:605
 msgid "Minimum Font Size"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:703
+#: php/scripts/english-us/edit-exhibit.php:723
 #: php/scripts/english-us/edit-volume.php:606
 msgid "Maximum Font Size"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:714
+#: php/scripts/english-us/edit-exhibit.php:734
 #: php/scripts/english-us/edit-volume.php:617
 msgid "Record visible content"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:720
+#: php/scripts/english-us/edit-exhibit.php:740
 #: php/scripts/english-us/edit-volume.php:623
 msgid "Order by"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:726
+#: php/scripts/english-us/edit-exhibit.php:746
 #: php/scripts/english-us/edit-volume.php:629
 msgid "Text Size"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:749
+#: php/scripts/english-us/edit-exhibit.php:769
 #: php/scripts/english-us/edit-volume.php:652
 msgid "Maximum Label Pixel Width"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:760
-#: php/scripts/english-us/edit-exhibit.php:816
-#: php/scripts/english-us/edit-exhibit.php:936
+#: php/scripts/english-us/edit-exhibit.php:780
+#: php/scripts/english-us/edit-exhibit.php:836
+#: php/scripts/english-us/edit-exhibit.php:956
 #: php/scripts/english-us/edit-volume.php:663
 #: php/scripts/english-us/edit-volume.php:719
 #: php/scripts/english-us/edit-volume.php:792
 msgid "Add Attribute/Color Pair"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:763
-#: php/scripts/english-us/edit-exhibit.php:819
-#: php/scripts/english-us/edit-exhibit.php:939
+#: php/scripts/english-us/edit-exhibit.php:783
+#: php/scripts/english-us/edit-exhibit.php:839
+#: php/scripts/english-us/edit-exhibit.php:959
 #: php/scripts/english-us/edit-volume.php:666
 #: php/scripts/english-us/edit-volume.php:722
 #: php/scripts/english-us/edit-volume.php:795
 msgid "Use Pointer Attribute"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:769
-#: php/scripts/english-us/edit-exhibit.php:825
-#: php/scripts/english-us/edit-exhibit.php:945
+#: php/scripts/english-us/edit-exhibit.php:789
+#: php/scripts/english-us/edit-exhibit.php:845
+#: php/scripts/english-us/edit-exhibit.php:965
 #: php/scripts/english-us/edit-volume.php:672
 #: php/scripts/english-us/edit-volume.php:728
 #: php/scripts/english-us/edit-volume.php:801
 msgid "Use color"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:770
-#: php/scripts/english-us/edit-exhibit.php:826
-#: php/scripts/english-us/edit-exhibit.php:946
+#: php/scripts/english-us/edit-exhibit.php:790
+#: php/scripts/english-us/edit-exhibit.php:846
+#: php/scripts/english-us/edit-exhibit.php:966
 #: php/scripts/english-us/edit-volume.php:673
 #: php/scripts/english-us/edit-volume.php:729
 #: php/scripts/english-us/edit-volume.php:802
 msgid "\"Click to select visual representation\""
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:792
-#: php/scripts/english-us/edit-exhibit.php:1027
+#: php/scripts/english-us/edit-exhibit.php:812
+#: php/scripts/english-us/edit-exhibit.php:1047
 #: php/scripts/english-us/edit-volume.php:695
 msgid "Display size"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:871
-#: php/scripts/english-us/edit-exhibit.php:883
-#: php/scripts/english-us/edit-exhibit.php:904
+#: php/scripts/english-us/edit-exhibit.php:891
+#: php/scripts/english-us/edit-exhibit.php:903
+#: php/scripts/english-us/edit-exhibit.php:924
 msgid "Attributes (Facets) to Display"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:871
-#: php/scripts/english-us/edit-exhibit.php:883
+#: php/scripts/english-us/edit-exhibit.php:891
+#: php/scripts/english-us/edit-exhibit.php:903
 #: php/scripts/english-us/edit-template.php:36 prospect.php:20
 msgid "Add Attribute"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:898
+#: php/scripts/english-us/edit-exhibit.php:918
 msgid "Primary Grouping Attribute"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:904
+#: php/scripts/english-us/edit-exhibit.php:924
 msgid "Add Secondary Attribute"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:914
+#: php/scripts/english-us/edit-exhibit.php:934
 msgid "Radius of each node (1-20)"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:915
+#: php/scripts/english-us/edit-exhibit.php:935
 msgid "Width of buckets (2-28 nodes)"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:928
+#: php/scripts/english-us/edit-exhibit.php:948
 #: php/scripts/english-us/edit-volume.php:784
 msgid "Sort into buckets by "
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1086
+#: php/scripts/english-us/edit-exhibit.php:1106
 msgid "Display size (in pixels)"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1088
+#: php/scripts/english-us/edit-exhibit.php:1108
 msgid "Marker size (2-50 pixels)"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1089
+#: php/scripts/english-us/edit-exhibit.php:1109
 msgid "Initial degrees of separation (1-6)"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1142
+#: php/scripts/english-us/edit-exhibit.php:1162
 msgid "Initial space between rings (10-100 pixels)"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1168
+#: php/scripts/english-us/edit-exhibit.php:1188
 #: php/scripts/english-us/edit-volume.php:825
 msgid "\"New Visualization\""
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1172
+#: php/scripts/english-us/edit-exhibit.php:1192
 #: php/scripts/english-us/edit-template.php:40
 #: php/scripts/english-us/edit-volume.php:829
 msgid "Type"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1183
+#: php/scripts/english-us/edit-exhibit.php:1203
 msgid "\"Add Attribute Facet\""
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1184 prospect.php:19
+#: php/scripts/english-us/edit-exhibit.php:1204 prospect.php:19
 msgid "Attribute"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1216
+#: php/scripts/english-us/edit-exhibit.php:1236
 msgid "\"Set Roles for Relationships\""
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1217
+#: php/scripts/english-us/edit-exhibit.php:1237
 msgid "Read & Reset Terms"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1233
+#: php/scripts/english-us/edit-exhibit.php:1253
 msgid "D,Directory|B,Facet Browser|C,Cards|t,TextStream|M,Map 1|p,Map 2|T,Timeline|P,Pinboard|S,Stacked Chart|N,Network Wheel|n,Network Graph|F,Facet Flow|m,MultiBlock Map|b,Bucket Matrix|Q,QR-Map|q,QR-Network|E,Ego-Graph|e,Time-Rings"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1239
+#: php/scripts/english-us/edit-exhibit.php:1259
 #: php/scripts/english-us/edit-volume.php:867
 msgid "One of your Templates uses an Attribute ID that has since been deleted. Please re-edit your Templates to ensure obsolete Attributes have been removed from them. (See your browser’s error console for details on IDs.)"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1243
+#: php/scripts/english-us/edit-exhibit.php:1263
 msgid "You must supply an internal ID for the Exhibit that is no more than 24 characters in length and consists of alphabetic characters (in plain ASCII), numbers, underscores and hyphens (it cannot contain spaces, punctuation, Unicode-only characters, etc)."
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1247
+#: php/scripts/english-us/edit-exhibit.php:1267
 msgid "You must supply a Label for the Exhibit that is no more than 48 characters in length."
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1251
+#: php/scripts/english-us/edit-exhibit.php:1271
 msgid "Every Exhibit needs at least one and no more than four Templates. Please (de)select Templates until this requirement is met."
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1255
+#: php/scripts/english-us/edit-exhibit.php:1275
 #: php/scripts/english-us/edit-volume.php:883
 msgid "Every Template needs an Attribute which can serve as a label, but at least one of your Templates is missing a label Attribute."
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1259
+#: php/scripts/english-us/edit-exhibit.php:1279
 #: php/scripts/english-us/edit-volume.php:887
 msgid "You have specified an Attribute that does not exist in the selected Templates for the view named"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1263
+#: php/scripts/english-us/edit-exhibit.php:1283
 #: php/scripts/english-us/edit-volume.php:891
 msgid "In order to work, you need more facet Attributes in the view named"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1267
+#: php/scripts/english-us/edit-exhibit.php:1287
 #: php/scripts/english-us/edit-volume.php:895
 msgid "All visualizations need unique, non-empty labels. You have not provided a valid label for view"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1271
+#: php/scripts/english-us/edit-exhibit.php:1291
 msgid "All visualizations need unique, non-empty labels. More than one view has the label"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1275
+#: php/scripts/english-us/edit-exhibit.php:1295
 msgid "You cannot use the same Attribute for both axes on Stacked chart"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1279
+#: php/scripts/english-us/edit-exhibit.php:1299
 msgid "You must provide the center lat-long coordinate for map"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1283
+#: php/scripts/english-us/edit-exhibit.php:1303
 msgid "Some required Attributes are missing from the Qualified Relationship configuration"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1287
+#: php/scripts/english-us/edit-exhibit.php:1307
 msgid "Qualified Relationships require unique settings for entity Attribute pairs E1/E2, R1/R2 and C1/C2"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1291
+#: php/scripts/english-us/edit-exhibit.php:1311
 msgid "You cannot use QR visualizations if the QR settings have not been configured; provide settings or remove"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1295
+#: php/scripts/english-us/edit-exhibit.php:1315
 msgid "You cannot use a QRMap visualization if you haven’t provided the C1 setting at a minimum"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1299
+#: php/scripts/english-us/edit-exhibit.php:1319
 msgid "The legend for the QR Template must have the Relationship Attribute selected (and only that Attribute) for"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1305
+#: php/scripts/english-us/edit-exhibit.php:1323
+msgid "A date in your Date Slider is empty or poorly formatted (must be in format YYYY-MM-DD)"
+msgstr ""
+
+#: php/scripts/english-us/edit-exhibit.php:1327
+msgid "The start date in your Date Slider is after your end date"
+msgstr ""
+
+#: php/scripts/english-us/edit-exhibit.php:1331
+msgid "You must have at least one non-disable Attribute chosen in the Date Slider"
+msgstr ""
+
+#: php/scripts/english-us/edit-exhibit.php:1337
 msgid "Are you sure that you wish to delete this View from your Exhibit?"
 msgstr ""
 
-#: php/scripts/english-us/edit-exhibit.php:1309
+#: php/scripts/english-us/edit-exhibit.php:1341
 msgid "Exhibit was verified and prepared to be saved: now click the Publish or Update button on the right."
 msgstr ""
 
@@ -2175,7 +2218,7 @@ msgid "Clear"
 msgstr ""
 
 #: php/scripts/english-us/edit-record.php:81
-#: php/scripts/english-us/view-exhibit.php:405
+#: php/scripts/english-us/view-exhibit.php:413
 #: php/scripts/english-us/view-volume.php:409
 msgid "Add"
 msgstr ""
@@ -2635,7 +2678,7 @@ msgid "New Filter"
 msgstr ""
 
 #: php/scripts/english-us/view-exhibit.php:25
-#: php/scripts/english-us/view-exhibit.php:473
+#: php/scripts/english-us/view-exhibit.php:481
 #: php/scripts/english-us/view-volume.php:477
 msgid "No Filters"
 msgstr ""
@@ -2684,7 +2727,7 @@ msgid "Previous"
 msgstr ""
 
 #: php/scripts/english-us/view-exhibit.php:74
-#: php/scripts/english-us/view-exhibit.php:389
+#: php/scripts/english-us/view-exhibit.php:397
 #: php/scripts/english-us/view-volume.php:34
 #: php/scripts/english-us/view-volume.php:139
 #: php/scripts/english-us/view-volume.php:393
@@ -3042,7 +3085,7 @@ msgstr ""
 
 #: php/scripts/english-us/view-exhibit.php:207
 #: php/scripts/english-us/view-exhibit.php:217
-#: php/scripts/english-us/view-exhibit.php:401
+#: php/scripts/english-us/view-exhibit.php:409
 #: php/scripts/english-us/view-volume.php:42
 #: php/scripts/english-us/view-volume.php:75
 #: php/scripts/english-us/view-volume.php:85
@@ -3155,7 +3198,7 @@ msgstr ""
 
 #: php/scripts/english-us/view-exhibit.php:303
 #: php/scripts/english-us/view-exhibit.php:313
-#: php/scripts/english-us/view-exhibit.php:353
+#: php/scripts/english-us/view-exhibit.php:361
 #: php/scripts/english-us/view-volume.php:327
 #: php/scripts/english-us/view-volume.php:337
 #: php/scripts/english-us/view-volume.php:373
@@ -3214,160 +3257,168 @@ msgstr ""
 msgid "Use Dates"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:346
+#: php/scripts/english-us/view-exhibit.php:347
+msgid "Date: "
+msgstr ""
+
+#: php/scripts/english-us/view-exhibit.php:354
 #: php/scripts/english-us/view-volume.php:366
 msgid "Points to an item label"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:348
+#: php/scripts/english-us/view-exhibit.php:356
 #: php/scripts/english-us/view-volume.php:368
 msgid "that contains"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:349
+#: php/scripts/english-us/view-exhibit.php:357
 #: php/scripts/english-us/view-volume.php:369
 msgid "is exact match"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:350
+#: php/scripts/english-us/view-exhibit.php:358
 #: php/scripts/english-us/view-volume.php:370
 msgid "regular expression"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:357
+#: php/scripts/english-us/view-exhibit.php:365
 msgid "Only Relationships"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:360
+#: php/scripts/english-us/view-exhibit.php:368
 msgid "With Role"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:363
+#: php/scripts/english-us/view-exhibit.php:371
 msgid "And Role"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:369
+#: php/scripts/english-us/view-exhibit.php:377
 #: php/scripts/english-us/view-volume.php:377
 msgid "Remove/Hide All"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:373
+#: php/scripts/english-us/view-exhibit.php:381
 msgid "Relationships and Roles"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:377
+#: php/scripts/english-us/view-exhibit.php:385
 #: php/scripts/english-us/view-volume.php:381
 msgid "Show/Hide All"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:381
+#: php/scripts/english-us/view-exhibit.php:389
 #: php/scripts/english-us/view-volume.php:385
 msgid "OK"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:385
+#: php/scripts/english-us/view-exhibit.php:393
 #: php/scripts/english-us/view-volume.php:389
 msgid "Cancel"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:393
+#: php/scripts/english-us/view-exhibit.php:401
 #: php/scripts/english-us/view-volume.php:397
 msgid "Prev"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:397
+#: php/scripts/english-us/view-exhibit.php:405
 #: php/scripts/english-us/view-volume.php:401
 msgid "See Item"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:409
+#: php/scripts/english-us/view-exhibit.php:417
 #: php/scripts/english-us/view-volume.php:413
 msgid "Choose Attribute"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:425
+#: php/scripts/english-us/view-exhibit.php:433
 #: php/scripts/english-us/view-record.php:2
 #: php/scripts/english-us/view-volume.php:429
 msgid "Indefinite"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:433
+#: php/scripts/english-us/view-exhibit.php:441
 #: php/scripts/english-us/view-volume.php:437
 msgid "Manage"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:437
+#: php/scripts/english-us/view-exhibit.php:445
 #: php/scripts/english-us/view-volume.php:441
 msgid "Edit"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:441
+#: php/scripts/english-us/view-exhibit.php:449
 #: php/scripts/english-us/view-volume.php:445
 msgid "Markers"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:445
+#: php/scripts/english-us/view-exhibit.php:453
 #: php/scripts/english-us/view-volume.php:449
 msgid "Marker size corresponds to"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:449
+#: php/scripts/english-us/view-exhibit.php:457
 #: php/scripts/english-us/view-volume.php:453
 msgid "Text size corresponds to"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:453
+#: php/scripts/english-us/view-exhibit.php:461
 #: php/scripts/english-us/view-volume.php:457
 msgid "X-Axis"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:457
+#: php/scripts/english-us/view-exhibit.php:465
 #: php/scripts/english-us/view-volume.php:461
 msgid "Y-Axis"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:461
+#: php/scripts/english-us/view-exhibit.php:469
 #: php/scripts/english-us/view-volume.php:465
 msgid "items ordered by"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:465
+#: php/scripts/english-us/view-exhibit.php:473
 #: php/scripts/english-us/view-volume.php:469
 msgid "Items grouped in blocks by"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:469
+#: php/scripts/english-us/view-exhibit.php:477
 #: php/scripts/english-us/view-volume.php:473
 msgid "RESET"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:477
+#: php/scripts/english-us/view-exhibit.php:485
 #: php/scripts/english-us/view-volume.php:481
 msgid "Run Filters"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:481
+#: php/scripts/english-us/view-exhibit.php:489
 #: php/scripts/english-us/view-volume.php:485
 msgid "Filtered"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:485
+#: php/scripts/english-us/view-exhibit.php:493
 #: php/scripts/english-us/view-volume.php:493
 msgid "selected"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:489
+#: php/scripts/english-us/view-exhibit.php:497
+msgid "Date Slider"
+msgstr ""
+
+#: php/scripts/english-us/view-exhibit.php:501
 #: php/scripts/english-us/view-record.php:30
 #: php/scripts/english-us/view-volume.php:497
 msgid "Scroll transcript to follow playback"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:493
+#: php/scripts/english-us/view-exhibit.php:505
 #: php/scripts/english-us/view-volume.php:501
 msgid "Jan|Feb|Mar|Apr|May|June|July|Aug|Sep|Oct|Nov|Dec"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:503
+#: php/scripts/english-us/view-exhibit.php:515
 #: php/scripts/english-us/view-volume.php:511
 msgid "Ready"
 msgstr ""
