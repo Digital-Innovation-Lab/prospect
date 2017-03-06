@@ -6709,12 +6709,16 @@ PFilterDSlider.prototype.setup = function()
 		.call(d3.drag().on("start drag", drag).on("end", dragend));
 	this.handle = handle;
 
-		// First, get the closest timestamp
-	this.curDate = xScale.invert(this.piw/2);
-		// Now round by day
+		// Did user provide an explicit initial date for handle?
+	if (typeof dsSettings.h === 'string') {
+		this.curDate = PData.dStr(dsSettings.h, false);
+	} else {
+			// First, get the closest timestamp
+		this.curDate = xScale.invert(this.piw/2);
+	}
 	roundByDay();
 
-		// Show date
+		// Show handle date
 	this.refreshDate(insert);
 } // setup()
 

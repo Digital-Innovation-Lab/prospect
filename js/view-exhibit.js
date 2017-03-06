@@ -2889,9 +2889,8 @@ jQuery(document).ready(function($) {
 		views[0] = PViewFrame(0);
 		views[0].initDOM(0);
 		setAnnote('');
-			// Date Slider configured? Create automatically
-		if (typeof prspdata.e.g.ds !== 'undefined') {
-			var dsSettings = prspdata.e.g.ds;
+			// Date Slider configured? Create it automatically?
+		if (typeof prspdata.e.g.ds !== 'undefined' && prspdata.e.g.ds.o) {
 			createFilter('_dslider', null, null);
 		}
 	}
