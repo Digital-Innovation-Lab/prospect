@@ -148,7 +148,7 @@ function PViewFrame(vfIndex)
 			var ta = [];
 
 			if (splitXcript) {
-				var tb;
+				var tb='';
 				var ti = 0;
 				_.each(splitXcript, function(val) {
 						// Skip values with line breaks...basically empty items
