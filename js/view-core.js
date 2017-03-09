@@ -6634,16 +6634,27 @@ PFilterDSlider.prototype.setup = function()
 		handle.attr("cx", newX);
 	} // roundByDay()
 
+	function dragStart()
+	{
+			// Get copy of date text
+		var dText = insert.find('div.ds-data span.d').text();
+		insert.find('div.ds-tip').addClass('on').text(dText).css("left",d3.event.x+"px");
+	} // dragStart()
+
 	function drag()
 	{
 		var x=Math.max(0,Math.min(d3.event.x,self.piw-1));
 		handle.attr("cx", x);
 		self.curDate = xScale.invert(x);
 		self.refreshDate(insert);
+			// Get copy of regularized date text
+		var dText = insert.find('div.ds-data span.d').text();
+		insert.find('div.ds-tip').text(dText).css("left",d3.event.x+"px");
 	} // drag()
 
 	function dragend()
 	{
+		insert.find('div.ds-tip').removeClass('on');
 		roundByDay();
 		self.refreshDate(insert);
 		self.isDirty(2);
@@ -6706,7 +6717,7 @@ PFilterDSlider.prototype.setup = function()
 	handle = slider.insert("circle", ".track-overlay")
 		.attr("class", "handle")
 		.attr("r", 7)
-		.call(d3.drag().on("start drag", drag).on("end", dragend));
+		.call(d3.drag().on("start", dragStart).on("drag", drag).on("end", dragend));
 	this.handle = handle;
 
 		// Did user provide an explicit initial date for handle?

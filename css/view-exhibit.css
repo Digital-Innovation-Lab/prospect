@@ -1742,6 +1742,18 @@ div.ds-data span.d {
 	display: inline-block;
 }
 
+div.ds-tip {
+	background-color: yellow;
+	color: black;
+	position: absolute;
+	z-index: 10;
+	display: none;
+}
+
+div.ds-tip.on {
+	display: block;
+}
+
 div.dateslider {
 	margin: 0px;
 }
