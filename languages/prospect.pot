@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Prospect\n"
-"POT-Creation-Date: 2017-03-06 14:30-0500\n"
+"POT-Creation-Date: 2017-03-09 14:58-0500\n"
 "PO-Revision-Date: 2016-03-08 15:33-0500\n"
 "Last-Translator: \n"
 "Language-Team: Digital Innovation Lab <dil@unc.edu>\n"
@@ -566,19 +566,19 @@ msgid "(uncertain)"
 msgstr ""
 
 #: php/class-template.php:87 php/class-template.php:98
-#: php/class-template.php:114 php/scripts/english-us/view-exhibit.php:425
+#: php/class-template.php:114 php/scripts/english-us/view-exhibit.php:426
 #: php/scripts/english-us/view-record.php:10
 #: php/scripts/english-us/view-volume.php:421
 msgid "about"
 msgstr ""
 
-#: php/class-template.php:109 php/scripts/english-us/view-exhibit.php:421
+#: php/class-template.php:109 php/scripts/english-us/view-exhibit.php:422
 #: php/scripts/english-us/view-record.php:6
 #: php/scripts/english-us/view-volume.php:417
 msgid "to"
 msgstr ""
 
-#: php/class-template.php:111 php/scripts/english-us/view-exhibit.php:429
+#: php/class-template.php:111 php/scripts/english-us/view-exhibit.php:430
 #: php/scripts/english-us/view-record.php:14
 #: php/scripts/english-us/view-volume.php:425
 msgid "now"
@@ -624,7 +624,7 @@ msgstr ""
 #: php/scripts/english-us/edit-volume.php:674
 #: php/scripts/english-us/edit-volume.php:730
 #: php/scripts/english-us/edit-volume.php:803
-#: php/scripts/english-us/view-exhibit.php:437
+#: php/scripts/english-us/view-exhibit.php:438
 #: php/scripts/english-us/view-volume.php:433
 msgid "Delete"
 msgstr ""
@@ -2218,7 +2218,7 @@ msgid "Clear"
 msgstr ""
 
 #: php/scripts/english-us/edit-record.php:81
-#: php/scripts/english-us/view-exhibit.php:413
+#: php/scripts/english-us/view-exhibit.php:414
 #: php/scripts/english-us/view-volume.php:409
 msgid "Add"
 msgstr ""
@@ -2678,7 +2678,7 @@ msgid "New Filter"
 msgstr ""
 
 #: php/scripts/english-us/view-exhibit.php:25
-#: php/scripts/english-us/view-exhibit.php:481
+#: php/scripts/english-us/view-exhibit.php:482
 #: php/scripts/english-us/view-volume.php:477
 msgid "No Filters"
 msgstr ""
@@ -2727,7 +2727,7 @@ msgid "Previous"
 msgstr ""
 
 #: php/scripts/english-us/view-exhibit.php:74
-#: php/scripts/english-us/view-exhibit.php:397
+#: php/scripts/english-us/view-exhibit.php:398
 #: php/scripts/english-us/view-volume.php:34
 #: php/scripts/english-us/view-volume.php:139
 #: php/scripts/english-us/view-volume.php:393
@@ -3085,7 +3085,7 @@ msgstr ""
 
 #: php/scripts/english-us/view-exhibit.php:207
 #: php/scripts/english-us/view-exhibit.php:217
-#: php/scripts/english-us/view-exhibit.php:409
+#: php/scripts/english-us/view-exhibit.php:410
 #: php/scripts/english-us/view-volume.php:42
 #: php/scripts/english-us/view-volume.php:75
 #: php/scripts/english-us/view-volume.php:85
@@ -3198,7 +3198,7 @@ msgstr ""
 
 #: php/scripts/english-us/view-exhibit.php:303
 #: php/scripts/english-us/view-exhibit.php:313
-#: php/scripts/english-us/view-exhibit.php:361
+#: php/scripts/english-us/view-exhibit.php:362
 #: php/scripts/english-us/view-volume.php:327
 #: php/scripts/english-us/view-volume.php:337
 #: php/scripts/english-us/view-volume.php:373
@@ -3261,164 +3261,164 @@ msgstr ""
 msgid "Date: "
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:354
+#: php/scripts/english-us/view-exhibit.php:355
 #: php/scripts/english-us/view-volume.php:366
 msgid "Points to an item label"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:356
+#: php/scripts/english-us/view-exhibit.php:357
 #: php/scripts/english-us/view-volume.php:368
 msgid "that contains"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:357
+#: php/scripts/english-us/view-exhibit.php:358
 #: php/scripts/english-us/view-volume.php:369
 msgid "is exact match"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:358
+#: php/scripts/english-us/view-exhibit.php:359
 #: php/scripts/english-us/view-volume.php:370
 msgid "regular expression"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:365
+#: php/scripts/english-us/view-exhibit.php:366
 msgid "Only Relationships"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:368
+#: php/scripts/english-us/view-exhibit.php:369
 msgid "With Role"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:371
+#: php/scripts/english-us/view-exhibit.php:372
 msgid "And Role"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:377
+#: php/scripts/english-us/view-exhibit.php:378
 #: php/scripts/english-us/view-volume.php:377
 msgid "Remove/Hide All"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:381
+#: php/scripts/english-us/view-exhibit.php:382
 msgid "Relationships and Roles"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:385
+#: php/scripts/english-us/view-exhibit.php:386
 #: php/scripts/english-us/view-volume.php:381
 msgid "Show/Hide All"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:389
+#: php/scripts/english-us/view-exhibit.php:390
 #: php/scripts/english-us/view-volume.php:385
 msgid "OK"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:393
+#: php/scripts/english-us/view-exhibit.php:394
 #: php/scripts/english-us/view-volume.php:389
 msgid "Cancel"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:401
+#: php/scripts/english-us/view-exhibit.php:402
 #: php/scripts/english-us/view-volume.php:397
 msgid "Prev"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:405
+#: php/scripts/english-us/view-exhibit.php:406
 #: php/scripts/english-us/view-volume.php:401
 msgid "See Item"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:417
+#: php/scripts/english-us/view-exhibit.php:418
 #: php/scripts/english-us/view-volume.php:413
 msgid "Choose Attribute"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:433
+#: php/scripts/english-us/view-exhibit.php:434
 #: php/scripts/english-us/view-record.php:2
 #: php/scripts/english-us/view-volume.php:429
 msgid "Indefinite"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:441
+#: php/scripts/english-us/view-exhibit.php:442
 #: php/scripts/english-us/view-volume.php:437
 msgid "Manage"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:445
+#: php/scripts/english-us/view-exhibit.php:446
 #: php/scripts/english-us/view-volume.php:441
 msgid "Edit"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:449
+#: php/scripts/english-us/view-exhibit.php:450
 #: php/scripts/english-us/view-volume.php:445
 msgid "Markers"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:453
+#: php/scripts/english-us/view-exhibit.php:454
 #: php/scripts/english-us/view-volume.php:449
 msgid "Marker size corresponds to"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:457
+#: php/scripts/english-us/view-exhibit.php:458
 #: php/scripts/english-us/view-volume.php:453
 msgid "Text size corresponds to"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:461
+#: php/scripts/english-us/view-exhibit.php:462
 #: php/scripts/english-us/view-volume.php:457
 msgid "X-Axis"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:465
+#: php/scripts/english-us/view-exhibit.php:466
 #: php/scripts/english-us/view-volume.php:461
 msgid "Y-Axis"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:469
+#: php/scripts/english-us/view-exhibit.php:470
 #: php/scripts/english-us/view-volume.php:465
 msgid "items ordered by"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:473
+#: php/scripts/english-us/view-exhibit.php:474
 #: php/scripts/english-us/view-volume.php:469
 msgid "Items grouped in blocks by"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:477
+#: php/scripts/english-us/view-exhibit.php:478
 #: php/scripts/english-us/view-volume.php:473
 msgid "RESET"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:485
+#: php/scripts/english-us/view-exhibit.php:486
 #: php/scripts/english-us/view-volume.php:481
 msgid "Run Filters"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:489
+#: php/scripts/english-us/view-exhibit.php:490
 #: php/scripts/english-us/view-volume.php:485
 msgid "Filtered"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:493
+#: php/scripts/english-us/view-exhibit.php:494
 #: php/scripts/english-us/view-volume.php:493
 msgid "selected"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:497
+#: php/scripts/english-us/view-exhibit.php:498
 msgid "Date Slider"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:501
+#: php/scripts/english-us/view-exhibit.php:502
 #: php/scripts/english-us/view-record.php:30
 #: php/scripts/english-us/view-volume.php:497
 msgid "Scroll transcript to follow playback"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:505
+#: php/scripts/english-us/view-exhibit.php:506
 #: php/scripts/english-us/view-volume.php:501
 msgid "Jan|Feb|Mar|Apr|May|June|July|Aug|Sep|Oct|Nov|Dec"
 msgstr ""
 
-#: php/scripts/english-us/view-exhibit.php:515
+#: php/scripts/english-us/view-exhibit.php:516
 #: php/scripts/english-us/view-volume.php:511
 msgid "Ready"
 msgstr ""
