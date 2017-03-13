@@ -2020,9 +2020,10 @@ PFilterQR.prototype.setState = function(state)
 {
 	var ip = this.insertPt();
 	ip.find('input.filter-qr-use-r').prop('checked', state.rOn);
-	this.r = state.r; ip.find('input.filter-qr-r').val(this.r);
+	this.r = state.r; ip.find('select.filter-qr-r').val(this.r);
+	this.setRoles();
 	ip.find('input.filter-qr-use-r1').prop('checked', state.r1On);
 	ip.find('select.filter-qr-r1').val(state.r1);
-	ip.find('input.filter-qr-use-r1').prop('checked', state.r2On);
-	ip.find('select.filter-qr-r1').val(state.r2);
+	ip.find('input.filter-qr-use-r2').prop('checked', state.r2On);
+	ip.find('select.filter-qr-r2').val(state.r2);
 } // setState()
