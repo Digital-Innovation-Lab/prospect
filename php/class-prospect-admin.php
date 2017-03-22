@@ -826,18 +826,21 @@ class ProspectAdmin {
 					// Built-in modules
 				wp_enqueue_script('jquery');
 				wp_enqueue_script('underscore');
-				wp_enqueue_script('iris');
+				// wp_enqueue_script('iris');
 				wp_enqueue_script('jquery-ui-button');
-				wp_enqueue_script('jquery-ui-dialog');
+				// wp_enqueue_script('jquery-ui-dialog');
 
 					// Prospect-specific
-				wp_enqueue_script('ractive', plugins_url('/lib/ractive.min.js', dirname(__FILE__)));
+				// wp_enqueue_script('ractive', plugins_url('/lib/ractive.min.js', dirname(__FILE__)));
+				wp_enqueue_script('vuejs', plugins_url('/lib/vuejs-2.2.4/vue.js', dirname(__FILE__)));
 				wp_enqueue_script('randomcolor', plugins_url('/lib/randomcolor.js', dirname(__FILE__)));
 				wp_enqueue_script('rainbow', plugins_url('/lib/rainbowvis.js', dirname(__FILE__)));
+				// wp_enqueue_script('edit-attribute', plugins_url('/js/edit-attribute.js', dirname(__FILE__)),
+				// 				array('ractive', 'randomcolor', 'rainbow','iris', 'jquery-ui-button',
+				// 					'jquery-ui-dialog', 'underscore'));
 
 				wp_enqueue_script('edit-attribute', plugins_url('/js/edit-attribute.js', dirname(__FILE__)),
-								array('ractive', 'randomcolor', 'rainbow','iris', 'jquery-ui-button',
-									'jquery-ui-dialog', 'underscore'));
+								array('vuejs', 'randomcolor', 'rainbow', 'underscore'));
 
 					// Get list of all custom fields currently used by Records
 				$cfs = ProspectAttribute::get_all_custom_field_names();

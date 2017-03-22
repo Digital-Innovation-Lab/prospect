@@ -31,95 +31,501 @@ if (!Array.prototype.findIndex) {
 
 
 jQuery(document).ready(function() {
-	Ractive.decorators.iconButton = function (node, icon) {
-		jQuery(node).button({
-			text: false,
-			icons: { primary: icon }
-		});
+	Vue.component('icon-btn', {
+		props: {
+			symbol: {
+	    		type: String,
+	    		default: ''
+	    	},
+			label: {
+	    		type: String,
+	    		default: ''
+	    	}
+		},
+		template: `<button v-on:click="click">{{label}}</button>`,
+		data: function () {
+			return {
+				jBtn: null
+			}
+		},
+		methods: {
+			click: function (event) {
+	    			// now we have access to the native event
+	    		if (event) event.preventDefault();
+				this.$emit('click');
+	    	}
+		},
+			// Lifecycle hooks
+		mounted: function() {
+			this.jBtn = jQuery(this.$el).button({
+				text: false,
+				icons: { primary: this.symbol }
+			});
+		},
+		beforeDestroy: function() {
+			jQuery(this.jBtn).button('destroy');
+		}
+	});
 
-		return {
-			teardown: function () {
-				jQuery(node).button('destroy');
+		// "Null" placeholder when no dialog should be shown
+	Vue.component('nullcomponent', {
+		template: '<div style="display: none"></div>'
+	});
+
+		// Wrapper for modal dialog boxes
+	Vue.component('dialog', {
+		props: {
+			title: {
+	    		type: String,
+	    		default: 'Dialog'
+	    	},
+			cancel: {
+				type: String,
+				default: 'false'
+			},
+			size: {
+				type: String,
+				default: ''
+			}
+		},
+		template: '#dialog-template',
+		methods: {
+			close: function() {
+				this.$el.className = 'dialog-wrap open';
+				setTimeout(function() {
+					vApp.$emit('dialogclose');
+				}.bind(this), 300);
+			},
+			clickok: function() {
+				this.$emit('save');
+				this.close();
+			}
+		},
+			// Lifecycle hooks
+		mounted: function() {
+			if (this.size != '') {
+				this.$el.firstChild.className = this.size;
+			} // switch()
+			setTimeout(function() {
+	            this.$el.className = 'dialog-wrap open pop';
+	        }.bind(this), 20);
+		}
+	});
+
+	Vue.component('dlgMessage', {
+		props: {
+			title: {
+	    		type: String,
+	    		default: 'Dialog'
+	    	},
+			size: {
+				type: String,
+				default: ''
+			},
+			message: {
+				type: String,
+				default: ''
+			}
+		},
+		template: '#dialog-message'
+	});
+
+	Vue.component('dlgConfirm', {
+		props: {
+			title: {
+	    		type: String,
+	    		default: 'Dialog'
+	    	},
+			size: {
+				type: String,
+				default: ''
+			},
+			message: {
+				type: String,
+				default: ''
+			}
+		},
+		template: '#dialog-confirm'
+	});
+
+		// Component to edit Text Legend entries
+	Vue.component('dlgEditLgndText', {
+		props: {
+			label: {
+	    		type: String,
+	    		default: ''
+	    	},
+			pattern: {
+				type: String,
+				default: ''
+			}
+		},
+		template: '#dialog-legend-text',
+		methods: {
+			save: function() {
+				// TO DO: Save data
 			}
 		}
-	};
-
-
-		// Create Ractive component to wrap jQueryUI Dialog
-	var RJDialogComponent = Ractive.extend({
-		template: '#dialog-r-template',
-		data: function() {
-			return {
-				title: '',
-				width: 350,
-				height: 350,
-				cancel: true
-			}
-		}, // data
-
-			// Intercept render to insert and active jQueryUI plugin
-		onrender: function() {
-			var self = this;
-			var thisComponent = this.find('*');
-			var theButtons = [ {
-					text: 'OK',
-					click: function() {
-						self.fire('ok');
-					}
-				} ];
-			if (self.get('cancel')) {
-				theButtons.push( {
-					text: 'Cancel',
-					click: function() {
-						self.fire('cancel');
-					}
-				} );
-			}
-			self.modal = jQuery(thisComponent).dialog({
-				dialogClass: "no-close",
-				width: self.get('width'),
-				height: self.get('height'),
-				modal : true,
-				autoOpen: true,
-				buttons: theButtons
-			});
-			// self.modal.dialog('open');
-		}, // onrender
-
-			// Intercept teardown so that jQueryUI component destroyed
-		onteardown: function () {
-			this.modal.dialog('destroy');
-		} // onteardown
 	});
 
-
-	var RJIrisColor = Ractive.extend({
-		template: '#iris-r-template',
-		data: function() {
-			return {
-				color: ''				// the selected color
+		// Component to edit Text Legend entries
+	Vue.component('dlgEditLgndNumber', {
+		props: {
+			label: {
+	    		type: String,
+	    		default: ''
+	    	},
+			min: {
+				type: Number,
+				default: 0
+			},
+			max: {
+				type: Number,
+				default: 100
 			}
-		}, // data
-		onrender: function() {
-			var self = this;
-			var thisComponent = this.find('.jq-iris-template');
-
-			jQuery(thisComponent).iris({
-				width: 200,
-				hide: false,
-				palettes: true,
-				change: function(event, ui) {
-					self.set('color', ui.color.toString());
-				}
-			});
-		}, // onrender()
-
-			// Intercept teardown to create jQueryUI component
-		onteardown: function () {
-			var thisComponent = this.find('.jq-iris-template');
-			jQuery(thisComponent).iris('destroy');
-		} // onteardown()
+		},
+		template: '#dialog-legend-number',
+		methods: {
+			save: function() {
+				// TO DO: Save data
+			}
+		}
 	});
+
+		// Component to edit Text Legend entries
+	Vue.component('dlgEditLgndDates', {
+		props: {
+			label: {
+	    		type: String,
+	    		default: ''
+	    	},
+			min: {
+				type: Object,
+				default: function() { return { y: '', m: '', d: '' } }
+			},
+			max: {
+				type: Object,
+				default: function() { return { y: '', m: '', d: '' } }
+			}
+		},
+		template: '#dialog-legend-dates',
+		methods: {
+			save: function() {
+				// TO DO: Save data
+			}
+		}
+	});
+
+		// Component to choose parent for Vocab term at top-level
+	Vue.component('dlgMoveLgndTop', {
+		props: {
+			newParent: {
+	    		type: String,
+	    		default: ''
+	    	},
+			parents: {
+				type: Array,
+				default: function() { return [] }
+			},
+			keep: {
+				type: String,
+				default: 'yes'
+			}
+		},
+		template: '#dialog-move-vocab-lone',
+		methods: {
+			save: function() {
+				// TO DO: Save data
+			}
+		}
+	});
+
+		// Component to move children Terms of parent
+	Vue.component('dlgMoveLgndParent', {
+		props: {
+			newParent: {
+	    		type: String,
+	    		default: ''
+	    	},
+			parents: {
+				type: Array,
+				default: function() { return [] }
+			},
+			up: {
+				type: String,
+				default: 'yes'
+			}
+		},
+		template: '#dialog-move-vocab-parent',
+		methods: {
+			save: function() {
+				// TO DO: Save data
+			}
+		}
+	});
+
+		// Component to move children Terms of parent
+	Vue.component('dlgMoveLgndChild', {
+		props: {
+			newParent: {
+	    		type: String,
+	    		default: ''
+	    	},
+			parents: {
+				type: Array,
+				default: function() { return [] }
+			},
+			up: {
+				type: String,
+				default: 'yes'
+			}
+		},
+		template: '#dialog-move-vocab-child',
+		methods: {
+			save: function() {
+				// TO DO: Save data
+			}
+		}
+	});
+
+		// Component to reset color legend (multiple entries)
+	Vue.component('dlgResetColors', {
+		props: {
+			reset: {
+	    		type: String,
+	    		default: 'random'
+	    	},
+			c0: {
+				type: String,
+				default: '#787878'
+			},
+			c1: {
+				type: String,
+				default: '#787878'
+			}
+		},
+		template: '#dialog-reset-colors',
+		methods: {
+			save: function() {
+				// TO DO: Save data
+			}
+		}
+	});
+
+		// Component to reset single color entry
+	Vue.component('dlgChooseColor', {
+		props: {
+			doClear: {
+	    		type: Boolean,
+	    		default: false
+	    	},
+			color: {
+				type: String,
+				default: '#787878'
+			}
+		},
+		template: '#dialog-choose-color-clear',
+		methods: {
+			save: function() {
+				// TO DO: Save data
+			}
+		}
+	});
+
+		// Component to reset single color entry
+	Vue.component('dlgCopyLegend', {
+		props: {
+			doClear: {
+	    		type: Boolean,
+	    		default: false
+	    	},
+			color: {
+				type: String,
+				default: '#787878'
+			}
+		},
+		template: '#dialog-choose-color-clear',
+		methods: {
+			save: function() {
+				// TO DO: Save data
+			}
+		}
+	});
+
+	var legendEditor = {
+		methods: {
+			resetLegend: function() {
+				// TO DO -- reset colors of legend en masse
+			},
+			copyLegend: function() {
+				// TO DO -- use the Legend from another Vocabulary Attribute
+			},
+			doLegendUp: function(i1, i2) {
+				// TO DO -- move Term up one level
+			},
+			doLegendTop: function(i1, i2) {
+				// TO DO -- move Term to top
+			},
+			doLegendDown: function(i1, i2) {
+				// TO DO -- move Term down one level
+			},
+			doLegendBottom: function(i1, i2) {
+				// TO DO -- move Term to bottom
+			},
+			doLegendDel: function(i1, i2) {
+				// TO DO -- delete this Term
+			}
+		}
+	}
+
+		// Component to reset single color entry
+	Vue.component('componentEditNumber', {
+		mixins: [legendEditor],
+		props: {
+			min: {
+	    		type: Number,
+	    		default: 0
+	    	},
+			max: {
+	    		type: Number,
+	    		default: 100
+	    	},
+			group: {
+	    		type: Number,
+	    		default: 0
+	    	},
+			useU: {
+				type: Boolean,
+				default: False
+			},
+			uColor: {
+				type: String,
+				default: '#787878'
+			}
+		},
+		template: '#component-edit-num',
+		methods: {
+			addLegend: function() {
+				// TO DO -- show dialog to enable adding item
+			},
+			doLegendEdit: function(index) {
+				// TO DO -- show dialog to edit item
+			}
+		}
+	});
+
+		// Component to reset single color entry
+	Vue.component('componentEditDates', {
+		mixins: [legendEditor],
+		props: {
+			minY: {
+	    		type: String,
+	    		default: ''
+	    	},
+			minM: {
+	    		type: String,
+	    		default: ''
+	    	},
+			minD: {
+	    		type: String,
+	    		default: ''
+	    	},
+			maxY: {
+	    		type: String,
+	    		default: ''
+	    	},
+			maxM: {
+	    		type: String,
+	    		default: ''
+	    	},
+			maxD: {
+	    		type: String,
+	    		default: ''
+	    	},
+			group: {
+	    		type: String,
+	    		default: 'y'
+	    	},
+			useU: {
+				type: Boolean,
+				default: False
+			},
+			uColor: {
+				type: String,
+				default: '#787878'
+			}
+		},
+		template: '#component-edit-dates',
+		methods: {
+			addLegend: function() {
+				// TO DO -- show dialog to enable adding item
+			},
+			doLegendEdit: function(index) {
+				// TO DO -- show dialog to edit item
+			}
+		}
+	});
+
+		// Component to reset single color entry
+	Vue.component('componentEditVocab', {
+		props: {
+			others: {
+				type: Array,
+				default: function(){ return [] }
+			},
+			newVocab: {
+				type: String,
+				default: ''
+			},
+			theLegend: {
+				type: Array,
+				default: function(){ return [] }
+			}
+		},
+		template: '#component-edit-vocab',
+		methods: {
+			addTerms: function() {
+				// TO DO -- fetch from server via AJAX
+			},
+			addLegend: function() {
+				// TO DO -- add the current Term to this Vocabulary
+			},
+			doVocabMove: function(i1, i2) {
+				// TO DO -- create dialog to allow moving Term as child or parent
+			},
+			doLegendViz: function() {
+				// TO DO -- choose color for child Term or else clear
+			}
+		}
+	});
+
+		// Component to reset single color entry
+	Vue.component('componentEditText', {
+		props: {
+			others: {
+				type: Array,
+				default: function(){ return [] }
+			},
+			newVocab: {
+				type: String,
+				default: ''
+			},
+			theLegend: {
+				type: Array,
+				default: function(){ return [] }
+			}
+		},
+		template: '#component-edit-vocab',
+		methods: {
+			addLegend: function() {
+				// TO DO -- show dialog to enable adding item
+			},
+			doLegendEdit: function(index) {
+				// TO DO -- show dialog to edit item
+			}
+		}
+	});
+});
 
 
 		// DATA LOADED FROM SERVER
@@ -138,7 +544,8 @@ jQuery(document).ready(function() {
 
 		// OTHER VARS
 		// ==========
-	var rApp;							// the main Ractive application
+	// var rApp;							// the main Ractive application
+	var vApp;							// the VueJS application
 	var newVocab = '';					// new Vocabulary item
 	var errTimer;
 	var errorString = '';				// error readout
@@ -562,24 +969,39 @@ jQuery(document).ready(function() {
 
 	otherAtts = attMatch(defAttribute.t, attID);
 
-		// Create our main App Ractive instance with wrapped jQueryUI components
-	rApp = new Ractive({
-		el: '#ractive-output',
-		template: '#ractive-base',
+		// Create our main App instance
+	var vApp = new Vue({
+		el: '#vue-outer',
 		data: {
-			theAttribute: defAttribute,
+			theAttribute: defAttribute,			// Object representing basic settings of Attribute
 			attID: attID,
 			privacy: privacy,
-			dataTypes: dataTypes,
-			cfs: customFields,
-			chosenCF: chosenCF,
-			theLegend: defLegend,
-			theRange: defRange,
-			newVocab: newVocab,
-			errorMsg: errorString,
-			others: otherAtts
+			dataTypes: dataTypes,				// Array of dataTypes
+			cfs: customFields,					// Array of custom field names
+			chosenCF: chosenCF,					// current chosen custom field
+			theLegend: defLegend,				// current legend definition (array)
+			theRange: defRange,					// Range info, if Number or Dates type
+			newVocab: newVocab,					// string with new Term
+			errorMsg: errorString,				// current error string (if any)
+			others: otherAtts,					// other Attributes of the same type
+			modalShowing: 'nullcomponent'		// modal currently showing (initially nothing)
 		},
+		methods: {
+			saveAttribute: function() {
+			},
+			idHint: function() {
+
+			},
+				// Use current choice of custom field as ID
+			copyCF: function() {
+					// TO DO
+			}
+		}
 	});
+	vApp.$on('dialogclose', function () {
+		vApp.modalShowing = 'nullcomponent';
+	});
+
 
 		// Observe data-type selections: re-init when user makes new selection
 		// 	initially oldValue == undefined
