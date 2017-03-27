@@ -833,6 +833,7 @@ class ProspectAdmin {
 					// Prospect-specific
 				// wp_enqueue_script('ractive', plugins_url('/lib/ractive.min.js', dirname(__FILE__)));
 				wp_enqueue_script('vuejs', plugins_url('/lib/vuejs-2.2.4/vue.js', dirname(__FILE__)));
+				// wp_enqueue_script('vuejs-x', plugins_url('/lib/vuejs-2.2.4/vuex.js', dirname(__FILE__)));
 				wp_enqueue_script('randomcolor', plugins_url('/lib/randomcolor.js', dirname(__FILE__)));
 				wp_enqueue_script('rainbow', plugins_url('/lib/rainbowvis.js', dirname(__FILE__)));
 				// wp_enqueue_script('edit-attribute', plugins_url('/js/edit-attribute.js', dirname(__FILE__)),

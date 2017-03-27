@@ -137,81 +137,6 @@
 	</dialog>
 </script>
 
-<!-- Edit settings for Number Attributes -->
-<script id="component-edit-num" type='text/x-template'>
-	<h3><?php _e('Set Valid Number Range', 'prospect'); ?></h3>
-	<label for="num-r-min"><?php _e('Minimum number', 'prospect'); ?>: </label>
-	<input type="text" id="num-r-min" v-model='min' placeholder="Min val" size="8"/>
-	<label for="num-r-max"><?php _e('Maximum number', 'prospect'); ?>: </label>
-	<input type="text" id="num-r-max" v-model='max' placeholder="Max val" size="8"/>
-	<br/>
-	<label for="num-g"><?php _e('Group values together by', 'prospect'); ?> </label>
-	<input type="number" id="num-g" v-model='group' min="0" max="4"/> <?php _e('digits', 'prospect'); ?>
-	<br/>
-	<?php _e('Use', 'prospect'); ?>
-	<input type='checkbox' v-model='useU'/> <?php _e('color for indefinite Number values ', 'prospect'); ?>
-	<input type="color" v-model="uColor"/>
-	<h3><?php _e('Configure Numeric Legend', 'prospect'); ?></h3>
-	<button v-on:click="resetLegend"><?php _e('Reset Visuals', 'prospect'); ?></button>
-	<button v-on:click="addLegend"><?php _e('Add Entry', 'prospect'); ?></button>
-	<button v-if="others.length > 0" v-on:click="copyLegend"><?php _e('Copy Legend', 'prospect'); ?></button>
-	<br/>
-	<div class="legend-data">
-		<div v-for="(lgnd, index) in theLegend" class="legend-data-entry">
-			<span class="legend-label">{{lgnd.l}}</span> <span class="legend-val">{{lgnd.val}}</span>
-			<input type="color" v-model="lgnd.v"/>
-			<div class="ui-widget-header ui-corner-all legend-btn-set">
-				<icon-btn symbol="ui-icon-wrench" v-on:click="doLegendEdit(index)" label="<?php _e('Edit Entry', 'prospect'); ?>"></icon-btn>
-				<icon-btn symbol="ui-icon-arrowthick-1-n" v-on:click="doLegendUp(index)" label="<?php _e('Move Up', 'prospect'); ?>"></icon-btn>
-				<icon-btn symbol="ui-icon-arrowthick-1-s" v-on:click="doLegendDown(index)" label="<?php _e('Move Down', 'prospect'); ?>"></icon-btn>
-				<icon-btn symbol="ui-icon-trash" v-on:click="doLegendDel(index)" label="<?php _e('Delete', 'prospect'); ?>"></icon-btn>
-			</div>
-		</div>
-	</div>
-</script>
-
-<!-- Edit settings for Dates Attributes -->
-<script id="component-edit-dates" type='text/x-template'>
-	<h3><?php _e('Set Valid Date Range', 'prospect'); ?></h3>
-	<?php _e('Earliest Date', 'prospect'); ?>:
-		<label for="date-r-min-y"><?php _e('Year', 'prospect'); ?> </label> <input type="text" id="date-r-min-y" v-model='minY' placeholder="YYYY" size="6" pattern="(open|-?\d+)" required>
-		<label for="date-r-min-m"><?php _e('Month', 'prospect'); ?> </label> <input type="text" id="date-r-min-m" v-model='minM' placeholder="MM" size="2" pattern="\d{0,2}">
-		<label for="date-r-min-d"><?php _e('Day', 'prospect'); ?> </label> <input type="text" id="date-r-min-d" v-model='minD' placeholder="DD" size="2" pattern="\d{0,2}">
-		<br/>
-	<?php _e('Latest Date', 'prospect'); ?>:
-		<label for="date-r-max-y"><?php _e('Year', 'prospect'); ?> </label> <input type="text" id="date-r-max-y" v-model='maxY' placeholder="YYYY" size="6" pattern="(open|~?-?\d+)">
-		<label for="date-r-max-m"><?php _e('Month', 'prospect'); ?> </label> <input type="text" id="date-r-max-m" v-model='maxM' placeholder="MM" size="2" pattern="\d{0,2}">
-		<label for="date-r-max-d"><?php _e('Day', 'prospect'); ?> </label> <input type="text" id="date-r-max-d" v-model='maxD' placeholder="DD" size="2" pattern="\d{0,2}">
-		<br/>
-	<label for="date-g"><?php _e('Group Dates together by', 'prospect'); ?></label>
-	<select id="date-g" v-model='group'>
-		<option value="d"><?php _e('Day', 'prospect'); ?></option>
-		<option value="m"><?php _e('Month', 'prospect'); ?></option>
-		<option value="y"><?php _e('Year', 'prospect'); ?></option>
-		<option value="t"><?php _e('Decade', 'prospect'); ?></option>
-		<option value="c"><?php _e('Century', 'prospect'); ?></option>
-	</select>
-	<br/>
-	<?php _e('Use', 'prospect'); ?>
-	<input type='checkbox' v-model='useU'/> <?php _e('color for indefinite Number values ', 'prospect'); ?>
-	<input type="color" v-model="uColor"/>	<div class="legend-data">
-	<h3><?php _e('Configure Dates Legend', 'prospect'); ?></h3>
-	<button v-on:click="resetLegend"><?php _e('Reset Visuals', 'prospect'); ?></button>
-	<button v-on:click="addLegend"><?php _e('Add Entry', 'prospect'); ?></button>
-	<button v-if="others.length > 0" v-on:click="copyLegend"><?php _e('Copy Legend', 'prospect'); ?></button>
-	<br/>
-	<div v-for="(lgnd, index) in theLegend" class="legend-data-entry">
-		<span class="legend-label">{{lgnd.l}}</span> <span class="legend-val">{{lgnd.val}}</span>
-		<input type="color" v-model="lgnd.v"/>
-		<div class="ui-widget-header ui-corner-all legend-btn-set">
-			<icon-btn symbol="ui-icon-wrench" v-on:click="doLegendEdit(index)" label="<?php _e('Edit Entry', 'prospect'); ?>"></icon-btn>
-			<icon-btn symbol="ui-icon-arrowthick-1-n" v-on:click="doLegendUp(index)" label="<?php _e('Move Up', 'prospect'); ?>"></icon-btn>
-			<icon-btn symbol="ui-icon-arrowthick-1-s" v-on:click="doLegendDown(index)" label="<?php _e('Move Down', 'prospect'); ?>"></icon-btn>
-			<icon-btn symbol="ui-icon-trash" v-on:click="doLegendDel(index)" label="<?php _e('Delete', 'prospect'); ?>"></icon-btn>
-		</div>
-	</div>
-</script>
-
 <!-- Edit settings for Vocabulary Attribute -->
 <script id="component-edit-vocab" type='text/x-template'>
 	<h3><?php _e('Configure Vocabulary Legend', 'prospect'); ?></h3>
@@ -275,12 +200,87 @@
 	</div>
 </script>
 
+<!-- Edit settings for Number Attributes -->
+<script id="component-edit-num" type='text/x-template'>
+	<h3><?php _e('Set Valid Number Range', 'prospect'); ?></h3>
+	<label for="num-r-min"><?php _e('Minimum number', 'prospect'); ?>: </label>
+	<input type="text" id="num-r-min" v-model='min' placeholder="Min val" size="8"/>
+	<label for="num-r-max"><?php _e('Maximum number', 'prospect'); ?>: </label>
+	<input type="text" id="num-r-max" v-model='max' placeholder="Max val" size="8"/>
+	<br/>
+	<label for="num-g"><?php _e('Group values together by', 'prospect'); ?> </label>
+	<input type="number" id="num-g" v-model='group' min="0" max="4"/> <?php _e('digits', 'prospect'); ?>
+	<br/>
+	<?php _e('Use', 'prospect'); ?>
+	<input type='checkbox' v-model='useU'/> <?php _e('color for indefinite Number values ', 'prospect'); ?>
+	<input type="color" v-model="uColor"/>
+	<h3><?php _e('Configure Numeric Legend', 'prospect'); ?></h3>
+	<button v-on:click="resetLegend"><?php _e('Reset Visuals', 'prospect'); ?></button>
+	<button v-on:click="addLegend"><?php _e('Add Entry', 'prospect'); ?></button>
+	<button v-if="others.length > 0" v-on:click="copyLegend"><?php _e('Copy Legend', 'prospect'); ?></button>
+	<br/>
+	<div class="legend-data">
+		<div v-for="(lgnd, index) in theLegend" class="legend-data-entry">
+			<span class="legend-label">{{lgnd.l}}</span> <span class="legend-val">{{lgnd.val}}</span>
+			<input type="color" v-model="lgnd.v"/>
+			<div class="ui-widget-header ui-corner-all legend-btn-set">
+				<icon-btn symbol="ui-icon-wrench" v-on:click="doLegendEdit(index)" label="<?php _e('Edit Entry', 'prospect'); ?>"></icon-btn>
+				<icon-btn symbol="ui-icon-arrowthick-1-n" v-on:click="doLegendUp(index)" label="<?php _e('Move Up', 'prospect'); ?>"></icon-btn>
+				<icon-btn symbol="ui-icon-arrowthick-1-s" v-on:click="doLegendDown(index)" label="<?php _e('Move Down', 'prospect'); ?>"></icon-btn>
+				<icon-btn symbol="ui-icon-trash" v-on:click="doLegendDel(index)" label="<?php _e('Delete', 'prospect'); ?>"></icon-btn>
+			</div>
+		</div>
+	</div>
+</script>
 
-<!-- Outer-most (application) layer of output for Ractive to generate -- TO DO -->
+<!-- Edit settings for Dates Attributes -->
+<script id="component-edit-dates" type='text/x-template'>
+	<h3><?php _e('Set Valid Date Range', 'prospect'); ?></h3>
+	<?php _e('Earliest Date', 'prospect'); ?>:
+		<label for="date-r-min-y"><?php _e('Year', 'prospect'); ?> </label> <input type="text" id="date-r-min-y" v-model='min.y' placeholder="YYYY" size="6" pattern="(open|-?\d+)" required>
+		<label for="date-r-min-m"><?php _e('Month', 'prospect'); ?> </label> <input type="text" id="date-r-min-m" v-model='min.m' placeholder="MM" size="2" pattern="\d{0,2}">
+		<label for="date-r-min-d"><?php _e('Day', 'prospect'); ?> </label> <input type="text" id="date-r-min-d" v-model='min.m' placeholder="DD" size="2" pattern="\d{0,2}">
+		<br/>
+	<?php _e('Latest Date', 'prospect'); ?>:
+		<label for="date-r-max-y"><?php _e('Year', 'prospect'); ?> </label> <input type="text" id="date-r-max-y" v-model='max.y' placeholder="YYYY" size="6" pattern="(open|~?-?\d+)">
+		<label for="date-r-max-m"><?php _e('Month', 'prospect'); ?> </label> <input type="text" id="date-r-max-m" v-model='max.m' placeholder="MM" size="2" pattern="\d{0,2}">
+		<label for="date-r-max-d"><?php _e('Day', 'prospect'); ?> </label> <input type="text" id="date-r-max-d" v-model='max.d' placeholder="DD" size="2" pattern="\d{0,2}">
+		<br/>
+	<label for="date-g"><?php _e('Group Dates together by', 'prospect'); ?></label>
+	<select id="date-g" v-model='group'>
+		<option value="d"><?php _e('Day', 'prospect'); ?></option>
+		<option value="m"><?php _e('Month', 'prospect'); ?></option>
+		<option value="y"><?php _e('Year', 'prospect'); ?></option>
+		<option value="t"><?php _e('Decade', 'prospect'); ?></option>
+		<option value="c"><?php _e('Century', 'prospect'); ?></option>
+	</select>
+	<br/>
+	<?php _e('Use', 'prospect'); ?>
+	<input type='checkbox' v-model='useU'/> <?php _e('color for indefinite Number values ', 'prospect'); ?>
+	<input type="color" v-model="uColor"/>	<div class="legend-data">
+	<h3><?php _e('Configure Dates Legend', 'prospect'); ?></h3>
+	<button v-on:click="resetLegend"><?php _e('Reset Visuals', 'prospect'); ?></button>
+	<button v-on:click="addLegend"><?php _e('Add Entry', 'prospect'); ?></button>
+	<button v-if="others.length > 0" v-on:click="copyLegend"><?php _e('Copy Legend', 'prospect'); ?></button>
+	<br/>
+	<div v-for="(lgnd, index) in theLegend" class="legend-data-entry">
+		<span class="legend-label">{{lgnd.l}}</span> <span class="legend-val">{{lgnd.val}}</span>
+		<input type="color" v-model="lgnd.v"/>
+		<div class="ui-widget-header ui-corner-all legend-btn-set">
+			<icon-btn symbol="ui-icon-wrench" v-on:click="doLegendEdit(index)" label="<?php _e('Edit Entry', 'prospect'); ?>"></icon-btn>
+			<icon-btn symbol="ui-icon-arrowthick-1-n" v-on:click="doLegendUp(index)" label="<?php _e('Move Up', 'prospect'); ?>"></icon-btn>
+			<icon-btn symbol="ui-icon-arrowthick-1-s" v-on:click="doLegendDown(index)" label="<?php _e('Move Down', 'prospect'); ?>"></icon-btn>
+			<icon-btn symbol="ui-icon-trash" v-on:click="doLegendDel(index)" label="<?php _e('Delete', 'prospect'); ?>"></icon-btn>
+		</div>
+	</div>
+</script>
+
+
+<!-- Outer-most (application) layer of output for Ractive to generate -->
 <script id="vue-outer" type='text/x-template'>
 	<div v-if="errorMsg.length > 0" id="error-frame">{{errorMsg}}</div>
 	<button id="prsp-save-data" v-on:click="saveAttribute"><?php _e('Verify and Prepare Attribute Definition for Publish/Update', 'prospect'); ?></button><br/>
-	<?php _e('Attribute’s external label', 'prospect'); ?>: <input v-model='theAttribute.l' placeholder=<?php _e('"Enter label"', 'prospect'); ?> size="24" required/>
+	<?php _e('Attribute’s external label', 'prospect'); ?>: <input v-model='label' placeholder=<?php _e('"Enter label"', 'prospect'); ?> size="24" required/>
 	<?php _e('Privacy Setting', 'prospect'); ?>: <select v-model='privacy'>
 		<option value="o"><?php _e('Open (Public)', 'prospect'); ?></option>
 		<option value="p"><?php _e('Private', 'prospect'); ?></option>
@@ -296,26 +296,26 @@
 	</select>
 	<button v-on:click="copyCF"><?php _e('Use this Custom Field name', 'prospect'); ?></button>
 	<br/>
-	<?php _e('Attribute value delimiter (single character or blank)', 'prospect'); ?>: <input v-model='theAttribute.d' size="2"/> &nbsp;
-	<?php _e('Available as Filter in Exhibit', 'prospect'); ?> <input type='checkbox' v-model='theAttribute.f'/>
+	<?php _e('Attribute value delimiter (single character or blank)', 'prospect'); ?>: <input v-model='delim' size="2"/> &nbsp;
+	<?php _e('Available as Filter in Exhibit', 'prospect'); ?> <input type='checkbox' v-model='fAvail'/>
 	<br/>
 	<?php _e('Contributor Hint', 'prospect'); ?>: <br/>
-	<input type="text" size="64" maxlength="128" placeholder=<?php _e('"Explain Attribute entry to contributor"', 'prospect'); ?> v-model="theAttribute.h" /><br/>
+	<input type="text" size="64" maxlength="128" placeholder=<?php _e('"Explain Attribute entry to contributor"', 'prospect'); ?> v-model="hint" /><br/>
 	<?php _e('Data type', 'prospect'); ?>:
-	<select v-model='theAttribute.t'>
-		<option v-for="thisType in dataTypes" v-bind:value="thisType.code">
-			{{thisType.label}})
+	<select v-model='dataType'>
+		<option v-for="aType in dataTypes" v-bind:value="aType.code">
+			{{aType.label}})
 		</option>
 	</select><br/>
 
 		<!-- Show settings editing depending on type of Attribute -->
-	<componentEditVocab v-if="theAttribute.t === 'V'" >
+	<componentEditVocab v-if="dataType === 'V'" :the-legend="vLegend">
 	</componentEditVocab>
-	<componentEditText v-if="theAttribute.t === 'T'">
+	<componentEditText v-if="dataType === 'T'"  :the-legend="tLegend">
 	</componentEditText>
-	<componentEditNumber v-if="theAttribute.t === 'N'">
+	<componentEditNumber v-if="dataType === 'N'" :the-legend="nLegend" :min="nRange.min" :max="nRange.max" :group="nRange.g" :useU="nRange.useU" :uColor="nRange.u">
 	</componentEditNumber>
-	<componentEditDates v-if="theAttribute.t === 'D'">
+	<componentEditDates v-if="dataType === 'D'" :the-legend="dLegend" :min="dRange.min" :max="dRange.max" :group="dRange.g" :useU="dRange.useU" :uColor="dRange.u">>
 	</componentEditDates>
 
 	<component v-bind:is="modalShowing">
