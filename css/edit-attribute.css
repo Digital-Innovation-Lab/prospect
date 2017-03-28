@@ -58,8 +58,11 @@ button#prsp-save-data {
     margin: 8px 0 8px 8px;
 }
 
-#ractive-output {
-	font-size: 12px;
+	/* Just color bar to activate browser input method */
+#prsp_attribute_box input[type="color"] {
+	padding: 2px;
+	width: 40px;
+	font-size: 9px;
 }
 
 	/* Error for displaying Messages */
@@ -202,22 +205,6 @@ div.dialog-wrap .btn:hover {
 
 div.dialog-wrap .btn:active {
 	opacity: 1;
-}
-
-/*
-.jq-dialog-template {
-	font-size: 12px;
-}
-
-.no-close .ui-dialog-titlebar-close {
-	display: none;
-}
-*/
-
-	/* Just color bar to activate browser input method */
-input[type="color"] {
-	padding: 2px;
-	width: 40px;
 }
 
 	/* To display Legend entry */

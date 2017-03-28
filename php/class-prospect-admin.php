@@ -277,8 +277,6 @@ class ProspectAdmin {
 		echo '<textarea name="prsp_att_r" form="post" spellcheck="false" style="display:none">'.$theAtt->meta_range.'</textarea>';
 		echo '<textarea name="prsp_att_lgnd" form="post" spellcheck="false" style="display:none">'.$theAtt->meta_legend.'</textarea>';
 
-		echo '<div id="ractive-output"></div>';
-
 			// Insert Edit Panel's HTML
 		self::insert_html_file('edit-attribute.php');
 	} // show_prsp_attribute_admin_edit()

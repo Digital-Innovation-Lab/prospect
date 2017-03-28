@@ -73,7 +73,7 @@ jQuery(document).ready(function() {
 	});
 
 		// Wrapper for modal dialog boxes
-	Vue.component('dialog', {
+	Vue.component('vuemodal', {
 		props: {
 			title: {
 	    		type: String,
@@ -353,196 +353,196 @@ jQuery(document).ready(function() {
 	});
 
 		// Abstract behavior used as mixin for Components
-	var legendEditor = {
-		methods: {
-				// Reset colors of legend en masse via dialog
-			resetLegend: function() {
-				// TO DO --
-			},
-				// Use the Legend from another Vocabulary Attribute
-			copyLegend: function() {
-				// TO DO --
-			},
-				// Move Term up one level
-			doLegendUp: function(i1, i2) {
-				// TO DO --
-			},
-				// Move Term to top
-			doLegendTop: function(i1, i2) {
-				// TO DO --
-			},
-				// Move Term down one level
-			doLegendDown: function(i1, i2) {
-				// TO DO --
-			},
-				// Move Term to bottom
-			doLegendBottom: function(i1, i2) {
-				// TO DO --
-			},
-				// Delete this Term
-			doLegendDel: function(i1, i2) {
-				// TO DO --
-			}
-		}
-	}
+	// var legendEditor = {
+	// 	methods: {
+	// 			// Reset colors of legend en masse via dialog
+	// 		resetLegend: function() {
+	// 			// TO DO --
+	// 		},
+	// 			// Use the Legend from another Vocabulary Attribute
+	// 		copyLegend: function() {
+	// 			// TO DO --
+	// 		},
+	// 			// Move Term up one level
+	// 		doLegendUp: function(i1, i2) {
+	// 			// TO DO --
+	// 		},
+	// 			// Move Term to top
+	// 		doLegendTop: function(i1, i2) {
+	// 			// TO DO --
+	// 		},
+	// 			// Move Term down one level
+	// 		doLegendDown: function(i1, i2) {
+	// 			// TO DO --
+	// 		},
+	// 			// Move Term to bottom
+	// 		doLegendBottom: function(i1, i2) {
+	// 			// TO DO --
+	// 		},
+	// 			// Delete this Term
+	// 		doLegendDel: function(i1, i2) {
+	// 			// TO DO --
+	// 		}
+	// 	}
+	// }
 
 		// Component to edit Vocabulary Attribute settings
-	Vue.component('componentEditVocab', {
-		data: function() {
-			return {
-				newVocab: ''
-			}
-		},
-		props: {
-			others: {
-				type: Array,
-				default: function(){ return [] }
-			},
-			theLegend: {
-				type: Array,
-				default: function(){ return [] }
-			}
-		},
-		template: '#component-edit-vocab',
-		methods: {
-				// Collect terms from server
-			addTerms: function() {
-				console.log("Event: addTerms");
-				// TO DO
-			},
-				// Add the current Term to this Vocabulary
-			addLegend: function() {
-				console.log("Event: addLegend");
-				vApp.vLegend.push({ l: this.newVocab, v: '#777777', z: [] });
-			},
-				// Create dialog to allow moving Term as child or parent
-			doVocabMove: function(i1, i2) {
-				console.log("Event: doVocabMove");
-				// TO DO --
-			},
-				// Choose color for child Term or else clear
-			doLegendViz: function() {
-				console.log("Event: doLegendViz");
-				// TO DO --
-			}
-		}
-	});
+	// Vue.component('componentEditVocab', {
+	// 	data: function() {
+	// 		return {
+	// 			newVocab: ''
+	// 		}
+	// 	},
+	// 	props: {
+	// 		others: {
+	// 			type: Array,
+	// 			default: function(){ return [] }
+	// 		},
+	// 		theLegend: {
+	// 			type: Array,
+	// 			default: function(){ return [] }
+	// 		}
+	// 	},
+	// 	template: '#component-edit-vocab',
+	// 	methods: {
+	// 			// Collect terms from server
+	// 		addTerms: function() {
+	// 			console.log("Event: addTerms");
+	// 			// TO DO
+	// 		},
+	// 			// Add the current Term to this Vocabulary
+	// 		addLegend: function() {
+	// 			console.log("Event: addLegend");
+	// 			vApp.vLegend.push({ l: this.newVocab, v: '#777777', z: [] });
+	// 		},
+	// 			// Create dialog to allow moving Term as child or parent
+	// 		doVocabMove: function(i1, i2) {
+	// 			console.log("Event: doVocabMove");
+	// 			// TO DO --
+	// 		},
+	// 			// Choose color for child Term or else clear
+	// 		doLegendViz: function() {
+	// 			console.log("Event: doLegendViz");
+	// 			// TO DO --
+	// 		}
+	// 	}
+	// });
 
 		// Component to edit Text Attribute settings
-	Vue.component('componentEditText', {
-		props: {
-			others: {
-				type: Array,
-				default: function(){ return [] }
-			},
-			newVocab: {
-				type: String,
-				default: ''
-			},
-			theLegend: {
-				type: Array,
-				default: function(){ return [] }
-			}
-		},
-		template: '#component-edit-vocab',
-		methods: {
-				// Show dialog to enable adding item
-			addLegend: function() {
-				// TO DO --
-			},
-				// Show dialog to edit item
-			doLegendEdit: function(index) {
-				// TO DO --
-			}
-		}
-	});
+	// Vue.component('componentEditText', {
+	// 	props: {
+	// 		others: {
+	// 			type: Array,
+	// 			default: function(){ return [] }
+	// 		},
+	// 		newVocab: {
+	// 			type: String,
+	// 			default: ''
+	// 		},
+	// 		theLegend: {
+	// 			type: Array,
+	// 			default: function(){ return [] }
+	// 		}
+	// 	},
+	// 	template: '#component-edit-vocab',
+	// 	methods: {
+	// 			// Show dialog to enable adding item
+	// 		addLegend: function() {
+	// 			// TO DO --
+	// 		},
+	// 			// Show dialog to edit item
+	// 		doLegendEdit: function(index) {
+	// 			// TO DO --
+	// 		}
+	// 	}
+	// });
 
 		// Component to edit Number Attribute settings
-	Vue.component('componentEditNumber', {
-		mixins: [legendEditor],
-		props: {
-			min: {
-	    		type: Number,
-	    		default: 0
-	    	},
-			max: {
-	    		type: Number,
-	    		default: 100
-	    	},
-			group: {
-	    		type: Number,
-	    		default: 0
-	    	},
-			useU: {
-				type: Boolean,
-				default: False
-			},
-			uColor: {
-				type: String,
-				default: '#787878'
-			}
-		},
-		template: '#component-edit-num',
-		methods: {
-				// Show dialog to enable adding item
-			addLegend: function() {
-				// TO DO --
-			},
-				// Show dialog to edit item
-			doLegendEdit: function(index) {
-				// TO DO --
-			}
-		}
-	});
+	// Vue.component('componentEditNumber', {
+	// 	mixins: [legendEditor],
+	// 	props: {
+	// 		min: {
+	//     		type: Number,
+	//     		default: 0
+	//     	},
+	// 		max: {
+	//     		type: Number,
+	//     		default: 100
+	//     	},
+	// 		group: {
+	//     		type: Number,
+	//     		default: 0
+	//     	},
+	// 		useU: {
+	// 			type: Boolean,
+	// 			default: False
+	// 		},
+	// 		uColor: {
+	// 			type: String,
+	// 			default: '#787878'
+	// 		}
+	// 	},
+	// 	template: '#component-edit-num',
+	// 	methods: {
+	// 			// Show dialog to enable adding item
+	// 		addLegend: function() {
+	// 			// TO DO --
+	// 		},
+	// 			// Show dialog to edit item
+	// 		doLegendEdit: function(index) {
+	// 			// TO DO --
+	// 		}
+	// 	}
+	// });
 
 		// Component to edit Dates Attribute settings
-	Vue.component('componentEditDates', {
-		mixins: [legendEditor],
-		props: {
-			min: {
-	    		type: Object,
-	    		default: function () {
-        			return { y: '', m: '', d: '' }
-				}
-	    	},
-			max: {
-	    		type: Object,
-	    		default: function () {
-        			return { y: '', m: '', d: '' }
-				}
-	    	},
-			group: {
-	    		type: String,
-	    		default: 'y'
-	    	},
-			useU: {
-				type: Boolean,
-				default: False
-			},
-			uColor: {
-				type: String,
-				default: '#787878'
-			}
-		},
-		template: '#component-edit-dates',
-		methods: {
-				// Show dialog to enable adding item
-			addLegend: function() {
-				// TO DO --
-			},
-				// Show dialog to edit item
-			doLegendEdit: function(index) {
-				// TO DO --
-			}
-		}
-	});
-});
+	// Vue.component('componentEditDates', {
+	// 	mixins: [legendEditor],
+	// 	props: {
+	// 		min: {
+	//     		type: Object,
+	//     		default: function () {
+    //     			return { y: '', m: '', d: '' }
+	// 			}
+	//     	},
+	// 		max: {
+	//     		type: Object,
+	//     		default: function () {
+    //     			return { y: '', m: '', d: '' }
+	// 			}
+	//     	},
+	// 		group: {
+	//     		type: String,
+	//     		default: 'y'
+	//     	},
+	// 		useU: {
+	// 			type: Boolean,
+	// 			default: False
+	// 		},
+	// 		uColor: {
+	// 			type: String,
+	// 			default: '#787878'
+	// 		}
+	// 	},
+	// 	template: '#component-edit-dates',
+	// 	methods: {
+	// 			// Show dialog to enable adding item
+	// 		addLegend: function() {
+	// 			// TO DO --
+	// 		},
+	// 			// Show dialog to edit item
+	// 		doLegendEdit: function(index) {
+	// 			// TO DO --
+	// 		}
+	// 	}
+	// });
+// });
 
 
 		// DATA LOADED FROM SERVER
 		// =======================
 	var customFields = prspdata.cfs;			// Custom fields used in Records
-	var allAttributeIDs = prspdata.att_ids;	// List of previously defined Attributes (not including this one!)
+	var allAttributeIDs = prspdata.att_ids;		// List of previously defined Attributes (not including this one!)
 
 		// Configuration settings common to all Attribute types (with defaults)
 		// ====================================================================
@@ -561,13 +561,13 @@ jQuery(document).ready(function() {
 	var dRange = { min: {y: '', m: '', d: ''}, max: {y: '', m: '', d: ''}, u: '#888888', useU: false };	// Dates Range definition
 	var dLegend = [];					// Dates Legend definition
 
+		// GUI Vars
+	var errTimer;
+	var dataTypes=[];					// { code, label }
+
 		// OTHER VARS
 		// ==========
 	var vApp;							// the VueJS application
-	var errTimer;
-
-	var otherAtts;						// results of attMatch()
-	var dataTypes=[];					// { code, label }
 	var embedData;
 
 	embedData = document.getElementById('dltext-attributes').innerHTML;
@@ -649,7 +649,7 @@ jQuery(document).ready(function() {
 				dRange.max.y = embedData.max.y.toString();
 				if (typeof(embedData.max.m) != 'undefined') {
 					dRange.max.m = embedData.max.m.toString();
-					if (typeof(embedData.max.d) != 'undefined')
+					if (typeof(embedData.max.d) != 'undefined') {
 						dRange.max.d = embedData.max.d.toString();
 					}
 				}
@@ -959,31 +959,29 @@ jQuery(document).ready(function() {
 		// RETURNS: true if OK, false if Cancel
 	function confirmModal(msgID, callback)
 	{
-		var mText = getText(msgID);
-		var modalDialog = new Ractive({
-			el: '#att-insert-dialog',
-			template: '#dialog-confirm',
-			data: {
-				message: mText
-			},
-			components: {
-				dialog: RJDialogComponent
-			}
-		}); // new Ractive()
-
-		modalDialog.on('dialog.ok', function() {
-			callback();
-			modalDialog.teardown();
-		});
-		modalDialog.on('dialog.cancel', modalDialog.teardown);
+		// var mText = getText(msgID);
+		// var modalDialog = new Ractive({
+		// 	el: '#att-insert-dialog',
+		// 	template: '#dialog-confirm',
+		// 	data: {
+		// 		message: mText
+		// 	},
+		// 	components: {
+		// 		dialog: RJDialogComponent
+		// 	}
+		// }); // new Ractive()
+		//
+		// modalDialog.on('dialog.ok', function() {
+		// 	callback();
+		// 	modalDialog.teardown();
+		// });
+		// modalDialog.on('dialog.cancel', modalDialog.teardown);
 	} // confirmModal()
-
-	otherAtts = attMatch(defAttribute.t, attID);
 
 		// Create our main App instance
 	vApp = new Vue({
 		el: '#vue-outer',
-		store: vAppStore,
+		// store: vAppStore,
 		data: {
 				// Configuration settings for all Attributes
 			label: label,
@@ -994,15 +992,16 @@ jQuery(document).ready(function() {
 			fAvail: fAvail,						// available as Filter?
 			hint: hint,
 				// Datatype-specific configuration settings
-			dRange: dRange,						// Range info for Dates Attribute
-			nRange: nRange,						// Range info for Numer Attribute
 			vLegend: vLegend,					// legend definition (array) for Vocabulary
 			tLegend: tLegend,					// legend definition (array) for Text
-			dLegend: dLegend,					// legend definition (array) for Dates
+			nRange: nRange,						// Range info for Numer Attribute
 			nLegend: nLegend,					// legend definition (array) for Number
-				// Just put GUI state & options in local data
-			errorMsg: errorString,				// current error string (if any)
+			dRange: dRange,						// Range info for Dates Attribute
+			dLegend: dLegend,					// legend definition (array) for Dates
+				// GUI state & options
+			errorMsg: '',						// current error string (if any)
 			dataTypes: dataTypes,				// Array of dataTypes
+			newVocab: '',
 			cfs: customFields,					// Array of all custom field names
 			chosenCF: customFields[0] || '',	// custom field currently chosen on selection
 			modalParams: { },					// parameters passed to modals
@@ -1011,30 +1010,56 @@ jQuery(document).ready(function() {
 		methods: {
 			saveAttribute: function() {
 				// TO DO
-				console.log("Save Attribute");
+				console.log("Click: saveAttribute");
 			},
 				// Show hint info about IDs in a modal dialog
 			idHint: function() {
+				console.log("Click: idHint");
 				// TO DO
 			},
 				// Use current choice of custom field as ID
 			copyCF: function() {
+				console.log("Click: copyCF");
 				this.attID = this.chosenCF;
+			},
+			collectTerms: function() {
+				console.log("Click: collectTerms");
+			},
+			resetLegend: function() {
+				console.log("Click: resetLegend");
+			},
+			copyLegend: function() {
+				console.log("Click: copyLegend");
+			},
+			addLegend: function() {
+				console.log("Click: addLegend");
+			},
+			doVocabMove: function(i1, i1) {
+				console.log("Click: doVocabMove");
+			},
+			doLegendUp: function(i1, i1) {
+				console.log("Click: doLegendUp");
+			},
+			doLegendTop: function(i1, i1) {
+				console.log("Click: doLegendTop");
+			},
+			doLegendDown: function(i1, i1) {
+				console.log("Click: doLegendDown");
+			},
+			doLegendBottom: function(i1, i1) {
+				console.log("Click: doLegendBottom");
+			},
+			doLegendDel: function(i1, i1) {
+				console.log("Click: doLegendDel");
+			},
+			doLegendEdit: function(i1, i1) {
+				console.log("Click: doLegendDel");
 			}
 		},
 		computed: {
 				// Other Vocabulary Attributes with Legends
-			otherVs: function() {
-				return attMatch('V', this.attID);
-			},
-			otherTs: function() {
-				return attMatch('T', this.attID);
-			},
-			otherNs: function() {
-				return attMatch('N', this.attID);
-			},
-			otherDs: function() {
-				return attMatch('D', this.attID);
+			others: function() {
+				return attMatch(this.thisType, this.attID);
 			}
 		}
 		// watch: {
