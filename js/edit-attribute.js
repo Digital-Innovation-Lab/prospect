@@ -50,7 +50,6 @@ jQuery(document).ready(function() {
 		},
 		methods: {
 			click: function (event) {
-	    			// now we have access to the native event
 	    		if (event) event.preventDefault();
 				this.$emit('click');
 	    	}
@@ -73,6 +72,12 @@ jQuery(document).ready(function() {
 	});
 
 		// Wrapper for modal dialog boxes
+		// Strategy for using modal:
+		//		Caller puts parameters into modalParams
+		//		Caller sets vApp.modalParams to appropriate dialog component name
+		//		Dialog component makes local copies of relevant parameters in data (if modifiable)
+		//		Bind GUI to those local data
+		//		If user clicks "OK" then call callback function with feedback data
 	Vue.component('vuemodal', {
 		props: {
 			title: {
@@ -90,14 +95,19 @@ jQuery(document).ready(function() {
 		},
 		template: '#dialog-template',
 		methods: {
-			close: function() {
+			close: function(event) {
+				console.log("vuemodal > close");
 				this.$el.className = 'dialog-wrap open';
 				setTimeout(function() {
 					vApp.$emit('dialogclose');
 				}.bind(this), 300);
+				if (event) { event.preventDefault(); }
 			},
-			clickok: function() {
+			clickok: function(event) {
+				console.log("vuemodal > clickok1");
 				this.$emit('save');
+				console.log("vuemodal > clickok2");
+				if (event) { event.preventDefault(); }
 				this.close();
 			}
 		},
@@ -112,135 +122,140 @@ jQuery(document).ready(function() {
 		}
 	});
 
+		// INPUT: Message to display is in params.msg
 	Vue.component('dlgMessage', {
 		props: {
-			title: {
-	    		type: String,
-	    		default: 'Dialog'
-	    	},
-			size: {
-				type: String,
-				default: ''
-			},
-			message: {
-				type: String,
-				default: ''
-			}
+			params: Object
 		},
 		template: '#dialog-message'
 	});
 
+		// INPUT:	params.msg = Message to display
+		//			params.callback = Callback function
 	Vue.component('dlgConfirm', {
 		props: {
-			title: {
-	    		type: String,
-	    		default: 'Dialog'
-	    	},
-			size: {
-				type: String,
-				default: ''
-			},
-			message: {
-				type: String,
-				default: ''
-			}
+			params: Object
 		},
-		template: '#dialog-confirm'
+		template: '#dialog-confirm',
+		methods: {
+			ok: function() {
+				console.log("Clicked OK");
+				if (this.params.callback != null) {
+					this.params.callback();
+				}
+			}
+		}
 	});
 
-		// Component to edit Text Legend entries
+		// Component (dialog) to edit Text Legend entries
+		// INPUT:	params.label = label for Legend entry
+		//			params.pattern = text pattern
+		//			params.theColor = color value
 	Vue.component('dlgEditLgndText', {
 		props: {
-			label: {
-	    		type: String,
-	    		default: ''
-	    	},
-			pattern: {
-				type: String,
-				default: ''
+			params: Object
+		},
+		data: function () {		// Local copies of data that user can edit
+			return {
+				label: '', pattern: '', theColor: ''
 			}
 		},
-		template: '#dialog-legend-text',
+		created: function() {	// Copy params into local data variables
+			this.label = this.params.label;
+			this.pattern = this.params.pattern;
+			this.theColor = this.params.theColor;
+			console.log("Created dlgEditLgndText");
+		},
 		methods: {
 			save: function() {
-				// TO DO: Save data
+				console.log("Clicked save for "+this.label+", "+this.pattern+", "+this.theColor);
+				this.params.callback(this.label, this.pattern, this.theColor);
 			}
-		}
+		},
+		template: '#dialog-legend-text'
 	});
 
-		// Component to edit Text Legend entries
+		// Component (dialog) to edit Text Legend entries
+		// INPUT:	params.label = label for Legend entry
+		//			params.min = minimum numeric value
+		//			params.max = maximum numeric value
+		//			params.theColor = color value
 	Vue.component('dlgEditLgndNumber', {
 		props: {
-			label: {
-	    		type: String,
-	    		default: ''
-	    	},
-			min: {
-				type: Number,
-				default: 0
-			},
-			max: {
-				type: Number,
-				default: 100
+			params: Object
+		},
+		data: function () {		// Local copies of data that user can edit
+			return {
+				label: '', min: 0, max: 100, theColor: ''
 			}
 		},
-		template: '#dialog-legend-number',
+		created: function() {	// Copy params into local data variables
+			this.label = this.params.label;
+			this.min = this.params.min;
+			this.max = this.params.max;
+			this.theColor = this.params.theColor;
+		},
 		methods: {
 			save: function() {
-				// TO DO: Save data
+				console.log("Clicked save");
+				this.params.callback(this.label, this.min, this.max, this.theColor);
 			}
-		}
+		},
+		template: '#dialog-legend-number'
 	});
 
-		// Component to edit Text Legend entries
+		// Component (dialog) to edit Text Legend entries
+		// INPUT:	params.label = label for Legend entry
+		//			params.min = minimum numeric value
+		//			params.max = maximum numeric value
+		//			params.theColor = color value
 	Vue.component('dlgEditLgndDates', {
 		props: {
-			label: {
-	    		type: String,
-	    		default: ''
-	    	},
-			min: {
-				type: Object,
-				default: function() { return { y: '', m: '', d: '' } }
-			},
-			max: {
-				type: Object,
-				default: function() { return { y: '', m: '', d: '' } }
+			params: Object
+		},
+		data: function () {		// Local copies of data that user can edit
+			return {
+				label: '', min: { y: '', m: '', d: '' }, max: { y: '', m: '', d: '' }, theColor: ''
 			}
 		},
-		template: '#dialog-legend-dates',
+		created: function() {	// Copy params into local data variables
+			this.label = this.params.label;
+			this.min = this.params.min;
+			this.max = this.params.max;
+			this.theColor = this.params.theColor;
+		},
 		methods: {
 			save: function() {
-				// TO DO: Save data
+				console.log("Clicked save");
+				this.params.callback(this.label, this.min, this.max, this.theColor);
 			}
-		}
+		},
+		template: '#dialog-legend-dates'
 	});
 
-		// Component to choose parent for Vocab term at top-level
+		// Component (dialog) to choose parent for Vocab term at top-level
+		// INPUT:	params.parents = array of parent Terms
 	Vue.component('dlgMoveLgndTop', {
 		props: {
-			newParent: {
-	    		type: String,
-	    		default: ''
-	    	},
-			parents: {
-				type: Array,
-				default: function() { return [] }
-			},
-			keep: {
-				type: String,
-				default: 'yes'
+			params: Object
+		},
+		data: function () {		// Local copies of data that user can edit
+			return {
+				newParent: '', keep: 'yes'
 			}
 		},
-		template: '#dialog-move-vocab-lone',
+		created: function() {
+			this.newParent = this.params.parents[0] || ''; // Initial selection
+		},
 		methods: {
 			save: function() {
 				// TO DO: Save data
 			}
-		}
+		},
+		template: '#dialog-move-vocab-lone'
 	});
 
-		// Component to move children Terms of parent
+		// Component (dialog) to move children Terms of parent
 	Vue.component('dlgMoveLgndParent', {
 		props: {
 			newParent: {
@@ -264,7 +279,7 @@ jQuery(document).ready(function() {
 		}
 	});
 
-		// Component to move children Terms of parent
+		// Component (dialog) to move children Terms of parent
 	Vue.component('dlgMoveLgndChild', {
 		props: {
 			newParent: {
@@ -288,7 +303,7 @@ jQuery(document).ready(function() {
 		}
 	});
 
-		// Component to reset color legend (multiple entries)
+		// Component (dialog) to reset color legend (multiple entries)
 	Vue.component('dlgResetColors', {
 		props: {
 			reset: {
@@ -351,193 +366,6 @@ jQuery(document).ready(function() {
 			}
 		}
 	});
-
-		// Abstract behavior used as mixin for Components
-	// var legendEditor = {
-	// 	methods: {
-	// 			// Reset colors of legend en masse via dialog
-	// 		resetLegend: function() {
-	// 			// TO DO --
-	// 		},
-	// 			// Use the Legend from another Vocabulary Attribute
-	// 		copyLegend: function() {
-	// 			// TO DO --
-	// 		},
-	// 			// Move Term up one level
-	// 		doLegendUp: function(i1, i2) {
-	// 			// TO DO --
-	// 		},
-	// 			// Move Term to top
-	// 		doLegendTop: function(i1, i2) {
-	// 			// TO DO --
-	// 		},
-	// 			// Move Term down one level
-	// 		doLegendDown: function(i1, i2) {
-	// 			// TO DO --
-	// 		},
-	// 			// Move Term to bottom
-	// 		doLegendBottom: function(i1, i2) {
-	// 			// TO DO --
-	// 		},
-	// 			// Delete this Term
-	// 		doLegendDel: function(i1, i2) {
-	// 			// TO DO --
-	// 		}
-	// 	}
-	// }
-
-		// Component to edit Vocabulary Attribute settings
-	// Vue.component('componentEditVocab', {
-	// 	data: function() {
-	// 		return {
-	// 			newVocab: ''
-	// 		}
-	// 	},
-	// 	props: {
-	// 		others: {
-	// 			type: Array,
-	// 			default: function(){ return [] }
-	// 		},
-	// 		theLegend: {
-	// 			type: Array,
-	// 			default: function(){ return [] }
-	// 		}
-	// 	},
-	// 	template: '#component-edit-vocab',
-	// 	methods: {
-	// 			// Collect terms from server
-	// 		addTerms: function() {
-	// 			console.log("Event: addTerms");
-	// 			// TO DO
-	// 		},
-	// 			// Add the current Term to this Vocabulary
-	// 		addLegend: function() {
-	// 			console.log("Event: addLegend");
-	// 			vApp.vLegend.push({ l: this.newVocab, v: '#777777', z: [] });
-	// 		},
-	// 			// Create dialog to allow moving Term as child or parent
-	// 		doVocabMove: function(i1, i2) {
-	// 			console.log("Event: doVocabMove");
-	// 			// TO DO --
-	// 		},
-	// 			// Choose color for child Term or else clear
-	// 		doLegendViz: function() {
-	// 			console.log("Event: doLegendViz");
-	// 			// TO DO --
-	// 		}
-	// 	}
-	// });
-
-		// Component to edit Text Attribute settings
-	// Vue.component('componentEditText', {
-	// 	props: {
-	// 		others: {
-	// 			type: Array,
-	// 			default: function(){ return [] }
-	// 		},
-	// 		newVocab: {
-	// 			type: String,
-	// 			default: ''
-	// 		},
-	// 		theLegend: {
-	// 			type: Array,
-	// 			default: function(){ return [] }
-	// 		}
-	// 	},
-	// 	template: '#component-edit-vocab',
-	// 	methods: {
-	// 			// Show dialog to enable adding item
-	// 		addLegend: function() {
-	// 			// TO DO --
-	// 		},
-	// 			// Show dialog to edit item
-	// 		doLegendEdit: function(index) {
-	// 			// TO DO --
-	// 		}
-	// 	}
-	// });
-
-		// Component to edit Number Attribute settings
-	// Vue.component('componentEditNumber', {
-	// 	mixins: [legendEditor],
-	// 	props: {
-	// 		min: {
-	//     		type: Number,
-	//     		default: 0
-	//     	},
-	// 		max: {
-	//     		type: Number,
-	//     		default: 100
-	//     	},
-	// 		group: {
-	//     		type: Number,
-	//     		default: 0
-	//     	},
-	// 		useU: {
-	// 			type: Boolean,
-	// 			default: False
-	// 		},
-	// 		uColor: {
-	// 			type: String,
-	// 			default: '#787878'
-	// 		}
-	// 	},
-	// 	template: '#component-edit-num',
-	// 	methods: {
-	// 			// Show dialog to enable adding item
-	// 		addLegend: function() {
-	// 			// TO DO --
-	// 		},
-	// 			// Show dialog to edit item
-	// 		doLegendEdit: function(index) {
-	// 			// TO DO --
-	// 		}
-	// 	}
-	// });
-
-		// Component to edit Dates Attribute settings
-	// Vue.component('componentEditDates', {
-	// 	mixins: [legendEditor],
-	// 	props: {
-	// 		min: {
-	//     		type: Object,
-	//     		default: function () {
-    //     			return { y: '', m: '', d: '' }
-	// 			}
-	//     	},
-	// 		max: {
-	//     		type: Object,
-	//     		default: function () {
-    //     			return { y: '', m: '', d: '' }
-	// 			}
-	//     	},
-	// 		group: {
-	//     		type: String,
-	//     		default: 'y'
-	//     	},
-	// 		useU: {
-	// 			type: Boolean,
-	// 			default: False
-	// 		},
-	// 		uColor: {
-	// 			type: String,
-	// 			default: '#787878'
-	// 		}
-	// 	},
-	// 	template: '#component-edit-dates',
-	// 	methods: {
-	// 			// Show dialog to enable adding item
-	// 		addLegend: function() {
-	// 			// TO DO --
-	// 		},
-	// 			// Show dialog to edit item
-	// 		doLegendEdit: function(index) {
-	// 			// TO DO --
-	// 		}
-	// 	}
-	// });
-// });
-
 
 		// DATA LOADED FROM SERVER
 		// =======================
@@ -728,18 +556,18 @@ jQuery(document).ready(function() {
 				}
 				var val;
 				val = newEntry.d.min.y;
-				if (newEntry.d.min.m.length) {
+				if (newEntry.d.min.m.length > 0) {
 					val += '-'+ newEntry.d.min.m;
-					if (newEntry.d.min.d.length) {
+					if (newEntry.d.min.d.length > 0) {
 						val += '-'+ newEntry.d.min.d;
 					}
 				}
 				val += ' / ';
-				if (newEntry.d.max.y.length) {
+				if (newEntry.d.max.y.length > 0) {
 					val += newEntry.d.max.y;
-					if (newEntry.d.max.m.length) {
+					if (newEntry.d.max.m.length > 0) {
 						val += '-'+ newEntry.d.max.m;
-						if (newEntry.d.max.d.length) {
+						if (newEntry.d.max.d.length > 0) {
 							val += '-'+ newEntry.d.max.d;
 						}
 					}
@@ -767,12 +595,10 @@ jQuery(document).ready(function() {
 		} // switch
 	} // unpackLegend()
 
-
 		// Unpack Legend data
 	embedData = jQuery('textarea[name="prsp_att_lgnd"]').val();
 	if (embedData && embedData.length > 2) {
 		embedData = JSON.parse(embedData);
-
 		unpackLegend(embedData);
 	} // if legend
 
@@ -783,65 +609,52 @@ jQuery(document).ready(function() {
 		return jQuery(scriptName).html().trim();
 	}
 
-
-	// function createEditDialog(divID, editData) {
-	// 	return new Ractive({
-	// 		el: '#att-insert-dialog',
-	// 		template: divID,
-	// 		data: editData,
-	// 		components: {
-	// 			dialog: RJDialogComponent
-	// 		}
-	// 	}); // new Ractive()
-	// } // createEditDialog()
-
-
-		// PURPOSE: Extract settings and create new Legend entry
-		// NOTES:   Set fields l, d, and val
+		// PURPOSE: Extract settings from modalParams and create new Legend entry based on current data type
+		// NOTES:	Only for Text, Number and Dates types!
 		// TO DO: 	Error checking
-	// function extractLegendEntry(editDialog) {
-	// 	var newEntry = { };
-	// 	newEntry.l = editDialog.get('label').replace(/"/g, '').trim();
-	//
-	// 	switch (rApp.get('theAttribute.t')) {
-	// 	case 'T':
-	// 		newEntry.d = editDialog.get('pattern');
-	// 		newEntry.val = newEntry.d;
-	// 		break;
-	// 	case 'N':
-	// 		newEntry.d = { min: editDialog.get('min').trim(), max: editDialog.get('max').trim() };
-	// 		newEntry.val = (newEntry.d.min.length == 0) ? '(none)' : newEntry.d.min;
-	// 		newEntry.val += ' to ';
-	// 		newEntry.val += (newEntry.d.max.length == 0) ? '(none)' : newEntry.d.max;
-	// 		break;
-	// 	case 'D':
-	// 		newEntry.d = { };
-	// 		newEntry.d.min = { y: editDialog.get('min.y'), m: editDialog.get('min.m'), d: editDialog.get('min.d') };
-	// 		newEntry.d.max = { y: editDialog.get('max.y'), m: editDialog.get('max.m'), d: editDialog.get('max.d') };
-	// 		var val;
-	// 		val = newEntry.d.min.y;
-	// 		if (newEntry.d.min.m.length) {
-	// 			val += '-'+ newEntry.d.min.m;
-	// 			if (newEntry.d.min.d.length) {
-	// 				val += '-'+ newEntry.d.min.d;
-	// 			}
-	// 		}
-	// 		val += ' / ';
-	// 		if (newEntry.d.max.y.length) {
-	// 			val += newEntry.d.max.y;
-	// 			if (newEntry.d.max.m.length) {
-	// 				val += '-'+ newEntry.d.max.m;
-	// 				if (newEntry.d.max.d.length) {
-	// 					val += '-'+ newEntry.d.max.d;
-	// 				}
-	// 			}
-	// 		} else
-	// 			val += ' (now)';
-	// 		newEntry.val = val;
-	// 		break;
-	// 	} // switch
-	// 	return newEntry;
-	// } // extractLegendEntry()
+	function createLegendEntry(label, color, pattern, min, max) {
+		var newEntry = { l: label.replace(/"/g, '').trim(), v: color };
+
+		switch (vApp.thisType) {
+		case 'T':
+			newEntry.d = pattern;
+			newEntry.val = pattern;
+			break;
+		case 'N':
+			newEntry.d = { min: min.trim(), max: max.trim() };
+			newEntry.val = (min.length == 0) ? '(none)' : newEntry.d.min;
+			newEntry.val += ' to ';
+			newEntry.val += (max.length == 0) ? '(none)' : newEntry.d.max;
+			break;
+		case 'D':
+			newEntry.d = { };
+			newEntry.d.min = { y: min.y, m: min.m, d: min.d };
+			newEntry.d.max = { y: max.y, m: max.m, d: max.d };
+			var val;
+			val = newEntry.d.min.y;
+			if (newEntry.d.min.m.length > 0) {
+				val += '-'+ newEntry.d.min.m;
+				if (newEntry.d.min.d.length > 0) {
+					val += '-'+ newEntry.d.min.d;
+				}
+			}
+			val += ' / ';
+			if (newEntry.d.max.y.length > 0) {
+				val += newEntry.d.max.y;
+				if (newEntry.d.max.m.length > 0) {
+					val += '-'+ newEntry.d.max.m;
+					if (newEntry.d.max.d.length > 0) {
+						val += '-'+ newEntry.d.max.d;
+					}
+				}
+			} else
+				val += ' (now)';
+			newEntry.val = val;
+			break;
+		} // switch
+console.log("New Entry: "+JSON.stringify(newEntry));
+		return newEntry;
+	} // extractLegendEntry()
 
 
 		// PURPOSE: Show message for 5 seconds
@@ -950,9 +763,11 @@ jQuery(document).ready(function() {
 	} // attMatch()
 
 		// PURPOSE: Present user message in modal dialog box
-	function messageModal(mText)
+	function messageModal(msgID)
 	{
-		// TO DO
+		var mText = getText(msgID);
+		vApp.modalParams.msg = mText;
+		vApp.modalShowing = 'dlgMessage';
 	} // messageModal()
 
 		// PURPOSE: Present a confirmation modal
@@ -994,7 +809,7 @@ jQuery(document).ready(function() {
 				// Datatype-specific configuration settings
 			vLegend: vLegend,					// legend definition (array) for Vocabulary
 			tLegend: tLegend,					// legend definition (array) for Text
-			nRange: nRange,						// Range info for Numer Attribute
+			nRange: nRange,						// Range info for Number Attribute
 			nLegend: nLegend,					// legend definition (array) for Number
 			dRange: dRange,						// Range info for Dates Attribute
 			dLegend: dLegend,					// legend definition (array) for Dates
@@ -1004,56 +819,125 @@ jQuery(document).ready(function() {
 			newVocab: '',
 			cfs: customFields,					// Array of all custom field names
 			chosenCF: customFields[0] || '',	// custom field currently chosen on selection
-			modalParams: { },					// parameters passed to modals
+			modalParams: {						// parameters passed to modal dialogs
+				msg: '',
+				label: '',
+				pattern: '',
+				theColor: '',
+				min: 0,
+				max: 100,
+				callback: null
+			},
 			modalShowing: 'nullcomponent'		// modal currently showing (initially nothing)
 		},
 		methods: {
-			saveAttribute: function() {
+			saveAttribute: function(event) {
 				// TO DO
 				console.log("Click: saveAttribute");
+				if (event) { event.preventDefault(); }
 			},
 				// Show hint info about IDs in a modal dialog
-			idHint: function() {
+			idHint: function(event) {
 				console.log("Click: idHint");
-				// TO DO
+				messageModal('#errmsg-id-bad-chars');
+				if (event) { event.preventDefault(); }
 			},
 				// Use current choice of custom field as ID
-			copyCF: function() {
+			copyCF: function(event) {
 				console.log("Click: copyCF");
 				this.attID = this.chosenCF;
+				if (event) { event.preventDefault(); }
 			},
-			collectTerms: function() {
+			collectTerms: function(event) {
 				console.log("Click: collectTerms");
+				if (event) { event.preventDefault(); }
 			},
-			resetLegend: function() {
+			resetLegend: function(event) {
 				console.log("Click: resetLegend");
+				if (event) { event.preventDefault(); }
 			},
-			copyLegend: function() {
+			copyLegend: function(event) {
 				console.log("Click: copyLegend");
+				if (event) { event.preventDefault(); }
 			},
-			addLegend: function() {
+			addLegend: function(event) {
 				console.log("Click: addLegend");
+				var self=this;
+				switch (this.thisType) {
+				case 'V':
+					var newTerm = this.newVocab.replace(/"/g, '').trim();
+					if (newTerm.length > 0) {
+							// Ensure term doesn't already exist!
+						if (this.vLegend.findIndex(function(item) { return item.l == newTerm; }) != -1) {
+							displayError('#errmsg-term-name-taken');
+							break;
+						}
+						this.vLegend.push({ l: newTerm, v: '#777777', z: [] });
+					}
+					break;
+				case 'T':
+					function saveTEntry(label, pattern, color) {
+						console.log("Reached saveTEntry");
+						self.tLegend.push(createLegendEntry(label, color, pattern));
+					}
+					this.modalParams.label = '';
+					this.modalParams.pattern = '';
+					this.modalParams.theColor = '#777777';
+					this.modalParams.callback = saveTEntry;
+					this.modalShowing = 'dlgEditLgndText';
+					break;
+				case 'N':
+					function saveNEntry(label, min, max, color) {
+						self.nLegend.push(createLegendEntry(label, color, null, min, max));
+					}
+					this.modalParams.label = '';
+					this.modalParams.min = '';
+					this.modalParams.max = '';
+					this.modalParams.theColor = '#777777';
+					this.modalParams.callback = saveNEntry;
+					this.modalShowing = 'dlgEditLgndNumber';
+					break;
+				case 'D':
+					function saveDEntry(label, min, max, color) {
+						self.dLegend.push(createLegendEntry(label, color, null, min, max));
+					}
+					this.modalParams.label = '';
+					this.modalParams.min = { y: '', m: '', d: '' };
+					this.modalParams.max = { y: '', m: '', d: '' };
+					this.modalParams.theColor = '#777777';
+					this.modalParams.callback = saveDEntry;
+					this.modalShowing = 'dlgEditLgndDates';
+					break;
+				}
+				if (event) { event.preventDefault(); }
 			},
-			doVocabMove: function(i1, i1) {
-				console.log("Click: doVocabMove");
+			doVocabMove: function(i1, i2, event) {
+				console.log("Click: doVocabMove: "+i1+","+i2);
+				if (event) { event.preventDefault(); }
 			},
-			doLegendUp: function(i1, i1) {
-				console.log("Click: doLegendUp");
+			doLegendUp: function(i1, i2, event) {
+				console.log("Click: doLegendUp: "+i1+","+i2);
+				if (event) { event.preventDefault(); }
 			},
-			doLegendTop: function(i1, i1) {
-				console.log("Click: doLegendTop");
+			doLegendTop: function(i1, i2, event) {
+				console.log("Click: doLegendTop: "+i1+","+i2);
+				if (event) { event.preventDefault(); }
 			},
-			doLegendDown: function(i1, i1) {
-				console.log("Click: doLegendDown");
+			doLegendDown: function(i1, i2, event) {
+				console.log("Click: doLegendDown: "+i1+","+i2);
+				if (event) { event.preventDefault(); }
 			},
-			doLegendBottom: function(i1, i1) {
-				console.log("Click: doLegendBottom");
+			doLegendBottom: function(i1, i2, event) {
+				console.log("Click: doLegendBottom: "+i1+","+i2);
+				if (event) { event.preventDefault(); }
 			},
-			doLegendDel: function(i1, i1) {
-				console.log("Click: doLegendDel");
+			doLegendDel: function(i1, i2, event) {
+				console.log("Click: doLegendDel: "+i1+","+i2);
+				if (event) { event.preventDefault(); }
 			},
-			doLegendEdit: function(i1, i1) {
-				console.log("Click: doLegendDel");
+			doLegendEdit: function(i1, i2, event) {
+				console.log("Click: doLegendEdit: "+i1+","+i2);
+				if (event) { event.preventDefault(); }
 			}
 		},
 		computed: {
@@ -1062,58 +946,11 @@ jQuery(document).ready(function() {
 				return attMatch(this.thisType, this.attID);
 			}
 		}
-		// watch: {
-		// 	thisType: function(newType) {
-		// 		// TO DO -- If user changes type
-		// 	}
-		// }
 	});
 	vApp.$on('dialogclose', function () {
-		vApp.modalShowing = 'nullcomponent';
+		console.log("dialogclose");
+		this.modalShowing = 'nullcomponent';
 	});
-
-
-		// Observe data-type selections: re-init when user makes new selection
-		// 	initially oldValue == undefined
-	// rApp.observe('theAttribute.t', function (newValue, oldValue, keypath) {
-	// 		// Save current range and Legend settings, if not initial values
-	// 	if (typeof(oldValue) !== 'undefined') {
-	// 			// use old data type as index into saved area
-	// 		savedLegends[oldValue] = rApp.get('theLegend');
-	// 		savedRanges[oldValue] = rApp.get('theRange');
-	//
-	// 			// Restore previous Legend configuration (if it exists)
-	// 		if (savedLegends[newValue]) {
-	// 			rApp.set('theLegend', savedLegends[newValue]);
-	// 		} else {
-	// 			rApp.set('theLegend', []);
-	// 		}
-	//
-	// 			// Compile new array of "peer" Attributes
-	// 		otherAtts = attMatch(newValue, rApp.get('attID'));
-	// 		rApp.set('others', otherAtts);
-	//
-	// 			// Restore previous Ranges if they exist, or initialize new ones
-	// 		if (savedRanges[newValue]) {
-	// 			rApp.set('theRange', savedRanges[newValue]);
-	// 		} else {
-	// 				// Create new defaults
-	// 			switch(newValue) {
-	// 			case 'N':
-	// 				rApp.set('theRange', { min: '', max: '', g: 0, u: '#888888', useU: false });
-	// 				break;
-	// 			case 'D':
-	// 				rApp.set('theRange', {
-	// 							min: { d: '', m: '', y: '' },
-	// 							max: { d: '', m: '', y: '' },
-	// 							g: 'y',
-	// 							u: '#888888', useU: false
-	// 						});
-	// 				break;
-	// 			}
-	// 		}
-	// 	}
-	// }); // observe theAttribute.t
 
 		// TO DO: Observe attID so that otherAtts list is correct ??
 
@@ -1200,13 +1037,6 @@ jQuery(document).ready(function() {
 	// 	});
 	// 	return false;
 	// }); // on resetLegend
-
-		// Pop up modal with hint about IDs
-	// rApp.on('idHint', function() {
-	// 	var hint = getText('#errmsg-id-bad-chars');
-	// 	messageModal(hint);
-	// 	return false;
-	// });
 
 		// User asked for new Legend entry
 	// rApp.on('addLegend', function() {
@@ -1931,3 +1761,190 @@ jQuery(document).ready(function() {
 	// }); // on saveAttribute
 
 }); // ready
+
+
+		// Abstract behavior used as mixin for Components
+	// var legendEditor = {
+	// 	methods: {
+	// 			// Reset colors of legend en masse via dialog
+	// 		resetLegend: function() {
+	// 			// TO DO --
+	// 		},
+	// 			// Use the Legend from another Vocabulary Attribute
+	// 		copyLegend: function() {
+	// 			// TO DO --
+	// 		},
+	// 			// Move Term up one level
+	// 		doLegendUp: function(i1, i2) {
+	// 			// TO DO --
+	// 		},
+	// 			// Move Term to top
+	// 		doLegendTop: function(i1, i2) {
+	// 			// TO DO --
+	// 		},
+	// 			// Move Term down one level
+	// 		doLegendDown: function(i1, i2) {
+	// 			// TO DO --
+	// 		},
+	// 			// Move Term to bottom
+	// 		doLegendBottom: function(i1, i2) {
+	// 			// TO DO --
+	// 		},
+	// 			// Delete this Term
+	// 		doLegendDel: function(i1, i2) {
+	// 			// TO DO --
+	// 		}
+	// 	}
+	// }
+
+		// Component to edit Vocabulary Attribute settings
+	// Vue.component('componentEditVocab', {
+	// 	data: function() {
+	// 		return {
+	// 			newVocab: ''
+	// 		}
+	// 	},
+	// 	props: {
+	// 		others: {
+	// 			type: Array,
+	// 			default: function(){ return [] }
+	// 		},
+	// 		theLegend: {
+	// 			type: Array,
+	// 			default: function(){ return [] }
+	// 		}
+	// 	},
+	// 	template: '#component-edit-vocab',
+	// 	methods: {
+	// 			// Collect terms from server
+	// 		addTerms: function() {
+	// 			console.log("Event: addTerms");
+	// 			// TO DO
+	// 		},
+	// 			// Add the current Term to this Vocabulary
+	// 		addLegend: function() {
+	// 			console.log("Event: addLegend");
+	// 			vApp.vLegend.push({ l: this.newVocab, v: '#777777', z: [] });
+	// 		},
+	// 			// Create dialog to allow moving Term as child or parent
+	// 		doVocabMove: function(i1, i2) {
+	// 			console.log("Event: doVocabMove");
+	// 			// TO DO --
+	// 		},
+	// 			// Choose color for child Term or else clear
+	// 		doLegendViz: function() {
+	// 			console.log("Event: doLegendViz");
+	// 			// TO DO --
+	// 		}
+	// 	}
+	// });
+
+		// Component to edit Text Attribute settings
+	// Vue.component('componentEditText', {
+	// 	props: {
+	// 		others: {
+	// 			type: Array,
+	// 			default: function(){ return [] }
+	// 		},
+	// 		newVocab: {
+	// 			type: String,
+	// 			default: ''
+	// 		},
+	// 		theLegend: {
+	// 			type: Array,
+	// 			default: function(){ return [] }
+	// 		}
+	// 	},
+	// 	template: '#component-edit-vocab',
+	// 	methods: {
+	// 			// Show dialog to enable adding item
+	// 		addLegend: function() {
+	// 			// TO DO --
+	// 		},
+	// 			// Show dialog to edit item
+	// 		doLegendEdit: function(index) {
+	// 			// TO DO --
+	// 		}
+	// 	}
+	// });
+
+		// Component to edit Number Attribute settings
+	// Vue.component('componentEditNumber', {
+	// 	mixins: [legendEditor],
+	// 	props: {
+	// 		min: {
+	//     		type: Number,
+	//     		default: 0
+	//     	},
+	// 		max: {
+	//     		type: Number,
+	//     		default: 100
+	//     	},
+	// 		group: {
+	//     		type: Number,
+	//     		default: 0
+	//     	},
+	// 		useU: {
+	// 			type: Boolean,
+	// 			default: False
+	// 		},
+	// 		uColor: {
+	// 			type: String,
+	// 			default: '#787878'
+	// 		}
+	// 	},
+	// 	template: '#component-edit-num',
+	// 	methods: {
+	// 			// Show dialog to enable adding item
+	// 		addLegend: function() {
+	// 			// TO DO --
+	// 		},
+	// 			// Show dialog to edit item
+	// 		doLegendEdit: function(index) {
+	// 			// TO DO --
+	// 		}
+	// 	}
+	// });
+
+		// Component to edit Dates Attribute settings
+	// Vue.component('componentEditDates', {
+	// 	mixins: [legendEditor],
+	// 	props: {
+	// 		min: {
+	//     		type: Object,
+	//     		default: function () {
+    //     			return { y: '', m: '', d: '' }
+	// 			}
+	//     	},
+	// 		max: {
+	//     		type: Object,
+	//     		default: function () {
+    //     			return { y: '', m: '', d: '' }
+	// 			}
+	//     	},
+	// 		group: {
+	//     		type: String,
+	//     		default: 'y'
+	//     	},
+	// 		useU: {
+	// 			type: Boolean,
+	// 			default: False
+	// 		},
+	// 		uColor: {
+	// 			type: String,
+	// 			default: '#787878'
+	// 		}
+	// 	},
+	// 	template: '#component-edit-dates',
+	// 	methods: {
+	// 			// Show dialog to enable adding item
+	// 		addLegend: function() {
+	// 			// TO DO --
+	// 		},
+	// 			// Show dialog to edit item
+	// 		doLegendEdit: function(index) {
+	// 			// TO DO --
+	// 		}
+	// 	}
+	// });
+// });

@@ -165,7 +165,7 @@
 		</div>
 	</div>
 
-	<component v-bind:is="modalShowing">
+	<component :is="modalShowing" :params="modalParams">
 	</component>
 </div>
 
@@ -183,52 +183,56 @@
 
 <!-- Message Dialog -->
 <script id="dialog-message" type='text/x-template'>
-	<vuemodal title=<?php _e('"Display Hint"', 'prospect'); ?> size="size">
-		{{message}}
+	<vuemodal title=<?php _e('"Note"', 'prospect'); ?> size="size">
+		{{ params.msg }}
 	</vuemodal>
 </script>
 
 <!-- Confirm Dialog -->
 <script id="dialog-confirm" type='text/x-template'>
-	<vuemodal title=<?php _e('"Confirm"', 'prospect'); ?> cancel="true" size="size" v-on:save="emit('ok')">
-		{{message}}
+	<vuemodal title=<?php _e('"Confirm"', 'prospect'); ?> cancel="true" size="size" v-on:save="ok">
+		{{ params.msg }}
 	</vuemodal>
 </script>
 
 <!-- Create/Edit Text Legend Entry Dialog -->
 <script id="dialog-legend-text" type='text/x-template'>
-	<vuemodal title=<?php _e('"Text Legend Entry"', 'prospect'); ?> cancel="true" v-on:save="emit('save')">
-		<?php _e('Label', 'prospect'); ?>: <input type="text" size="20" v-bind:value="label" placeholder=<?php _e('"Enter Label"', 'prospect'); ?>/><br/>
-		<?php _e('Text pattern', 'prospect'); ?>: <input type="text" size="16" v-bind:value="pattern" placeholder=<?php _e('"Enter Text Pattern"', 'prospect'); ?>/><br/>
+	<vuemodal title=<?php _e('"Text Legend Entry"', 'prospect'); ?> cancel="true" v-on:save="save">
+		<?php _e('Label', 'prospect'); ?>: <input type="text" size="20" v-model="label" placeholder=<?php _e('"Enter Label"', 'prospect'); ?>/><br/>
+		<?php _e('Text pattern', 'prospect'); ?>: <input type="text" size="16" v-model="pattern" placeholder=<?php _e('"Enter Text Pattern"', 'prospect'); ?>/><br/>
+		<input type="color" v-model="theColor"/>
 	</vuemodal>
 </script>
 
 <!-- Create/Edit Number Legend Dialog -->
 <script id="dialog-legend-number" type='text/x-template'>
-	<vuemodal title=<?php _e('"Number Legend Entry"', 'prospect'); ?> cancel="true" v-on:save="emit('save')">
-		<?php _e('Label for Range', 'prospect'); ?>: <input type="text" size="12" v-bind:value="label" placeholder=<?php _e('"Enter Label"', 'prospect'); ?>/><br/>
-		<?php _e('Minimum Value', 'prospect'); ?>: <input type="text" size="8" v-bind:value="min" pattern="\d*"/><br/>
-		<?php _e('Maximum Value', 'prospect'); ?>: <input type="text" size="8" v-bind:value="max" pattern="\d*"/>
+	<vuemodal title=<?php _e('"Number Legend Entry"', 'prospect'); ?> cancel="true" v-on:save="save">
+		<?php _e('Label for Range', 'prospect'); ?>: <input type="text" size="12" v-model="label" placeholder=<?php _e('"Enter Label"', 'prospect'); ?>/><br/>
+		<?php _e('Minimum Value', 'prospect'); ?>: <input type="text" size="8" v-model="min" pattern="\d*"/><br/>
+		<?php _e('Maximum Value', 'prospect'); ?>: <input type="text" size="8" v-model="max" pattern="\d*"/><br/>
+		<input type="color" v-model="theColor"/>
 	</vuemodal>
 </script>
 
 <!-- Create/Edit Dates Legend Dialog -->
 <script id="dialog-legend-dates" type='text/x-template'>
-	<vuemodal title=<?php _e('"Date Legend Entry"', 'prospect'); ?> cancel="true" v-on:save="emit('save')">
-		<?php _e('Label for Range', 'prospect'); ?>: <input type="text" size="20" v-bind:value="label" required placeholder=<?php _e('"Enter Range Label"', 'prospect'); ?>/><br/>
-		<?php _e('Start Date: Year', 'prospect'); ?> <input type="text" size="5" v-bind:value="min.y" placeholder="YYYY" pattern="(open|-?\d+)"/>
-		<?php _e('Month', 'prospect'); ?> <input type="text" size="2" v-bind:value="min.m" placeholder="MM" pattern="\d{0,2}"/>
-		<?php _e('Day', 'prospect'); ?> <input type="text" size="2" v-bind:value="min.d" placeholder="DD" pattern="\d{0,2}"/>
-		<br>
-		<?php _e('End Date: Year', 'prospect'); ?> <input type="text" size="5" v-bind:value="max.y" placeholder="YYYY" pattern="(open|-?\d+)"/>
-		<?php _e('Month', 'prospect'); ?> <input type="text" size="2" v-bind:value="max.m" placeholder="MM" pattern="\d{0,2}"/>
-		<?php _e('Day', 'prospect'); ?> <input type="text" size="2" v-bind:value="max.d" placeholder="DD" pattern="\d{0,2}"/>
+	<vuemodal title=<?php _e('"Date Legend Entry"', 'prospect'); ?> cancel="true" v-on:save="save">
+		<?php _e('Label for Range', 'prospect'); ?>: <input type="text" size="20" v-model="label" required placeholder=<?php _e('"Enter Range Label"', 'prospect'); ?>/><br/>
+		<?php _e('Start Date: Year', 'prospect'); ?> <input type="text" size="5" v-model="min.y" placeholder="YYYY" pattern="(open|-?\d+)"/>
+		<?php _e('Month', 'prospect'); ?> <input type="text" size="2" v-model="min.m" placeholder="MM" pattern="\d{0,2}"/>
+		<?php _e('Day', 'prospect'); ?> <input type="text" size="2" v-model="min.d" placeholder="DD" pattern="\d{0,2}"/>
+		<br/>
+		<?php _e('End Date: Year', 'prospect'); ?> <input type="text" size="5" v-model="max.y" placeholder="YYYY" pattern="(open|-?\d+)"/>
+		<?php _e('Month', 'prospect'); ?> <input type="text" size="2" v-model="max.m" placeholder="MM" pattern="\d{0,2}"/>
+		<?php _e('Day', 'prospect'); ?> <input type="text" size="2" v-model="max.d" placeholder="DD" pattern="\d{0,2}"/>
+		<br/>
+		<input type="color" v-model="theColor"/>
 	</vuemodal>
 </script>
 
 <!-- Move Vocab Dialog for top-level non-child -->
 <script id="dialog-move-vocab-lone" type='text/x-template'>
-	<vuemodal title=<?php _e('"Move Vocabulary Entry"', 'prospect'); ?> cancel="true" v-on:save="emit('save')">
+	<vuemodal title=<?php _e('"Move Vocabulary Entry"', 'prospect'); ?> cancel="true" v-on:save="save">
 		<?php _e('Move this Term so it becomes a child of', 'prospect'); ?> <br/>
 		<select v-model='newParent'>
 			<option v-for="aParent in parents">
@@ -243,7 +247,7 @@
 
 <!-- Move Vocab Dialog for top-level parent -->
 <script id="dialog-move-vocab-parent" type='text/x-template'>
-	<vuemodal title=<?php _e('"Move Vocabulary Children"', 'prospect'); ?> cancel="true" v-on:save="emit('save')">
+	<vuemodal title=<?php _e('"Move Vocabulary Children"', 'prospect'); ?> cancel="true" v-on:save="save">
 		<input type='radio' value='yes' v-model="up"/> <?php _e('Move all children to top (parent) level', 'prospect'); ?>
 		<br/>
 		<input type='radio' value='no' v-model="up"/>  <?php _e('Move all to new parent', 'prospect'); ?>
@@ -259,7 +263,7 @@
 
 <!-- Move Vocab Dialog for child node -->
 <script id="dialog-move-vocab-child" type='text/x-template'>
-	<vuemodal title=<?php _e('"Move Vocabulary Entry"', 'prospect'); ?> cancel="true" v-on:save="emit('save')">
+	<vuemodal title=<?php _e('"Move Vocabulary Entry"', 'prospect'); ?> cancel="true" v-on:save="save">
 		<input type='radio' value='yes' v-model="up"/> <?php _e('Move to top (parent) level', 'prospect'); ?>
 		<input type='radio' value='no' v-model="up"/> <?php _e('Move to new parent', 'prospect'); ?>
 		<br/>
@@ -275,7 +279,7 @@
 <!-- Reset Colors Dialog -->
 <!-- NOTE: This uses color input which is not supported by all browsers -->
 <script id="dialog-reset-colors" type='text/x-template'>
-	<vuemodal title=<?php _e('"Reset Colors"', 'prospect'); ?> cancel="true" v-on:save="emit('save')">
+	<vuemodal title=<?php _e('"Reset Colors"', 'prospect'); ?> cancel="true" v-on:save="save">
 		<input type='radio' v-model='reset' value='random'/> <?php _e('Random Colors', 'prospect'); ?>
 		<br/>
 		<input type='radio' v-model='reset' value='gradient'/> <?php _e('Create Gradient', 'prospect'); ?>
@@ -287,15 +291,15 @@
 
 <!-- Color Choice w/Clear Dialog -->
 <script id="dialog-choose-color-clear" type='text/x-template'>
-	<vuemodal title=<?php _e('"Choose Color"', 'prospect'); ?> cancel="true" v-on:save="emit('save')">
+	<vuemodal title=<?php _e('"Choose Color"', 'prospect'); ?> cancel="true" v-on:save="save">
 		<input type='checkbox' v-model='doClear'> <?php _e('Remove visuals', 'prospect'); ?><br/>
-		<input type="color" v-model="color"/>
+		<input type="color" v-model="theColor"/>
 	</vuemodal>
 </script>
 
 <!-- List of peer Attributes with Legends Dialog -->
 <script id="dialog-copy-legend" type='text/x-template'>
-	<vuemodal title=<?php _e('"Choose Attribute"', 'prospect'); ?> cancel="true" v-on:save="emit('save')">
+	<vuemodal title=<?php _e('"Choose Attribute"', 'prospect'); ?> cancel="true" v-on:save="save">
 		<?php _e('Choose the Attribute whose Legend you wish to copy over the current Legend you are editing.', 'prospect'); ?><br/>
 		<b><?php _e('WARNING: No undo.', 'prospect'); ?></b><br/>
 		<label for="choose-att">Attribute </label>
