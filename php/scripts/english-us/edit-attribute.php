@@ -1,7 +1,7 @@
 
 <!-- Outer-most (application) layer of output for Ractive to generate -->
 <div id="vue-outer">
-	<div v-if="errorMsg.length > 0" id="error-frame">{{errorMsg}}</div>
+	<div id="error-frame" v-if="errorMsg.length > 0" v-bind:class="{ ok: errorOK }">{{errorMsg}}</div>
 	<button id="prsp-save-data" v-on:click="saveAttribute"><?php _e('Verify and Prepare Attribute Definition for Publish/Update', 'prospect'); ?></button><br/>
 	<?php _e('Attribute’s external label', 'prospect'); ?>: <input v-model='label' placeholder=<?php _e('"Enter label"', 'prospect'); ?> size="24" required/>
 	<?php _e('Privacy Setting', 'prospect'); ?>: <select v-model='privacy'>
@@ -307,9 +307,8 @@
 	<vuemodal title=<?php _e('"Choose Attribute"', 'prospect'); ?> cancel="true" v-on:save="save">
 		<?php _e('Choose the Attribute whose Legend you wish to copy over the current Legend you are editing.', 'prospect'); ?><br/>
 		<b><?php _e('WARNING: No undo.', 'prospect'); ?></b><br/>
-		<label for="choose-att">Attribute </label>
 		<select id="choose-att" v-model='attid'>
-			<option v-for="another in others" v-bind:value="another.id">
+			<option v-for="another in params.attList" v-bind:value="another.id">
     			{{ another.l }} ({{ another.id }})
 			</option>
 		</select>

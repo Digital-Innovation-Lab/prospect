@@ -349,12 +349,11 @@ jQuery(document).ready(function() {
 		},
 		data: function () {		// Local copies of data that user can edit
 			return {
-				others: [], attid: ''
+				attid: ''
 			}
 		},
 		created: function() {
-			this.others = this.params.attList;
-			this.attid = this.params.attList[0] || '';
+			this.attid = this.params.attList[0].id;
 		},
 		template: '#dialog-copy-legend',
 		methods: {
@@ -661,16 +660,12 @@ jQuery(document).ready(function() {
 			// If a clear-error timer is set, cancel it
 		if (errTimer) {
 			clearTimeout(errTimer);
-			jQuery('#error-frame').removeClass('ok');
 		}
 		var newError = getText(errID);
+		vApp.errorOK = ok === true;
 		vApp.errorMsg = newError;
-		if (ok === true) {
-			jQuery('#error-frame').addClass('ok');
-		}
 		errTimer = setTimeout(function() {
 			vApp.errorMsg = '';
-			jQuery('#error-frame').removeClass('ok');
 		}, 5000);
 	} // displayError()
 
@@ -800,6 +795,7 @@ jQuery(document).ready(function() {
 			dLegend: dLegend,					// legend definition (array) for Dates
 				// GUI state & options
 			errorMsg: '',						// current error string (if any)
+			errorOK: false,						// Is message actually not an error?
 			dataTypes: dataTypes,				// Array of dataTypes
 			newVocab: '',
 			cfs: customFields,					// Array of all custom field names
@@ -829,7 +825,216 @@ jQuery(document).ready(function() {
 			saveAttribute: function(event) {
 				console.log("Click: saveAttribute");
 				if (event) { event.preventDefault(); }
-				// TO DO
+				var attDef = doErrorCheck();
+				if (attDef) {
+					var error;
+					var attR = { };
+					var attL = [ ];
+
+					switch(attDef.t) {
+					case 'V':
+						_.forEach(this.vLegend, function(parent) {
+							var newParent = { };
+							newParent.l = parent.l;
+							newParent.v = parent.v;
+							newParent.z = [];
+							if (parent.z.length) {
+								_.forEach(parent.z, function(child) {
+									var newChild = { };
+									newChild.l = child.l;
+									newChild.v = child.v.length ? child.v : null;
+									newParent.z.push(newChild);
+								})
+							}
+							attL.push(newParent);
+						});
+						break;
+					case 'T':
+						_.forEach(this.tLegend, function(entry) {
+							var newEntry = { };
+							newEntry.l = entry.l;
+							newEntry.d = entry.d;
+							newEntry.v = entry.v;
+							attL.push(newEntry);
+						});
+						break;
+
+					case 'N':
+						var minN = this.nRange.min;
+						var maxN = this.nRange.max;
+							// Allow one but not both to be empty
+						if (minN.length == 0 && maxN.length == 0) {
+							displayError('#errmsg-num-need-bound');
+							return;
+						}
+							// Convert range to Numbers
+						if (minN.length) {
+							attR.min = parseInt(minN, 10);
+							if (!_.isFinite(attR.min)) {
+								displayError('#errmsg-range-not-valid');
+								return;
+							}
+						}
+						if (maxN.length) {
+							attR.max = parseInt(maxN, 10);
+							if (!_.isFinite(attR.max)) {
+								displayError('#errmsg-range-not-valid');
+								return;
+							}
+						}
+						attR.g = this.nRange.g;
+						if (this.nRange.useU == true) {
+							attR.u = this.nRange.u;
+						}
+
+						_.forEach(this.nLegend, function(entry) {
+							var newEntry = { };
+							newEntry.l = entry.l;
+							newEntry.v = entry.v;
+							newEntry.d = { };
+							if (entry.d.min.length) newEntry.d.min = parseInt(entry.d.min, 10);
+							if (entry.d.max.length) newEntry.d.max = parseInt(entry.d.max, 10);
+							if (entry.d.min > entry.d.max) {
+								error = '#errmsg-num-range-inverted';
+							}
+							attL.push(newEntry);
+						});
+						break;
+
+					case 'D':
+						attR.min = { }; attR.max = { };
+						attR.g = this.dRange.g;
+							// minimum Date
+						var y = this.dRange.min.y;
+						if (y.length == 0) {
+							displayError('#errmsg-no-min-date');
+							return;
+						}
+						attR.min.y = parseInt(y, 10);
+						if (!_.isFinite(attR.min.y)) {
+							displayError('#errmsg-no-min-date');
+							return;
+						}
+						var m = this.dRange.min.m;
+						var d;
+						if (m.length) {
+							attR.min.m = parseInt(m, 10);
+							if (!_.isFinite(attR.min.m) || (attR.min.m < 1) || (attR.min.m > 12)) {
+								displayError('#errmsg-bad-month');
+								return;
+							}
+							d = this.dRange.min.d;
+							if (d.length) {
+								attR.min.d = parseInt(d, 10);
+								if (!_.isFinite(attR.min.d) || (attR.min.d < 1) || (attR.min.m > 31)) {
+									displayError('#errmsg-bad-day');
+									return;
+								}
+							}
+						}
+							// maximum Date
+						y = this.dRange.max.y;
+						if (y.length) {
+							attR.max.y = parseInt(y, 10);
+							if (!_.isFinite(attR.min.y)) {
+								displayError('#errmsg-no-min-date');
+								return;
+							}
+							m = this.dRange.max.m;
+							if (m.length) {
+								attR.max.m = parseInt(m, 10);
+								if (!_.isFinite(attR.max.m) || (attR.max.m < 1) || (attR.max.m > 12)) {
+									displayError('#errmsg-bad-month');
+									return;
+								}
+								d = this.dRange.max.d;
+								if (d.length) {
+									attR.max.d = parseInt(d, 10);
+									if (!_.isFinite(attR.max.d) || (attR.max.d < 1) || (attR.max.d > 31)) {
+										displayError('#errmsg-bad-day');
+										return;
+									}
+								}
+							}
+						}
+
+						if (this.dRange.useU == true) {
+							attR.u = this.dRange.u;
+						}
+
+							// Compile Date Legend
+						_.forEach(this.dLegend, function(entry) {
+							var newEntry = { };
+							newEntry.l = entry.l;
+							newEntry.v = entry.v;
+							newEntry.d = { min: {}, max: {} };
+							if (entry.d.min.y.length) {
+								newEntry.d.min.y = parseInt(entry.d.min.y, 10);
+								if (!_.isFinite(newEntry.d.min.y)) {
+									error = '#errmsg-bad-year';
+								}
+								if (entry.d.min.m.length) {
+									newEntry.d.min.m = parseInt(entry.d.min.m, 10);
+									if (!_.isFinite(newEntry.d.min.m) || (entry.d.min.m < 1) || (entry.d.min.m > 12)) {
+										error = '#errmsg-bad-month';
+									}
+									if (entry.d.min.d.length) {
+										newEntry.d.min.d = parseInt(entry.d.min.d, 10);
+										if (!_.isFinite(newEntry.d.min.d) || (entry.d.min.d < 1) || (entry.d.min.d > 31)) {
+											error = '#errmsg-bad-day';
+										}
+									}
+								}
+							}
+							if (entry.d.max.y.length) {
+								newEntry.d.max.y = parseInt(entry.d.max.y, 10);
+								if (!_.isFinite(newEntry.d.max.y)) {
+									error = '#errmsg-bad-year';
+								}
+								if (entry.d.max.m.length) {
+									newEntry.d.max.m = parseInt(entry.d.max.m, 10);
+									if (!_.isFinite(newEntry.d.max.m) || (entry.d.max.m < 1) || (entry.d.max.m > 12)) {
+										error = '#errmsg-bad-month';
+									}
+									if (entry.d.max.d.length) {
+										newEntry.d.max.d = parseInt(entry.d.max.d, 10);
+										if (!_.isFinite(newEntry.d.max.d) || (entry.d.max.d < 1) || (entry.d.max.d > 31)) {
+											error = '#errmsg-bad-day';
+										}
+									}
+								}
+							}
+							if (typeof(newEntry.d.min.y) == "undefined" && typeof(newEntry.d.max.y) == "undefined")
+							{
+								error = "#errmsg-date-no-bound";
+							}
+							if (newEntry.d.min.y > newEntry.d.max.y)
+							{
+								error = "#errmsg-date-range-inverted";
+							}
+							attL.push(newEntry);
+						}); // forEach
+							// Abort here if any errors signalled
+						if (error) {
+							displayError(error);
+							return false;
+						}
+						break;
+					} // switch
+						// Stuff in hidden fields
+					var theID = this.attID.trim();
+					jQuery('input[name="prsp_att_id"]').val(theID);
+					var pSetting = this.privacy;
+					jQuery('textarea[name="prsp_att_privacy"]').val(pSetting);
+					jQuery('textarea[name="prsp_att_def"]').val(JSON.stringify(attDef));
+					jQuery('textarea[name="prsp_att_r"]').val(JSON.stringify(attR));
+					jQuery('textarea[name="prsp_att_lgnd"]').val(JSON.stringify(attL));
+					console.log("Def: "+JSON.stringify(attDef));
+					console.log("Range: "+JSON.stringify(attR));
+					console.log("Legend: "+JSON.stringify(attL));
+						// Confirm Attribute data saved to user
+					displayError('#msg-saved', true);
+				} // if no error
 			},
 				// Show hint info about IDs in a modal dialog
 			idHint: function(event) {
@@ -935,7 +1140,7 @@ jQuery(document).ready(function() {
 						var theAtt = prspdata.att_data[i];
 						if (theAtt.id == choiceID) {
 							var newLgnd = unpackLegend(theAtt.l);
-							switch(this.thisType) {
+							switch(self.thisType) {
 							case 'V': self.vLegend=newLgnd;	break;
 							case 'T': self.tLegend=newLgnd;	break;
 							case 'N': self.nLegend=newLgnd;	break;
@@ -946,6 +1151,7 @@ jQuery(document).ready(function() {
 					}
 				} // doCopy()
 				this.modalParams.attList = this.others;
+				this.modalParams.callback = doCopy;
 				this.modalShowing = 'dlgCopyLegend';
 			}, // copyLegend()
 			addLegend: function(event) {
@@ -1305,223 +1511,4 @@ jQuery(document).ready(function() {
 		console.log("dialogclose");
 		this.modalShowing = 'nullcomponent';
 	});
-
-		// User asked for values to be saved
-	// rApp.on('saveAttribute', function() {
-	// 	var attDef = doErrorCheck();
-	// 	if (attDef) {
-	// 		var error;
-	// 		var attR = { };
-	// 		var attL = [ ];
-	//
-	// 		switch(attDef.t) {
-	// 		case 'V':
-	// 			var legend = rApp.get('theLegend');
-	// 			_.forEach(legend, function(parent) {
-	// 				var newParent = { };
-	// 				newParent.l = parent.l;
-	// 				newParent.v = parent.v;
-	// 				newParent.z = [];
-	// 				if (parent.z.length) {
-	// 					_.forEach(parent.z, function(child) {
-	// 						var newChild = { };
-	// 						newChild.l = child.l;
-	// 						newChild.v = child.v.length ? child.v : null;
-	// 						newParent.z.push(newChild);
-	// 					})
-	// 				}
-	// 				attL.push(newParent);
-	// 			});
-	// 			break;
-	//
-	// 		case 'T':
-	// 			var legend = rApp.get('theLegend');
-	// 			_.forEach(legend, function(entry) {
-	// 				var newEntry = { };
-	// 				newEntry.l = entry.l;
-	// 				newEntry.d = entry.d;
-	// 				newEntry.v = entry.v;
-	// 				attL.push(newEntry);
-	// 			});
-	// 			break;
-	//
-	// 		case 'N':
-	// 			var minN = rApp.get('theRange.min');
-	// 			var maxN = rApp.get('theRange.max');
-	// 				// Allow one but not both to be empty
-	// 			if (minN.length == 0 && maxN.length == 0) {
-	// 				displayError('#errmsg-num-need-bound');
-	// 				return;
-	// 			}
-	// 				// Convert range to Numbers
-	// 			if (minN.length) {
-	// 				attR.min = parseInt(minN, 10);
-	// 				if (!_.isFinite(attR.min)) {
-	// 					displayError('#errmsg-range-not-valid');
-	// 					return;
-	// 				}
-	// 			}
-	// 			if (maxN.length) {
-	// 				attR.max = parseInt(maxN, 10);
-	// 				if (!_.isFinite(attR.max)) {
-	// 					displayError('#errmsg-range-not-valid');
-	// 					return;
-	// 				}
-	// 			}
-	// 			attR.g = rApp.get('theRange.g');
-	//
-	// 			if (rApp.get('theRange.useU') == true)
-	// 				attR.u = rApp.get('theRange.u');
-	//
-	// 			var legend = rApp.get('theLegend');
-	// 			_.forEach(legend, function(entry) {
-	// 				var newEntry = { };
-	// 				newEntry.l = entry.l;
-	// 				newEntry.v = entry.v;
-	// 				newEntry.d = { };
-	// 				if (entry.d.min.length) newEntry.d.min = parseInt(entry.d.min, 10);
-	// 				if (entry.d.max.length) newEntry.d.max = parseInt(entry.d.max, 10);
-	// 				if (entry.d.min > entry.d.max) {
-	// 					error = '#errmsg-num-range-inverted';
-	// 				}
-	// 				attL.push(newEntry);
-	// 			});
-	// 			break;
-	//
-	// 		case 'D':
-	// 			attR.min = { }; attR.max = { };
-	// 			attR.g = rApp.get('theRange.g');
-	// 				// minimum Date
-	// 			var y = rApp.get('theRange.min.y');
-	// 			if (y.length == 0) {
-	// 				displayError('#errmsg-no-min-date');
-	// 				return;
-	// 			}
-	// 			attR.min.y = parseInt(y, 10);
-	// 			if (!_.isFinite(attR.min.y)) {
-	// 				displayError('#errmsg-no-min-date');
-	// 				return;
-	// 			}
-	// 			var m = rApp.get('theRange.min.m');
-	// 			var d;
-	// 			if (m.length) {
-	// 				attR.min.m = parseInt(m, 10);
-	// 				if (!_.isFinite(attR.min.m) || (attR.min.m < 1) || (attR.min.m > 12)) {
-	// 					displayError('#errmsg-bad-month');
-	// 					return;
-	// 				}
-	// 				d = rApp.get('theRange.min.d');
-	// 				if (d.length) {
-	// 					attR.min.d = parseInt(d, 10);
-	// 					if (!_.isFinite(attR.min.d) || (attR.min.d < 1) || (attR.min.m > 31)) {
-	// 						displayError('#errmsg-bad-day');
-	// 						return;
-	// 					}
-	// 				}
-	// 			}
-	// 				// maximum Date
-	// 			y = rApp.get('theRange.max.y');
-	// 			if (y.length) {
-	// 				attR.max.y = parseInt(y, 10);
-	// 				if (!_.isFinite(attR.min.y)) {
-	// 					displayError('#errmsg-no-min-date');
-	// 					return;
-	// 				}
-	// 				m = rApp.get('theRange.max.m');
-	// 				if (m.length) {
-	// 					attR.max.m = parseInt(m, 10);
-	// 					if (!_.isFinite(attR.max.m) || (attR.max.m < 1) || (attR.max.m > 12)) {
-	// 						displayError('#errmsg-bad-month');
-	// 						return;
-	// 					}
-	// 					d = rApp.get('theRange.max.d');
-	// 					if (d.length) {
-	// 						attR.max.d = parseInt(d, 10);
-	// 						if (!_.isFinite(attR.max.d) || (attR.max.d < 1) || (attR.max.d > 31)) {
-	// 							displayError('#errmsg-bad-day');
-	// 							return;
-	// 						}
-	// 					}
-	// 				}
-	// 			}
-	//
-	// 			if (rApp.get('theRange.useU') == true) {
-	// 				attR.u = rApp.get('theRange.u');
-	// 			}
-	//
-	// 				// Compile Date Legend
-	// 			var legend = rApp.get('theLegend');
-	// 			_.forEach(legend, function(entry) {
-	// 				var newEntry = { };
-	// 				newEntry.l = entry.l;
-	// 				newEntry.v = entry.v;
-	// 				newEntry.d = { min: {}, max: {} };
-	// 				if (entry.d.min.y.length) {
-	// 					newEntry.d.min.y = parseInt(entry.d.min.y, 10);
-	// 					if (!_.isFinite(newEntry.d.min.y)) {
-	// 						error = '#errmsg-bad-year';
-	// 					}
-	// 					if (entry.d.min.m.length) {
-	// 						newEntry.d.min.m = parseInt(entry.d.min.m, 10);
-	// 						if (!_.isFinite(newEntry.d.min.m) || (entry.d.min.m < 1) || (entry.d.min.m > 12)) {
-	// 							error = '#errmsg-bad-month';
-	// 						}
-	// 						if (entry.d.min.d.length) {
-	// 							newEntry.d.min.d = parseInt(entry.d.min.d, 10);
-	// 							if (!_.isFinite(newEntry.d.min.d) || (entry.d.min.d < 1) || (entry.d.min.d > 31)) {
-	// 								error = '#errmsg-bad-day';
-	// 							}
-	// 						}
-	// 					}
-	// 				}
-	// 				if (entry.d.max.y.length) {
-	// 					newEntry.d.max.y = parseInt(entry.d.max.y, 10);
-	// 					if (!_.isFinite(newEntry.d.max.y)) {
-	// 						error = '#errmsg-bad-year';
-	// 					}
-	// 					if (entry.d.max.m.length) {
-	// 						newEntry.d.max.m = parseInt(entry.d.max.m, 10);
-	// 						if (!_.isFinite(newEntry.d.max.m) || (entry.d.max.m < 1) || (entry.d.max.m > 12)) {
-	// 							error = '#errmsg-bad-month';
-	// 						}
-	// 						if (entry.d.max.d.length) {
-	// 							newEntry.d.max.d = parseInt(entry.d.max.d, 10);
-	// 							if (!_.isFinite(newEntry.d.max.d) || (entry.d.max.d < 1) || (entry.d.max.d > 31)) {
-	// 								error = '#errmsg-bad-day';
-	// 							}
-	// 						}
-	// 					}
-	// 				}
-	// 				if (typeof(newEntry.d.min.y) == "undefined" && typeof(newEntry.d.max.y) == "undefined")
-	// 				{
-	// 					error = "#errmsg-date-no-bound";
-	// 				}
-	// 				if (newEntry.d.min.y > newEntry.d.max.y)
-	// 				{
-	// 					error = "#errmsg-date-range-inverted";
-	// 				}
-	// 				attL.push(newEntry);
-	// 			}); // forEach
-	// 				// Abort here if any errors signalled
-	// 			if (error) {
-	// 				displayError(error);
-	// 				return false;
-	// 			}
-	// 			break;
-	// 		} // switch
-	//
-	// 			// Stuff in hidden fields
-	// 		var theID = rApp.get('attID').trim();
-	// 		jQuery('input[name="prsp_att_id"]').val(theID);
-	// 		var pSetting = rApp.get('privacy');
-	// 		jQuery('textarea[name="prsp_att_privacy"]').val(pSetting);
-	// 		jQuery('textarea[name="prsp_att_def"]').val(JSON.stringify(attDef));
-	// 		jQuery('textarea[name="prsp_att_r"]').val(JSON.stringify(attR));
-	// 		jQuery('textarea[name="prsp_att_lgnd"]').val(JSON.stringify(attL));
-	// 			// Confirm Attribute data saved to user
-	// 		displayError('#msg-saved', true);
-	// 	} // if no error
-	// 	return false;
-	// }); // on saveAttribute
-
 }); // ready
