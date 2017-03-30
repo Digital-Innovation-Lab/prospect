@@ -39,7 +39,7 @@
 		<button v-if="others.length > 0" v-on:click="copyLegend"><?php _e('Copy Legend', 'prospect'); ?></button>
 		<br/>
 		<input type="text" id="vocab-new-term" v-model='newVocab' placeholder=<?php _e('"New Vocab Term"', 'prospect'); ?> size="24"/>
-		<label for="vocab-new-term"><?php _e(' New Term', 'prospect'); ?></label>
+		<label for="vocab-new-term"><?php _e('New Term', 'prospect'); ?></label>
 		<button v-on:click="addLegend"><?php _e('Add Entry', 'prospect'); ?></button>
 		<br/>
 		<div class="legend-vocab">
@@ -58,7 +58,7 @@
 					<ol v-if="lgnd1.z.length >= 1" class='vocab-children'>
 						<li v-for="(lgnd2, index2) in lgnd1.z" class="legend-data-entry">
 							{{lgnd2.l}}
-							<span v-if="lgnd2.v.length > 1" title=<?php _e('"Click to select color"', 'prospect'); ?> class="viz-icon" v-bind:style="'background-color:' + v" v-on:click="doLegendViz(index1,index2)"></span>
+							<span v-if="lgnd2.v.length > 1" title=<?php _e('"Click to select color"', 'prospect'); ?> class="viz-icon" v-bind:style="'background-color:' + lgnd2.v" v-on:click="doLegendViz(index1,index2)"></span>
 							<span v-else title=<?php _e('"Click to select color"', 'prospect'); ?> class="viz-icon" v-on:click="doLegendViz(index1,index2)"></span>
 							<div class="ui-widget-header ui-corner-all legend-btn-set">
 								<icon-btn symbol="ui-icon-transfer-e-w" v-on:click="doVocabMove(index1,index2)" label=<?php _e('"Move Entry"', 'prospect'); ?>></icon-btn>
@@ -80,14 +80,16 @@
 		<button v-on:click="addLegend"><?php _e('Add Entry', 'prospect'); ?></button>
 		<button v-if="others.length > 0" v-on:click="copyLegend"><?php _e('Copy Legend', 'prospect'); ?></button>
 		<br/>
-		<div v-for="(lgnd, index) in tLegend" class="legend-data-entry">
-			<span class="legend-label">{{lgnd.l}}</span> <span class="legend-val">{{lgnd.val}}</span>
-			<input type="color" v-model="lgnd.v"/>
-			<div class="ui-widget-header ui-corner-all legend-btn-set">
-				<icon-btn symbol="ui-icon-wrench" v-on:click="doLegendEdit(index,-1)" label=<?php _e('"Edit Entry"', 'prospect'); ?>></icon-btn>
-				<icon-btn symbol="ui-icon-arrowthick-1-n" v-on:click="doLegendUp(index,-1)" label=<?php _e('"Move Up"', 'prospect'); ?>></icon-btn>
-				<icon-btn symbol="ui-icon-arrowthick-1-s" v-on:click="doLegendDown(index,-1)" label=<?php _e('"Move Down"', 'prospect'); ?>></icon-btn>
-				<icon-btn symbol="ui-icon-trash" v-on:click="doLegendDel(index,-1)" label=<?php _e('"Delete"', 'prospect'); ?>></icon-btn>
+		<div class="legend-data">
+			<div v-for="(lgnd, index) in tLegend" class="legend-data-entry">
+				<span class="legend-label">{{lgnd.l}}</span> <span class="legend-val">{{lgnd.val}}</span>
+				<input type="color" v-model="lgnd.v"/>
+				<div class="ui-widget-header ui-corner-all legend-btn-set">
+					<icon-btn symbol="ui-icon-wrench" v-on:click="doLegendEdit(index)" label=<?php _e('"Edit Entry"', 'prospect'); ?>></icon-btn>
+					<icon-btn symbol="ui-icon-arrowthick-1-n" v-on:click="doLegendUp(index,-1)" label=<?php _e('"Move Up"', 'prospect'); ?>></icon-btn>
+					<icon-btn symbol="ui-icon-arrowthick-1-s" v-on:click="doLegendDown(index,-1)" label=<?php _e('"Move Down"', 'prospect'); ?>></icon-btn>
+					<icon-btn symbol="ui-icon-trash" v-on:click="doLegendDel(index,-1)" label=<?php _e('"Delete"', 'prospect'); ?>></icon-btn>
+				</div>
 			</div>
 		</div>
 	</div> <!-- Text editing -->
@@ -114,7 +116,7 @@
 				<span class="legend-label">{{lgnd.l}}</span> <span class="legend-val">{{lgnd.val}}</span>
 				<input type="color" v-model="lgnd.v"/>
 				<div class="ui-widget-header ui-corner-all legend-btn-set">
-					<icon-btn symbol="ui-icon-wrench" v-on:click="doLegendEdit(index,-1)" label=<?php _e('"Edit Entry"', 'prospect'); ?>></icon-btn>
+					<icon-btn symbol="ui-icon-wrench" v-on:click="doLegendEdit(index)" label=<?php _e('"Edit Entry"', 'prospect'); ?>></icon-btn>
 					<icon-btn symbol="ui-icon-arrowthick-1-n" v-on:click="doLegendUp(index,-1)" label=<?php _e('"Move Up"', 'prospect'); ?>></icon-btn>
 					<icon-btn symbol="ui-icon-arrowthick-1-s" v-on:click="doLegendDown(index,-1)" label=<?php _e('"Move Down"', 'prospect'); ?>></icon-btn>
 					<icon-btn symbol="ui-icon-trash" v-on:click="doLegendDel(index,-1)" label=<?php _e('"Delete"', 'prospect'); ?>></icon-btn>
@@ -144,22 +146,22 @@
 		</select>
 		<br/>
 		<?php _e('Use', 'prospect'); ?>
-		<input type='checkbox' v-model='dRange.useU'/> <?php _e('color for indefinite Number values ', 'prospect'); ?>>
+		<input type='checkbox' v-model='dRange.useU'/> <?php _e('color for indefinite Date values ', 'prospect'); ?>
 		<input type="color" v-model="dRange.u"/>
+		<h3><?php _e('Configure Dates Legend', 'prospect'); ?></h3>
+		<button v-on:click="resetLegend"><?php _e('Reset Visuals', 'prospect'); ?></button>
+		<button v-on:click="addLegend"><?php _e('Add Entry', 'prospect'); ?></button>
+		<button v-if="others.length > 0" v-on:click="copyLegend"><?php _e('Copy Legend', 'prospect'); ?></button>
+		<br/>
 		<div class="legend-data">
-			<h3><?php _e('Configure Dates Legend', 'prospect'); ?></h3>
-			<button v-on:click="resetLegend"><?php _e('Reset Visuals', 'prospect'); ?></button>
-			<button v-on:click="addLegend"><?php _e('Add Entry', 'prospect'); ?></button>
-			<button v-if="others.length > 0" v-on:click="copyLegend"><?php _e('Copy Legend', 'prospect'); ?></button>
-			<br/>
 			<div v-for="(lgnd, index) in dLegend" class="legend-data-entry">
 				<span class="legend-label">{{lgnd.l}}</span> <span class="legend-val">{{lgnd.val}}</span>
 				<input type="color" v-model="lgnd.v"/>
 				<div class="ui-widget-header ui-corner-all legend-btn-set">
 					<icon-btn symbol="ui-icon-wrench" v-on:click="doLegendEdit(index)" label=<?php _e('"Edit Entry"', 'prospect'); ?>></icon-btn>
-					<icon-btn symbol="ui-icon-arrowthick-1-n" v-on:click="doLegendUp(index)" label=<?php _e('"Move Up"', 'prospect'); ?>></icon-btn>
-					<icon-btn symbol="ui-icon-arrowthick-1-s" v-on:click="doLegendDown(index)" label=<?php _e('"Move Down"', 'prospect'); ?>></icon-btn>
-					<icon-btn symbol="ui-icon-trash" v-on:click="doLegendDel(index)" label=<?php _e('"Delete"', 'prospect'); ?>></icon-btn>
+					<icon-btn symbol="ui-icon-arrowthick-1-n" v-on:click="doLegendUp(index,-1)" label=<?php _e('"Move Up"', 'prospect'); ?>></icon-btn>
+					<icon-btn symbol="ui-icon-arrowthick-1-s" v-on:click="doLegendDown(index,-1)" label=<?php _e('"Move Down"', 'prospect'); ?>></icon-btn>
+					<icon-btn symbol="ui-icon-trash" v-on:click="doLegendDel(index,-1)" label=<?php _e('"Delete"', 'prospect'); ?>></icon-btn>
 				</div>
 			</div>
 		</div>
@@ -175,6 +177,7 @@
 		<div>
 			<div class="title">{{title}}</div>
 			<slot></slot>
+			<br/>
 			<button class="btn cancel" v-if="cancel == 'true'" v-on:click="close"><?php _e('Cancel', 'prospect'); ?></button>
 			<button class="btn ok" v-on:click="clickok"><?php _e('OK', 'prospect'); ?></button>
 		</div>
@@ -216,7 +219,7 @@
 
 <!-- Create/Edit Dates Legend Dialog -->
 <script id="dialog-legend-dates" type='text/x-template'>
-	<vuemodal title=<?php _e('"Date Legend Entry"', 'prospect'); ?> cancel="true" v-on:save="save">
+	<vuemodal title=<?php _e('"Date Legend Entry"', 'prospect'); ?> cancel="true" size="wide" v-on:save="save">
 		<?php _e('Label for Range', 'prospect'); ?>: <input type="text" size="20" v-model="label" required placeholder=<?php _e('"Enter Range Label"', 'prospect'); ?>/><br/>
 		<?php _e('Start Date: Year', 'prospect'); ?> <input type="text" size="5" v-model="min.y" placeholder="YYYY" pattern="(open|-?\d+)"/>
 		<?php _e('Month', 'prospect'); ?> <input type="text" size="2" v-model="min.m" placeholder="MM" pattern="\d{0,2}"/>
@@ -230,17 +233,18 @@
 	</vuemodal>
 </script>
 
-<!-- Move Vocab Dialog for top-level non-child -->
+<!-- Move Vocab Dialog for top-level term with no children -->
 <script id="dialog-move-vocab-lone" type='text/x-template'>
 	<vuemodal title=<?php _e('"Move Vocabulary Entry"', 'prospect'); ?> cancel="true" v-on:save="save">
 		<?php _e('Move this Term so it becomes a child of', 'prospect'); ?> <br/>
 		<select v-model='newParent'>
-			<option v-for="aParent in parents">
+			<option v-for="aParent in params.parents">
     			{{ aParent }}
 			</option>
 		</select>
 		<br/>
 		<input type='radio' value='yes' v-model="keep"/> <?php _e('Keep visual config', 'prospect'); ?>
+		<br/>
 		<input type='radio' value='no' v-model="keep"/> <?php _e('Clear visual config', 'prospect'); ?>
 	</vuemodal>
 </script>
@@ -254,7 +258,7 @@
 		<br/>
 		<?php _e('New parent', 'prospect'); ?>
 		<select v-model='newParent'>
-			<option v-for="aParent in parents">
+			<option v-for="aParent in params.parents">
     			{{ aParent }}
 			</option>
 		</select>
@@ -265,11 +269,12 @@
 <script id="dialog-move-vocab-child" type='text/x-template'>
 	<vuemodal title=<?php _e('"Move Vocabulary Entry"', 'prospect'); ?> cancel="true" v-on:save="save">
 		<input type='radio' value='yes' v-model="up"/> <?php _e('Move to top (parent) level', 'prospect'); ?>
+		<br/>
 		<input type='radio' value='no' v-model="up"/> <?php _e('Move to new parent', 'prospect'); ?>
 		<br/>
 		<?php _e('New Parent', 'prospect'); ?>
 		<select v-model='newParent'>
-			<option v-for="aParent in parents">
+			<option v-for="aParent in params.parents">
     			{{ aParent }}
 			</option>
 		</select>
@@ -289,7 +294,7 @@
 	</vuemodal>
 </script>
 
-<!-- Color Choice w/Clear Dialog -->
+<!-- Color Choice w/Clear Dialog for child Vocab Terms -->
 <script id="dialog-choose-color-clear" type='text/x-template'>
 	<vuemodal title=<?php _e('"Choose Color"', 'prospect'); ?> cancel="true" v-on:save="save">
 		<input type='checkbox' v-model='doClear'> <?php _e('Remove visuals', 'prospect'); ?><br/>
@@ -303,7 +308,7 @@
 		<?php _e('Choose the Attribute whose Legend you wish to copy over the current Legend you are editing.', 'prospect'); ?><br/>
 		<b><?php _e('WARNING: No undo.', 'prospect'); ?></b><br/>
 		<label for="choose-att">Attribute </label>
-		<select id="choose-att" v-model='fid'>
+		<select id="choose-att" v-model='attid'>
 			<option v-for="another in others" v-bind:value="another.id">
     			{{ another.l }} ({{ another.id }})
 			</option>

@@ -160,8 +160,8 @@ div.dialog-wrap .title {
 }
 
 div.dialog-wrap input {
-	display: block;
-	width: 100%;
+/*	display: block; */
+/*	width: 100%; */
 	padding: 5px;
 	margin: 5px 0;
 	font-size: 12px;
@@ -210,8 +210,11 @@ div.dialog-wrap .btn:active {
 	/* To display Legend entry */
 .viz-icon {
 	cursor: pointer;
-	width: 24px;
-	height: 24px;
+/*	width: 24px;
+	height: 24px; */
+	width: 40px;
+	height: 12px;
+
 	padding: 0;
 	margin: 0;
 
