@@ -101,7 +101,7 @@
 		<input type="text" id="num-r-max" v-model='nRange.max' placeholder="Max val" size="8"/>
 		<br/>
 		<label for="num-g"><?php _e('Group values together by', 'prospect'); ?> </label>
-		<input type="number" id="num-g" v-model='nRange.group' min="0" max="4"/> <?php _e('digits', 'prospect'); ?>
+		<input type="number" id="num-g" v-model='nRange.g' min="0" max="4"/> <?php _e('digits', 'prospect'); ?>
 		<br/>
 		<?php _e('Use', 'prospect'); ?>
 		<input type='checkbox' v-model='nRange.useU'/> <?php _e('color for indefinite Number values ', 'prospect'); ?>
@@ -137,7 +137,7 @@
 			<label for="date-r-max-d"><?php _e('Day', 'prospect'); ?> </label> <input type="text" id="date-r-max-d" v-model='dRange.max.d' placeholder="DD" size="2" pattern="\d{0,2}">
 			<br/>
 		<label for="date-g"><?php _e('Group Dates together by', 'prospect'); ?></label>
-		<select id="date-g" v-model='dRange.group'>
+		<select id="date-g" v-model='dRange.g'>
 			<option value="d"><?php _e('Day', 'prospect'); ?></option>
 			<option value="m"><?php _e('Month', 'prospect'); ?></option>
 			<option value="y"><?php _e('Year', 'prospect'); ?></option>

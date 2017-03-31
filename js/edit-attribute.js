@@ -381,9 +381,9 @@ jQuery(document).ready(function() {
 		// Configuration settings specific to particular Attribute types
 	var vLegend = [];					// Vocab Legend definition
 	var tLegend = [];					// Text Legend definition
-	var nRange = { min: '0', max: '100', group: 0, u: '#888888', useU: false };				// Number Range definition
+	var nRange = { min: '0', max: '100', g: 0, u: '#888888', useU: false };				// Number Range definition
 	var nLegend = [];					// Number Legend definition
-	var dRange = { min: {y: '', m: '', d: ''}, max: {y: '', m: '', d: ''}, group: 'y', u: '#888888', useU: false };	// Dates Range definition
+	var dRange = { min: {y: '', m: '', d: ''}, max: {y: '', m: '', d: ''}, g: 'y', u: '#888888', useU: false };	// Dates Range definition
 	var dLegend = [];					// Dates Legend definition
 
 		// GUI Vars
@@ -462,6 +462,7 @@ jQuery(document).ready(function() {
 				nRange.u = embedData.u;
 				nRange.useU = true;
 			}
+			nRange.g = embedData.g;
 			break;
 		case 'D':
 				// Convert numeric values into strings
@@ -483,6 +484,7 @@ jQuery(document).ready(function() {
 				dRange.u = embedData.u;
 				dRange.useU = true;
 			}
+			dRange.g = embedData.g;
 			break;
 		} // switch
 	} // Unpack range configuration data
