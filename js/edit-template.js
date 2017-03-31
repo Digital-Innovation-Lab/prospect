@@ -27,66 +27,208 @@ if (!Array.prototype.findIndex) {
   };
 }
 
+// https://tc39.github.io/ecma262/#sec-array.prototype.find
+if (!Array.prototype.find) {
+  Object.defineProperty(Array.prototype, 'find', {
+    value: function(predicate) {
+     // 1. Let O be ? ToObject(this value).
+      if (this == null) {
+        throw new TypeError('"this" is null or not defined');
+      }
+
+      var o = Object(this);
+
+      // 2. Let len be ? ToLength(? Get(O, "length")).
+      var len = o.length >>> 0;
+
+      // 3. If IsCallable(predicate) is false, throw a TypeError exception.
+      if (typeof predicate !== 'function') {
+        throw new TypeError('predicate must be a function');
+      }
+
+      // 4. If thisArg was supplied, let T be thisArg; else let T be undefined.
+      var thisArg = arguments[1];
+
+      // 5. Let k be 0.
+      var k = 0;
+
+      // 6. Repeat, while k < len
+      while (k < len) {
+        // a. Let Pk be ! ToString(k).
+        // b. Let kValue be ? Get(O, Pk).
+        // c. Let testResult be ToBoolean(? Call(predicate, T, « kValue, k, O »)).
+        // d. If testResult is true, return kValue.
+        var kValue = o[k];
+        if (predicate.call(thisArg, kValue, k, o)) {
+          return kValue;
+        }
+        // e. Increase k by 1.
+        k++;
+      }
+
+      // 7. Return undefined.
+      return undefined;
+    }
+  });
+}
 
 jQuery(document).ready(function() {
-	Ractive.decorators.iconButton = function (node, icon) {
-		jQuery(node).button({
-			text: false,
-			icons: { primary: icon }
-		});
+	Vue.component('icon-btn', {
+		props: {
+			symbol: {
+	    		type: String,
+	    		default: ''
+	    	},
+			label: {
+	    		type: String,
+	    		default: ''
+	    	}
+		},
+		template: `<button v-on:click="click">{{label}}</button>`,
+		data: function () {
+			return {
+				jBtn: null
+			}
+		},
+		methods: {
+			click: function (event) {
+	    		if (event) event.preventDefault();
+				this.$emit('click');
+	    	}
+		},
+			// Lifecycle hooks
+		mounted: function() {
+			this.jBtn = jQuery(this.$el).button({
+				text: false,
+				icons: { primary: this.symbol }
+			});
+		},
+		beforeDestroy: function() {
+			jQuery(this.jBtn).button('destroy');
+		}
+	});
 
-		return {
-			teardown: function () {
-				jQuery(node).button('destroy');
+		// "Null" placeholder when no dialog should be shown
+	Vue.component('nullcomponent', {
+		template: '<div style="display: none"></div>'
+	});
+
+		// Wrapper for modal dialog boxes
+		// Strategy for using modal:
+		//		Caller puts parameters into modalParams
+		//		Caller sets vApp.modalParams to appropriate dialog component name
+		//		Dialog component makes local copies of relevant parameters in data (if modifiable)
+		//		Bind GUI to those local data
+		//		If user clicks "OK" then call callback function with feedback data
+	Vue.component('vuemodal', {
+		props: {
+			title: {
+	    		type: String,
+	    		default: 'Dialog'
+	    	},
+			cancel: {
+				type: String,
+				default: 'false'
+			},
+			size: {
+				type: String,
+				default: ''
+			}
+		},
+		template: '#dialog-template',
+		methods: {
+			close: function(event) {
+				console.log("vuemodal > close");
+				this.$el.className = 'dialog-wrap open';
+				setTimeout(function() {
+					vApp.$emit('dialogclose');
+				}.bind(this), 300);
+				if (event) { event.preventDefault(); }
+			},
+			clickok: function(event) {
+				console.log("vuemodal > clickok1");
+				this.$emit('save');
+				console.log("vuemodal > clickok2");
+				if (event) { event.preventDefault(); }
+				this.close();
+			}
+		},
+			// Lifecycle hooks
+		mounted: function() {
+			if (this.size != '') {
+				this.$el.firstChild.className = this.size;
+			} // switch()
+			setTimeout(function() {
+	            this.$el.className = 'dialog-wrap open pop';
+	        }.bind(this), 20);
+		}
+	});
+
+		// INPUT: Message to display is in params.msg
+	Vue.component('dlgMessage', {
+		props: {
+			params: Object
+		},
+		template: '#dialog-message'
+	});
+
+		// INPUT:	params.msg = Message to display
+		//			params.callback = Callback function
+	Vue.component('dlgConfirm', {
+		props: {
+			params: Object
+		},
+		template: '#dialog-confirm',
+		methods: {
+			ok: function() {
+				console.log("Clicked OK");
+				if (this.params.callback != null) {
+					this.params.callback();
+				}
 			}
 		}
-	};
-
-		// Create Ractive component to wrap jQueryUI Dialog
-	var RJDialogComponent = Ractive.extend({
-		template: '#dialog-r-template',
-		data: function() {
-			return {
-				title: '',
-				width: 350,
-				height: 300,
-				cancel: true
-			}
-		}, // data
-
-			// Intercept render to insert and active jQueryUI plugin
-		onrender: function() {
-			var self = this;
-			var thisComponent = this.find('*');
-			var theButtons = [ {
-					text: 'OK',
-					click: function() {
-						self.fire('ok');
-					}
-				} ];
-			if (self.get('cancel')) {
-				theButtons.push( {
-					text: 'Cancel',
-					click: function() {
-						self.fire('cancel');
-					}
-				} );
-			}
-			self.modal = jQuery(thisComponent).dialog({
-				dialogClass: "no-close",
-				width: self.get('width'),
-				height: self.get('height'),
-				modal : true,
-				autoOpen: true,
-				buttons: theButtons
-			});
-		}, // onrender
-
-			// Intercept teardown so that jQueryUI component destroyed
-		onteardown: function () {
-			this.modal.dialog('destroy');
-		} // onteardown
 	});
+
+		// Component (dialog) to choose Attribute from list
+	Vue.component('dlgChooseAttribute', {
+		props: {
+			params: Object
+		},
+		data: function () {		// Local copies of data that user can edit
+			return { selIndex: 0 }
+		},
+		methods: {
+			save: function() {
+				console.log("dlgChooseAttribute > Clicked save");
+				this.params.callback(this.selIndex);
+			},
+			doSelect: function(index) {
+				this.selIndex = index;
+			}
+		},
+		template: '#dialog-choose-attribute'
+	});
+
+		// Component (dialog) to choose Dependent Template from list
+	Vue.component('dlgChooseTemplate', {
+		props: {
+			params: Object
+		},
+		data: function () {		// Local copies of data that user can edit
+			return { selIndex: 0 }
+		},
+		methods: {
+			save: function() {
+				console.log("dlgChooseTemplate > Clicked save");
+				this.params.callback(this.selIndex);
+			},
+			doSelect: function(index) {
+				this.selIndex = index;
+			}
+		},
+		template: '#dialog-choose-dependent'
+	});
+
 
 		// PURPOSE: Ensure that Attributes exist in current set of definitions
 		// NOTES:	In case user has deleted or changed Attribute definition since this
@@ -94,7 +236,7 @@ jQuery(document).ready(function() {
 	function checkAtt(attID) {
 		if (attID === 'disable')
 			return 'disable';
-		var attDef = _.find(defAtts, function(att) { return att.id == attID; });
+		var attDef = defAtts.find(function(att) { return att.id == attID; });
 		if (attDef)
 			return attID;
 		else
@@ -105,7 +247,7 @@ jQuery(document).ready(function() {
 		// DATA LOADED FROM SERVER
 		// =======================
 		// Unpack list of definition data for currently defined Templates
-	var defTemplates = prspdata.templates;
+	var allTemplates = prspdata.templates;
 		// Unpack list of currently defined Attributes (just minimal definition data)
 	var defAtts = prspdata.atts;
 
@@ -113,7 +255,8 @@ jQuery(document).ready(function() {
 		// ===================================================
 	var templateID = jQuery('input[name="prsp_tmp_id"]').val();
 	var defTemplate;
-	var textAtts = [];					// Text Attributes in this Template
+	var depTemplates=[];				// List of Dependent Templates
+	var textAtts=[];					// Text Attributes in this Template
 	var recPostAtts;					// Attributes that can be viewed from Record's Post page
 	var tmpPostAtts;					// Attributes of Records displayed on Template Post page
 	var scAtts, ytAtts, trAtts, tcAtts;	// Attribute IDs available for configuring widgets of specific types
@@ -133,6 +276,8 @@ jQuery(document).ready(function() {
 		defTemplate = JSON.parse(embedData);
 		if (typeof defTemplate.h === 'undefined')
 			defTemplate.h = '';
+			// Ensure that textual label attribute still exists
+		defTemplate.t = checkAtt(defTemplate.t);
 	} else {
 		defTemplate = { l: '', d: false, t: '', a: [], h: '' };
 	}
@@ -147,11 +292,7 @@ jQuery(document).ready(function() {
 		recPostAtts.t.tcAtt = checkAtt(recPostAtts.t.tcAtt);
 	} else {
 			// Create default settings in case of new Template
-		recPostAtts 	= {};
-		recPostAtts.sc = 'disable';
-		recPostAtts.yt = 'disable';
-		recPostAtts.t 	= { t1Att: 'disable', t2Att: 'disable', tcAtt: 'disable' };
-		recPostAtts.cnt= [];
+		recPostAtts = { sc: 'disable', yt: 'disable', cnt: [], t: { t1Att: 'disable', t2Att: 'disable', tcAtt: 'disable' } };
 	}
 
 	embedData = jQuery('textarea[name="prsp_tmp_pview"]').val();
@@ -161,31 +302,28 @@ jQuery(document).ready(function() {
 		tmpPostAtts.c 	= checkAtt(tmpPostAtts.c);
 	} else {
 			// Create default settings
-		tmpPostAtts 	= {};
-		tmpPostAtts.d = 'l';
-		tmpPostAtts.i = 'disable';
-		tmpPostAtts.c = 'disable';
+		tmpPostAtts = { d: 'l', i: 'disable', c: 'disable' };
 	}
 
-		// Must integrate Joins into Attribute array: { id: att ID, t: type, j: Template ID (if Join) } ]
+		// Must integrate Joins into Attribute array: { id: att ID, t: type, j: Template ID (if Join), view } ]
 	embedData = jQuery('textarea[name="prsp_tmp_joins"]').val();
 	var joins = [];
 	if (embedData && embedData.length > 2) {
-		var joins = JSON.parse(embedData);
+		joins = JSON.parse(embedData);
 	}
 	var newAtts=[];
 	for (i=0; i<defTemplate.a.length; i++) {
 		var attID = defTemplate.a[i];
 		var attObj = { id: attID };
 			// Find Attribute definition
-		var attDef = _.find(defAtts, function(att) { return att.id === attID; });
+		var attDef = defAtts.find(function(att) { return att.id === attID; });
 			// Only copy Attributes that exist now
 		if (attDef) {
 			attObj.view = recPostAtts.cnt.findIndex(function(att) { return att === attDef.id; } ) != -1;
 			attObj.t = attDef.def.t;
 			if (attDef.def.t == 'J') {
 					// Find Join entry and add template ID
-				var joinDef = _.find(joins, function(j) { return j.id === attID; });
+				var joinDef = joins.find(function(j) { return j.id === attID; });
 				if (joinDef) {
 					attObj.j = joinDef.t;
 				} else {
@@ -203,11 +341,18 @@ jQuery(document).ready(function() {
 	} // for atts
 	defTemplate.a = newAtts;
 
+		// Compile list of dependent Templates
+	allTemplates.forEach(function(theTmplt) {
+		if (theTmplt.def.d) {
+			depTemplates.push(theTmplt);
+		}
+	});
+
+
 		// OTHER VARS
 		// ==========
-	var rApp;							// the main Ractive application
+	var vApp;							// the main VueJS application
 	var errTimer;
-	var errorString = '';				// error readout
 
 
 		// CODE
@@ -219,21 +364,19 @@ jQuery(document).ready(function() {
 		return jQuery(scriptName).html().trim();
 	}
 
-
 		// PURPOSE: Show message for 5 seconds
 	function displayError(errID, ok)
 	{
 			// If a clear-error timer is set, cancel it
 		if (errTimer) {
 			clearTimeout(errTimer);
-			jQuery('#error-frame').removeClass('ok');
 		}
 		var newError = getText(errID);
-		rApp.set('errorMsg', newError);
-		if (ok === true) {
-			jQuery('#error-frame').addClass('ok');
-		}
-		errTimer = setTimeout(function() { rApp.set('errorMsg', ''); jQuery('#error-frame').removeClass('ok'); }, 5000);
+		vApp.errorOK = ok === true;
+		vApp.errorMsg = newError;
+		errTimer = setTimeout(function() {
+			vApp.errorMsg = '';
+		}, 5000);
 	} // displayError()
 
 
@@ -242,7 +385,7 @@ jQuery(document).ready(function() {
 		// SIDE-FX: sets errorMsg to explanation of error
 	function doErrorCheck()
 	{
-		var theID = rApp.get('templateID').trim();
+		var theID = vApp.templateID.trim();
 		if (theID.length == 0) {
 			displayError('#errmsg-id');
 			return false;
@@ -255,12 +398,12 @@ jQuery(document).ready(function() {
 			displayError('#errmsg-id-too-long');
 			return false;
 		}
-		if (defTemplates.findIndex(function(tmplt) { return theID === tmplt.id; }) != -1) {
+		if (allTemplates.findIndex(function(tmplt) { return theID === tmplt.id; }) != -1) {
 			displayError('#errmsg-id-taken');
 			return false;
 		}
 
-		var theLabel = rApp.get('theTemplate.l').replace(/"/g, '').trim();
+		var theLabel = vApp.label.replace(/"/g, '').trim();
 		if (theLabel.length == 0) {
 			displayError('#errmsg-no-label');
 			return false;
@@ -272,7 +415,7 @@ jQuery(document).ready(function() {
 
 		var defObj = { l: theLabel };
 
-		var theHint = rApp.get('theTemplate.h').replace(/"/g, '').trim();
+		var theHint = vApp.hint.replace(/"/g, '').trim();
 		if (theHint.length > 0) {
 			defObj.h = theHint;
 		}
@@ -280,56 +423,59 @@ jQuery(document).ready(function() {
 		return defObj;
 	} // doErrorCheck()
 
-
 		// PURPOSE: Present user message in modal dialog box
-	function messageModal(mText)
+	function messageModal(msgID)
 	{
-		var modalDialog = new Ractive({
-			el: '#insert-dialog',
-			template: '#dialog-message',
-			data: {
-				message: mText
-			},
-			components: {
-				dialog: RJDialogComponent
-			}
-		}); // new Ractive()
-
-		modalDialog.on('dialog.ok', function() {
-			modalDialog.teardown();
-			return false;
-		});
+		var mText = getText(msgID);
+		vApp.modalParams.msg = mText;
+		vApp.modalShowing = 'dlgMessage';
 	} // messageModal()
-
 
 		// PURPOSE: Present a confirmation modal
 		// RETURNS: true if OK, false if Cancel
-	function confirmModal(msgID, callback)
+	function confirmModal(msgID, addText, callback)
 	{
-		var mText = getText(msgID);
-		var modalDialog = new Ractive({
-			el: '#insert-dialog',
-			template: '#dialog-confirm',
-			data: {
-				message: mText
-			},
-			components: {
-				dialog: RJDialogComponent
-			}
-		}); // new Ractive()
-
-		modalDialog.on('dialog.ok', function() {
-			callback();
-			modalDialog.teardown();
-			return false;
-		});
-		modalDialog.on('dialog.cancel', modalDialog.teardown);
+		var mText = getText(msgID) + addText;
+		vApp.modalParams.msg = mText;
+		vApp.modalParams.callback = callback;
+		vApp.modalShowing = 'dlgConfirm';
 	} // confirmModal()
 
+		// PURPOSE: Compile list of unused Attributes
+		// RETURNS: true if there are attributes that can be added
+	function getUnusedAtts()
+	{
+		var attChoices = [];
+		var curList = vApp.tmpltAttributes;
+		defAtts.forEach(function(attDef) {
+				// If this dependent template, don't allow Join Attributes!
+			if (!vApp.dependent || attDef.def.t != 'J') {
+					// Ensure not already used
+				if (curList.findIndex(function(item) { return item.id == attDef.id; }) == -1) {
+					var choice = { l: attDef.def.l, id: attDef.id, t: attMap[attDef.def.t] };
+					attChoices.push(choice);
+				}
+			}
+		});
+
+		if (attChoices.length == 0) {
+			displayError('#errmsg-all-atts-used');
+			return false;
+		}
+
+		attChoices.sort(function(a, b) {
+			if (a.id < b.id) { return -1; } else { return 1; }
+		});
+		vApp.modalParams.attList = attChoices;
+
+		return true;
+	} // getUnusedAtts()
+
 		// PURPOSE: (Re)Compute arrays of Attributes for configuring widgets and Template Post page
-		// INPUT: 	if update = true, rApp already created, need to update it
+		// INPUT: 	if update = true, vApp already created, need to update it
 		//				otherwise, we are preparing for it
-	function compileAttOptions(update)
+		//			delAtt = ID of Attribute that has been deleted (or null if none)
+	function compileAttOptions(update, delAtt)
 	{
 		textAtts = [];
 		scAtts = ['disable'];
@@ -342,7 +488,7 @@ jQuery(document).ready(function() {
 
 		var curAttDefs;
 		if (update)
-			curAttDefs = rApp.get('theTemplate.a');
+			curAttDefs = vApp.tmpltAttributes;
 		else
 			curAttDefs = defTemplate.a;
 
@@ -379,49 +525,51 @@ jQuery(document).ready(function() {
 
 		if (update)
 		{
-			rApp.set('textAtts', textAtts);
-			rApp.set('scAtts', scAtts);
-			rApp.set('ytAtts', ytAtts);
-			rApp.set('trAtts', trAtts);
-			rApp.set('tcAtts', tcAtts);
+			vApp.textAtts	= textAtts;
+			vApp.scAtts		= scAtts;
+			vApp.ytAtts		= ytAtts;
+			vApp.trAtts		= trAtts;
+			vApp.tcAtts		= tcAtts;
 
-			rApp.set('tpIAtts', tpIAtts);
-			rApp.set('tpCAtts', tpCAtts);
+			vApp.tpIAtts	= tpIAtts;
+			vApp.tpCAtts	= tpCAtts;
 
-				// NOTES: These forced resets overcome a Ractive quirk
-			if (rApp.get('theTemplate.t') == '') {
-				if (textAtts.length > 0)
-					rApp.set('theTemplate.t', textAtts[0]);
+			if (delAtt != null) {
+				if (vApp.labelAttribute == delAtt)
+					vApp.labelAttribute = vApp.textAtts[0] || '';
+				if (vApp.recPostAtts.sc == delAtt)
+					vApp.recPostAtts.sc = 'disable';
+				if (vApp.recPostAtts.yt == delAtt)
+					vApp.recPostAtts.yt = 'disable';
+				if (vApp.recPostAtts.t.t1Att == delAtt)
+					vApp.recPostAtts.t.t1Att = 'disable';
+				if (vApp.recPostAtts.t.t2Att == delAtt)
+					vApp.recPostAtts.t.t2Att = 'disable';
+				if (vApp.recPostAtts.t.tcAtt == delAtt)
+					vApp.recPostAtts.t.tcAtt = 'disable';
+				if (vApp.tmpPostAtts.i == delAtt)
+					vApp.tmpPostAtts.i = 'disable';
+				if (vApp.tmpPostAtts.c == delAtt)
+					vApp.tmpPostAtts.c = 'disable';
 			}
-			if (rApp.get('recPostAtts.sc') == '')
-				rApp.set('recPostAtts.sc', 'disable');
-			if (rApp.get('recPostAtts.yt') == '')
-				rApp.set('recPostAtts.yt', 'disable');
-			if (rApp.get('recPostAtts.t.t1Att') == '')
-				rApp.set('recPostAtts.t.t1Att', 'disable');
-			if (rApp.get('recPostAtts.t.t2Att') == '')
-				rApp.set('recPostAtts.t.t2Att', 'disable');
-			if (rApp.get('recPostAtts.t.tcAtt') == '')
-				rApp.set('recPostAtts.t.tcAtt', 'disable');
-
-			if (rApp.get('tmpPostAtts.i') == '')
-				rApp.set('tmpPostAtts.i', 'disable');
-			if (rApp.get('tmpPostAtts.c') == '')
-				rApp.set('tmpPostAtts.c', 'disable');
 		}
 	} // compileAttOptions()
 
-	compileAttOptions(false);
+	compileAttOptions(false, null);
 
 		// Create our main App Ractive instance with wrapped jQueryUI components
-	rApp = new Ractive({
-		el: '#ractive-output',
-		template: '#ractive-base',
+	vApp = new Vue({
+		el: '#vue-outer',
 		data: {
 			templateID: templateID,
-			theTemplate: defTemplate,
+			label: defTemplate.l,
+			dependent: defTemplate.d,
+			hint: defTemplate.h,
+			labelAttribute: defTemplate.t,
+			tmpltAttributes: defTemplate.a,
 			recPostAtts: recPostAtts,
 			tmpPostAtts: tmpPostAtts,
+				// GUI state & options
 			textAtts: textAtts,
 			scAtts: scAtts,
 			ytAtts: ytAtts,
@@ -430,233 +578,164 @@ jQuery(document).ready(function() {
 			tpIAtts: tpIAtts,
 			tpCAtts: tpCAtts,
 			attMap: attMap,
-			errorMsg: errorString
+			errorMsg: '',						// current error string (if any)
+			errorOK: false,						// Is message actually not an error?
+			modalParams: {						// parameters passed to modal dialogs
+				msg: '',
+				attList: [],
+				tmpltList: depTemplates,
+				callback: null
+			},
+			modalShowing: 'nullcomponent'		// modal currently showing (initially nothing)
 		},
-	});
+		methods: {
+			saveTemplate: function(event) {
+				console.log("Click: saveTemplate");
+				if (event) { event.preventDefault(); }
+				var tmpltDef = doErrorCheck();
+				if (tmpltDef) {
+					var theError = null;
+					tmpltDef.d = vApp.dependent;
+					tmpltDef.t = vApp.labelAttribute;
 
-
-	rApp.on('addAttribute', function() {
-			// Only show Attributes not already in Template's list
-		var curList = rApp.get('theTemplate.a');
-		var isDep = rApp.get('theTemplate.d');
-
-			// Create list of Attribute IDs not already used in this Template
-		var attChoices = [ ];
-		_.forEach(defAtts, function(attDef) {
-				// If this dependent template, don't allow Join Attributes!
-			if (!isDep || attDef.def.t != 'J') {
-					// Ensure not already used
-				if (curList.findIndex(function(item) { return item.id === attDef.id; }) == -1) {
-					var choice = { l: attDef.def.l, id: attDef.id, t: attMap[attDef.def.t], view: true };
-					attChoices.push(choice);
-				}
-			}
-		});
-
-		if (attChoices.length == 0) {
-			displayError('#errmsg-all-atts-used');
-			return false;
-		}
-
-		attChoices.sort();
-
-		var selected = 0;
-		var attDialog = new Ractive({
-			el: '#insert-dialog',
-			template: '#dialog-choose-attribute',
-			data: {
-				attributes: attChoices,
-				selIndex: selected
-			},
-			components: {
-				dialog: RJDialogComponent
-			}
-		}); // new Ractive()
-
-		attDialog.on('doSelect', function(event, index) {
-			attDialog.set('selIndex', index);
-			return false;
-		});
-
-		attDialog.on('dialog.ok', function() {
-			var i = attDialog.get('selIndex');
-			var attChoice = attChoices[i];
-			var attDef = _.find(defAtts, function(att) { return att.id == attChoice.id; });
-			var newAttRec = { id: attDef.id, t: attDef.def.t, j: '', view: false };
-
-			rApp.push('theTemplate.a', newAttRec);
-
-			attDialog.teardown();
-			return false;
-		});
-		attDialog.on('dialog.cancel', attDialog.teardown);
-		return false;
-	}); // addAttribute
-
-
-	rApp.on('delAttribute', function(event, index) {
-		confirmModal('#msg-confirm-del-att', function() {
-			rApp.splice('theTemplate.a', index, 1);
-		});
-		return false;
-	}); // delAttribute
-
-
-		// Pop up modal with hint about IDs
-	rApp.on('idHint', function() {
-		var hint = getText('#errmsg-id');
-		messageModal(hint);
-		return false;
-	});
-
-		// Compile Text Attribute list when Attributes change
-		// 	initially oldValue == undefined
-	rApp.observe('theTemplate.a', function (newValue, oldValue, keypath) {
-			// Refresh what Attributes are available for Inspector settings
-		if (typeof oldValue != 'undefined')
-			compileAttOptions(true);
-	});
-
-		// Move an Attribute "down" in Template definition
-	rApp.on('moveDown', function(event, index) {
-		var r = rApp.get('theTemplate.a');
-		if (index != r.length-1) {
-			rApp.splice('theTemplate.a', index, 1).then(function(spliced) {
-				rApp.splice('theTemplate.a', index+1, 0, spliced[0]);
-			});
-		}
-		return false;
-	});
-
-		// Move an Attribute "up" in Template definition
-	rApp.on('moveUp', function(event, index) {
-		if (index) {
-			rApp.splice('theTemplate.a', index, 1).then(function(spliced) {
-				rApp.splice('theTemplate.a', index-1, 0, spliced[0]);
-			});
-		}
-		return false;
-	});
-
-	rApp.on('selJoin', function(event, index) {
-			// No Joins for dependent Templates
-		if (rApp.get('theTemplate.d'))
-			return false;
-
-		var attIndex = 'theTemplate.a['+index+']';
-		var type = rApp.get(attIndex+'.t');
-		if (type != 'J') {
-			displayError('#errmsg-not-join');
-			return false;
-		}
-			// Compile list of dependent Templates
-		var dChoices = [ ];
-		_.forEach(defTemplates, function(theTmplt) {
-			if (theTmplt.def.d) {
-				dChoices.push(theTmplt);
-			}
-		});
-		if (dChoices.length == 0) {
-			displayError('#errmsg-no-dependents');
-			return false;
-		}
-
-		var selected = 0;
-		var depDialog = new Ractive({
-			el: '#insert-dialog',
-			template: '#dialog-choose-dependent',
-			data: {
-				templates: dChoices,
-				selIndex: selected
-			},
-			components: {
-				dialog: RJDialogComponent
-			}
-		}); // new Ractive()
-
-		depDialog.on('doSelect', function(event, i) {
-			depDialog.set('selIndex', i);
-			return false;
-		});
-
-		depDialog.on('dialog.ok', function() {
-			var i = depDialog.get('selIndex');
-			var att = rApp.get(attIndex);
-			att.j = dChoices[i].id;
-			rApp.set(attIndex, att);
-			depDialog.teardown();
-			return false;
-		});
-		depDialog.on('dialog.cancel', depDialog.teardown);
-		return false;
-	});
-
-
-	rApp.on('saveTemplate', function() {
-		var tmpltDef = doErrorCheck();
-
-		if (tmpltDef) {
-			var theError = null;
-
-			tmpltDef.d = rApp.get('theTemplate.d');
-			tmpltDef.t = rApp.get('theTemplate.t');
-
-			var atts = rApp.get('theTemplate.a');
-			if (atts.length === 0) {
-				displayError('#errmsg-no-atts');
-				return false;
-			}
-
-			tmpltDef.a = [];
-			var tmpJoins = [];
-			var tmpCnt = [];
-
-			atts.forEach(function(theAtt) {
-				tmpltDef.a.push(theAtt.id);
-				if (theAtt.view)
-					tmpCnt.push(theAtt.id);
-				if (theAtt.t == 'J') {
-						// Attempt to add Join Attribute to dependent Template?
-					if (tmpltDef.d) {
-						theError = '#errmsg-no-join-for-dep';
-						// Unspecified Join?
-					} else if (theAtt.j == '') {
-						theError = '#errmsg-missing-join-tmp';
+					var atts = vApp.tmpltAttributes;
+					if (atts.length === 0) {
+						displayError('#errmsg-no-atts');
+						return false;
 					}
-					tmpJoins.push({ id: theAtt.id, t: theAtt.j });
+
+					tmpltDef.a = [];
+					var tmpJoins = [];
+					var tmpCnt = [];
+
+					atts.forEach(function(theAtt) {
+						tmpltDef.a.push(theAtt.id);
+						if (theAtt.view)
+							tmpCnt.push(theAtt.id);
+						if (theAtt.t == 'J') {
+								// Attempt to add Join Attribute to dependent Template?
+							if (tmpltDef.d) {
+								theError = '#errmsg-no-join-for-dep';
+								// Unspecified Join?
+							} else if (theAtt.j == '') {
+								theError = '#errmsg-missing-join-tmp';
+							}
+							tmpJoins.push({ id: theAtt.id, t: theAtt.j });
+						}
+					});
+
+					if (theError) {
+						displayError(theError);
+						return false;
+					}
+
+					var tmpView = { };
+					tmpView.sc = vApp.recPostAtts.sc;
+					tmpView.yt = vApp.recPostAtts.yt;
+					tmpView.t = { };
+					tmpView.t.t1Att = vApp.recPostAtts.t.t1Att;
+					tmpView.t.t2Att = vApp.recPostAtts.t.t2Att;
+					tmpView.t.tcAtt = vApp.recPostAtts.t.tcAtt;
+					tmpView.cnt 	= tmpCnt;
+
+					var tmpPost = { };
+					tmpPost.d = vApp.tmpPostAtts.d;
+					tmpPost.i = vApp.tmpPostAtts.i;
+					tmpPost.c = vApp.tmpPostAtts.c;
+
+					console.log("Def: "+JSON.stringify(tmpltDef));
+					console.log("Joins: "+JSON.stringify(tmpJoins));
+					console.log("Post: "+JSON.stringify(tmpPost));
+					console.log("View: "+JSON.stringify(tmpView));
+
+						// Stuff results into hidden form fields
+					jQuery('input[name="prsp_tmp_id"]').val(vApp.templateID.trim());
+					jQuery('textarea[name="prsp_tmp_def"]').val(JSON.stringify(tmpltDef));
+					jQuery('textarea[name="prsp_tmp_joins"]').val(JSON.stringify(tmpJoins));
+					jQuery('textarea[name="prsp_tmp_view"]').val(JSON.stringify(tmpView));
+					jQuery('textarea[name="prsp_tmp_pview"]').val(JSON.stringify(tmpPost));
+						// Confirm to user that Template saved
+					displayError('#msg-saved', true);
 				}
-			});
 
-			if (theError) {
-				displayError(theError);
-				return false;
-			}
-
-			var tmpView = { };
-			tmpView.sc = rApp.get('recPostAtts.sc');
-			tmpView.yt = rApp.get('recPostAtts.yt');
-			tmpView.t = { };
-			tmpView.t.t1Att = rApp.get('recPostAtts.t.t1Att');
-			tmpView.t.t2Att = rApp.get('recPostAtts.t.t2Att');
-			tmpView.t.tcAtt = rApp.get('recPostAtts.t.tcAtt');
-			tmpView.cnt 	= tmpCnt;
-
-			var tmpPost = { };
-			tmpPost.d = rApp.get('tmpPostAtts.d');
-			tmpPost.i = rApp.get('tmpPostAtts.i');
-			tmpPost.c = rApp.get('tmpPostAtts.c');
-
-// console.log("View: "+JSON.stringify(tmpView));
-
-				// Stuff results into hidden form fields
-			jQuery('input[name="prsp_tmp_id"]').val(rApp.get('templateID').trim());
-			jQuery('textarea[name="prsp_tmp_def"]').val(JSON.stringify(tmpltDef));
-			jQuery('textarea[name="prsp_tmp_joins"]').val(JSON.stringify(tmpJoins));
-			jQuery('textarea[name="prsp_tmp_view"]').val(JSON.stringify(tmpView));
-			jQuery('textarea[name="prsp_tmp_pview"]').val(JSON.stringify(tmpPost));
-				// Confirm to user that Template saved
-			displayError('#msg-saved', true);
+			}, // saveTemplate()
+			idHint: function(event) {
+				console.log("Click: idHint");
+				if (event) { event.preventDefault(); }
+				messageModal('#errmsg-id');
+			}, // idHint()
+			delAttribute: function(index, event) {
+				console.log("Click: delAttribute "+index);
+				if (event) { event.preventDefault(); }
+				var self=this;
+				confirmModal('#msg-confirm-del-att', '', function() {
+					var oldID = self.tmpltAttributes[index].id;
+					self.tmpltAttributes.splice(index, 1);
+					console.log("Checking against ID "+oldID);
+						// As this can affect current Attribute selections, we need to update them
+					compileAttOptions(true, oldID);
+				});
+			}, // delAttribute()
+			addAttribute: function(event) {
+				console.log("Click: addAttribute");
+				if (event) { event.preventDefault(); }
+				if (getUnusedAtts()) {
+					var self=this;
+					function addAttChoice(index) {
+						var attChoice = self.modalParams.attList[index];
+						var attDef = defAtts.find(function(att) { return att.id == attChoice.id; });
+						var newAttRec = { id: attDef.id, t: attDef.def.t, j: '', view: false };
+						self.tmpltAttributes.push(newAttRec);
+							// As this can affect current Attribute selections, we need to update them
+						compileAttOptions(true, null);
+					}
+					this.modalParams.callback = addAttChoice;
+					this.modalShowing = 'dlgChooseAttribute';
+				}
+			}, // addAttribute()
+			selJoin: function(index, event) {
+				console.log("Click: selJoin");
+				if (event) { event.preventDefault(); }
+					// Can't create joins on a dependent Template
+				if (this.dependent) {
+					return;
+				}
+				var attItem = this.tmpltAttributes[index];
+					// Can only join a Join data type
+				if (attItem.t != 'J') {
+					displayError('#errmsg-not-join');
+					return;
+				}
+				if (depTemplates.length == 0) {
+					displayError('#errmsg-no-dependents');
+					return;
+				}
+				function setJoinTemplate(tI) {
+					attItem.j = depTemplates[tI].id;
+				}
+				this.modalParams.callback = setJoinTemplate;
+				this.modalShowing = 'dlgChooseTemplate';
+			}, // selJoin()
+			moveAttUp: function(index, event) {
+				console.log("Click: moveAttUp");
+				if (event) { event.preventDefault(); }
+				if (index > 0) {
+					var spliced = this.tmpltAttributes.splice(index, 1);
+					this.tmpltAttributes.splice(index-1, 0, spliced[0]);
+				}
+			}, // moveAttUp()
+			moveAttDown: function(index, event) {
+				console.log("Click: moveAttDown");
+				if (event) { event.preventDefault(); }
+				if (index != this.tmpltAttributes.length-1) {
+					var spliced = this.tmpltAttributes.splice(index, 1);
+					this.tmpltAttributes.splice(index+1, 0, spliced[0]);
+				}
+			} // moveAttDown()
 		}
-		return false;
+	});
+	vApp.$on('dialogclose', function () {
+		console.log("dialogclose");
+		this.modalShowing = 'nullcomponent';
 	});
 }); // ready
