@@ -305,8 +305,8 @@ class ProspectAdmin {
 		echo '<textarea name="prsp_tmp_joins" form="post" spellcheck="false" style="display:none">'.$the_tmp->meta_joins.'</textarea>';
 		echo '<textarea name="prsp_tmp_view" form="post" spellcheck="false" style="display:none">'.$the_tmp->meta_view.'</textarea>';
 		echo '<textarea name="prsp_tmp_pview" form="post" spellcheck="false" style="display:none">'.$the_tmp->meta_pview.'</textarea>';
-
-		echo '<div id="ractive-output"></div>';
+		//
+		// echo '<div id="ractive-output"></div>';
 
 			// Insert Edit Panel's HTML
 		self::insert_html_file('edit-template.php');
@@ -824,19 +824,12 @@ class ProspectAdmin {
 					// Built-in modules
 				wp_enqueue_script('jquery');
 				wp_enqueue_script('underscore');
-				// wp_enqueue_script('iris');
 				wp_enqueue_script('jquery-ui-button');
-				// wp_enqueue_script('jquery-ui-dialog');
 
 					// Prospect-specific
-				// wp_enqueue_script('ractive', plugins_url('/lib/ractive.min.js', dirname(__FILE__)));
 				wp_enqueue_script('vuejs', plugins_url('/lib/vuejs-2.2.4/vue.js', dirname(__FILE__)));
-				// wp_enqueue_script('vuejs-x', plugins_url('/lib/vuejs-2.2.4/vuex.js', dirname(__FILE__)));
 				wp_enqueue_script('randomcolor', plugins_url('/lib/randomcolor.js', dirname(__FILE__)));
 				wp_enqueue_script('rainbow', plugins_url('/lib/rainbowvis.js', dirname(__FILE__)));
-				// wp_enqueue_script('edit-attribute', plugins_url('/js/edit-attribute.js', dirname(__FILE__)),
-				// 				array('ractive', 'randomcolor', 'rainbow','iris', 'jquery-ui-button',
-				// 					'jquery-ui-dialog', 'underscore'));
 
 				wp_enqueue_script('edit-attribute', plugins_url('/js/edit-attribute.js', dirname(__FILE__)),
 								array('vuejs', 'randomcolor', 'rainbow', 'underscore'));
@@ -874,15 +867,13 @@ class ProspectAdmin {
 
 					// Built-in modules
 				wp_enqueue_script('jquery');
-				wp_enqueue_script('underscore');
 				wp_enqueue_script('jquery-ui-button');
-				wp_enqueue_script('jquery-ui-dialog');
 
 					// Prospect-specific
-				wp_enqueue_script('ractive', plugins_url('/lib/ractive.min.js', dirname(__FILE__)));
+				wp_enqueue_script('vuejs', plugins_url('/lib/vuejs-2.2.4/vue.js', dirname(__FILE__)));
 
 				wp_enqueue_script('edit-template', plugins_url('/js/edit-template.js', dirname(__FILE__)),
-								array('ractive', 'jquery-ui-button', 'jquery-ui-dialog', 'underscore'));
+								array('vuejs', 'jquery-ui-button'));
 
 					// Get all definitions of all current Attributes
 				$att_defs = ProspectAttribute::get_all_attributes(true, false, false, false);

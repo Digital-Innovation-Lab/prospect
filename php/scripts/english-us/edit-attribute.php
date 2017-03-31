@@ -1,5 +1,5 @@
 
-<!-- Outer-most (application) layer of output for Ractive to generate -->
+<!-- Outer-most (application) layer -->
 <div id="vue-outer">
 	<div id="error-frame" v-if="errorMsg.length > 0" v-bind:class="{ ok: errorOK }">{{errorMsg}}</div>
 	<button id="prsp-save-data" v-on:click="saveAttribute"><?php _e('Verify and Prepare Attribute Definition for Publish/Update', 'prospect'); ?></button><br/>
@@ -186,14 +186,14 @@
 
 <!-- Message Dialog -->
 <script id="dialog-message" type='text/x-template'>
-	<vuemodal title=<?php _e('"Note"', 'prospect'); ?> size="size">
+	<vuemodal title=<?php _e('"Note"', 'prospect'); ?>>
 		{{ params.msg }}
 	</vuemodal>
 </script>
 
 <!-- Confirm Dialog -->
 <script id="dialog-confirm" type='text/x-template'>
-	<vuemodal title=<?php _e('"Confirm"', 'prospect'); ?> cancel="true" size="size" v-on:save="ok">
+	<vuemodal title=<?php _e('"Confirm"', 'prospect'); ?> cancel="true" v-on:save="ok">
 		{{ params.msg }}
 	</vuemodal>
 </script>

@@ -776,7 +776,6 @@ jQuery(document).ready(function() {
 		// Create our main App instance
 	vApp = new Vue({
 		el: '#vue-outer',
-		// store: vAppStore,
 		data: {
 				// Configuration settings for all Attributes
 			label: label,
@@ -833,13 +832,13 @@ jQuery(document).ready(function() {
 
 					switch(attDef.t) {
 					case 'V':
-						_.forEach(this.vLegend, function(parent) {
+						this.vLegend.forEach(function(parent) {
 							var newParent = { };
 							newParent.l = parent.l;
 							newParent.v = parent.v;
 							newParent.z = [];
 							if (parent.z.length) {
-								_.forEach(parent.z, function(child) {
+								parent.z.forEach(function(child) {
 									var newChild = { };
 									newChild.l = child.l;
 									newChild.v = child.v.length ? child.v : null;
@@ -850,7 +849,7 @@ jQuery(document).ready(function() {
 						});
 						break;
 					case 'T':
-						_.forEach(this.tLegend, function(entry) {
+						this.tLegend.forEach(function(entry) {
 							var newEntry = { };
 							newEntry.l = entry.l;
 							newEntry.d = entry.d;
@@ -887,7 +886,7 @@ jQuery(document).ready(function() {
 							attR.u = this.nRange.u;
 						}
 
-						_.forEach(this.nLegend, function(entry) {
+						this.nLegend.forEach(function(entry) {
 							var newEntry = { };
 							newEntry.l = entry.l;
 							newEntry.v = entry.v;
@@ -963,7 +962,7 @@ jQuery(document).ready(function() {
 						}
 
 							// Compile Date Legend
-						_.forEach(this.dLegend, function(entry) {
+						this.dLegend.forEach(function(entry) {
 							var newEntry = { };
 							newEntry.l = entry.l;
 							newEntry.v = entry.v;
