@@ -305,8 +305,6 @@ class ProspectAdmin {
 		echo '<textarea name="prsp_tmp_joins" form="post" spellcheck="false" style="display:none">'.$the_tmp->meta_joins.'</textarea>';
 		echo '<textarea name="prsp_tmp_view" form="post" spellcheck="false" style="display:none">'.$the_tmp->meta_view.'</textarea>';
 		echo '<textarea name="prsp_tmp_pview" form="post" spellcheck="false" style="display:none">'.$the_tmp->meta_pview.'</textarea>';
-		//
-		// echo '<div id="ractive-output"></div>';
 
 			// Insert Edit Panel's HTML
 		self::insert_html_file('edit-template.php');
@@ -334,8 +332,6 @@ class ProspectAdmin {
 		echo '<input type="hidden" name="prsp_tmplt_id" value="'.$the_rec->tmplt_id.'"/>';
 			// NOTE: The cfs setting for new Record will be encoded as "null"
 		echo '<textarea name="prsp_rec_atts" form="post" spellcheck="false" style="display:none">'.json_encode($the_rec->att_data, JSON_UNESCAPED_UNICODE).'</textarea>';
-
-		echo '<div id="ractive-output"></div>';
 
 			// Insert Edit Panel's HTML
 		self::insert_html_file('edit-record.php');
@@ -871,7 +867,6 @@ class ProspectAdmin {
 
 					// Prospect-specific
 				wp_enqueue_script('vuejs', plugins_url('/lib/vuejs-2.2.4/vue.js', dirname(__FILE__)));
-
 				wp_enqueue_script('edit-template', plugins_url('/js/edit-template.js', dirname(__FILE__)),
 								array('vuejs', 'jquery-ui-button'));
 
@@ -963,18 +958,16 @@ class ProspectAdmin {
 				wp_enqueue_script('jquery');
 				wp_enqueue_script('underscore');
 				wp_enqueue_script('jquery-ui-button');
-				wp_enqueue_script('jquery-ui-dialog');
 				wp_enqueue_script('jquery-ui-accordion');
 				wp_enqueue_script('jquery-ui-tabs');
-				wp_enqueue_script('iris');
 
 					// Prospect-specific
-				wp_enqueue_script('ractive', plugins_url('/lib/ractive.min.js', dirname(__FILE__)));
+				wp_enqueue_script('vuejs', plugins_url('/lib/vuejs-2.2.4/vue.js', dirname(__FILE__)));
 
 				wp_enqueue_script('p-map-hub', plugins_url('/js/map-hub.js', dirname(__FILE__)),
-								array('jquery', 'underscore'));
+								array('underscore'));
 				wp_enqueue_script('edit-exhibit', plugins_url('/js/edit-exhibit.js', dirname(__FILE__)),
-								array('ractive', 'jquery-ui-button', 'jquery-ui-accordion', 'jquery-ui-tabs', 'underscore', 'p-map-hub'));
+								array('vuejs', 'jquery-ui-button', 'jquery-ui-accordion', 'jquery-ui-tabs', 'underscore', 'p-map-hub'));
 
 					// Get all definitions of all current Attributes
 					// Need Legends because of Qualified Relationships (matching Relationships with Roles)

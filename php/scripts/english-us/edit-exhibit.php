@@ -1,180 +1,610 @@
-
-<!-- Ractive Template for jQueryUI Dialog Component -->
-<script id="dialog-r-template" type='text/ractive'>
-	<div class="jq-dialog-template" title="{{title}}">
-		{{yield}}
-	</div>
-</script>
-
-<!-- Ractive Template for Iris Color Picker -->
-<script id="iris-r-template" type='text/ractive'>
-	<input class="jq-iris-template" type="text" size="11" value="{{color}}"/>
-</script>
-
-<!-- Ractive Template for jQueryUI Accordion Component -->
-<script id="accordion-r-template" type='text/ractive'>
-	<div class="jq-accordion-template">
-		{{yield}}
-	</div>
-</script>
-
-<!-- Ractive Template for jQueryUI Tabs Component -->
-<script id="tabs-r-template" type='text/ractive'>
-	<div class="jq-tabs-template">
-		{{yield}}
-	</div>
-</script>
-
-
-<!-- Outer-most (application) layer of output for Ractive to generate -->
-<script id="ractive-base" type='text/ractive'>
-	<div id="insert-dialog"></div>
-	{{#if errorMsg.length > 0}}
-	<div id="error-frame">{{errorMsg}}</div>
-	{{/if}}
-	<button id="prsp-save-data" on-click="saveExhibit"><?php _e('Verify and Prepare Exhibit Definition for Publish/Update', 'prospect'); ?></button><br/>
+<!-- Outer-most (application) layer -->
+<div id="vue-outer">
+	<div id="error-frame" v-if="errorMsg.length > 0" v-bind:class="{ ok: errorOK }">{{errorMsg}}</div>
+	<button id="prsp-save-data" v-on:click="saveExhibit"><?php _e('Verify and Prepare Exhibit Definition for Publish/Update', 'prospect'); ?></button><br/>
 	<accordion>
 		<h3><?php _e('General Settings', 'prospect'); ?></h3>
 		<div>
 			<label for="ext-label"><?php _e('Exhibit’s external label', 'prospect'); ?>: </label>
-			<input id="ext-label" type='text' value='{{genSettings.l}}' placeholder=<?php _e('"Enter label"', 'prospect'); ?> size="24" required/>
+			<input id="ext-label" type='text' v-model='label' placeholder=<?php _e('"Enter label"', 'prospect'); ?> size="24" required/>
 			<br/>
 			<label for="int-id"><?php _e('Exhibit’s unique internal id', 'prospect'); ?>: </label>
-			<input type='text' id="int-id" value='{{xhbtID}}' placeholder=<?php _e('"Enter id"', 'prospect'); ?> pattern="[\w\-]+" size="24" required/>
-			<button decorator="iconButton:ui-icon-info" on-click="idHint"><?php _e('Hint about IDs', 'prospect'); ?></button>
+			<input type='text' id="int-id" v-model='xhbtID' placeholder=<?php _e('"Enter id"', 'prospect'); ?> pattern="[\w\-]+" size="24" required/>
+			<icon-btn symbol="ui-icon-info" v-on:click="idHint"><?php _e('Hint about IDs', 'prospect'); ?></icon-btn>
 			<br/>
-			<input type='checkbox' checked='{{genSettings.tour}}'/> Show Help Tour &nbsp;
-			<input type='checkbox' checked='{{genSettings.dspr}}'/> Disable Perspective Buttons &nbsp;
-			<input type='checkbox' checked='{{genSettings.auto}}'/> Enable Auto-update
+			<input type='checkbox' v-model='tour'/> Show Help Tour &nbsp;
+			<input type='checkbox' v-model='dspr'/> Disable Perspective Buttons &nbsp;
+			<input type='checkbox' v-model='autoUpdate'/> Enable Auto-update
 			<br/>
 			<label for="home-btn"><?php _e('Home button label', 'prospect'); ?>: </label>
-			<input type='text' id="home-btn" value='{{genSettings.hbtn}}' placeholder=<?php _e('"Enter label"', 'prospect'); ?> size="12"/>
+			<input type='text' id="home-btn" v-model='hbtn' placeholder=<?php _e('"Enter label"', 'prospect'); ?> size="12"/>
 			<label for="home-url"><?php _e('Home URL', 'prospect'); ?>: </label>
-			<input type='url' id="home-url" value='{{genSettings.hurl}}' placeholder=<?php _e('"Enter URL"', 'prospect'); ?> size="32" pattern="^https?://.+"/>
+			<input type='url' id="home-url" v-model='hurl' placeholder=<?php _e('"Enter URL"', 'prospect'); ?> size="32" pattern="^https?://.+"/>
 			<br/>
-			"{{genSettings.l}}" <?php _e('will display Template types', 'prospect'); ?>:<br/>
-			{{#each iTemplates}}
-				<input type='checkbox' checked='{{use}}'/> {{tid}}
-			{{/each}}
+			"{{ label }}" <?php _e('will display Template types', 'prospect'); ?>:<br/>
+			<span v-for="thisTemplate in iTemplates"><input type='checkbox' v-model='thisTemplate.use'/> {{ thisTemplate.tid }}</span>
 			<br/>
-			<input type='checkbox' checked='{{genSettings.ds.on}}'/> <?php _e('Enable Date Slider', 'prospect'); ?>
-			{{#if genSettings.ds.on}}
+			<input type='checkbox' v-model='dateslider.on'/> <?php _e('Enable Date Slider', 'prospect'); ?>
+			<div v-if="dateslider.on">
+				<?php _e('Start Date', 'prospect'); ?> <input type="text" v-model="dateslider.s" size="12" placeholder=<?php _e('"YYYY-MM-DD"', 'prospect'); ?>/>
+				<?php _e('End Date', 'prospect'); ?> <input type="text" v-model="dateslider.e" size="12" placeholder=<?php _e('"YYYY-MM-DD"', 'prospect'); ?>/>
 				<br/>
-				<?php _e('Start Date', 'prospect'); ?> <input type="text" value="{{genSettings.ds.s}}" size="12" placeholder=<?php _e('"YYYY-MM-DD"', 'prospect'); ?>/>
-				<?php _e('End Date', 'prospect'); ?> <input type="text" value="{{genSettings.ds.e}}" size="12" placeholder=<?php _e('"YYYY-MM-DD"', 'prospect'); ?>/>
+				<?php _e('Initial handle Date (or leave blank)', 'prospect'); ?> <input type="text" v-model="dateslider.h" size="12" placeholder=<?php _e('"YYYY-MM-DD"', 'prospect'); ?>/>
+				<input type='checkbox' v-model='dateslider.o'/> <?php _e('Create when Exhibit opened', 'prospect'); ?>
 				<br/>
-				<?php _e('Initial handle Date (or leave blank)', 'prospect'); ?> <input type="text" value="{{genSettings.ds.h}}" size="12" placeholder=<?php _e('"YYYY-MM-DD"', 'prospect'); ?>/>
-				<input type='checkbox' checked='{{genSettings.ds.o}}'/> <?php _e('Create when Exhibit opened', 'prospect'); ?>
-				<br/>
-				{{#each iTemplates:tIndex}}
-					<?php _e('Dates Attribute for', 'prospect'); ?> {{tid}}:
-					<select value='{{genSettings.ds.dAtts[tIndex]}}'>
-					{{#each attsDates}}
-						<option>{{this}}</option>
-					{{/each}}
+				<div v-for="(thisTemplate,tIndex) in iTemplates">
+					<?php _e('Dates Attribute for', 'prospect'); ?> {{ thisTemplate.tid }}:
+					<select v-model='dateslider.dAtts[tIndex]'>
+						<option v-for="thisAtt in attsDates">
+							{{ thisAtt }}
+						</option>
 					</select>
-					<br/>
-				{{/each}}
-			{{/if}}
-			<br/>
-			<input type='checkbox' checked='{{qrOn}}'/> <?php _e('Enable Qualified Relationships', 'prospect'); ?> &nbsp;&nbsp;
-			{{#if qrOn}}
-				QR Template <select value='{{genSettings.qr.t}}'>
-				{{#each qrOptions.t}}
-					<option>{{this}}</option>
-				{{/each}}
+				</div>
+			</div>
+			<input type='checkbox' v-model='qrOn'/> <?php _e('Enable Qualified Relationships', 'prospect'); ?> &nbsp;&nbsp;
+			<div v-if="qrOn">
+				QR Template <select v-model='qr.t'>
+					<option v-for="thisTemplate in qrOptions.t">
+						{{ thisTemplate }}
+					</option>
 				</select>
 				<br/>
-				Entity 1 <select value='{{genSettings.qr.e1}}'> &nbsp;
-				{{#each qrOptions.optsPtr}}
-					<option>{{this}}</option>
-				{{/each}}
+				Entity 1 <select v-model='qr.e1'> &nbsp;
+					<option v-for="thisAtt in qrOptions.optsPtr">
+						{{ thisAtt }}
+					</option>
 				</select>
-				Entity 2 <select value='{{genSettings.qr.e2}}'> &nbsp;
-				{{#each qrOptions.optsPtr}}
-					<option>{{this}}</option>
-				{{/each}}
+				Entity 2 <select v-model='qr.e2'> &nbsp;
+					<option v-for="thisAtt in qrOptions.optsPtr">
+						{{ thisAtt }}
+					</option>
 				</select>
-				Dates <select value='{{genSettings.qr.d}}'>
-				{{#each qrOptions.optsDates}}
-					<option>{{this}}</option>
-				{{/each}}
-				</select>
-				<br/>
-				Relationships <select value='{{genSettings.qr.r}}'> &nbsp;
-				{{#each qrOptions.optsVocab}}
-					<option>{{this}}</option>
-				{{/each}}
-				</select>
-				Role 1 <select value='{{genSettings.qr.r1}}'> &nbsp;
-				{{#each qrOptions.optsTxt}}
-					<option>{{this}}</option>
-				{{/each}}
-				</select>
-				Role 2 <select value='{{genSettings.qr.r2}}'>
-				{{#each qrOptions.optsTxt}}
-					<option>{{this}}</option>
-				{{/each}}
+				Dates <select v-model='qr.d'>
+					<option v-for="thisAtt in qrOptions.optsDates">
+						{{ thisAtt }}
+					</option>
 				</select>
 				<br/>
-				Lat-Lon 1 <select value='{{genSettings.qr.c1}}'> &nbsp;
-				{{#each qrOptions.optsLL}}
-					<option>{{this}}</option>
-				{{/each}}
+				Relationships <select v-model='qr.r'> &nbsp;
+					<option v-for="thisAtt in qrOptions.optsVocab">
+						{{ thisAtt }}
+					</option>
 				</select>
-				Lat-Lon 2 <select value='{{genSettings.qr.c2}}'> &nbsp;
-				{{#each qrOptions.optsLL}}
-					<option>{{this}}</option>
-				{{/each}}
+				Role 1 <select v-model='qr.r1'> &nbsp;
+					<option v-for="thisAtt in qrOptions.optsTxt">
+						{{ thisAtt }}
+					</option>
 				</select>
-				Certainty <select value='{{genSettings.qr.c}}'> &nbsp;
-				{{#each qrOptions.optsNum}}
-					<option>{{this}}</option>
-				{{/each}}
+				Role 2 <select v-model='qr.r2'>
+					<option v-for="thisAtt in qrOptions.optsTxt">
+						{{ thisAtt }}
+					</option>
 				</select>
 				<br/>
-				<button on-click="setRoles"><?php _e('Set Roles for Relationships', 'prospect'); ?></button>
-				{{#if genSettings.qr.x.length == 0}}
+				Lat-Lon 1 <select v-model='qr.c1'> &nbsp;
+					<option v-for="thisAtt in qrOptions.optsLL">
+						{{ thisAtt }}
+					</option>
+				</select>
+				Lat-Lon 2 <select v-model='qr.c2'> &nbsp;
+					<option v-for="thisAtt in qrOptions.optsLL">
+						{{ thisAtt }}
+					</option>
+				</select>
+				Certainty <select v-model='qr.c'> &nbsp;
+					<option v-for="thisAtt in qrOptions.optsNum">
+						{{ thisAtt }}
+					</option>
+				</select>
+				<br/>
+				<button v-on:click="setRoles"><?php _e('Set Roles for Relationships', 'prospect'); ?></button>
+				<div v-if="qr.x.length == 0">
 					&nbsp; <?php _e('(currently empty)', 'prospect'); ?>
-				{{/if}}
-			{{/if}}
+				</div>
+			</div>
 		</div>
 		<h3><?php _e('Visualizations', 'prospect'); ?></h3>
 		<div>
-			<button on-click="addView"><?php _e('Add Visualization', 'prospect'); ?></button>
+			<button v-on:click="addView"><?php _e('Add Visualization', 'prospect'); ?></button>
 			<hr class="vf-divider"/>
-			{{#each viewSettings:vIndex}}
+			<div v-for="(thisView,vIndex) in viewSettings">
 				<div>
-					<button decorator="togDiv"></button>
-					<i>{{vfLookup[this.vf]}}</i>: <input type="text" value="{{l}}" size="32" required/>
-					<button decorator="iconButton:ui-icon-arrowthickstop-1-n" on-click="topVF:{{vIndex}}"><?php _e('Move to Top', 'prospect'); ?></button>
-					<button decorator="iconButton:ui-icon-trash" on-click="delVF:{{vIndex}}"><?php _e('Delete', 'prospect'); ?></button>
+					<icon-btn symbol="ui-icon-carat-2-n-s" v-on:click="togDiv"></icon-btn>
+					<i>{{ vfLookup[thisView.vf] }}</i>: <input type="text" v-model="thisView.l" size="32" required/>
+					<icon-btn symbol="ui-icon-arrowthickstop-1-n" v-on:click="topVF(vIndex)"><?php _e('Move to Top', 'prospect'); ?></icon-btn>
+					<icon-btn symbol="ui-icon-trash" v-on:click="delVF(vIndex)"><?php _e('Delete', 'prospect'); ?></icon-btn>
 					<br/>
-					<?php _e('View Hint', 'prospect'); ?>: <input type="text" value="{{n}}" size="72"/>
+					<?php _e('View Hint', 'prospect'); ?>: <input type="text" v-model="thisView.n" size="72"/>
 				</div>
-				<div id="vf-div-{{vIndex}}">
-					{{#if vf === 'M'}}
-						{{>vfMap}}
-					{{elseif vf === 'p'}}
-						{{>vfMap2}}
-					{{elseif vf === 'C'}}
-						{{>vfCards}}
-					{{elseif vf === 'P'}}
-						{{>vfPinboard}}
-					{{elseif vf === 'T'}}
-						{{>vfTimeline}}
-					{{elseif vf === 'D'}}
-						{{>vfDirectory}}
-					{{elseif vf === 't'}}
-						{{>vfTextStream}}
-					{{elseif vf === 'S'}}
-						{{>vfSChart}}
-					{{elseif vf === 'N'}}
-						{{>vfNetWheel}}
-					{{elseif vf === 'n'}}
-						{{>vfNetGraph}}
-					{{elseif vf === 'F'}}
-						{{>vfFlow}}
+				<div v-bind:id="'vf-div-'+vIndex">
+					<div vid="thisView.vf === 'M'"><!-- Map 1-->
+						<?php _e('Initial Map Center: Latitude', 'prospect'); ?>: <input type="text" v-model="thisView.c.clat" size="10" pattern="^-?\d{1,3}(\.\d*)*" required/>
+						<?php _e('Longitude', 'prospect'); ?>: <input type="text" v-model="thisView.c.clon" size="10" pattern="^-?\d{1,3}(\.\d*)*" required/>
+						<br/>
+						<?php _e('Initial Zoom Level (1=Max Zoom Out, 20=Max Zoom In)', 'prospect'); ?>: <input type="number" v-model="thisView.c.zoom" min="1" max="20" required/>
+						<br/>
+						<?php _e('Min Radius (1-20)', 'prospect'); ?>: <input type="number" v-model="thisView.c.min" min="1" max="20" required/>
+						<?php _e('Max Radius (1-20)', 'prospect'); ?>: <input type="number" v-model="thisView.c.max" min="1" max="20" required/>
+						<?php _e('Clustering', 'prospect'); ?>: <input type='checkbox' v-model='thisView.c.clstr'/>
+						<br/>
+						<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
+						<tabs>
+							<ul>
+								<li v-for="(theTemplate,tIndex) in iTemplates">
+									<a v-bind:href="'#tmpt-vf-tab-'+thisView.incID+'-'+tIndex">{{ theTemplate.tid }}</a>
+								</li>
+							</ul>
+							<div v-for="(theTemplate,tIndex) in iTemplates" v-bind:id="'tmpt-vf-tab-'+thisView.incID+'-'+tIndex">
+								<b><?php _e('Locate Object by', 'prospect'); ?>:</b>
+								<span class="attribute-controls" v-for="(thisAtt,aIndex) in thisView.c.cAtts[tIndex]">
+									<input type='checkbox' v-model='thisAtt.useAtt'/> {{ thisAtt.attID }}
+								</span>
+								<br/>
+								<b><?php _e('Marker Radius Size', 'prospect'); ?>: </b>
+								<select v-model='thisView.c.sAtts[tIndex]'>
+									<option v-for="thisAtt in theTemplate.attsDNum">
+										{{ thisAtt }}
+									</option>
+								</select>
+								<br/>
+								<b><?php _e('Connect to', 'prospect'); ?>: </b>
+								<select v-model='thisView.c.pAtts[tIndex]'>
+									<option v-for="thisAtt in theTemplate.attsDPtr">
+										{{ thisAtt }}
+									</option>
+								</select>
+								<?php _e('Link Line Color', 'prospect'); ?>: <input type="color" v-model="thisView.c.lClrs[tIndex]"/>
+								<br/>
+								<b><?php _e('Provide Legends', 'prospect'); ?>:</b>
+								<icon-btn symbol="ui-icon-check" v-on:click="allLgndsOn(vIndex,tIndex)"><?php _e('All On', 'prospect'); ?></icon-btn>
+								<icon-btn symbol="ui-icon-cancel" v-on:click="allLgndsOff(vIndex,tIndex)"><?php _e('All Off', 'prospect'); ?></icon-btn>
+								<span class="attribute-controls" v-for="(thisLegend,lIndex) in thisView.c.lgnds[tIndex]">
+									<input type='checkbox' v-model='thisLegend.useAtt'/> {{ thisLegend.attID }}
+									<icon-btn symbol="ui-icon-arrowthick-1-w" v-on:click="moveLgndLeft(vIndex,tIndex,lIndex)"><?php _e('Left', 'prospect'); ?></icon-btn>
+									<icon-btn symbol="ui-icon-arrowthick-1-e" v-on:click="moveLgndRight(vIndex,tIndex,lIndex)"><?php _e('Right', 'prospect'); ?></icon-btn>
+								</span>
+							</div>
+						</tabs>
+						<?php _e('Map Base Layer', 'prospect'); ?>: <select v-model="thisView.c.base">
+							<option v-for="thisMap in baseMaps" v-bind:value="thisMap.id">
+								{{ thisMap.sname }}
+							</option>
+						</select>
+						<?php _e('Map Overlay Layers', 'prospect'); ?>:
+						<button v-if="layerMaps.length > 0" v-on:click="addMapLayer(vIndex)"><?php _e('Add Layer', 'prospect'); ?></button><br/>
+						<div v-for="(thisLayer,lIndex) in thisView.c.lyrs" class="map-layer-div">
+							<?php _e('Map ID', 'prospect'); ?>: <select v-model="thisLayer.lid">
+								<option v-for="thisMap in layerMaps" v-bind:value="thisMap.id">
+									{{ thisMap.sname }}
+								</option>
+							</select>
+							<?php _e('Opacity', 'prospect'); ?>: <input type="range" min="0" max="1" v-model="thisLayer.o" step="0.1"/>
+							<icon-btn symbol="ui-icon-trash" v-on:click="delMapLayer(vIndex,lIndex)"><?php _e('Delete', 'prospect'); ?></button>
+						</div>
+					</div><!-- Map1 -->
+					<div v-if="thisView.vf === 'p'"><!-- Map 2-->
+						<?php _e('Initial Map Center: Latitude', 'prospect'); ?>: <input type="text" v-model="thisView.c.clat" size="10" pattern="^-?\d{1,3}(\.\d*)*" required/>
+						<?php _e('Longitude', 'prospect'); ?>: <input type="text" v-model="thisView.c.clon" size="10" pattern="^-?\d{1,3}(\.\d*)*" required/>
+						<br/>
+						<?php _e('Initial Zoom Level (1=Max Zoom Out, 20=Max Zoom In)', 'prospect'); ?>: <input type="number" v-model="thisView.c.zoom" min="1" max="20" required/>
+						<br/>
+						<?php _e('Min Radius (1-20)', 'prospect'); ?>: <input type="number" v-model="thisView.c.min" min="1" max="20" required/>
+						<?php _e('Max Radius (1-20)', 'prospect'); ?>: <input type="number" v-model="thisView.c.max" min="1" max="20" required/>
+						<br/>
+						<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
+						<tabs>
+							<ul>
+								<li v-for="(theTemplate,tIndex) in iTemplates">
+									<a v-bind:href="'#tmpt-vf-tab-'+thisView.incID+'-'+tIndex">{{ theTemplate.tid }}</a>
+								</li>
+							</ul>
+							<div v-for="(theTemplate,tIndex) in iTemplates" v-bind:id="'tmpt-vf-tab-'+thisView.incID+'-'+tIndex">
+								<b><?php _e('Locate Object by', 'prospect'); ?>:</b>
+								<select v-model='thisView.c.cAtts[tIndex]'>
+									<option v-for="thisAtt in theTemplate.attsDLL">
+										{{ thisAtt }}
+									</option>
+								</select>
+								<?php _e('Label Marker', 'prospect'); ?>:
+								<select v-model='thisView.c.lbls[tIndex]'>
+									<option value="n"><?php _e('None', 'prospect'); ?></option>
+									<option value="a"><?php _e('Above', 'prospect'); ?></option>
+								</select>
+								<?php _e('Label Color', 'prospect'); ?>: <input type="color" v-model="thisView.c.tClrs[tIndex]"/>
+								<br/>
+								<b><?php _e('Marker Radius Size', 'prospect'); ?>: </b>
+								<select v-model='thisView.c.sAtts[tIndex]'>
+									<option v-for="thisAtt in theTemplate.attsDNum">
+										{{ thisAtt }}
+									</option>
+								</select>
+								<br/>
+								<?php _e('Link Line Color', 'prospect'); ?>: <input type="color" v-model="thisView.c.lClrs[tIndex]"/>
+								<br/>
+								<b><?php _e('Provide Legends', 'prospect'); ?>:</b>
+								<icon-btn symbol="ui-icon-check" v-on:click="allLgndsOn(vIndex,tIndex)"><?php _e('All On', 'prospect'); ?></icon-btn>
+								<icon-btn symbol="ui-icon-cancel" v-on:click="allLgndsOff(vIndex,tIndex)"><?php _e('All Off', 'prospect'); ?></icon-btn>
+								<span class="attribute-controls" v-for="(thisLegend,lIndex) in thisView.c.lgnds[tIndex]">
+									<input type='checkbox' v-model='thisLegend.useAtt'/> {{ thisLegend.attID }}
+									<icon-btn symbol="ui-icon-arrowthick-1-w" v-on:click="moveLgndLeft(vIndex,tIndex,lIndex)"><?php _e('Left', 'prospect'); ?></icon-btn>
+									<icon-btn symbol="ui-icon-arrowthick-1-e" v-on:click="moveLgndRight(vIndex,tIndex,lIndex)"><?php _e('Right', 'prospect'); ?></icon-btn>
+								</span>
+							</div>
+						</tabs>
+						<?php _e('Map Base Layer', 'prospect'); ?>: <select v-model="thisView.c.base">
+							<option v-for="thisMap in baseMaps" v-bind:value="thisMap.id">
+								{{ thisMap.sname }}
+							</option>
+						</select>
+						<?php _e('Map Overlay Groups', 'prospect'); ?>:
+						<button v-if="mapGroups.length > 0" v-on:click="addMapGroup(vIndex)"><?php _e('Add Map Group', 'prospect'); ?></button>
+						<br/>
+						<div v-for="(thisGroup,lIndex) in thisView.c.lyrs" class="map-layer-div">
+							<?php _e('Map Group ID', 'prospect'); ?>: <select v-model="thisGroup.gid">
+								<option v-for="thisGroup in mapGroups">
+									{{ thisGroup }}
+								</option>
+							</select>
+							<?php _e('Opacity', 'prospect'); ?>: <input type="range" min="0" max="1" v-model="thisGroup.o" step="0.1"/>
+							<icon-btn symbol="ui-icon-trash" v-on:click="delMapGroup(vIndex,lIndex)"><?php _e('Delete', 'prospect'); ?></icon-btn>
+						</div>
+					</div><!-- Map 2 -->
+					<div v-if="thisView.vf === 'C'">
+						<input type='checkbox' v-model='thisView.c.lOn'/> <?php _e('Show Title', 'prospect'); ?> &nbsp;&nbsp;
+						<?php _e('Width', 'prospect'); ?>:
+							<select v-model="thisView.c.w">
+								<option value="t"><?php _e('Thin', 'prospect'); ?></option>
+								<option value="m"><?php _e('Medium', 'prospect'); ?></option>
+								<option value="w"><?php _e('Wide', 'prospect'); ?></option>
+							</select>
+						<?php _e('Height', 'prospect'); ?>:
+							<select v-model="thisView.c.h">
+								<option value="s"><?php _e('Short', 'prospect'); ?></option>
+								<option value="m"><?php _e('Medium', 'prospect'); ?></option>
+								<option value="t"><?php _e('Tall', 'prospect'); ?></option>
+							</select>
+						<input type='checkbox' v-model='thisView.c.v'/> <?php _e('Stack image vertically', 'prospect'); ?>
+						<br/>
+						<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
+						<tabs>
+							<ul>
+								<li v-for="(theTemplate,tIndex) in iTemplates">
+									<a v-bind:href="'#tmpt-vf-tab-'+thisView.incID+'-'+tIndex">{{ theTemplate.tid }}</a>
+								</li>
+							</ul>
+							<div v-for="(theTemplate,tIndex) in iTemplates" v-bind:id="'tmpt-vf-tab-'+thisView.incID+'-'+tIndex">
+								<b><?php _e('Image', 'prospect'); ?>: </b>
+								<select v-model='thisView.c.iAtts[tIndex]'>
+									<option v-for="thisAtt in theTemplate.attsImg">
+										{{ thisAtt }}
+									</option>
+								</select>
+								<br/>
+								<b><?php _e('Show content', 'prospect'); ?>: </b>
+								<icon-btn symbol="ui-icon-check" v-on:click="allCntOn(vIndex,tIndex)"><?php _e('All On', 'prospect'); ?></icon-btn>
+								<icon-btn symbol="ui-icon-cancel" v-on:click="allCntOff(vIndex,tIndex)"><?php _e('All Off', 'prospect'); ?></icon-btn>
+								<span v-for="(thisContent,cIndex) in thisView.c.cnt[tIndex]" class="attribute-controls">
+									<input type='checkbox' checked='thisContent.useAtt'/> {{ thisContent.attID }}
+									<icon-btn symbol="ui-icon-arrowthick-1-w" v-on:click="moveAttLeft(vIndex,tIndex,cIndex)"><?php _e('Left', 'prospect'); ?></icon-btn>
+									<icon-btn symbol="ui-icon-arrowthick-1-e" v-on:click="moveAttRight(vIndex,tIndex,cIndex)"><?php _e('Right', 'prospect'); ?></icon-btn>
+								</span>
+								<br/>
+								<b><?php _e('Provide Legends', 'prospect'); ?>: </b>
+								<icon-btn symbol="ui-icon-check" v-on:click="allLgndsOn(vIndex,tIndex)"><?php _e('All On', 'prospect'); ?></icon-btn>
+								<icon-btn symbol="ui-icon-cancel" v-on:click="allLgndsOff(vIndex,tIndex)"><?php _e('All Off', 'prospect'); ?></icon-btn>
+								<span class="attribute-controls" v-for="(thisLegend,lIndex) in thisView.c.lgnds[tIndex]">
+									<input type='checkbox' v-model='thisLegend.useAtt'/> {{ thisLegend.attID }}
+									<icon-btn symbol="ui-icon-arrowthick-1-w" v-on:click="moveLgndLeft(vIndex,tIndex,lIndex)"><?php _e('Left', 'prospect'); ?></icon-btn>
+									<icon-btn symbol="ui-icon-arrowthick-1-e" v-on:click="moveLgndRight(vIndex,tIndex,lIndex)"><?php _e('Right', 'prospect'); ?></icon-btn>
+								</span>
+							</div>
+						</tabs>
+					</div><!-- Cards -->
+					<div v-if="thisView.vf === 'P'"><!-- Pinboard -->
+						<?php _e('Original Image URL', 'prospect'); ?>: <input type="url" v-model="thisView.c.img" size="48" pattern="^https?://.+(\.jpg|\.jpeg|\.png)$" required/><br/>
+						<?php _e('Original Image Width', 'prospect'); ?>: <input type="number" v-model="thisView.c.iw" min="1" max="9999"/>
+						<?php _e('Height', 'prospect'); ?>: <input type="number" v-model="thisView.c.ih" min="1" max="9999"/><br/>
+						<?php _e('Display Width', 'prospect'); ?>: <input type="number" v-model="thisView.c.dw" min="1" max="9999"/>
+						<?php _e('Height', 'prospect'); ?>: <input type="number" v-model="thisView.c.dh" min="1" max="9999"/>
+						<br/>
+						<?php _e('Min Marker Size (1-50)', 'prospect'); ?>: <input type="number" v-model="thisView.c.min" min="1" max="50" required/>
+						<?php _e('Max Marker Size (1-50)', 'prospect'); ?>: <input type="number" v-model="thisView.c.max" min="1" max="50" required/>
+						<br/>
+						<?php _e('Shape Type', 'prospect'); ?>: <select v-model='thisView.c.ms'>
+							<option value="C"><?php _e('Circles', 'prospect'); ?></option>
+							<option value="S"><?php _e('Symbols', 'prospect'); ?></option>
+							<option value="I"><?php _e('Images', 'prospect'); ?></option>
+						</select>
+						<br/>
+						<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
+						<tabs>
+							<ul>
+								<li v-for="(theTemplate,tIndex) in iTemplates">
+									<a v-bind:href="'#tmpt-vf-tab-'+thisView.incID+'-'+tIndex">{{ theTemplate.tid }}</a>
+								</li>
+							</ul>
+							<div v-for="(theTemplate,tIndex) in iTemplates" v-bind:id="'tmpt-vf-tab-'+thisView.incID+'-'+tIndex">
+								<b><?php _e('X,Y Attribute to use:', 'prospect'); ?> </b>
+								<select v-model='thisView.c.cAtts[tIndex]'>
+									<option v-for="thisAtt in theTemplate.attsXY">
+										{{ thisAtt }}
+									</option>
+								</select><br/>
+								<b><?php _e('Marker Size', 'prospect'); ?>: </b>
+								<select v-model='thisView.c.sAtts[tIndex]'>
+									<option v-for="thisAtt in theTemplate.attsDNum">
+										{{ thisAtt }}
+									</option>
+								</select>
+								<b><?php _e('Connect to', 'prospect'); ?>: </b>
+								<select v-model='thisView.c.pAtts[tIndex]'>
+									<option v-for="thisAtt in theTemplate.attsDPtr">
+										{{ thisAtt }}
+									</option>
+								</select>
+								<?php _e('Link Line Color', 'prospect'); ?>: <input type="color" v-model="thisView.c.lClrs[tIndex]" size="10"/>
+								<br/>
+								<div v-if="this.c.ms === 'S'">
+									<b><?php _e('For this Template, use shape ', 'prospect'); ?>: </b>
+									<select value='thisView.c.syms[tIndex]'>
+										<option value=0><?php _e('Circle', 'prospect'); ?></option>
+										<option value=1><?php _e('Cross', 'prospect'); ?></option>
+										<option value=2><?php _e('Diamond', 'prospect'); ?></option>
+										<option value=3><?php _e('Square', 'prospect'); ?></option>
+										<option value=4><?php _e('Star', 'prospect'); ?></option>
+										<option value=5><?php _e('Wye', 'prospect'); ?></option>
+									</select>
+								<div v-else-if="thisView.c.ms === 'I'">
+									<b><?php _e('For this Template, use Image Attribute ', 'prospect'); ?>: </b>
+									<select value='thisView.c.iAtts[tIndex]'>
+										<option v-for="thisAtt in theTemplate.attsImg">
+											{{ thisAtt }}
+										</option>
+									</select>
+								</div>
+								<b><?php _e('Provide Legends', 'prospect'); ?>: </b>
+								<icon-btn symbol="ui-icon-check" v-on:click="allLgndsOn(vIndex,tIndex)"><?php _e('All On', 'prospect'); ?></icon-btn>
+								<icon-btn symbol="ui-icon-cancel" v-on:click="allLgndsOff(vIndex,tIndex)"><?php _e('All Off', 'prospect'); ?></icon-btn>
+								<span class="attribute-controls" v-for="(thisLegend,lIndex) in thisView.c.lgnds[tIndex]">
+									<input type='checkbox' v-model='thisLegend.useAtt'/> {{ thisLegend.attID }}
+									<icon-btn symbol="ui-icon-arrowthick-1-w" v-on:click="moveLgndLeft(vIndex,tIndex,lIndex)"><?php _e('Left', 'prospect'); ?></icon-btn>
+									<icon-btn symbol="ui-icon-arrowthick-1-e" v-on:click="moveLgndRight(vIndex,tIndex,lIndex)"><?php _e('Right', 'prospect'); ?></icon-btn>
+								</span>
+							</div>
+						</tabs>
+						<?php _e('Overlay SVG Layers', 'prospect'); ?>: <button v-on:click="addSVGLayer(vIndex)"><?php _e('Add SVG Layer', 'prospect'); ?></button><br/>
+						<div v-for="(thisLayer,lIndex) in thisView.c.lyrs" class="map-layer-div">
+							<?php _e('SVG Layer', 'prospect'); ?> {{lIndex}} URL: <input type="text" v-model="thisLayer.url" size="40" pattern="^https?://.+" required/>
+							<?php _e('Opacity', 'prospect'); ?>: <input type="range" min="0" max="1" v-model="thisLayer.o" step="0.1"/>
+							<icon-btn symbol="ui-icon-trash" v-on:click="delSVGLayer(vIndex,lIndex)"><?php _e('Delete', 'prospect'); ?></icon-btn>
+						</div>
+					</div><!-- Pinboard -->
+					<div v-if="thisView.vf === 'S'"><!-- Stacked Chart -->
+						<input type='checkbox' v-model='thisView.c.gr'/> <?php _e('Break Number and Date ranges into graduated scale?', 'prospect'); ?>
+						<br/>
+						<?php _e('Pixel height of visualization', 'prospect'); ?>: <input type="number" v-model="thisView.c.h" min="1" max="1000"/>
+						<br/>
+						<?php _e('Sort and order Records along x axis by ', 'prospect'); ?>
+						<select v-model='thisView.c.oAtt'>
+							<option v-for="thisFacet in facets" v-bind:value="thisFacet.id">
+								{{ thisFacet.id }}
+							</option>
+						</select>
+						<?php _e('Group Records in each vertical stack by', 'prospect'); ?>
+						<select v-model='thisView.c.sAtt'>
+							<option v-for="thisFacet in facets" v-bind:value="thisFacet.id">
+								{{ thisFacet.id }}
+							</option>
+						</select>
+					</div><!-- Stacked Chart -->
+					<div v-if="thisView.vf === 'T'"><!-- Timeline -->
+						<?php _e('Height of Events in Zoom', 'prospect'); ?>: <input type="number" v-model="thisView.c.bHt" min="2" max="99"/>
+						<?php _e('Width of Frame Axis Labels', 'prospect'); ?>: <input type="number" v-model="thisView.c.xLbl" min="2" max="99"/><br/>
+						<?php _e('Macro Frame From Date', 'prospect'); ?>: <input type="text" v-model="thisView.c.from" size="12" placeholder=<?php _e('"YYYY-MM-DD"', 'prospect'); ?>/>
+						<?php _e('To Date', 'prospect'); ?>: <input type="text" v-model="thisView.c.to" size="12" placeholder=<?php _e('"YYYY-MM-DD"', 'prospect'); ?>/><br/>
+						<?php _e('Zoom Frame From Date', 'prospect'); ?>: <input type="text" v-model="thisView.c.zFrom" size="12" placeholder=<?php _e('"YYYY-MM-DD"', 'prospect'); ?>/>
+						<?php _e('To Date', 'prospect'); ?>: <input type="text" v-model="thisView.c.zTo" size="12" placeholder=<?php _e('"YYYY-MM-DD"', 'prospect'); ?>/><br/>
+						<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
+						<tabs>
+							<ul>
+								<li v-for="(theTemplate,tIndex) in iTemplates">
+									<a v-bind:href="'#tmpt-vf-tab-'+thisView.incID+'-'+tIndex">{{ theTemplate.tid }}</a>
+								</li>
+							</ul>
+							<div v-for="(theTemplate,tIndex) in iTemplates" v-bind:id="'tmpt-vf-tab-'+thisView.incID+'-'+tIndex">
+								<b><?php _e('Dates Attribute to use', 'prospect'); ?>: </b>
+								<select v-model='thisView.c.dAtts[tIndex]'>
+									<option v-for="thisAtt in theTemplate.attsDates">
+										{{ thisAtt }}
+									</option>
+								</select>
+								<br/>
+								<b><?php _e('Provide Legends', 'prospect'); ?>: </b>
+								<icon-btn symbol="ui-icon-check" v-on:click="allLgndsOn(vIndex,tIndex)"><?php _e('All On', 'prospect'); ?></icon-btn>
+								<icon-btn symbol="ui-icon-cancel" v-on:click="allLgndsOff(vIndex,tIndex)"><?php _e('All Off', 'prospect'); ?></icon-btn>
+								<span class="attribute-controls" v-for="(thisLegend,lIndex) in thisView.c.lgnds[tIndex]">
+									<input type='checkbox' v-model='thisLegend.useAtt'/> {{ thisLegend.attID }}
+									<icon-btn symbol="ui-icon-arrowthick-1-w" v-on:click="moveLgndLeft(vIndex,tIndex,lIndex)"><?php _e('Left', 'prospect'); ?></icon-btn>
+									<icon-btn symbol="ui-icon-arrowthick-1-e" v-on:click="moveLgndRight(vIndex,tIndex,lIndex)"><?php _e('Right', 'prospect'); ?></icon-btn>
+								</span>
+							</div>
+						</tabs>
+					</div><!-- Timeline -->
+					<div v-if="thisView.vf === 'D'"><!-- Directory -->
+						<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
+						<tabs>
+							<ul>
+								<li v-for="(theTemplate,tIndex) in iTemplates">
+									<a v-bind:href="'#tmpt-vf-tab-'+thisView.incID+'-'+tIndex">{{ theTemplate.tid }}</a>
+								</li>
+							</ul>
+							<div v-for="(theTemplate,tIndex) in iTemplates" v-bind:id="'tmpt-vf-tab-'+thisView.incID+'-'+tIndex">
+								<b><?php _e('Show content', 'prospect'); ?>: </b>
+								<icon-btn symbol="ui-icon-check" v-on:click="allCntOn(vIndex,tIndex)"><?php _e('All On', 'prospect'); ?></icon-btn>
+								<icon-btn symbol="ui-icon-cancel" v-on:click="allCntOff(vIndex,tIndex)"><?php _e('All Off', 'prospect'); ?></icon-btn>
+								<span v-for="(theContent,cIndex) in thisView.c.cnt[tIndex]" class="attribute-controls">
+									<input type='checkbox' v-model='theContent.useAtt'/> {{ theContent.attID }}
+									<icon-btn symbol="ui-icon-arrowthick-1-w" v-on:click="moveAttLeft(vIndex,tIndex,cIndex)"><?php _e('Left', 'prospect'); ?></icon-btn>
+									<icon-btn symbol="ui-icon-arrowthick-1-e" v-on:click="moveAttRight(vIndex,tIndex,cIndex)"><?php _e('Right', 'prospect'); ?></icon-btn>
+								</span>
+							</div>
+						</tabs>
+					</div><!-- Directory -->
+					<div v-if="thisView.vf === 't'"><!-- TextStream -->
+						<?php _e('Minimum Font Size', 'prospect'); ?>: <input type="number" value="thisView.c.min" min="2" max="9999"/>
+						<?php _e('Maximum Font Size', 'prospect'); ?>: <input type="number" value="thisView.c.max" min="2" max="9999"/>
+						<br/>
+						<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
+						<tabs>
+							<ul>
+								<li v-for="(theTemplate,tIndex) in iTemplates">
+									<a v-bind:href="'#tmpt-vf-tab-'+thisView.incID+'-'+tIndex">{{ theTemplate.tid }}</a>
+								</li>
+							</ul>
+							<div v-for="(theTemplate,tIndex) in iTemplates" v-bind:id="'tmpt-vf-tab-'+thisView.incID+'-'+tIndex">
+								<b><?php _e('Record visible content', 'prospect'); ?>: </b>
+								<select value='thisView.c.cnt[tIndex]'>
+									<option v-for="thisAtt in theTemplate.attsTCnt">
+										{{ thisAtt }}
+									</option>
+								</select>
+								<b><?php _e('Order by', 'prospect'); ?>: </b>
+								<select value='thisView.c.order[tIndex]'>
+									<option v-for="thisAtt in theTemplate.attsOAtt">
+										{{ thisAtt }}
+									</option>
+								</select>
+								<b><?php _e('Text Size', 'prospect'); ?>: </b>
+								<select value='thisView.c.sAtts[tIndex]'>
+									<option v-for="thisAtt in theTemplate.attsDNum">
+										{{ thisAtt }}
+									</option>
+								</select>
+								<br/>
+								<b><?php _e('Provide Legends', 'prospect'); ?>: </b>
+								<icon-btn symbol="ui-icon-check" v-on:click="allLgndsOn(vIndex,tIndex)"><?php _e('All On', 'prospect'); ?></icon-btn>
+								<icon-btn symbol="ui-icon-cancel" v-on:click="allLgndsOff(vIndex,tIndex)"><?php _e('All Off', 'prospect'); ?></icon-btn>
+								<span class="attribute-controls" v-for="(thisLegend,lIndex) in thisView.c.lgnds[tIndex]">
+									<input type='checkbox' v-model='thisLegend.useAtt'/> {{ thisLegend.attID }}
+									<icon-btn symbol="ui-icon-arrowthick-1-w" v-on:click="moveLgndLeft(vIndex,tIndex,lIndex)"><?php _e('Left', 'prospect'); ?></icon-btn>
+									<icon-btn symbol="ui-icon-arrowthick-1-e" v-on:click="moveLgndRight(vIndex,tIndex,lIndex)"><?php _e('Right', 'prospect'); ?></icon-btn>
+								</span>
+							</div>
+						</tabs>
+					</div><!-- TextStream -->
+					<div v-if="thisView.vf === 'N'"><!-- NetWheel -->
+						<?php _e('Maximum Label Pixel Width', 'prospect'); ?>: <input type="number" v-model="thisView.c.lw" min="2" max="9999"/><br/>
+						<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
+						<tabs>
+							<ul>
+								<li v-for="(theTemplate,tIndex) in iTemplates">
+									<a v-bind:href="'#tmpt-vf-tab-'+thisView.incID+'-'+tIndex">{{ theTemplate.tid }}</a>
+								</li>
+							</ul>
+							<div v-for="(theTemplate,tIndex) in iTemplates" v-bind:id="'tmpt-vf-tab-'+thisView.incID+'-'+tIndex">
+								<button v-if="theTemplate.attsPtr.length > thisView.c.pAtts[tIndex].length" v-on:click="addPtrPair(vIndex,tIndex)"><?php _e('Add Attribute/Color Pair', 'prospect'); ?></button><br/>
+								<div v-for="(thisPointer,pIndex) in c.pAtts[tIndex]">
+									<b><?php _e('Use Pointer Attribute', 'prospect'); ?>: </b>
+									<select v-model='thisPointer.pid'>
+										<option v-for="thisAtt in theTemplate.attsPtr">
+											{{ thisAtt }}
+										</option>
+									</select>
+									<?php _e('Use color', 'prospect'); ?>: <input type="color" value="thisPointer.clr" size="10"/>
+									<icon-btn symbol="ui-icon-trash" on-click="delPtrPair(vIndex,tIndex,pIndex)"><?php _e('Delete', 'prospect'); ?></icon-btn>
+								</div>
+								<b><?php _e('Provide Legends', 'prospect'); ?>:</b>
+								<icon-btn symbol="ui-icon-check" v-on:click="allLgndsOn(vIndex,tIndex)"><?php _e('All On', 'prospect'); ?></icon-btn>
+								<icon-btn symbol="ui-icon-cancel" v-on:click="allLgndsOff(vIndex,tIndex)"><?php _e('All Off', 'prospect'); ?></icon-btn>
+								<span class="attribute-controls" v-for="(thisLegend,lIndex) in thisView.c.lgnds[tIndex]">
+									<input type='checkbox' v-model='thisLegend.useAtt'/> {{ thisLegend.attID }}
+									<icon-btn symbol="ui-icon-arrowthick-1-w" v-on:click="moveLgndLeft(vIndex,tIndex,lIndex)"><?php _e('Left', 'prospect'); ?></icon-btn>
+									<icon-btn symbol="ui-icon-arrowthick-1-e" v-on:click="moveLgndRight(vIndex,tIndex,lIndex)"><?php _e('Right', 'prospect'); ?></icon-btn>
+								</span>
+							</div>
+						</tabs>
+					</div><!-- NetWheel -->
+					<div v-if="thisView.vf === 'n'"><!-- NetGraph -->
+						<?php _e('Min Marker Size (1-50)', 'prospect'); ?>: <input type="number" v-model="thisView.c.min" min="1" max="50" required/>
+						<?php _e('Max Marker Size (1-50)', 'prospect'); ?>: <input type="number" v-model="thisView.c.max" min="1" max="50" required/>
+						<?php _e('Display size', 'prospect'); ?>: <input type="number" v-model="thisView.c.s" min="100" max="1500" required/>
+						<br/>
+						<?php _e('Shape Type', 'prospect'); ?>: <select v-model='thisView.c.ms'>
+							<option value="C"><?php _e('Circles', 'prospect'); ?></option>
+							<option value="S"><?php _e('Symbols', 'prospect'); ?></option>
+							<option value="I"><?php _e('Images', 'prospect'); ?></option>
+						</select>
+						<br/>
+						<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
+						<tabs>
+							<ul>
+								<li v-for="(theTemplate,tIndex) in iTemplates">
+									<a v-bind:href="'#tmpt-vf-tab-'+thisView.incID+'-'+tIndex">{{ theTemplate.tid }}</a>
+								</li>
+							</ul>
+							<div v-for="(theTemplate,tIndex) in iTemplates" v-bind:id="'tmpt-vf-tab-'+thisView.incID+'-'+tIndex">
+								<b><?php _e('Marker Size', 'prospect'); ?>: </b>
+								<select v-model='thisView.c.sAtts[tIndex]'>
+								<option v-for="thisAtt in theTemplate.attsDNum">
+									{{ thisAtt }}
+								</option>
+								</select><br/>
+								<button v-if="theTemplate.attsPtr.length > thisView.c.pAtts[tIndex].length" v-on:click="addPtrPair(vIndex,tIndex)"><?php _e('Add Attribute/Color Pair', 'prospect'); ?></button><br/>
+								<div v-for="(thePointer,pIndex) in theView.c.pAtts[tIndex]">
+									<b><?php _e('Use Pointer Attribute', 'prospect'); ?>: </b>
+									<select value='thePointer.pid'>
+										<option v-for="thisAtt in theTemplate.attsPtr">
+											{{ thisAtt }}
+										</option>
+									</select>
+									<?php _e('Use color', 'prospect'); ?>: <input type="color" value="thePointer.clr"/>
+									<icon-btn symbol="ui-icon-trash" on-click="delPtrPair:{{vIndex}},{{tIndex}},{{pIndex}}"><?php _e('Delete', 'prospect'); ?></icon-btn>
+								</div>
+								<br/>
+								<div v-if="thisView.c.ms === 'S'">
+									<b><?php _e('For this Template, use shape ', 'prospect'); ?>: </b>
+									<select value='thisView.c.syms[tIndex]'>
+										<option value=0><?php _e('Circle', 'prospect'); ?></option>
+										<option value=1><?php _e('Cross', 'prospect'); ?></option>
+										<option value=2><?php _e('Diamond', 'prospect'); ?></option>
+										<option value=3><?php _e('Square', 'prospect'); ?></option>
+										<option value=4><?php _e('Star', 'prospect'); ?></option>
+										<option value=5><?php _e('Wye', 'prospect'); ?></option>
+									</select>
+								</div>
+								<div v-else-if="thisView.c.ms === 'I'">
+									<b><?php _e('For this Template, use Image Attribute ', 'prospect'); ?>: </b>
+									<select v-model='thisView.c.iAtts[tIndex]'>
+										<option v-for="thisAtt in theTemplate.attsImg">
+											{{ thisAtt }}
+										</option>
+									</select>
+								</div>
+								<b><?php _e('Provide Legends', 'prospect'); ?>:</b>
+								<icon-btn symbol="ui-icon-check" v-on:click="allLgndsOn(vIndex,tIndex)"><?php _e('All On', 'prospect'); ?></icon-btn>
+								<icon-btn symbol="ui-icon-cancel" v-on:click="allLgndsOff(vIndex,tIndex)"><?php _e('All Off', 'prospect'); ?></icon-btn>
+								<span class="attribute-controls" v-for="(thisLegend,lIndex) in thisView.c.lgnds[tIndex]">
+									<input type='checkbox' v-model='thisLegend.useAtt'/> {{ thisLegend.attID }}
+									<icon-btn symbol="ui-icon-arrowthick-1-w" v-on:click="moveLgndLeft(vIndex,tIndex,lIndex)"><?php _e('Left', 'prospect'); ?></icon-btn>
+									<icon-btn symbol="ui-icon-arrowthick-1-e" v-on:click="moveLgndRight(vIndex,tIndex,lIndex)"><?php _e('Right', 'prospect'); ?></icon-btn>
+								</span>
+							</div>
+						</tabs>
+					</div><!-- NetGraph -->
+					<div v-if="thisView.vf === 'F'"><!-- FacetFlow -->
+						<?php _e('Display Width', 'prospect'); ?>: <input type="number" v-model="thisView.c.w" min="2" max="9999"/>
+						<br/>
+						<input type='checkbox' v-model='{{c.gr}}'/> <?php _e('Break Number and Date ranges into graduated scale?', 'prospect'); ?>
+						<br/>
+						<?php _e('Attributes (Facets) to Display', 'prospect'); ?>: <button on-click="addFacet:{{vIndex}}"><?php _e('Add Attribute', 'prospect'); ?></button><br/>
+						{{#each c.fcts:cIndex}}
+							<?php _e('Attribute ID', 'prospect'); ?>: "{{this}}"
+							<button decorator="iconButton:ui-icon-arrowthickstop-1-n" v-on:click="topFacet:{{vIndex}},{{cIndex}}"><?php _e('Move to Top', 'prospect'); ?></button>
+							<button decorator="iconButton:ui-icon-trash" v-on:click="delFacet:{{vIndex}},{{cIndex}}"><?php _e('Delete', 'prospect'); ?></button>
+							<br/>
+						{{/each}}
+					</div><!-- FacetFlow -->
+
 					{{elseif vf === 'm'}}
 						{{>vfMBlockMap}}
 					{{elseif vf === 'B'}}
@@ -191,26 +621,26 @@
 						{{>vfTimeRings}}
 					{{/if}}
 				</div>
-				{{#if vIndex != (viewSettings.length-1) }}<hr class="vf-divider"/>{{/if}}
-			{{/each}}
-		</div>
+				<hr class="vf-divider" v-if="vIndex != (viewSettings.length-1)"/>
+			</div><!-- Each view -->
+		</div><!-- Visualization section -->
 
 		<h3><?php _e('Inspector', 'prospect'); ?></h3>
-		<div>{{#with inspectSettings}}
+		<div>
 			<div>
 				<b><?php _e('Playback Widgets', 'prospect'); ?></b>:
-				<input type='checkbox' checked='{{modal.aOn}}'/> <?php _e('Audio', 'prospect'); ?>
-				<input type='checkbox' checked='{{modal.scOn}}'/> <?php _e('Load SoundCloud', 'prospect'); ?>
-				<input type='checkbox' checked='{{modal.ytOn}}'/> <?php _e('YouTube', 'prospect'); ?>
-				<input type='checkbox' checked='{{modal.tOn}}'/> <?php _e('Transcripts', 'prospect'); ?>
-				<input type='checkbox' checked='{{modal.t2On}}'/> <?php _e('Dual Transcripts', 'prospect'); ?>
+				<input type='checkbox' v-model='modal.aOn'/> <?php _e('Audio', 'prospect'); ?>
+				<input type='checkbox' v-model='modal.scOn'/> <?php _e('Load SoundCloud', 'prospect'); ?>
+				<input type='checkbox' v-model='modal.ytOn'/> <?php _e('YouTube', 'prospect'); ?>
+				<input type='checkbox' v-model='modal.tOn'/> <?php _e('Transcripts', 'prospect'); ?>
+				<input type='checkbox' v-model='modal.t2On'/> <?php _e('Dual Transcripts', 'prospect'); ?>
 			</div>
-			<input type='checkbox' id="see-rec-off" checked='{{srOff}}'/>
+			<input type='checkbox' id="see-rec-off" checked='srOff'/>
 			<label for="see-rec-off"><?php _e('Disable “See Item” button', 'prospect'); ?> </label>
 			<div>
 				<?php _e('Size overrides (leave blank for default)', 'prospect'); ?>:
-				<?php _e('Width', 'prospect'); ?> <input type='text' value='{{modal.w}}' placeholder=<?php _e('"Default"', 'prospect'); ?> size="5"/>
-				<?php _e('Height', 'prospect'); ?> <input type='text' value='{{modal.h}}' placeholder=<?php _e('"Default"', 'prospect'); ?> size="5"/>
+				<?php _e('Width', 'prospect'); ?> <input type='text' v-model='modal.w' placeholder=<?php _e('"Default"', 'prospect'); ?> size="5"/>
+				<?php _e('Height', 'prospect'); ?> <input type='text' v-model='modal.h' placeholder=<?php _e('"Default"', 'prospect'); ?> size="5"/>
 			</div>
 
 			<accordion>
@@ -219,23 +649,19 @@
 					<?php _e('Choose the Attribute(s) to display according to Template type', 'prospect'); ?>:
 					<tabs>
 						<ul>
-						{{#each iTemplates:tIndex}}
-							<li><a href="#inspect-tab-{{tIndex}}">{{tid}}</a></li>
-						{{/each}}
+							<li v-for="(theTemplate,tIndex) in iTemplates">
+								<a v-bind:href="'#inspect-tab-'+tIndex">{{ theTemplate.tid }}</a>
+							</li>
 						</ul>
-						{{#each iTemplates:tIndex}}
-						<div id="inspect-tab-{{tIndex}}">
-							<button decorator="iconButton:ui-icon-check" on-click="allDispAttsOn:{{tIndex}}"><?php _e('All On', 'prospect'); ?></button>
-							<button decorator="iconButton:ui-icon-cancel" on-click="allDispAttsOff:{{tIndex}}"><?php _e('All Off', 'prospect'); ?></button>
-							{{#each modal.atts[tIndex]:aIndex}}
-								<span class="attribute-controls">
-									<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
-									<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveAttLeft:'i',{{tIndex}},{{aIndex}}"><?php _e('Left', 'prospect'); ?></button>
-									<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveAttRight:'i',{{tIndex}},{{aIndex}}"><?php _e('Right', 'prospect'); ?></button>
-								</span>
-							{{/each}}
+						<div v-for="(theTemplate,tIndex) in iTemplates" v-bind:id="'inspect-tab-'+tIndex">
+							<icon-btn symbol="ui-icon-check" v-on:click="allDispAttsOn(tIndex)"><?php _e('All On', 'prospect'); ?></icon-btn>
+							<icon-btn symbol="ui-icon-cancel" v-on:click="allDispAttsOff(tIndex)"><?php _e('All Off', 'prospect'); ?></icon-btn>
+							<span class="attribute-controls" v-for="(thisAttribute,aIndex) in modal.atts[tIndex]">
+								<input type='checkbox' v-model='thisAttribute.useAtt'/> {{ thisAttribute.attID }}
+								<icon-btn symbol="ui-icon-arrowthick-1-w" v-on:click="moveAttLeft('i',tIndex,aIndex)"><?php _e('Left', 'prospect'); ?></button>
+								<icon-btn symbol="ui-icon-arrowthick-1-e" v-on:click="moveAttRight('i',tIndex,aIndex)"><?php _e('Right', 'prospect'); ?></button>
+							</span>
 						</div>
-						{{/each}}
 					</tabs>
 				</div>
 
@@ -244,19 +670,17 @@
 					<?php _e('Choose the Audio Attribute (if any) according to Template type', 'prospect'); ?>:
 					<tabs>
 						<ul>
-						{{#each iTemplates:tIndex}}
-							<li><a href="#sc-tab-{{tIndex}}">{{tid}}</a></li>
-						{{/each}}
+							<li v-for="(theTemplate,tIndex) in iTemplates">
+								<a v-bind:href="'#sc-tab-'+tIndex">{{ theTemplate.tid }}</a>
+							</li>
 						</ul>
-						{{#each iTemplates:tIndex}}
-						<div id="sc-tab-{{tIndex}}">
-							<select value='{{sc.atts[tIndex]}}'>
-							{{#each attsSC}}
-								<option>{{this}}</option>
-							{{/each}}
+						<div v-for="(theTemplate,tIndex) in iTemplates" v-bind:id="'sc-tab-'+tIndex">
+							<select v-model='sc.atts[tIndex]'>
+								<option v-for="thisAtt in theTemplate.attsSC">
+									{{ thisAtt }}
+								</option>
 							</select>
 						</div>
-						{{/each}}
 					</tabs>
 				</div>
 
@@ -265,19 +689,17 @@
 					<?php _e('Choose the YouTube Attribute (if any) according to Template type', 'prospect'); ?>:
 					<tabs>
 						<ul>
-						{{#each iTemplates:tIndex}}
-							<li><a href="#yt-tab-{{tIndex}}">{{tid}}</a></li>
-						{{/each}}
+							<li v-for="(theTemplate,tIndex) in iTemplates">
+								<a v-bind:href="'#yt-tab-'+tIndex">{{ theTemplate.tid }}</a>
+							</li>
 						</ul>
-						{{#each iTemplates:tIndex}}
-						<div id="yt-tab-{{tIndex}}">
-							<select value='{{yt.atts[tIndex]}}'>
-							{{#each attsYT}}
-								<option>{{this}}</option>
-							{{/each}}
+						<div v-for="(theTemplate,tIndex) in iTemplates" v-bind:id="'yt-tab-'+tIndex">
+							<select v-model='yt.atts[tIndex]'>
+								<option v-for="thisAtt in theTemplate.attsYT">
+									{{ thisAtt }}
+								</option>
 							</select>
 						</div>
-						{{/each}}
 					</tabs>
 				</div>
 
@@ -286,603 +708,90 @@
 					<?php _e('Choose the Transcript and Timecode Attributes (if any) according to Template type', 'prospect'); ?>:
 					<tabs>
 						<ul>
-						{{#each iTemplates:tIndex}}
-							<li><a href="#trans-tab-{{tIndex}}">{{tid}}</a></li>
-						{{/each}}
+							<li v-for="(theTemplate,tIndex) in iTemplates">
+								<a v-bind:href="'#trans-tab-'+tIndex">{{ theTemplate.tid }}</a>
+							</li>
 						</ul>
-						{{#each iTemplates:tIndex}}
-						<div id="trans-tab-{{tIndex}}">
-							<?php _e('Primary Transcript', 'prospect'); ?>: <select value='{{t.t1Atts[tIndex]}}'>
-							{{#each attsTrns}}
-								<option>{{this}}</option>
-							{{/each}}
+						<div v-for="(theTemplate,tIndex) in iTemplates" v-bind:id="'trans-tab-'+tIndex">
+							<?php _e('Primary Transcript', 'prospect'); ?>: <select v-model='t.t1Atts[tIndex]'>
+								<option v-for="thisAtt in theTemplate.attsTrns">
+									{{ thisAtt }}
+								</option>
 							</select>
-							<?php _e('Secondary Transcript', 'prospect'); ?>: <select value='{{t.t2Atts[tIndex]}}'>
-							{{#each attsTrns}}
-								<option>{{this}}</option>
-							{{/each}}
+							<?php _e('Secondary Transcript', 'prospect'); ?>: <select v-model='t.t2Atts[tIndex]'>
+								<option v-for="thisAtt in theTemplate.attsTrns">
+									{{ thisAtt }}
+								</option>
 							</select>
 						</div>
-						{{/each}}
 					</tabs>
 				</div>
-
 
 				<h3><?php _e('Timecodes (for Playback widget segments)', 'prospect'); ?></h3>
 				<div>
 					<?php _e('Choose the Timecode Attribute (if any) for Playback widgets according to Template type', 'prospect'); ?>:
 					<tabs>
 						<ul>
-						{{#each iTemplates:tIndex}}
-							<li><a href="#timecode-tab-{{tIndex}}">{{tid}}</a></li>
-						{{/each}}
+							<li v-for="(theTemplate,tIndex) in iTemplates">
+								<a v-bind:href="'#timecode-tab-'+tIndex">{{ theTemplate.tid }}</a>
+							</li>
 						</ul>
-						{{#each iTemplates:tIndex}}
-						<div id="timecode-tab-{{tIndex}}">
-							<?php _e('Extract Timecode', 'prospect'); ?>: <select id="tc-widget" value='{{t.tcAtts[tIndex]}}'>
-							{{#each attsTC}}
-								<option>{{this}}</option>
-							{{/each}}
+						<div v-for="(theTemplate,tIndex) in iTemplates" v-bind:id="'timecode-tab-'+tIndex">
+							<?php _e('Extract Timecode', 'prospect'); ?>: <select v-model='t.tcAtts[tIndex]'>
+								<option v-for="thisAtt in theTemplate.attsTC">
+									{{ thisAtt }}
+								</option>
 							</select>
 						</div>
-						{{/each}}
 					</tabs>
 				</div>
-
 			</accordion>
-		{{/with}}</div>
+		</div>
 	</accordion>
 </script>
 
+<!-- VueJS Template Dialog Component -->
+<script id="dialog-template" type="text/x-template">
+	<div class="dialog-wrap open">
+		<div>
+			<div class="title">{{ title }}</div>
+			<slot></slot>
+			<br/>
+			<button class="btn cancel" v-if="cancel == 'true'" v-on:click="close"><?php _e('Cancel', 'prospect'); ?></button>
+			<button class="btn ok" v-on:click="clickok"><?php _e('OK', 'prospect'); ?></button>
+		</div>
+	</div>
+</script>
+
+<!-- Message Dialog -->
+<script id="dialog-message" type='text/x-template'>
+	<vuemodal title=<?php _e('"Note"', 'prospect'); ?>>
+		{{ params.msg }}
+	</vuemodal>
+</script>
+
+<!-- Confirm Dialog -->
+<script id="dialog-confirm" type='text/x-template'>
+	<vuemodal title=<?php _e('"Confirm"', 'prospect'); ?> cancel="true" v-on:save="ok">
+		{{ params.msg }}
+	</vuemodal>
+</script>
+
+<!-- Template for jQueryUI Accordion Component -->
+<script id="accordion-template" type='text/x-template'>
+	<div class="jq-accordion-template">
+		<slot></slot>
+	</div>
+</script>
+
+<!-- Template for jQueryUI Tabs Component -->
+<script id="tabs-template" type='text/x-template'>
+	<div class="jq-tabs-template">
+		<slot></slot>
+	</div>
+</script>
+
 <!-- PARTIALS -->
-<script id="vfMap" type='text/ractive'>
-	<?php _e('Initial Map Center: Latitude', 'prospect'); ?>: <input type="text" value="{{c.clat}}" size="10" pattern="^-?\d{1,3}(\.\d*)*" required/>
-	<?php _e('Longitude', 'prospect'); ?>: <input type="text" value="{{c.clon}}" size="10" pattern="^-?\d{1,3}(\.\d*)*" required/>
-	<br/>
-	<?php _e('Initial Zoom Level (1=Max Zoom Out, 20=Max Zoom In)', 'prospect'); ?>: <input type="number" value="{{c.zoom}}" min="1" max="20" required/>
-	<br/>
-	<?php _e('Min Radius (1-20)', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="20" required/>
-	<?php _e('Max Radius (1-20)', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="20" required/>
-	<?php _e('Clustering', 'prospect'); ?>: <input type='checkbox' checked='{{c.clstr}}'/>
-	<br/>
-	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
-	<tabs>
-		<ul>
-		{{#each iTemplates:tIndex}}
-			<li><a href="#tmpt-vf-tab-{{incID}}-{{tIndex}}">{{tid}}</a></li>
-		{{/each}}
-		</ul>
-		{{#each iTemplates:tIndex}}
-		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
-			<b><?php _e('Locate Object by', 'prospect'); ?>:</b>
-			{{#each c.cAtts[tIndex]:aIndex}}
-				<span class="attribute-controls">
-					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
-				</span>
-			{{/each}}
-			<br/>
-			<b><?php _e('Marker Radius Size', 'prospect'); ?>: </b>
-			<select value='{{c.sAtts[tIndex]}}'>
-			{{#each attsDNum}}
-				<option>{{this}}</option>
-			{{/each}}
-			</select>
-			<br/>
-			<b><?php _e('Connect to', 'prospect'); ?>: </b>
-			<select value='{{c.pAtts[tIndex]}}'>
-			{{#each attsDPtr}}
-				<option>{{this}}</option>
-			{{/each}}
-			</select>
-			<?php _e('Link Line Color', 'prospect'); ?>: <input type="text" value="{{c.lClrs[tIndex]}}" size="10"/>
-			<span title=<?php _e('"Click to select color"', 'prospect'); ?> class="viz-icon" style="background-color:{{c.lClrs[tIndex]}}" on-click="setLColor:{{vIndex}},{{tIndex}}"></span>
-			<br/>
-			<b><?php _e('Provide Legends', 'prospect'); ?>:</b>
-			<button decorator="iconButton:ui-icon-check" on-click="allLgndsOn:{{vIndex}},{{tIndex}}"><?php _e('All On', 'prospect'); ?></button>
-			<button decorator="iconButton:ui-icon-cancel" on-click="allLgndsOff:{{vIndex}},{{tIndex}}"><?php _e('All Off', 'prospect'); ?></button>
-			{{#each c.lgnds[tIndex]:lIndex}}
-				<span class="attribute-controls">
-					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
-					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Left', 'prospect'); ?></button>
-					<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Right', 'prospect'); ?></button>
-				</span>
-			{{/each}}
-		</div>
-		{{/each}}
-	</tabs>
-	<?php _e('Map Base Layer', 'prospect'); ?>: <select value="{{c.base}}">
-	{{#each baseMaps}}
-		<option value="{{id}}">{{sname}}</option>
-	{{/each}}
-	</select>
-	<?php _e('Map Overlay Layers', 'prospect'); ?>:
-	{{#if layerMaps.length > 0 }}
-		<button on-click="addMapLayer:{{vIndex}}"><?php _e('Add Layer', 'prospect'); ?></button><br/>
-	{{/if}}
-	{{#each c.lyrs:lIndex}}
-		<div class="map-layer-div">
-			<?php _e('Map ID', 'prospect'); ?>: <select value="{{lid}}">
-			{{#each layerMaps}}
-				<option value="{{id}}">{{sname}}</option>
-			{{/each}}
-			</select>
-			<?php _e('Opacity', 'prospect'); ?>: <input type="range" min="0" max="1" value="{{o}}" step="0.1"/>
-			<button decorator="iconButton:ui-icon-trash" on-click="delMapLayer:{{vIndex}},{{lIndex}}"><?php _e('Delete', 'prospect'); ?></button>
-		</div>
-	{{/each}}
-</script>
-
-<script id="vfMap2" type='text/ractive'>
-	<?php _e('Initial Map Center: Latitude', 'prospect'); ?>: <input type="text" value="{{c.clat}}" size="10" pattern="^-?\d{1,3}(\.\d*)*" required/>
-	<?php _e('Longitude', 'prospect'); ?>: <input type="text" value="{{c.clon}}" size="10" pattern="^-?\d{1,3}(\.\d*)*" required/>
-	<br/>
-	<?php _e('Initial Zoom Level (1=Max Zoom Out, 20=Max Zoom In)', 'prospect'); ?>: <input type="number" value="{{c.zoom}}" min="1" max="20" required/>
-	<br/>
-	<?php _e('Min Radius (1-20)', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="20" required/>
-	<?php _e('Max Radius (1-20)', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="20" required/>
-	<br/>
-	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
-	<tabs>
-		<ul>
-		{{#each iTemplates:tIndex}}
-			<li><a href="#tmpt-vf-tab-{{incID}}-{{tIndex}}">{{tid}}</a></li>
-		{{/each}}
-		</ul>
-		{{#each iTemplates:tIndex}}
-		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
-			<b><?php _e('Locate Object by', 'prospect'); ?>:</b>
-			<select value='{{c.cAtts[tIndex]}}'>
-			{{#each attsDLL}}
-				<option>{{this}}</option>
-			{{/each}}
-			</select>
-			<?php _e('Label Marker', 'prospect'); ?>:
-			<select value='{{c.lbls[tIndex]}}'>
-				<option value="n"><?php _e('None', 'prospect'); ?></option>
-				<option value="a"><?php _e('Above', 'prospect'); ?></option>
-			</select>
-			<?php _e('Label Color', 'prospect'); ?>: <input type="text" value="{{c.tClrs[tIndex]}}" size="10"/>
-			<span title=<?php _e('"Click to select color"', 'prospect'); ?> class="viz-icon" style="background-color:{{c.tClrs[tIndex]}}" on-click="setTColor:{{vIndex}},{{tIndex}}"></span>
-			<br/>
-			<b><?php _e('Marker Radius Size', 'prospect'); ?></b>:
-			<select value='{{c.sAtts[tIndex]}}'>
-			{{#each attsDNum}}
-				<option>{{this}}</option>
-			{{/each}}
-			</select>
-			<?php _e('Link Line Color', 'prospect'); ?>: <input type="text" value="{{c.lClrs[tIndex]}}" size="10"/>
-			<span title=<?php _e('"Click to select color"', 'prospect'); ?> class="viz-icon" style="background-color:{{c.lClrs[tIndex]}}" on-click="setLColor:{{vIndex}},{{tIndex}}"></span>
-			<br/>
-			<b><?php _e('Provide Legends', 'prospect'); ?>:</b>
-			<button decorator="iconButton:ui-icon-check" on-click="allLgndsOn:{{vIndex}},{{tIndex}}"><?php _e('All On', 'prospect'); ?></button>
-			<button decorator="iconButton:ui-icon-cancel" on-click="allLgndsOff:{{vIndex}},{{tIndex}}"><?php _e('All Off', 'prospect'); ?></button>
-			{{#each c.lgnds[tIndex]:lIndex}}
-				<span class="attribute-controls">
-					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
-					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Left', 'prospect'); ?></button>
-					<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Right', 'prospect'); ?></button>
-				</span>
-			{{/each}}
-		</div>
-		{{/each}}
-	</tabs>
-	<?php _e('Map Base Layer', 'prospect'); ?>: <select value="{{c.base}}">
-	{{#each baseMaps}}
-		<option value="{{id}}">{{sname}}</option>
-	{{/each}}
-	</select>
-	<?php _e('Map Overlay Groups', 'prospect'); ?>:
-	{{#if mapGroups.length > 0 }}
-		<button on-click="addMapGroup:{{vIndex}}"><?php _e('Add Map Group', 'prospect'); ?></button><br/>
-	{{/if}}
-	{{#each c.lyrs:lIndex}}
-		<div class="map-layer-div">
-			<?php _e('Map Group ID', 'prospect'); ?>: <select value="{{gid}}">
-			{{#each mapGroups}}
-				<option value="{{this}}">{{this}}</option>
-			{{/each}}
-			</select>
-			<?php _e('Opacity', 'prospect'); ?>: <input type="range" min="0" max="1" value="{{o}}" step="0.1"/>
-			<button decorator="iconButton:ui-icon-trash" on-click="delMapGroup:{{vIndex}},{{lIndex}}"><?php _e('Delete', 'prospect'); ?></button>
-		</div>
-	{{/each}}
-</script>
-
-<script id="vfCards" type='text/ractive'>
-	<input type='checkbox' checked='{{c.lOn}}'/> <?php _e('Show Title', 'prospect'); ?> &nbsp;&nbsp;
-	<?php _e('Width', 'prospect'); ?>:
-		<select value="{{c.w}}">
-			<option value="t"><?php _e('Thin', 'prospect'); ?></option>
-			<option value="m"><?php _e('Medium', 'prospect'); ?></option>
-			<option value="w"><?php _e('Wide', 'prospect'); ?></option>
-		</select>
-	<?php _e('Height', 'prospect'); ?>:
-		<select value="{{c.h}}">
-			<option value="s"><?php _e('Short', 'prospect'); ?></option>
-			<option value="m"><?php _e('Medium', 'prospect'); ?></option>
-			<option value="t"><?php _e('Tall', 'prospect'); ?></option>
-		</select>
-	<input type='checkbox' checked='{{c.v}}'/> <?php _e('Stack image vertically', 'prospect'); ?>
-	<br/>
-	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
-	<tabs>
-		<ul>
-		{{#each iTemplates:tIndex}}
-			<li><a href="#tmpt-vf-tab-{{incID}}-{{tIndex}}">{{tid}}</a></li>
-		{{/each}}
-		</ul>
-		{{#each iTemplates:tIndex}}
-		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
-			<b><?php _e('Image', 'prospect'); ?>: </b>
-			<select value='{{c.iAtts[tIndex]}}'>
-			{{#each attsImg}}
-				<option>{{this}}</option>
-			{{/each}}
-			</select>
-			<br/>
-			<b><?php _e('Show content', 'prospect'); ?>: </b>
-			<button decorator="iconButton:ui-icon-check" on-click="allCntOn:{{vIndex}},{{tIndex}}"><?php _e('All On', 'prospect'); ?></button>
-			<button decorator="iconButton:ui-icon-cancel" on-click="allCntOff:{{vIndex}},{{tIndex}}"><?php _e('All Off', 'prospect'); ?></button>
-			{{#each c.cnt[tIndex]:cIndex}}
-				<span class="attribute-controls">
-					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
-					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveAttLeft:{{vIndex}},{{tIndex}},{{cIndex}}"><?php _e('Left', 'prospect'); ?></button>
-					<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveAttRight:{{vIndex}},{{tIndex}},{{cIndex}}"><?php _e('Right', 'prospect'); ?></button>
-				</span>
-			{{/each}}
-			<br/>
-			<b><?php _e('Provide Legends', 'prospect'); ?>: </b>
-			<button decorator="iconButton:ui-icon-check" on-click="allLgndsOn:{{vIndex}},{{tIndex}}"><?php _e('All On', 'prospect'); ?></button>
-			<button decorator="iconButton:ui-icon-cancel" on-click="allLgndsOff:{{vIndex}},{{tIndex}}"><?php _e('All Off', 'prospect'); ?></button>
-			{{#each c.lgnds[tIndex]:lIndex}}
-				<span class="attribute-controls">
-					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
-					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Left', 'prospect'); ?></button>
-					<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Right', 'prospect'); ?></button>
-				</span>
-			{{/each}}
-		</div>
-		{{/each}}
-	</tabs>
-</script>
-
-<script id="vfPinboard" type='text/ractive'>
-	<?php _e('Original Image URL', 'prospect'); ?>: <input type="url" value="{{c.img}}" size="48" pattern="^https?://.+(\.jpg|\.jpeg|\.png)$" required/><br/>
-	<?php _e('Original Image Width', 'prospect'); ?>: <input type="number" value="{{c.iw}}" min="1" max="9999"/>
-	<?php _e('Height', 'prospect'); ?>: <input type="number" value="{{c.ih}}" min="1" max="9999"/><br/>
-	<?php _e('Display Width', 'prospect'); ?>: <input type="number" value="{{c.dw}}" min="1" max="9999"/>
-	<?php _e('Height', 'prospect'); ?>: <input type="number" value="{{c.dh}}" min="1" max="9999"/>
-	<br/>
-	<?php _e('Min Marker Size (1-50)', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="50" required/>
-	<?php _e('Max Marker Size (1-50)', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="50" required/>
-	<br/>
-	<?php _e('Shape Type', 'prospect'); ?>: <select value='{{c.ms}}'>
-		<option value="C"><?php _e('Circles', 'prospect'); ?></option>
-		<option value="S"><?php _e('Symbols', 'prospect'); ?></option>
-		<option value="I"><?php _e('Images', 'prospect'); ?></option>
-	</select>
-	<br/>
-	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
-	<tabs>
-		<ul>
-		{{#each iTemplates:tIndex}}
-			<li><a href="#tmpt-vf-tab-{{incID}}-{{tIndex}}">{{tid}}</a></li>
-		{{/each}}
-		</ul>
-		{{#each iTemplates:tIndex}}
-		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
-			<b><?php _e('X,Y Attribute to use:', 'prospect'); ?> </b>
-			<select value='{{c.cAtts[tIndex]}}'>
-			{{#each attsXY}}
-				<option>{{this}}</option>
-			{{/each}}
-			</select><br/>
-			<b><?php _e('Marker Size', 'prospect'); ?>: </b>
-			<select value='{{c.sAtts[tIndex]}}'>
-			{{#each attsDNum}}
-				<option>{{this}}</option>
-			{{/each}}
-			</select>
-			<b><?php _e('Connect to', 'prospect'); ?>: </b>
-			<select value='{{c.pAtts[tIndex]}}'>
-			{{#each attsDPtr}}
-				<option>{{this}}</option>
-			{{/each}}
-			</select>
-			<?php _e('Link Line Color', 'prospect'); ?>: <input type="text" value="{{c.lClrs[tIndex]}}" size="10"/>
-			<span title=<?php _e('"Click to select color"', 'prospect'); ?> class="viz-icon" style="background-color:{{c.lClrs[tIndex]}}" on-click="setLColor:{{vIndex}},{{tIndex}}"></span>
-			<br/>
-			{{#if c.ms === 'S'}}
-				<b><?php _e('For this Template, use shape ', 'prospect'); ?>: </b>
-				<select value='{{c.syms[tIndex]}}'>
-					<option value=0><?php _e('Circle', 'prospect'); ?></option>
-					<option value=1><?php _e('Cross', 'prospect'); ?></option>
-					<option value=2><?php _e('Diamond', 'prospect'); ?></option>
-					<option value=3><?php _e('Square', 'prospect'); ?></option>
-					<option value=4><?php _e('Star', 'prospect'); ?></option>
-					<option value=5><?php _e('Wye', 'prospect'); ?></option>
-				</select>
-				<br/>
-			{{elseif c.ms === 'I'}}
-				<b><?php _e('For this Template, use Image Attribute ', 'prospect'); ?>: </b>
-				<select value='{{c.iAtts[tIndex]}}'>
-				{{#each attsImg}}
-					<option>{{this}}</option>
-				{{/each}}
-				</select>
-				<br/>
-			{{/if}}
-			<b><?php _e('Provide Legends', 'prospect'); ?>: </b>
-			<button decorator="iconButton:ui-icon-check" on-click="allLgndsOn:{{vIndex}},{{tIndex}}"><?php _e('All On', 'prospect'); ?></button>
-			<button decorator="iconButton:ui-icon-cancel" on-click="allLgndsOff:{{vIndex}},{{tIndex}}"><?php _e('All Off', 'prospect'); ?></button>
-			{{#each c.lgnds[tIndex]:lIndex}}
-				<span class="attribute-controls">
-					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
-					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Left', 'prospect'); ?></button>
-					<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Right', 'prospect'); ?></button>
-				</span>
-			{{/each}}
-		</div>
-		{{/each}}
-	</tabs>
-
-	<?php _e('Overlay SVG Layers', 'prospect'); ?>: <button on-click="addSVGLayer:{{vIndex}}"><?php _e('Add SVG Layer', 'prospect'); ?></button><br/>
-	{{#each c.lyrs:lIndex}}
-		<div class="map-layer-div">
-			<?php _e('SVG Layer', 'prospect'); ?> {{lIndex}} URL: <input type="text" value="{{url}}" size="40" pattern="^https?://.+" required/>
-			<?php _e('Opacity', 'prospect'); ?>: <input type="range" min="0" max="1" value="{{o}}" step="0.1"/>
-			<button decorator="iconButton:ui-icon-trash" on-click="delSVGLayer:{{vIndex}},{{lIndex}}"><?php _e('Delete', 'prospect'); ?></button>
-		</div>
-	{{/each}}
-</script>
-
-<script id="vfSChart" type='text/ractive'>
-	<input type='checkbox' checked='{{c.gr}}'/> <?php _e('Break Number and Date ranges into graduated scale?', 'prospect'); ?>
-	<br/>
-	<?php _e('Pixel height of visualization', 'prospect'); ?>: <input type="number" value="{{c.h}}" min="1" max="1000"/>
-	<br/>
-	<?php _e('Sort and order Records along x axis by ', 'prospect'); ?>
-	<select value='{{c.oAtt}}'>
-	{{#each facets}}
-		<option value="{{this.id}}">{{this.id}}</option>
-	{{/each}}
-	</select>
-	<?php _e('Group Records in each vertical stack by', 'prospect'); ?>
-	<select value='{{c.sAtt}}'>
-	{{#each facets}}
-		<option value="{{this.id}}">{{this.id}}</option>
-	{{/each}}
-	</select>
-</script>
-
-<script id="vfTimeline" type='text/ractive'>
-	<?php _e('Height of Events in Zoom', 'prospect'); ?>: <input type="number" value="{{c.bHt}}" min="2" max="99"/>
-	<?php _e('Width of Frame Axis Labels', 'prospect'); ?>: <input type="number" value="{{c.xLbl}}" min="2" max="99"/><br/>
-	<?php _e('Macro Frame From Date', 'prospect'); ?>: <input type="text" value="{{c.from}}" size="12" placeholder=<?php _e('"YYYY-MM-DD"', 'prospect'); ?>/>
-	<?php _e('To Date', 'prospect'); ?>: <input type="text" value="{{c.to}}" size="12" placeholder=<?php _e('"YYYY-MM-DD"', 'prospect'); ?>/><br/>
-	<?php _e('Zoom Frame From Date', 'prospect'); ?>: <input type="text" value="{{c.zFrom}}" size="12" placeholder=<?php _e('"YYYY-MM-DD"', 'prospect'); ?>/>
-	<?php _e('To Date', 'prospect'); ?>: <input type="text" value="{{c.zTo}}" size="12" placeholder=<?php _e('"YYYY-MM-DD"', 'prospect'); ?>/><br/>
-	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
-	<tabs>
-		<ul>
-		{{#each iTemplates:tIndex}}
-			<li><a href="#tmpt-vf-tab-{{incID}}-{{tIndex}}">{{tid}}</a></li>
-		{{/each}}
-		</ul>
-		{{#each iTemplates:tIndex}}
-		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
-			<b><?php _e('Dates Attribute to use', 'prospect'); ?>: </b>
-			<select value='{{c.dAtts[tIndex]}}'>
-			{{#each attsDates}}
-				<option>{{this}}</option>
-			{{/each}}
-			</select>
-			<br/>
-			<b><?php _e('Provide Legends', 'prospect'); ?>: </b>
-			<button decorator="iconButton:ui-icon-check" on-click="allLgndsOn:{{vIndex}},{{tIndex}}"><?php _e('All On', 'prospect'); ?></button>
-			<button decorator="iconButton:ui-icon-cancel" on-click="allLgndsOff:{{vIndex}},{{tIndex}}"><?php _e('All Off', 'prospect'); ?></button>
-			{{#each c.lgnds[tIndex]:lIndex}}
-				<span class="attribute-controls">
-					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
-					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Left', 'prospect'); ?></button>
-					<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Right', 'prospect'); ?></button>
-				</span>
-			{{/each}}
-		</div>
-		{{/each}}
-	</tabs>
-</script>
-
-<script id="vfDirectory" type='text/ractive'>
-	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
-	<tabs>
-		<ul>
-		{{#each iTemplates:tIndex}}
-			<li><a href="#tmpt-vf-tab-{{incID}}-{{tIndex}}">{{tid}}</a></li>
-		{{/each}}
-		</ul>
-		{{#each iTemplates:tIndex}}
-		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
-			<b><?php _e('Show content', 'prospect'); ?>: </b>
-			<button decorator="iconButton:ui-icon-check" on-click="allCntOn:{{vIndex}},{{tIndex}}"><?php _e('All On', 'prospect'); ?></button>
-			<button decorator="iconButton:ui-icon-cancel" on-click="allCntOff:{{vIndex}},{{tIndex}}"><?php _e('All Off', 'prospect'); ?></button>
-			{{#each c.cnt[tIndex]:cIndex}}
-				<span class="attribute-controls">
-					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
-					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveAttLeft:{{vIndex}},{{tIndex}},{{cIndex}}"><?php _e('Left', 'prospect'); ?></button>
-					<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveAttRight:{{vIndex}},{{tIndex}},{{cIndex}}"><?php _e('Right', 'prospect'); ?></button>
-				</span>
-			{{/each}}
-		</div>
-		{{/each}}
-	</tabs>
-</script>
-
-<script id="vfTextStream" type='text/ractive'>
-	<?php _e('Minimum Font Size', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="2" max="9999"/>
-	<?php _e('Maximum Font Size', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="2" max="9999"/>
-	<br/>
-	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
-	<tabs>
-		<ul>
-		{{#each iTemplates:tIndex}}
-			<li><a href="#tmpt-vf-tab-{{incID}}-{{tIndex}}">{{tid}}</a></li>
-		{{/each}}
-		</ul>
-		{{#each iTemplates:tIndex}}
-		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
-			<b><?php _e('Record visible content', 'prospect'); ?>: </b>
-			<select value='{{c.cnt[tIndex]}}'>
-			{{#each attsTCnt}}
-				<option>{{this}}</option>
-			{{/each}}
-			</select>
-			<b><?php _e('Order by', 'prospect'); ?>: </b>
-			<select value='{{c.order[tIndex]}}'>
-			{{#each attsOAtt}}
-				<option>{{this}}</option>
-			{{/each}}
-			</select>
-			<b><?php _e('Text Size', 'prospect'); ?>: </b>
-			<select value='{{c.sAtts[tIndex]}}'>
-			{{#each attsDNum}}
-				<option>{{this}}</option>
-			{{/each}}
-			</select>
-			<br/>
-			<b><?php _e('Provide Legends', 'prospect'); ?>: </b>
-			<button decorator="iconButton:ui-icon-check" on-click="allLgndsOn:{{vIndex}},{{tIndex}}"><?php _e('All On', 'prospect'); ?></button>
-			<button decorator="iconButton:ui-icon-cancel" on-click="allLgndsOff:{{vIndex}},{{tIndex}}"><?php _e('All Off', 'prospect'); ?></button>
-			{{#each c.lgnds[tIndex]:lIndex}}
-				<span class="attribute-controls">
-					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
-					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Left', 'prospect'); ?></button>
-					<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Right', 'prospect'); ?></button>
-				</span>
-			{{/each}}
-		</div>
-		{{/each}}
-	</tabs>
-</script>
-
-<script id="vfNetWheel" type='text/ractive'>
-	<?php _e('Maximum Label Pixel Width', 'prospect'); ?>: <input type="number" value="{{c.lw}}" min="2" max="9999"/><br/>
-	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
-	<tabs>
-		<ul>
-		{{#each iTemplates:tIndex}}
-			<li><a href="#tmpt-vf-tab-{{incID}}-{{tIndex}}">{{tid}}</a></li>
-		{{/each}}
-		</ul>
-		{{#each iTemplates:tIndex}}
-		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
-			{{#if attsPtr.length > c.pAtts[tIndex].length}}
-				<button on-click="addPtrPair:{{vIndex}},{{tIndex}}"><?php _e('Add Attribute/Color Pair', 'prospect'); ?></button><br/>
-			{{/if}}
-			{{#each c.pAtts[tIndex]:pIndex}}
-				<b><?php _e('Use Pointer Attribute', 'prospect'); ?>: </b>
-				<select value='{{pid}}'>
-				{{#each attsPtr}}
-					<option>{{this}}</option>
-				{{/each}}
-				</select>
-				<?php _e('Use color', 'prospect'); ?>: <input type="text" value="{{clr}}" size="10"/>
-				<span title=<?php _e('"Click to select visual representation"', 'prospect'); ?> class="viz-icon" style="background-color:{{clr}}" on-click="setNetLColor:{{vIndex}},{{tIndex}},{{pIndex}}"></span>
-				<button decorator="iconButton:ui-icon-trash" on-click="delPtrPair:{{vIndex}},{{tIndex}},{{pIndex}}"><?php _e('Delete', 'prospect'); ?></button>
-				<br/>
-			{{/each}}
-			<b><?php _e('Provide Legends', 'prospect'); ?>:</b>
-			<button decorator="iconButton:ui-icon-check" on-click="allLgndsOn:{{vIndex}},{{tIndex}}"><?php _e('All On', 'prospect'); ?></button>
-			<button decorator="iconButton:ui-icon-cancel" on-click="allLgndsOff:{{vIndex}},{{tIndex}}"><?php _e('All Off', 'prospect'); ?></button>
-			{{#each c.lgnds[tIndex]:lIndex}}
-				<span class="attribute-controls">
-					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
-					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Left', 'prospect'); ?></button>
-					<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Right', 'prospect'); ?></button>
-				</span>
-			{{/each}}
-		</div>
-		{{/each}}
-	</tabs>
-</script>
-
-<script id="vfNetGraph" type='text/ractive'>
-	<?php _e('Min Marker Size (1-50)', 'prospect'); ?>: <input type="number" value="{{c.min}}" min="1" max="50" required/>
-	<?php _e('Max Marker Size (1-50)', 'prospect'); ?>: <input type="number" value="{{c.max}}" min="1" max="50" required/>
-	<?php _e('Display size', 'prospect'); ?>: <input type="number" value="{{c.s}}" min="100" max="1500" required/>
-	<br/>
-	<?php _e('Shape Type', 'prospect'); ?>: <select value='{{c.ms}}'>
-		<option value="C"><?php _e('Circles', 'prospect'); ?></option>
-		<option value="S"><?php _e('Symbols', 'prospect'); ?></option>
-		<option value="I"><?php _e('Images', 'prospect'); ?></option>
-	</select>
-	<br/>
-	<?php _e('Configure Attribute(s) by Template type', 'prospect'); ?>
-	<tabs>
-		<ul>
-		{{#each iTemplates:tIndex}}
-			<li><a href="#tmpt-vf-tab-{{incID}}-{{tIndex}}">{{tid}}</a></li>
-		{{/each}}
-		</ul>
-		{{#each iTemplates:tIndex}}
-		<div id="tmpt-vf-tab-{{incID}}-{{tIndex}}">
-			<b><?php _e('Marker Size', 'prospect'); ?>: </b>
-			<select value='{{c.sAtts[tIndex]}}'>
-			{{#each attsDNum}}
-				<option>{{this}}</option>
-			{{/each}}
-			</select><br/>
-			{{#if attsPtr.length > c.pAtts[tIndex].length}}
-				<button on-click="addPtrPair:{{vIndex}},{{tIndex}}"><?php _e('Add Attribute/Color Pair', 'prospect'); ?></button><br/>
-			{{/if}}
-			{{#each c.pAtts[tIndex]:pIndex}}
-				<b><?php _e('Use Pointer Attribute', 'prospect'); ?>: </b>
-				<select value='{{pid}}'>
-				{{#each attsPtr}}
-					<option>{{this}}</option>
-				{{/each}}
-				</select>
-				<?php _e('Use color', 'prospect'); ?>: <input type="text" value="{{clr}}" size="10"/>
-				<span title=<?php _e('"Click to select visual representation"', 'prospect'); ?> class="viz-icon" style="background-color:{{clr}}" on-click="setNetLColor:{{vIndex}},{{tIndex}},{{pIndex}}"></span>
-				<button decorator="iconButton:ui-icon-trash" on-click="delPtrPair:{{vIndex}},{{tIndex}},{{pIndex}}"><?php _e('Delete', 'prospect'); ?></button>
-				<br/>
-			{{/each}}
-			<br/>
-			{{#if c.ms === 'S'}}
-				<b><?php _e('For this Template, use shape ', 'prospect'); ?>: </b>
-				<select value='{{c.syms[tIndex]}}'>
-					<option value=0><?php _e('Circle', 'prospect'); ?></option>
-					<option value=1><?php _e('Cross', 'prospect'); ?></option>
-					<option value=2><?php _e('Diamond', 'prospect'); ?></option>
-					<option value=3><?php _e('Square', 'prospect'); ?></option>
-					<option value=4><?php _e('Star', 'prospect'); ?></option>
-					<option value=5><?php _e('Wye', 'prospect'); ?></option>
-				</select>
-				<br/>
-			{{elseif c.ms === 'I'}}
-				<b><?php _e('For this Template, use Image Attribute ', 'prospect'); ?>: </b>
-				<select value='{{c.iAtts[tIndex]}}'>
-				{{#each attsImg}}
-					<option>{{this}}</option>
-				{{/each}}
-				</select>
-				<br/>
-			{{/if}}
-			<b><?php _e('Provide Legends', 'prospect'); ?>:</b>
-			<button decorator="iconButton:ui-icon-check" on-click="allLgndsOn:{{vIndex}},{{tIndex}}"><?php _e('All On', 'prospect'); ?></button>
-			<button decorator="iconButton:ui-icon-cancel" on-click="allLgndsOff:{{vIndex}},{{tIndex}}"><?php _e('All Off', 'prospect'); ?></button>
-			{{#each c.lgnds[tIndex]:lIndex}}
-				<span class="attribute-controls">
-					<input type='checkbox' checked='{{useAtt}}'/> {{attID}}
-					<button decorator="iconButton:ui-icon-arrowthick-1-w" on-click="moveLgndLeft:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Left', 'prospect'); ?></button>
-					<button decorator="iconButton:ui-icon-arrowthick-1-e" on-click="moveLgndRight:{{vIndex}},{{tIndex}},{{lIndex}}"><?php _e('Right', 'prospect'); ?></button>
-				</span>
-			{{/each}}
-		</div>
-		{{/each}}
-	</tabs>
-</script>
-
 <script id="vfFlow" type='text/ractive'>
 	<?php _e('Display Width', 'prospect'); ?>: <input type="number" value="{{c.w}}" min="2" max="9999"/>
 	<br/>
@@ -1184,7 +1093,7 @@
 
 <!-- DIALOGS -->
 <!-- New View Dialog -->
-<script id="dialog-choose-vf" type='text/ractive'>
+<script id="dialog-choose-vf" type='text/x-template'>
 	<dialog title=<?php _e('"New Visualization"', 'prospect'); ?> width="300" height="200">
 		<label for="choose-att-label"><?php _e('Label', 'prospect'); ?>&nbsp;</label>
 		<input type="text" id="choose-att-label" value="{{label}}" size="24" required/>
@@ -1199,7 +1108,7 @@
 </script>
 
 <!-- Choose Facet Dialog -->
-<script id="dialog-choose-fct" type='text/ractive'>
+<script id="dialog-choose-fct" type='text/x-template'>
 	<dialog title=<?php _e('"Add Attribute Facet"', 'prospect'); ?> width="400" height="160">
 		<label for="choose-facet-att"><?php _e('Attribute', 'prospect'); ?> </label>
 		<select id="choose-facet-att" value='{{fid}}'>
@@ -1210,29 +1119,8 @@
 	</dialog>
 </script>
 
-<!-- Confirm Dialog -->
-<script id="dialog-confirm" type='text/ractive'>
-	<dialog title=<?php _e('"Confirm"', 'prospect'); ?> width="300" height="200">
-		{{message}}
-	</dialog>
-</script>
-
-<!-- Hint Dialog -->
-<script id="dialog-message" type='text/ractive'>
-	<dialog title=<?php _e('"Display Hint"', 'prospect'); ?> width="300" height="300" cancel="false">
-		{{message}}
-	</dialog>
-</script>
-
-<!-- Color Choice Dialog -->
-<script id="dialog-choose-color" type='text/ractive'>
-	<dialog title=<?php _e('"Choose Color"', 'prospect'); ?> width="250" height="330">
-		<iris color="{{color}}"></iris>
-	</dialog>
-</script>
-
 <!-- Map Relationhip values to Roles Attributes Dialog -->
-<script id="dialog-qr-x" type='text/ractive'>
+<script id="dialog-qr-x" type='text/x-template'>
 	<dialog title=<?php _e('"Set Roles for Relationships"', 'prospect'); ?> width="450" height="300">
 		<button on-click="resetterms"><?php _e('Read & Reset Terms', 'prospect'); ?></button><br/>
 		{{#each pairs}}
@@ -1249,94 +1137,94 @@
 
 
 <!-- DYNAMIC TEXT -->
-<script id="dltext-visualizations" type='text/ractive'>
+<script id="dltext-visualizations" type='text'>
 <?php _e('D,Directory|B,Facet Browser|C,Cards|t,TextStream|M,Map 1|p,Map 2|T,Timeline|P,Pinboard|S,Stacked Chart|N,Network Wheel|n,Network Graph|F,Facet Flow|m,MultiBlock Map|b,Bucket Matrix|Q,QR-Map|q,QR-Network|E,Ego-Graph|e,Time-Rings', 'prospect'); ?>
 </script>
 
 
 <!-- ERRORS -->
-<script id="errmsg-tmplt-delid" type='text/ractive'>
+<script id="errmsg-tmplt-delid" type='text'>
 <?php _e('One of your Templates uses an Attribute ID that has since been deleted. Please re-edit your Templates to ensure obsolete Attributes have been removed from them. (See your browser’s error console for details on IDs.)', 'prospect'); ?>
 </script>
 
-<script id="errmsg-id" type='text/ractive'>
+<script id="errmsg-id" type='text'>
 <?php _e('You must supply an internal ID for the Exhibit that is no more than 24 characters in length and consists of alphabetic characters (in plain ASCII), numbers, underscores and hyphens (it cannot contain spaces, punctuation, Unicode-only characters, etc).', 'prospect'); ?>
 </script>
 
-<script id="errmsg-label" type='text/ractive'>
+<script id="errmsg-label" type='text'>
 <?php _e('You must supply a Label for the Exhibit that is no more than 48 characters in length.', 'prospect'); ?>
 </script>
 
-<script id="errmsg-num-templates" type='text/ractive'>
+<script id="errmsg-num-templates" type='text'>
 <?php _e('Every Exhibit needs at least one and no more than four Templates. Please (de)select Templates until this requirement is met.', 'prospect'); ?>
 </script>
 
-<script id="errmsg-templates-need-labels" type='text/ractive'>
+<script id="errmsg-templates-need-labels" type='text'>
 <?php _e('Every Template needs an Attribute which can serve as a label, but at least one of your Templates is missing a label Attribute.', 'prospect'); ?>
 </script>
 
-<script id="errmsg-bad-facet" type='text/ractive'>
+<script id="errmsg-bad-facet" type='text'>
 <?php _e('You have specified an Attribute that does not exist in the selected Templates for the view named', 'prospect'); ?>
 </script>
 
-<script id="errmsg-few-facets" type='text/ractive'>
+<script id="errmsg-few-facets" type='text'>
 <?php _e('In order to work, you need more facet Attributes in the view named', 'prospect'); ?>
 </script>
 
-<script id="errmsg-no-label" type='text/ractive'>
+<script id="errmsg-no-label" type='text'>
 <?php _e('All visualizations need unique, non-empty labels. You have not provided a valid label for view', 'prospect'); ?>
 </script>
 
-<script id="errmsg-dup-label" type='text/ractive'>
+<script id="errmsg-dup-label" type='text'>
 <?php _e('All visualizations need unique, non-empty labels. More than one view has the label', 'prospect'); ?>
 </script>
 
-<script id="errmsg-stckchrt-diffats" type='text/ractive'>
+<script id="errmsg-stckchrt-diffats" type='text'>
 <?php _e('You cannot use the same Attribute for both axes on Stacked chart', 'prospect'); ?>
 </script>
 
-<script id="errmsg-map-coords" type='text/ractive'>
+<script id="errmsg-map-coords" type='text'>
 <?php _e('You must provide the center lat-long coordinate for map', 'prospect'); ?>
 </script>
 
-<script id="errmsg-qr-missing" type='text/ractive'>
+<script id="errmsg-qr-missing" type='text'>
 <?php _e('Some required Attributes are missing from the Qualified Relationship configuration', 'prospect'); ?>
 </script>
 
-<script id="errmsg-qr-unique" type='text/ractive'>
+<script id="errmsg-qr-unique" type='text'>
 <?php _e('Qualified Relationships require unique settings for entity Attribute pairs E1/E2, R1/R2 and C1/C2', 'prospect'); ?>
 </script>
 
-<script id="errmsg-qr-usage" type='text/ractive'>
+<script id="errmsg-qr-usage" type='text'>
 <?php _e('You cannot use QR visualizations if the QR settings have not been configured; provide settings or remove', 'prospect'); ?>
 </script>
 
-<script id="errmsg-qr-coord" type='text/ractive'>
+<script id="errmsg-qr-coord" type='text'>
 <?php _e('You cannot use a QRMap visualization if you haven’t provided the C1 setting at a minimum', 'prospect'); ?>
 </script>
 
-<script id="errmsg-qr-rel-lgnd" type='text/ractive'>
+<script id="errmsg-qr-rel-lgnd" type='text'>
 <?php _e('The legend for the QR Template must have the Relationship Attribute selected (and only that Attribute) for', 'prospect'); ?>
 </script>
 
-<script id="errmsg-ds-bad-date" type='text/ractive'>
+<script id="errmsg-ds-bad-date" type='text'>
 <?php _e('A date in your Date Slider is empty or poorly formatted (must be in format YYYY-MM-DD)', 'prospect'); ?>
 </script>
 
-<script id="errmsg-ds-date-order" type='text/ractive'>
+<script id="errmsg-ds-date-order" type='text'>
 <?php _e('The start date in your Date Slider is after your end date', 'prospect'); ?>
 </script>
 
-<script id="errmsg-ds-date-atts" type='text/ractive'>
+<script id="errmsg-ds-date-atts" type='text'>
 <?php _e('You must have at least one non-disable Attribute chosen in the Date Slider', 'prospect'); ?>
 </script>
 
 
 <!-- MESSAGE -->
-<script id="msg-confirm-del-vf" type='text/ractive'>
+<script id="msg-confirm-del-vf" type='text'>
 <?php _e('Are you sure that you wish to delete this View from your Exhibit?', 'prospect'); ?>
 </script>
 
-<script id="msg-saved" type='text/ractive'>
+<script id="msg-saved" type='text'>
 <?php _e('Exhibit was verified and prepared to be saved: now click the Publish or Update button on the right.', 'prospect'); ?>
 </script>
