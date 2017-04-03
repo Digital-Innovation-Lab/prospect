@@ -58,7 +58,7 @@ button#prsp-save-data {
 }
 
 	/* Just color bar to activate browser input method */
-#prsp_attribute_box input[type="color"] {
+#prsp_template_box input[type="color"] {
 	padding: 2px;
 	width: 40px;
 	font-size: 9px;
