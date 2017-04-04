@@ -77,144 +77,221 @@ if (!Array.prototype.findIndex) {
 
 
 jQuery(document).ready(function() {
-	Ractive.decorators.iconButton = function (node, icon) {
-		jQuery(node).button({
-			text: false,
-			icons: { primary: icon }
-		});
-
-		return {
-			teardown: function () {
-				jQuery(node).button('destroy');
-			}
-		}
-	};
-
-		// Assumes toggle button within DIV coming before DIV to hide/close!
-	Ractive.decorators.togDiv = function (node, theDiv) {
-		var thisTog = jQuery(node).button({
-			text: false,
-			icons: { primary: 'ui-icon-carat-2-n-s' }
-		}).click(function() {
-			jQuery(this).parent().next().slideToggle(400);
-			return false;
-		});
-
-		return {
-			teardown: function () {
-				thisTog.button('destroy');
-			}
-		}
-	};
-
-
-		// Create Ractive component to wrap jQueryUI Dialog
-	var RJDialogComponent = Ractive.extend({
-		template: '#dialog-r-template',
-		data: function() {
+	Vue.component('icon-btn', {
+		props: {
+			symbol: {
+	    		type: String,
+	    		default: ''
+	    	},
+			label: {
+	    		type: String,
+	    		default: ''
+	    	}
+		},
+		template: `<button v-on:click="click">{{label}}</button>`,
+		data: function () {
 			return {
-				title: '',
-				width: 350,
-				height: 300,
-				cancel: true
+				jBtn: null
 			}
-		}, // data
-
-			// Intercept render to insert and active jQueryUI plugin
-		onrender: function() {
-			var self = this;
-			var thisComponent = this.find('*');
-			var theButtons = [ {
-					text: 'OK',
-					click: function() {
-						self.fire('ok');
-					}
-				} ];
-			if (self.get('cancel')) {
-				theButtons.push( {
-					text: 'Cancel',
-					click: function() {
-						self.fire('cancel');
-					}
-				} );
-			}
-			self.modal = jQuery(thisComponent).dialog({
-				dialogClass: "no-close",
-				width: self.get('width'),
-				height: self.get('height'),
-				modal : true,
-				autoOpen: true,
-				buttons: theButtons
+		},
+		methods: {
+			click: function (event) {
+	    		if (event) event.preventDefault();
+				this.$emit('click');
+	    	}
+		},
+			// Lifecycle hooks
+		mounted: function() {
+			this.jBtn = jQuery(this.$el).button({
+				text: false,
+				icons: { primary: this.symbol }
 			});
-		}, // onrender
-
-			// Intercept teardown so that jQueryUI component destroyed
-		onteardown: function () {
-			this.modal.dialog('destroy');
-		} // onteardown
+		},
+		beforeDestroy: function() {
+			jQuery(this.jBtn).button('destroy');
+		}
 	});
 
-	var RJIrisColor = Ractive.extend({
-		template: '#iris-r-template',
-		data: function() {
+	Vue.component('accordion', {
+		template: `<div class="jq-accordion-template">
+			<slot></slot>
+		</div>`,
+		data: function () {
 			return {
-				color: ''				// the selected color
+				jAcc: null
 			}
-		}, // data
-		onrender: function() {
-			var self = this;
-			var thisComponent = this.find('.jq-iris-template');
-
-			jQuery(thisComponent).iris({
-				width: 200,
-				hide: false,
-				palettes: true,
-				change: function(event, ui) {
-					self.set('color', ui.color.toString());
-				}
-			});
-		}, // onrender()
-
-			// Intercept teardown to create jQueryUI component
-		onteardown: function () {
-			var thisComponent = this.find('.jq-iris-template');
-			jQuery(thisComponent).iris('destroy');
-		} // onteardown()
-	});
-
-		// Create Ractive component to wrap jQueryUI Accordion
-	var RJAccordionComponent = Ractive.extend({
-		template: '#accordion-r-template',
-			// Intercept render to insert and active jQueryUI plugin
-		onrender: function() {
-			var self = this;
-			var thisComponent = this.find('.jq-accordion-template');
-			self.acc = jQuery(thisComponent).accordion({
+		},
+			// Lifecycle hooks
+		mounted: function() {
+			this.jAcc = jQuery(this.$el).accordion({
 				heightStyle: "content"
 			});
-		}, // onrender
-
-			// Intercept teardown so that jQueryUI component destroyed
-		onteardown: function () {
-			this.acc.accordion('destroy');
-		} // onteardown
+		},
+		beforeDestroy: function() {
+			jQuery(this.jAcc).accordion('destroy');
+		}
 	});
 
-		// Create Ractive component to wrap jQueryUI Tabs
-	var RJTabsComponent = Ractive.extend({
-		template: '#tabs-r-template',
-			// Intercept render to insert and active jQueryUI plugin
-		onrender: function() {
-			var self = this;
-			var thisComponent = this.find('.jq-tabs-template');
-			self.tabs = jQuery(thisComponent).tabs();
-		}, // onrender
-
-			// Intercept teardown so that jQueryUI component destroyed
-		onteardown: function () {
-			this.tabs.tabs('destroy');
-		} // onteardown
+	Vue.component('tabs', {
+		template: `<div class="jq-tabs-template">
+			<slot></slot>
+		</div>`,
+		data: function () {
+			return {
+				jTabs: null
+			}
+		},
+			// Lifecycle hooks
+		mounted: function() {
+			this.jTabs = jQuery(this.$el).tabs();
+		},
+		beforeDestroy: function() {
+			jQuery(this.jTabs).tabs('destroy');
+		}
 	});
+
+		// "Null" placeholder when no dialog should be shown
+	Vue.component('nullcomponent', {
+		template: '<div style="display: none"></div>'
+	});
+
+		// Wrapper for modal dialog boxes
+		// Strategy for using modal:
+		//		Caller puts parameters into modalParams
+		//		Caller sets vApp.modalParams to appropriate dialog component name
+		//		Dialog component makes local copies of relevant parameters in data (if modifiable)
+		//		Bind GUI to those local data
+		//		If user clicks "OK" then call callback function with feedback data
+	Vue.component('vuemodal', {
+		props: {
+			title: {
+	    		type: String,
+	    		default: 'Dialog'
+	    	},
+			cancel: {
+				type: String,
+				default: 'false'
+			},
+			size: {
+				type: String,
+				default: ''
+			}
+		},
+		template: '#dialog-template',
+		methods: {
+			close: function(event) {
+				console.log("vuemodal > close");
+				this.$el.className = 'dialog-wrap open';
+				setTimeout(function() {
+					vApp.$emit('dialogclose');
+				}.bind(this), 300);
+				if (event) { event.preventDefault(); }
+			},
+			clickok: function(event) {
+				console.log("vuemodal > clickok1");
+				this.$emit('save');
+				console.log("vuemodal > clickok2");
+				if (event) { event.preventDefault(); }
+				this.close();
+			}
+		},
+			// Lifecycle hooks
+		mounted: function() {
+			if (this.size != '') {
+				this.$el.firstChild.className = this.size;
+			} // switch()
+			setTimeout(function() {
+	            this.$el.className = 'dialog-wrap open pop';
+	        }.bind(this), 20);
+		}
+	});
+
+		// INPUT: Message to display is in params.msg
+	Vue.component('dlgMessage', {
+		props: {
+			params: Object
+		},
+		template: '#dialog-message'
+	});
+
+		// INPUT:	params.msg = Message to display
+		//			params.callback = Callback function
+	Vue.component('dlgConfirm', {
+		props: {
+			params: Object
+		},
+		template: '#dialog-confirm',
+		methods: {
+			ok: function() {
+				console.log("Clicked OK");
+				if (this.params.callback != null) {
+					this.params.callback();
+				}
+			}
+		}
+	});
+
+		// Component (dialog) to set single color entry for child Vocab term
+	Vue.component('dlgChooseVizType', {
+		props: {
+			params: Object
+		},
+		data: function () {		// Local copies of data that user can edit
+			return {
+				label: '', vfType: this.params.vfTypes[0]
+			}
+		},
+		template: '#dialog-choose-vf',
+		methods: {
+			save: function() {
+				console.log("Save dlgChooseVizType");
+				this.params.callback(this.label, this.vfType);
+			}
+		}
+	});
+
+		// Component (dialog) to set single color entry for child Vocab term
+	Vue.component('dlgSetRoles', {
+		props: {
+			params: Object
+		},
+		data: function () {		// Local copies of data that user can edit
+			return {
+				pairs: []
+			}
+		},
+		created: function() {
+			this.pairs = JSON.parse(JSON.stringify(this.params.pairs)); // must create "deep" copy
+		},
+		template: '#dialog-qr-x',
+		methods: {
+			save: function() {
+				console.log("Save dlgSetRoles");
+				this.params.callback(this.pairs);
+			},
+			resetterms: function() {
+				// TO DO
+			}
+		}
+	});
+
+
+		// Assumes toggle button within DIV coming before DIV to hide/close!
+	// Ractive.decorators.togDiv = function (node, theDiv) {
+	// 	var thisTog = jQuery(node).button({
+	// 		text: false,
+	// 		icons: { primary: 'ui-icon-carat-2-n-s' }
+	// 	}).click(function() {
+	// 		jQuery(this).parent().next().slideToggle(400);
+	// 		return false;
+	// 	});
+	//
+	// 	return {
+	// 		teardown: function () {
+	// 			thisTog.button('destroy');
+	// 		}
+	// 	}
+	// };
 
 		// CONSTANTS
 		// =========
@@ -322,10 +399,8 @@ jQuery(document).ready(function() {
 
 		// RUN-TIME VARS
 		// =============
-	// var qrOn defined above
-	var rApp;							// the main Ractive application
+	var vApp;							// the main VueJS application
 	var errTimer;
-	var errorString = '';				// error readout
 
 	var vizInc=0;						// Counter used to give every exhibit a unique ID
 
@@ -396,10 +471,11 @@ jQuery(document).ready(function() {
 	// } // compileText()
 
 		// PURPOSE: Ensure all of the QR Att IDs are valid (still found in QR Template)
-		// INPUT:	qrTID is ID of QR Template, or 'disable'
+		// INPUT:	qrID is ID of QR Template, or 'disable'
 	function resetQRAttIDs(qrID)
 	{
-		var qrT;
+		var qrT;	// Points to QR Template (if set)
+
 			// PURPOSE: Ensure that Attribute actually exists in chosen Template
 			//			and convert nulls into 'disable'
 			// INPUT:	id = original Attribute ID
@@ -440,9 +516,10 @@ jQuery(document).ready(function() {
 			}
 			return id;
 		} // checkQRAttID()
-		var hasQRT = (qrT==='disable') ? false : true;
+
+		var hasQRT = (qrID==='disable') ? false : true;
 		var qrI;
-			// Check that Template ID exists
+			// Check that Template with this ID actually exists
 		if (hasQRT) {
 			qrI = defTemplates.findIndex(function(theT) { return qrID === theT.id; });
 			if (qrI == -1) {
@@ -452,27 +529,27 @@ jQuery(document).ready(function() {
 			}
 		}
 		if (hasQRT) {
-			rApp.set('genSettings.qr.e1', checkQRAttID(rApp.get('genSettings.qr.e1'), false));
-			rApp.set('genSettings.qr.e2', checkQRAttID(rApp.get('genSettings.qr.e2'), false));
-			rApp.set('genSettings.qr.d',  checkQRAttID(rApp.get('genSettings.qr.d'), true));
-			rApp.set('genSettings.qr.r',  checkQRAttID(rApp.get('genSettings.qr.r'), false));
-			rApp.set('genSettings.qr.r1', checkQRAttID(rApp.get('genSettings.qr.r1'), false));
-			rApp.set('genSettings.qr.r2', checkQRAttID(rApp.get('genSettings.qr.r2'), false));
-			rApp.set('genSettings.qr.c',  checkQRAttID(rApp.get('genSettings.qr.c'), true));
-			rApp.set('genSettings.qr.c1', checkQRAttID(rApp.get('genSettings.qr.c1'), true));
-			rApp.set('genSettings.qr.c2', checkQRAttID(rApp.get('genSettings.qr.c2'), true));
+			vApp.qr.e1 = checkQRAttID(vApp.qr.e1, false);
+			vApp.qr.e2 = checkQRAttID(vApp.qr.e2, false);
+			vApp.qr.d  = checkQRAttID(vApp.qr.d,  true);
+			vApp.qr.r  = checkQRAttID(vApp.qr.r,  false);
+			vApp.qr.r1 = checkQRAttID(vApp.qr.r1, false);
+			vApp.qr.r2 = checkQRAttID(vApp.qr.r2, false);
+			vApp.qr.c  = checkQRAttID(vApp.qr.c,  true);
+			vApp.qr.c1 = checkQRAttID(vApp.qr.c1, true);
+			vApp.qr.c2 = checkQRAttID(vApp.qr.c2, true);
 		} else {
-			rApp.set('genSettings.qr.t', 'disable');
-			rApp.set('genSettings.qr.e1', '');
-			rApp.set('genSettings.qr.e2', '');
-			rApp.set('genSettings.qr.d',  'disable');
-			rApp.set('genSettings.qr.r',  '');
-			rApp.set('genSettings.qr.r1', '');
-			rApp.set('genSettings.qr.r2', '');
-			rApp.set('genSettings.qr.c',  'disable');
-			rApp.set('genSettings.qr.c1', 'disable');
-			rApp.set('genSettings.qr.c2', 'disable');
-			rApp.set('genSettings.qr.x', []);
+			vApp.qr.t  = 'disable';
+			vApp.qr.e1 = '';
+			vApp.qr.e2 = '';
+			vApp.qr.d  = 'disable';
+			vApp.qr.r  = '';
+			vApp.qr.r1 = '';
+			vApp.qr.r2 = '';
+			vApp.qr.c  = 'disable';
+			vApp.qr.c1 = 'disable';
+			vApp.qr.c2 = 'disable';
+			vApp.qr.x  = [];
 		}
 	} // resetQRAttIDs()
 
@@ -482,17 +559,16 @@ jQuery(document).ready(function() {
 			// If a clear-error timer is set, cancel it
 		if (errTimer) {
 			clearTimeout(errTimer);
-			jQuery('#error-frame').removeClass('ok');
 		}
 		var newError = getText(errID);
-		if (append) {
-			newError += ' '+append+'.';
+		if (typeof append == 'string') {
+			newError += append;
 		}
-		rApp.set('errorMsg', newError);
-		if (ok === true) {
-			jQuery('#error-frame').addClass('ok');
-		}
-		errTimer = setTimeout(function() { rApp.set('errorMsg', ''); jQuery('#error-frame').removeClass('ok'); }, 5000);
+		vApp.errorOK = ok === true;
+		vApp.errorMsg = newError;
+		errTimer = setTimeout(function() {
+			vApp.errorMsg = '';
+		}, 5000);
 	} // displayError()
 
 
@@ -526,34 +602,6 @@ jQuery(document).ready(function() {
 		return defGen.ts.findIndex(function(theAttID) { return theAttID == tmpltID; });
 	} // getTemplateIndex()
 
-		// PURPOSE: Allow user to choose a color
-		// INPUT: 	initColor is the initial color
-		// RETURNS: New color (as hex string) or null if cancal
-	function chooseColor(keypath)
-	{
-		var c = rApp.get(keypath);
-
-		var colorPicker = new Ractive({
-			el: '#insert-dialog',
-			template: '#dialog-choose-color',
-			data: {
-				color: c
-			},
-			components: {
-				dialog: RJDialogComponent,
-				iris: RJIrisColor
-			}
-		}); // new Ractive()
-		colorPicker.on('dialog.ok', function() {
-			var finalColor = colorPicker.get('color');
-			colorPicker.teardown();
-			rApp.set(keypath, finalColor);
-		});
-		colorPicker.on('dialog.cancel', function() {
-			colorPicker.teardown();
-		});
-	} // chooseColor()
-
 		// PURPOSE: Check basic data provided by the user for Template definition
 		// RETURNS: false if definition has errors, otherwise array:
 		//			[0] = gen settings conf object, [1] = indices of Template entries to save
@@ -575,14 +623,14 @@ jQuery(document).ready(function() {
 			return false;
 		}
 		saveGen.l = exhibitL;
-		saveGen.hbtn = rApp.get('genSettings.hbtn').trim();
-		saveGen.hurl = rApp.get('genSettings.hurl').trim();
-		saveGen.tour = rApp.get('genSettings.tour');
-		saveGen.dspr = rApp.get('genSettings.dspr');
-		saveGen.auto = rApp.get('genSettings.auto');
+		saveGen.hbtn = vApp.hbtn.trim();
+		saveGen.hurl = vApp.hurl.trim();
+		saveGen.tour = vApp.tour;
+		saveGen.dspr = vApp.dspr;
+		saveGen.auto = vApp.auto;
 
 			// Has user enabled Qualified Relationships?
-		if (rApp.get('qrOn') && rApp.get('genSettings.qr.t') != 'disable') {
+		if (vApp.qrOn && vApp.qr.t != 'disable') {
 			function preID(id)
 			{
 				if (id == 'disable') {
@@ -590,7 +638,7 @@ jQuery(document).ready(function() {
 				}
 				return id;
 			} // disableToNull()
-			saveGen.qr = JSON.parse(JSON.stringify(rApp.get('genSettings.qr')));
+			saveGen.qr = JSON.parse(JSON.stringify(vApp.qr));
 				// Check that all required Attribute settings are given
 			if (saveGen.qr.e1 == '' || saveGen.qr.e2 == '' || saveGen.qr.r == '' ||
 				saveGen.qr.r1 == '' || saveGen.qr.r2 == '')
@@ -622,9 +670,9 @@ jQuery(document).ready(function() {
 
 		var i;
 		for (i=0; i<iTemplates.length; i++) {
-			var used = rApp.get('iTemplates['+i+'].use');
+			var used = vApp.iTemplates[i].use;
 			if (used) {
-				saveGen.ts.push(rApp.get('iTemplates['+i+'].tid'));
+				saveGen.ts.push(vApp.iTemplates[i].tid);
 				saveTIndices.push(i);
 			}
 		}
@@ -664,15 +712,15 @@ jQuery(document).ready(function() {
 		} // parseDate
 
 			// Do we need to save Date Slider params?
-		if (rApp.get('genSettings.ds.on')) {
+		if (vApp.dateslider.on) {
 			var dateRegEx = /^-?\d+(-?\d+(-?\d+))$/;
-			var sDateVal = rApp.get('genSettings.ds.s');
+			var sDateVal = vApp.dateslider.s;
 			if (!sDateVal.match(dateRegEx))
 			{
 				displayError('#errmsg-ds-bad-date');
 				return false;
 			}
-			var eDateVal = rApp.get('genSettings.ds.e');
+			var eDateVal = vApp.dateslider.e;
 			if (!eDateVal.match(dateRegEx))
 			{
 				displayError('#errmsg-ds-bad-date');
@@ -688,9 +736,9 @@ jQuery(document).ready(function() {
 					return false;
 			}
 				// dAtts will get processed further later
-			saveGen.ds = { s: sDateVal, e: eDateVal, dAtts: rApp.get('genSettings.ds.dAtts'), o: rApp.get('genSettings.ds.o') };
+			saveGen.ds = { s: sDateVal, e: eDateVal, dAtts: vApp.dateslider.dAtts, o: vApp.dateslider.o };
 				// Did user provide handle date?
-			var hDateVal = rApp.get('genSettings.ds.h');
+			var hDateVal = vApp.dateslider.h;
 			if (hDateVal.length != 0) {
 				if (!hDateVal.match(dateRegEx))
 				{
@@ -703,8 +751,8 @@ jQuery(document).ready(function() {
 
 			// Ensure unique labels given to all views
 		var vNames=[];
-		for (i=0; i<rApp.get('viewSettings.length'); i++) {
-			var label = rApp.get('viewSettings['+i+'].l');
+		for (i=0; i<vApp.viewSettings.length; i++) {
+			var label = vApp.viewSettings[i].l;
 			label = label.trim();
 			if (_.indexOf(vNames,label) != -1) {
 				displayError('#errmsg-dup-label', label);
@@ -720,51 +768,26 @@ jQuery(document).ready(function() {
 		return [saveGen, saveTIndices];
 	} // doErrorCheck()
 
+		// PURPOSE: Present user message in modal dialog box
+	function messageModal(msgID)
+	{
+		var mText = getText(msgID);
+		vApp.modalParams.msg = mText;
+		vApp.modalShowing = 'dlgMessage';
+	} // messageModal()
 
 		// PURPOSE: Present a confirmation modal
 		// RETURNS: true if OK, false if Cancel
-	function confirmModal(msgID, callback)
+	function confirmModal(msgID, addText, callback)
 	{
 		var mText = getText(msgID);
-		var modalDialog = new Ractive({
-			el: '#insert-dialog',
-			template: '#dialog-confirm',
-			data: {
-				message: mText
-			},
-			components: {
-				dialog: RJDialogComponent
-			}
-		}); // new Ractive()
-
-		modalDialog.on('dialog.ok', function() {
-			if (callback)
-				callback();
-			modalDialog.teardown();
-			return false;
-		});
-		modalDialog.on('dialog.cancel', modalDialog.teardown);
+		if (typeof addText == 'string') {
+			mText += addText;
+		}
+		vApp.modalParams.msg = mText;
+		vApp.modalParams.callback = callback;
+		vApp.modalShowing = 'dlgConfirm';
 	} // confirmModal()
-
-		// PURPOSE: Present user message in modal dialog box
-	function messageModal(mText)
-	{
-		var modalDialog = new Ractive({
-			el: '#insert-dialog',
-			template: '#dialog-message',
-			data: {
-				message: mText
-			},
-			components: {
-				dialog: RJDialogComponent
-			}
-		}); // new Ractive()
-
-		modalDialog.on('dialog.ok', function() {
-			modalDialog.teardown();
-			return false;
-		});
-	} // messageModal()
 
 
 		// Compile array about independent Template types from input configuration data
@@ -772,14 +795,14 @@ jQuery(document).ready(function() {
 		//  'disable' applies to features that can be turned on or off
 		//	'' (empty) means no suitable choice exists for required setting
 		// Also compile list of all Attributes (Joined and unjoined)
-	_.forEach(defTemplates, function(theTmplt) {
+	defTemplates.forEach(function(theTmplt) {
 		if (!theTmplt.def.d) {
 			var attsTxt=[], attsDates=['disable'], attsDNum=['disable'], attsLL=[], attsDLL=['disable'],
 				attsXY=['disable'], attsImg=['disable'], attsSC=['disable'], attsYT=['disable'],
 				attsTrns=['disable'], attsTC=['disable'], attsPtr=[], attsDPtr=['disable'], attsVocab=[],
 				attsLgnd=[], attsCnt=[], attsTCnt=[], attsOAtt=[], attsFct=['disable'];
 
-			_.forEach(theTmplt.def.a, function(theAttID) {
+			theTmplt.def.a.forEach(function(theAttID) {
 				function saveAttRef(prefix, theAttID, type)
 				{
 					switch (type) {
@@ -866,7 +889,7 @@ jQuery(document).ready(function() {
 						// Do Join for dependent Template Attributes
 					case 'J':
 						var dTemplate = getDependentTemplate(theTmplt, attDef.id);
-						_.forEach(dTemplate.def.a, function(joinAttID) {
+						dTemplate.def.a.forEach(function(joinAttID) {
 							var joinAtt = getAttribute(joinAttID);
 								// Restrict to "Open" level of security
 							if (joinAtt.p == 'o') {
@@ -894,7 +917,7 @@ jQuery(document).ready(function() {
 						break;
 					}
 				} else {
-					confirmModal('#errmsg-tmplt-delid', null);
+					messageModal('#errmsg-tmplt-delid');
 					console.log("Attribute ID "+theAttID+" cannot be found and will no longer be available in Template "+theTmplt.id);
 				}
 			}); // forEach Template Att
@@ -913,12 +936,13 @@ jQuery(document).ready(function() {
 							};
 			iTemplates.push(tmpltEntry);
 		}
-	});
+	}); // foreach defTemplates
+
 		// Sort Joined Attributes by ID
 	defJoinedAtts = _.sortBy(defJoinedAtts, 'id');
 
 		// Compile Joined Facets from Joined Attributes
-	_.forEach(defJoinedAtts, function(theJAtt) {
+	defJoinedAtts.forEach(function(theJAtt) {
 		switch (theJAtt.def.t) {
 		case 'V':
 		case 'T':
@@ -930,7 +954,7 @@ jQuery(document).ready(function() {
 		}
 	});
 
-		// Collect IDs all Vocabulary Attributes for creating Relationship Term map
+		// Collect IDs of all Vocabulary Attributes for creating Relationship Term map
 		// These Vocab Attributes define valid Roles
 		// NOTE: Vocab Attributes don't need to be included in any Template
 	var allVocabAttIDs=[];
@@ -961,12 +985,12 @@ jQuery(document).ready(function() {
 			}
 		}
 
-		rApp.set('qrOptions.optsPtr', newPtr);
-		rApp.set('qrOptions.optsLL', newLL);
-		rApp.set('qrOptions.optsDates', newDates);
-		rApp.set('qrOptions.optsNum', newNum);
-		rApp.set('qrOptions.optsVocab', newVocab);
-		rApp.set('qrOptions.optsTxt', newTxt);
+		vApp.qrOptions.optsPtr   = newPtr;
+		vApp.qrOptions.optsLL    = newLL;
+		vApp.qrOptions.optsDates = newDates;
+		vApp.qrOptions.optsNum   = newNum;
+		vApp.qrOptions.optsVocab = newVocab;
+		vApp.qrOptions.optsTxt   = newTxt;
 	} // updateQROptions()
 
 		// PURPOSE: Created expanded array with useAtt: false if selArray not in fullArray
@@ -1027,7 +1051,7 @@ jQuery(document).ready(function() {
 		var oldDSAtts=defGen.ds.dAtts, newDSAtts=[];
 		var newSCAtts=[], newYTAtts=[], newT1Atts=[], newT2Atts=[], newTCAtts=[],
 			newModalAtts=[];
-		_.forEach(iTemplates, function(theTmplt) {
+		iTemplates.forEach(function(theTmplt) {
 			var origTIndex = getTemplateIndex(theTmplt.tid);
 				// Is Template absent in original configuration?
 			if (origTIndex == -1) {
@@ -1040,7 +1064,7 @@ jQuery(document).ready(function() {
 				newT2Atts.push('disable');
 				newTCAtts.push('disable');
 					// Initialize with all content Attributes
-				newModalAtts.push(_.map(theTmplt.attsCnt, function(theCntAtt) {
+				newModalAtts.push(theTmplt.attsCnt.map(function(theCntAtt) {
 								return { attID: theCntAtt, useAtt: true };
 							}));
 			} else {
@@ -1082,13 +1106,13 @@ jQuery(document).ready(function() {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
 					if (origTIndex == -1) {
-						newLL.push(_.map(theTmplt.attsLL, function(theLLAtt) {
+						newLL.push(theTmplt.attsLL.map(function(theLLAtt) {
 								return { attID: theLLAtt, useAtt: true };
 							}));
 						newPAtts.push('disable');
 						newLClrs.push('#FFD700');
 						newSAtts.push(theTmplt.attsDNum[0] || 'disable');
-						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
+						newLgnds.push(theTmplt.attsLgnd.map(function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
 					} else {
@@ -1115,7 +1139,7 @@ jQuery(document).ready(function() {
 						newLClrs.push('#FFD700');
 						newTClrs.push('');
 						newSAtts.push(theTmplt.attsDNum[0] || 'disable');
-						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
+						newLgnds.push(theTmplt.attsLgnd.map(function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
 						newLbls.push('n');
@@ -1146,10 +1170,10 @@ jQuery(document).ready(function() {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
 					if (origTIndex == -1) {
-						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
+						newLgnds.push(theTmplt.attsLgnd.map(function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
-						newCnt.push(_.map(theTmplt.attsTCnt, function(theCnt) {
+						newCnt.push(theTmplt.attsTCnt.map(function(theCnt) {
 								return { attID: theCnt, useAtt: true };
 							}));
 						newIAtts.push(theTmplt.attsImg[0] || 'disable');
@@ -1187,7 +1211,7 @@ jQuery(document).ready(function() {
 						newPAtts.push('disable');
 						newLClrs.push('#FFD700');
 						newSAtts.push(theTmplt.attsDNum[0] || 'disable');
-						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
+						newLgnds.push(theTmplt.attsLgnd.map(function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
 						newSyms.push(0);
@@ -1218,7 +1242,7 @@ jQuery(document).ready(function() {
 						// Was this Template absent in original config?
 					if (origTIndex == -1) {
 						newD.push(theTmplt.attsDates[0] || 'disable');
-						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
+						newLgnds.push(theTmplt.attsLgnd.map(function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
 					} else {
@@ -1235,7 +1259,7 @@ jQuery(document).ready(function() {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
 					if (origTIndex == -1) {
-						newCnt.push(_.map(theTmplt.attsCnt, function(theCnt) {
+						newCnt.push(theTmplt.attsCnt.map(function(theCnt) {
 								return { attID: theCnt, useAtt: true };
 							}));
 					} else {
@@ -1252,7 +1276,7 @@ jQuery(document).ready(function() {
 					if (origTIndex == -1) {
 						newCnt.push(theTmplt.attsTCnt[0] || '');
 						newOrder.push(theTmplt.attsOAtt[0] || '');
-						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
+						newLgnds.push(theTmplt.attsLgnd.map(function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
 						newSize.push(theTmplt.attsDNum[0] || 'disable');
@@ -1279,7 +1303,7 @@ jQuery(document).ready(function() {
 						// Was this Template absent in original config?
 					if (origTIndex == -1) {
 						newPAtts.push([]);
-						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
+						newLgnds.push(theTmplt.attsLgnd.map(function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
 					} else {
@@ -1316,7 +1340,7 @@ jQuery(document).ready(function() {
 					if (origTIndex == -1) {
 						newPAtts.push([]);
 						newSAtts.push(theTmplt.attsDNum[0] || 'disable');
-						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
+						newLgnds.push(theTmplt.attsLgnd.map(function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
 						newSyms.push(0);
@@ -1365,7 +1389,7 @@ jQuery(document).ready(function() {
 					if (origTIndex == -1) {
 						newPAtts.push([]);
 						newOAtts.push('disable');
-						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
+						newLgnds.push(theTmplt.attsLgnd.map(function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
 					} else {
@@ -1389,7 +1413,7 @@ jQuery(document).ready(function() {
 						// Was this Template absent in original config?
 					if (origTIndex == -1) {
 						newSAtts.push(theTmplt.attsDNum[0] || 'disable');
-						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
+						newLgnds.push(theTmplt.attsLgnd.map(function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
 					} else {
@@ -1417,7 +1441,7 @@ jQuery(document).ready(function() {
 						// Was this Template absent in original config?
 					if (origTIndex == -1) {
 						newSAtts.push(theTmplt.attsDNum[0] || 'disable');
-						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
+						newLgnds.push(theTmplt.attsLgnd.map(function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
 						newSyms.push(0);
@@ -1450,7 +1474,7 @@ jQuery(document).ready(function() {
 					var origTIndex = getTemplateIndex(theTmplt.tid);
 						// Was this Template absent in original config?
 					if (origTIndex == -1) {
-						newLgnds.push(_.map(theTmplt.attsLgnd, function(theLgndAtt) {
+						newLgnds.push(theTmplt.attsLgnd.map(function(theLgndAtt) {
 								return { attID: theLgndAtt, useAtt: true };
 							}));
 						newSyms.push(0);
@@ -1484,30 +1508,43 @@ jQuery(document).ready(function() {
 
 	PMapHub.init(prspdata.maps);
 
-		// Create our main App Ractive instance with wrapped jQueryUI components
-	rApp = new Ractive({
-		el: '#ractive-output',
-		template: '#ractive-base',
+		// Create our main App instance
+	vApp = new Vue({
+		el: '#vue-outer',
 		data: {
+				// Configuration settings for all Exhibit settings
 			xhbtID: xhbtID,
-			genSettings: defGen,
-			iTemplates: iTemplates,
-			inspectSettings: defInspect,
+			label: genSettings.l,
+			attID: attID,
+			privacy: privacy,
+			thisType: thisType,					// the data type chosen for the Attribute
+			delim: delim,						// delimiter character
+			fAvail: fAvail,						// available as Filter?
+			hint: hint,
 			viewSettings: defViews,
-			vfLookup: vfLookup,
+				// Options
+			iTemplates: iTemplates,
 			facets: defJoinedFacets,
-			errorMsg: errorString,
+			qrOn: qrOn,
+			qrOptions: qrOptions,
+			vfLookup: vfLookup,
 			baseMaps: PMapHub.getBaseLayers(),
 			layerMaps: PMapHub.getOverlays(),
 			mapGroups: prspdata.map_groups,
-			qrOn: qrOn,
-			qrOptions: qrOptions
+				// GUI state & modal parameters
+			errorMsg: '',						// current error string (if any)
+			errorOK: false,						// Is message actually not an error?
+			modalParams: {						// parameters passed to modal dialogs
+				callback: null
+			},
+			modalShowing: 'nullcomponent'		// modal currently showing (initially nothing)
 		},
-		components: {
-			accordion: RJAccordionComponent,
-			tabs: RJTabsComponent
-		}
-	});
+		methods: {
+			saveExhibit: function(event) {
+				console.log("Click: saveAttribute");
+				if (event) { event.preventDefault(); }
+			}
+
 
 		// Set initial options for QR Template options and Attribute IDs
 	updateQROptions(defGen.qr.t);
@@ -1595,26 +1632,26 @@ jQuery(document).ready(function() {
 				newVFEntry.c.max = 7;
 				newVFEntry.c.clstr= false;
 					// Lat-Long Coordinates
-				newVFEntry.c.cAtts= _.map(iTemplates, function(theTemplate) {
-					return _.map(theTemplate.attsLL, function(theLLAtt) {
+				newVFEntry.c.cAtts= iTemplates.map(function(theTemplate) {
+					return theTemplate.attsLL.map(function(theLLAtt) {
 						return { attID: theLLAtt, useAtt: true };
 					})
 				});
 					// Potential Pointers
-				newVFEntry.c.pAtts= _.map(iTemplates, function(theTemplate) {
+				newVFEntry.c.pAtts= iTemplates.map(function(theTemplate) {
 					return 'disable';
 				});
 					// Connection colors
-				newVFEntry.c.lClrs= _.map(iTemplates, function(theTemplate) {
+				newVFEntry.c.lClrs= iTemplates.map(function(theTemplate) {
 					return '#FFD700';
 				});
 					// Potential Size
-				newVFEntry.c.sAtts= _.map(iTemplates, function(theTemplate) {
+				newVFEntry.c.sAtts= iTemplates.map(function(theTemplate) {
 					return 'disable';
 				});
 					// Potential Legends
-				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
-					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
+				newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
+					return theTemplate.attsLgnd.map(function(theLgndAtt) {
 						var attDef = getJAttribute(theLgndAtt);
 						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
 					});
@@ -1630,30 +1667,30 @@ jQuery(document).ready(function() {
 				newVFEntry.c.min = 7;
 				newVFEntry.c.max = 7;
 					// Lat-Long Coordinates
-				newVFEntry.c.cAtts= _.map(iTemplates, function(theTemplate) {
+				newVFEntry.c.cAtts= iTemplates.map(function(theTemplate) {
 					return theTemplate.attsDLL[0] || 'disable';
 				});
 					// Connection colors
-				newVFEntry.c.lClrs= _.map(iTemplates, function(theTemplate) {
+				newVFEntry.c.lClrs= iTemplates.map(function(theTemplate) {
 					return '#FFD700';
 				});
 					// Title colors (added in 1.7)
-				newVFEntry.c.tClrs= _.map(iTemplates, function(theTemplate) {
+				newVFEntry.c.tClrs= iTemplates.map(function(theTemplate) {
 					return '';
 				});
 					// Potential Size
-				newVFEntry.c.sAtts= _.map(iTemplates, function(theTemplate) {
+				newVFEntry.c.sAtts= iTemplates.map(function(theTemplate) {
 					return 'disable';
 				});
 					// Potential Legends
-				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
-					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
+				newVFEntry.c.lgnds= iTemplates.map( function(theTemplate) {
+					return theTemplate.attsLgnd.map(function(theLgndAtt) {
 						var attDef = getJAttribute(theLgndAtt);
 						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
 					});
 				});
 					// Default Label settings
-				newVFEntry.c.lbls= _.map(iTemplates, function(theTemplate) {
+				newVFEntry.c.lbls= iTemplates.map(function(theTemplate) {
 					return 'n';
 				});
 				newVFEntry.c.base= '.blank';
@@ -1666,19 +1703,19 @@ jQuery(document).ready(function() {
 				newVFEntry.c.w    = 'm';
 				newVFEntry.c.h    = 'm';
 					// Potential Legends
-				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
-					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
+				newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
+					return theTemplate.attsLgnd.map(function(theLgndAtt) {
 						var attDef = getJAttribute(theLgndAtt);
 						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
 					});
 				});
 					// Image Attribute
-				newVFEntry.c.iAtts= _.map(iTemplates, function(theTemplate) {
+				newVFEntry.c.iAtts= iTemplates.map(function(theTemplate) {
 					return 'disable';
 				});
 					// Textual Content
-				newVFEntry.c.cnt  = _.map(iTemplates, function(theTemplate) {
-					return _.map(theTemplate.attsTCnt, function(theCntAtt) {
+				newVFEntry.c.cnt  = iTemplates.map(function(theTemplate) {
+					return theTemplate.attsTCnt.map(function(theCntAtt) {
 						return { attID: theCntAtt, useAtt: true };
 					});
 				});
@@ -1696,24 +1733,24 @@ jQuery(document).ready(function() {
 				newVFEntry.c.syms = new Array(iTemplates.length).fill(0);
 				newVFEntry.c.iAtts= new Array(iTemplates.length).fill('disable');
 					// X,Y Coordinates
-				newVFEntry.c.cAtts= _.map(iTemplates, function(theTemplate) {
+				newVFEntry.c.cAtts= iTemplates.map(function(theTemplate) {
 					return theTemplate.attsXY[0] || 'disable';
 				});
 					// Potential Pointers
-				newVFEntry.c.pAtts= _.map(iTemplates, function(theTemplate) {
+				newVFEntry.c.pAtts= iTemplates.map(function(theTemplate) {
 					return 'disable';
 				});
 					// Connection colors
-				newVFEntry.c.lClrs= _.map(iTemplates, function(theTemplate) {
+				newVFEntry.c.lClrs= iTemplates.map(function(theTemplate) {
 					return '#FFD700';
 				});
 					// Potential Size
-				newVFEntry.c.sAtts= _.map(iTemplates, function(theTemplate) {
+				newVFEntry.c.sAtts= iTemplates.map(function(theTemplate) {
 					return 'disable';
 				});
 					// Potential Legends
-				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
-					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
+				newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
+					return theTemplate.attsLgnd.map(function(theLgndAtt) {
 						var attDef = getJAttribute(theLgndAtt);
 						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
 					});
@@ -1732,12 +1769,12 @@ jQuery(document).ready(function() {
 					// Zoom window to Date (default is total)
 				newVFEntry.c.zTo    = '';
 					// Dates Attribute (to place)
-				newVFEntry.c.dAtts= _.map(iTemplates, function(theTemplate) {
+				newVFEntry.c.dAtts= iTemplates.map(function(theTemplate) {
 					return theTemplate.attsDates[0] || 'disable';
 				});
 					// Potential Legends
-				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
-					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
+				newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
+					return theTemplate.attsLgnd.map(function(theLgndAtt) {
 						var attDef = getJAttribute(theLgndAtt);
 						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
 					});
@@ -1745,8 +1782,8 @@ jQuery(document).ready(function() {
 				break;
 			case 'D': 	// Directory
 					// Attribute Content to display
-				newVFEntry.c.cnt  = _.map(iTemplates, function(theTemplate) {
-					return _.map(theTemplate.attsCnt, function(theCntAtt) {
+				newVFEntry.c.cnt  = iTemplates.map(function(theTemplate) {
+					return theTemplate.attsCnt.map(function(theCntAtt) {
 						return { attID: theCntAtt, useAtt: true };
 					});
 				});
@@ -1754,18 +1791,18 @@ jQuery(document).ready(function() {
 			case 't': 	// TextStream
 				newVFEntry.c.min = 8;
 				newVFEntry.c.max = 50;
-				newVFEntry.c.cnt  = _.map(iTemplates, function(theTemplate) {
+				newVFEntry.c.cnt  = iTemplates.map(function(theTemplate) {
 					return theTemplate.attsTCnt[0] || '';
 				});
-				newVFEntry.c.order  = _.map(iTemplates, function(theTemplate) {
+				newVFEntry.c.order  = iTemplates.map(function(theTemplate) {
 					return theTemplate.attsOAtt[0] || '';
 				});
-				newVFEntry.c.sAtts  = _.map(iTemplates, function(theTemplate) {
+				newVFEntry.c.sAtts  = iTemplates.map(function(theTemplate) {
 					return 'disable';
 				});
 					// Potential Legends
-				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
-					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
+				newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
+					return theTemplate.attsLgnd.map(function(theLgndAtt) {
 						var attDef = getJAttribute(theLgndAtt);
 						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
 					});
@@ -1780,13 +1817,13 @@ jQuery(document).ready(function() {
 			case 'N': 	// Network Wheel
 				newVFEntry.c.lw = 120;
 					// Potential Legends
-				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
-					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
+				newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
+					return theTemplate.attsLgnd.map(function(theLgndAtt) {
 						var attDef = getJAttribute(theLgndAtt);
 						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
 					});
 				});
-				newVFEntry.c.pAtts = _.map(iTemplates, function(theTemplate) {
+				newVFEntry.c.pAtts = iTemplates.map(function(theTemplate) {
 					return [];
 				});
 				break;
@@ -1799,17 +1836,17 @@ jQuery(document).ready(function() {
 				newVFEntry.c.syms = new Array(iTemplates.length).fill(0);
 				newVFEntry.c.iAtts= new Array(iTemplates.length).fill('disable');
 					// Potential Legends
-				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
-					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
+				newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
+					return theTemplate.attsLgnd.map(function(theLgndAtt) {
 						var attDef = getJAttribute(theLgndAtt);
 						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
 					});
 				});
 					// Potential Size
-				newVFEntry.c.sAtts= _.map(iTemplates, function(theTemplate) {
+				newVFEntry.c.sAtts= iTemplates.map(function(theTemplate) {
 					return 'disable';
 				});
-				newVFEntry.c.pAtts = _.map(iTemplates, function(theTemplate) {
+				newVFEntry.c.pAtts = iTemplates.map(function(theTemplate) {
 					return [];
 				});
 				break;
@@ -1829,17 +1866,17 @@ jQuery(document).ready(function() {
 				newVFEntry.c.nr = 4;
 				newVFEntry.c.bw = 8;
 				newVFEntry.c.gr = true;
-				newVFEntry.c.oAtts  = _.map(iTemplates, function(theTemplate) {
+				newVFEntry.c.oAtts  = iTemplates.map(function(theTemplate) {
 					return 'disable';
 				});
 					// Potential Legends
-				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
-					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
+				newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
+					return theTemplate.attsLgnd.map(function(theLgndAtt) {
 						var attDef = getJAttribute(theLgndAtt);
 						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
 					});
 				});
-				newVFEntry.c.pAtts = _.map(iTemplates, function(theTemplate) {
+				newVFEntry.c.pAtts = iTemplates.map(function(theTemplate) {
 					return [];
 				});
 				break;
@@ -1850,12 +1887,12 @@ jQuery(document).ready(function() {
 				newVFEntry.c.min = 7;
 				newVFEntry.c.max = 7;
 					// Potential Size
-				newVFEntry.c.sAtts= _.map(iTemplates, function(theTemplate) {
+				newVFEntry.c.sAtts= iTemplates.map(function(theTemplate) {
 					return 'disable';
 				});
 					// Potential Legends
-				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
-					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
+				newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
+					return theTemplate.attsLgnd.map(function(theLgndAtt) {
 						var attDef = getJAttribute(theLgndAtt);
 						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
 					});
@@ -1872,14 +1909,14 @@ jQuery(document).ready(function() {
 				newVFEntry.c.syms = new Array(iTemplates.length).fill(0);
 				newVFEntry.c.iAtts= new Array(iTemplates.length).fill('disable');
 					// Potential Legends
-				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
-					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
+				newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
+					return theTemplate.attsLgnd.map(function(theLgndAtt) {
 						var attDef = getJAttribute(theLgndAtt);
 						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
 					});
 				});
 					// Potential Size
-				newVFEntry.c.sAtts= _.map(iTemplates, function(theTemplate) {
+				newVFEntry.c.sAtts= iTemplates.map(function(theTemplate) {
 					return 'disable';
 				});
 				break;
@@ -1892,8 +1929,8 @@ jQuery(document).ready(function() {
 				newVFEntry.c.syms = new Array(iTemplates.length).fill(0);
 				newVFEntry.c.iAtts= new Array(iTemplates.length).fill('disable');
 					// Potential Legends
-				newVFEntry.c.lgnds= _.map(iTemplates, function(theTemplate) {
-					return _.map(theTemplate.attsLgnd, function(theLgndAtt) {
+				newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
+					return theTemplate.attsLgnd.map(function(theLgndAtt) {
 						var attDef = getJAttribute(theLgndAtt);
 						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
 					});
@@ -1902,7 +1939,7 @@ jQuery(document).ready(function() {
 			case 'e':	// Time-rings
 				newVFEntry.c.r = 20;
 					// Potential Dates Attributes
-				newVFEntry.c.dAtts= _.map(iTemplates, function(theTemplate) {
+				newVFEntry.c.dAtts= iTemplates.map(function(theTemplate) {
 					return 'disable';
 				});
 				break;
@@ -1916,8 +1953,7 @@ jQuery(document).ready(function() {
 
 		// Pop up modal with hint about IDs
 	rApp.on('idHint', function() {
-		var hint = getText('#errmsg-id');
-		messageModal(hint);
+		messageModal('#errmsg-id');
 		return false;
 	});
 
@@ -1941,20 +1977,6 @@ jQuery(document).ready(function() {
 
 	rApp.on('delMapGroup', function(event, vIndex, fIndex) {
 		rApp.splice('viewSettings['+vIndex+'].c.lyrs', fIndex, 1);
-		return false;
-	});
-
-		// For Maps and Pinboards
-	rApp.on('setLColor', function(event, vIndex, tIndex) {
-		var keypath='viewSettings['+vIndex+'].c.lClrs['+tIndex+']';
-		chooseColor(keypath);
-		return false;
-	});
-
-		// For Map2
-	rApp.on('setTColor', function(event, vIndex, tIndex) {
-		var keypath='viewSettings['+vIndex+'].c.tClrs['+tIndex+']';
-		chooseColor(keypath);
 		return false;
 	});
 
@@ -2021,13 +2043,6 @@ jQuery(document).ready(function() {
 		return false;
 	});
 
-
-	rApp.on('setNetLColor', function(event, vIndex, tIndex, pIndex) {
-		var keypath = 'viewSettings['+vIndex+'].c.pAtts['+tIndex+']['+pIndex+'].clr';
-		chooseColor(keypath);
-		return false;
-	});
-
 		// Move View/Filter to top
 	rApp.on('topVF', function(event, vIndex) {
 		if (vIndex) {
@@ -2040,7 +2055,7 @@ jQuery(document).ready(function() {
 
 		// Delete a View/Filter
 	rApp.on('delVF', function(event, vIndex) {
-		confirmModal('#msg-confirm-del-vf', function() {
+		confirmModal('#msg-confirm-del-vf', null, function() {
 			rApp.splice('viewSettings', vIndex, 1);
 		});
 		return false;
