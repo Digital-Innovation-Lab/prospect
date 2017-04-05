@@ -823,7 +823,7 @@ class ProspectAdmin {
 				wp_enqueue_script('jquery-ui-button');
 
 					// Prospect-specific
-				wp_enqueue_script('vuejs', plugins_url('/lib/vuejs-2.2.4/vue.js', dirname(__FILE__)));
+				wp_enqueue_script('vuejs', plugins_url('/lib/vuejs/vue.js', dirname(__FILE__)));
 				wp_enqueue_script('randomcolor', plugins_url('/lib/randomcolor.js', dirname(__FILE__)));
 				wp_enqueue_script('rainbow', plugins_url('/lib/rainbowvis.js', dirname(__FILE__)));
 
@@ -866,7 +866,7 @@ class ProspectAdmin {
 				wp_enqueue_script('jquery-ui-button');
 
 					// Prospect-specific
-				wp_enqueue_script('vuejs', plugins_url('/lib/vuejs-2.2.4/vue.js', dirname(__FILE__)));
+				wp_enqueue_script('vuejs', plugins_url('/lib/vuejs/vue.js', dirname(__FILE__)));
 				wp_enqueue_script('edit-template', plugins_url('/js/edit-template.js', dirname(__FILE__)),
 								array('vuejs', 'jquery-ui-button'));
 
@@ -962,7 +962,7 @@ class ProspectAdmin {
 				wp_enqueue_script('jquery-ui-tabs');
 
 					// Prospect-specific
-				wp_enqueue_script('vuejs', plugins_url('/lib/vuejs-2.2.4/vue.js', dirname(__FILE__)));
+				wp_enqueue_script('vuejs', plugins_url('/lib/vuejs/vue.js', dirname(__FILE__)));
 
 				wp_enqueue_script('p-map-hub', plugins_url('/js/map-hub.js', dirname(__FILE__)),
 								array('underscore'));
