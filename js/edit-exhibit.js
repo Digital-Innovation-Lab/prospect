@@ -231,7 +231,7 @@ jQuery(document).ready(function() {
 		}
 	});
 
-		// Component (dialog) to set single color entry for child Vocab term
+		// Component (dialog) to choose visualization type and label
 	Vue.component('dlgChooseVizType', {
 		props: {
 			params: Object
@@ -246,6 +246,28 @@ jQuery(document).ready(function() {
 			save: function() {
 				console.log("Save dlgChooseVizType");
 				this.params.callback(this.label, this.vfType);
+			}
+		}
+	});
+
+		// Component (dialog) to choose Facet
+	Vue.component('dlgChooseFacet', {
+		props: {
+			params: Object
+		},
+		data: function () {		// Local copies of data that user can edit
+			return {
+				fid: ''
+			}
+		},
+		created: function() {
+			this.fid = this.params.facets[0].id;
+		},
+		template: '#dialog-choose-fct',
+		methods: {
+			save: function() {
+				console.log("Save dlgChooseFacet");
+				this.params.callback(this.fid);
 			}
 		}
 	});
@@ -270,7 +292,21 @@ jQuery(document).ready(function() {
 				this.params.callback(this.pairs);
 			},
 			resetterms: function() {
-				// TO DO
+				var newPairs=[];
+					// Default selection is first Vocabulary Attribute
+				var defID  = allVocabAttIDs.length > 0 ? allVocabAttIDs[0] : '';
+					// Is there a valid Relationship Attribute choice?
+				var rAttID = vApp.qr.r;
+				if (rAttID != '') {
+					var rAtt = getJAttribute(rAttID);
+					if (rAtt) {
+							// Set all Relationship Terms in pairs with default setting
+						rAtt.l.forEach(function(l) {
+							newPairs.push({ t: l.l, id: defID });
+						});
+					}
+				}
+				this.pairs = newPairs;
 			}
 		}
 	});
@@ -459,17 +495,6 @@ jQuery(document).ready(function() {
 		return 0;
 	} // ensureInt()
 
-		// PURPOSE: Retrieve language-dependent text and insert variables
-		// INPUT:   scriptName = name of script text in DOM
-		//          vars = names and values of variables in text
-	// function compileText(scriptName, vars)
-	// {
-	// 	var baseText = jQuery(scriptName).html().trim();
-	// 	var template = _.template(baseText);
-
-	// 	return template(vars);
-	// } // compileText()
-
 		// PURPOSE: Ensure all of the QR Att IDs are valid (still found in QR Template)
 		// INPUT:	qrID is ID of QR Template, or 'disable'
 	function resetQRAttIDs(qrID)
@@ -561,8 +586,8 @@ jQuery(document).ready(function() {
 			clearTimeout(errTimer);
 		}
 		var newError = getText(errID);
-		if (typeof append == 'string') {
-			newError += append;
+		if (append != null && typeof append != 'undefined') {
+			newError += ' '+append;
 		}
 		vApp.errorOK = ok === true;
 		vApp.errorMsg = newError;
@@ -1506,696 +1531,344 @@ jQuery(document).ready(function() {
 		} // for views
 	})();
 
-	PMapHub.init(prspdata.maps);
+		// PURPOSE: Create new visualization with default settings
+	function createNewViz(label, vizType)
+	{
+		var newVFEntry = { l: label, incID: vizInc++, vf: vizType, n: '', c: {} };
 
-		// Create our main App instance
-	vApp = new Vue({
-		el: '#vue-outer',
-		data: {
-				// Configuration settings for all Exhibit settings
-			xhbtID: xhbtID,
-			label: genSettings.l,
-			attID: attID,
-			privacy: privacy,
-			thisType: thisType,					// the data type chosen for the Attribute
-			delim: delim,						// delimiter character
-			fAvail: fAvail,						// available as Filter?
-			hint: hint,
-			viewSettings: defViews,
-				// Options
-			iTemplates: iTemplates,
-			facets: defJoinedFacets,
-			qrOn: qrOn,
-			qrOptions: qrOptions,
-			vfLookup: vfLookup,
-			baseMaps: PMapHub.getBaseLayers(),
-			layerMaps: PMapHub.getOverlays(),
-			mapGroups: prspdata.map_groups,
-				// GUI state & modal parameters
-			errorMsg: '',						// current error string (if any)
-			errorOK: false,						// Is message actually not an error?
-			modalParams: {						// parameters passed to modal dialogs
-				callback: null
-			},
-			modalShowing: 'nullcomponent'		// modal currently showing (initially nothing)
-		},
-		methods: {
-			saveExhibit: function(event) {
-				console.log("Click: saveAttribute");
-				if (event) { event.preventDefault(); }
-			}
-
-
-		// Set initial options for QR Template options and Attribute IDs
-	updateQROptions(defGen.qr.t);
-	resetQRAttIDs(defGen.qr.t);
-
-		// Watch for changes and reset when new QR Template chosen
-	rApp.observe('genSettings.qr.t', function (newValue, oldValue, keypath) {
-			// Non-initial change
-		if (typeof(oldValue) !== 'undefined') {
-			updateQROptions(newValue);
-			resetQRAttIDs(newValue);
-		}
-	});
-
-		// Open dialog to set Role Vocab for each Relationship value
-	rApp.on('setRoles', function() {
-		var pairs= JSON.parse(JSON.stringify(rApp.get('genSettings.qr.x')));
-		var newDialog = new Ractive({
-			el: '#insert-dialog',
-			template: '#dialog-qr-x',
-			data: {
-				pairs: pairs,
-				vocabOpts: allVocabAttIDs
-			},
-			components: {
-				dialog: RJDialogComponent
-			}
-		}); // new Ractive()
-
-			// NOTE: This only supports single-tier Legends (no secondary hierarchical terms)
-		newDialog.on('resetterms', function() {
-			var newPairs=[];
-			var defID = allVocabAttIDs.length > 0 ? allVocabAttIDs[0] : '';
-			var rAttID=rApp.get('genSettings.qr.r');
-			if (rAttID != '') {
-				var rAtt = getJAttribute(rAttID);
-				if (rAtt) {
-					rAtt.l.forEach(function(l) {
-						newPairs.push({ t: l.l, id: defID });
-					});
-				}
-			}
-			newDialog.set('pairs', newPairs);
-		});
-		newDialog.on('dialog.ok', function() {
-			rApp.set('genSettings.qr.x', newDialog.get('pairs'));
-			newDialog.teardown();
-		});
-		newDialog.on('dialog.cancel', newDialog.teardown);
-		return false;
-	});
-
-		// Create a blank new View
-	rApp.on('addView', function() {
-		var label = '';
-		var vfType = vfTypes[0].c;
-		var newDialog = new Ractive({
-			el: '#insert-dialog',
-			template: '#dialog-choose-vf',
-			data: {
-				label: label,
-				vfType: vfType,
-				vfTypes: vfTypes
-			},
-			components: {
-				dialog: RJDialogComponent
-			}
-		}); // new Ractive()
-
-		newDialog.on('dialog.ok', function() {
-			var newVFEntry = { };
-			newVFEntry.incID = vizInc++;
-			newVFEntry.l = newDialog.get('label');
-			newVFEntry.vf = newDialog.get('vfType');
-			newVFEntry.n = '';
-			newVFEntry.c = { };
-
-				// Provide defaults according to vf type
-			switch(newVFEntry.vf) {
-			case 'M': 	// Map
-				newVFEntry.c.clat = '';
-				newVFEntry.c.clon = '';
-				newVFEntry.c.zoom = 10;
-				newVFEntry.c.min = 7;
-				newVFEntry.c.max = 7;
-				newVFEntry.c.clstr= false;
-					// Lat-Long Coordinates
-				newVFEntry.c.cAtts= iTemplates.map(function(theTemplate) {
-					return theTemplate.attsLL.map(function(theLLAtt) {
-						return { attID: theLLAtt, useAtt: true };
-					})
-				});
-					// Potential Pointers
-				newVFEntry.c.pAtts= iTemplates.map(function(theTemplate) {
-					return 'disable';
-				});
-					// Connection colors
-				newVFEntry.c.lClrs= iTemplates.map(function(theTemplate) {
-					return '#FFD700';
-				});
-					// Potential Size
-				newVFEntry.c.sAtts= iTemplates.map(function(theTemplate) {
-					return 'disable';
-				});
-					// Potential Legends
-				newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
-					return theTemplate.attsLgnd.map(function(theLgndAtt) {
-						var attDef = getJAttribute(theLgndAtt);
-						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
-					});
-				});
-				newVFEntry.c.base= '.blank';
-				newVFEntry.c.lyrs= [];
-				break;
-
-			case 'p': 	// Map2
-				newVFEntry.c.clat = '';
-				newVFEntry.c.clon = '';
-				newVFEntry.c.zoom = 10;
-				newVFEntry.c.min = 7;
-				newVFEntry.c.max = 7;
-					// Lat-Long Coordinates
-				newVFEntry.c.cAtts= iTemplates.map(function(theTemplate) {
-					return theTemplate.attsDLL[0] || 'disable';
-				});
-					// Connection colors
-				newVFEntry.c.lClrs= iTemplates.map(function(theTemplate) {
-					return '#FFD700';
-				});
-					// Title colors (added in 1.7)
-				newVFEntry.c.tClrs= iTemplates.map(function(theTemplate) {
-					return '';
-				});
-					// Potential Size
-				newVFEntry.c.sAtts= iTemplates.map(function(theTemplate) {
-					return 'disable';
-				});
-					// Potential Legends
-				newVFEntry.c.lgnds= iTemplates.map( function(theTemplate) {
-					return theTemplate.attsLgnd.map(function(theLgndAtt) {
-						var attDef = getJAttribute(theLgndAtt);
-						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
-					});
-				});
-					// Default Label settings
-				newVFEntry.c.lbls= iTemplates.map(function(theTemplate) {
-					return 'n';
-				});
-				newVFEntry.c.base= '.blank';
-				newVFEntry.c.lyrs= [];
-				break;
-
-			case 'C': 	// Cards
-				newVFEntry.c.lOn  = true;
-				newVFEntry.c.v	  = false;
-				newVFEntry.c.w    = 'm';
-				newVFEntry.c.h    = 'm';
-					// Potential Legends
-				newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
-					return theTemplate.attsLgnd.map(function(theLgndAtt) {
-						var attDef = getJAttribute(theLgndAtt);
-						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
-					});
-				});
-					// Image Attribute
-				newVFEntry.c.iAtts= iTemplates.map(function(theTemplate) {
-					return 'disable';
-				});
-					// Textual Content
-				newVFEntry.c.cnt  = iTemplates.map(function(theTemplate) {
-					return theTemplate.attsTCnt.map(function(theCntAtt) {
-						return { attID: theCntAtt, useAtt: true };
-					});
-				});
-				break;
-			case 'P': 	// Pinboard
-				newVFEntry.c.iw   = 500;
-				newVFEntry.c.ih   = 500;
-				newVFEntry.c.dw   = 500;
-				newVFEntry.c.dh   = 500;
-				newVFEntry.c.min  = 7;
-				newVFEntry.c.max  = 7;
-				newVFEntry.c.img  = '';
-					// Since 1.8.3
-				newVFEntry.c.ms   = 'C';
-				newVFEntry.c.syms = new Array(iTemplates.length).fill(0);
-				newVFEntry.c.iAtts= new Array(iTemplates.length).fill('disable');
-					// X,Y Coordinates
-				newVFEntry.c.cAtts= iTemplates.map(function(theTemplate) {
-					return theTemplate.attsXY[0] || 'disable';
-				});
-					// Potential Pointers
-				newVFEntry.c.pAtts= iTemplates.map(function(theTemplate) {
-					return 'disable';
-				});
-					// Connection colors
-				newVFEntry.c.lClrs= iTemplates.map(function(theTemplate) {
-					return '#FFD700';
-				});
-					// Potential Size
-				newVFEntry.c.sAtts= iTemplates.map(function(theTemplate) {
-					return 'disable';
-				});
-					// Potential Legends
-				newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
-					return theTemplate.attsLgnd.map(function(theLgndAtt) {
-						var attDef = getJAttribute(theLgndAtt);
-						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
-					});
-				});
-				newVFEntry.c.lyrs= [];
-				break;
-			case 'T': 	// Timeline
-				newVFEntry.c.bHt  = 12;
-				newVFEntry.c.xLbl   = 37;
-					// Macro window from Date (only if override)
-				newVFEntry.c.from   = '';
-					// Macro window to Date (only if override)
-				newVFEntry.c.to     = '';
-					// Zoom window from Date (default is total)
-				newVFEntry.c.zFrom  = '';
-					// Zoom window to Date (default is total)
-				newVFEntry.c.zTo    = '';
-					// Dates Attribute (to place)
-				newVFEntry.c.dAtts= iTemplates.map(function(theTemplate) {
-					return theTemplate.attsDates[0] || 'disable';
-				});
-					// Potential Legends
-				newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
-					return theTemplate.attsLgnd.map(function(theLgndAtt) {
-						var attDef = getJAttribute(theLgndAtt);
-						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
-					});
-				});
-				break;
-			case 'D': 	// Directory
-					// Attribute Content to display
-				newVFEntry.c.cnt  = iTemplates.map(function(theTemplate) {
-					return theTemplate.attsCnt.map(function(theCntAtt) {
-						return { attID: theCntAtt, useAtt: true };
-					});
-				});
-				break;
-			case 't': 	// TextStream
-				newVFEntry.c.min = 8;
-				newVFEntry.c.max = 50;
-				newVFEntry.c.cnt  = iTemplates.map(function(theTemplate) {
-					return theTemplate.attsTCnt[0] || '';
-				});
-				newVFEntry.c.order  = iTemplates.map(function(theTemplate) {
-					return theTemplate.attsOAtt[0] || '';
-				});
-				newVFEntry.c.sAtts  = iTemplates.map(function(theTemplate) {
-					return 'disable';
-				});
-					// Potential Legends
-				newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
-					return theTemplate.attsLgnd.map(function(theLgndAtt) {
-						var attDef = getJAttribute(theLgndAtt);
-						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
-					});
-				});
-				break;
-			case 'S': 	// Stacked Chart
-				newVFEntry.c.gr = true;
-				newVFEntry.c.h = 500;
-				newVFEntry.c.oAtt = defJoinedFacets[0].id || '';
-				newVFEntry.c.sAtt = defJoinedFacets[0].id || '';
-				break;
-			case 'N': 	// Network Wheel
-				newVFEntry.c.lw = 120;
-					// Potential Legends
-				newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
-					return theTemplate.attsLgnd.map(function(theLgndAtt) {
-						var attDef = getJAttribute(theLgndAtt);
-						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
-					});
-				});
-				newVFEntry.c.pAtts = iTemplates.map(function(theTemplate) {
-					return [];
-				});
-				break;
-			case 'n': 	// Network Graph
-				newVFEntry.c.min = 4;
-				newVFEntry.c.max = 10;
-				newVFEntry.c.s = 500;
-					// Since 1.8.3
-				newVFEntry.c.ms   = 'C';
-				newVFEntry.c.syms = new Array(iTemplates.length).fill(0);
-				newVFEntry.c.iAtts= new Array(iTemplates.length).fill('disable');
-					// Potential Legends
-				newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
-					return theTemplate.attsLgnd.map(function(theLgndAtt) {
-						var attDef = getJAttribute(theLgndAtt);
-						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
-					});
-				});
-					// Potential Size
-				newVFEntry.c.sAtts= iTemplates.map(function(theTemplate) {
-					return 'disable';
-				});
-				newVFEntry.c.pAtts = iTemplates.map(function(theTemplate) {
-					return [];
-				});
-				break;
-			case 'F': 	// Facet Flow
-				newVFEntry.c.w    = 1000;
-			case 'B': 	// Facet Browser
-				newVFEntry.c.gr   = true;
-				newVFEntry.c.fcts = [];
-				break;
-			case 'm': 	// MultiBlockMap
-				newVFEntry.c.w    = 600;
-				newVFEntry.c.h    = 400;
-				newVFEntry.c.p    = '';
-				newVFEntry.c.fcts = [];
-				break;
-			case 'b':	// Bucket Matrix
-				newVFEntry.c.nr = 4;
-				newVFEntry.c.bw = 8;
-				newVFEntry.c.gr = true;
-				newVFEntry.c.oAtts  = iTemplates.map(function(theTemplate) {
-					return 'disable';
-				});
-					// Potential Legends
-				newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
-					return theTemplate.attsLgnd.map(function(theLgndAtt) {
-						var attDef = getJAttribute(theLgndAtt);
-						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
-					});
-				});
-				newVFEntry.c.pAtts = iTemplates.map(function(theTemplate) {
-					return [];
-				});
-				break;
-			case 'Q':	// QR-Map
-				newVFEntry.c.clat = '';
-				newVFEntry.c.clon = '';
-				newVFEntry.c.zoom = 10;
-				newVFEntry.c.min = 7;
-				newVFEntry.c.max = 7;
-					// Potential Size
-				newVFEntry.c.sAtts= iTemplates.map(function(theTemplate) {
-					return 'disable';
-				});
-					// Potential Legends
-				newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
-					return theTemplate.attsLgnd.map(function(theLgndAtt) {
-						var attDef = getJAttribute(theLgndAtt);
-						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
-					});
-				});
-				newVFEntry.c.base= '.blank';
-				newVFEntry.c.lyrs= [];
-				break;
-			case 'q':	// QR-Network
-				newVFEntry.c.min = 4;
-				newVFEntry.c.max = 10;
-				newVFEntry.c.s = 500;
-					// Since 1.8.3
-				newVFEntry.c.ms   = 'C';
-				newVFEntry.c.syms = new Array(iTemplates.length).fill(0);
-				newVFEntry.c.iAtts= new Array(iTemplates.length).fill('disable');
-					// Potential Legends
-				newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
-					return theTemplate.attsLgnd.map(function(theLgndAtt) {
-						var attDef = getJAttribute(theLgndAtt);
-						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
-					});
-				});
-					// Potential Size
-				newVFEntry.c.sAtts= iTemplates.map(function(theTemplate) {
-					return 'disable';
-				});
-				break;
-			case 'E':	// Ego-graph
-				newVFEntry.c.s = 400;
-				newVFEntry.c.n = 3;
-				newVFEntry.c.r = 20;
-					// Since 1.8.3
-				newVFEntry.c.ms   = 'C';
-				newVFEntry.c.syms = new Array(iTemplates.length).fill(0);
-				newVFEntry.c.iAtts= new Array(iTemplates.length).fill('disable');
-					// Potential Legends
-				newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
-					return theTemplate.attsLgnd.map(function(theLgndAtt) {
-						var attDef = getJAttribute(theLgndAtt);
-						return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
-					});
-				});
-				break;
-			case 'e':	// Time-rings
-				newVFEntry.c.r = 20;
-					// Potential Dates Attributes
-				newVFEntry.c.dAtts= iTemplates.map(function(theTemplate) {
-					return 'disable';
-				});
-				break;
-			} // switch
-			rApp.push('viewSettings', newVFEntry);
-			newDialog.teardown();
-		});
-		newDialog.on('dialog.cancel', newDialog.teardown);
-		return false;
-	});
-
-		// Pop up modal with hint about IDs
-	rApp.on('idHint', function() {
-		messageModal('#errmsg-id');
-		return false;
-	});
-
-	rApp.on('addMapLayer', function(event, vIndex) {
-		var ol = PMapHub.getOverlays();
-		var lid0 = ol.length > 0 ? ol[0].id : '';
-		rApp.push('viewSettings['+vIndex+'].c.lyrs', { lid: lid0, o: 1 });
-		return false;
-	});
-
-	rApp.on('delMapLayer', function(event, vIndex, fIndex) {
-		rApp.splice('viewSettings['+vIndex+'].c.lyrs', fIndex, 1);
-		return false;
-	});
-
-	rApp.on('addMapGroup', function(event, vIndex) {
-		var gid0 = prspdata.map_groups.length > 0 ? prspdata.map_groups[0] : '';
-		rApp.push('viewSettings['+vIndex+'].c.lyrs', { gid: gid0, o: 1 });
-		return false;
-	});
-
-	rApp.on('delMapGroup', function(event, vIndex, fIndex) {
-		rApp.splice('viewSettings['+vIndex+'].c.lyrs', fIndex, 1);
-		return false;
-	});
-
-		// For Pinboards
-	rApp.on('addSVGLayer', function(event, vIndex) {
-		rApp.push('viewSettings['+vIndex+'].c.lyrs', { url: '', o: 1 });
-		return false;
-	});
-
-	rApp.on('delSVGLayer', function(event, vIndex, fIndex) {
-		rApp.splice('viewSettings['+vIndex+'].c.lyrs', fIndex, 1);
-		return false;
-	});
-
-	rApp.on('addFacet', function(event, vIndex) {
-			// Allow choosing Attribute
-		var fid = defJoinedFacets.length > 0 ? defJoinedFacets[0].id : '';
-		var newDialog = new Ractive({
-			el: '#insert-dialog',
-			template: '#dialog-choose-fct',
-			data: {
-				fid: fid,
-				facets: defJoinedFacets
-			},
-			components: {
-				dialog: RJDialogComponent
-			}
-		}); // new Ractive()
-
-		newDialog.on('dialog.ok', function() {
-			var fid = newDialog.get('fid');
-			rApp.push('viewSettings['+vIndex+'].c.fcts', fid);
-			newDialog.teardown();
-			return false;
-		});
-		newDialog.on('dialog.cancel', newDialog.teardown);
-		return false;
-	});
-
-	rApp.on('topFacet', function(event, vIndex, fIndex) {
-		if (fIndex) {
-			rApp.splice('viewSettings['+vIndex+'].c.fcts', fIndex, 1).then(function(spliced) {
-					rApp.splice('viewSettings['+vIndex+'].c.fcts', 0, 0, spliced[0]);
-				});
-		}
-		return false;
-	});
-
-	rApp.on('delFacet', function(event, vIndex, fIndex) {
-		rApp.splice('viewSettings['+vIndex+'].c.fcts', fIndex, 1);
-		return false;
-	});
-
-	rApp.on('addPtrPair', function(event, vIndex, tIndex) {
-		var newPtrPair = { };
-		newPtrPair.pid =iTemplates[tIndex].attsPtr[0] || '';
-		newPtrPair.clr = '#888888';
-		rApp.push('viewSettings['+vIndex+'].c.pAtts['+tIndex+']', newPtrPair);
-		return false;
-	});
-
-	rApp.on('delPtrPair', function(event, vIndex, tIndex, pIndex) {
-		rApp.splice('viewSettings['+vIndex+'].c.pAtts['+tIndex+']', pIndex, 1);
-		return false;
-	});
-
-		// Move View/Filter to top
-	rApp.on('topVF', function(event, vIndex) {
-		if (vIndex) {
-			rApp.splice('viewSettings', vIndex, 1).then(function(spliced) {
-					rApp.splice('viewSettings', 0, 0, spliced[0]);
-				});
-		}
-		return false;
-	});
-
-		// Delete a View/Filter
-	rApp.on('delVF', function(event, vIndex) {
-		confirmModal('#msg-confirm-del-vf', null, function() {
-			rApp.splice('viewSettings', vIndex, 1);
-		});
-		return false;
-	});
-
-		// Move an Attribute "left" in Page/VF array
-	rApp.on('moveAttLeft', function(event, a, b, c) {
-			// Is it Post/Inspector?
-		if (typeof(a) == 'string') {
-			var keypath;
-
-			keypath = 'inspectSettings.modal.atts['+b+']';
-			if (c) {
-				rApp.splice(keypath, c, 1).then(function(spliced) {
-					rApp.splice(keypath, c-1, 0, spliced[0]);
-				});
-			}
-
-		} else {
-			if (c) {
-				var keypath = 'viewSettings['+a+'].c.cnt['+b+']';
-				rApp.splice(keypath, c, 1).then(function(spliced) {
-					rApp.splice(keypath, c-1, 0, spliced[0]);
-				});
-			}
-		}
-		return false;
-	});
-
-		// Move an Attribute "right" in Page/VF array
-	rApp.on('moveAttRight', function(event, a, b, c) {
-			// Is it Post/Inspector?
-		if (typeof(a) == 'string') {
-			var keypath;
-
-			keypath = 'inspectSettings.modal.atts['+b+']';
-			var atts = rApp.get(keypath);
-			if (c < (atts.length-1)) {
-				rApp.splice(keypath, c, 1).then(function(spliced) {
-					rApp.splice(keypath, c+1, 0, spliced[0]);
-				});
-			}
-
-		} else {
-			var keypath = 'viewSettings['+a+'].c.cnt['+b+']';
-			var atts = rApp.get(keypath);
-			if (c < (atts.length-1)) {
-				rApp.splice(keypath, c, 1).then(function(spliced) {
-					rApp.splice(keypath, c+1, 0, spliced[0]);
-				});
-			}
-		}
-		return false;
-	});
-
-		// Select all Content for a particular Viz's Template
-	rApp.on('allCntOn', function(event, a, b) {
-		var keypath = 'viewSettings['+a+'].c.cnt['+b+']';
-		var n = rApp.get(keypath+'.length');
-		for (var i=0; i<n; i++)
-			rApp.set(keypath+'['+i+'].useAtt', true);
-		return false;
-	});
-
-		// Deselect all Content for a particular Viz's Template
-	rApp.on('allCntOff', function(event, a, b) {
-		var keypath = 'viewSettings['+a+'].c.cnt['+b+']';
-		var n = rApp.get(keypath+'.length');
-		for (var i=0; i<n; i++)
-			rApp.set(keypath+'['+i+'].useAtt', false);
-		return false;
-	});
-
-		// Turn all Legends On for a particular Viz's Template
-	rApp.on('allLgndsOn', function(event, a, b) {
-		var keypath = 'viewSettings['+a+'].c.lgnds['+b+']';
-		var n = rApp.get(keypath+'.length');
-		for (var i=0; i<n; i++)
-			rApp.set(keypath+'['+i+'].useAtt', true);
-		return false;
-	});
-
-		// Turn all Legends Off for a particular Viz's Template
-	rApp.on('allLgndsOff', function(event, a, b) {
-		var keypath = 'viewSettings['+a+'].c.lgnds['+b+']';
-		var n = rApp.get(keypath+'.length');
-		for (var i=0; i<n; i++)
-			rApp.set(keypath+'['+i+'].useAtt', false);
-		return false;
-	});
-
-		// Move a Legend ID "left" in visualization's Template - Legend array
-	rApp.on('moveLgndLeft', function(event, a, b, c) {
-		if (c) {
-			var keypath = 'viewSettings['+a+'].c.lgnds['+b+']';
-			rApp.splice(keypath, c, 1).then(function(spliced) {
-				rApp.splice(keypath, c-1, 0, spliced[0]);
+			// Provide defaults according to vf type
+		switch(vizType) {
+		case 'M': 	// Map
+			newVFEntry.c.clat = '';
+			newVFEntry.c.clon = '';
+			newVFEntry.c.zoom = 10;
+			newVFEntry.c.min = 7;
+			newVFEntry.c.max = 7;
+			newVFEntry.c.clstr= false;
+				// Lat-Long Coordinates
+			newVFEntry.c.cAtts= iTemplates.map(function(theTemplate) {
+				return theTemplate.attsLL.map(function(theLLAtt) {
+					return { attID: theLLAtt, useAtt: true };
+				})
 			});
-		}
-		return false;
-	});
-
-		// Move a Legend ID "left" in visualization's Template - Legend array
-	rApp.on('moveLgndRight', function(event, a, b, c) {
-		var keypath = 'viewSettings['+a+'].c.lgnds['+b+']';
-		var atts = rApp.get(keypath);
-		if (c < (atts.length-1)) {
-			rApp.splice(keypath, c, 1).then(function(spliced) {
-				rApp.splice(keypath, c+1, 0, spliced[0]);
+				// Potential Pointers
+			newVFEntry.c.pAtts= iTemplates.map(function(theTemplate) {
+				return 'disable';
 			});
-		}
-		return false;
-	});
+				// Connection colors
+			newVFEntry.c.lClrs= iTemplates.map(function(theTemplate) {
+				return '#FFD700';
+			});
+				// Potential Size
+			newVFEntry.c.sAtts= iTemplates.map(function(theTemplate) {
+				return 'disable';
+			});
+				// Potential Legends
+			newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
+				return theTemplate.attsLgnd.map(function(theLgndAtt) {
+					var attDef = getJAttribute(theLgndAtt);
+					return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
+				});
+			});
+			newVFEntry.c.base= '.blank';
+			newVFEntry.c.lyrs= [];
+			break;
+		case 'p': 	// Map2
+			newVFEntry.c.clat = '';
+			newVFEntry.c.clon = '';
+			newVFEntry.c.zoom = 10;
+			newVFEntry.c.min = 7;
+			newVFEntry.c.max = 7;
+				// Lat-Long Coordinates
+			newVFEntry.c.cAtts= iTemplates.map(function(theTemplate) {
+				return theTemplate.attsDLL[0] || 'disable';
+			});
+				// Connection colors
+			newVFEntry.c.lClrs= iTemplates.map(function(theTemplate) {
+				return '#FFD700';
+			});
+				// Title colors (added in 1.7)
+			newVFEntry.c.tClrs= iTemplates.map(function(theTemplate) {
+				return '';
+			});
+				// Potential Size
+			newVFEntry.c.sAtts= iTemplates.map(function(theTemplate) {
+				return 'disable';
+			});
+				// Potential Legends
+			newVFEntry.c.lgnds= iTemplates.map( function(theTemplate) {
+				return theTemplate.attsLgnd.map(function(theLgndAtt) {
+					var attDef = getJAttribute(theLgndAtt);
+					return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
+				});
+			});
+				// Default Label settings
+			newVFEntry.c.lbls= iTemplates.map(function(theTemplate) {
+				return 'n';
+			});
+			newVFEntry.c.base= '.blank';
+			newVFEntry.c.lyrs= [];
+			break;
+		case 'C': 	// Cards
+			newVFEntry.c.lOn  = true;
+			newVFEntry.c.v	  = false;
+			newVFEntry.c.w    = 'm';
+			newVFEntry.c.h    = 'm';
+				// Potential Legends
+			newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
+				return theTemplate.attsLgnd.map(function(theLgndAtt) {
+					var attDef = getJAttribute(theLgndAtt);
+					return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
+				});
+			});
+				// Image Attribute
+			newVFEntry.c.iAtts= iTemplates.map(function(theTemplate) {
+				return 'disable';
+			});
+				// Textual Content
+			newVFEntry.c.cnt  = iTemplates.map(function(theTemplate) {
+				return theTemplate.attsTCnt.map(function(theCntAtt) {
+					return { attID: theCntAtt, useAtt: true };
+				});
+			});
+			break;
+		case 'P': 	// Pinboard
+			newVFEntry.c.iw   = 500;
+			newVFEntry.c.ih   = 500;
+			newVFEntry.c.dw   = 500;
+			newVFEntry.c.dh   = 500;
+			newVFEntry.c.min  = 7;
+			newVFEntry.c.max  = 7;
+			newVFEntry.c.img  = '';
+				// Since 1.8.3
+			newVFEntry.c.ms   = 'C';
+			newVFEntry.c.syms = new Array(iTemplates.length).fill(0);
+			newVFEntry.c.iAtts= new Array(iTemplates.length).fill('disable');
+				// X,Y Coordinates
+			newVFEntry.c.cAtts= iTemplates.map(function(theTemplate) {
+				return theTemplate.attsXY[0] || 'disable';
+			});
+				// Potential Pointers
+			newVFEntry.c.pAtts= iTemplates.map(function(theTemplate) {
+				return 'disable';
+			});
+				// Connection colors
+			newVFEntry.c.lClrs= iTemplates.map(function(theTemplate) {
+				return '#FFD700';
+			});
+				// Potential Size
+			newVFEntry.c.sAtts= iTemplates.map(function(theTemplate) {
+				return 'disable';
+			});
+				// Potential Legends
+			newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
+				return theTemplate.attsLgnd.map(function(theLgndAtt) {
+					var attDef = getJAttribute(theLgndAtt);
+					return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
+				});
+			});
+			newVFEntry.c.lyrs= [];
+			break;
+		case 'T': 	// Timeline
+			newVFEntry.c.bHt  = 12;
+			newVFEntry.c.xLbl   = 37;
+				// Macro window from Date (only if override)
+			newVFEntry.c.from   = '';
+				// Macro window to Date (only if override)
+			newVFEntry.c.to     = '';
+				// Zoom window from Date (default is total)
+			newVFEntry.c.zFrom  = '';
+				// Zoom window to Date (default is total)
+			newVFEntry.c.zTo    = '';
+				// Dates Attribute (to place)
+			newVFEntry.c.dAtts= iTemplates.map(function(theTemplate) {
+				return theTemplate.attsDates[0] || 'disable';
+			});
+				// Potential Legends
+			newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
+				return theTemplate.attsLgnd.map(function(theLgndAtt) {
+					var attDef = getJAttribute(theLgndAtt);
+					return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
+				});
+			});
+			break;
+		case 'D': 	// Directory
+				// Attribute Content to display
+			newVFEntry.c.cnt  = iTemplates.map(function(theTemplate) {
+				return theTemplate.attsCnt.map(function(theCntAtt) {
+					return { attID: theCntAtt, useAtt: true };
+				});
+			});
+			break;
+		case 't': 	// TextStream
+			newVFEntry.c.min = 8;
+			newVFEntry.c.max = 50;
+			newVFEntry.c.cnt  = iTemplates.map(function(theTemplate) {
+				return theTemplate.attsTCnt[0] || '';
+			});
+			newVFEntry.c.order  = iTemplates.map(function(theTemplate) {
+				return theTemplate.attsOAtt[0] || '';
+			});
+			newVFEntry.c.sAtts  = iTemplates.map(function(theTemplate) {
+				return 'disable';
+			});
+				// Potential Legends
+			newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
+				return theTemplate.attsLgnd.map(function(theLgndAtt) {
+					var attDef = getJAttribute(theLgndAtt);
+					return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
+				});
+			});
+			break;
+		case 'S': 	// Stacked Chart
+			newVFEntry.c.gr = true;
+			newVFEntry.c.h = 500;
+			newVFEntry.c.oAtt = defJoinedFacets[0].id || '';
+			newVFEntry.c.sAtt = defJoinedFacets[0].id || '';
+			break;
+		case 'N': 	// Network Wheel
+			newVFEntry.c.lw = 120;
+				// Potential Legends
+			newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
+				return theTemplate.attsLgnd.map(function(theLgndAtt) {
+					var attDef = getJAttribute(theLgndAtt);
+					return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
+				});
+			});
+			newVFEntry.c.pAtts = iTemplates.map(function(theTemplate) {
+				return [];
+			});
+			break;
+		case 'n': 	// Network Graph
+			newVFEntry.c.min = 4;
+			newVFEntry.c.max = 10;
+			newVFEntry.c.s = 500;
+				// Since 1.8.3
+			newVFEntry.c.ms   = 'C';
+			newVFEntry.c.syms = new Array(iTemplates.length).fill(0);
+			newVFEntry.c.iAtts= new Array(iTemplates.length).fill('disable');
+				// Potential Legends
+			newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
+				return theTemplate.attsLgnd.map(function(theLgndAtt) {
+					var attDef = getJAttribute(theLgndAtt);
+					return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
+				});
+			});
+				// Potential Size
+			newVFEntry.c.sAtts= iTemplates.map(function(theTemplate) {
+				return 'disable';
+			});
+			newVFEntry.c.pAtts = iTemplates.map(function(theTemplate) {
+				return [];
+			});
+			break;
+		case 'F': 	// Facet Flow
+			newVFEntry.c.w    = 1000;
+		case 'B': 	// Facet Browser
+			newVFEntry.c.gr   = true;
+			newVFEntry.c.fcts = [];
+			break;
+		case 'm': 	// MultiBlockMap
+			newVFEntry.c.w    = 600;
+			newVFEntry.c.h    = 400;
+			newVFEntry.c.p    = '';
+			newVFEntry.c.fcts = [];
+			break;
+		case 'b':	// Bucket Matrix
+			newVFEntry.c.nr = 4;
+			newVFEntry.c.bw = 8;
+			newVFEntry.c.gr = true;
+			newVFEntry.c.oAtts  = iTemplates.map(function(theTemplate) {
+				return 'disable';
+			});
+				// Potential Legends
+			newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
+				return theTemplate.attsLgnd.map(function(theLgndAtt) {
+					var attDef = getJAttribute(theLgndAtt);
+					return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
+				});
+			});
+			newVFEntry.c.pAtts = iTemplates.map(function(theTemplate) {
+				return [];
+			});
+			break;
+		case 'Q':	// QR-Map
+			newVFEntry.c.clat = '';
+			newVFEntry.c.clon = '';
+			newVFEntry.c.zoom = 10;
+			newVFEntry.c.min = 7;
+			newVFEntry.c.max = 7;
+				// Potential Size
+			newVFEntry.c.sAtts= iTemplates.map(function(theTemplate) {
+				return 'disable';
+			});
+				// Potential Legends
+			newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
+				return theTemplate.attsLgnd.map(function(theLgndAtt) {
+					var attDef = getJAttribute(theLgndAtt);
+					return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
+				});
+			});
+			newVFEntry.c.base= '.blank';
+			newVFEntry.c.lyrs= [];
+			break;
+		case 'q':	// QR-Network
+			newVFEntry.c.min = 4;
+			newVFEntry.c.max = 10;
+			newVFEntry.c.s = 500;
+				// Since 1.8.3
+			newVFEntry.c.ms   = 'C';
+			newVFEntry.c.syms = new Array(iTemplates.length).fill(0);
+			newVFEntry.c.iAtts= new Array(iTemplates.length).fill('disable');
+				// Potential Legends
+			newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
+				return theTemplate.attsLgnd.map(function(theLgndAtt) {
+					var attDef = getJAttribute(theLgndAtt);
+					return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
+				});
+			});
+				// Potential Size
+			newVFEntry.c.sAtts= iTemplates.map(function(theTemplate) {
+				return 'disable';
+			});
+			break;
+		case 'E':	// Ego-graph
+			newVFEntry.c.s = 400;
+			newVFEntry.c.n = 3;
+			newVFEntry.c.r = 20;
+				// Since 1.8.3
+			newVFEntry.c.ms   = 'C';
+			newVFEntry.c.syms = new Array(iTemplates.length).fill(0);
+			newVFEntry.c.iAtts= new Array(iTemplates.length).fill('disable');
+				// Potential Legends
+			newVFEntry.c.lgnds= iTemplates.map(function(theTemplate) {
+				return theTemplate.attsLgnd.map(function(theLgndAtt) {
+					var attDef = getJAttribute(theLgndAtt);
+					return { attID: theLgndAtt, useAtt: attDef.def.t !== 'T'  };
+				});
+			});
+			break;
+		case 'e':	// Time-rings
+			newVFEntry.c.r = 20;
+				// Potential Dates Attributes
+			newVFEntry.c.dAtts= iTemplates.map(function(theTemplate) {
+				return 'disable';
+			});
+			break;
+		} // switch
+		return newVFEntry;
+	} // createNewViz()
 
-		// Display all Attributes for a particular Viz's Template
-	rApp.on('allDispAttsOn', function(event, a) {
-		var keypath = 'inspectSettings.modal.atts['+a+']';
-		var n = rApp.get(keypath+'.length');
-		for (var i=0; i<n; i++)
-			rApp.set(keypath+'['+i+'].useAtt', true);
-		return false;
-	});
-
-		// Display no Attributes for a particular Viz's Template
-	rApp.on('allDispAttsOff', function(event, a) {
-		var keypath = 'inspectSettings.modal.atts['+a+']';
-		var n = rApp.get(keypath+'.length');
-		for (var i=0; i<n; i++)
-			rApp.set(keypath+'['+i+'].useAtt', false);
-		return false;
-	});
-
-		// NOTE: Have to copy settings into fresh objects to prevent corrupting original
-	rApp.on('saveExhibit', function() {
+		// PURPOSE:	Verify and prepare Exhibit Configuration
+		// SIDE-FX:	Pack data in hidden fields, if it verifies
+	function doSaveExhibit()
+	{
 		var result = doErrorCheck();
 
 		if (result) {
 			var saveGen = result[0];
 			var saveTIndices = result[1];
-			var saveID = rApp.get('xhbtID').trim();
+			var saveID = vApp.xhbtID.trim();
 			var saveViews=[], saveInspect={};
 
 				// PURPOSE: Only return Attribute IDs which are marked as used (in same order)
@@ -2267,9 +1940,9 @@ jQuery(document).ready(function() {
 			}
 
 				// Compact View Setting arrays
-			var vCount = rApp.get('viewSettings.length');
+			var vCount = vApp.viewSettings.length;
 			for (var i=0; i<vCount; i++) {
-				var saveView = {}, viewSettings = rApp.get('viewSettings['+i+']');
+				var saveView = {}, viewSettings = vApp.viewSettings[i];
 				var abort=false;
 
 					// PURPOSE: Confirm that att is in the list of facets in selected Templates
@@ -2277,7 +1950,7 @@ jQuery(document).ready(function() {
 				function validFacet(att)
 				{
 					var valid = iTemplates.find(function(t, tI) {
-						if (rApp.get('iTemplates['+tI+'].use')) {
+						if (vApp.iTemplates[tI].use) {
 							return iTemplates[tI].attsFct.find(function(f) {
 								return att === f;
 							}) != null;
@@ -2675,41 +2348,40 @@ jQuery(document).ready(function() {
 			}
 
 				// Compact Inspector settings
-			var inspectSettings = rApp.get('inspectSettings');
 			saveInspect.sc = {};
-			saveInspect.sc.atts = packUsedAttIDs(inspectSettings.sc.atts, null);
+			saveInspect.sc.atts = packUsedAttIDs(vApp.sc.atts, null);
 			saveInspect.yt = {};
-			saveInspect.yt.atts = packUsedAttIDs(inspectSettings.yt.atts, null);
+			saveInspect.yt.atts = packUsedAttIDs(vApp.yt.atts, null);
 			saveInspect.t = {};
-			saveInspect.t.t1Atts = packUsedAttIDs(inspectSettings.t.t1Atts, null);
-			saveInspect.t.t2Atts = packUsedAttIDs(inspectSettings.t.t2Atts, null);
-			saveInspect.t.tcAtts = packUsedAttIDs(inspectSettings.t.tcAtts, null);
+			saveInspect.t.t1Atts = packUsedAttIDs(vApp.t.t1Atts, null);
+			saveInspect.t.t2Atts = packUsedAttIDs(vApp.t.t2Atts, null);
+			saveInspect.t.tcAtts = packUsedAttIDs(vApp.t.tcAtts, null);
 			saveInspect.modal =  {};
 				// W/H overrides?
-			var n = inspectSettings.modal.w;
+			var n = vApp.modalW;
 			if (n !== '' && n !== ' ' && !isNaN(n)) {
 				saveInspect.modal.w = +n;
 			}
-			var n = inspectSettings.modal.h;
+			var n = vApp.modalH;
 			if (n !== '' && n !== ' ' && !isNaN(n)) {
 				saveInspect.modal.h = +n;
 			}
-			saveInspect.modal.aOn = inspectSettings.modal.aOn;
-			saveInspect.modal.scOn = inspectSettings.modal.scOn;
-			saveInspect.modal.ytOn = inspectSettings.modal.ytOn;
-			saveInspect.modal.tOn  = inspectSettings.modal.tOn;
-			saveInspect.modal.t2On  = inspectSettings.modal.t2On;
+			saveInspect.modal.aOn = vApp.modal.aOn;
+			saveInspect.modal.scOn = vApp.modal.scOn;
+			saveInspect.modal.ytOn = vApp.modal.ytOn;
+			saveInspect.modal.tOn  = vApp.modal.tOn;
+			saveInspect.modal.t2On  = vApp.modal.t2On;
 			var newModalCnt = [];
 			saveTIndices.forEach(function(tIndex) {
-				newModalCnt.push(packUsedAtts(inspectSettings.modal.atts[tIndex]));
+				newModalCnt.push(packUsedAtts(vApp.modal.atts[tIndex]));
 			});
 			saveInspect.modal.atts = newModalCnt;
-			saveInspect.srOff = inspectSettings.srOff;
+			saveInspect.srOff = vApp.srOff;
 
-// console.log("Saving: ");
-// console.log("prsp_xhbt_gen: "+JSON.stringify(saveGen));
-// console.log("prsp_xhbt_views: "+JSON.stringify(saveViews));
-// console.log("prsp_xhbt_inspect: "+JSON.stringify(saveInspect));
+console.log("Saving: ");
+console.log("prsp_xhbt_gen: "+JSON.stringify(saveGen));
+console.log("prsp_xhbt_views: "+JSON.stringify(saveViews));
+console.log("prsp_xhbt_inspect: "+JSON.stringify(saveInspect));
 
 				// Insert values into hidden fields if no problems
 			jQuery('input[name="prsp_xhbt_id"]').val(saveID);
@@ -2718,7 +2390,303 @@ jQuery(document).ready(function() {
 			jQuery('textarea[name="prsp_xhbt_inspect"]').val(JSON.stringify(saveInspect));
 				// Confirm to user that Exhibit was successfully saved
 			displayError('#msg-saved', null, true);
-		} // if saveGe
-		return false;
+		} // if saveGen
+	} // doSaveExhibit()
+
+
+	PMapHub.init(prspdata.maps);
+
+		// Create our main App instance
+	vApp = new Vue({
+		el: '#vue-outer',
+		data: {
+				// Configuration settings for all Exhibit settings
+			xhbtID: xhbtID,
+			label: defGen.l,
+			tour: defGen.tour,
+			dspr: defGen.dspr,
+			autoUpdate: defGen.auto,
+			hbtn: defGen.hbtn,
+			hurl: defGen.hurl,
+			dateslider: defGen.ds,
+			qr: defGen.qr,
+			viewSettings: defViews,
+			modal: defInspect.modal,
+			srOff: defInspect.srOff,
+			modalW: defInspect.w,
+			modalH: defInspect.h,
+			sc: defInspect.sc,
+			yt: defInspect.yt,
+			t: defInspect.t,
+				// Options
+			iTemplates: iTemplates,
+			facets: defJoinedFacets,
+			qrOn: qrOn,
+			qrOptions: qrOptions,
+			vfLookup: vfLookup,
+			baseMaps: PMapHub.getBaseLayers(),
+			layerMaps: PMapHub.getOverlays(),
+			mapGroups: prspdata.map_groups,
+				// GUI state & modal parameters
+			errorMsg: '',						// current error string (if any)
+			errorOK: false,						// Is message actually not an error?
+			modalParams: {						// parameters passed to modal dialogs
+				vfTypes: vfTypes,
+				pairs: [],
+				facets: defJoinedFacets,
+				vocabOpts: allVocabAttIDs,
+				callback: null
+			},
+			modalShowing: 'nullcomponent'		// modal currently showing (initially nothing)
+		},
+		methods: {
+			saveExhibit: function(event) {
+				console.log("Click: saveAttribute");
+				if (event) { event.preventDefault(); }
+				doSaveExhibit();
+			},
+			idHint: function(event) {
+				console.log("Click: idHint");
+				if (event) { event.preventDefault(); }
+				messageModal('#errmsg-id');
+			},
+			setRoles: function(event) {
+				console.log("Click: setRoles");
+				if (event) { event.preventDefault(); }
+				var self=this;
+				function saveQRPairs(newPairs) {
+					self.qr.x = newPairs;
+				}
+				this.modalParams.pairs = this.qr.x;
+				this.modalParams.callback = saveQRPairs;
+				this.modalShowing = 'dlgSetRoles';
+			},
+			addView: function(event) {
+				console.log("Click: addView");
+				if (event) { event.preventDefault(); }
+				var self=this;
+				function saveNewView(label, vizType) {
+					var newEntry = createNewViz(label, vizType);
+					self.viewSettings.push(newEntry);
+				}
+				this.modalParams.callback = saveNewView;
+				this.modalShowing = 'dlgChooseVizType';
+			},
+			togDiv: function(event) {
+				console.log("Click: togDiv");
+				if (event) { event.preventDefault(); }
+				jQuery(event.target).parent().next().slideToggle(400);
+			},
+			topVF: function(vIndex, event) {
+				console.log("Click: topVF");
+				if (event) { event.preventDefault(); }
+				if (vIndex > 0) {
+					var spliced;
+					spliced = this.viewSettings.splice(vIndex, 1);
+					this.viewSettings.splice(0, 0, spliced[0]);
+				}
+			},
+			delVF: function(vIndex, event) {
+				console.log("Click: delVF");
+				if (event) { event.preventDefault(); }
+				var self=this;
+				confirmModal('#msg-confirm-del-vf', null, function() {
+					self.viewSettings.splice(vIndex, 1);
+				});
+			},
+			allLgndsOn: function(vIndex, tIndex, event) {
+				console.log("Click: allLgndsOn");
+				if (event) { event.preventDefault(); }
+				var lgnds = this.viewSettings[vIndex].c.lgnds[tIndex];
+				var n = lgnds.length;
+				for (var i=0; i<n; i++) {
+					lgnds[n].useAtt = true;
+				}
+			},
+			allLgndsOff: function(vIndex, tIndex, event) {
+				console.log("Click: allLgndsOff");
+				if (event) { event.preventDefault(); }
+				var lgnds = this.viewSettings[vIndex].c.lgnds[tIndex];
+				var n = lgnds.length;
+				for (var i=0; i<n; i++) {
+					lgnds[n].useAtt = false;
+				}
+			},
+			moveLgndLeft: function(vIndex, tIndex, lIndex, event) {
+				console.log("Click: moveLgndLeft");
+				if (event) { event.preventDefault(); }
+				var spliced;
+				var lgnds = this.viewSettings[vIndex].c.lgnds[tIndex];
+				if (lIndex > 0) {
+					spliced = lgnds.splice(lIndex, 1);
+					lgnds.splice(lIndex-1, 0, spliced[0]);
+				}
+			},
+			moveLgndRight: function(vIndex, tIndex, lIndex, event) {
+				console.log("Click: moveLgndRight");
+				if (event) { event.preventDefault(); }
+				var spliced;
+				var lgnds = this.viewSettings[vIndex].c.lgnds[tIndex];
+				if (lIndex < (lgnds.length-1)) {
+					spliced = lgnds.splice(lIndex, 1);
+					lgnds.splice(lIndex+1, 0, spliced[0]);
+				}
+			},
+			addMapLayer: function(vIndex, event) {
+				console.log("Click: addMapLayer");
+				if (event) { event.preventDefault(); }
+				var ol = PMapHub.getOverlays();
+				var lid0 = ol.length > 0 ? ol[0].id : '';
+				this.viewSettings[vIndex].c.lyrs.push({ lid: lid0, o: 1 });
+			},
+			delMapLayer: function(vIndex, lIndex, event) {
+				console.log("Click: delMapLayer");
+				if (event) { event.preventDefault(); }
+				this.viewSettings[vIndex].c.lyrs.splice(fIndex, 1);
+			},
+			addMapGroup: function(vIndex, event) {
+				console.log("Click: addMapGroup");
+				if (event) { event.preventDefault(); }
+				var gid0 = prspdata.map_groups.length > 0 ? prspdata.map_groups[0] : '';
+				this.viewSettings[vIndex].c.lyrs.push({ gid: gid0, o: 1 });
+			},
+			delMapGroup: function(vIndex, lIndex, event) {
+				console.log("Click: delMapGroup");
+				if (event) { event.preventDefault(); }
+				vApp.viewSettings[vIndex].c.lyrs.splice(fIndex, 1);
+			},
+			allCntOn: function(vIndex, tIndex, event) {
+				console.log("Click: allCntOn");
+				if (event) { event.preventDefault(); }
+				var cnt=this.viewSettings[vIndex].c.cnt[tIndex];
+				var n = cnt.length;
+				for (var i=0; i<n; i++) {
+					cnt[i].useAtt = true;
+				}
+			},
+			allCntOff: function(vIndex, tIndex, event) {
+				console.log("Click: allCntOff");
+				if (event) { event.preventDefault(); }
+				var cnt=this.viewSettings[vIndex].c.cnt[tIndex];
+				var n = cnt.length;
+				for (var i=0; i<n; i++) {
+					cnt[i].useAtt = false;
+				}
+			},
+			moveAttLeft: function(vIndex, tIndex, cIndex, event) {
+				console.log("Click: moveAttLeft");
+				if (event) { event.preventDefault(); }
+				var spliced, atts;
+					// This is called for both Visualizations and Inspector
+				if (typeof(vIndex) == 'string') {	// For Inspector
+					if (cIndex > 0) {
+						atts = this.modal.atts[tIndex];
+						spliced = atts.splice(cIndex, 1);
+						atts.splice(cIndex-1, 0, spliced[0]);
+					}
+				} else {	// Visualization
+					if (cIndex > 0) {
+						atts = this.viewSettings[vIndex].c.cnt[tIndex];
+						spliced = atts.splice(cIndex, 1);
+						atts.splice(cIndex-1, 0, spliced[0]);
+					}
+				}
+			},
+			moveAttRight: function(vIndex, tIndex, cIndex, event) {
+				console.log("Click: moveAttRight");
+				if (event) { event.preventDefault(); }
+				var spliced, atts;
+					// This is called for both Visualizations and Inspector
+				if (typeof(vIndex) == 'string') {	// For Inspector
+					atts = this.modal.atts[tIndex];
+					if (cIndex < (atts.length-1)) {
+						spliced = atts.splice(cIndex, 1);
+						atts.splice(cIndex+1, 0, spliced[0]);
+					}
+				} else {	// Visualization
+					atts = this.viewSettings[vIndex].c.cnt[tIndex];
+					if (cIndex < (atts.length-1)) {
+						spliced = atts.splice(cIndex, 1);
+						atts.splice(cIndex+1, 0, spliced[0]);
+					}
+				}
+			},
+			addSVGLayer: function(vIndex, event) {
+				console.log("Click: addSVGLayer");
+				if (event) { event.preventDefault(); }
+				this.viewSettings[vIndex].c.lyrs.push({ url: '', o: 1 });
+			},
+			delSVGLayer: function(vIndex, lIndex, event) {
+				console.log("Click: delSVGLayer");
+				if (event) { event.preventDefault(); }
+				this.viewSettings[vIndex].c.lyrs.splice(fIndex, 1);
+			},
+			addPtrPair: function(vIndex, tIndex, event) {
+				console.log("Click: addPtrPair");
+				if (event) { event.preventDefault(); }
+				var newPtrPair = { };
+				newPtrPair.pid =iTemplates[tIndex].attsPtr[0] || '';
+				newPtrPair.clr = '#888888';
+				this.viewSettings[vIndex].c.pAtts[tIndex].push(newPtrPair);
+			},
+			delPtrPair: function(vIndex, tIndex, pIndex, event) {
+				console.log("Click: delPtrPair");
+				if (event) { event.preventDefault(); }
+				this.viewSettings[vIndex].c.pAtts[tIndex].splice(pIndex, 1);
+			},
+			addFacet: function(vIndex, event) {
+				console.log("Click: addFacet");
+				if (event) { event.preventDefault(); }
+				var self=this;
+				function doAddFacet(fid) {
+					self.viewSettings[vIndex].c.fcts.push(fid);
+				}
+				this.modalParams.callback = doAddFacet;
+				this.modalShowing = 'dlgChooseFacet';
+			},
+			topFacet: function(vIndex, fIndex, event) {
+				console.log("Click: topFacet");
+				if (event) { event.preventDefault(); }
+				if (fIndex > 0) {
+					var spliced = this.viewSettings[vIndex].c.fcts.splice(fIndex,1);
+					this.viewSettings[vIndex].c.fcts.splice(0, 0, spliced[0]);
+				}
+			},
+			delFacet: function(vIndex, fIndex, event) {
+				console.log("Click: delFacet");
+				if (event) { event.preventDefault(); }
+				this.viewSettings[vIndex].c.fcts.splice(fIndex, 1);
+			},
+			allDispAttsOn: function(tIndex, event) {
+				console.log("Click: allDispAttsOn");
+				if (event) { event.preventDefault(); }
+				var atts = this.modal.atts[tIndex];
+				var n = atts.length;
+				for (var i=0; i<n; i++) {
+					atts[n].useAtt = true;
+				}
+			},
+			allDispAttsOff: function(tIndex, event) {
+				console.log("Click: allDispAttsOff");
+				if (event) { event.preventDefault(); }
+				var atts = this.modal.atts[tIndex];
+				var n = atts.length;
+				for (var i=0; i<n; i++) {
+					atts[n].useAtt = false;
+				}
+			}
+		} // methods
+	}); // Vue
+	vApp.$on('dialogclose', function () {
+		console.log("dialogclose");
+		this.modalShowing = 'nullcomponent';
 	});
+		// If user chooses new Template for QR, need to change Attribute options
+	vApp.$watch('qr.t', function(newVal, oldVal) {
+		updateQROptions(newVal);
+		resetQRAttIDs(newVal);
+	});
+		// Set initial options for QR Template options and Attribute IDs
+	updateQROptions(defGen.qr.t);
+	resetQRAttIDs(defGen.qr.t);
 }); // ready

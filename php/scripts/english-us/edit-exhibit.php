@@ -103,6 +103,8 @@
 				</span>
 			</div>
 		</div>
+	</accordion>
+	<accordion>
 		<h3><?php _e('Visualizations', 'prospect'); ?></h3>
 		<div>
 			<button v-on:click="addView"><?php _e('Add Visualization', 'prospect'); ?></button>
@@ -249,7 +251,7 @@
 							<icon-btn symbol="ui-icon-trash" v-on:click="delMapGroup(vIndex,lIndex)"><?php _e('Delete', 'prospect'); ?></icon-btn>
 						</div>
 					</div><!-- Map 2 -->
-					<div v-if="thisView.vf === 'C'">
+					<div v-if="thisView.vf === 'C'"><!-- Cards -->
 						<input type='checkbox' v-model='thisView.c.lOn'/> <?php _e('Show Title', 'prospect'); ?> &nbsp;&nbsp;
 						<?php _e('Width', 'prospect'); ?>:
 							<select v-model="thisView.c.w">
@@ -284,7 +286,7 @@
 								<icon-btn symbol="ui-icon-check" v-on:click="allCntOn(vIndex,tIndex)"><?php _e('All On', 'prospect'); ?></icon-btn>
 								<icon-btn symbol="ui-icon-cancel" v-on:click="allCntOff(vIndex,tIndex)"><?php _e('All Off', 'prospect'); ?></icon-btn>
 								<span v-for="(thisContent,cIndex) in thisView.c.cnt[tIndex]" class="attribute-controls">
-									<input type='checkbox' checked='thisContent.useAtt'/> {{ thisContent.attID }}
+									<input type='checkbox' v-model='thisContent.useAtt'/> {{ thisContent.attID }}
 									<icon-btn symbol="ui-icon-arrowthick-1-w" v-on:click="moveAttLeft(vIndex,tIndex,cIndex)"><?php _e('Left', 'prospect'); ?></icon-btn>
 									<icon-btn symbol="ui-icon-arrowthick-1-e" v-on:click="moveAttRight(vIndex,tIndex,cIndex)"><?php _e('Right', 'prospect'); ?></icon-btn>
 								</span>
@@ -354,6 +356,7 @@
 										<option value=4><?php _e('Star', 'prospect'); ?></option>
 										<option value=5><?php _e('Wye', 'prospect'); ?></option>
 									</select>
+								</div>
 								<div v-else-if="thisView.c.ms === 'I'">
 									<b><?php _e('For this Template, use Image Attribute ', 'prospect'); ?>: </b>
 									<select v-model='thisView.c.iAtts[tIndex]'>
@@ -870,7 +873,8 @@
 				<hr class="vf-divider" v-if="vIndex != (viewSettings.length-1)"/>
 			</div><!-- Each view -->
 		</div><!-- Visualization section -->
-
+	</accordion>
+	<accordion>
 		<h3><?php _e('Inspector', 'prospect'); ?></h3>
 		<div>
 			<div>
@@ -881,12 +885,12 @@
 				<input type='checkbox' v-model='modal.tOn'/> <?php _e('Transcripts', 'prospect'); ?>
 				<input type='checkbox' v-model='modal.t2On'/> <?php _e('Dual Transcripts', 'prospect'); ?>
 			</div>
-			<input type='checkbox' id="see-rec-off" checked='srOff'/>
+			<input type='checkbox' id="see-rec-off" v-model='srOff'/>
 			<label for="see-rec-off"><?php _e('Disable “See Item” button', 'prospect'); ?> </label>
 			<div>
 				<?php _e('Size overrides (leave blank for default)', 'prospect'); ?>:
-				<?php _e('Width', 'prospect'); ?> <input type='text' v-model='modal.w' placeholder=<?php _e('"Default"', 'prospect'); ?> size="5"/>
-				<?php _e('Height', 'prospect'); ?> <input type='text' v-model='modal.h' placeholder=<?php _e('"Default"', 'prospect'); ?> size="5"/>
+				<?php _e('Width', 'prospect'); ?> <input type='text' v-model='modalW' placeholder=<?php _e('"Default"', 'prospect'); ?> size="5"/>
+				<?php _e('Height', 'prospect'); ?> <input type='text' v-model='modalH' placeholder=<?php _e('"Default"', 'prospect'); ?> size="5"/>
 			</div>
 
 			<accordion>
@@ -910,7 +914,8 @@
 						</div>
 					</tabs>
 				</div>
-
+			</accordion>
+			<accordion>
 				<h3><?php _e('Audio Widget', 'prospect'); ?></h3>
 				<div>
 					<?php _e('Choose the Audio Attribute (if any) according to Template type', 'prospect'); ?>:
@@ -929,7 +934,8 @@
 						</div>
 					</tabs>
 				</div>
-
+			</accordion>
+			<accordion>
 				<h3><?php _e('YouTube Widget', 'prospect'); ?></h3>
 				<div>
 					<?php _e('Choose the YouTube Attribute (if any) according to Template type', 'prospect'); ?>:
@@ -948,7 +954,8 @@
 						</div>
 					</tabs>
 				</div>
-
+			</accordion>
+			<accordion>
 				<h3><?php _e('Transcript Widget', 'prospect'); ?></h3>
 				<div>
 					<?php _e('Choose the Transcript and Timecode Attributes (if any) according to Template type', 'prospect'); ?>:
@@ -972,7 +979,8 @@
 						</div>
 					</tabs>
 				</div>
-
+			</accordion>
+			<accordion>
 				<h3><?php _e('Timecodes (for Playback widget segments)', 'prospect'); ?></h3>
 				<div>
 					<?php _e('Choose the Timecode Attribute (if any) for Playback widgets according to Template type', 'prospect'); ?>:
@@ -994,7 +1002,7 @@
 			</accordion>
 		</div>
 	</accordion>
-</script>
+</div>
 
 <!-- VueJS Template Dialog Component -->
 <script id="dialog-template" type="text/x-template">
@@ -1026,7 +1034,7 @@
 <!-- DIALOGS -->
 <!-- New View Dialog -->
 <script id="dialog-choose-vf" type='text/x-template'>
-	<vuemodal title=<?php _e('"New Visualization"', 'prospect'); ?> cancel="true">
+	<vuemodal title=<?php _e('"New Visualization"', 'prospect'); ?> cancel="true" v-on:save="save">
 		<label for="choose-att-label"><?php _e('Label', 'prospect'); ?>&nbsp;</label>
 		<input type="text" id="choose-att-label" v-model="label" size="24" required/>
 		<br/>
@@ -1041,7 +1049,7 @@
 
 <!-- Choose Facet Dialog -->
 <script id="dialog-choose-fct" type='text/x-template'>
-	<vuemodal title=<?php _e('"Add Attribute Facet"', 'prospect'); ?> cancel="true">
+	<vuemodal title=<?php _e('"Add Attribute Facet"', 'prospect'); ?> cancel="true" v-on:save="save">
 		<label for="choose-facet-att"><?php _e('Attribute', 'prospect'); ?> </label>
 		<select id="choose-facet-att" v-model='fid'>
 			<option v-for="thisFacet in params.facets" v-bind:value="thisFacet.id">
@@ -1053,7 +1061,7 @@
 
 <!-- Map Relationhip values to Roles Attributes Dialog -->
 <script id="dialog-qr-x" type='text/x-template'>
-	<vuemodal title=<?php _e('"Set Roles for Relationships"', 'prospect'); ?> cancel="true">
+	<vuemodal title=<?php _e('"Set Roles for Relationships"', 'prospect'); ?> cancel="true" v-on:save="save">
 		<button v-on:click="resetterms"><?php _e('Read & Reset Terms', 'prospect'); ?></button>
 		<br/>
 		<div v-for="thisPair in pairs">
