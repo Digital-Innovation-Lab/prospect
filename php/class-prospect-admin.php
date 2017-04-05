@@ -360,8 +360,6 @@ class ProspectAdmin {
 		echo '<textarea name="prsp_xhbt_views" form="post" spellcheck="false" style="display:none">'.$the_exhibit->meta_views.'</textarea>';
 		echo '<textarea name="prsp_xhbt_inspect" form="post" spellcheck="false" style="display:none">'.$the_exhibit->meta_inspect.'</textarea>';
 
-		echo '<div id="ractive-output"></div>';
-
 			// Insert Edit Panel's HTML
 		self::insert_html_file('edit-exhibit.php');
 	} // show_prsp_exhibit_admin_edit()

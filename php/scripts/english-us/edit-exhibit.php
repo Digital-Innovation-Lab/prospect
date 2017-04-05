@@ -119,7 +119,7 @@
 					<?php _e('View Hint', 'prospect'); ?>: <input type="text" v-model="thisView.n" size="72"/>
 				</div>
 				<div v-bind:id="'vf-div-'+vIndex">
-					<div vid="thisView.vf === 'M'"><!-- Map 1-->
+					<div v-if="thisView.vf === 'M'"><!-- Map 1-->
 						<?php _e('Initial Map Center: Latitude', 'prospect'); ?>: <input type="text" v-model="thisView.c.clat" size="10" pattern="^-?\d{1,3}(\.\d*)*" required/>
 						<?php _e('Longitude', 'prospect'); ?>: <input type="text" v-model="thisView.c.clon" size="10" pattern="^-?\d{1,3}(\.\d*)*" required/>
 						<br/>
@@ -138,7 +138,7 @@
 							</ul>
 							<div v-for="(theTemplate,tIndex) in iTemplates" v-bind:id="'tmpt-vf-tab-'+thisView.incID+'-'+tIndex">
 								<b><?php _e('Locate Object by', 'prospect'); ?>:</b>
-								<span class="attribute-controls" v-for="(thisAtt,aIndex) in thisView.c.cAtts[tIndex]">
+								<span class="attribute-controls" v-for="thisAtt in thisView.c.cAtts[tIndex]">
 									<input type='checkbox' v-model='thisAtt.useAtt'/> {{ thisAtt.attID }}
 								</span>
 								<br/>
@@ -631,7 +631,7 @@
 						<input type='checkbox' v-model='thisView.c.gr'/> <?php _e('Break Number and Date ranges into graduated scale?', 'prospect'); ?>
 						<br/>
 						<?php _e('Attributes (Facets) to Display', 'prospect'); ?>: <button v-on:click="addFacet(vIndex)"><?php _e('Add Attribute', 'prospect'); ?></button><br/>
-						<div v-for="(theFacet,cIndex) in thisView.c.fcts">
+						<div v-for="(thisFacet,cIndex) in thisView.c.fcts">
 							<?php _e('Attribute ID', 'prospect'); ?>: "{{ thisFacet }}"
 							<icon-btn symbol="ui-icon-arrowthickstop-1-n" v-on:click="topFacet(vIndex,cIndex)"><?php _e('Move to Top', 'prospect'); ?></icon-btn>
 							<icon-btn symbol="ui-icon-trash" v-on:click="delFacet(vIndex,cIndex)"><?php _e('Delete', 'prospect'); ?></icon-btn>
@@ -1002,6 +1002,9 @@
 			</accordion>
 		</div>
 	</accordion>
+
+	<component :is="modalShowing" :params="modalParams">
+	</component>
 </div>
 
 <!-- VueJS Template Dialog Component -->

@@ -1531,6 +1531,7 @@ jQuery(document).ready(function() {
 		} // for views
 	})();
 
+
 		// PURPOSE: Create new visualization with default settings
 	function createNewViz(label, vizType)
 	{
