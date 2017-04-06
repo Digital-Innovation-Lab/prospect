@@ -111,7 +111,7 @@
 			<hr class="vf-divider"/>
 			<div v-for="(thisView,vIndex) in viewSettings">
 				<div>
-					<icon-btn symbol="ui-icon-carat-2-n-s" v-on:click="togDiv"></icon-btn>
+					<icon-btn symbol="ui-icon-carat-2-n-s" v-on:click="togDiv($event)"></icon-btn>
 					<i>{{ vfLookup[thisView.vf] }}</i>: <input type="text" v-model="thisView.l" size="32" required/>
 					<icon-btn symbol="ui-icon-arrowthickstop-1-n" v-on:click="topVF(vIndex)"><?php _e('Move to Top', 'prospect'); ?></icon-btn>
 					<icon-btn symbol="ui-icon-trash" v-on:click="delVF(vIndex)"><?php _e('Delete', 'prospect'); ?></icon-btn>
@@ -346,7 +346,7 @@
 								</select>
 								<?php _e('Link Line Color', 'prospect'); ?>: <input type="color" v-model="thisView.c.lClrs[tIndex]" size="10"/>
 								<br/>
-								<div v-if="this.c.ms === 'S'">
+								<div v-if="thisView.c.ms === 'S'">
 									<b><?php _e('For this Template, use shape ', 'prospect'); ?>: </b>
 									<select v-model='thisView.c.syms[tIndex]'>
 										<option value=0><?php _e('Circle', 'prospect'); ?></option>
@@ -505,8 +505,8 @@
 								</li>
 							</ul>
 							<div v-for="(theTemplate,tIndex) in iTemplates" v-bind:id="'tmpt-vf-tab-'+thisView.incID+'-'+tIndex">
-								<button v-if="theTemplate.attsPtr.length > thisView.c.pAtts[tIndex].length" v-on:click="addPtrPair(vIndex,tIndex)"><?php _e('Add Attribute/Color Pair', 'prospect'); ?></button><br/>
-								<div v-for="(thisPointer,pIndex) in c.pAtts[tIndex]">
+								<button v-if="theTemplate.attsPtr.length > thisView.c.pAtts[tIndex].length" v-on:click="addPtrPair(vIndex,tIndex,$event)"><?php _e('Add Attribute/Color Pair', 'prospect'); ?></button><br/>
+								<div v-for="(thisPointer,pIndex) in thisView.c.pAtts[tIndex]">
 									<b><?php _e('Use Pointer Attribute', 'prospect'); ?>: </b>
 									<select v-model='thisPointer.pid'>
 										<option v-for="thisAtt in theTemplate.attsPtr">
@@ -553,7 +553,7 @@
 									</option>
 								</select><br/>
 								<button v-if="theTemplate.attsPtr.length > thisView.c.pAtts[tIndex].length" v-on:click="addPtrPair(vIndex,tIndex)"><?php _e('Add Attribute/Color Pair', 'prospect'); ?></button><br/>
-								<div v-for="(thePointer,pIndex) in theView.c.pAtts[tIndex]">
+								<div v-for="(thePointer,pIndex) in thisView.c.pAtts[tIndex]">
 									<b><?php _e('Use Pointer Attribute', 'prospect'); ?>: </b>
 									<select v-model='thePointer.pid'>
 										<option v-for="thisAtt in theTemplate.attsPtr">
@@ -599,7 +599,7 @@
 						<br/>
 						<input type='checkbox' v-model='thisView.c.gr'/> <?php _e('Break Number and Date ranges into graduated scale?', 'prospect'); ?>
 						<br/>
-						<?php _e('Attributes (Facets) to Display', 'prospect'); ?>: <button v-on:click="addFacet(vIndex)"><?php _e('Add Attribute', 'prospect'); ?></button><br/>
+						<?php _e('Attributes (Facets) to Display', 'prospect'); ?>: <button v-on:click="addFacet(vIndex,$event)"><?php _e('Add Attribute', 'prospect'); ?></button><br/>
 						<div v-for="(thisFacet,cIndex) in thisView.c.fcts">
 							<?php _e('Attribute ID', 'prospect'); ?>: "{{thisFacet}}"
 							<icon-btn symbol="ui-icon-arrowthickstop-1-n" v-on:click="topFacet(vIndex,cIndex)"><?php _e('Move to Top', 'prospect'); ?></button>
@@ -620,7 +620,7 @@
 						</select>
 						<br/>
 						<?php _e('Attributes (Facets) to Display', 'prospect'); ?>:
-						<button v-on:click="addFacet(vIndex)"><?php _e('Add Secondary Attribute', 'prospect'); ?></button><br/>
+						<button v-on:click="addFacet(vIndex,$event)"><?php _e('Add Secondary Attribute', 'prospect'); ?></button><br/>
 						<div v-for="(thisFacet,cIndex) in thisView.c.fcts">
 							<?php _e('Attribute ID', 'prospect'); ?>: "{{ thisFacet }}"
 							<icon-btn symbol="ui-icon-arrowthickstop-1-n" v-on:click="topFacet(vIndex,cIndex)"><?php _e('Move to Top', 'prospect'); ?></icon-btn>
@@ -630,7 +630,7 @@
 					<div v-if="thisView.vf === 'B'"><!-- FacetBrowser -->
 						<input type='checkbox' v-model='thisView.c.gr'/> <?php _e('Break Number and Date ranges into graduated scale?', 'prospect'); ?>
 						<br/>
-						<?php _e('Attributes (Facets) to Display', 'prospect'); ?>: <button v-on:click="addFacet(vIndex)"><?php _e('Add Attribute', 'prospect'); ?></button><br/>
+						<?php _e('Attributes (Facets) to Display', 'prospect'); ?>: <button v-on:click="addFacet(vIndex,$event)"><?php _e('Add Attribute', 'prospect'); ?></button><br/>
 						<div v-for="(thisFacet,cIndex) in thisView.c.fcts">
 							<?php _e('Attribute ID', 'prospect'); ?>: "{{ thisFacet }}"
 							<icon-btn symbol="ui-icon-arrowthickstop-1-n" v-on:click="topFacet(vIndex,cIndex)"><?php _e('Move to Top', 'prospect'); ?></icon-btn>
@@ -1027,7 +1027,19 @@
 </script>
 
 <!-- DIALOGS -->
-<!-- New View Dialog -->
+
+<!-- Choose Facet Dialog -->
+<script id="dialog-facet" type='text/x-template'>
+	<vuemodal title=<?php _e('"Add Attribute Facet"', 'prospect'); ?> cancel="true" v-on:save="save">
+		<select v-model='facetid'>
+			<option v-for="thisFacet in params.facets" v-bind:value="thisFacet.id">
+				{{ thisFacet.id }} ({{ thisFacet.def.l }})
+			</option>
+		</select>
+	</vuemodal>
+</script>
+
+<!-- Choose new Visualization -->
 <script id="dialog-choose-vf" type='text/x-template'>
 	<vuemodal title=<?php _e('"New Visualization"', 'prospect'); ?> cancel="true" v-on:save="save">
 		<label for="choose-att-label"><?php _e('Label', 'prospect'); ?>&nbsp;</label>
@@ -1037,17 +1049,6 @@
 		<select id="choose-vf-type" v-model='vfType'>
 			<option v-for="thisType in params.vfTypes" v-bind:value="thisType.c">
 				{{ thisType.l }}
-			</option>
-		</select>
-	</vuemodal>
-</script>
-
-<!-- Choose Facet Dialog -->
-<script id="dialog-choose-fct" type='text/x-template'>
-	<vuemodal title=<?php _e('"Add Attribute Facet"', 'prospect'); ?> cancel="true" v-on:save="save">
-		<select v-model='facetid'>
-			<option v-for="thisFacet in params.facets" v-bind:value="thisFacet.id">
-				{{ thisFacet.id }} ({{ thisFacet.def.l }})
 			</option>
 		</select>
 	</vuemodal>

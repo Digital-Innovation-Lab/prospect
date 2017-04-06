@@ -256,7 +256,6 @@ jQuery(document).ready(function() {
 
 		// Component (dialog) to choose Facet
 	Vue.component('dlgChooseFacet', {
-		// TO DO -- crashes on open!
 		props: {
 			params: Object
 		},
@@ -268,7 +267,7 @@ jQuery(document).ready(function() {
 		created: function() {
 			this.facetid = this.params.facets[0].id;
 		},
-		template: '#dialog-choose-fct',
+		template: '#dialog-facet',
 		methods: {
 			save: function() {
 				console.log("Save dlgChooseFacet");
@@ -2610,7 +2609,8 @@ console.log("defJoinedFacets: "+JSON.stringify(defJoinedFacets));
 				this.viewSettings[vIndex].c.lyrs.splice(lIndex, 1);
 			},
 			addPtrPair: function(vIndex, tIndex, event) {
-				console.log("Click: addPtrPair");
+					// TO DO -- crashes
+				console.log("Click: addPtrPair "+vIndex+", "+tIndex);
 				if (event) { event.preventDefault(); }
 				var newPtrPair = { };
 				newPtrPair.pid =iTemplates[tIndex].attsPtr[0] || '';
@@ -2622,8 +2622,9 @@ console.log("defJoinedFacets: "+JSON.stringify(defJoinedFacets));
 				if (event) { event.preventDefault(); }
 				this.viewSettings[vIndex].c.pAtts[tIndex].splice(pIndex, 1);
 			},
+				// NOTE: It was necessary to add $event to parameters in invocation of addFacet in HTML -- I have no idea why
 			addFacet: function(vIndex, event) {
-				console.log("Click: addFacet");
+				console.log("Click: addFacet "+vIndex);
 				if (event) { event.preventDefault(); }
 				var self=this;
 				function doAddFacet(fid) {
