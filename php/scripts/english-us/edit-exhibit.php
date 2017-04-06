@@ -35,7 +35,7 @@
 				<div v-for="(thisTemplate,tIndex) in iTemplates">
 					<?php _e('Dates Attribute for', 'prospect'); ?> {{ thisTemplate.tid }}:
 					<select v-model='dateslider.dAtts[tIndex]'>
-						<option v-for="thisAtt in attsDates">
+						<option v-for="thisAtt in thisTemplate.attsDates">
 							{{ thisAtt }}
 						</option>
 					</select>
@@ -1053,8 +1053,7 @@
 <!-- Choose Facet Dialog -->
 <script id="dialog-choose-fct" type='text/x-template'>
 	<vuemodal title=<?php _e('"Add Attribute Facet"', 'prospect'); ?> cancel="true" v-on:save="save">
-		<label for="choose-facet-att"><?php _e('Attribute', 'prospect'); ?> </label>
-		<select id="choose-facet-att" v-model='fid'>
+		<select v-model='facetid'>
 			<option v-for="thisFacet in params.facets" v-bind:value="thisFacet.id">
 				{{ thisFacet.id }} ({{ thisFacet.def.l }})
 			</option>

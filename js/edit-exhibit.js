@@ -124,7 +124,8 @@ jQuery(document).ready(function() {
 			// Lifecycle hooks
 		mounted: function() {
 			this.jAcc = jQuery(this.$el).accordion({
-				heightStyle: "content"
+				heightStyle: "content",
+				collapsible: true
 			});
 		},
 		beforeDestroy: function() {
@@ -238,8 +239,11 @@ jQuery(document).ready(function() {
 		},
 		data: function () {		// Local copies of data that user can edit
 			return {
-				label: '', vfType: this.params.vfTypes[0]
+				label: '', vfType: ''
 			}
+		},
+		created: function() {
+			this.vfType = this.params.vfTypes[0].c;
 		},
 		template: '#dialog-choose-vf',
 		methods: {
@@ -257,17 +261,17 @@ jQuery(document).ready(function() {
 		},
 		data: function () {		// Local copies of data that user can edit
 			return {
-				fid: ''
+				facetid: ''
 			}
 		},
 		created: function() {
-			this.fid = this.params.facets[0].id;
+			this.facetid = this.params.facets[0].id;
 		},
 		template: '#dialog-choose-fct',
 		methods: {
 			save: function() {
 				console.log("Save dlgChooseFacet");
-				this.params.callback(this.fid);
+				this.params.callback(this.facetid);
 			}
 		}
 	});
@@ -513,10 +517,7 @@ jQuery(document).ready(function() {
 			}
 				// Do we need to translate null to non-selection?
 			if (id == null) {
-				if (disable) {
-					return 'disable';
-				}
-				return '';
+				return disable ? 'disable' : '';
 			}
 
 			var failed=false;
@@ -534,10 +535,7 @@ jQuery(document).ready(function() {
 				}
 			}
 			if (failed) {
-				if (disable) {
-					return 'disable';
-				}
-				return '';
+				return disable ? 'disable' : '';
 			}
 			return id;
 		} // checkQRAttID()
@@ -553,6 +551,7 @@ jQuery(document).ready(function() {
 				qrT = defTemplates[qrI];
 			}
 		}
+			// If a valid QR Template is selected and exists, ensure current selection valid
 		if (hasQRT) {
 			vApp.qr.e1 = checkQRAttID(vApp.qr.e1, false);
 			vApp.qr.e2 = checkQRAttID(vApp.qr.e2, false);
@@ -636,13 +635,13 @@ jQuery(document).ready(function() {
 		var saveGen = { };
 		var saveTIndices = [];
 
-		var exhibitID = rApp.get('xhbtID').trim();
+		var exhibitID = vApp.xhbtID.trim();
 		if (exhibitID.length == 0 || exhibitID.length > 24) {
 			displayError('#errmsg-id');
 			return false;
 		}
 
-		var exhibitL = rApp.get('genSettings.l').replace(/"/g, '').trim();
+		var exhibitL = vApp.label.replace(/"/g, '').trim();
 		if (exhibitL.length == 0 || exhibitL.length > 48) {
 			displayError('#errmsg-label');
 			return false;
@@ -2397,6 +2396,8 @@ console.log("prsp_xhbt_inspect: "+JSON.stringify(saveInspect));
 
 	PMapHub.init(prspdata.maps);
 
+console.log("defJoinedFacets: "+JSON.stringify(defJoinedFacets));
+
 		// Create our main App instance
 	vApp = new Vue({
 		el: '#vue-outer',
@@ -2475,8 +2476,8 @@ console.log("prsp_xhbt_inspect: "+JSON.stringify(saveInspect));
 			},
 			togDiv: function(event) {
 				console.log("Click: togDiv");
-				if (event) { event.preventDefault(); }
 				jQuery(event.target).parent().next().slideToggle(400);
+				if (event) { event.preventDefault(); }
 			},
 			topVF: function(vIndex, event) {
 				console.log("Click: topVF");
@@ -2501,7 +2502,7 @@ console.log("prsp_xhbt_inspect: "+JSON.stringify(saveInspect));
 				var lgnds = this.viewSettings[vIndex].c.lgnds[tIndex];
 				var n = lgnds.length;
 				for (var i=0; i<n; i++) {
-					lgnds[n].useAtt = true;
+					lgnds[i].useAtt = true;
 				}
 			},
 			allLgndsOff: function(vIndex, tIndex, event) {
@@ -2510,7 +2511,7 @@ console.log("prsp_xhbt_inspect: "+JSON.stringify(saveInspect));
 				var lgnds = this.viewSettings[vIndex].c.lgnds[tIndex];
 				var n = lgnds.length;
 				for (var i=0; i<n; i++) {
-					lgnds[n].useAtt = false;
+					lgnds[i].useAtt = false;
 				}
 			},
 			moveLgndLeft: function(vIndex, tIndex, lIndex, event) {
@@ -2664,7 +2665,7 @@ console.log("prsp_xhbt_inspect: "+JSON.stringify(saveInspect));
 				var atts = this.modal.atts[tIndex];
 				var n = atts.length;
 				for (var i=0; i<n; i++) {
-					atts[n].useAtt = true;
+					atts[i].useAtt = true;
 				}
 			},
 			allDispAttsOff: function(tIndex, event) {
@@ -2673,7 +2674,7 @@ console.log("prsp_xhbt_inspect: "+JSON.stringify(saveInspect));
 				var atts = this.modal.atts[tIndex];
 				var n = atts.length;
 				for (var i=0; i<n; i++) {
-					atts[n].useAtt = false;
+					atts[i].useAtt = false;
 				}
 			}
 		} // methods
