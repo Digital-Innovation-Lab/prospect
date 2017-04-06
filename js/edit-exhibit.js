@@ -2456,10 +2456,10 @@ console.log("prsp_xhbt_inspect: "+JSON.stringify(saveInspect));
 				this.modalParams.callback = saveNewView;
 				this.modalShowing = 'dlgChooseVizType';
 			},
-			togDiv: function(event) {
-				console.log("Click: togDiv- "+JSON.stringify(event));
+			togDiv: function(vIndex,event) {
+				console.log("Click: togDiv "+vIndex);
 				jQuery(event.target).parent().next().slideToggle(400);
-					// TO DO -- not working
+					// TO DO -- not working -- event not passed correctly
 				if (event) { event.preventDefault(); }
 			},
 			topVF: function(vIndex, event) {
@@ -2525,9 +2525,9 @@ console.log("prsp_xhbt_inspect: "+JSON.stringify(saveInspect));
 				this.viewSettings[vIndex].c.lyrs.push({ lid: lid0, o: 1 });
 			},
 			delMapLayer: function(vIndex, lIndex, event) {
-				console.log("Click: delMapLayer");
+				console.log("Click: delMapLayer "+vIndex+", "+lIndex);
 				if (event) { event.preventDefault(); }
-				this.viewSettings[vIndex].c.lyrs.splice(fIndex, 1);
+				this.viewSettings[vIndex].c.lyrs.splice(lIndex, 1);
 			},
 			addMapGroup: function(vIndex, event) {
 				console.log("Click: addMapGroup");
@@ -2538,7 +2538,7 @@ console.log("prsp_xhbt_inspect: "+JSON.stringify(saveInspect));
 			delMapGroup: function(vIndex, lIndex, event) {
 				console.log("Click: delMapGroup");
 				if (event) { event.preventDefault(); }
-				vApp.viewSettings[vIndex].c.lyrs.splice(fIndex, 1);
+				vApp.viewSettings[vIndex].c.lyrs.splice(lIndex, 1);
 			},
 			allCntOn: function(vIndex, tIndex, event) {
 				console.log("Click: allCntOn");

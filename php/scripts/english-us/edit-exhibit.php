@@ -111,7 +111,7 @@
 			<hr class="vf-divider"/>
 			<div v-for="(thisView,vIndex) in viewSettings">
 				<div>
-					<icon-btn symbol="ui-icon-carat-2-n-s" v-on:click="togDiv($event)"></icon-btn>
+					<icon-btn symbol="ui-icon-carat-2-n-s" v-on:click="togDiv(vIndex,$event)"></icon-btn>
 					<i>{{ vfLookup[thisView.vf] }}</i>: <input type="text" v-model="thisView.l" size="32" required/>
 					<icon-btn symbol="ui-icon-arrowthickstop-1-n" v-on:click="topVF(vIndex)"><?php _e('Move to Top', 'prospect'); ?></icon-btn>
 					<icon-btn symbol="ui-icon-trash" v-on:click="delVF(vIndex)"><?php _e('Delete', 'prospect'); ?></icon-btn>
@@ -173,7 +173,7 @@
 							</option>
 						</select>
 						<?php _e('Map Overlay Layers', 'prospect'); ?>:
-						<button v-if="layerMaps.length > 0" v-on:click="addMapLayer(vIndex)"><?php _e('Add Layer', 'prospect'); ?></button><br/>
+						<button v-if="layerMaps.length > 0" v-on:click="addMapLayer(vIndex,$event)"><?php _e('Add Layer', 'prospect'); ?></button><br/>
 						<div v-for="(thisLayer,lIndex) in thisView.c.lyrs" class="map-layer-div">
 							<?php _e('Map ID', 'prospect'); ?>: <select v-model="thisLayer.lid">
 								<option v-for="thisMap in layerMaps" v-bind:value="thisMap.id">
@@ -239,7 +239,7 @@
 							</option>
 						</select>
 						<?php _e('Map Overlay Groups', 'prospect'); ?>:
-						<button v-if="mapGroups.length > 0" v-on:click="addMapGroup(vIndex)"><?php _e('Add Map Group', 'prospect'); ?></button>
+						<button v-if="mapGroups.length > 0" v-on:click="addMapGroup(vIndex,$event)"><?php _e('Add Map Group', 'prospect'); ?></button>
 						<br/>
 						<div v-for="(thisGroup,lIndex) in thisView.c.lyrs" class="map-layer-div">
 							<?php _e('Map Group ID', 'prospect'); ?>: <select v-model="thisGroup.gid">
