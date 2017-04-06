@@ -674,13 +674,11 @@
 								<b><?php _e('Provide Legends', 'prospect'); ?>:</b>
 								<icon-btn symbol="ui-icon-check" v-on:click="allLgndsOn(vIndex,tIndex)"><?php _e('All On', 'prospect'); ?></icon-btn>
 								<icon-btn symbol="ui-icon-cancel" v-on:click="allLgndsOff(vIndex,tIndex)"><?php _e('All Off', 'prospect'); ?></icon-btn>
-								<div v-for="(thisLegend,lIndex) in thisView.c.lgnds[tIndex]">
-									<span class="attribute-controls">
-										<input type='checkbox' v-model='thisLegend.useAtt'/> {{attID}}
-										<icon-btn symbol="ui-icon-arrowthick-1-w" v-on:click="moveLgndLeft(vIndex,tIndex,lIndex)"><?php _e('Left', 'prospect'); ?></icon-btn>
-										<icon-btn symbol="ui-icon-arrowthick-1-e" v-on:click="moveLgndRight(vIndex,tIndex,lIndex)"><?php _e('Right', 'prospect'); ?></icon-btn>
-									</span>
-								</div>
+								<span class="attribute-controls" v-for="(thisLegend,lIndex) in thisView.c.lgnds[tIndex]">
+									<input type='checkbox' v-model='thisLegend.useAtt'/> {{ thisLegend.attID }}
+									<icon-btn symbol="ui-icon-arrowthick-1-w" v-on:click="moveLgndLeft(vIndex,tIndex,lIndex)"><?php _e('Left', 'prospect'); ?></icon-btn>
+									<icon-btn symbol="ui-icon-arrowthick-1-e" v-on:click="moveLgndRight(vIndex,tIndex,lIndex)"><?php _e('Right', 'prospect'); ?></icon-btn>
+								</span>
 							</div>
 						</tabs>
 					</div><!-- BucketMatrix -->
@@ -711,13 +709,11 @@
 								<b><?php _e('Provide Legends', 'prospect'); ?>:</b>
 								<icon-btn symbol="ui-icon-check" v-on:click="allLgndsOn(vIndex,tIndex)"><?php _e('All On', 'prospect'); ?></icon-btn>
 								<icon-btn symbol="ui-icon-cancel" v-on:click="allLgndsOff(vIndex,tIndex)"><?php _e('All Off', 'prospect'); ?></icon-btn>
-								<div v-for="(thisLegend,lIndex) in thisView.c.lgnds[tIndex]">
-									<span class="attribute-controls">
-										<input type='checkbox' v-model='thisLegend.useAtt'/> {{attID}}
-										<icon-btn symbol="ui-icon-arrowthick-1-w" v-on:click="moveLgndLeft(vIndex,tIndex,lIndex)"><?php _e('Left', 'prospect'); ?></icon-btn>
-										<icon-btn symbol="ui-icon-arrowthick-1-e" v-on:click="moveLgndRight(vIndex,tIndex,lIndex)"><?php _e('Right', 'prospect'); ?></icon-btn>
-									</span>
-								</div>
+								<span class="attribute-controls" v-for="(thisLegend,lIndex) in thisView.c.lgnds[tIndex]">
+									<input type='checkbox' v-model='thisLegend.useAtt'/> {{ thisLegend.attID }}
+									<icon-btn symbol="ui-icon-arrowthick-1-w" v-on:click="moveLgndLeft(vIndex,tIndex,lIndex)"><?php _e('Left', 'prospect'); ?></icon-btn>
+									<icon-btn symbol="ui-icon-arrowthick-1-e" v-on:click="moveLgndRight(vIndex,tIndex,lIndex)"><?php _e('Right', 'prospect'); ?></icon-btn>
+								</span>
 							</div>
 						</tabs>
 						<?php _e('Map Base Layer', 'prospect'); ?>: <select v-model="thisView.c.base">
@@ -786,13 +782,11 @@
 								<b><?php _e('Provide Legends', 'prospect'); ?>:</b>
 								<icon-btn symbol="ui-icon-check" v-on:click="allLgndsOn(vIndex,tIndex)"><?php _e('All On', 'prospect'); ?></icon-btn>
 								<icon-btn symbol="ui-icon-cancel" v-on:click="allLgndsOff(vIndex,tIndex)"><?php _e('All Off', 'prospect'); ?></icon-btn>
-								<div v-for="(thisLegend,lIndex) in thisView.c.lgnds[tIndex]">
-									<span class="attribute-controls">
-										<input type='checkbox' v-model='thisLegend.useAtt'/> {{attID}}
-										<icon-btn symbol="ui-icon-arrowthick-1-w" v-on:click="moveLgndLeft(vIndex,tIndex,lIndex)"><?php _e('Left', 'prospect'); ?></icon-btn>
-										<icon-btn symbol="ui-icon-arrowthick-1-e" v-on:click="moveLgndRight(vIndex,tIndex,lIndex)"><?php _e('Right', 'prospect'); ?></icon-btn>
-									</span>
-								</div>
+								<span class="attribute-controls" v-for="(thisLegend,lIndex) in thisView.c.lgnds[tIndex]">
+									<input type='checkbox' v-model='thisLegend.useAtt'/> {{ thisLegend.attID }}
+									<icon-btn symbol="ui-icon-arrowthick-1-w" v-on:click="moveLgndLeft(vIndex,tIndex,lIndex)"><?php _e('Left', 'prospect'); ?></icon-btn>
+									<icon-btn symbol="ui-icon-arrowthick-1-e" v-on:click="moveLgndRight(vIndex,tIndex,lIndex)"><?php _e('Right', 'prospect'); ?></icon-btn>
+								</span>
 							</div>
 						</tabs>
 					</div><!-- QRNetwork -->
@@ -839,13 +833,11 @@
 								<b><?php _e('Provide Legends', 'prospect'); ?>:</b>
 								<icon-btn symbol="ui-icon-check" v-on:click="allLgndsOn(vIndex,tIndex)"><?php _e('All On', 'prospect'); ?></icon-btn>
 								<icon-btn symbol="ui-icon-cancel" v-on:click="allLgndsOff(vIndex,tIndex)"><?php _e('All Off', 'prospect'); ?></icon-btn>
-								<div v-for="(thisLegend,lIndex) in thisView.c.lgnds[tIndex]">
-									<span class="attribute-controls">
-										<input type='checkbox' v-model='thisLegend.useAtt'/> {{attID}}
-										<icon-btn symbol="ui-icon-arrowthick-1-w" v-on:click="moveLgndLeft(vIndex,tIndex,lIndex)"><?php _e('Left', 'prospect'); ?></icon-btn>
-										<icon-btn symbol="ui-icon-arrowthick-1-e" v-on:click="moveLgndRight(vIndex,tIndex,lIndex)"><?php _e('Right', 'prospect'); ?></icon-btn>
-									</span>
-								</div>
+								<span class="attribute-controls" v-for="(thisLegend,lIndex) in thisView.c.lgnds[tIndex]">
+									<input type='checkbox' v-model='thisLegend.useAtt'/> {{ thisLegend.attID }}
+									<icon-btn symbol="ui-icon-arrowthick-1-w" v-on:click="moveLgndLeft(vIndex,tIndex,lIndex)"><?php _e('Left', 'prospect'); ?></icon-btn>
+									<icon-btn symbol="ui-icon-arrowthick-1-e" v-on:click="moveLgndRight(vIndex,tIndex,lIndex)"><?php _e('Right', 'prospect'); ?></icon-btn>
+								</span>
 							</div>
 						</tabs>
 					</div><!-- EgoGraph -->
@@ -1041,7 +1033,7 @@
 		<label for="choose-att-label"><?php _e('Label', 'prospect'); ?>&nbsp;</label>
 		<input type="text" id="choose-att-label" v-model="label" size="24" required/>
 		<br/>
-		<label for="choose-vf-type"><?php _e('Type', 'prospect'); ?>&nbsp;</label>
+		<label for="choose-vf-type"><?php _e('Type', 'prospect'); ?> &nbsp;</label>
 		<select id="choose-vf-type" v-model='vfType'>
 			<option v-for="thisType in params.vfTypes" v-bind:value="thisType.c">
 				{{ thisType.l }}
@@ -1068,12 +1060,11 @@
 		<br/>
 		<div v-for="thisPair in pairs">
 			<span class="oneterm">{{ thisPair.t }}</span>
-			<select v-model='{{ thisPair.id }}'>
+			<select v-model='thisPair.id'>
 				<option v-for="thisAtt in params.vocabOpts">
 					{{ thisAtt }}
 				</option>
 			</select>
-			<br/>
 		</div>
 	</vuemodal>
 </script>

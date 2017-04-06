@@ -256,6 +256,7 @@ jQuery(document).ready(function() {
 
 		// Component (dialog) to choose Facet
 	Vue.component('dlgChooseFacet', {
+		// TO DO -- crashes on open!
 		props: {
 			params: Object
 		},
@@ -295,7 +296,8 @@ jQuery(document).ready(function() {
 				console.log("Save dlgSetRoles");
 				this.params.callback(this.pairs);
 			},
-			resetterms: function() {
+			resetterms: function(event) {
+				if (event) { event.preventDefault(); }
 				var newPairs=[];
 					// Default selection is first Vocabulary Attribute
 				var defID  = allVocabAttIDs.length > 0 ? allVocabAttIDs[0] : '';
@@ -315,23 +317,6 @@ jQuery(document).ready(function() {
 		}
 	});
 
-
-		// Assumes toggle button within DIV coming before DIV to hide/close!
-	// Ractive.decorators.togDiv = function (node, theDiv) {
-	// 	var thisTog = jQuery(node).button({
-	// 		text: false,
-	// 		icons: { primary: 'ui-icon-carat-2-n-s' }
-	// 	}).click(function() {
-	// 		jQuery(this).parent().next().slideToggle(400);
-	// 		return false;
-	// 	});
-	//
-	// 	return {
-	// 		teardown: function () {
-	// 			thisTog.button('destroy');
-	// 		}
-	// 	}
-	// };
 
 		// CONSTANTS
 		// =========
@@ -2434,7 +2419,7 @@ console.log("defJoinedFacets: "+JSON.stringify(defJoinedFacets));
 			errorOK: false,						// Is message actually not an error?
 			modalParams: {						// parameters passed to modal dialogs
 				vfTypes: vfTypes,
-				pairs: [],
+				pairs: [],						// QR Role pairs
 				facets: defJoinedFacets,
 				vocabOpts: allVocabAttIDs,
 				callback: null
@@ -2475,8 +2460,9 @@ console.log("defJoinedFacets: "+JSON.stringify(defJoinedFacets));
 				this.modalShowing = 'dlgChooseVizType';
 			},
 			togDiv: function(event) {
-				console.log("Click: togDiv");
+				console.log("Click: togDiv- "+JSON.stringify(event));
 				jQuery(event.target).parent().next().slideToggle(400);
+					// TO DO -- not working
 				if (event) { event.preventDefault(); }
 			},
 			topVF: function(vIndex, event) {
@@ -2621,7 +2607,7 @@ console.log("defJoinedFacets: "+JSON.stringify(defJoinedFacets));
 			delSVGLayer: function(vIndex, lIndex, event) {
 				console.log("Click: delSVGLayer");
 				if (event) { event.preventDefault(); }
-				this.viewSettings[vIndex].c.lyrs.splice(fIndex, 1);
+				this.viewSettings[vIndex].c.lyrs.splice(lIndex, 1);
 			},
 			addPtrPair: function(vIndex, tIndex, event) {
 				console.log("Click: addPtrPair");
