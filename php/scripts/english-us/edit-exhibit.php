@@ -552,7 +552,7 @@
 										{{ thisAtt }}
 									</option>
 								</select><br/>
-								<button v-if="theTemplate.attsPtr.length > thisView.c.pAtts[tIndex].length" v-on:click="addPtrPair(vIndex,tIndex)"><?php _e('Add Attribute/Color Pair', 'prospect'); ?></button><br/>
+								<button v-if="theTemplate.attsPtr.length > thisView.c.pAtts[tIndex].length" v-on:click="addPtrPair(vIndex,tIndex,$event)"><?php _e('Add Attribute/Color Pair', 'prospect'); ?></button><br/>
 								<div v-for="(thePointer,pIndex) in thisView.c.pAtts[tIndex]">
 									<b><?php _e('Use Pointer Attribute', 'prospect'); ?>: </b>
 									<select v-model='thePointer.pid'>
@@ -659,7 +659,7 @@
 									</option>
 								</select>
 								<br/>
-								<button v-if="theTemplate.attsPtr.length > thisView.c.pAtts[tIndex].length" v-on:click="addPtrPair(vIndex,tIndex)"><?php _e('Add Attribute/Color Pair', 'prospect'); ?></button><br/>
+								<button v-if="theTemplate.attsPtr.length > thisView.c.pAtts[tIndex].length" v-on:click="addPtrPair(vIndex,tIndex,$event)"><?php _e('Add Attribute/Color Pair', 'prospect'); ?></button><br/>
 								<div v-for="(thisPointer,pIndex) in thisView.c.pAtts[tIndex]">
 									<b><?php _e('Use Pointer Attribute', 'prospect'); ?>: </b>
 									<select v-model='thisPointer.pid'>

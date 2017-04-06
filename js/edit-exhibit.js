@@ -2380,8 +2380,6 @@ console.log("prsp_xhbt_inspect: "+JSON.stringify(saveInspect));
 
 	PMapHub.init(prspdata.maps);
 
-console.log("defJoinedFacets: "+JSON.stringify(defJoinedFacets));
-
 		// Create our main App instance
 	vApp = new Vue({
 		el: '#vue-outer',
@@ -2608,8 +2606,8 @@ console.log("defJoinedFacets: "+JSON.stringify(defJoinedFacets));
 				if (event) { event.preventDefault(); }
 				this.viewSettings[vIndex].c.lyrs.splice(lIndex, 1);
 			},
+				// NOTE: Unclear why $event needs to be added to parameters in invocation of function
 			addPtrPair: function(vIndex, tIndex, event) {
-					// TO DO -- crashes
 				console.log("Click: addPtrPair "+vIndex+", "+tIndex);
 				if (event) { event.preventDefault(); }
 				var newPtrPair = { };
