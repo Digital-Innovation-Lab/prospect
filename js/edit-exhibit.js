@@ -95,19 +95,9 @@ jQuery(document).ready(function() {
 			}
 		},
 		methods: {
-				// NOTE: Any number of parameters could be passed, as well as event object
-				// We'll assume that event is always passed and is always last item
 			click: function() {
-				// if (event) event.preventDefault();
-				// this.$emit('click');
-				console.table(arguments);
-				var args = [].slice.call(arguments);
-				if (args.length > 0) {
-					var event = args[args.length-1];
-					if (event) event.preventDefault();
-				}
-				args.splice(0,0,'click');
-				this.$emit.apply(this, args);
+				if (event) event.preventDefault();
+				this.$emit('click');
 	    	}
 		},
 			// Lifecycle hooks
