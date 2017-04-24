@@ -907,13 +907,11 @@ class ProspectAdmin {
 				wp_enqueue_script('jquery');
 				wp_enqueue_script('underscore');
 				wp_enqueue_script('jquery-ui-button');
-				wp_enqueue_script('jquery-ui-dialog');
 
 					// Prospect-specific
-				wp_enqueue_script('ractive', plugins_url('/lib/ractive.min.js', dirname(__FILE__)));
-
+				wp_enqueue_script('vuejs', plugins_url('/lib/vuejs/vue.js', dirname(__FILE__)));
 				wp_enqueue_script('edit-record', plugins_url('/js/edit-record.js', dirname(__FILE__)),
-								array('ractive', 'jquery-ui-button', 'jquery-ui-dialog', 'underscore'));
+								array('vuejs', 'jquery-ui-button', 'underscore'));
 
 				$att_defs = ProspectAttribute::get_all_attributes(true, true, true, true);
 					// Compile definition JSON strings into array

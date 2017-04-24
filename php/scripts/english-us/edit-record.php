@@ -1,264 +1,207 @@
-
-<!-- Ractive Template for jQueryUI Dialog Component -->
-<script id="dialog-r-template" type='text/ractive'>
-	<div class="jq-dialog-template" title="{{title}}">
-		{{yield}}
-	</div>
-</script>
-
-
-<!-- Outer-most (application) layer of output for Ractive to generate -->
-<script id="ractive-base" type='text/ractive'>
-	<div id="insert-dialog"></div>
-	{{#if errorMsg.length > 0}}
-	<div id="error-frame">{{errorMsg}}</div>
-	{{/if}}
-	<button id="prsp-save-data" on-click="saveRecord"><?php _e('Verify and Prepare Record for Publish/Update', 'prospect'); ?></button><br/>
+<!-- Outer-most (application) layer -->
+<div id="vue-outer">
+	<div id="error-frame" v-if="errorMsg.length > 0" v-bind:class="{ ok: errorOK }">{{errorMsg}}</div>
+	<button id="prsp-save-data" v-on:click="saveRecord"><?php _e('Verify and Prepare Record for Publish/Update', 'prospect'); ?></button><br/>
 	<div>
 		<label for="rec-id"><?php _e('Unique Record ID', 'prospect'); ?> </label>
-		<input type="text" id="rec-id" size="32" value="{{recID}}" pattern="[\w\-]+" required/>
-		<button decorator="iconButton:ui-icon-info" on-click="idHint"><?php _e('Hint for IDs', 'prospect'); ?></button>
+		<input type="text" id="rec-id" size="32" v-model="recID" pattern="[\w\-]+" required/>
+		<icon-btn symbol="ui-icon-info" v-on:click="idHint"><?php _e('Hint about IDs', 'prospect'); ?></icon-btn>
 		<label for="rec-type"><?php _e('Template Type', 'prospect'); ?> </label>
-		<select id="rec-type" value="{{recType}}">
-		{{#each defTemplates}}
-			<option value="{{this.id}}">{{this.def.l}} ({{this.id}})</option>
-		{{/each}}
+		<select id="rec-type" v-model="recType">
+			<option v-for="thisTemplate in defTemplates" v-bind:value="thisTemplate.id">
+				{{thisTemplate.def.l}} ({{thisTemplate.id}})
+			</option>
 		</select>
 	</div>
 	<div>
-		{{#each defRecord:rIndex}}
-			<b>{{def.l}}</b>
-			{{#if def.t == 'V'}}
-				{{>att-type-Vocabulary}}
-			{{elseif def.t == 'T'}}
-				{{>att-type-Text}}
-			{{elseif def.t == 'g'}}
-				{{>att-type-Tags}}
-			{{elseif def.t == 'N'}}
-				{{>att-type-Number}}
-			{{elseif def.t == 'D'}}
-				{{>att-type-Dates}}
-			{{elseif def.t == 'L'}}
-				{{>att-type-Lat-Lon}}
-			{{elseif def.t == 'X'}}
-				{{>att-type-X-Y}}
-			{{elseif def.t == 'I'}}
-				{{>att-type-Image}}
-			{{elseif def.t == 'l'}}
-				{{>att-type-Link-To}}
-			{{elseif def.t == 'S'}}
-				{{>att-type-Audio}}
-			{{elseif def.t == 'Y'}}
-				{{>att-type-YouTube}}
-			{{elseif def.t == 'x'}}
-				{{>att-type-Transcript}}
-			{{elseif def.t == 't'}}
-				{{>att-type-Timecode}}
-			{{elseif def.t == 'P'}}
-				{{>att-type-Pointer}}
-			{{elseif def.t == 'J'}}
-				{{>att-type-Join}}
-			{{/if}}
-			{{#if def.h.length > 0}}
-				<button decorator="iconButton:ui-icon-info" on-click="giveHint:{{rIndex}}"><?php _e('Hint', 'prospect'); ?></button>
-			{{/if}}
-			<br/>
-		{{/each}}
+		<div v-for="(thisElement,rIndex) in defRecord">
+			<b>{{thisElement.def.l}}</b>
+			<div v-if="thisElement.def.t == 'V'"><!-- Vocabulary -->
+				<input type="text" size="32" v-model="thisElement.value"/>
+				<button v-if="thisElement.def.d.length > 0" v-on:click="clearVocab(rIndex)"><?php _e('Clear', 'prospect'); ?></button>
+				<select v-model="thisElement.lgndSel">
+					<option v-for="thisLegend in thisElement.def.newLgnd" v-bind:value="thisLegend.newV">
+						{{thisLegend.newL}}
+					</option>
+				</select>
+				<button v-on:click="addVocab(rIndex)">
+					<span v-if="thisElement.def.d.length === 0"><?php _e('Set', 'prospect'); ?></span>
+					<span v-else><?php _e('Add', 'prospect'); ?></span>
+				</button>
+			</div>
+			<div v-if="thisElement.def.t == 'T'"><!-- Text -->
+				<input type="text" size="48" v-model="thisElement.value"/>
+			</div>
+			<div v-if="thisElement.def.t == 'g'"><!-- Tags -->
+				<input type="text" size="32" v-model="thisElement.value"/> (<?php _e('delimiter', 'prospect'); ?> "{{thisElement.def.d}}")
+			</div>
+			<div v-if="thisElement.def.t == 'N'"><!-- Number -->
+				<input type="text" size="10" v-model="thisElement.value"/> (<?php _e('Min', 'prospect'); ?> {{thisElement.def.r.min}}, <?php _e('Max', 'prospect'); ?> {{thisElement.def.r.max}})
+			</div>
+			<div v-if="thisElement.def.t == 'D'"><!-- Dates -->
+				<?php _e('From', 'prospect'); ?> <input type="text" size="6" v-model="thisElement.value.min.y" placeholder=<?php _e('"YYYY"', 'prospect'); ?> pattern="(^$|\?|~?-?\d+)"/>
+					<input type="text" size="2" v-model="thisElement.value.min.m" placeholder=<?php _e('"MM"', 'prospect'); ?> pattern="\d{0,2}"/>
+					<input type="text" size="2" v-model="thisElement.value.min.d" placeholder=<?php _e('"DD"', 'prospect'); ?> pattern="\d{0,2}"/>
+				<?php _e('To', 'prospect'); ?> <input type="text" size="6" value="thisElement.value.max.y" placeholder=<?php _e('"YYYY"', 'prospect'); ?> pattern="(^$|open|~?-?\d+)"/>
+					<input type="text" size="2" v-model="thisElement.value.max.m" placeholder=<?php _e('"MM"', 'prospect'); ?> pattern="\d{0,2}"/>
+					<input type="text" size="2" v-model="thisElement.value.max.d" placeholder=<?php _e('"DD"', 'prospect'); ?> pattern="\d{0,2}"/>
+			</div>
+			<div v-if="thisElement.def.t == 'L'"><!-- Lat-Lon -->
+				<?php _e('Lat,Long', 'prospect'); ?>: <input type="text" size="20" v-model="thisElement.value"/>
+				<button v-if="canGeoLoc" v-on:click="setHere(rIndex)"><?php _e('Here', 'prospect'); ?></button>
+				<icon-btn symbol="ui-icon-search" v-on:click="geoNames(rIndex)"><?php _e('Look Up Coordinates', 'prospect'); ?></icon-btn>
+			</div>
+			<div v-if="thisElement.def.t == 'X'"><!-- X-Y -->
+				<?php _e('X,Y', 'prospect'); ?>: <input type="text" size="8" v-model="thisElement.value" pattern="^$|^-?\d{1,4},\s?-?\d{1,4}"/>
+			</div>
+			<div v-if="thisElement.def.t == 'I'"><!-- Image -->
+				<?php _e('URL for image', 'prospect'); ?>: <input type="url" size="40" v-model="thisElement.value"/>
+			</div>
+			<div v-if="thisElement.def.t == 'l'"><!-- Link-To -->
+				<?php _e('URL to webpage', 'prospect'); ?>: <input type="url" size="40" v-model="thisElement.value" pattern="^$|^https?://.+$"/>
+			</div>
+			<div v-if="thisElement.def.t == 'S'"><!-- Audio -->
+				<?php _e('URL to Audio source', 'prospect'); ?>: <input type="url" size="40" v-model="thisElement.value"/>
+			</div>
+			<div v-if="thisElement.def.t == 'Y'"><!-- YouTube -->
+				<?php _e('YouTube ID code', 'prospect'); ?>: <input type="text" size="12" v-model="thisElement.value"/>
+			</div>
+			<div v-if="thisElement.def.t == 'x'"><!-- Transcript -->
+				<?php _e('URL to Transcript text file', 'prospect'); ?>: <input type="url" size="40" v-model="thisElement.value" pattern="^$|^https?://.+\.txt$"/>
+			</div>
+			<div v-if="thisElement.def.t == 't'"><!-- Timecode -->
+				<?php _e('Timestamped extract', 'prospect'); ?>: <input type="text" size="23" v-model="thisElement.value" placeholder=<?php _e('"HH:MM:SS.ms-HH:MM:SS.ms"', 'prospect'); ?> pattern="^$|\d\d:\d\d:\d\d\.\d{1,2}(-\d\d:\d\d:\d\d\.\d{1,2})*"/>
+			</div>
+			<div v-if="thisElement.def.t == 'P'"><!-- Pointer -->
+				<?php _e('(Record ID or IDs)', 'prospect'); ?>: <input type="text" size="32" v-model="thisElement.value"/>
+				<button v-if="thisElement.def.d.length > 0" v-on:click="clearPtr(rIndex)"><?php _e('Clear', 'prospect'); ?></button>
+				<button v-on:click="addPointerID(rIndex)">
+					<span v-if="thisElement.def.d.length > 0"><?php _e('Add ID', 'prospect'); ?></span>
+					<span v-else><?php _e('Set ID', 'prospect'); ?></span>
+				</button>
+			</div>
+			<div v-if="thisElement.def.t == 'J'"><!-- Join -->
+				<?php _e('ID of Record to Join', 'prospect'); ?>: <input type="text" size="32" v-model="thisElement.value" pattern="^$|[\w\-]+"/>
+				<button v-on:click="getJoinIDs(rIndex)"><?php _e('Select ID', 'prospect'); ?></button>
+			</div>
+			<icon-btn v-if="thisElement.def.h.length > 0" symbol="ui-icon-info" v-on:click="giveHint(rIndex)"><?php _e('Hint', 'prospect'); ?></icon-btn>
+		</div>
 	</div>
-</script>
-
-<!-- PARTIALS -->
-<script id="att-type-Vocabulary" type='text/ractive'>
-	<input type="text" size="32" value="{{value}}"/>
-	{{#if def.d.length > 0}}<button on-click="clearVocab:{{rIndex}}"><?php _e('Clear', 'prospect'); ?></button>{{/if}}
-	<select value="{{lgndSel}}">
-	{{#each def.newLgnd}}
-		<option value="{{this.newV}}">{{this.newL}}</option>
-	{{/each}}
-	</select>
-	<button on-click="addVocab:{{rIndex}}">
-	{{#if def.d.length > 0}}
-	<?php _e('Add', 'prospect'); ?>
-	{{else}}
-	<?php _e('Set', 'prospect'); ?>
-	{{/if}}
-	</button>
-</script>
-
-<script id="att-type-Text" type='text/ractive'>
-	<input type="text" size="48" value="{{value}}"/>
-</script>
-
-<script id="att-type-Tags" type='text/ractive'>
-	<input type="text" size="32" value="{{value}}"/> (<?php _e('delimiter', 'prospect'); ?> "{{def.d}}")
-</script>
-
-<script id="att-type-Number" type='text/ractive'>
-	<input type="text" size="10" value="{{value}}"/> (<?php _e('Min', 'prospect'); ?> {{def.r.min}}, <?php _e('Max', 'prospect'); ?> {{def.r.max}})
-</script>
-
-<script id="att-type-Dates" type='text/ractive'>
-	<?php _e('From', 'prospect'); ?> <input type="text" size="6" value="{{value.min.y}}" placeholder=<?php _e('"YYYY"', 'prospect'); ?> pattern="(^$|\?|~?-?\d+)"/>
-		<input type="text" size="2" value="{{value.min.m}}" placeholder=<?php _e('"MM"', 'prospect'); ?> pattern="\d{0,2}"/>
-		<input type="text" size="2" value="{{value.min.d}}" placeholder=<?php _e('"DD"', 'prospect'); ?> pattern="\d{0,2}"/>
-	<?php _e('To', 'prospect'); ?> <input type="text" size="6" value="{{value.max.y}}" placeholder=<?php _e('"YYYY"', 'prospect'); ?> pattern="(^$|open|~?-?\d+)"/>
-		<input type="text" size="2" value="{{value.max.m}}" placeholder=<?php _e('"MM"', 'prospect'); ?> pattern="\d{0,2}"/>
-		<input type="text" size="2" value="{{value.max.d}}" placeholder=<?php _e('"DD"', 'prospect'); ?> pattern="\d{0,2}"/>
-</script>
-
-<script id="att-type-Lat-Lon" type='text/ractive'>
-	<?php _e('Lat,Long', 'prospect'); ?>: <input type="text" size="20" value="{{value}}"/>
-	{{#if canGeoLoc}}<button on-click="setHere:{{rIndex}}"><?php _e('Here', 'prospect'); ?></button>{{/if}}
-	<button decorator="iconButton:ui-icon-search" on-click="geoNames:{{rIndex}}"><?php _e('Look Up Coordinates', 'prospect'); ?></button>
-</script>
-
-<script id="att-type-X-Y" type='text/ractive'>
-	<?php _e('X,Y', 'prospect'); ?>: <input type="text" size="8" value="{{value}}" pattern="^$|^-?\d{1,4},\s?-?\d{1,4}"/>
-</script>
-
-<script id="att-type-Image" type='text/ractive'>
-	<?php _e('URL for image', 'prospect'); ?>: <input type="url" size="40" value="{{value}}"/>
-</script>
-
-<script id="att-type-Link-To" type='text/ractive'>
-	<?php _e('URL to webpage', 'prospect'); ?>: <input type="url" size="40" value="{{value}}" pattern="^$|^https?://.+$"/>
-</script>
-
-<script id="att-type-Audio" type='text/ractive'>
-	<?php _e('URL to Audio source', 'prospect'); ?>: <input type="url" size="40" value="{{value}}"/>
-</script>
-
-<script id="att-type-YouTube" type='text/ractive'>
-	Y<?php _e('YouTube ID code', 'prospect'); ?>: <input type="text" size="12" value="{{value}}"/>
-</script>
-
-<script id="att-type-Transcript" type='text/ractive'>
-	<?php _e('URL to Transcript text file', 'prospect'); ?>: <input type="url" size="40" value="{{value}}" pattern="^$|^https?://.+\.txt$"/>
-</script>
-
-<script id="att-type-Timecode" type='text/ractive'>
-	<?php _e('Timestamped extract', 'prospect'); ?>: <input type="text" size="23" value="{{value}}" placeholder=<?php _e('"HH:MM:SS.ms-HH:MM:SS.ms"', 'prospect'); ?> pattern="^$|\d\d:\d\d:\d\d\.\d{1,2}(-\d\d:\d\d:\d\d\.\d{1,2})*"/>
-</script>
-
-<script id="att-type-Pointer" type='text/ractive'>
-	<?php _e('(Record ID or IDs)', 'prospect'); ?>: <input type="text" size="32" value="{{value}}"/>
-	{{#if def.d.length > 0}}<button on-click="clearPtr:{{rIndex}}"><?php _e('Clear', 'prospect'); ?></button>{{/if}}
-	<button on-click="addPointerID:{{rIndex}}">
-		{{#if def.d.length > 0}}<?php _e('Add ID', 'prospect'); ?>
-		{{else}}<?php _e('Set ID', 'prospect'); ?>
-		{{/if}}
-	</button>
-</script>
-
-<script id="att-type-Join" type='text/ractive'>
-	<?php _e('ID of Record to Join', 'prospect'); ?>: <input type="text" size="32" value="{{value}}" pattern="^$|[\w\-]+"/>
-	<button on-click="getJoinIDs:{{rIndex}}"><?php _e('Select ID', 'prospect'); ?></button>
-</script>
+</div>
 
 
 <!-- DIALOGS -->
-<!-- Choose Template Dialog -->
-<script id="dialog-choose-list" type='text/ractive'>
-	<dialog title=<?php _e('"Choose ID"', 'prospect'); ?> width="400" height="350">
-		{{#if message.length != 0}}
-			{{#if error}}<p style="color: red">{{message}}</p>
-			{{else}}<p>{{message}}</p>
-			{{/if}}
-		{{/if}}
-		<div class="scroll-container">
-			{{#each list:index}}
-				{{#if selIndex == index}}
-					<span style="color: red" on-click="doSelect:{{index}}"><b>({{this.id}}) {{this.l}}</b></span>
-				{{else}}
-					<span on-click="doSelect:{{index}}"><b>({{this.id}}) {{this.l}}</b></span>
-				{{/if}}
-				<br/>
-			{{/each}}
+
+<!-- VueJS Template Dialog Component -->
+<script id="dialog-template" type="text/x-template">
+	<div class="dialog-wrap open">
+		<div>
+			<div class="title">{{ title }}</div>
+			<slot></slot>
+			<br/>
+			<button class="btn cancel" v-if="cancel == 'true'" v-on:click="close"><?php _e('Cancel', 'prospect'); ?></button>
+			<button class="btn ok" v-on:click="clickok"><?php _e('OK', 'prospect'); ?></button>
 		</div>
-	</dialog>
+	</div>
+</script>
+
+<!-- Message Dialog -->
+<script id="dialog-message" type='text/x-template'>
+	<vuemodal title=<?php _e('"Note"', 'prospect'); ?>>
+		{{ params.msg }}
+	</vuemodal>
 </script>
 
 <!-- Confirm Dialog -->
-<script id="dialog-confirm" type='text/ractive'>
-	<dialog title=<?php _e('"Confirm"', 'prospect'); ?> width="300" height="265">
-		<div class="scroll-container">
-			{{message}}
-		</div>
-	</dialog>
+<script id="dialog-confirm" type='text/x-template'>
+	<vuemodal title=<?php _e('"Confirm"', 'prospect'); ?> cancel="true" v-on:save="ok">
+		{{ params.msg }}
+	</vuemodal>
 </script>
 
-<!-- Hint Dialog -->
-<script id="dialog-message" type='text/ractive'>
-	<dialog title=<?php _e('"Display Hint"', 'prospect'); ?> width="300" height="350" cancel="false">
-		<div class="scroll-container">
-			{{message}}
+<!-- Choose Template Dialog -->
+<script id="dialog-choose-list" type='text/x-template'>
+	<vuemodal title=<?php _e('"Choose ID"', 'prospect'); ?> cancel="true" size="wide" v-on:save="save">
+		<div v-if="message.length != 0">
+			<p v-if="error" style="color: red">{{message}}</p>
+			<p v-else>{{message}}</p>
 		</div>
-	</dialog>
+		<div class="scroll-container">
+			<div v-for="(thisItem,index) in list">
+				<span v-if="selIndex == index" style="color: red" v-on:click="doSelect(index)"><b>({{thisItem.id}}) {{thisItem.l}}</b></span>
+				<span v-else="selIndex == index" v-on:click="doSelect(index)"><b>({{thisItem.id}}) {{thisItem.l}}</b></span>
+			</div>
+		</div>
+	</vuemodal>
 </script>
 
 <!-- GeoNames Dialog -->
-<script id="dialog-geonames" type='text/ractive'>
-	<dialog title="<?php _e('GeoNames Coordinate Search', 'prospect'); ?>" width="600" height="450">
+<script id="dialog-geonames" type='text/x-template'>
+	<vuemodal title="<?php _e('GeoNames Coordinate Search', 'prospect'); ?>" size="wide" v-on:save="ok">
 		<div class="scroll-container" id="geonames">
 			<form>
-				<input type="text" size="50" value="{{query}}" placeholder="<?php _e('Look up coordinates by location name', 'prospect'); ?>" autofocus>
+				<input type="text" size="50" v-model="query" placeholder="<?php _e('Look up coordinates by location name', 'prospect'); ?>" autofocus/>
 				<button type="submit"><?php _e('Search', 'prospect'); ?></button>
 			</form>
-			<ul>
-				{{#results}}
-					{{#if name}}<li on-click="select">{{name}}{{#if adminName1}}, {{adminName1}}{{/if}}{{#if countryName}}, {{countryName}}{{/if}}</li>{{/if}}
-				{{/results}}
-				{{^results}}
-					<p><?php _e('Error.', 'prospect'); ?></p>
-				{{/results}}
-			</ul>
+			<div v-if="results.length === 0">
+				<p><?php _e('Error.', 'prospect'); ?></p>
+			</div>
+			<div v-else>
+				<ul>
+					<li v-for="(thisResult,index)" v-on:click="select(index)">
+						<span v-if="thisResult.name">{{name}} </span>
+						<span v-if="thisResult.adminName1">{{adminName1}} </span>
+						<span v-if="thisResult.countryName">{{countryName}} </span>
+					</li>
+				</ul>
+			</div>
 		</div>
-	</dialog>
+	</vuemodal>
 </script>
 
 <!-- ERRORS -->
-<script id="errmsg-id" type='text/ractive'>
+<script id="errmsg-id" type='text'>
 <?php _e('You must supply an internal ID for the Record that is no more than 32 characters in length and consists entirely of alphanumeric characters (in plain ASCII), spaces and underscores (it cannot contain spaces, punctuation, Unicode-only characters, etc).', 'prospect'); ?>
 </script>
 
-<script id="errmsg-no-templates" type='text/ractive'>
+<script id="errmsg-no-templates" type='text'>
 <p><b><?php _e('You cannot create any Records until you have defined Templates.', 'prospect'); ?></b></p>
 </script>
 
-<script id="errmsg-number" type='text/ractive'>
+<script id="errmsg-number" type='text'>
 <?php _e('You have entered a value into a number field that is not formatted properly.', 'prospect'); ?>
 </script>
 
-<script id="errmsg-number-range" type='text/ractive'>
+<script id="errmsg-number-range" type='text'>
 <?php _e('A number you entered is below the minimum allowable value or above the allowable maximum.', 'prospect'); ?>
 </script>
 
-<script id="errmsg-date-range" type='text/ractive'>
+<script id="errmsg-date-range" type='text'>
 <?php _e('A Date you entered is not a valid, or is before the minimum allowable year or past the maximum allowable year.', 'prospect'); ?>
 </script>
 
-<script id="errmsg-date-maxmin" type='text/ractive'>
+<script id="errmsg-date-maxmin" type='text'>
 <?php _e('The start year is greater than the end year for a Date you have entered.', 'prospect'); ?>
 </script>
 
-<script id="errmsg-no-data-available" type='text/ractive'>
+<script id="errmsg-no-data-available" type='text'>
 <?php _e('No data available -- select "Cancel"', 'prospect'); ?>
 </script>
 
 
 <!-- MESSAGE -->
-<script id="msg-confirm-del-vf" type='text/ractive'>
+<script id="msg-confirm-del-vf" type='text'>
 <?php _e('Are you sure that you wish to delete this View/Filter from your Exhibit?', 'prospect'); ?>
 </script>
 
-<script id="msg-saved" type='text/ractive'>
+<script id="msg-saved" type='text'>
 <?php _e('Record was verified and prepared to be saved: now click the Publish or Update button on the right.', 'prospect'); ?>
 </script>
 
-<script id="msg-rem-data-loading" type='text/ractive'>
+<script id="msg-rem-data-loading" type='text'>
 <?php _e('Please wait while remote data is loaded', 'prospect'); ?>
 </script>
 
-<script id="msg-choose-record" type='text/ractive'>
+<script id="msg-choose-record" type='text'>
 <?php _e('Please choose the Record ID', 'prospect'); ?>
 </script>
