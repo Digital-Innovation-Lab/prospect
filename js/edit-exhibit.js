@@ -95,7 +95,7 @@ jQuery(document).ready(function() {
 			}
 		},
 		methods: {
-			click: function() {
+			click: function(event) {
 				if (event) event.preventDefault();
 				this.$emit('click');
 	    	}
