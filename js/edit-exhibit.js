@@ -95,9 +95,19 @@ jQuery(document).ready(function() {
 			}
 		},
 		methods: {
-			click: function (event) {
-	    		if (event) event.preventDefault();
-				this.$emit('click');
+				// NOTE: Any number of parameters could be passed, as well as event object
+				// We'll assume that event is always passed and is always last item
+			click: function() {
+				// if (event) event.preventDefault();
+				// this.$emit('click');
+				console.table(arguments);
+				var args = [].slice.call(arguments);
+				if (args.length > 0) {
+					var event = args[args.length-1];
+					if (event) event.preventDefault();
+				}
+				args.splice(0,0,'click');
+				this.$emit.apply(this, args);
 	    	}
 		},
 			// Lifecycle hooks
@@ -2456,12 +2466,13 @@ console.log("prsp_xhbt_inspect: "+JSON.stringify(saveInspect));
 				this.modalParams.callback = saveNewView;
 				this.modalShowing = 'dlgChooseVizType';
 			},
-			togDiv: function(vIndex,event) {
-				console.log("Click: togDiv "+vIndex);
-				jQuery(event.target).parent().next().slideToggle(400);
-					// TO DO -- not working -- event not passed correctly
-				if (event) { event.preventDefault(); }
-			},
+				// Couldn't get this to work properly -- bug with event parameter
+			// togDiv: function(vIndex,event) {
+			// 	console.log("Click: togDiv "+vIndex);
+			// 	jQuery(event.target).parent().next().slideToggle(400);
+			// 		// TO DO -- not working -- event not passed correctly
+			// 	if (event) { event.preventDefault(); }
+			// },
 			topVF: function(vIndex, event) {
 				console.log("Click: topVF");
 				if (event) { event.preventDefault(); }

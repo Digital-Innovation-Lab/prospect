@@ -109,9 +109,8 @@
 		<div>
 			<button v-on:click="addView"><?php _e('Add Visualization', 'prospect'); ?></button>
 			<hr class="vf-divider"/>
-			<div v-for="(thisView,vIndex) in viewSettings">
+			<div v-for="(thisView,vIndex) in viewSettings" :key="thisView.incID">
 				<div>
-					<icon-btn symbol="ui-icon-carat-2-n-s" v-on:click="togDiv(vIndex,$event)"></icon-btn>
 					<i>{{ vfLookup[thisView.vf] }}</i>: <input type="text" v-model="thisView.l" size="32" required/>
 					<icon-btn symbol="ui-icon-arrowthickstop-1-n" v-on:click="topVF(vIndex)"><?php _e('Move to Top', 'prospect'); ?></icon-btn>
 					<icon-btn symbol="ui-icon-trash" v-on:click="delVF(vIndex)"><?php _e('Delete', 'prospect'); ?></icon-btn>
