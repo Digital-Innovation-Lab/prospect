@@ -75,18 +75,21 @@
 			<div v-if="thisElement.def.t == 'P'"><!-- Pointer -->
 				<?php _e('(Record ID or IDs)', 'prospect'); ?>: <input type="text" size="32" v-model="thisElement.value"/>
 				<button v-if="thisElement.def.d.length > 0" v-on:click="clearPtr(rIndex)"><?php _e('Clear', 'prospect'); ?></button>
-				<button v-on:click="addPointerID(rIndex)">
+				<button v-on:click="addPointerID(rIndex,thisElement.def.d)">
 					<span v-if="thisElement.def.d.length > 0"><?php _e('Add ID', 'prospect'); ?></span>
 					<span v-else><?php _e('Set ID', 'prospect'); ?></span>
 				</button>
 			</div>
 			<div v-if="thisElement.def.t == 'J'"><!-- Join -->
 				<?php _e('ID of Record to Join', 'prospect'); ?>: <input type="text" size="32" v-model="thisElement.value" pattern="^$|[\w\-]+"/>
-				<button v-on:click="getJoinIDs(rIndex)"><?php _e('Select ID', 'prospect'); ?></button>
+				<button v-on:click="getJoinID(rIndex)"><?php _e('Select ID', 'prospect'); ?></button>
 			</div>
 			<icon-btn v-if="thisElement.def.h.length > 0" symbol="ui-icon-info" v-on:click="giveHint(rIndex)"><?php _e('Hint', 'prospect'); ?></icon-btn>
 		</div>
 	</div>
+
+	<component :is="modalShowing" :params="modalParams">
+	</component>
 </div>
 
 
@@ -119,7 +122,7 @@
 	</vuemodal>
 </script>
 
-<!-- Choose Template Dialog -->
+<!-- Template Dialog for Choosing from a list -->
 <script id="dialog-choose-list" type='text/x-template'>
 	<vuemodal title=<?php _e('"Choose ID"', 'prospect'); ?> cancel="true" size="wide" v-on:save="save">
 		<div v-if="message.length != 0">
@@ -129,7 +132,7 @@
 		<div class="scroll-container">
 			<div v-for="(thisItem,index) in list">
 				<span v-if="selIndex == index" style="color: red" v-on:click="doSelect(index)"><b>({{thisItem.id}}) {{thisItem.l}}</b></span>
-				<span v-else="selIndex == index" v-on:click="doSelect(index)"><b>({{thisItem.id}}) {{thisItem.l}}</b></span>
+				<span v-else v-on:click="doSelect(index)"><b>({{thisItem.id}}) {{thisItem.l}}</b></span>
 			</div>
 		</div>
 	</vuemodal>
@@ -138,20 +141,20 @@
 <!-- GeoNames Dialog -->
 <script id="dialog-geonames" type='text/x-template'>
 	<vuemodal title="<?php _e('GeoNames Coordinate Search', 'prospect'); ?>" size="wide" v-on:save="ok">
+		<div>
+			<input type="text" size="50" v-model="query" placeholder="<?php _e('Look up coordinates by location name', 'prospect'); ?>" autofocus/>
+			<button v-on:click="fetchGeoData"><?php _e('Search', 'prospect'); ?></button>
+		</div>
 		<div class="scroll-container" id="geonames">
-			<form>
-				<input type="text" size="50" v-model="query" placeholder="<?php _e('Look up coordinates by location name', 'prospect'); ?>" autofocus/>
-				<button type="submit"><?php _e('Search', 'prospect'); ?></button>
-			</form>
 			<div v-if="results.length === 0">
-				<p><?php _e('Error.', 'prospect'); ?></p>
+				<p>{{errorMsg}}</p>
 			</div>
 			<div v-else>
 				<ul>
-					<li v-for="(thisResult,index)" v-on:click="select(index)">
-						<span v-if="thisResult.name">{{name}} </span>
-						<span v-if="thisResult.adminName1">{{adminName1}} </span>
-						<span v-if="thisResult.countryName">{{countryName}} </span>
+					<li v-for="(thisResult,index) in results" v-on:click="select(index)" v-bind:class="{ active: index === selected }">
+						<span v-if="thisResult.name">{{thisResult.name}} </span>
+						<span v-if="thisResult.adminName1">{{thisResult.adminName1}} </span>
+						<span v-if="thisResult.countryName">{{thisResult.countryName}} </span>
 					</li>
 				</ul>
 			</div>

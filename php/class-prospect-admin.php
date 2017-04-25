@@ -3105,16 +3105,29 @@ class ProspectAdmin {
 	} // prsp_get_transcript()
 
 
-
 		// PURPOSE: Returns Geonames API results
-		// INPUT: $_POST['query'] = name query from Geonames dialog
+		// INPUT:	$_POST['query'] = name query from Geonames dialog
+		// NOTES:	http://www.geonames.org/export/geonames-search.html
 	public function prsp_get_geonames() {
 		$content = @file_get_contents('http://api.geonames.org/searchJSON?q='. $_POST['query'] .'&maxRows=10&username=UNCDIL');
 
 		if ($content === false) {
 			$result = 'Error';
 		} else {
-			$result = $content;
+				// As there is an excess of data from Geonames server, remove unwanted stuff
+			$json_data = json_decode($content, true);
+			$json_data = $json_data->geonames;
+			$filtered_data = [];
+			for($i = 0; $i < count($json_data); $i++) {
+			   $item = $json_data[$i];
+			   $filtered_data[$i] = array(
+			      "name" => $item["name"],
+			      "adminName1" => $item["adminName1"],
+			      "countryName" => $item["countryName"],
+			      "latlon" => $item["lat"].",".$item["lng"]
+			   );
+			}
+			$result = $filtered_data;
 		}
 
 		header('Content-Type: application/json');

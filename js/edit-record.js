@@ -4,8 +4,7 @@
 // NOTES:   Data about this Record passed in hidden fields
 //			In case of newly created Record, prsp_rec_id and prsp_tmplt_id will be empty, and prsp_rec_atts will be "null"
 //			prspdata will pass definitions of Templates and Attributes
-// USES:    jQuery, Underscore, jQueryUI, and Ractive
-// ASSUMES:
+// USES:    jQuery, Underscore, jQueryUI, and VueJS
 
 // TO DO:	Enable loading items to Media Library
 
@@ -36,85 +35,470 @@ if (!Array.prototype.findIndex) {
 
 
 jQuery(document).ready(function() {
-
-	Ractive.decorators.iconButton = function (node, icon) {
-		jQuery(node).button({
-			text: false,
-			icons: { primary: icon }
-		});
-
-		return {
-			teardown: function () {
-				jQuery(node).button('destroy');
-			}
-		}
-	};
-
-		// Create Ractive component to wrap jQueryUI Dialog
-	var RJDialogComponent = Ractive.extend({
-		template: '#dialog-r-template',
-		data: function() {
+	Vue.component('icon-btn', {
+		props: {
+			symbol: {
+	    		type: String,
+	    		default: ''
+	    	},
+			label: {
+	    		type: String,
+	    		default: ''
+	    	}
+		},
+		template: `<button v-on:click="click">{{label}}</button>`,
+		data: function () {
 			return {
-				title: '',
-				width: 350,
-				height: 300,
-				cancel: true
+				jBtn: null
 			}
-		}, // data
-
-			// Intercept render to insert and active jQueryUI plugin
-		onrender: function() {
-			var self = this;
-			var thisComponent = this.find('*');
-			var theButtons = [ {
-					text: 'OK',
-					click: function() {
-						self.fire('ok');
-					}
-				} ];
-			if (self.get('cancel')) {
-				theButtons.push( {
-					text: 'Cancel',
-					click: function() {
-						self.fire('cancel');
-					}
-				} );
-			}
-			self.modal = jQuery(thisComponent).dialog({
-				dialogClass: "no-close",
-				width: self.get('width'),
-				height: self.get('height'),
-				modal : true,
-				autoOpen: true,
-				buttons: theButtons
+		},
+		methods: {
+			click: function(event) {
+				if (event) event.preventDefault();
+				this.$emit('click');
+	    	}
+		},
+			// Lifecycle hooks
+		mounted: function() {
+			this.jBtn = jQuery(this.$el).button({
+				text: false,
+				icons: { primary: this.symbol }
 			});
-			// self.modal.dialog('open');
-		}, // onrender
-
-			// Intercept teardown so that jQueryUI component destroyed
-		onteardown: function () {
-			this.modal.dialog('destroy');
-		} // onteardown
+		},
+		beforeDestroy: function() {
+			jQuery(this.jBtn).button('destroy');
+		}
 	});
 
-		// CONSTANTS
-		// =========
+		// "Null" placeholder when no dialog should be shown
+	Vue.component('nullcomponent', {
+		template: '<div style="display: none"></div>'
+	});
+
+		// Wrapper for modal dialog boxes
+		// Strategy for using modal:
+		//		Caller puts parameters into modalParams
+		//		Caller sets vApp.modalParams to appropriate dialog component name
+		//		Dialog component makes local copies of relevant parameters in data (if modifiable)
+		//		Bind GUI to those local data
+		//		If user clicks "OK" then call callback function with feedback data
+	Vue.component('vuemodal', {
+		props: {
+			title: {
+	    		type: String,
+	    		default: 'Dialog'
+	    	},
+			cancel: {
+				type: String,
+				default: 'false'
+			},
+			size: {
+				type: String,
+				default: ''
+			}
+		},
+		template: '#dialog-template',
+		methods: {
+			close: function(event) {
+				console.log("vuemodal > close");
+				this.$el.className = 'dialog-wrap open';
+				setTimeout(function() {
+					vApp.$emit('dialogclose');
+				}.bind(this), 300);
+				if (event) { event.preventDefault(); }
+			},
+			clickok: function(event) {
+				console.log("vuemodal > clickok1");
+				this.$emit('save');
+				console.log("vuemodal > clickok2");
+				if (event) { event.preventDefault(); }
+				this.close();
+			}
+		},
+			// Lifecycle hooks
+		mounted: function() {
+			if (this.size != '') {
+				this.$el.firstChild.className = this.size;
+			} // switch()
+			setTimeout(function() {
+	            this.$el.className = 'dialog-wrap open pop';
+	        }.bind(this), 20);
+		}
+	});
+
+		// INPUT: Message to display is in params.msg
+	Vue.component('dlgMessage', {
+		props: {
+			params: Object
+		},
+		template: '#dialog-message'
+	});
+
+		// INPUT:	params.msg = Message to display
+		//			params.callback = Callback function
+	Vue.component('dlgConfirm', {
+		props: {
+			params: Object
+		},
+		template: '#dialog-confirm',
+		methods: {
+			ok: function() {
+				console.log("Clicked OK");
+				if (this.params.callback != null) {
+					this.params.callback();
+				}
+			}
+		}
+	});
+
+		// INPUT:	params.msg = Message to display
+		//			params.callback = Callback function
+	Vue.component('dlgGeoNames', {
+		props: {
+			params: Object
+		},
+		template: '#dialog-geonames',
+		data: function () {		// Local copies of data that user can edit
+			return {
+				query: '',
+				errorMsg: '',
+				results: [],
+				selected: -1	// index of current selection
+			}
+		},
+		methods: {
+			ok: function() {
+				console.log("Clicked OK");
+				if (this.params.callback != null && this.selected != -1) {
+					var item = this.results[this.selected];
+					this.params.callback(item.latlon);
+				}
+			},
+			select: function(index) {
+				console.log("Clicked select");
+				if (this.selected != index) {
+					this.selected = index;
+				}
+			},
+			fetchGeoData: function() {
+				console.log("Clicked fetchGeoData");
+					// Reset selected index (list size may differ)
+				this.selected = -1;
+				var self=this;
+				jQuery.ajax({
+					type: 'POST',
+					url: prspdata.ajax_url,
+					data: {
+						action: 'prsp_get_geonames',
+						query: this.query
+					},
+					success: function(val) {
+						console.log("Success: "+JSON.stringify(val));
+						self.errorMsg = '';
+						self.results = val;
+					},
+					error: function(e) {
+						console.log(e);
+						self.errorMsg = e;
+						self.results = [];
+					}
+				});
+			} // fetchGeoData()
+		}
+	});
+
+		// PURPOSE:	Choose a Record ID belonging to a particular Template
+		// INPUT:	params.callback = Callback function
+		//			params.tID = ID of Template to which Records must belong
+	Vue.component('dlgChooseRecord', {
+		props: {
+			params: Object
+		},
+		template: '#dialog-choose-list',
+		data: function () {		// Local copies of data that user can edit
+			return {
+				message: getText('#msg-rem-data-loading'),
+				error: false,
+				list: [],
+				selIndex: -1	// index of current selection
+			}
+		},
+		created: function() {
+			var self=this;
+			jQuery.ajax({
+				type: 'POST',
+				url: prspdata.ajax_url,
+				data: {
+					action: 'prsp_get_rec_creds',
+					tmplt_id: self.params.tID
+				},
+				success: function(data, textStatus, XMLHttpRequest)
+				{
+					var list = JSON.parse(data);
+					self.list = list;
+					if (list.length == 0) {
+						self.message = getText('#errmsg-no-data-available');
+						self.error = true;
+					} else {
+						self.message = getText('#msg-choose-record');
+						self.error = false;
+					}
+				},
+				error: function(XMLHttpRequest, textStatus, errorThrown)
+				{
+				   alert(errorThrown);
+				}
+			}); // ajax
+		},
+		methods: {
+			save: function() {
+				console.log("Clicked save");
+				if (this.params.callback != null && this.selIndex != -1) {
+					var item = this.list[this.selIndex];
+					this.params.callback(item.id);
+				}
+			},
+			doSelect: function(index) {
+				this.selIndex = index;
+			}
+		}
+	}); // dlgChooseRecord
+
+		// PURPOSE:	Choose a Template
+		// INPUT:	params.callback = Callback function
+	Vue.component('dlgChooseTemplate', {
+		props: {
+			params: Object
+		},
+		template: '#dialog-choose-list',
+		data: function () {		// Local copies of data that user can edit
+			return {
+				message: '',
+				error: false,
+				list: [],
+				selIndex: -1	// index of current selection
+			}
+		},
+			// Compile list of independent Template IDs and labels
+		created: function() {
+			var tmpltList=[];
+				// Only Independent Templates!
+			defTemplates.forEach(function(theTemplate) {
+				if (!theTemplate.def.d) {
+					tmpltList.push({id: theTemplate.id, l: theTemplate.def.l });
+				}
+			});
+			this.list=tmpltList;
+		},
+		methods: {
+			save: function() {
+				console.log("Clicked save");
+				if (this.params.callback != null && this.selIndex != -1) {
+					var item = this.list[this.selIndex];
+					this.params.callback(item.id);
+				}
+			},
+			doSelect: function(index) {
+				this.selIndex = index;
+			}
+		}
+	}); // dlgChooseTemplate
+
+
+			// PURPOSE: Create dialog to choose Rec ID from Template type
+			// INPUT: 	tmpltID of Template type whose Records are eligible
+			//			rIndex is index of Record whose value will be modified
+		// function getRecID(tmpltID, rIndex)
+		// {
+		// 	var recDialog = new Ractive({
+		// 		el: '#insert-dialog',
+		// 		template: '#dialog-choose-list',
+		// 		data: {
+		// 			error: false,
+		// 			list: [],
+		// 			loading: true,
+		// 			message: getText('#msg-rem-data-loading'),	// Initially set to "loading" message
+		// 			selIndex: 0
+		// 		},
+		// 		components: {
+		// 			dialog: RJDialogComponent
+		// 		}
+		// 	}); // new Ractive()
+		//
+		// 	recDialog.on('doSelect', function(event, index) {
+		// 		recDialog.set('selIndex', index);
+		// 		return false;
+		// 	});
+		// 	recDialog.on('dialog.ok', function() {
+		// 		if (!recDialog.get('loading')) {
+		// 			var selIndex = recDialog.get('selIndex');
+		// 			var selID = recDialog.get('list['+selIndex+'].id');
+		// 			var theRec = rApp.get('defRecord['+rIndex+']');
+		// 			var newVal;
+		// 				// Only Add if pre-existing value and delimiter allows multiple values
+		// 			if (theRec.value.length > 0 && theRec.def.d.length > 0)
+		// 				newVal = theRec.value + theRec.def.d + selID;
+		// 			else
+		// 				newVal = selID;
+		// 			rApp.set('defRecord['+rIndex+'].value', newVal);
+		// 		}
+		// 		recDialog.teardown();
+		// 		return false;
+		// 	});
+		// 	recDialog.on('dialog.cancel', recDialog.teardown);
+		//
+		// 		// AJAX call to get list of Record IDs
+		// 	jQuery.ajax({
+		// 		type: 'POST',
+		// 		url: prspdata.ajax_url,
+		// 		data: {
+		// 			action: 'prsp_get_rec_creds',
+		// 			tmplt_id: tmpltID
+		// 		},
+		// 		success: function(data, textStatus, XMLHttpRequest)
+		// 		{
+		// 			recDialog.set('loading', false);
+		// 			var list = JSON.parse(data);
+		// 			recDialog.set('list', list);
+		// 			if (list.length == 0) {
+		// 				recDialog.set('message', getText('#errmsg-no-data-available'));
+		// 				recDialog.set('error', true);
+		// 			} else {
+		// 				recDialog.set('message', getText('#msg-choose-record'));
+		// 			}
+		// 		},
+		// 		error: function(XMLHttpRequest, textStatus, errorThrown)
+		// 		{
+		// 		   alert(errorThrown);
+		// 		}
+		// 	}); // ajax
+		// } // getRecID()
+
+			// Pop up modal with all IDs of some Template type, and then choose Record ID
+		// rApp.on('addPointerID', function(event, rIndex) {
+		// 	var tmpltList = [];
+		// 		// Only Independent Templates!
+		// 	_.forEach(defTemplates, function(theTemplate) {
+		// 		if (!theTemplate.def.d) {
+		// 			tmpltList.push({id: theTemplate.id, l: theTemplate.def.l });
+		// 		}
+		// 	});
+		//
+		// 	if (tmpltList.length == 1)
+		// 		getRecID(tmpltList[0], rIndex);
+		// 	else {
+		// 		var tmpltDialog = new Ractive({
+		// 			el: '#insert-dialog',
+		// 			template: '#dialog-choose-list',
+		// 			data: {
+		// 				error: false,
+		// 				list: tmpltList,
+		// 				message: '',
+		// 				selIndex: 0
+		// 			},
+		// 			components: {
+		// 				dialog: RJDialogComponent
+		// 			}
+		// 		}); // new Ractive()
+		//
+		// 		tmpltDialog.on('doSelect', function(event, index) {
+		// 			tmpltDialog.set('selIndex', index);
+		// 			return false;
+		// 		});
+		// 		tmpltDialog.on('dialog.ok', function() {
+		// 			var tIndex = tmpltDialog.get('selIndex');
+		// 			tmpltDialog.teardown();
+		//
+		// 			getRecID(tmpltList[tIndex].id, rIndex);
+		//
+		// 			return false;
+		// 		});
+		// 		tmpltDialog.on('dialog.cancel', tmpltDialog.teardown);
+		// 	}
+		//
+		// 	return false;
+		// });
+
+			// Pop up modal with all IDs of Joined Template type
+		// rApp.on('getJoinIDs', function(event, index) {
+		// 	var theRec = rApp.get('defRecord['+index+']');
+		// 	var thisTemplate = getTemplate(rApp.get('recType'));
+		// 		// Now find Template ID in join for this Attribute ID
+		// 	var joinRec = _.find(thisTemplate.j, function(theJoin) { return theJoin.id == theRec.id; });
+		// 	if (joinRec) {
+		// 		var modalDialog = new Ractive({
+		// 			el: '#insert-dialog',
+		// 			template: '#dialog-choose-list',
+		// 			data: {
+		// 				error: false,
+		// 				list: [],
+		// 				loading: true,
+		// 				message: getText('#msg-rem-data-loading'),	// Initially set to "loading" message
+		// 				selIndex: 0
+		// 			},
+		// 			components: {
+		// 				dialog: RJDialogComponent
+		// 			}
+		// 		}); // new Ractive()
+		//
+		// 		modalDialog.on('doSelect', function(event, index) {
+		// 			modalDialog.set('selIndex', index);
+		// 			return false;
+		// 		});
+		// 		modalDialog.on('dialog.ok', function() {
+		// 			if (!modalDialog.get('loading')) {
+		// 				var selIndex = modalDialog.get('selIndex');
+		// 				var newID = modalDialog.get('list['+selIndex+'].id');
+		// 					// Only allow single ID for Join fields!
+		// 				rApp.set('defRecord['+index+'].value', newID);
+		// 			}
+		// 			modalDialog.teardown();
+		// 			return false;
+		// 		});
+		// 		modalDialog.on('dialog.cancel', modalDialog.teardown);
+		//
+		// 			// AJAX call to get list of Record IDs
+		// 		jQuery.ajax({
+		// 			type: 'POST',
+		// 			url: prspdata.ajax_url,
+		// 			data: {
+		// 				action: 'prsp_get_rec_creds',
+		// 				tmplt_id: joinRec.t
+		// 			},
+		// 			success: function(data, textStatus, XMLHttpRequest)
+		// 			{
+		// 				modalDialog.set('message', getText('#msg-choose-record'));
+		// 				modalDialog.set('list', JSON.parse(data));
+		// 				modalDialog.set('loading', false);
+		// 			},
+		// 			error: function(XMLHttpRequest, textStatus, errorThrown)
+		// 			{
+		// 			   alert(errorThrown);
+		// 			}
+		// 		});
+		// 	}
+		//
+		// 	return false;
+		// });
+
 
 		// DATA LOADED FROM SERVER
 		// =======================
 
 		// Definitions of Attributes
 	var defAtts = prspdata.attDefs;
-	for (i=0; i<defAtts.length; i++)
-		if (defAtts[i].lgnd == null)
+	for (i=0; i<defAtts.length; i++) {
+		if (defAtts[i].lgnd == null) {
 			defAtts[i].lgnd = [];
+		}
+	}
 
 		// List of currently defined Templates; joins Object is added to it
 	var defTemplates = prspdata.templates;		// [ { id, def, j } ]
 
 		// Need to abort with Error message if no Templates defined
 	if (defTemplates.length == 0) {
-		jQuery('#ractive-output').append(jQuery('#errmsg-no-templates').html().trim());
+		jQuery('#vue-outer').append(jQuery('#errmsg-no-templates').html().trim());
 	}
 
 		// LIVE DATA ABOUT THIS RECORD
@@ -122,8 +506,9 @@ jQuery(document).ready(function() {
 	var recID = jQuery('input[name="prsp_rec_id"]').val();
 
 	var recType = jQuery('input[name="prsp_tmplt_id"]').val();
-	if (recType == null || recType == '')
+	if (recType == null || recType == '') {
 		recType = defTemplates[0].id || '';
+	}
 
 		// Attribute ID/Value pairs, passed from/to server
 	var attData = { };
@@ -138,10 +523,8 @@ jQuery(document).ready(function() {
 
 		// OTHER VARS
 		// ==========
-	var rApp;							// the main Ractive application
+	var vApp;							// the main Ractive application
 	var errTimer;
-	var errorString = '';				// error readout
-
 	var canGeoLoc = false;				// true if geolocation possible
 
 
@@ -151,13 +534,13 @@ jQuery(document).ready(function() {
 		// Can we get current geolocation from user?
 	function enableGeoLoc()
 	{
-		if (rApp)	rApp.set('canGeoLoc', true);
+		if (vApp)	vApp.canGeoLoc = true;
 		else		canGeoLoc = true;
 	}
 
 	function disableGeoLoc()
 	{
-		if (rApp)	rApp.set('canGeoLoc', false);
+		if (vApp)	vApp.canGeoLoc = false;
 		else		canGeoLoc = false;
 	}
 	navigator.geolocation.getCurrentPosition(enableGeoLoc, disableGeoLoc);
@@ -169,77 +552,63 @@ jQuery(document).ready(function() {
 		return jQuery(scriptName).html().trim();
 	}
 
-		// PURPOSE: Show message for 5 seconds
-	function displayError(errID, ok)
+		// PURPOSE: Show error message for 5 seconds
+	function displayError(errID, append, ok)
 	{
 			// If a clear-error timer is set, cancel it
 		if (errTimer) {
 			clearTimeout(errTimer);
-			jQuery('#error-frame').removeClass('ok');
 		}
 		var newError = getText(errID);
-		rApp.set('errorMsg', newError);
-		if (ok === true) {
-			jQuery('#error-frame').addClass('ok');
+		if (append != null && typeof append != 'undefined') {
+			newError += ' '+append;
 		}
-		errTimer = setTimeout(function() { rApp.set('errorMsg', ''); jQuery('#error-frame').removeClass('ok'); }, 5000);
+		vApp.errorOK = ok === true;
+		vApp.errorMsg = newError;
+		errTimer = setTimeout(function() {
+			vApp.errorMsg = '';
+		}, 5000);
 	} // displayError()
 
 		// RETURNS: Attribute definition from ID
 	function getAttribute(attID)
 	{
-		return _.find(defAtts, function(theAtt) { return theAtt.id === attID; });
+		return defAtts.find(function(theAtt) { return theAtt.id === attID; });
 	} // getAttribute()
 
 		// RETURNS: Dependent Template definition for templateID
 	function getTemplate(templateID)
 	{
-		var t = _.find(defTemplates, function(theTemplate) { return theTemplate.id === templateID; });
+		var t = defTemplates.find(function(theTemplate) { return theTemplate.id === templateID; });
 		return t;
 	} // getTemplate
 
 		// PURPOSE: Present user message in modal dialog box
-	function messageModal(mText)
+	function messageModal(msgID)
 	{
-		var modalDialog = new Ractive({
-			el: '#insert-dialog',
-			template: '#dialog-message',
-			data: {
-				message: mText
-			},
-			components: {
-				dialog: RJDialogComponent
-			}
-		}); // new Ractive()
-
-		modalDialog.on('dialog.ok', function() {
-			modalDialog.teardown();
-			return false;
-		});
+		var mText = getText(msgID);
+		vApp.modalParams.msg = mText;
+		vApp.modalShowing = 'dlgMessage';
 	} // messageModal()
+
+		// PURPOSE: Present user message in modal dialog box
+	function textModal(text)
+	{
+		vApp.modalParams.msg = text;
+		vApp.modalShowing = 'dlgMessage';
+	} // textModal()
 
 		// PURPOSE: Present a confirmation modal
 		// RETURNS: true if OK, false if Cancel
-	function confirmModal(msgID, callback)
+	function confirmModal(msgID, addText, callback)
 	{
 		var mText = getText(msgID);
-		var modalDialog = new Ractive({
-			el: '#insert-dialog',
-			template: '#dialog-confirm',
-			data: {
-				message: mText
-			},
-			components: {
-				dialog: RJDialogComponent
-			}
-		}); // new Ractive()
-
-		modalDialog.on('dialog.ok', function() {
-			callback();
-			modalDialog.teardown();
-			return false;
-		});
-		modalDialog.on('dialog.cancel', modalDialog.teardown);
+		if (typeof addText == 'string') {
+			mText += addText;
+		}
+		vApp.modalParams.msg = mText;
+		vApp.modalParams.callback = callback;
+		vApp.modalShowing = 'dlgConfirm';
 	} // confirmModal()
 
 
@@ -247,9 +616,10 @@ jQuery(document).ready(function() {
 		// NOTES: 	All incoming values are strings; convert if necessary
 	function fillRecordFromTemplate(templateID)
 	{
+		var newRecord=[];
 		var theTemplate = getTemplate(templateID);
 
-		_.forEach(theTemplate.def.a, function(attID) {
+		theTemplate.def.a.forEach(function(attID) {
 			var theAttribute = getAttribute(attID);
 				// Ignore if Attribute not defined
 			if (theAttribute) {
@@ -268,11 +638,11 @@ jQuery(document).ready(function() {
 				case 'V':
 						// Create new arrays for selecting Legend values
 					attObject.def.newLgnd = [];
-					_.forEach(theAttribute.lgnd, function(theLegend) {
+					theAttribute.lgnd.forEach(function(theLegend) {
 						var newItem = { newL: theLegend.l, newV: theLegend.l };
 						attObject.def.newLgnd.push(newItem);
 						if (theLegend.z.length)
-							_.forEach(theLegend.z, function(child) {
+							theLegend.z.forEach(function(child) {
 								var newChild = { newL: '> '+child.l, newV: child.l };
 								attObject.def.newLgnd.push(newChild);
 							});
@@ -377,332 +747,157 @@ jQuery(document).ready(function() {
 					attObject.value = defVal || '';
 					break;
 				} // switch
-				rApp.push('defRecord', attObject);
+				newRecord.push(attObject);
 			} else {
 				console.log("Attribute ID "+attID+" is not defined and will be ignored. You must, however, update your Template definition.");
 			}
 		});
+		vApp.defRecord = newRecord;
 	} // fillRecordFromTemplate()
 
-		// Create our main App Ractive instance with wrapped jQueryUI components
-	rApp = new Ractive({
-		el: '#ractive-output',
-		template: '#ractive-base',
+		// Create our main App instance
+	vApp = new Vue({
+		el: '#vue-outer',
 		data: {
 			recID: recID,
 			recType: recType,
 			defAtts: defAtts,
 			defRecord: defRecord,
 			defTemplates: defTemplates,
-			canGeoLoc: canGeoLoc
-		},
-		components: {
+			canGeoLoc: canGeoLoc,
+				// GUI state & modal parameters
+			errorMsg: '',						// current error string (if any)
+			errorOK: false,						// Is message actually not an error?
+			modalParams: {						// parameters passed to modal dialogs
+				msg: '',
+				tID: '',						// ID of Template
+				callback: null
+			},
+			modalShowing: 'nullcomponent'		// modal currently showing (initially nothing)
+		}, // data
+		methods: {
+			saveRecord: function(event) {
+				console.log("Click: saveRecord");
+				if (event) { event.preventDefault(); }
+				doSaveRecord();
+			},
+			idHint: function(event) {
+				console.log("Click: idHint");
+				if (event) { event.preventDefault(); }
+
+				var templateID = vApp.recType;
+				var theTemplate = getTemplate(templateID);
+				if (typeof theTemplate.def.h == 'undefined')
+					messageModal('#errmsg-id');
+				else
+					textModal(theTemplate.def.h);
+			},
+			clearVocab: function(index, event) {
+				console.log("Click: clearVocab");
+				if (event) { event.preventDefault(); }
+				this.defRecord[index].value = '';
+			},
+				// Add a vocabulary term to a value list
+			addVocab: function(index, event) {
+				console.log("Click: addVocab");
+				if (event) { event.preventDefault(); }
+
+				var theElement, newVal;
+				theElement = this.defRecord[index];
+					// Only Add if pre-existing value and delimiter allows multiple values
+				if (theElement.value.length > 0 && theElement.def.d.length > 0)
+					newVal = theElement.value + theElement.def.d + theElement.lgndSel;
+				else
+					newVal = theElement.lgndSel;
+				theElement.value = newVal;
+			},
+				// Pop up modal with all IDs of this Template type
+			giveHint: function(index, event) {
+				console.log("Click: giveHint");
+				if (event) { event.preventDefault(); }
+				textModal(this.defRecord[index].def.h);
+			},
+			setHere: function(index, event) {
+				console.log("Click: setHere");
+				if (event) { event.preventDefault(); }
+				var self=this;
+				navigator.geolocation.getCurrentPosition(function(pos) {
+					var newVal = pos.coords.latitude.toString() + "," + pos.coords.longitude.toString();
+					self.defRecord[index].value = newVal;
+				});
+			},
+			geoNames: function(index, event) {
+				console.log("Click: geoNames");
+				if (event) { event.preventDefault(); }
+				var self=this;
+				function setGeoLL(ll) {
+					self.defRecord[index].value = newVal;
+				}
+				this.modalParams.callback = setGeoLL;
+				this.modalShowing = 'dlgGeoNames';
+			},
+			clearPtr: function(index, event) {
+				console.log("Click: clearPtr");
+				if (event) { event.preventDefault(); }
+				this.defRecord[index].value = '';
+			},
+				// Create modal for selecting Record ID, after first selecting Template
+			addPointerID: function(index, delim, event) {
+				console.log("Click: addPointerID");
+				if (event) { event.preventDefault(); }
+				var self=this;
+					// First choose Template, then Record
+				function templateChosen(chosenTemplateID) {
+					function savePtrID(recID) {
+						if (delim.length == 0) {
+							self.defRecord[index].value = recID;
+						} else {
+							self.defRecord[index].value += delim+recID;
+						}
+					}
+					self.modalParams.tID = chosenTemplateID;
+					self.modalParams.callback = savePtrID;
+					self.modalShowing = 'dlgChooseRecord';
+				}
+				this.modalParams.callback = templateChosen;
+				this.modalShowing = 'dlgChooseTemplate';
+			},
+				// Create modal for getting single ID of Record to join (Template preselected)
+			getJoinID: function(index, event) {
+				console.log("Click: getJoinID");
+				if (event) { event.preventDefault(); }
+				var thisAtttibute = this.defRecord[index];
+				var thisTemplate = getTemplate(this.recType);
+					// Now find Template ID for join for this Attribute ID
+				var joinAtt = thisTemplate.j.find(function(theJoin) { return theJoin.id == thisAtttibute.id; });
+				if (joinAtt) {
+					this.params.tID = joinAtt.t;
+					function saveJoinID(theID) {
+						thisAtttibute.value = theID;
+					}
+					this.modalParams.callback = saveJoinID;
+					this.modalShowing = 'dlgChooseRecord';
+				}
+			}
 		}
+	}); // vApp
+	vApp.$on('dialogclose', function () {
+		console.log("dialogclose");
+		this.modalShowing = 'nullcomponent';
 	});
 
 		// Set Record's initial default Attributes
 	fillRecordFromTemplate(recType);
-
-	rApp.observe('recType', function (newValue, oldValue, keypath) {
-			// Non-initial change
-		if (typeof(oldValue) !== 'undefined') {
-			rApp.set('defRecord', []);
-			fillRecordFromTemplate(newValue);
-		}
+		// Repack Record if user changes Template
+	vApp.$watch('recType', function(newVal, oldVal) {
+		this.defRecord = [];
+		fillRecordFromTemplate(newVal);
 	});
 
-	rApp.on('clearVocab', function(event, index) {
-		rApp.set('defRecord['+index+'].value', '');
-		return false;
-	});
-
-		// Add a vocabulary term to a value list
-	rApp.on('addVocab', function(event, index) {
-		var theRec, newVal;
-
-		theRec = rApp.get('defRecord['+index+']');
-			// Only Add if pre-existing value and delimiter allows multiple values
-		if (theRec.value.length > 0 && theRec.def.d.length > 0)
-			newVal = theRec.value + theRec.def.d + theRec.lgndSel;
-		else
-			newVal = theRec.lgndSel;
-		rApp.set('defRecord['+index+'].value', newVal);
-		return false;
-	});
-
-		// Pop up modal with all IDs of this Template type
-	rApp.on('giveHint', function(event, index) {
-		var theRec = rApp.get('defRecord['+index+']');
-		messageModal(theRec.def.h);
-		return false;
-	});
-
-		// Pop up modal with all IDs of this Template type
-	rApp.on('idHint', function() {
-		var templateID = rApp.get('recType');
-		var theTemplate = getTemplate(templateID);
-		var hint;
-		if (typeof theTemplate.def.h == 'undefined')
-			hint = getText('#errmsg-id');
-		else
-			hint = theTemplate.def.h;
-		messageModal(hint);
-		return false;
-	});
-
-		// Set Lat-Lon coordinate to current geo location
-	rApp.on('setHere', function(event, index) {
-		navigator.geolocation.getCurrentPosition(function(pos) {
-			var newVal = pos.coords.latitude.toString() + "," + pos.coords.longitude.toString();
-			rApp.set('defRecord['+index+'].value', newVal);
-		});
-		return false;
-	});
-
-		// PURPOSE: Present GeoNames search modal for lat/lon coordinates
-	rApp.on('geoNames', function(event, index) {
-		var modalDialog = new Ractive({
-			el: '#insert-dialog',
-			template: '#dialog-geonames',
-			data: {
-				query: null,
-				results: [''],		// must not be empty so error message is not displayed
-				selected: null
-			},
-			lazy: true,
-			components: {
-				dialog: RJDialogComponent
-			}
-		}); // new Ractive()
-
-		modalDialog.observe('query', function(newValue, oldValue, keypath) {
-			if (newValue != oldValue) {
-				jQuery.ajax({
-					type: 'POST',
-					url: prspdata.ajax_url,
-					data: {
-						action: 'prsp_get_geonames',
-						query: newValue
-					},
-					success: function(val) {
-						modalDialog.set('results', val.geonames);
-					},
-					error: function(e) {
-						console.log(e);
-						modalDialog.set('results', false);
-					}
-				});
-			}
-		});
-
-		modalDialog.on('select', function(item) {
-			jQuery('#geonames li').removeClass('active');
-			jQuery(item.node).addClass('active');
-			modalDialog.set('selected', item.context.lat + ', ' + item.context.lng);
-		})
-
-		jQuery('form').submit(function(e){
-			e.preventDefault();
-		});
-
-		modalDialog.on('dialog.ok', function() {
-			var newValue = modalDialog.get('selected');
-			if (newValue){
-				rApp.set('defRecord['+index+'].value', newValue);
-			}
-			modalDialog.teardown();
-			return false;
-		});
-		modalDialog.on('dialog.cancel', function() {
-			modalDialog.teardown();
-		});
-
-		return false;
-	});
-
-	rApp.on('clearPtr', function(event, index) {
-		rApp.set('defRecord['+index+'].value', '');
-		return false;
-	});
-
-		// PURPOSE: Create dialog to choose Rec ID from Template type
-		// INPUT: 	tmpltID of Template type whose Records are eligible
-		//			rIndex is index of Record whose value will be modified
-	function getRecID(tmpltID, rIndex)
+		// PURPOSE: Prepare Record data to save, if no errors
+	function doSaveRecord()
 	{
-		var recDialog = new Ractive({
-			el: '#insert-dialog',
-			template: '#dialog-choose-list',
-			data: {
-				error: false,
-				list: [],
-				loading: true,
-				message: getText('#msg-rem-data-loading'),	// Initially set to "loading" message
-				selIndex: 0
-			},
-			components: {
-				dialog: RJDialogComponent
-			}
-		}); // new Ractive()
-
-		recDialog.on('doSelect', function(event, index) {
-			recDialog.set('selIndex', index);
-			return false;
-		});
-		recDialog.on('dialog.ok', function() {
-			if (!recDialog.get('loading')) {
-				var selIndex = recDialog.get('selIndex');
-				var selID = recDialog.get('list['+selIndex+'].id');
-				var theRec = rApp.get('defRecord['+rIndex+']');
-				var newVal;
-					// Only Add if pre-existing value and delimiter allows multiple values
-				if (theRec.value.length > 0 && theRec.def.d.length > 0)
-					newVal = theRec.value + theRec.def.d + selID;
-				else
-					newVal = selID;
-				rApp.set('defRecord['+rIndex+'].value', newVal);
-			}
-			recDialog.teardown();
-			return false;
-		});
-		recDialog.on('dialog.cancel', recDialog.teardown);
-
-			// AJAX call to get list of Record IDs
-		jQuery.ajax({
-			type: 'POST',
-			url: prspdata.ajax_url,
-			data: {
-				action: 'prsp_get_rec_creds',
-				tmplt_id: tmpltID
-			},
-			success: function(data, textStatus, XMLHttpRequest)
-			{
-				recDialog.set('loading', false);
-				var list = JSON.parse(data);
-				recDialog.set('list', list);
-				if (list.length == 0) {
-					recDialog.set('message', getText('#errmsg-no-data-available'));
-					recDialog.set('error', true);
-				} else {
-					recDialog.set('message', getText('#msg-choose-record'));
-				}
-			},
-			error: function(XMLHttpRequest, textStatus, errorThrown)
-			{
-			   alert(errorThrown);
-			}
-		}); // ajax
-	} // getRecID()
-
-		// Pop up modal with all IDs of some Template type, and then choose Record ID
-	rApp.on('addPointerID', function(event, rIndex) {
-		var tmpltList = [];
-			// Only Independent Templates!
-		_.forEach(defTemplates, function(theTemplate) {
-			if (!theTemplate.def.d) {
-				tmpltList.push({id: theTemplate.id, l: theTemplate.def.l });
-			}
-		});
-
-		if (tmpltList.length == 1)
-			getRecID(tmpltList[0], rIndex);
-		else {
-			var tmpltDialog = new Ractive({
-				el: '#insert-dialog',
-				template: '#dialog-choose-list',
-				data: {
-					error: false,
-					list: tmpltList,
-					message: '',
-					selIndex: 0
-				},
-				components: {
-					dialog: RJDialogComponent
-				}
-			}); // new Ractive()
-
-			tmpltDialog.on('doSelect', function(event, index) {
-				tmpltDialog.set('selIndex', index);
-				return false;
-			});
-			tmpltDialog.on('dialog.ok', function() {
-				var tIndex = tmpltDialog.get('selIndex');
-				tmpltDialog.teardown();
-
-				getRecID(tmpltList[tIndex].id, rIndex);
-
-				return false;
-			});
-			tmpltDialog.on('dialog.cancel', tmpltDialog.teardown);
-		}
-
-		return false;
-	});
-
-		// Pop up modal with all IDs of Joined Template type
-	rApp.on('getJoinIDs', function(event, index) {
-		var theRec = rApp.get('defRecord['+index+']');
-		var thisTemplate = getTemplate(rApp.get('recType'));
-			// Now find Template ID in join for this Attribute ID
-		var joinRec = _.find(thisTemplate.j, function(theJoin) { return theJoin.id == theRec.id; });
-		if (joinRec) {
-			var modalDialog = new Ractive({
-				el: '#insert-dialog',
-				template: '#dialog-choose-list',
-				data: {
-					error: false,
-					list: [],
-					loading: true,
-					message: getText('#msg-rem-data-loading'),	// Initially set to "loading" message
-					selIndex: 0
-				},
-				components: {
-					dialog: RJDialogComponent
-				}
-			}); // new Ractive()
-
-			modalDialog.on('doSelect', function(event, index) {
-				modalDialog.set('selIndex', index);
-				return false;
-			});
-			modalDialog.on('dialog.ok', function() {
-				if (!modalDialog.get('loading')) {
-					var selIndex = modalDialog.get('selIndex');
-					var newID = modalDialog.get('list['+selIndex+'].id');
-						// Only allow single ID for Join fields!
-					rApp.set('defRecord['+index+'].value', newID);
-				}
-				modalDialog.teardown();
-				return false;
-			});
-			modalDialog.on('dialog.cancel', modalDialog.teardown);
-
-				// AJAX call to get list of Record IDs
-			jQuery.ajax({
-				type: 'POST',
-				url: prspdata.ajax_url,
-				data: {
-					action: 'prsp_get_rec_creds',
-					tmplt_id: joinRec.t
-				},
-				success: function(data, textStatus, XMLHttpRequest)
-				{
-					modalDialog.set('message', getText('#msg-choose-record'));
-					modalDialog.set('list', JSON.parse(data));
-					modalDialog.set('loading', false);
-				},
-				error: function(XMLHttpRequest, textStatus, errorThrown)
-				{
-				   alert(errorThrown);
-				}
-			});
-		}
-
-		return false;
-	});
-
-	rApp.on('saveRecord', function() {
-		var newRecID = rApp.get('recID').trim();
+		var newRecID = vApp.recID.trim();
 		if (newRecID.length > 32) {
 			displayError('#errmsg-id');
 			return false;
@@ -713,14 +908,14 @@ jQuery(document).ready(function() {
 		}
 
 		var newAttVals = { };
-		var numAtts = rApp.get('defRecord.length');
+		var numAtts = vApp.defRecord.length;
 		var i;
 		var numCheck = /^(-?\d+)$/;
 		var yearCheck = /^~?(-?\d+)$/;
 
 			// Check for errors and convert to single string if necessary
 		for (i=0; i<numAtts; i++) {
-			var thisAtt = rApp.get('defRecord['+i+']');
+			var thisAtt = vApp.defRecord[i];
 			var newVal = thisAtt.value;
 
 				// Special processing for Text, Tags, Numbers and Dates
@@ -822,8 +1017,8 @@ jQuery(document).ready(function() {
 		var encodedVals = JSON.stringify(newAttVals);
 		jQuery('textarea[name="prsp_rec_atts"]').val(encodedVals);
 			// Confirm to user that Record saved successfully
-		displayError('#msg-saved', true);
+		displayError('#msg-saved', '', true);
 
 		return false;
-	});
+	} // doSaveRecord()
 }); // ready
