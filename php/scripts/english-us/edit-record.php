@@ -18,13 +18,13 @@
 			<b>{{thisElement.def.l}}</b>
 			<div v-if="thisElement.def.t == 'V'"><!-- Vocabulary -->
 				<input type="text" size="32" v-model="thisElement.value"/>
-				<button v-if="thisElement.def.d.length > 0" v-on:click="clearVocab(rIndex)"><?php _e('Clear', 'prospect'); ?></button>
+				<button v-if="thisElement.def.d.length > 0" v-on:click="clearVocab(rIndex,$event)"><?php _e('Clear', 'prospect'); ?></button>
 				<select v-model="thisElement.lgndSel">
 					<option v-for="thisLegend in thisElement.def.newLgnd" v-bind:value="thisLegend.newV">
 						{{thisLegend.newL}}
 					</option>
 				</select>
-				<button v-on:click="addVocab(rIndex)">
+				<button v-on:click="addVocab(rIndex,$event)">
 					<span v-if="thisElement.def.d.length === 0"><?php _e('Set', 'prospect'); ?></span>
 					<span v-else><?php _e('Add', 'prospect'); ?></span>
 				</button>
@@ -42,7 +42,7 @@
 				<?php _e('From', 'prospect'); ?> <input type="text" size="6" v-model="thisElement.value.min.y" placeholder=<?php _e('"YYYY"', 'prospect'); ?> pattern="(^$|\?|~?-?\d+)"/>
 					<input type="text" size="2" v-model="thisElement.value.min.m" placeholder=<?php _e('"MM"', 'prospect'); ?> pattern="\d{0,2}"/>
 					<input type="text" size="2" v-model="thisElement.value.min.d" placeholder=<?php _e('"DD"', 'prospect'); ?> pattern="\d{0,2}"/>
-				<?php _e('To', 'prospect'); ?> <input type="text" size="6" value="thisElement.value.max.y" placeholder=<?php _e('"YYYY"', 'prospect'); ?> pattern="(^$|open|~?-?\d+)"/>
+				<?php _e('To', 'prospect'); ?> <input type="text" size="6" v-model="thisElement.value.max.y" placeholder=<?php _e('"YYYY"', 'prospect'); ?> pattern="(^$|open|~?-?\d+)"/>
 					<input type="text" size="2" v-model="thisElement.value.max.m" placeholder=<?php _e('"MM"', 'prospect'); ?> pattern="\d{0,2}"/>
 					<input type="text" size="2" v-model="thisElement.value.max.d" placeholder=<?php _e('"DD"', 'prospect'); ?> pattern="\d{0,2}"/>
 			</div>
@@ -74,15 +74,15 @@
 			</div>
 			<div v-if="thisElement.def.t == 'P'"><!-- Pointer -->
 				<?php _e('(Record ID or IDs)', 'prospect'); ?>: <input type="text" size="32" v-model="thisElement.value"/>
-				<button v-if="thisElement.def.d.length > 0" v-on:click="clearPtr(rIndex)"><?php _e('Clear', 'prospect'); ?></button>
-				<button v-on:click="addPointerID(rIndex,thisElement.def.d)">
+				<button v-if="thisElement.def.d.length > 0" v-on:click="clearPtr(rIndex,$event)"><?php _e('Clear', 'prospect'); ?></button>
+				<button v-on:click="addPointerID(rIndex,thisElement.def.d,$event)">
 					<span v-if="thisElement.def.d.length > 0"><?php _e('Add ID', 'prospect'); ?></span>
 					<span v-else><?php _e('Set ID', 'prospect'); ?></span>
 				</button>
 			</div>
 			<div v-if="thisElement.def.t == 'J'"><!-- Join -->
 				<?php _e('ID of Record to Join', 'prospect'); ?>: <input type="text" size="32" v-model="thisElement.value" pattern="^$|[\w\-]+"/>
-				<button v-on:click="getJoinID(rIndex)"><?php _e('Select ID', 'prospect'); ?></button>
+				<button v-on:click="getJoinID(rIndex,$event)"><?php _e('Select ID', 'prospect'); ?></button>
 			</div>
 			<icon-btn v-if="thisElement.def.h.length > 0" symbol="ui-icon-info" v-on:click="giveHint(rIndex)"><?php _e('Hint', 'prospect'); ?></icon-btn>
 		</div>
@@ -131,8 +131,8 @@
 		</div>
 		<div class="scroll-container">
 			<div v-for="(thisItem,index) in list">
-				<span v-if="selIndex == index" style="color: red" v-on:click="doSelect(index)"><b>({{thisItem.id}}) {{thisItem.l}}</b></span>
-				<span v-else v-on:click="doSelect(index)"><b>({{thisItem.id}}) {{thisItem.l}}</b></span>
+				<span v-if="selIndex == index" style="color: red" v-on:click="doSelect(index)">({{thisItem.id}}) {{thisItem.l}}</span>
+				<span v-else v-on:click="doSelect(index)">({{thisItem.id}}) {{thisItem.l}}</span>
 			</div>
 		</div>
 	</vuemodal>

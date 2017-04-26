@@ -215,7 +215,10 @@ div.dialog-wrap .btn:active {
 }
 
 .scroll-container {
+	height: 10em;
 	overflow-y: auto;
+	font-size: 12px;
+	font-weight: normal;
 }
 
 #geonames ul li {
