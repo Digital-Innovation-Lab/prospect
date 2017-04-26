@@ -584,22 +584,22 @@ jQuery(document).ready(function() {
 		// NOTE:	ONLY checks predefined Attributes, NOT Joined Attributes
 	function getAttribute(attID)
 	{
-		return _.find(defAtts, function(theAtt) { return theAtt.id === attID; });
+		return defAtts.find(function(theAtt) { return theAtt.id === attID; });
 	} // getAttribute()
 
 		// RETURNS: Attribute definition from ID
 		// NOTE:	Checks ALL Attributes, inc. Joined Attributes
 	function getJAttribute(attID)
 	{
-		return _.find(defJoinedAtts, function(theAtt) { return theAtt.id === attID; });
+		return defJoinedAtts.find(function(theAtt) { return theAtt.id === attID; });
 	} // getJAttribute()
 
 		// INPUT: iTemplate = the independent Template definition, jAttID = Join Attribute ID
 		// RETURNS: Dependent Template definition
 	function getDependentTemplate(iTemplate, jAttID)
 	{
-		var join = _.find(iTemplate.joins, function(theJoin) { return theJoin.id === jAttID; });
-		var dTemplate = _.find(defTemplates, function(theDTmplt) { return theDTmplt.id === join.t; });
+		var join = iTemplate.joins.find(function(theJoin) { return theJoin.id === jAttID; });
+		var dTemplate = defTemplates.find(function(theDTmplt) { return theDTmplt.id === join.t; });
 		return dTemplate;
 	} // getDependentTemplate()
 

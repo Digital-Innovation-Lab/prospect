@@ -486,8 +486,6 @@ class ProspectAdmin {
 		echo '<textarea name="prsp_vol_views" form="post" spellcheck="false" style="display:none">'.$the_volume->meta_views.'</textarea>';
 		echo '<textarea name="prsp_vol_inspect" form="post" spellcheck="false" style="display:none">'.$the_volume->meta_inspect.'</textarea>';
 
-		echo '<div id="ractive-output"></div>';
-
 			// Insert Edit Panel's HTML
 		self::insert_html_file('edit-volume.php');
 	} // show_prsp_volume_admin_edit()
@@ -1016,18 +1014,16 @@ class ProspectAdmin {
 				wp_enqueue_script('jquery');
 				wp_enqueue_script('underscore');
 				wp_enqueue_script('jquery-ui-button');
-				wp_enqueue_script('jquery-ui-dialog');
 				wp_enqueue_script('jquery-ui-accordion');
 				wp_enqueue_script('jquery-ui-tabs');
-				wp_enqueue_script('iris');
 
 					// Prospect-specific
-				wp_enqueue_script('ractive', plugins_url('/lib/ractive.min.js', dirname(__FILE__)));
+				wp_enqueue_script('vuejs', plugins_url('/lib/vuejs/vue.js', dirname(__FILE__)));
 
 				wp_enqueue_script('p-map-hub', plugins_url('/js/map-hub.js', dirname(__FILE__)),
 								array('jquery', 'underscore'));
 				wp_enqueue_script('edit-volume', plugins_url('/js/edit-volume.js', dirname(__FILE__)),
-								array('ractive', 'jquery-ui-button', 'jquery-ui-accordion', 'jquery-ui-tabs', 'underscore', 'p-map-hub'));
+								array('vuejs', 'jquery-ui-button', 'jquery-ui-accordion', 'jquery-ui-tabs', 'underscore', 'p-map-hub'));
 
 					// Get all definitions of all current Attributes
 				$att_defs = ProspectAttribute::get_all_attributes(true, false, false, false);
