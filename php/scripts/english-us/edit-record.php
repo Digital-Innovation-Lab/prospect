@@ -48,7 +48,7 @@
 			</div>
 			<div v-if="thisElement.def.t == 'L'"><!-- Lat-Lon -->
 				<?php _e('Lat,Long', 'prospect'); ?>: <input type="text" size="20" v-model="thisElement.value"/>
-				<button v-if="canGeoLoc" v-on:click="setHere(rIndex)"><?php _e('Here', 'prospect'); ?></button>
+				<button v-if="canGeoLoc === true" v-on:click="setHere(rIndex,$event)"><?php _e('Here', 'prospect'); ?></button>
 				<icon-btn symbol="ui-icon-search" v-on:click="geoNames(rIndex)"><?php _e('Look Up Coordinates', 'prospect'); ?></icon-btn>
 			</div>
 			<div v-if="thisElement.def.t == 'X'"><!-- X-Y -->
@@ -140,12 +140,12 @@
 
 <!-- GeoNames Dialog -->
 <script id="dialog-geonames" type='text/x-template'>
-	<vuemodal title="<?php _e('GeoNames Coordinate Search', 'prospect'); ?>" size="wide" v-on:save="ok">
+	<vuemodal title="<?php _e('GeoNames Coordinate Search', 'prospect'); ?>" cancel="true" size="wide" v-on:save="ok">
 		<div>
 			<input type="text" size="50" v-model="query" placeholder="<?php _e('Look up coordinates by location name', 'prospect'); ?>" autofocus/>
-			<button v-on:click="fetchGeoData"><?php _e('Search', 'prospect'); ?></button>
+			<button v-on:click="fetchGeoData($event)"><?php _e('Search', 'prospect'); ?></button>
 		</div>
-		<div class="scroll-container" id="geonames">
+		<div id="geonames">
 			<div v-if="results.length === 0">
 				<p>{{errorMsg}}</p>
 			</div>

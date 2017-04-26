@@ -3108,26 +3108,27 @@ class ProspectAdmin {
 		// PURPOSE: Returns Geonames API results
 		// INPUT:	$_POST['query'] = name query from Geonames dialog
 		// NOTES:	http://www.geonames.org/export/geonames-search.html
-	public function prsp_get_geonames() {
-		$content = @file_get_contents('http://api.geonames.org/searchJSON?q='. $_POST['query'] .'&maxRows=10&username=UNCDIL');
+	public function prsp_get_geonames()
+	{
+		$content = @file_get_contents('http://api.geonames.org/searchJSON?q='. $_POST['query'] .'&maxRows=20&username=UNCDIL');
 
 		if ($content === false) {
 			$result = 'Error';
 		} else {
 				// As there is an excess of data from Geonames server, remove unwanted stuff
 			$json_data = json_decode($content, true);
-			$json_data = $json_data->geonames;
+			$json_data = $json_data['geonames'];
 			$filtered_data = [];
 			for($i = 0; $i < count($json_data); $i++) {
 			   $item = $json_data[$i];
-			   $filtered_data[$i] = array(
+			   $filtered_data[] = array(
 			      "name" => $item["name"],
 			      "adminName1" => $item["adminName1"],
 			      "countryName" => $item["countryName"],
 			      "latlon" => $item["lat"].",".$item["lng"]
 			   );
 			}
-			$result = $filtered_data;
+			$result = json_encode($filtered_data, JSON_UNESCAPED_UNICODE);
 		}
 
 		header('Content-Type: application/json');

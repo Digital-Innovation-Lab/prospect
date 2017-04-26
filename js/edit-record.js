@@ -181,7 +181,8 @@ jQuery(document).ready(function() {
 					this.selected = index;
 				}
 			},
-			fetchGeoData: function() {
+			fetchGeoData: function(event) {
+				if (event) { event.preventDefault(); }
 				console.log("Clicked fetchGeoData");
 					// Reset selected index (list size may differ)
 				this.selected = -1;
@@ -191,10 +192,9 @@ jQuery(document).ready(function() {
 					url: prspdata.ajax_url,
 					data: {
 						action: 'prsp_get_geonames',
-						query: this.query
+						query: self.query
 					},
 					success: function(val) {
-						console.log("Success: "+JSON.stringify(val));
 						self.errorMsg = '';
 						self.results = val;
 					},
@@ -659,7 +659,7 @@ jQuery(document).ready(function() {
 				if (event) { event.preventDefault(); }
 				var self=this;
 				function setGeoLL(ll) {
-					self.defRecord[index].value = newVal;
+					self.defRecord[index].value = ll;
 				}
 				this.modalParams.callback = setGeoLL;
 				this.modalShowing = 'dlgGeoNames';
