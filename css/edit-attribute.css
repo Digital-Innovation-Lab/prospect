@@ -153,7 +153,11 @@ div.dialog-wrap > div.wide {
 	width: 500px;
 }
 
-div.dialog-wrap .title {
+div.dialog-wrap > div {
+	font-size: 12px;
+}
+
+div.dialog-wrap div.title {
 	text-align: center;
 	font-size: 18px;
 	margin-bottom: 15px;
@@ -184,6 +188,7 @@ div.dialog-wrap .btn {
 	border-radius: 6px;
 	cursor: pointer;
 	background-color: #3b73af;
+	font-size: 14px;
 
 	user-select: none;
 	-webkit-user-select: none;

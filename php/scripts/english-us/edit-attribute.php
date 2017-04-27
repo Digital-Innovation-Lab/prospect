@@ -124,7 +124,7 @@
 			</div>
 		</div>
 	</div> <!-- Number editing -->
-	<div v-if="thisType === 'D'">
+	<div v-if="thisType === 'D'"><!-- Dates editing -->
 		<h3><?php _e('Set Valid Date Range', 'prospect'); ?></h3>
 		<?php _e('Earliest Date', 'prospect'); ?>:
 			<label for="date-r-min-y"><?php _e('Year', 'prospect'); ?> </label> <input type="text" id="date-r-min-y" v-model='dRange.min.y' placeholder="YYYY" size="6" pattern="(open|-?\d+)" required>
@@ -165,7 +165,7 @@
 				</div>
 			</div>
 		</div>
-	</div>
+	</div><!-- Dates editing -->
 
 	<component :is="modalShowing" :params="modalParams">
 	</component>
@@ -203,7 +203,7 @@
 	<vuemodal title=<?php _e('"Text Legend Entry"', 'prospect'); ?> cancel="true" v-on:save="save">
 		<?php _e('Label', 'prospect'); ?>: <input type="text" size="20" v-model="label" placeholder=<?php _e('"Enter Label"', 'prospect'); ?>/><br/>
 		<?php _e('Text pattern', 'prospect'); ?>: <input type="text" size="16" v-model="pattern" placeholder=<?php _e('"Enter Text Pattern"', 'prospect'); ?>/><br/>
-		<input type="color" v-model="theColor"/>
+		<?php _e('Color', 'prospect'); ?> <input type="color" v-model="theColor"/>
 	</vuemodal>
 </script>
 
@@ -213,7 +213,7 @@
 		<?php _e('Label for Range', 'prospect'); ?>: <input type="text" size="12" v-model="label" placeholder=<?php _e('"Enter Label"', 'prospect'); ?>/><br/>
 		<?php _e('Minimum Value', 'prospect'); ?>: <input type="text" size="8" v-model="min" pattern="\d*"/><br/>
 		<?php _e('Maximum Value', 'prospect'); ?>: <input type="text" size="8" v-model="max" pattern="\d*"/><br/>
-		<input type="color" v-model="theColor"/>
+		<?php _e('Color', 'prospect'); ?> <input type="color" v-model="theColor"/>
 	</vuemodal>
 </script>
 
@@ -229,7 +229,7 @@
 		<?php _e('Month', 'prospect'); ?> <input type="text" size="2" v-model="max.m" placeholder="MM" pattern="\d{0,2}"/>
 		<?php _e('Day', 'prospect'); ?> <input type="text" size="2" v-model="max.d" placeholder="DD" pattern="\d{0,2}"/>
 		<br/>
-		<input type="color" v-model="theColor"/>
+		<?php _e('Color', 'prospect'); ?> <input type="color" v-model="theColor"/>
 	</vuemodal>
 </script>
 
@@ -297,8 +297,8 @@
 <!-- Color Choice w/Clear Dialog for child Vocab Terms -->
 <script id="dialog-choose-color-clear" type='text/x-template'>
 	<vuemodal title=<?php _e('"Choose Color"', 'prospect'); ?> cancel="true" v-on:save="save">
-		<input type='checkbox' v-model='doClear'> <?php _e('Remove visuals', 'prospect'); ?><br/>
-		<input type="color" v-model="theColor"/>
+		<input type="color" v-model="theColor"/>&nbsp;
+		<input type='checkbox' v-model='doClear'> <?php _e('Remove visuals', 'prospect'); ?>
 	</vuemodal>
 </script>
 

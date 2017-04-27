@@ -206,8 +206,8 @@ jQuery(document).ready(function() {
 
 		// Component (dialog) to edit Text Legend entries
 		// INPUT:	params.label = label for Legend entry
-		//			params.min = minimum numeric value
-		//			params.max = maximum numeric value
+		//			params.min = minimum dates values
+		//			params.max = maximum dates value
 		//			params.theColor = color value
 	Vue.component('dlgEditLgndDates', {
 		props: {
@@ -220,8 +220,12 @@ jQuery(document).ready(function() {
 		},
 		created: function() {	// Copy params into local data variables
 			this.label = this.params.label;
-			this.min = this.params.min;
-			this.max = this.params.max;
+			this.min.y = this.params.min.y;
+			this.min.m = this.params.min.m;
+			this.min.d = this.params.min.d;
+			this.max.y = this.params.max.y;
+			this.max.m = this.params.max.m;
+			this.max.d = this.params.max.d;
 			this.theColor = this.params.theColor;
 		},
 		methods: {
@@ -1471,16 +1475,16 @@ jQuery(document).ready(function() {
 					break;
 				case 'D':
 					entry = this.dLegend[i1];
-					function saveNEntry(label, min, max, color) {
-						console.log("Reached saveNEntry");
-						self.nLegend[i1] = createLegendEntry(label, color, null, min, max);
+					function saveDEntry(label, min, max, color) {
+						console.log("Reached saveDEntry");
+						self.dLegend[i1] = createLegendEntry(label, color, null, min, max);
 					}
 					this.modalParams.label = entry.l;
-					this.modalParams.min = entry.d.min;
-					this.modalParams.max = entry.d.max;
+					this.modalParams.min = { y: entry.d.min.y, m: entry.d.min.m, d: entry.d.min.d };
+					this.modalParams.max = { y: entry.d.max.y, m: entry.d.max.m, d: entry.d.max.d };
 					this.modalParams.theColor = entry.v;
-					this.modalParams.callback = saveNEntry;
-					this.modalShowing = 'dlgEditLgndNumber';
+					this.modalParams.callback = saveDEntry;
+					this.modalShowing = 'dlgEditLgndDates';
 					break;
 				} // switch by data type
 			}, // doLegendEdit()

@@ -152,7 +152,11 @@ div.dialog-wrap > div.wide {
 	width: 500px;
 }
 
-div.dialog-wrap .title {
+div.dialog-wrap > div {
+	font-size: 12px;
+}
+
+div.dialog-wrap div.title {
 	text-align: center;
 	font-size: 18px;
 	margin-bottom: 15px;
@@ -183,6 +187,7 @@ div.dialog-wrap .btn {
 	border-radius: 6px;
 	cursor: pointer;
 	background-color: #3b73af;
+	font-size: 14px;
 
 	user-select: none;
 	-webkit-user-select: none;
@@ -215,6 +220,8 @@ div.dialog-wrap .btn:active {
 
 	/* Scroll area for Attribute list */
 .choose-container {
+	border: 1px solid grey;
+	padding: 3px !important;
 	cursor: pointer;
 	height: 230px;
 	overflow: auto;
