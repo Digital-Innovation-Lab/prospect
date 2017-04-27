@@ -1387,9 +1387,9 @@ jQuery(document).ready(function() {
 					}
 					saveView.c.clat = viewSettings.c.clat;
 					saveView.c.clon = viewSettings.c.clon;
-					saveView.c.zoom = viewSettings.c.zoom;
-					saveView.c.min  = viewSettings.c.min;
-					saveView.c.max  = viewSettings.c.max;
+					saveView.c.zoom = ensureInt(viewSettings.c.zoom);
+					saveView.c.min  = ensureInt(viewSettings.c.min);
+					saveView.c.max  = ensureInt(viewSettings.c.max);
 					saveView.c.clstr= viewSettings.c.clstr;
 					var newCAtts=[], newLgnds=[], newLClrs=[];
 					saveTIndices.forEach(function(tIndex) {
@@ -1414,9 +1414,9 @@ jQuery(document).ready(function() {
 					}
 					saveView.c.clat = viewSettings.c.clat;
 					saveView.c.clon = viewSettings.c.clon;
-					saveView.c.zoom = viewSettings.c.zoom;
-					saveView.c.min  = viewSettings.c.min;
-					saveView.c.max  = viewSettings.c.max;
+					saveView.c.zoom = ensureInt(viewSettings.c.zoom);
+					saveView.c.min  = ensureInt(viewSettings.c.min);
+					saveView.c.max  = ensureInt(viewSettings.c.max);
 					var newLgnds=[], newLClrs=[], newTClrs=[], newLbls=[];
 					saveTIndices.forEach(function(tIndex) {
 						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
@@ -1435,12 +1435,12 @@ jQuery(document).ready(function() {
 					saveView.c.lyrs = viewSettings.c.lyrs;
 					break;
 				case 'P': 	// Pinboard
-					saveView.c.iw   = viewSettings.c.iw;
-					saveView.c.ih   = viewSettings.c.ih;
-					saveView.c.dw   = viewSettings.c.dw;
-					saveView.c.dh   = viewSettings.c.dh;
-					saveView.c.min  = viewSettings.c.min;
-					saveView.c.max  = viewSettings.c.max;
+					saveView.c.iw   = ensureInt(viewSettings.c.iw);
+					saveView.c.ih   = ensureInt(viewSettings.c.ih);
+					saveView.c.dw   = ensureInt(viewSettings.c.dw);
+					saveView.c.dh   = ensureInt(viewSettings.c.dh);
+					saveView.c.min  = ensureInt(viewSettings.c.min);
+					saveView.c.max  = ensureInt(viewSettings.c.max);
 					saveView.c.img  = viewSettings.c.img;
 					var newLgnds=[], newLClrs=[];
 					saveTIndices.forEach(function(tIndex) {
@@ -1486,8 +1486,8 @@ jQuery(document).ready(function() {
 					saveView.c.iAtts = packUsedAttIDs(viewSettings.c.iAtts, null);
 					break;
 				case 'T': 	// Timeline
-					saveView.c.bHt  = viewSettings.c.bHt;
-					saveView.c.xLbl = viewSettings.c.xLbl;
+					saveView.c.bHt  = ensureInt(viewSettings.c.bHt);
+					saveView.c.xLbl = ensureInt(viewSettings.c.xLbl);
 					saveView.c.from = viewSettings.c.from;
 					saveView.c.to   = viewSettings.c.to;
 					saveView.c.zFrom= viewSettings.c.zFrom;
@@ -1507,8 +1507,8 @@ jQuery(document).ready(function() {
 					saveView.c.cnt = newCnt;
 					break;
 				case 't': 	// TextStream
-					saveView.c.min = viewSettings.c.min;
-					saveView.c.max = viewSettings.c.max;
+					saveView.c.min = ensureInt(viewSettings.c.min);
+					saveView.c.max = ensureInt(viewSettings.c.max);
 					var newLgnds=[];
 					saveTIndices.forEach(function(tIndex) {
 						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
@@ -1519,7 +1519,7 @@ jQuery(document).ready(function() {
 					saveView.c.sAtts = packUsedAttIDs(viewSettings.c.sAtts, null);
 					break;
 				case 'N': 	// Network Wheel
-					saveView.c.lw = viewSettings.c.lw;
+					saveView.c.lw = ensureInt(viewSettings.c.lw);
 					var newPAtts=[], newLgnds=[];
 					saveTIndices.forEach(function(tIndex) {
 						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
@@ -1529,9 +1529,9 @@ jQuery(document).ready(function() {
 					saveView.c.lgnds = newLgnds;
 					break;
 				case 'n': 	// Network Graph
-					saveView.c.min = viewSettings.c.min;
-					saveView.c.max = viewSettings.c.max;
-					saveView.c.s = viewSettings.c.s;
+					saveView.c.min = ensureInt(viewSettings.c.min);
+					saveView.c.max = ensureInt(viewSettings.c.max);
+					saveView.c.s = ensureInt(viewSettings.c.s);
 					var newPAtts=[], newLgnds=[];
 					saveTIndices.forEach(function(tIndex) {
 						newLgnds.push(packUsedAtts(viewSettings.c.lgnds[tIndex]));
@@ -1558,8 +1558,8 @@ jQuery(document).ready(function() {
 					}
 					break;
 				case 'b':	// Bucket Matrix
-					saveView.c.nr   = viewSettings.c.nr;
-					saveView.c.bw   = viewSettings.c.bw;
+					saveView.c.nr   = ensureInt(viewSettings.c.nr);
+					saveView.c.bw   = ensureInt(viewSettings.c.bw);
 					saveView.c.gr   = viewSettings.c.gr;
 					var newPAtts=[], newLgnds=[];
 					saveTIndices.forEach(function(tIndex) {
