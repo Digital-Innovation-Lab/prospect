@@ -1627,7 +1627,7 @@ console.log("prsp_vol_inspect: "+JSON.stringify(saveInspect));
 		el: '#vue-outer',
 		data: {
 				// Configuration settings for all Exhibit settings
-			xhbtID: xhbtID,
+			volID: volID,
 			label: defGen.l,
 			tour: defGen.tour,
 			dspr: defGen.dspr,
@@ -1655,7 +1655,6 @@ console.log("prsp_vol_inspect: "+JSON.stringify(saveInspect));
 				vfTypes: vfTypes,
 				pairs: [],						// QR Role pairs
 				facets: defJoinedFacets,
-				vocabOpts: allVocabAttIDs,
 				callback: null
 			},
 			modalShowing: 'nullcomponent'		// modal currently showing (initially nothing)

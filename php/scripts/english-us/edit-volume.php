@@ -579,8 +579,8 @@
 							<icon-btn symbol="ui-icon-cancel" v-on:click="allDispAttsOff(tIndex)"><?php _e('All Off', 'prospect'); ?></icon-btn>
 							<span class="attribute-controls" v-for="(thisAttribute,aIndex) in modal.atts[tIndex]">
 								<input type='checkbox' v-model='thisAttribute.useAtt'/> {{ thisAttribute.attID }}
-								<icon-btn symbol="ui-icon-arrowthick-1-w" v-on:click="moveAttLeft('i',tIndex,aIndex)"><?php _e('Left', 'prospect'); ?></button>
-								<icon-btn symbol="ui-icon-arrowthick-1-e" v-on:click="moveAttRight('i',tIndex,aIndex)"><?php _e('Right', 'prospect'); ?></button>
+								<icon-btn symbol="ui-icon-arrowthick-1-w" v-on:click="moveAttLeft('i',tIndex,aIndex)"><?php _e('Left', 'prospect'); ?></icon-btn>
+								<icon-btn symbol="ui-icon-arrowthick-1-e" v-on:click="moveAttRight('i',tIndex,aIndex)"><?php _e('Right', 'prospect'); ?></icon-btn>
 							</span>
 						</div>
 					</tabs>
