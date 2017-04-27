@@ -4,7 +4,7 @@ Non-DIL Code files in /lib
 	CSV Importer 0.4.2 (PHP) from https://github.com/academe/csv-importer-improved/releases
 	Leaflet 1.0.4 (JS)
 	D3 v4.4.2 (JS)
-	Ractive 0.7.3 (JS)
+	VueJS 2.2.6 (JS)
 	RainbowVis-JS (JS)
 	RandomColor (JS)
 	Hopscotch 0.2.5 (JS)

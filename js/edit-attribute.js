@@ -1,8 +1,8 @@
 // Attribute Editor
 
-// ASSUMES: A view area for the browser has been marked with HTML div as "ractive-output"
+// ASSUMES: A view area for the browser has been marked with HTML div as "vue-outer"
 // NOTES:   See notes in class-prospect-admin.php about JSON, Unicode and UTF-8
-// USES:    jQuery, Underscore, jQueryUI, and Ractive
+// USES:    jQuery, Underscore, jQueryUI, and VueJS
 
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findIndex

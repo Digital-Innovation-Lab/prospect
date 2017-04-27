@@ -1,7 +1,7 @@
 // Exhibit Editor
 
-// ASSUMES: A view area for the browser has been marked with HTML div as "ractive-output"
-// USES:    jQuery, Underscore, jQueryUI, and Ractive
+// ASSUMES: A view area for the browser has been marked with HTML div as "vue-outer"
+// USES:    jQuery, Underscore, jQueryUI, and VueJS
 // ASSUMES: All data not to be edited by user passed in prspdata
 //			All data to be edited by user passed in hidden fields
 

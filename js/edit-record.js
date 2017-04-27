@@ -1,6 +1,6 @@
 // Record Editor
 
-// ASSUMES: A view area for the browser has been marked with HTML div as "ractive-output"
+// ASSUMES: A view area for the browser has been marked with HTML div as "vue-outer"
 // NOTES:   Data about this Record passed in hidden fields
 //			In case of newly created Record, prsp_rec_id and prsp_tmplt_id will be empty, and prsp_rec_atts will be "null"
 //			prspdata will pass definitions of Templates and Attributes
@@ -350,7 +350,7 @@ jQuery(document).ready(function() {
 
 		// OTHER VARS
 		// ==========
-	var vApp;							// the main Ractive application
+	var vApp;							// the main VueJS application
 	var errTimer;
 	var canGeoLoc = false;				// true if geolocation possible
 

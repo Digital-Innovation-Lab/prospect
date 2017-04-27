@@ -1,7 +1,7 @@
 // Template Editor
 
-// ASSUMES: A view area for the browser has been marked with HTML div as "ractive-output"
-// USES:    jQuery, Underscore, jQueryUI, and Ractive
+// ASSUMES: A view area for the browser has been marked with HTML div as "vue-outer"
+// USES:    jQuery, Underscore, jQueryUI, and VueJS
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findIndex
 if (!Array.prototype.findIndex) {
@@ -557,7 +557,7 @@ jQuery(document).ready(function() {
 
 	compileAttOptions(false, null);
 
-		// Create our main App Ractive instance with wrapped jQueryUI components
+		// Create our main App instance with wrapped jQueryUI components
 	vApp = new Vue({
 		el: '#vue-outer',
 		data: {
