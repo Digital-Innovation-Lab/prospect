@@ -234,6 +234,7 @@ div.dialog-wrap .btn:active {
 	padding: 4px;
 	font-size: 12px;
 	display: inline-block;
+	vertical-align: text-bottom;
 }
 
 	/* To minimize size of ui buttons */
@@ -266,7 +267,6 @@ div.dialog-wrap .btn:active {
 .legend-label {
 	width: 160px;
 	font-weight: bold;
-	vertical-align: middle;
 }
 
 .legend-val {

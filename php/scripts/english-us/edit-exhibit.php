@@ -760,7 +760,7 @@
 								</select><br/>
 								<div v-if="thisView.c.ms === 'S'">
 									<b><?php _e('For this Template, use shape ', 'prospect'); ?>: </b>
-									<select v-model='this.c.syms[tIndex]'>
+									<select v-model='thisView.c.syms[tIndex]'>
 										<option value=0><?php _e('Circle', 'prospect'); ?></option>
 										<option value=1><?php _e('Cross', 'prospect'); ?></option>
 										<option value=2><?php _e('Diamond', 'prospect'); ?></option>

@@ -1191,8 +1191,8 @@ jQuery(document).ready(function() {
 						self.nLegend.push(createLegendEntry(label, color, null, min, max));
 					}
 					this.modalParams.label = '';
-					this.modalParams.min = '';
-					this.modalParams.max = '';
+					this.modalParams.min = this.nRange.min;
+					this.modalParams.max = this.nRange.max;
 					this.modalParams.theColor = '#777777';
 					this.modalParams.callback = saveNEntry;
 					this.modalShowing = 'dlgEditLgndNumber';
@@ -1202,8 +1202,8 @@ jQuery(document).ready(function() {
 						self.dLegend.push(createLegendEntry(label, color, null, min, max));
 					}
 					this.modalParams.label = '';
-					this.modalParams.min = { y: '', m: '', d: '' };
-					this.modalParams.max = { y: '', m: '', d: '' };
+					this.modalParams.min = { y: this.dRange.min.y, m: this.dRange.min.m, d: this.dRange.min.d };
+					this.modalParams.max = { y: this.dRange.max.y, m: this.dRange.max.m, d: this.dRange.max.d };
 					this.modalParams.theColor = '#777777';
 					this.modalParams.callback = saveDEntry;
 					this.modalShowing = 'dlgEditLgndDates';
