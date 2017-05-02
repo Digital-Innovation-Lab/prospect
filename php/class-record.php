@@ -128,7 +128,9 @@ class ProspectRecord {
 								$v_set = explode($att_def->d, $val);
 								$this->att_data[$att_to_load] = array();
 								foreach ($v_set as $value) {
-									array_push($this->att_data[$att_to_load], trim($value));
+									if (strlen($value) > 0) {
+										array_push($this->att_data[$att_to_load], trim($value));
+									}
 								}
 							} else
 								$this->att_data[$att_to_load] = array(trim($val));
