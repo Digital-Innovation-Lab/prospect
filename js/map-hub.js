@@ -40,10 +40,6 @@ var PMapHub = (function () {
 		{	id: '.stamen-watercolor', sname: 'Stamen Watercolor',
 			url: 'http://tile.stamen.com/watercolor/{z}/{x}/{y}.jpg',
 			subd: '', credits: 'Stamen Design', desc: 'Stamen Watercolor Base Map'
-		},
-		{	id: '.thunder-land', sname: 'Thunderforest Landscape',
-			url: 'http://{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png',
-			subd: '', credits: 'Thunderforest', desc: 'Thunderforest Landscape Base Map'
 		}
 	];
 	var overLayers	= [];
