@@ -71,5 +71,11 @@
 
 		wp_footer();
 ?>
+<style>
+ /* fix exhibit page admin bar issue */
+	html {
+		margin-top: 0 !important;
+	}
+</style>
 </body>
 </html>
