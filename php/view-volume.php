@@ -4,9 +4,9 @@
 <head>
 	<title><?php the_title(); ?></title>
 
-	<?php 
+	<?php
 		add_action('wp_enqueue_scripts', 'prspct_dequeue_scripts');
-		
+
 			// PURPOSE: Dequeues all scripts and styles except those used by Prospect Exhibit
 			// IMPORTANT: Must keep this list coordinated with prsp_page_template() in class-prospect.php
 		function prspct_dequeue_scripts()
@@ -61,6 +61,12 @@
 
 		wp_head();
 	?>
+	<style>
+	 /* fix exhibit page admin bar issue */
+		html {
+			margin-top: 0 !important;
+		}
+	</style>
 </head>
 
 <body>

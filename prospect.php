@@ -720,7 +720,7 @@ function prospect_init()
 	prospect_register_post_types();
 
 	// show_admin_bar(false);
-	add_filter('show_admin_bar', '__return_false');
+	// add_filter('show_admin_bar', '__return_false');
 } // prospect_init()
 
 add_action('init', 'prospect_init');
