@@ -27,6 +27,7 @@
 			<th><?php _e('Type', 'prospect'); ?></th>
 			<th><?php _e('Join Dependent', 'prospect'); ?></th>
 			<th><?php _e('Display on Post', 'prospect'); ?></th>
+
   		</tr>
 		<tr v-for="(thisAttribute, index) in tmpltAttributes">
 			<td>{{ thisAttribute.id }}</td>
@@ -93,6 +94,19 @@
 	</select>
 	<label for="label-tmpdistcnt"><?php _e('Additional Content', 'prospect'); ?>: </label>
 	<select id="label-tmpdistcnt" v-model='tmpPostAtts.c'>
+		<option v-for="thisAtt in tpCAtts">
+			{{thisAtt}}
+		</option>
+	</select>
+	<label for="label-tmpdistcnt1"><?php _e('Additional Content2', 'prospect'); ?>: </label>
+	<select id="label-tmpdistcnt1" v-model='tmpPostAtts.c1'>
+		<option v-for="thisAtt in tpCAtts">
+			{{thisAtt}}
+		</option>
+	</select>
+	<br/>
+	<label for="label-tmpdistcnt2"><?php _e('Additional Content3', 'prospect'); ?>: </label>
+	<select id="label-tmpdistcnt2" v-model='tmpPostAtts.c2'>
 		<option v-for="thisAtt in tpCAtts">
 			{{thisAtt}}
 		</option>

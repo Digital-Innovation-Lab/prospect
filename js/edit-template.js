@@ -73,7 +73,8 @@ if (!Array.prototype.find) {
 }
 
 jQuery(document).ready(function() {
-	Vue.component('icon-btn', {
+	// noinspection JSAnnotator
+    Vue.component('icon-btn', {
 		props: {
 			symbol: {
 	    		type: String,
@@ -300,9 +301,11 @@ jQuery(document).ready(function() {
 		tmpPostAtts = JSON.parse(embedData);
 		tmpPostAtts.i 	= checkAtt(tmpPostAtts.i);
 		tmpPostAtts.c 	= checkAtt(tmpPostAtts.c);
+		tmpPostAtts.c1 	= checkAtt(tmpPostAtts.c1);
+		tmpPostAtts.c2 	= checkAtt(tmpPostAtts.c2);
 	} else {
 			// Create default settings
-		tmpPostAtts = { d: 'l', i: 'disable', c: 'disable' };
+		tmpPostAtts = { d: 'l', i: 'disable', c: 'disable', c1: 'disable', c2: 'disable' };
 	}
 
 		// Must integrate Joins into Attribute array: { id: att ID, t: type, j: Template ID (if Join), view } ]
@@ -320,6 +323,7 @@ jQuery(document).ready(function() {
 			// Only copy Attributes that exist now
 		if (attDef) {
 			attObj.view = recPostAtts.cnt.findIndex(function(att) { return att === attDef.id; } ) != -1;
+			//attObj.sort1 = recPostAtts.att_s.findIndex(function(att) { return att === attDef.id; } ) != -1;
 			attObj.t = attDef.def.t;
 			if (attDef.def.t == 'J') {
 					// Find Join entry and add template ID
@@ -335,6 +339,8 @@ jQuery(document).ready(function() {
 				attObj.j = '';
 			}
 			newAtts.push(attObj);
+
+
 		} else {
 			console.log("Attribute ID "+attID+" is undefined and will be removed from the definition.");
 		}
@@ -489,6 +495,7 @@ jQuery(document).ready(function() {
 		var curAttDefs;
 		if (update)
 			curAttDefs = vApp.tmpltAttributes;
+		    //console.log(curAttDefs);
 		else
 			curAttDefs = defTemplate.a;
 
@@ -499,6 +506,7 @@ jQuery(document).ready(function() {
 			case 'g':	// Tags
 			case 'N':	// number
 			case 'D':	// Dates
+			case 'l':	//link
 				tpCAtts.push(theAtt.id);
 				break;
 			case 'I':	// Image
@@ -551,6 +559,10 @@ jQuery(document).ready(function() {
 					vApp.tmpPostAtts.i = 'disable';
 				if (vApp.tmpPostAtts.c == delAtt)
 					vApp.tmpPostAtts.c = 'disable';
+				if (vApp.tmpPostAtts.c1 == delAtt)
+					vApp.tmpPostAtts.c1 = 'disable';
+				if (vApp.tmpPostAtts.c2 == delAtt)
+					vApp.tmpPostAtts.c2 = 'disable';
 			}
 		}
 	} // compileAttOptions()
@@ -607,11 +619,14 @@ jQuery(document).ready(function() {
 					tmpltDef.a = [];
 					var tmpJoins = [];
 					var tmpCnt = [];
+					var tmpAtt = [];
 
 					atts.forEach(function(theAtt) {
 						tmpltDef.a.push(theAtt.id);
 						if (theAtt.view)
 							tmpCnt.push(theAtt.id);
+                        if (theAtt.sort1)
+                            tmpAtt.push(theAtt.id);
 						if (theAtt.t == 'J') {
 								// Attempt to add Join Attribute to dependent Template?
 							if (tmpltDef.d) {
@@ -637,16 +652,21 @@ jQuery(document).ready(function() {
 					tmpView.t.t2Att = vApp.recPostAtts.t.t2Att;
 					tmpView.t.tcAtt = vApp.recPostAtts.t.tcAtt;
 					tmpView.cnt 	= tmpCnt;
+                    
+
 
 					var tmpPost = { };
 					tmpPost.d = vApp.tmpPostAtts.d;
 					tmpPost.i = vApp.tmpPostAtts.i;
 					tmpPost.c = vApp.tmpPostAtts.c;
+					tmpPost.c1 = vApp.tmpPostAtts.c1;
+					tmpPost.c2 = vApp.tmpPostAtts.c2;
 
 					console.log("Def: "+JSON.stringify(tmpltDef));
 					console.log("Joins: "+JSON.stringify(tmpJoins));
 					console.log("Post: "+JSON.stringify(tmpPost));
 					console.log("View: "+JSON.stringify(tmpView));
+
 
 						// Stuff results into hidden form fields
 					jQuery('input[name="prsp_tmp_id"]').val(vApp.templateID.trim());
@@ -684,7 +704,7 @@ jQuery(document).ready(function() {
 					function addAttChoice(index) {
 						var attChoice = self.modalParams.attList[index];
 						var attDef = defAtts.find(function(att) { return att.id == attChoice.id; });
-						var newAttRec = { id: attDef.id, t: attDef.def.t, j: '', view: false };
+						var newAttRec = { id: attDef.id, t: attDef.def.t, j: '', view: false, sort1: false };
 						self.tmpltAttributes.push(newAttRec);
 							// As this can affect current Attribute selections, we need to update them
 						compileAttOptions(true, null);

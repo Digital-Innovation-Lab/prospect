@@ -342,6 +342,7 @@ jQuery(document).ready(function() {
 	var embedData = jQuery('textarea[name="prsp_rec_atts"]').val();
 	if (embedData && embedData != 'null' && embedData.length > 4) {
 		attData = JSON.parse(embedData);
+		console.log(attData);
 	}
 
 		// Expanded Attribute values for Record

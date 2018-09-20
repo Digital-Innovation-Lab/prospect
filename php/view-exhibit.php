@@ -62,6 +62,12 @@
 
 		wp_head();
 	?>
+	<style>
+	 /* fix exhibit page admin bar issue */
+		html {
+			margin-top: 0 !important;
+		}
+	</style>
 </head>
 
 <body>

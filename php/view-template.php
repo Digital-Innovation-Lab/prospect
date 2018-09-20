@@ -12,17 +12,20 @@
 		$display_style = 'l';
 		$display_image = 'disable';
 		$display_content = 'disable';
+		$display_content1 = 'disable';
 		if ($the_template->pview != null) {
 			$display_style = $the_template->pview->d;
 			$display_image = $the_template->pview->i;
 			$display_content = $the_template->pview->c;
+			$display_content1 = $the_template->pview->c1;
+			$display_content2 = $the_template->pview->c2;
 		}
 	}
 
 		// Give title of Templates
 	echo('<h1 class="prospect">'.$the_template->def->l.'</h1><hr/>');
 
-		// Open any enclosing DIVs
+		// Open any enclosing DIV
 	switch($display_style) {
 	case 'l':
 		break;
@@ -40,20 +43,29 @@
 			// Get associative array for all Attribute definitions
 		$assoc_atts = ProspectAttribute::get_assoc_defs();
 
+		if($_GET["sort"])
+		    $sort_value = $_GET["sort"];
+		else
+		    $sort_value = "record-id";
+		    
+		if($_GET["order"])
+            $order_value = $_GET["order"];
+        else
+            $order_value = "ASC";
+            
 			// Get Records -- Need to order by Record ID, etc
 		$args = array('post_type' => 'prsp-record',
 						'post_status' => 'publish',
-						'meta_key' => 'record-id',
+						'meta_key' => $sort_value,
 						'orderby' => 'meta_value',
-						'order' => 'ASC',
+						'order' => $order_value,
 						'posts_per_page' => -1,
 						'meta_query' =>
 							array('key' => 'tmplt-id',
 								'value' => $tmplt_id,
 								'compare' => '=')
 					);
-
-		$query = new WP_Query($args);
+        $query = new WP_Query($args);
 		if ($query->have_posts()) {
 			foreach ($query->posts as $rec) {
 				$the_rec = new ProspectRecord(true, $rec->ID, false, $the_template, $d_templates, $assoc_atts);
@@ -68,6 +80,12 @@
 					if ($display_content != 'disable' && isset($the_rec->att_data[$display_content])) {
 						echo('<p class="prospect-list-content">'.ProspectTemplate::get_att_val($assoc_atts, $display_content, $the_rec->att_data).'</p>');
 					}
+                    if ($display_content1 != 'disable' && isset($the_rec->att_data[$display_content1])) {
+                        echo('<p class="prospect-list-content">'.ProspectTemplate::get_att_val($assoc_atts, $display_content1, $the_rec->att_data).'</p>');
+                    }
+                    if ($display_content2 != 'disable' && isset($the_rec->att_data[$display_content2])) {
+                        echo('<p class="prospect-list-content">'.ProspectTemplate::get_att_val($assoc_atts, $display_content2, $the_rec->att_data).'</p>');
+                    }
 					echo('</div>');
 					break;
 				case 't':
@@ -79,6 +97,12 @@
 					if ($display_content != 'disable' && isset($the_rec->att_data[$display_content])) {
 						echo('<br/><span class="content">'.ProspectTemplate::get_att_val($assoc_atts, $display_content, $the_rec->att_data).'</span>');
 					}
+                    if ($display_content1 != 'disable' && isset($the_rec->att_data[$display_content1])) {
+                        echo('<br/><span class="content">'.ProspectTemplate::get_att_val($assoc_atts, $display_content1, $the_rec->att_data).'</span>');
+                    }
+                     if ($display_content2 != 'disable' && isset($the_rec->att_data[$display_content2])) {
+                        echo('<br/><span class="content">'.ProspectTemplate::get_att_val($assoc_atts, $display_content2, $the_rec->att_data).'</span>');
+                    }
 					echo('</p></div>');
 					break;
 				case 'h':

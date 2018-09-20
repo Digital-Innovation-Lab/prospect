@@ -822,9 +822,12 @@ class ProspectAdmin {
 				wp_enqueue_script('vuejs', plugins_url('/lib/vuejs/vue.min.js', dirname(__FILE__)));
 				wp_enqueue_script('randomcolor', plugins_url('/lib/randomcolor.js', dirname(__FILE__)));
 				wp_enqueue_script('rainbow', plugins_url('/lib/rainbowvis.js', dirname(__FILE__)));
+						// color picker
+				wp_enqueue_script('vuejs-colorpicker', plugins_url('/lib/vuejs/vue-color.min.js', dirname(__FILE__)),
+								array('vuejs'));
 
 				wp_enqueue_script('edit-attribute', plugins_url('/js/edit-attribute.js', dirname(__FILE__)),
-								array('vuejs', 'randomcolor', 'rainbow', 'underscore'));
+								array('vuejs', 'randomcolor', 'rainbow', 'underscore', 'vuejs-colorpicker'));
 
 					// Get list of all custom fields currently used by Records
 				$cfs = ProspectAttribute::get_all_custom_field_names();
@@ -1201,7 +1204,7 @@ class ProspectAdmin {
 	public function write_template_dict($fp, $template)
 	{
 			// Translate between type codes and legible strings
-		$data_types = [
+		$data_types = array(
 			"V" => __("Vocabulary", 'prospect'),
 			"T" => __("Text", 'prospect'),
 			"g" => __("Tags", 'prospect'),
@@ -1217,7 +1220,7 @@ class ProspectAdmin {
 			"t" => __("Timecode", 'prospect'),
 			"P" => __("Pointer", 'prospect'),
 			"J" => __("Join", 'prospect')
-		];
+		);
 		fwrite($fp, __('Template: ', 'prospect').$template->def->l.' ('.$template->id.')'."\n");
 		fwrite($fp, "===================\n");
 
@@ -3053,6 +3056,8 @@ class ProspectAdmin {
 
 
 
+
+
 		// PURPOSE: Get text transcript
 		// INPUT:   $_POST['transcript'] = URL to file containing contents of transcript
 		//			$_POST['excerpt'] = timestamp w/ excerpt of transcript to return, or null = full transcript
@@ -3060,21 +3065,28 @@ class ProspectAdmin {
 		//				browsers don't allow requests across servers
 		//			However, this read request will fail if the WP site read access has been restricted by
 		//				credentials
+
 	public function prsp_get_transcript()
 	{
 		$transcript_url = $_POST['transcript'];
 		$excerpt = $_POST['excerpt'];
+	  $arrContextOptions=array(
+      "ssl"=>array(
+            "verify_peer"=>false,
+            "verify_peer_name"=>false,
+        ),
+    );
 
-		$content = @file_get_contents($transcript_url);
+	$content = @file_get_contents($transcript_url, false, stream_context_create($arrContextOptions));
+
 		if ($content === false) {
 			trigger_error("Cannot load transcript file at ".$transcript_url);
-			$result = 'Cannot load transcript file';
-		} else {
+		}
+		else {
 				// Remove unwanted prefix chars until first "[" appears
 			$ut8_content	= utf8_encode($content);
 			$paren_start 	= mb_strpos($ut8_content, "[");
-			$ut8_content	= mb_substr($ut8_content, $paren_start,
-									mb_strlen($ut8_content, 'UTF-8')-$paren_start, 'UTF-8');
+			$ut8_content	= mb_substr($ut8_content, $paren_start,mb_strlen($ut8_content, 'UTF-8')-$paren_start, 'UTF-8');
 
 				// Extract an excerpt?
 			if ($excerpt != null && $excerpt != 'null') {
@@ -3096,7 +3108,6 @@ class ProspectAdmin {
 				$result = utf8_decode($ut8_content);
 			}
 		}
-
 		die(json_encode($result, JSON_UNESCAPED_UNICODE));
 	} // prsp_get_transcript()
 
@@ -3114,7 +3125,7 @@ class ProspectAdmin {
 				// As there is an excess of data from Geonames server, remove unwanted stuff
 			$json_data = json_decode($content, true);
 			$json_data = $json_data['geonames'];
-			$filtered_data = [];
+			$filtered_data = array();
 			for($i = 0; $i < count($json_data); $i++) {
 			   $item = $json_data[$i];
 			   $filtered_data[] = array(

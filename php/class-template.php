@@ -1,7 +1,7 @@
 <?php
 
 	// Exception for template not found error (used for shortcode generation)
-class NotFoundException extends Exception {}
+    class NotFoundException extends Exception {}
 
 class ProspectTemplate {
 		// CLASS METHODS
@@ -73,6 +73,10 @@ class ProspectTemplate {
 		case 'V':
 		case 'g':
 			return implode(", ", $att_val);
+		case 'l':
+		    $url = '/(http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?/';
+            $string= preg_replace($url, '<a href="$0" target="_blank" title="$0">$0</a>', $att_val);
+            return $string;
 		case 'T':
 		case 'N':
 			return $att_val;
