@@ -1,0 +1,256 @@
+/******************************************************************
+ ** CSS for Prospect Record Dashboard Editor
+ **/
+
+
+	/* Modify all buttons in the Edit Record Dashboard */
+#prsp_record_box button {
+	display: inline-block;
+	padding: 6px 12px;
+	margin-bottom: 0;
+	font-size: 14px;
+	font-weight: 400;
+	line-height: 1.42857143;
+	text-align: center;
+	white-space: nowrap;
+	/*vertical-align: middle;*/
+	-ms-touch-action: manipulation;
+	touch-action: manipulation;
+	cursor: pointer;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	background-image: none;
+	border: 1px solid transparent;
+	border-radius: 4px;
+	color: #333;
+	background-color: #eee;
+	border-color: #ccc;
+}
+
+#prsp_record_box button:active {
+    background: #ccc;
+}
+
+button#prsp-save-data {
+	background-color: #77CCFF;
+}
+
+#prsp_record_box input[type="text"], #prsp_record_box input {
+	padding: 6px 12px;
+	margin: 5px 0;
+	font-size: 14px;
+	line-height: 1.42857143;
+	color: #555;
+	background-color: #fff;
+	background-image: none;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	-webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+	box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+	-webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
+	-o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+	transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+}
+
+#prsp_record_box input[type="checkbox"] {
+    margin: 15px 0 15px 15px;
+}
+
+	/* Just color bar to activate browser input method */
+#prsp_record_box input[type="color"] {
+	padding: 2px;
+	width: 40px;
+	font-size: 9px;
+}
+
+	/* Error for displaying Error Messages */
+#error-frame {
+	color: red;
+	border: red solid 1px;
+	padding: 3px;
+	margin-top: 3px;
+	margin-bottom: 3px;
+}
+
+#error-frame.ok {
+	color: green;
+	border-color: green;
+}
+
+	/* Dialog-specific styles */
+div.dialog-wrap * {
+	margin: 0;
+	padding: 0;
+}
+
+div.dialog-wrap {
+	display: none;
+	position: fixed;
+	z-index: 9999;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	background-color: #ccc;
+	background-color: rgba(0,0,0,0.1);
+	font-family: Helvetica, Arial, sans-serif;
+	font-size: 16px;
+	-webkit-transition: all 0.1s;
+	   -moz-transition: all 0.1s;
+		 -o-transition: all 0.1s;
+			transition: all 0.1s;
+}
+
+	/* Custom popup Dialog CSS here */
+div.dialog-wrap.open {
+	display: block;
+}
+
+div.dialog-wrap.open.pop {
+	background-color: #666;
+	background-color: rgba(0,0,0,0.6);
+}
+
+div.dialog-wrap > div {
+	position: fixed;
+	z-index: 99999;
+	left: 50%;
+	top: 20%;
+	margin-left: -150px;
+	width: 300px;
+	padding: 10px;
+	background-color: #fff;
+
+	-webkit-transition: all 0.3s;
+	   -moz-transition: all 0.3s;
+		 -o-transition: all 0.3s;
+			transition: all 0.3s;
+
+	-webkit-transform: scale(0.2);
+	   -moz-transform: scale(0.2);
+		-ms-transform: scale(0.2);
+			transform: scale(0.2);
+
+	border-radius: 8px;
+}
+
+div.dialog-wrap.pop > div {
+	-webkit-transform: scale(1);
+	   -moz-transform: scale(1);
+		-ms-transform: scale(1);
+			transform: scale(1);
+}
+
+div.dialog-wrap > div.thin {
+	margin-left: -75px;
+	width: 150px;
+}
+
+div.dialog-wrap > div.wide {
+	margin-left: -250px;
+	width: 500px;
+}
+
+div.dialog-wrap .title {
+	text-align: center;
+	font-size: 18px;
+	margin-bottom: 15px;
+}
+
+div.dialog-wrap input {
+/*	display: block; */
+/*	width: 100%; */
+	padding: 5px;
+	margin: 5px 0;
+	font-size: 12px;
+	outline: none;
+	border: 1px solid #ddd;
+	-webkit-box-sizing: border-box;
+			box-sizing: border-box
+}
+
+div.dialog-wrap input:focus {
+	border: 1px solid #29ABF7;
+}
+
+div.dialog-wrap .btn {
+	float: right;
+	padding: 8px;
+	margin-left: 10px;
+	margin-top: 6px;
+	color: #fff;
+	border-radius: 6px;
+	cursor: pointer;
+	background-color: #3b73af;
+
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-touch-callout:none;
+	-webkit-user-drag: none;
+	-webkit-tap-highlight-color:rgba(0, 0, 0, 0);
+}
+
+div.dialog-wrap .ok {
+	background-color: #3baf73;
+}
+
+div.dialog-wrap .cancel {
+	background-color: #a33;
+}
+
+div.dialog-wrap .btn:hover {
+	opacity: 0.8;
+}
+
+div.dialog-wrap .btn:active {
+	opacity: 1;
+}
+
+	/* To minimize size of ui buttons */
+.ui-button-icon-only {
+	width: 1.4em !important;
+	height: 1.4em !important;
+}
+
+.scroll-container {
+	width: 100%;
+	height: 10em;
+	overflow-y: auto;
+	border: 1px solid grey;
+	font-size: 12px;
+	font-weight: normal;
+}
+
+.scroll-container div {
+	padding: 2px;
+}
+
+.scroll-container div:hover {
+	cursor: pointer;
+	background: #ddd;
+}
+
+#geonames {
+	width: 100%;
+	height: 10em;
+	overflow-y: auto;
+	border: 1px solid grey;
+	font-size: 12px;
+	font-weight: normal;
+}
+
+#geonames ul li {
+	padding: 2px;
+}
+
+#geonames ul li:hover {
+	cursor: pointer;
+	background: #ddd;
+}
+
+#geonames ul li.active {
+	color: red;
+	/* background: #cdcdcd; */
+}

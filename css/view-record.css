@@ -1,0 +1,57 @@
+
+/** WIDGETS
+ **/
+
+#yt-widget {
+	width: 426px;
+	height: 240px;
+	margin: 3px;
+}
+
+#xscript-tbl {
+	width: 100%;
+	margin-top: 4px;
+	max-height: 220px;
+	overflow-y: scroll;
+	table-layout: fixed;
+	resize: both;
+}
+
+#xscript-tbl div.row {
+	display: table-row;
+	margin: 2px;
+	border: blue 1px solid;
+}
+
+	/* Create odd-even background toggle */
+#xscript-tbl div.row:nth-child(odd) {
+	background: #ddd;
+}
+
+#xscript-tbl div.timecode {
+	display: table-cell;
+	line-height: 1.2em;
+	padding: 2px;
+	cursor: pointer;
+	width: 86px;
+}
+
+	/* playhead */
+#xscript-tbl div.timecode.current {
+	background-color: #007fff;
+	color: #fff;
+}
+
+#xscript-tbl div.timecode:hover {
+	background-color: #0055bb;
+	color: #fff;
+}
+
+#xscript-tbl div.xscript {
+	font-size: 12px;
+	display: table-cell;
+	vertical-align: top;
+	line-height: 1.2em;
+	padding: 2px;
+	width: auto;
+}
