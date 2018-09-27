@@ -2620,22 +2620,27 @@ class ProspectAdmin {
                 .prsp_tmpl_section input{
                     width: 100%;
                 }
+                .prsp_tmpl_section i {
+                    color: grey;
+                }
             }
         </style>
         <div class="prsp_tmpl_section">
-            <p>You may want to add some customized HTML Wrapper Tags to the Prospect Template, such as <br /><i>
-                    &lt;div class="customclass"&gt;&lt;/div&gt;</i><br />
-                You can just put your HTML Start Tag at start and closed Tags in the end.<br />
-                Note that unmatched start and closed tags may cause rendering issue.
-            </p>
-            <br />
-            <input type="text" placeholder="Wrapper HTML Start Tags. eg: &lt;div class=&#34;customclass&#34;&gt;" />
-            <p>[<br>Prospect Main Content</p>
-            <input type="text" placeholder="Custom list class" />
-            <input type="text" placeholder="Custom list items classes" />
-            <p>]</p>
-            <input type="text" placeholder="Wrapper HTML Closed Tags. eg: &lt;/div&gt;" />
-        </div>
+        <p>You may want to add some customized HTML Wrapper Tags to the Prospect Template, such as <br /><i>
+                &lt;div class="customclass"&gt;&lt;/div&gt;</i><br />
+            You can just put your HTML Start Tag at start and closed Tags in the end.<br />
+            Note that unmatched start and closed tags may cause rendering issue.
+        </p>
+        <br />
+        <input type="text" placeholder="Wrapper HTML Start Tags. " />
+        <br><i>eg: &lt;div class=&#34;customclass&#34;&gt;</i>
+        <p>[<br>Prospect Main Content</p>
+        <input type="text" placeholder="Custom list class" />
+        <input type="text" placeholder="Custom list items classes" />
+        <p>]</p>
+        <input type="text" placeholder="Wrapper HTML Closed Tags. " />
+        <br><i>eg: &lt;/div&gt;</i>
+    </div>
         <?php
     } // prsp_settings_template_html_callback()
 
