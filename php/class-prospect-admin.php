@@ -2311,6 +2311,21 @@ class ProspectAdmin {
 			'prsp-settings-page',
 			'prsp_settings'
 		);
+
+        add_settings_section(
+            'prsp_settings_template', // ID
+            __('Prospect Template Display Settings', 'prospect'), // Title
+            array($this, 'prsp_settings_template_info'), // Callback
+            'prsp-settings-page' // Page
+        );
+
+        add_settings_field(
+            'prsp_settings_template_html',
+            __('Customize HTML layout of prospect template page', 'prospect'),
+            array($this, 'prsp_settings_template_html_callback'),
+            'prsp-settings-page',
+            'prsp_settings_template'
+        );
 	} // do_prsp_init()
 
 
@@ -2508,7 +2523,16 @@ class ProspectAdmin {
 		echo('</p>');
 	} // prsp_settings_info()
 
-		// PURPOSE: Get the settings option array and print one of its values
+    // PURPOSE: Print the Template Setting Section text
+    public function prsp_settings_template_info()
+    {
+        echo('<p>');
+        _e('Customize Template Page Wrapper HTML Tags and Card classes', 'prospect');
+        echo('</p>');
+    } // prsp_settings_info()
+
+
+    // PURPOSE: Get the settings option array and print one of its values
 	public function prsp_chunks_callback()
 	{
 		printf(
@@ -2584,6 +2608,36 @@ class ProspectAdmin {
 		);
 	} // prsp_vf_color_callback()
 
+    // PURPOSE: Add or change the default HTML Output of template page
+    public function prsp_settings_template_html_callback()
+    {
+        ?>
+        <style>
+            @media screen and (min-width: 783px) {
+                .prsp_tmpl_section {
+                    width: 80%;
+                }
+                .prsp_tmpl_section input{
+                    width: 100%;
+                }
+            }
+        </style>
+        <div class="prsp_tmpl_section">
+            <p>You may want to add some customized HTML Wrapper Tags to the Prospect Template, such as <br /><i>
+                    &lt;div class="customclass"&gt;&lt;/div&gt;</i><br />
+                You can just put your HTML Start Tag at start and closed Tags in the end.<br />
+                Note that unmatched start and closed tags may cause rendering issue.
+            </p>
+            <br />
+            <input type="text" placeholder="Wrapper HTML Start Tags. eg: &lt;div class=&#34;customclass&#34;&gt;" />
+            <p>[<br>Prospect Main Content</p>
+            <input type="text" placeholder="Custom list class" />
+            <input type="text" placeholder="Custom list items classes" />
+            <p>]</p>
+            <input type="text" placeholder="Wrapper HTML Closed Tags. eg: &lt;/div&gt;" />
+        </div>
+        <?php
+    } // prsp_settings_template_html_callback()
 
 		// PURPOSE: Code to create Settings page
 	public function show_prsp_settings_page()
