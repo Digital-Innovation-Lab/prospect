@@ -2507,6 +2507,14 @@ class ProspectAdmin {
 			$new_input['prsp_fs_color'] = sanitize_text_field($input['prsp_fs_color']);
 		if (isset($input['prsp_vf_color']))
 			$new_input['prsp_vf_color'] = sanitize_text_field($input['prsp_vf_color']);
+        if (isset($input['prsp_start_html_tags']))
+            $new_input['prsp_start_html_tags'] = sanitize_text_field($input['prsp_start_html_tags']);
+        if (isset($input['prsp_list_class']))
+            $new_input['prsp_list_class'] = sanitize_text_field($input['prsp_list_class']);
+        if (isset($input['prsp_list_item_class']))
+            $new_input['prsp_list_item_class'] = sanitize_text_field($input['prsp_list_item_class']);
+        if (isset($input['prsp_close_html_tags']))
+            $new_input['prsp_close_html_tags'] = sanitize_text_field($input['prsp_close_html_tags']);
 
 		// if (isset($input['prsp_lang']))
 		// 	$new_input['prsp_lang'] = sanitize_text_field($input['prsp_lang']);
@@ -2632,13 +2640,13 @@ class ProspectAdmin {
             Note that unmatched start and closed tags may cause rendering issue.
         </p>
         <br />
-        <input type="text" placeholder="Wrapper HTML Start Tags. " />
+        <input type="text" id="prsp_start_html_tags" name="prsp_base_options[prsp_start_html_tags]" value="<?php echo isset($this->options['prsp_start_html_tags']) ? esc_attr($this->options['prsp_start_html_tags']) : ''?>" placeholder="Wrapper HTML Start Tags. " />
         <br><i>eg: &lt;div class=&#34;customclass&#34;&gt;</i>
         <p>[<br>Prospect Main Content</p>
-        <input type="text" placeholder="Custom list class" />
-        <input type="text" placeholder="Custom list items classes" />
+        <input type="text" id="prsp_list_class" name="prsp_base_options[prsp_list_class]" value="<?php echo isset($this->options['prsp_list_class']) ? $this->options['prsp_list_class'] : ''?>" placeholder="Custom list class" />
+        <input type="text" id="prsp_list_item_class" name="prsp_base_options[prsp_list_item_class]" value="<?php echo isset($this->options['prsp_list_item_class']) ? esc_attr($this->options['prsp_list_item_class']) : ''?>" placeholder="Custom list items classes" />
         <p>]</p>
-        <input type="text" placeholder="Wrapper HTML Closed Tags. " />
+        <input type="text" id="prsp_close_html_tags" name="prsp_base_options[prsp_close_html_tags]" value="<?php echo isset($this->options['prsp_close_html_tags']) ? esc_attr($this->options['prsp_close_html_tags']) : ''?>" placeholder="Wrapper HTML Closed Tags. " />
         <br><i>eg: &lt;/div&gt;</i>
     </div>
         <?php
