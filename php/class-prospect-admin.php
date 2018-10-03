@@ -2508,13 +2508,13 @@ class ProspectAdmin {
 		if (isset($input['prsp_vf_color']))
 			$new_input['prsp_vf_color'] = sanitize_text_field($input['prsp_vf_color']);
         if (isset($input['prsp_start_html_tags']))
-            $new_input['prsp_start_html_tags'] = sanitize_text_field($input['prsp_start_html_tags']);
+            $new_input['prsp_start_html_tags'] = strip_tags($input['prsp_start_html_tags'], '<div><p><ul><h1><h2><h3><h4><h5><h6><section>');
         if (isset($input['prsp_list_class']))
             $new_input['prsp_list_class'] = sanitize_text_field($input['prsp_list_class']);
         if (isset($input['prsp_list_item_class']))
             $new_input['prsp_list_item_class'] = sanitize_text_field($input['prsp_list_item_class']);
         if (isset($input['prsp_close_html_tags']))
-            $new_input['prsp_close_html_tags'] = sanitize_text_field($input['prsp_close_html_tags']);
+            $new_input['prsp_close_html_tags'] = strip_tags($input['prsp_close_html_tags'], '<div><p><ul><h1><h2><h3><h4><h5><h6><section>');
 
 		// if (isset($input['prsp_lang']))
 		// 	$new_input['prsp_lang'] = sanitize_text_field($input['prsp_lang']);
