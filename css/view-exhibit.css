@@ -39,13 +39,10 @@ body {
 	-moz-flex-direction: column;
 	-ms-flex-direction: column;
 
-	background-color: gray;
-
 	font-family:Verdana, Arial, sans-serif;
 	font-size: 14px;
 
 	overflow: hidden;
-	padding: 10px 10px 45px;
 	margin: 0;
 }
 
@@ -139,7 +136,10 @@ ul.radio li:hover, ul.radio li.focus {
 	/* Command Bar always along top row of window */
 #command-bar {
 	height: 28px;
-	background-color: #56A0D3;
+	background: #4096ee; /* Old browsers */
+	background: -moz-linear-gradient(top, #4096ee 0%, #4096ee 100%); /* FF3.6-15 */
+	background: -webkit-linear-gradient(top, #4096ee 0%,#4096ee 100%); /* Chrome10-25,Safari5.1-6 */
+	background: linear-gradient(to bottom, #4096ee 0%,#4096ee 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
 	color: #222;
 	margin: 0px;
 	padding: 12px 20px 30px;
@@ -445,7 +445,9 @@ div.view-controls div.iconbar
 div.viz-content {
 	position: absolute;
 	height: 100%;
+	height: calc(100% - 40px);
 	width: 100%;
+	padding: 10px 20px;
 }
 
 	/* All visualization results rendered here */
@@ -845,37 +847,28 @@ label {
 }
 
 @-webkit-keyframes pulse {
-	0% { border: 1px solid green; }
-	10% { border: 4px solid green; }
-	75% { border: 4px solid yellow; }
-	100% { border: 2px solid green; }
+	0% { border: 4px solid #d3d3d3; }
+	100% { border: 4px solid #4096ee; }
 }
 @-moz-keyframes pulse {
-	0% { border: 1px solid green; }
-	10% { border: 4px solid green; }
-	75% { border: 4px solid yellow; }
-	100% { border: 2px solid green; }
+	0% { border: 4px solid #d3d3d3; }
+	100% { border: 4px solid #4096ee; }
 }
 @-ms-keyframes pulse {
-	0% { border: 1px solid green; }
-	10% { border: 4px solid green; }
-	75% { border: 4px solid yellow; }
-	100% { border: 2px solid green; }
+	0% { border: 4px solid #d3d3d3; }
+	100% { border: 4px solid #4096ee; }
 }
 @keyframes pulse {
-	0% { border: 1px solid green; }
-	10% { border: 4px solid green; }
-	75% { border: 4px solid yellow; }
-	100% { border: 2px solid green; }
+	0% { border: 4px solid #d3d3d3; }
+	100% { border: 4px solid #4096ee; }
 }
 
 .ui-button.pulse {
 	-webkit-animation-name: pulse;
-	-webkit-animation-duration: 1.25s;
-	-webkit-animation-iteration-count: infinite;
-	-moz-animation: pulse 1.25s infinite;
-	-ms-animation: pulse 1.25s infinite;
-	animation: pulse 1.25s infinite;
+	-webkit-animation-duration: 2.25s;
+	-moz-animation: pulse 2.25s forwards;
+	-ms-animation: pulse 2.25s forwards;
+	animation: pulse 2.25s forwards;
 }
 
 	/* z-index must be greater than Leaflet's and Legend */
@@ -894,9 +887,8 @@ label {
 	/* Label separating Template tables */
 div.template-label {
 	display: block;
-	background-color: white;
 	color: #56A0D3;
-	padding-left: 4px;
+	padding: 10px 4px;
 
 	font-weight: bold;
 	font-size: 16px;
@@ -1071,18 +1063,11 @@ div.card > div.card-body > div.card-cnt {
 
 	/* Directory styles */
 table.viz-directory {
-	color: #666;
-	text-shadow: 1px 1px 0px #fff;
-	background: #eaebec;
-	border:#ccc 1px solid;
-
-	-moz-border-radius:3px;
-	-webkit-border-radius:3px;
-	border-radius:3px;
-
-	-moz-box-shadow: 0 1px 2px #d1d1d1;
-	-webkit-box-shadow: 0 1px 2px #d1d1d1;
-	box-shadow: 0 1px 2px #d1d1d1;
+	color: #525252;
+	border: 1px solid #e0e0e0;
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
 }
 
 table.viz-directory th {
@@ -1169,7 +1154,7 @@ table.viz-directory tr:last-child td:last-child {
 }
 
 table.viz-directory tr.obj-sel td {
-	background: yellow;
+	background: #dedede;
 }
 
 	/* For all svg graphs in visualization Views */
