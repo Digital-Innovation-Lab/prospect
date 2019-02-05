@@ -2311,6 +2311,21 @@ class ProspectAdmin {
 			'prsp-settings-page',
 			'prsp_settings'
 		);
+
+        add_settings_section(
+            'prsp_settings_template', // ID
+            __('Prospect Template Display Settings', 'prospect'), // Title
+            array($this, 'prsp_settings_template_info'), // Callback
+            'prsp-settings-page' // Page
+        );
+
+        add_settings_field(
+            'prsp_settings_template_html',
+            __('Customize HTML layout of prospect template page', 'prospect'),
+            array($this, 'prsp_settings_template_html_callback'),
+            'prsp-settings-page',
+            'prsp_settings_template'
+        );
 	} // do_prsp_init()
 
 
@@ -2492,6 +2507,14 @@ class ProspectAdmin {
 			$new_input['prsp_fs_color'] = sanitize_text_field($input['prsp_fs_color']);
 		if (isset($input['prsp_vf_color']))
 			$new_input['prsp_vf_color'] = sanitize_text_field($input['prsp_vf_color']);
+        if (isset($input['prsp_start_html_tags']))
+            $new_input['prsp_start_html_tags'] = strip_tags($input['prsp_start_html_tags'], '<div><p><ul><h1><h2><h3><h4><h5><h6><section>');
+        if (isset($input['prsp_list_class']))
+            $new_input['prsp_list_class'] = sanitize_text_field($input['prsp_list_class']);
+        if (isset($input['prsp_list_item_class']))
+            $new_input['prsp_list_item_class'] = sanitize_text_field($input['prsp_list_item_class']);
+        if (isset($input['prsp_close_html_tags']))
+            $new_input['prsp_close_html_tags'] = strip_tags($input['prsp_close_html_tags'], '<div><p><ul><h1><h2><h3><h4><h5><h6><section>');
 
 		// if (isset($input['prsp_lang']))
 		// 	$new_input['prsp_lang'] = sanitize_text_field($input['prsp_lang']);
@@ -2508,7 +2531,16 @@ class ProspectAdmin {
 		echo('</p>');
 	} // prsp_settings_info()
 
-		// PURPOSE: Get the settings option array and print one of its values
+    // PURPOSE: Print the Template Setting Section text
+    public function prsp_settings_template_info()
+    {
+        echo('<p>');
+        _e('Customize Template Page Wrapper HTML Tags and Card classes', 'prospect');
+        echo('</p>');
+    } // prsp_settings_info()
+
+
+    // PURPOSE: Get the settings option array and print one of its values
 	public function prsp_chunks_callback()
 	{
 		printf(
@@ -2584,6 +2616,41 @@ class ProspectAdmin {
 		);
 	} // prsp_vf_color_callback()
 
+    // PURPOSE: Add or change the default HTML Output of template page
+    public function prsp_settings_template_html_callback()
+    {
+        ?>
+        <style>
+            @media screen and (min-width: 783px) {
+                .prsp_tmpl_section {
+                    width: 80%;
+                }
+                .prsp_tmpl_section input{
+                    width: 100%;
+                }
+                .prsp_tmpl_section i {
+                    color: grey;
+                }
+            }
+        </style>
+        <div class="prsp_tmpl_section">
+        <p>You may want to add some customized HTML Wrapper Tags to the Prospect Template, such as <br /><i>
+                &lt;div class="customclass"&gt;&lt;/div&gt;</i><br />
+            You can just put your HTML Start Tag at start and closed Tags in the end.<br />
+            Note that unmatched start and closed tags may cause rendering issue.
+        </p>
+        <br />
+        <input type="text" id="prsp_start_html_tags" name="prsp_base_options[prsp_start_html_tags]" value="<?php echo isset($this->options['prsp_start_html_tags']) ? esc_attr($this->options['prsp_start_html_tags']) : ''?>" placeholder="Wrapper HTML Start Tags. " />
+        <br><i>eg: &lt;div class=&#34;customclass&#34;&gt;</i>
+        <p>[<br>Prospect Main Content</p>
+        <input type="text" id="prsp_list_class" name="prsp_base_options[prsp_list_class]" value="<?php echo isset($this->options['prsp_list_class']) ? $this->options['prsp_list_class'] : ''?>" placeholder="Custom list class" />
+        <input type="text" id="prsp_list_item_class" name="prsp_base_options[prsp_list_item_class]" value="<?php echo isset($this->options['prsp_list_item_class']) ? esc_attr($this->options['prsp_list_item_class']) : ''?>" placeholder="Custom list items classes" />
+        <p>]</p>
+        <input type="text" id="prsp_close_html_tags" name="prsp_base_options[prsp_close_html_tags]" value="<?php echo isset($this->options['prsp_close_html_tags']) ? esc_attr($this->options['prsp_close_html_tags']) : ''?>" placeholder="Wrapper HTML Closed Tags. " />
+        <br><i>eg: &lt;/div&gt;</i>
+    </div>
+        <?php
+    } // prsp_settings_template_html_callback()
 
 		// PURPOSE: Code to create Settings page
 	public function show_prsp_settings_page()

@@ -22,7 +22,8 @@ module.exports = function(grunt) {
 	cssmin: {
 		dist: {
       		options: {
-         		banner: '/*! <%= grunt.template.today("yyyy-mm-dd") %> */\n'
+         		banner: '/*! <%= grunt.template.today("yyyy-mm-dd") %> */\n',
+                sourceMap: true
       		},
       		files: {
 	        	'css/view-exhibit.min.css': ['css/view-exhibit.css'],

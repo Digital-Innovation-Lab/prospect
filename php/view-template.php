@@ -4,6 +4,7 @@
 		// Get Template definition
 	$the_template = null;
 	$tmplt_id = get_post_meta($post->ID, 'tmplt-id', true);
+    $options = get_option('prsp_base_options');
 
 	if ($tmplt_id != '') {
 		$the_template = new ProspectTemplate(false, $tmplt_id, true, true, false, true);
@@ -23,6 +24,7 @@
 	}
 
 		// Give title of Templates
+    echo $options['prsp_start_html_tags'] ? $options['prsp_start_html_tags'] : ""; // custom wrapper html start tags
 	echo('<h1 class="prospect">'.$the_template->def->l.'</h1><hr/>');
 
 		// Open any enclosing DIV
@@ -30,7 +32,7 @@
 	case 'l':
 		break;
 	case 't':
-		echo('<div class="prospect-cards">');
+		echo('<div class="prospect-cards '. $options['prsp_list_class'] .'">');
 		break;
 	case 'h':
 		break;
@@ -89,7 +91,7 @@
 					echo('</div>');
 					break;
 				case 't':
-					echo('<div class="prospect-card">');
+					echo('<div class="prospect-card ' . $options['prsp_list_item_class'] . '">');
 					if ($display_image != 'disable' && isset($the_rec->att_data[$display_image])) {
 						echo('<img class="prospect-thumb" src="'.$the_rec->att_data[$display_image].'">');
 					}
@@ -134,5 +136,6 @@
 	case 'h':
 		break;
 	}
+    echo $options['prsp_close_html_tags'] ? $options['prsp_close_html_tags'] : ""; // custom wrapper html start tags
 
 	get_footer();
