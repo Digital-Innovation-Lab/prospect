@@ -357,6 +357,24 @@ function prospect_register_post_types()
 		)
 	);
 	register_post_type('prsp-reading', $args);
+
+	// Disable Gutenberg for prsp post types ()
+	function prospect_avoid_gutenberg( $use_block_editor, $post_type ) {
+        switch ($post_type) {
+            case 'prsp-record':
+            case 'prsp-attribute':
+            case 'prsp-template':
+            case 'prsp-map':
+            case 'prsp-prspctv':
+            case 'prsp-volume':
+            case 'prsp-reading':
+                return false;
+                break;
+            default:
+                return true;
+        }
+	}
+	add_filter( 'use_block_editor_for_post_type', 'prospect_avoid_gutenberg', 10, 2);
 } // prospect_register_post_types()
 
 
