@@ -30,13 +30,41 @@ module.exports = function(grunt) {
 				'css/view-volume.min.css': ['css/view-volume.css']
       		}
   		}
-	}
+	},
+	  watch: {
+		  scripts: {
+			  files: [
+				  'js/map-hub.js',
+				  'js/view-core.js',
+				  'js/view-qr.js',
+				  'js/view-aggregate.js',
+				  'js/view-exhibit.js',
+				  'js/view-volume.js'
+			  ],
+			  tasks: ['uglify'],
+			  options: {
+				  spawn: false,
+			  }
+		  },
+		  css: {
+			  files: [
+				  'css/view-exhibit.min.css',
+				  'css/view-volume.min.css'
+			  ],
+			  tasks: ['cssmin'],
+			  options: {
+				  spawn: false,
+			  }
+		  }
+	  }
   });
 
   	// Load the plugin that provides the "uglify" task.
   grunt.loadNpmTasks('grunt-contrib-uglify');
   	// And the minify-CSS plugin
   grunt.loadNpmTasks('grunt-contrib-cssmin');
+  	// watch file changes to compile at run time
+  grunt.loadNpmTasks('grunt-contrib-watch');
   // Default task(s).
-  grunt.registerTask('default', ['uglify', 'cssmin']);
+  grunt.registerTask('default', ['uglify', 'cssmin', 'watch']);
 };

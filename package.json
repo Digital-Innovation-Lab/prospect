@@ -19,6 +19,7 @@
     "grunt": "~0.4.5",
     "grunt-contrib-cssmin": "^1.0.2",
     "grunt-contrib-uglify": "^1.0.1",
+    "grunt-contrib-watch": "^1.1.0",
     "rollup": "^0.26.3",
     "rollup-plugin-node-resolve": "^1.5.0",
     "uglify-js": "^2.6.2"
