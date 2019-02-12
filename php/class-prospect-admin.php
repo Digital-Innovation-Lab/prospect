@@ -314,7 +314,14 @@ class ProspectAdmin {
 	public function add_prsp_record_admin_edit($post_type)
 	{
 		add_meta_box('prsp_record_box', __('Edit Record', 'prospect'), array($this, 'show_prsp_record_admin_edit'),
-					'prsp-record', 'normal', 'high');
+					'prsp-record', 'advanced', 'high');
+        // Let Record Metabox show up at the front
+        // code from https://wordpress.stackexchange.com/questions/36600/how-can-i-put-a-custom-meta-box-above-the-editor-but-below-the-title-section-on
+        add_action('edit_form_after_title', function() {
+            global $post, $wp_meta_boxes;
+            do_meta_boxes(get_current_screen(), 'advanced', $post);
+            unset($wp_meta_boxes[get_post_type($post)]['advanced']);
+        });
 	} // add_prsp_record_admin_edit()
 
 		// PURPOSE: Insert HTML for Dashboard Record Editor and embed data
@@ -467,7 +474,14 @@ class ProspectAdmin {
 	public function add_prsp_volume_admin_edit($post_type)
 	{
 		add_meta_box('prsp_volume_box', __('Edit Volume', 'prospect'), array($this, 'show_prsp_volume_admin_edit'),
-					'prsp-volume', 'normal', 'high');
+					'prsp-volume', 'advanced', 'high');
+        // Let volume Metabox show up at the front
+        // code from https://wordpress.stackexchange.com/questions/36600/how-can-i-put-a-custom-meta-box-above-the-editor-but-below-the-title-section-on
+        add_action('edit_form_after_title', function() {
+            global $post, $wp_meta_boxes;
+            do_meta_boxes(get_current_screen(), 'advanced', $post);
+            unset($wp_meta_boxes[get_post_type($post)]['advanced']);
+        });
 	} // add_prsp_volume_admin_edit()
 
 		// PURPOSE: Insert HTML for Dashboard Exhibit Editor and embed data
