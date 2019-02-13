@@ -4,7 +4,8 @@
 		// Get Template definition
 	$the_template = null;
 	$tmplt_id = get_post_meta($post->ID, 'tmplt-id', true);
-    $options = get_option('prsp_base_options');
+    $assoc_atts = ProspectAttribute::get_assoc_defs();
+
 
 	if ($tmplt_id != '') {
 		$the_template = new ProspectTemplate(false, $tmplt_id, true, true, false, true);
@@ -20,19 +21,23 @@
 			$display_content = $the_template->pview->c;
 			$display_content1 = $the_template->pview->c1;
 			$display_content2 = $the_template->pview->c2;
+            $display_content3 = $the_template->pview->c3;
 		}
 	}
 
+ $att_title = $assoc_atts[$display_content3];
 		// Give title of Templates
-    echo $options['prsp_start_html_tags'] ? $options['prsp_start_html_tags'] : ""; // custom wrapper html start tags
-	echo('<h1 class="prospect">'.$the_template->def->l.'</h1><hr/>');
+    echo('<h1 class="prospect">'.$the_template->def->l.'</h1>');
+    echo('<label style="h5">Sorted by:</label><h5 class="prospect">'.$att_title->l.'</h5><hr/>');
+
+
 
 		// Open any enclosing DIV
 	switch($display_style) {
 	case 'l':
 		break;
 	case 't':
-		echo('<div class="prospect-cards '. $options['prsp_list_class'] .'">');
+		echo('<div class="prospect-cards">');
 		break;
 	case 'h':
 		break;
@@ -43,10 +48,10 @@
 			// Get dependent Templates needed for Joins
 		$d_templates = $the_template->get_dependent_templates(true);
 			// Get associative array for all Attribute definitions
-		$assoc_atts = ProspectAttribute::get_assoc_defs();
+
 
 		if($_GET["sort"])
-		    $sort_value = $_GET["sort"];
+		    $sort_value = $display_content3;
 		else
 		    $sort_value = "record-id";
 		    
@@ -58,7 +63,7 @@
 			// Get Records -- Need to order by Record ID, etc
 		$args = array('post_type' => 'prsp-record',
 						'post_status' => 'publish',
-						'meta_key' => $sort_value,
+						'meta_key' => $display_content3,
 						'orderby' => 'meta_value',
 						'order' => $order_value,
 						'posts_per_page' => -1,
@@ -91,7 +96,7 @@
 					echo('</div>');
 					break;
 				case 't':
-					echo('<div class="prospect-card ' . $options['prsp_list_item_class'] . '">');
+					echo('<div class="prospect-card">');
 					if ($display_image != 'disable' && isset($the_rec->att_data[$display_image])) {
 						echo('<img class="prospect-thumb" src="'.$the_rec->att_data[$display_image].'">');
 					}
@@ -136,6 +141,5 @@
 	case 'h':
 		break;
 	}
-    echo $options['prsp_close_html_tags'] ? $options['prsp_close_html_tags'] : ""; // custom wrapper html start tags
 
 	get_footer();
