@@ -28,7 +28,10 @@
     echo $options['prsp_start_html_tags'] ? $options['prsp_start_html_tags'] : ""; // custom wrapper html start tags
 	echo('<h1 class="prospect">'.$the_template->def->l.'</h1>');
 
-	echo('<label style="h5">Sorted by:</label><h5 class="prospect">'.$display_content3.'</h5><hr/>');
+	if ($display_content3 !== 'disable') {
+		echo('<label style="h5">Sorted by:</label><h5 class="prospect">'.$display_content3.'</h5>');
+	}
+	echo '<hr/>';
 
 		// Open any enclosing DIV
 	switch($display_style) {
@@ -48,10 +51,9 @@
 			// Get associative array for all Attribute definitions
 		$assoc_atts = ProspectAttribute::get_assoc_defs();
 
-		if($display_content3)
-		    $sort_value = $display_content3;
-		else
-		    $sort_value = "record-id";
+		$sort_value = "record-id";
+		if($display_content3 !== 'disable')
+		    $sort_value = $display_content3;		    
 		    
 		if($_GET["order"])
             $order_value = $_GET["order"];
