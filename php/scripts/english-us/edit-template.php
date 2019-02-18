@@ -111,6 +111,12 @@
 			{{thisAtt}}
 		</option>
 	</select>
+    <label for="label-tmpdistcnt3"><?php _e('Sortorder', 'prospect'); ?>: </label>
+    <select id="label-tmpdistcnt3" v-model='tmpPostAtts.c3'>
+        <option v-for="thisAtt in tpCAtts">
+            {{thisAtt}}
+        </option>
+    </select>
 
 	<component :is="modalShowing" :params="modalParams">
 	</component>

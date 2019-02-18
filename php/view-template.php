@@ -4,7 +4,7 @@
 		// Get Template definition
 	$the_template = null;
 	$tmplt_id = get_post_meta($post->ID, 'tmplt-id', true);
-    $options = get_option('prsp_base_options');
+	$options = get_option('prsp_base_options');
 
 	if ($tmplt_id != '') {
 		$the_template = new ProspectTemplate(false, $tmplt_id, true, true, false, true);
@@ -20,12 +20,18 @@
 			$display_content = $the_template->pview->c;
 			$display_content1 = $the_template->pview->c1;
 			$display_content2 = $the_template->pview->c2;
+			$display_content3 = $the_template->pview->c3;
 		}
 	}
 
 		// Give title of Templates
     echo $options['prsp_start_html_tags'] ? $options['prsp_start_html_tags'] : ""; // custom wrapper html start tags
-	echo('<h1 class="prospect">'.$the_template->def->l.'</h1><hr/>');
+	echo('<h1 class="prospect">'.$the_template->def->l.'</h1>');
+
+	if ($display_content3 !== 'disable') {
+		echo('<label style="h5">Sorted by:</label><h5 class="prospect">'.$display_content3.'</h5>');
+	}
+	echo '<hr/>';
 
 		// Open any enclosing DIV
 	switch($display_style) {
@@ -45,10 +51,9 @@
 			// Get associative array for all Attribute definitions
 		$assoc_atts = ProspectAttribute::get_assoc_defs();
 
-		if($_GET["sort"])
-		    $sort_value = $_GET["sort"];
-		else
-		    $sort_value = "record-id";
+		$sort_value = "record-id";
+		if($display_content3 !== 'disable')
+		    $sort_value = $display_content3;		    
 		    
 		if($_GET["order"])
             $order_value = $_GET["order"];
