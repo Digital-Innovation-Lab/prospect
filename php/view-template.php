@@ -7,7 +7,7 @@
 	$options = get_option('prsp_base_options');
 
 	if ($tmplt_id != '') {
-		$the_template = new ProspectTemplate(false, $tmplt_id, true, true, false, true);
+		$the_template = new ProspectTemplate(false, $tmplt_id, true, true, true, true);
 
 			// Default settings
 		$display_style = 'l';
@@ -24,16 +24,55 @@
 		}
 	}
 
-		// Give title of Templates
+    // sort options used for template page
+    $sort_options = $the_template->view->cnt;
+	// Give title of Templates
     echo $options['prsp_start_html_tags'] ? $options['prsp_start_html_tags'] : ""; // custom wrapper html start tags
 	echo('<h1 class="prospect">'.$the_template->def->l.'</h1>');
-
-	if ($display_content3 !== 'disable') {
-		echo('<label style="h5">Sorted by:</label><h5 class="prospect">'.$display_content3.'</h5>');
-	}
+	// sorting part start
+	// little issue: sorting items rendered here is a bit different from template edit page
+	echo "<span>Sorted by: </span>";
+	echo "<select name='sort-options'>";
+	foreach ($sort_options as $sort_option) {
+	    echo "<option value='". $sort_option ."'>". $sort_option ."</option>";
+    }
+    echo "<option value='default' selected>default (". $display_content3 .")</option>";
+    echo "</select>";
 	echo '<hr/>';
+	?>
+	<script>
+		// sort selector
+		jQuery(function($){
+			var $sort_select = $("select[name='sort-options']")
+			var exp = /(sortby=)([^&]*)/g;
+			var origin = location.origin;
+			var pathname = location.pathname;
+			var search = location.search;
+			if (search.match(exp)) {
+				var sortby_val = search.match(exp)[0];
+				sortby_val = sortby_val.split("=")[1];
+				$sort_select.find("option[value='"+ sortby_val +"']").prop("selected", true);
+			}
+			$sort_select.change(function(){
+				var sort_val = $(this).find(":selected").val();
+				if (!!search) {
+					if (search.match(exp)) {
+						search = search.replace(exp, "");
+					}
+					if (sort_val.toLowerCase() !== "default")
+						search += "&sortby=" + sort_val;
+				} else {
+					if (sort_val.toLowerCase() !== "default")
+						search += "?sortby=" + sort_val;
+				}
+				location.href = origin + pathname + search;
+			});
+		})
+	</script>
+    <?php
+	// sorting part end
 
-		// Open any enclosing DIV
+	// Open any enclosing DIV
 	switch($display_style) {
 	case 'l':
 		break;
@@ -53,8 +92,9 @@
 
 		$sort_value = "record-id";
 		if($display_content3 !== 'disable')
-		    $sort_value = $display_content3;		    
-		    
+		    $sort_value = $display_content3;
+		if(($_GET["sortby"]))
+		    $sort_value = $_GET["sortby"];
 		if($_GET["order"])
             $order_value = $_GET["order"];
         else
