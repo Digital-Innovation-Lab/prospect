@@ -49,8 +49,8 @@ class Prospect {
 			} else {
 				$page_template = dirname(__FILE__).'/view-template.php';
 			}
-            if (file_exists( get_stylesheet_directory() . '/prospect/js/view-template.js')) {
-                wp_enqueue_script('prsp-view-template-js', plugins_url('js/view-template.js', dirname(__FILE__)));
+            if (file_exists(plugin_dir_path(__FILE__) . '../js/view-template.js')) {
+                wp_enqueue_script('prsp-view-template-js', plugins_url('js/view-template.js', dirname(__FILE__)), array('jquery'));
             }
 			break;
 
