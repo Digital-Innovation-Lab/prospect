@@ -24,22 +24,24 @@
 		}
 	}
 
-    // sort options used for template page
-    $sort_options = $the_template->view->cnt;
 	// Give title of Templates
     echo $options['prsp_start_html_tags'] ? $options['prsp_start_html_tags'] : ""; // custom wrapper html start tags
+
 	echo('<h1 class="prospect">'.$the_template->def->l.'</h1>');
 	// sorting part start
 	// little issue: sorting items rendered here is a bit different from template edit page
-	echo "<span>Sorted by: </span>";
-	echo "<select name='sort-options'>";
-	foreach ($sort_options as $sort_option) {
-	    echo "<option value='". $sort_option ."'>". $sort_option ."</option>";
+    if ($display_content3 !== 'disable') { // if sort is enabled
+        $sort_options = $the_template->view->cnt; // sort options used for template page
+        echo "<div class='sort-dropdown'>";
+        echo "<span>Sorted by: </span>";
+        echo "<select name='sort-options'>";
+        foreach ($sort_options as $sort_option) {
+            echo "<option value='" . $sort_option . "'>" . $sort_option . "</option>";
+        }
+        echo "</select>";
+        echo '<hr/>';
+        echo "</div>";
     }
-    echo "<option value='default' selected>default (". $display_content3 .")</option>";
-    echo "</select>";
-	echo '<hr/>';
-
 	// Open any enclosing DIV
 	switch($display_style) {
 	case 'l':
