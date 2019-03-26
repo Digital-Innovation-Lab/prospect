@@ -303,10 +303,11 @@ jQuery(document).ready(function() {
 		tmpPostAtts.c 	= checkAtt(tmpPostAtts.c);
 		tmpPostAtts.c1 	= checkAtt(tmpPostAtts.c1);
 		tmpPostAtts.c2 	= checkAtt(tmpPostAtts.c2);
-		tmpPostAtts.c3  = checkAtt(tmpPostAtts.c3);	
-	} else {
+		tmpPostAtts.c3  = checkAtt(tmpPostAtts.c3);
+        tmpPostAtts.sortChecked  = tmpPostAtts.sortChecked;
+    } else {
 			// Create default settings
-		tmpPostAtts = { d: 'l', i: 'disable', c: 'disable', c1: 'disable', c2: 'disable', c3: 'disable' };
+		tmpPostAtts = { d: 'l', i: 'disable', c: 'disable', c1: 'disable', c2: 'disable', c3: 'disable', sortChecked: [] };
 	}
 
 		// Must integrate Joins into Attribute array: { id: att ID, t: type, j: Template ID (if Join), view } ]
@@ -566,6 +567,8 @@ jQuery(document).ready(function() {
 					vApp.tmpPostAtts.c2 = 'disable';
 				if (vApp.tmpPostAtts.c3 == delAtt)
                     vApp.tmpPostAtts.c3 = 'disable';
+                if (vApp.tmpPostAtts.sortChecked == delAtt)
+                    vApp.tmpPostAtts.sortChecked = [];
 			}
 		}
 	} // compileAttOptions()
@@ -592,6 +595,7 @@ jQuery(document).ready(function() {
 			tcAtts: tcAtts,
 			tpIAtts: tpIAtts,
 			tpCAtts: tpCAtts,
+			sortChecked: tmpPostAtts.sortChecked ? tmpPostAtts.sortChecked : [],   // sort options
 			attMap: attMap,
 			errorMsg: '',						// current error string (if any)
 			errorOK: false,						// Is message actually not an error?
@@ -655,7 +659,6 @@ jQuery(document).ready(function() {
 					tmpView.t.t2Att = vApp.recPostAtts.t.t2Att;
 					tmpView.t.tcAtt = vApp.recPostAtts.t.tcAtt;
 					tmpView.cnt 	= tmpCnt;
-                    
 
 
 					var tmpPost = { };
@@ -665,6 +668,7 @@ jQuery(document).ready(function() {
 					tmpPost.c1 = vApp.tmpPostAtts.c1;
 					tmpPost.c2 = vApp.tmpPostAtts.c2;
 					tmpPost.c3 = vApp.tmpPostAtts.c3;
+                    tmpPost.sortChecked = vApp.sortChecked;
 
 
 					console.log("Def: "+JSON.stringify(tmpltDef));

@@ -21,6 +21,7 @@
 			$display_content1 = $the_template->pview->c1;
 			$display_content2 = $the_template->pview->c2;
 			$display_content3 = $the_template->pview->c3;
+            $display_sortChecked = $the_template->pview->sortChecked;
 		}
 	}
 
@@ -30,8 +31,8 @@
 	echo('<h1 class="prospect">'.$the_template->def->l.'</h1>');
 	// sorting part start
 	// little issue: sorting items rendered here is a bit different from template edit page
-    if ($display_content3 !== 'disable') { // if sort is enabled
-        $sort_options = $the_template->view->cnt; // sort options used for template page
+    if ($display_sortChecked !== []) { // if sort is enabled
+        $sort_options = $display_sortChecked; // sort options used for template page
         echo "<div class='sort-dropdown'>";
         echo "<span>Sorted by: </span>";
         echo "<select name='sort-options'>";

@@ -111,12 +111,13 @@
 			{{thisAtt}}
 		</option>
 	</select>
-    <label for="label-tmpdistcnt3"><?php _e('Sortorder', 'prospect'); ?>: </label>
-    <select id="label-tmpdistcnt3" v-model='tmpPostAtts.c3'>
-        <option v-for="thisAtt in tpCAtts">
-            {{thisAtt}}
-        </option>
-    </select>
+    <br />
+    <label for="label-tmpdistcnt3"><?php _e('Enabled Sort Options', 'prospect'); ?>: </label>
+    <template v-for="thisAtt in tpCAtts" v-if="thisAtt != 'disable'">
+        <input type="checkbox" :id="'checkbox-'+ thisAtt" :value="thisAtt" v-model="sortChecked">
+        <label :for="'checkbox-'+ thisAtt">{{ thisAtt }}</label>
+    </template>
+    <span v-if="tpCAtts.length <= 1"><?php _e('No Options available yet', 'prospect'); ?></span>
 
 	<component :is="modalShowing" :params="modalParams">
 	</component>
