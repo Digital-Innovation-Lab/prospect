@@ -33,15 +33,19 @@
 	// little issue: sorting items rendered here is a bit different from template edit page
     if ($display_sortChecked !== []) { // if sort is enabled
         $sort_options = $display_sortChecked; // sort options used for template page
-        echo "<div class='sort-dropdown'>";
-        echo "<span>Sorted by: </span>";
-        echo "<select name='sort-options'>";
-        foreach ($sort_options as $sort_option) {
-            echo "<option value='" . $sort_option . "'>" . $sort_option . "</option>";
+        if (count($sort_options) == 1) {
+            echo "<span>Sorted by: ". $sort_options[0] ."</span>";
+        } else {
+            echo "<div class='sort-dropdown'>";
+            echo "<span>Sorted by: </span>";
+            echo "<select name='sort-options'>";
+            foreach ($sort_options as $sort_option) {
+                echo "<option value='" . $sort_option . "'>" . $sort_option . "</option>";
+            }
+            echo "</select>";
+            echo '<hr/>';
+            echo "</div>";
         }
-        echo "</select>";
-        echo '<hr/>';
-        echo "</div>";
     }
 	// Open any enclosing DIV
 	switch($display_style) {
