@@ -3,9 +3,14 @@
 	<span id="dropdownmenu1">[ ]</span>
 
 	<span id="title"></span>
+	&nbsp; &nbsp;<button id="btn-about"><?php _e('About Prospect', 'prospect'); ?></button>
+	<button id="btn-hs-bars"><?php _e('Show/Hide Filters', 'prospect'); ?></button>
+	<button id="btn-set-layout"><?php _e('Show/Hide View 2', 'prospect'); ?></button>
+	<button id="btn-show-prspctv"><?php _e('Show Perspective', 'prospect'); ?></button>
+	<button id="btn-save-prspctv"><?php _e('Save Perspective', 'prospect'); ?></button>
+	<button id="btn-annote"><?php _e('Show/Hide Annotation', 'prospect'); ?></button>
 	
-	&nbsp; <span id="pstate" class="attn"><?php _e('Loading', 'prospect'); ?></span>
-	<input type="checkbox" name="auto-re" id="auto-re"/> <label><?php _e('Auto-Update', 'prospect'); ?></label>
+	&nbsp; <span id="pstate" class="attn"><?php _e('Loading', 'prospect'); ?></span>&nbsp; <span id="pstate" class="attn"><?php _e('Loading', 'prospect'); ?></span>	<input type="checkbox" name="auto-re" id="auto-re"/> <label><?php _e('Auto-Update', 'prospect'); ?></label>
 	<span class="home">
 		<span id="home-title"></span> <button id="btn-home"><?php _e('Home', 'prospect'); ?></button>
 		<button class="help"><?php _e('Help Tour', 'prospect'); ?></button>
@@ -32,7 +37,7 @@
 <div id = 'menu1'>
 <span id = "closemenu1">X Close Menu</span>
 <hr>
-<img class="logo"/>
+<img id= "menulogo" class="logo"/>
 <hr>
 <span>Hide/Show Legend</span>
 <hr>
