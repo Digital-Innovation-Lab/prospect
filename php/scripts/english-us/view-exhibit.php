@@ -1,22 +1,73 @@
 <div id="command-bar">
+	<div id = "cbwrapper">
+	<span id="dropdownmenu1">[ ]</span>
+
 	<span id="title"></span>
-	&nbsp; &nbsp;<button id="btn-about"><?php _e('About Prospect', 'prospect'); ?></button>
-	<button id="btn-hs-bars"><?php _e('Show/Hide Filters', 'prospect'); ?></button>
-	<button id="btn-set-layout"><?php _e('Show/Hide View 2', 'prospect'); ?></button>
-	<button id="btn-show-prspctv"><?php _e('Show Perspective', 'prospect'); ?></button>
-	<button id="btn-save-prspctv"><?php _e('Save Perspective', 'prospect'); ?></button>
-	<button id="btn-annote"><?php _e('Show/Hide Annotation', 'prospect'); ?></button>
+	
 	&nbsp; <span id="pstate" class="attn"><?php _e('Loading', 'prospect'); ?></span>
 	<input type="checkbox" name="auto-re" id="auto-re"/> <label><?php _e('Auto-Update', 'prospect'); ?></label>
 	<span class="home">
 		<span id="home-title"></span> <button id="btn-home"><?php _e('Home', 'prospect'); ?></button>
 		<button class="help"><?php _e('Help Tour', 'prospect'); ?></button>
-	</span>
+	</span> 
+	
+	<span id= 'vizBack'><</span>
+	<div id = 'selectContainer'>
+	<select id = 'mainSelect'>
+		<option value="" selected hidden>Select a visualization from this list</option>
+		<option value="1">1</option>
+    	<option value="2">2</option>
+    	<option value="1">3</option>
+    	<option value="1">4</option>
+    	<option value="1">5</option>
+
+		</select>
+	</div>
+	<span id= 'vizForward'>></span>
+	<span id="advancedsetting">///</span>
+	
+</div>
 </div>
 
+<div id = 'menu1'>
+<span id = "closemenu1">X Close Menu</span>
+<hr>
+<img class="logo"/>
+<hr>
+<span>Hide/Show Legend</span>
+<hr>
+<span>View Options</span>
+<hr>
+<span>Visualization Notes</span>
+<hr>
+<span>Highlight</span>
+<hr>
+<span>Clear Highlighted</span>
+<hr>
+<span>Show Highlighted</span>
+<hr>
+<span><button id="btn-about"><?php _e('About Prospect', 'prospect'); ?></button>About Prospect</span>
+</div>
 <div id="annote" style="display:none;">
 </div>
 
+
+<div id = 'menu2'>
+<span id = 'advSetHeader'>Advanced Settings</span>
+<hr>
+<span id = "closemenu2">X Close Advanced Settings</span>
+<hr>
+<span>+ Add Filters</span>
+<hr>
+<span>- Remove Filters</span>
+<hr>
+<span>Show Perspective</span>
+<hr>
+<span>Save Perspective</span>
+<hr>
+<span>Show/Hide Annotation</span>
+<hr>
+</div>
 <div id="filter-frame">
 	<div id="filter-control-bar">
 		<?php _e('Filters', 'prospect'); ?>
