@@ -29,24 +29,7 @@
     echo $options['prsp_start_html_tags'] ? $options['prsp_start_html_tags'] : ""; // custom wrapper html start tags
 
 	echo('<h1 class="prospect">'.$the_template->def->l.'</h1>');
-	// sorting part start
-	// little issue: sorting items rendered here is a bit different from template edit page
-    if ($display_sortChecked !== []) { // if sort is enabled
-        $sort_options = $display_sortChecked; // sort options used for template page
-        if (count($sort_options) == 1) {
-            echo "<span>Sorted by: ". $sort_options[0] ."</span>";
-        } else {
-            echo "<div class='sort-dropdown'>";
-            echo "<span>Sorted by: </span>";
-            echo "<select name='sort-options'>";
-            foreach ($sort_options as $sort_option) {
-                echo "<option value='" . $sort_option . "'>" . $sort_option . "</option>";
-            }
-            echo "</select>";
-            echo '<hr/>';
-            echo "</div>";
-        }
-    }
+
 	// Open any enclosing DIV
 	switch($display_style) {
 	case 'l':
@@ -74,8 +57,28 @@
             $order_value = $_GET["order"];
         else
             $order_value = "ASC";
+
+        $template_atts = $the_template->get_all_attributes(null);
+        // sorting options part start
+        if ($display_sortChecked !== []) { // if sort is enabled
+            $sort_options = $display_sortChecked; // sort options used for template page
+            if (count($sort_options) == 1) {
+                echo "<span>Sorted by: ". $sort_options[0] ."</span>";
+            } else {
+                echo "<div style='width:100%;' class='sort-dropdown'>";
+                echo "<span>Sorted by: </span>";
+                echo "<select name='sort-options'>";
+                foreach ($sort_options as $sort_option) {
+                    echo "<option value='" . $sort_option . "'>" . $assoc_atts[$sort_option]->l . "</option>";
+                }
+                echo "</select>";
+                echo '<hr/>';
+                echo "</div>";
+            }
+        }
+        // sorting options part end
             
-			// Get Records -- Need to order by Record ID, etc
+        // Get Records -- Need to order by Record ID, etc
 		$args = array('post_type' => 'prsp-record',
 						'post_status' => 'publish',
 						'meta_key' => $sort_value,
@@ -89,8 +92,19 @@
 					);
         $query = new WP_Query($args);
 		if ($query->have_posts()) {
+		    $last_attr_val = null;
 			foreach ($query->posts as $rec) {
 				$the_rec = new ProspectRecord(true, $rec->ID, false, $the_template, $d_templates, $assoc_atts);
+
+				// handle sorting attribute by data type
+				switch ($assoc_atts[$sort_value]->t) {
+				    // if sorting attribute is vocabulary
+                    case "V":
+                        if ($last_attr_val == $the_rec->att_data[$sort_value][0]) break;
+                        $last_attr_val = $the_rec->att_data[$sort_value][0];
+                        echo "<div style='width: 100%;'>" . $last_attr_val . "</div>";
+                        break;
+                }
 
 				switch ($display_style) {
 				case 'l':
