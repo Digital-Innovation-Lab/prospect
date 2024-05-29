@@ -75,7 +75,7 @@ class ProspectAttribute {
 				foreach ($rec_fields as $key => $value) {
 					$trimmed = trim($value);
 						// exclude WP internal fields
-					if ($trimmed{0} == '_')
+					if ($trimmed[0] == '_')
 						continue;
 					ProspectAttribute::sorted_insert($trimmed, $custom_fields);
 				}
